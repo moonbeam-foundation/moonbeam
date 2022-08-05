@@ -17,8 +17,9 @@
 //! Parachain runtime mock.
 
 use frame_support::{
+	codec::MaxEncodedLen,
 	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfoAccess},
+	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
 	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };
@@ -28,7 +29,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{Hash, IdentityLookup},
+	traits::{BlakeTwo256, Hash, IdentityLookup},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -960,11 +961,78 @@ parameter_types! {
 	pub ReservedXcmpWeight: Weight = u64::max_value();
 }
 
+#[derive(
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+)]
+pub enum ProxyType {
+	NotAllowed = 0,
+	Any = 1,
+	EthereumXcmProxy = 2,
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, c: &Call) -> bool {
+		match self {
+			ProxyType::NotAllowed => false,
+			ProxyType::Any => true,
+			ProxyType::EthereumXcmProxy => matches!(
+				c,
+				Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { .. })
+			),
+		}
+	}
+	fn is_superset(&self, _o: &Self) -> bool {
+		false
+	}
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::NotAllowed
+	}
+}
+
+parameter_types! {
+	pub const ProxyCost: u64 = 1;
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyCost;
+	type ProxyDepositFactor = ProxyCost;
+	type MaxProxies = ConstU32<32>;
+	type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
+	type MaxPending = ConstU32<32>;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = ProxyCost;
+	type AnnouncementDepositFactor = ProxyCost;
+}
+
+pub struct EthereumXcmEnsureProxy;
+impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
+		let f = |x: &pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64>| -> bool {
+			x.delegate == delegatee
+				&& (x.proxy_type == ProxyType::Any || x.proxy_type == ProxyType::EthereumXcmProxy)
+		};
+		Proxy::proxies(delegator)
+			.0
+			.into_iter()
+			.find(f)
+			.map(|_| ())
+			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")
+	}
+}
+
 impl pallet_ethereum_xcm::Config for Runtime {
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type EnsureProxy = EthereumXcmEnsureProxy;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -989,6 +1057,7 @@ construct_runtime!(
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
