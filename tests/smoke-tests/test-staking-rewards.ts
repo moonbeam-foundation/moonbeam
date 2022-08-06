@@ -84,6 +84,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
   const collators: Set<string> = new Set();
   const delegators: Set<string> = new Set();
+  // need to also assert that the bond + delegations.sum()
   for (const [
     {
       args: [_, accountId],
@@ -110,6 +111,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         .unwrap()
         .delegations.map((d) => d.owner.toHex())
     );
+    let countedDelegationSum = new BN(0);
     for (const { owner, amount } of delegations) {
       if (!topDelegations.has(owner.toHex())) {
         continue;
@@ -120,7 +122,14 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         id: id,
         amount: amount,
       };
+      countedDelegationSum += amount;
     }
+    let totalCountedLessTotalCounted = total - (countedDelegationSum + bond);
+    expect(totalCountedLessTotalCounted).to.equal(
+      BN(0),
+      `Total counted less total counted is ${totalCountedLessTotalCounted} so this collator and ` +
+        `its delegations receive fewer rewards for round ${originalRoundNumber.toString()}`
+    );
 
     for (const topDelegation of topDelegations) {
       if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
