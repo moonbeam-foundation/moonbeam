@@ -5,7 +5,6 @@ import { u128, u32 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import { zeroPad } from "ethers/lib/utils";
 const debug = require("debug")("smoke:staking");
 
 const wssUrl = process.env.WSS_URL || null;
