@@ -18,6 +18,14 @@ export function describeSmokeSuite(
   options: SmokeTestOptions,
   cb: (context: SmokeTestContext) => void
 ) {
+  if (!options.wssUrl) {
+    throw Error(`Missing wssUrl parameter (use WSS_URL=... npm run smoke-test)`);
+  }
+
+  if (!options.relayWssUrl) {
+    throw Error(`Missing relayWssUrl parameter (use RELAY_WSS_URL=... npm run smoke-test)`);
+  }
+
   describe(title, function () {
     // Set timeout to 5000 for all tests.
     this.timeout(23700);
@@ -29,10 +37,6 @@ export function describeSmokeSuite(
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
-
-      if (!options.wssUrl) {
-        throw Error(`Missing wssUrl parameter (use WSS_URL=... npm run smoke-test)`);
-      }
 
       [context.polkadotApi, context.relayApi] = await Promise.all([
         ApiPromise.create({
