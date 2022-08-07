@@ -5,6 +5,7 @@ import { u128, u32 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { zeroPad } from "ethers/lib/utils";
 const debug = require("debug")("smoke:staking");
 
 const wssUrl = process.env.WSS_URL || null;
@@ -84,7 +85,6 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
   const collators: Set<string> = new Set();
   const delegators: Set<string> = new Set();
-  // need to also assert that the bond + delegations.sum()
   for (const [
     {
       args: [_, accountId],
@@ -122,11 +122,11 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         id: id,
         amount: amount,
       };
-      countedDelegationSum += amount;
+      countedDelegationSum = countedDelegationSum.add(new BN(amount));
     }
-    let totalCountedLessTotalCounted = total - (countedDelegationSum + bond);
+    let totalCountedLessTotalCounted = new BN(total).sub(countedDelegationSum.add(new BN(bond)));
     expect(totalCountedLessTotalCounted).to.equal(
-      BN(0),
+      new BN(0),
       `Total counted less total counted is ${totalCountedLessTotalCounted} so this collator and ` +
         `its delegations receive fewer rewards for round ${originalRoundNumber.toString()}`
     );
