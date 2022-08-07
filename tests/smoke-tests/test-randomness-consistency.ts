@@ -8,7 +8,8 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
-import { InferencePriority } from "typescript";
+import { couldStartTrivia, InferencePriority } from "typescript";
+import { U8 } from "@polkadot/types-codec";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:randomness");
@@ -18,7 +19,7 @@ const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
-describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify number of randomness requests`, { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -27,7 +28,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   let requestCount: number = 0; // from pallet storage
 
   before("Retrieve all requests", async function () {
-    // It takes time to load all the proxies.
+    // It takes time to load all the requests.
     // TEMPLATE: Adapt the timeout to be an over-estimate
     this.timeout(30_000); // 30s
 
@@ -79,7 +80,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
     requestCount = ((await apiAt.query.randomness.requestCount()) as any).toNumber();
 
     // TEMPLATE: Adapt proxies
-    debug(`Retrieved ${count} total proxies`);
+    debug(`Retrieved ${count} total requests`);
   });
 
   it("should have fewer Requests than RequestCount", async function () {
@@ -198,4 +199,39 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
     expect(palletAccountBalance >= totalDeposits).to.be.true;
   });
+
+  it("local VRF output should be random", async function () {
+    this.timeout(10000);
+
+    const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
+    if (notFirstBlock) {
+      const currentOutput = await apiAt.query.randomness.localVrfOutput();
+      // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 96 < X < 160
+      averageByteWithinExpectedRange(currentOutput.createdAtHash, 64, 192);
+      // expect fewer than 4 repeated values in output [u8; 32]
+      outputWithinExpectedRepetition(currentOutput.createdAtHash, 3);
+    }
+  });
 });
+
+// Tests uniform distribution of outputs bytes by checking if average byte is within expected range
+function averageByteWithinExpectedRange(bytes: Uint8Array, min: number, max: number) {
+  const average = bytes.reduce((a, b) => a + b) / bytes.length;
+  debug(`Average byte is ${average}`);
+  expect(min <= average && average <= max).to.be.true;
+}
+
+// Tests uniform distribution of outputs bytes by checking if any repeated bytes
+function outputWithinExpectedRepetition(bytes: Uint8Array, maxRepeats: number) {
+  const counts = {};
+  let fewerThanMaxRepeats = true;
+  bytes.forEach(function (x) {
+    let newCount: number = (counts[x] || 0) + 1;
+    counts[x] = newCount;
+    if (newCount > maxRepeats) {
+      debug(`Count of ${x} > ${maxRepeats} maxRepeats\n` + `Bytes: ${bytes}`);
+      fewerThanMaxRepeats = false;
+    }
+  });
+  expect(fewerThanMaxRepeats).to.be.true;
+}
