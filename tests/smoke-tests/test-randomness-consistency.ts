@@ -199,6 +199,22 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
     expect(palletAccountBalance >= totalDeposits).to.be.true;
   });
 
+  it("available randomness outputs should be random", async function () {
+    this.timeout(10000);
+
+    let query = await apiAt.query.randomness.randomnessResults.entries();
+    await query.forEach(([key, results]) => {
+      const result = context.polkadotApi.registry.createType(
+        "PalletRandomnessRandomnessResult",
+        results.toHex()
+      );
+      const randomnessResult = (result as any).randomness;
+      if (randomnessResult.isSome) {
+        isRandom(randomnessResult.unwrap());
+      }
+    });
+  });
+
   it("local VRF output should be random", async function () {
     this.timeout(10000);
 
@@ -209,19 +225,24 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
         "H256",
         (currentOutput as any).toHex()
       );
-      // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 96 < X < 160
-      averageByteWithinExpectedRange(currentRawOutput, 96, 160);
-      // expect fewer than 4 repeated values in output [u8; 32]
-      outputWithinExpectedRepetition(currentRawOutput, 3);
+      isRandom(currentRawOutput);
     }
   });
 });
 
+// Tests whether the input bytes appear to be random by measuring the distribution relative to
+// what would be expected of a uniformly distributed [u8; 32]
+function isRandom(bytes: Uint8Array) {
+  // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 81 < X < 175
+  averageByteWithinExpectedRange(bytes, 81, 175);
+  // expect fewer than 4 repeated values in output [u8; 32]
+  outputWithinExpectedRepetition(bytes, 3);
+}
+
 // Tests uniform distribution of outputs bytes by checking if average byte is within expected range
 function averageByteWithinExpectedRange(bytes: Uint8Array, min: number, max: number) {
   const average = bytes.reduce((a, b) => a + b) / bytes.length;
-  debug(`Average byte is ${average}`);
-  expect(min <= average && average <= max).to.be.true;
+  expect(min <= average && average <= max).to.equal(true, `Average bytes is ${average}`);
 }
 
 // Tests uniform distribution of outputs bytes by checking if any repeated bytes
