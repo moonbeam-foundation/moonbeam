@@ -8,8 +8,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
-import { couldStartTrivia, InferencePriority } from "typescript";
-import { U8 } from "@polkadot/types-codec";
+import { InferencePriority } from "typescript";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:randomness");
@@ -19,7 +18,7 @@ const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 const RANDOMNESS_ACCOUNT_ID = "0x6d6f646c6d6f6f6e72616e640000000000000000";
 
-describeSmokeSuite(`Verify number of randomness requests`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -206,10 +205,14 @@ describeSmokeSuite(`Verify number of randomness requests`, { wssUrl, relayWssUrl
     const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
     if (notFirstBlock) {
       const currentOutput = await apiAt.query.randomness.localVrfOutput();
+      const currentRawOutput = context.polkadotApi.registry.createType(
+        "H256",
+        (currentOutput as any).toHex()
+      );
       // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 96 < X < 160
-      averageByteWithinExpectedRange(currentOutput.createdAtHash, 64, 192);
+      averageByteWithinExpectedRange(currentRawOutput, 96, 160);
       // expect fewer than 4 repeated values in output [u8; 32]
-      outputWithinExpectedRepetition(currentOutput.createdAtHash, 3);
+      outputWithinExpectedRepetition(currentRawOutput, 3);
     }
   });
 });
