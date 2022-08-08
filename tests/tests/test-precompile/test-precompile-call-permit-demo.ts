@@ -23,6 +23,7 @@ import {
   DEFAULT_GENESIS_BALANCE,
   GLMR,
   MILLIGLMR,
+  PRECOMPILE_CALL_PERMIT_ADDRESS,
   PRECOMPILE_RANDOMNESS_ADDRESS,
 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
@@ -35,6 +36,7 @@ import {
   createTransaction,
   TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
+import { web3EthCall } from "../../util/providers";
 
 const CALL_PERMIT_DEMO_CONTRACT_JSON = getCompiled("CallPermitDemo");
 const CALL_PERMIT_DEMO_INTERFACE = new ethers.utils.Interface(
@@ -43,14 +45,6 @@ const CALL_PERMIT_DEMO_INTERFACE = new ethers.utils.Interface(
 
 const CALL_PERMIT_CONTRACT_JSON = getCompiled("CallPermit");
 const CALL_PERMIT_INTERFACE = new ethers.utils.Interface(CALL_PERMIT_CONTRACT_JSON.contract.abi);
-
-async function setupWithParticipants(context: DevTestContext) {
-  const { contract, rawTx } = await createContract(context, "CallPermitDemo", {
-    ...ALITH_TRANSACTION_TEMPLATE,
-  });
-  await context.createBlock(rawTx);
-  return contract;
-}
 
 function getSignatureParameters(signature: string) {
   const r = signature.slice(0, 66);
@@ -68,250 +62,153 @@ function getSignatureParameters(signature: string) {
 
 describeDevMoonbeam("Precompile - Call Permit - foo", (context) => {
   let demoContract: Contract;
-  before("setup lottery contract", async function () {
-    const { contract, rawTx } = await createContract(context, "CallPermitDemo", {
-      ...ALITH_TRANSACTION_TEMPLATE,
-    });
-    await context.createBlock(rawTx);
-    demoContract = contract;
+  before(
+    "setup contract and bond for baltathar, and for alith via baltathar using permit",
+    async function () {
+      const { contract, rawTx } = await createContract(context, "CallPermitDemo", {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        gas: 5_000_000,
+      });
+      await context.createBlock(rawTx);
+      demoContract = contract;
+
+      const { result: bondAmountResult } = await web3EthCall(context.web3, {
+        to: demoContract.options.address,
+        data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("BOND_AMOUNT"),
+      });
+      const bondAmount = Number(bondAmountResult);
+
+      // bond baltathar
+      const { result: baltatharResult } = await context.createBlock(
+        createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: demoContract.options.address,
+          data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("bond"),
+          gas: 200_000,
+          value: bondAmount,
+        })
+      );
+      expectEVMResult(baltatharResult.events, "Succeed");
+
+      // bond alice via baltathar using call permit
+      const { result: alithNonceResult } = await web3EthCall(context.web3, {
+        to: PRECOMPILE_CALL_PERMIT_ADDRESS,
+        data: CALL_PERMIT_INTERFACE.encodeFunctionData("nonces", [ALITH_ADDRESS]),
+      });
+      const alithNonce = Number(alithNonceResult);
+      const signature = signTypedData({
+        privateKey: Buffer.from(ALITH_PRIVATE_KEY.substring(2), "hex"),
+        data: {
+          types: {
+            EIP712Domain: [
+              {
+                name: "name",
+                type: "string",
+              },
+              {
+                name: "version",
+                type: "string",
+              },
+              {
+                name: "chainId",
+                type: "uint256",
+              },
+              {
+                name: "verifyingContract",
+                type: "address",
+              },
+            ],
+            CallPermit: [
+              {
+                name: "from",
+                type: "address",
+              },
+              {
+                name: "to",
+                type: "address",
+              },
+              {
+                name: "value",
+                type: "uint256",
+              },
+              {
+                name: "data",
+                type: "bytes",
+              },
+              {
+                name: "gaslimit",
+                type: "uint64",
+              },
+              {
+                name: "nonce",
+                type: "uint256",
+              },
+              {
+                name: "deadline",
+                type: "uint256",
+              },
+            ],
+          },
+          primaryType: "CallPermit",
+          domain: {
+            name: "Call Permit Precompile",
+            version: "1",
+            chainId: 1281,
+            verifyingContract: PRECOMPILE_CALL_PERMIT_ADDRESS,
+          },
+          message: {
+            from: ALITH_ADDRESS,
+            to: demoContract.options.address,
+            value: bondAmount,
+            data: "",
+            gaslimit: 100_000,
+            nonce: alithNonce,
+            deadline: 9999999999,
+          },
+        },
+        version: SignTypedDataVersion.V4,
+      });
+      const { v, r, s } = getSignatureParameters(signature);
+
+      const { result: baltatharForAlithResult } = await context.createBlock(
+        createTransaction(context, {
+          ...BALTATHAR_TRANSACTION_TEMPLATE,
+          to: demoContract.options.address,
+          data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("bondFor", [
+            ALITH_ADDRESS,
+            100_000,
+            9999999999,
+            v,
+            r,
+            s,
+          ]),
+          gas: 200_000,
+        })
+      );
+      expectEVMResult(baltatharForAlithResult.events, "Succeed");
+    }
+  );
+
+  it("should have bonds for baltathar and alith in contract balance", async function () {
+    const freeBalance = (
+      await context.polkadotApi.query.system.account(demoContract.options.address)
+    ).data.free.toNumber();
+    expect(freeBalance).to.equal(200);
   });
 
-  it("should sign", async function () {
-    const alithAccount = await context.polkadotApi.query.system.account(ALITH_ADDRESS);
-    console.log(alithAccount.toHuman());
-    const message = {
-      from: ALITH_ADDRESS,
-      to: CHARLETH_ADDRESS, // demoContract.options.address
-      value: 42,
-      data: "0x",
-      gaslimit: 100000,
-      nonce: alithAccount.nonce.toNumber(),
-      deadline: 9999999999,
-    };
-
-    // const signature = context.web3.eth.accounts.sign(
-    //   JSON.stringify(getMessageData(message)),
-    //   ALITH_PRIVATE_KEY
-    // );
-
-    const data = {
-      types: {
-        EIP712Domain: [
-          {
-            name: "name",
-            type: "string",
-          },
-          {
-            name: "version",
-            type: "string",
-          },
-          {
-            name: "chainId",
-            type: "uint256",
-          },
-          {
-            name: "verifyingContract",
-            type: "address",
-          },
-          // {
-          //   name: "salt",
-          //   type: "bytes32",
-          // },
-        ],
-        CallPermit: [
-          {
-            name: "from",
-            type: "address",
-          },
-          {
-            name: "to",
-            type: "address",
-          },
-          {
-            name: "value",
-            type: "uint256",
-          },
-          {
-            name: "data",
-            type: "bytes",
-          },
-          {
-            name: "gaslimit",
-            type: "uint64",
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-          },
-          {
-            name: "deadline",
-            type: "uint256",
-          },
-        ],
-      },
-      primaryType: "CallPermit",
-      domain: {
-        name: "Call Permit Precompile",
-        version: "1",
-        chainId: 0,
-        verifyingContract: "0x000000000000000000000000000000000000080a",
-        // salt: Buffer.from([]),
-      },
-      message: message,
-    };
-
-    const signature = signTypedData({
-      privateKey: Buffer.from(ALITH_PRIVATE_KEY.substring(2), "hex"),
-      data: data as any,
-      version: SignTypedDataVersion.V4,
+  it("should have bond for baltathar in contract storage", async function () {
+    const { result: baltatharBond } = await web3EthCall(context.web3, {
+      to: demoContract.options.address,
+      data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("getBondAmount", [BALTATHAR_ADDRESS]),
     });
-    // const signature = await context.web3.eth.sign(
-    //   JSON.stringify(getMessageData(message)),
-    //   ALITH_ADDRESS
-    // );
-    const signatureParams = getSignatureParameters(signature);
+    expect(Number(baltatharBond)).to.equal(100);
+  });
 
-    console.log(
-      (await context.polkadotApi.query.system.account(demoContract.options.address)).toHuman()
-    );
-
-    // const { result } = await context.createBlock(
-    //   createTransaction(context, {
-    //     ...BALTATHAR_TRANSACTION_TEMPLATE,
-    //     to: demoContract.options.address,
-    //     data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("bondFor", [
-    //       ALITH_ADDRESS,
-    //       42,
-    //       "0x",
-    //       100000,
-    //       9999999999,
-    //       signatureParams.v,
-    //       signatureParams.r,
-    //       signatureParams.s,
-    //     ]),
-    //     // value: Web3.utils.toWei("1", "ether"),
-    //   })
-    // );
-
-    console.log(
-      "ALITH",
-      (await context.polkadotApi.query.system.account(ALITH_ADDRESS)).data.free.toHuman()
-    );
-    console.log(
-      "CHARLETH",
-      (await context.polkadotApi.query.system.account(CHARLETH_ADDRESS)).data.free.toHuman()
-    );
-
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...BALTATHAR_TRANSACTION_TEMPLATE,
-        to: "0x000000000000000000000000000000000000080a",
-        data: CALL_PERMIT_INTERFACE.encodeFunctionData("dispatch", [
-          ALITH_ADDRESS,
-          CHARLETH_ADDRESS,
-          42,
-          "0x",
-          100000,
-          9999999999,
-          signatureParams.v,
-          signatureParams.r,
-          signatureParams.s,
-        ]),
-        // value: Web3.utils.toWei("1", "ether"),
-      })
-    );
-
-    // result.events.forEach((e) => console.log(e.toHuman()));
-    console.log(result.successful);
-
-    console.log(
-      (await context.polkadotApi.query.system.account(demoContract.options.address)).toHuman()
-    );
-
-    console.log(
-      "ALITH",
-      (await context.polkadotApi.query.system.account(ALITH_ADDRESS)).data.free.toHuman()
-    );
-    console.log(
-      "CHARLETH",
-      (await context.polkadotApi.query.system.account(CHARLETH_ADDRESS)).data.free.toHuman()
-    );
-
-    console.log(message);
-    console.log(signature);
-    console.log(signatureParams);
-
-    const who = recoverTypedSignature({
-      data: data as any,
-      signature,
-      version: SignTypedDataVersion.V4,
+  it("should have bond for alith in contract storage", async function () {
+    const { result: alithBond } = await web3EthCall(context.web3, {
+      to: demoContract.options.address,
+      data: CALL_PERMIT_DEMO_INTERFACE.encodeFunctionData("getBondAmount", [ALITH_ADDRESS]),
     });
-
-    console.log(who);
-
-    expectEVMResult(result.events, "Succeed");
+    expect(Number(alithBond)).to.equal(100);
   });
 });
-
-function getMessageData(message: any) {
-  return {
-    types: {
-      EIP712Domain: [
-        {
-          name: "name",
-          type: "string",
-        },
-        {
-          name: "version",
-          type: "string",
-        },
-        {
-          name: "chainId",
-          type: "uint256",
-        },
-        {
-          name: "verifyingContract",
-          type: "address",
-        },
-      ],
-      CallPermit: [
-        {
-          name: "from",
-          type: "address",
-        },
-        {
-          name: "to",
-          type: "address",
-        },
-        {
-          name: "value",
-          type: "uint256",
-        },
-        {
-          name: "data",
-          type: "bytes",
-        },
-        {
-          name: "gaslimit",
-          type: "uint64",
-        },
-        {
-          name: "nonce",
-          type: "uint256",
-        },
-        {
-          name: "deadline",
-          type: "uint256",
-        },
-      ],
-    },
-    primaryType: "CallPermit",
-    domain: {
-      name: "Call Permit Precompile",
-      version: "1",
-      chainId: 0,
-      verifyingContract: "0x000000000000000000000000000000000000080a",
-    },
-    message: message,
-  };
-}

@@ -657,6 +657,6 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(b"TEST".to_vec());
+				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
 		})
 }
