@@ -151,14 +151,10 @@ impl From<TestAccount> for H160 {
 	}
 }
 
-pub struct MockMultilocationToAccountConverter;
-impl Convert<MultiLocation, AccountId> for MockMultilocationToAccountConverter {
+pub struct MockParentMultilocationToAccountConverter;
+impl Convert<MultiLocation, AccountId> for MockParentMultilocationToAccountConverter {
 	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
 		match location.borrow() {
-			MultiLocation {
-				parents: 1,
-				interior: Junctions::X1(Parachain(id)),
-			} => Ok(TestAccount::SiblingParachain(*id)),
 			MultiLocation {
 				parents: 1,
 				interior: Here,
@@ -169,15 +165,39 @@ impl Convert<MultiLocation, AccountId> for MockMultilocationToAccountConverter {
 
 	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
 		match who.borrow() {
-			TestAccount::SiblingParachain(id) => Ok(MultiLocation {
-				parents: 1,
-				interior: Junctions::X1(Parachain(*id)),
-			}),
 			TestAccount::Parent => Ok(MultiLocation::parent()),
 			_ => Err(()),
 		}
 	}
 }
+
+pub struct MockParachainMultilocationToAccountConverter;
+impl Convert<MultiLocation, AccountId> for MockParachainMultilocationToAccountConverter {
+	fn convert_ref(location: impl Borrow<MultiLocation>) -> Result<AccountId, ()> {
+		match location.borrow() {
+			MultiLocation {
+				parents: 1,
+				interior: Junctions::X1(Parachain(id)),
+			} => Ok(TestAccount::SiblingParachain(*id)),
+			_ => Err(()),
+		}
+	}
+
+	fn reverse_ref(who: impl Borrow<AccountId>) -> Result<MultiLocation, ()> {
+		match who.borrow() {
+			TestAccount::SiblingParachain(id) => Ok(MultiLocation {
+				parents: 1,
+				interior: Junctions::X1(Parachain(*id)),
+			}),
+			_ => Err(()),
+		}
+	}
+}
+
+pub type LocationToAccountId = (
+	MockParachainMultilocationToAccountConverter,
+	MockParentMultilocationToAccountConverter,
+);
 
 impl From<TestAccount> for [u8; 20] {
 	fn from(value: TestAccount) -> [u8; 20] {
@@ -408,7 +428,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
 	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
 	// foreign chains who want to have a local sovereign account on this chain which they control.
-	SovereignSignedViaLocation<MockMultilocationToAccountConverter, Origin>,
+	SovereignSignedViaLocation<LocationToAccountId, Origin>,
 );
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
