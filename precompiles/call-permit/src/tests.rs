@@ -137,7 +137,7 @@ fn valid_permit_returns() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(b"TEST".to_vec());
+				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
 		})
 }
 
@@ -236,7 +236,9 @@ fn valid_permit_reverts() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_no_logs()
-				.execute_reverts(|x| x == b"TEST".to_vec());
+				.execute_reverts(|x| {
+					x == EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build()
+				});
 		})
 }
 
