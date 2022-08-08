@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
-import { hexToBigInt } from "@polkadot/util";
+import { BN, hexToBigInt } from "@polkadot/util";
 import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
@@ -122,7 +122,28 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 
       if ((requestType as any).isBabeEpoch) {
         let epoch = (requestType as any).asBabeEpoch;
-        // TODO
+        let found = requestStates.find((request) => {
+          // TODO: can we traverse this hierarchy of types without creating each?
+          const requestState = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequestState",
+            request.state.toHex()
+          );
+          const requestRequest = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequest",
+            (requestState as any).request.toHex()
+          );
+          const requestInfo = context.polkadotApi.registry.createType(
+            "PalletRandomnessRequestInfo",
+            (requestRequest as any).info
+          );
+          if ((requestInfo as any).isBabeEpoch) {
+            const babe = (requestInfo as any).asBabeEpoch;
+            const requestEpoch = babe[0];
+            return requestEpoch.eq(epoch);
+          }
+          return false;
+        });
+        expect(found).is.not.undefined;
       } else {
         // look for any requests which depend on the "local" block
         let block = (requestType as any).asLocal;
@@ -152,6 +173,70 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
     });
   });
 
+  it("all results should have correct request counters", async function () {
+    this.timeout(10000);
+
+    let query = await apiAt.query.randomness.randomnessResults.entries();
+    await query.forEach(([key, results]) => {
+      // offset is:
+      // * 2 for "0x"
+      // * 32 for module
+      // * 32 for method
+      // * 16 for the hashed part of the key: the twox64(someRequestType) part
+      // the remaining substr after offset is the concat part, which we can decode with createType
+      const offset = 2 + 32 + 32 + 16;
+      const requestTypeEncoded = key.toHex().slice(offset);
+      const requestType = context.polkadotApi.registry.createType(
+        `PalletRandomnessRequestType`,
+        "0x" + requestTypeEncoded
+      );
+
+      // Local count for request types
+      const requestCounts = {};
+      requestStates.forEach((request) => {
+        const requestState = context.polkadotApi.registry.createType(
+          "PalletRandomnessRequestState",
+          request.state.toHex()
+        );
+        const requestRequest = context.polkadotApi.registry.createType(
+          "PalletRandomnessRequest",
+          (requestState as any).request.toHex()
+        );
+        const requestInfo = context.polkadotApi.registry.createType(
+          "PalletRandomnessRequestInfo",
+          (requestRequest as any).info
+        );
+        if ((requestInfo as any).isBabeEpoch) {
+          const babe = (requestInfo as any).asBabeEpoch;
+          requestCounts[babe[0]] = (requestCounts[babe[0]] || new BN(0)).add(new BN(1));
+        } else {
+          const local = (requestInfo as any).asLocal;
+          requestCounts[local[0]] = (requestCounts[local[0]] || new BN(0)).add(new BN(1));
+        }
+      });
+      const result = context.polkadotApi.registry.createType(
+        "PalletRandomnessRandomnessResult",
+        results.toHex()
+      );
+      const resultRequestCount = (result as any).requestCount;
+      if ((requestType as any).isBabeEpoch) {
+        let epoch = (requestType as any).asBabeEpoch;
+        expect(requestCounts[epoch].toString()).to.equal(
+          resultRequestCount.toString(),
+          `Counted request count ${requestCounts[epoch]} != ${resultRequestCount} for result:\n` +
+            `${result}`
+        );
+      } else {
+        let local = (requestType as any).asLocal;
+        expect(requestCounts[local].toString()).to.equal(
+          resultRequestCount.toString(),
+          `Counted request count ${requestCounts[local]} != ${resultRequestCount} for result:\n` +
+            `${result}`
+        );
+      }
+    });
+  });
+
   it("should have updated VRF output", async function () {
     this.timeout(10000);
 
@@ -165,7 +250,23 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 
       const currentOutput = await apiAt.query.randomness.localVrfOutput();
       const previousOutput = await apiAtPrev.query.randomness.localVrfOutput();
-      expect(currentOutput.eq(previousOutput)).to.be.false;
+      const currentVrfOutput = context.polkadotApi.registry.createType(
+        "Option<H256>",
+        (currentOutput as any).toHex()
+      );
+      const previousVrfOutput = context.polkadotApi.registry.createType(
+        "Option<H256>",
+        (previousOutput as any).toHex()
+      );
+      expect(previousVrfOutput.isSome).to.equal(
+        true,
+        `Previous local VRF output must always be inserted into storage but isNone`
+      );
+      expect(currentVrfOutput.isSome).to.equal(
+        true,
+        `Current local VRF output must always be inserted into storage but isNone`
+      );
+      expect(currentVrfOutput.unwrap().eq(previousVrfOutput.unwrap())).to.be.false;
 
       // is cleared in on_finalize()
       const inherentIncluded = ((await apiAt.query.randomness.inherentIncluded()) as any).isSome;
