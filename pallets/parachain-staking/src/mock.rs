@@ -22,8 +22,7 @@ use crate::{
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{
-		Everything, GenesisBuild, LockIdentifier, LockableCurrency, OnFinalize, OnInitialize,
-		ReservableCurrency,
+		Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize,
 	},
 	weights::Weight,
 };
