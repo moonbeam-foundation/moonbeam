@@ -573,4 +573,3 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
     );
   });
 });
-});
