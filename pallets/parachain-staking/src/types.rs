@@ -1303,19 +1303,6 @@ impl<
 		self.total
 	}
 
-	pub fn total_add_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
-	where
-		T: Config,
-		T::AccountId: From<AccountId>,
-		BalanceOf<T>: From<Balance>,
-		F: Fn(Balance) -> DispatchResult,
-	{
-		let total = self.total.saturating_add(amount);
-		check(total)?;
-		self.total = total;
-		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))
-	}
-
 	pub fn total_sub_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
 	where
 		T: Config,
@@ -1413,7 +1400,8 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-				self.total_add_if::<T, _>(amount, |_| Ok(()));
+				self.total = self.total.saturating_add(amount);
+				self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
 
 				// update collator state delegation
 				let mut collator_state =
