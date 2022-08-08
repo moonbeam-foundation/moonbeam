@@ -178,7 +178,12 @@ pub mod pallet {
 			if let Some(round_to_prune) =
 				CurrentRound::<T>::get().checked_sub(&T::MaxRoundArchive::get())
 			{
-				OrbiterPerRound::<T>::remove_prefix(round_to_prune, None);
+				// TODO: Find better limit.
+				// Is it sure to be cleared in a single block? In which case we can probably have
+				// a lower limit.
+				// Otherwise, we should still have a lower limit, and implement a multi-block clear
+				// by using the return value of clear_prefix for subsequent blocks.
+				let _result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
 				T::DbWeight::get().reads_writes(1, 1)
 			} else {
 				T::DbWeight::get().reads(1)

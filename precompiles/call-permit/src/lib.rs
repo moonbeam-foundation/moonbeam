@@ -24,7 +24,7 @@ use fp_evm::{
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},
-	traits::{Get, StorageInstance},
+	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
 use precompile_utils::{costs::call_cost, prelude::*};
@@ -69,6 +69,8 @@ pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
 const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
+
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -171,7 +173,9 @@ where
 		let from = input.read::<Address>()?.0;
 		let to = input.read::<Address>()?.0;
 		let value: U256 = input.read()?;
-		let data = input.read::<Bytes>()?.0;
+		let data = input
+			.read::<BoundedBytes<ConstU32<CALL_DATA_LIMIT>>>()?
+			.into_vec();
 		let gas_limit: u64 = input.read()?;
 		let deadline: U256 = input.read()?;
 		let v: u8 = input.read()?;

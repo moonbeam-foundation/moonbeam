@@ -26,7 +26,7 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{costs::call_cost, prelude::*, testing::*};
+use precompile_utils::{costs::call_cost, prelude::*, testing::*, Error as RevertError};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -430,7 +430,9 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: b"Revert message".to_vec(),
+						output: EvmDataWriter::new_with_selector(RevertError::Generic)
+							.write::<Bytes>(Bytes(b"Revert message".to_vec()))
+							.build(),
 						cost: 17,
 						logs: vec![],
 					}

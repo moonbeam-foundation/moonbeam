@@ -27,8 +27,8 @@ tempfile = "3.2.0"
 tracing-core = "=0.1.26"
 
 # Benchmarking
-pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
-xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.23" }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
 
 [features]
 default = [ "moonbase-native", "moonbeam-native", "moonriver-native" ]
