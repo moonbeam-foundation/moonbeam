@@ -21,9 +21,7 @@ use crate::{
 };
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{
-		Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize,
-	},
+	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
