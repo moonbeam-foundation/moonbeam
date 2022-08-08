@@ -139,7 +139,7 @@ pub fn inherent_benchmark_data() -> Result<InherentData> {
 	log::warn!("building inherent data...");
 
     let vfp = PersistedValidationData {
-        relay_parent_number: 0u32,
+        relay_parent_number: 1u32,
         relay_parent_storage_root,
         ..Default::default()
     };
