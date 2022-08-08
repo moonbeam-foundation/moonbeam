@@ -22,6 +22,5 @@ interface XcmUtils {
 
      * Selector: 343b3e00
      */
-    function multilocationToAccount(Multilocation memory multilocation) external view returns(address account);
-
+    function multilocationToAddress(Multilocation memory multilocation) external view returns(address account);
 }
