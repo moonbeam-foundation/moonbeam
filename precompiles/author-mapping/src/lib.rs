@@ -87,7 +87,8 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		let nimbus_id = input.read::<H256>().in_field("nimbus_id")?;
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -104,11 +105,14 @@ where
 
 	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
+
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		let old_nimbus_id = input.read::<H256>().in_field("old_nimbus_id")?;
+		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(old_nimbus_id).into();
+		let new_nimbus_id = input.read::<H256>().in_field("new_nimbus_id")?;
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(new_nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -130,7 +134,8 @@ where
 		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		let nimbus_id = input.read::<H256>().in_field("nimbus_id")?;
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",

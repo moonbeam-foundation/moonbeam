@@ -17,11 +17,9 @@
 use {
 	crate::{
 		data::xcm::{network_id_from_bytes, network_id_to_bytes},
-		error::ErrorLocation,
+		revert::Backtrace,
 		prelude::*,
-		Error as RevertError,
 	},
-	fp_evm::PrecompileFailure,
 	hex_literal::hex,
 	pallet_evm::Context,
 	sp_core::{H160, H256, U256},
@@ -671,7 +669,7 @@ struct MultiLocation {
 }
 
 impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 		let parents = inner_reader.read().in_field("parents")?;
 		let interior = inner_reader.read().in_field("interior")?;
@@ -912,8 +910,8 @@ fn test_check_function_modifier() {
 		apparent_value: U256::from(value),
 	};
 
-	let payable_error = || revert("function is not payable");
-	let static_error = || revert("can't call non-static function in static context");
+	let payable_error = || Revert::new(RevertReason::custom("Function is not payable"));
+	let static_error = || Revert::new(RevertReason::custom("Can't call non-static function in static context"));
 
 	// Can't call non-static functions in static context.
 	assert_eq!(
@@ -1048,7 +1046,7 @@ fn write_dynamic_size_tuple() {
 #[test]
 fn error_location_formatting() {
 	assert_eq!(
-		ErrorLocation::new()
+		Backtrace::new()
 			.in_field("foo")
 			.in_array(2)
 			.in_array(3)
@@ -1062,7 +1060,7 @@ fn error_location_formatting() {
 #[test]
 fn error_formatting() {
 	assert_eq!(
-		Error::new(ErrorKind::custom("Test"))
+		Revert::new(RevertReason::custom("Test"))
 			.in_field("foo")
 			.in_array(2)
 			.in_array(3)

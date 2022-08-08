@@ -19,7 +19,7 @@
 use {
 	crate::{
 		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
-		error::{Error, ErrorKind, LocationMap},
+		revert::{BacktraceExt, MayRevert, RevertReason},
 	},
 	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,
@@ -61,16 +61,16 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 }
 
 // Function to convert bytes to networkId
-pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> Result<NetworkId, Error> {
+pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<NetworkId> {
 	ensure!(
 		encoded_bytes.len() > 0,
-		ErrorKind::custom("Junctions cannot be empty")
+		RevertReason::custom("Junctions cannot be empty")
 	);
 	let mut encoded_network_id = EvmDataReader::new(&encoded_bytes);
 
 	let network_selector = encoded_network_id
 		.read_raw_bytes(1)
-		.map_err(|_| ErrorKind::read_out_of_bounds("network selector (1 byte)"))?;
+		.map_err(|_| RevertReason::read_out_of_bounds("network selector (1 byte)"))?;
 
 	match network_selector[0] {
 		0 => Ok(NetworkId::Any),
@@ -80,22 +80,22 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> Result<NetworkId,
 				.in_field("name")?
 				.to_vec()
 				.try_into()
-				.map_err(|_| ErrorKind::value_is_too_large("network name"))?,
+				.map_err(|_| RevertReason::value_is_too_large("network name"))?,
 		)),
 		2 => Ok(NetworkId::Polkadot),
 		3 => Ok(NetworkId::Kusama),
-		_ => Err(ErrorKind::custom("Non-valid Network Id").into()),
+		_ => Err(RevertReason::custom("Non-valid Network Id").into()),
 	}
 }
 
 impl EvmData for Junction {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
 		let junction_bytes = junction.into_vec();
 
 		ensure!(
 			junction_bytes.len() > 0,
-			ErrorKind::custom("Junctions cannot be empty")
+			RevertReason::custom("Junctions cannot be empty")
 		);
 
 		// For simplicity we use an EvmReader here
@@ -104,7 +104,7 @@ impl EvmData for Junction {
 		// We take the first byte
 		let enum_selector = encoded_junction
 			.read_raw_bytes(1)
-			.map_err(|_| ErrorKind::read_out_of_bounds("junction variant"))?;
+			.map_err(|_| RevertReason::read_out_of_bounds("junction variant"))?;
 
 		// The firs byte selects the enum variant
 		match enum_selector[0] {
@@ -162,10 +162,10 @@ impl EvmData for Junction {
 					.read_till_end()?
 					.to_vec()
 					.try_into()
-					.map_err(|_| ErrorKind::custom("junction general key is too long"))?,
+					.map_err(|_| RevertReason::custom("junction general key is too long"))?,
 			)),
 			7 => Ok(Junction::OnlyChild),
-			_ => Err(ErrorKind::custom("Unknown Junction variant").into()),
+			_ => Err(RevertReason::custom("Unknown Junction variant").into()),
 		}
 	}
 
@@ -227,13 +227,13 @@ impl EvmData for Junction {
 }
 
 impl EvmData for Junctions {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let junctions_bytes: Vec<Junction> = reader.read()?;
 		let mut junctions = Junctions::Here;
 		for item in junctions_bytes {
 			junctions
 				.push(item)
-				.map_err(|_| ErrorKind::custom("overflow when reading junctions"))?;
+				.map_err(|_| RevertReason::custom("overflow when reading junctions"))?;
 		}
 
 		Ok(junctions)
@@ -250,7 +250,7 @@ impl EvmData for Junctions {
 }
 
 impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 		let parents = inner_reader.read().in_field("parents")?;
 		let interior = inner_reader.read().in_field("interior")?;

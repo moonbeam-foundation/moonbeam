@@ -146,7 +146,7 @@ where
 		let mut input = handle.read_input()?;
 		// Bound check
 		input.expect_arguments(1)?;
-		let prop_index: u32 = input.read()?;
+		let prop_index: u32 = input.read().in_field("prop_index")?;
 
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -241,8 +241,8 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal_hash = input.read::<H256>()?.into();
-		let amount = input.read::<BalanceOf<Runtime>>()?;
+		let proposal_hash = input.read::<H256>().in_field("proposal_hash")?.into();
+		let amount = input.read::<BalanceOf<Runtime>>().in_field("value")?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -265,8 +265,8 @@ where
 		// Bound check
 		input.expect_arguments(2)?;
 
-		let proposal = input.read()?;
-		let seconds_upper_bound = input.read()?;
+		let proposal = input.read().in_field("proposal")?;
+		let seconds_upper_bound = input.read().in_field("seconds_upper_bound")?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -289,11 +289,12 @@ where
 		// Bound check
 		input.expect_arguments(4)?;
 
-		let ref_index = input.read()?;
-		let aye = input.read()?;
-		let balance = input.read()?;
+		let ref_index = input.read().in_field("ref_index")?;
+		let aye = input.read().in_field("aye")?;
+		let balance = input.read().in_field("vote_amount")?;
 		let conviction = input
-			.read::<u8>()?
+			.read::<u8>()
+			.in_field("conviction")?
 			.try_into()
 			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
 		let vote = AccountVote::Standard {
@@ -319,7 +320,7 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let referendum_index = input.read()?;
+		let referendum_index = input.read().in_field("ref_index")?;
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -342,13 +343,14 @@ where
 		// Bound check
 		input.expect_arguments(3)?;
 
-		let to: H160 = input.read::<Address>()?.into();
+		let to: H160 = input.read::<Address>().in_field("representative")?.into();
 		let to = Runtime::AddressMapping::into_account_id(to);
 		let conviction = input
-			.read::<u8>()?
+			.read::<u8>()
+			.in_field("conviction")?
 			.try_into()
 			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
-		let balance = input.read()?;
+		let balance = input.read().in_field("amount")?;
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
@@ -381,7 +383,7 @@ where
 		// Bound check
 		input.expect_arguments(1)?;
 
-		let target: H160 = input.read::<Address>()?.into();
+		let target: H160 = input.read::<Address>().in_field("target")?.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 
 		log::trace!(

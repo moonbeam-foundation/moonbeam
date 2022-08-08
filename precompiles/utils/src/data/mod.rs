@@ -17,7 +17,7 @@
 pub mod xcm;
 
 use {
-	crate::error::{Error, ErrorKind, LocationMap},
+	crate::revert::{BacktraceExt, MayRevert, RevertReason},
 	alloc::borrow::ToOwned,
 	core::{any::type_name, marker::PhantomData, ops::Range},
 	frame_support::traits::{ConstU32, Get},
@@ -111,12 +111,12 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Create a new input parser from a selector-initial input.
-	pub fn read_selector<T>(input: &'a [u8]) -> Result<T, Error>
+	pub fn read_selector<T>(input: &'a [u8]) -> MayRevert<T>
 	where
 		T: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
 		if input.len() < 4 {
-			return Err(ErrorKind::read_out_of_bounds("selector").into());
+			return Err(RevertReason::read_out_of_bounds("selector").into());
 		}
 
 		let mut buffer = [0u8; 4];
@@ -127,59 +127,59 @@ impl<'a> EvmDataReader<'a> {
 				"Failed to match function selector for {}",
 				type_name::<T>()
 			);
-			ErrorKind::UnknownSelector
+			RevertReason::UnknownSelector
 		})?;
 
 		Ok(selector)
 	}
 
 	/// Create a new input parser from a selector-initial input.
-	pub fn new_skip_selector(input: &'a [u8]) -> Result<Self, Error> {
+	pub fn new_skip_selector(input: &'a [u8]) -> MayRevert<Self> {
 		if input.len() < 4 {
-			return Err(ErrorKind::read_out_of_bounds("selector").into());
+			return Err(RevertReason::read_out_of_bounds("selector").into());
 		}
 
 		Ok(Self::new(&input[4..]))
 	}
 
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
-	pub fn expect_arguments(&self, args: usize) -> Result<(), Error> {
+	pub fn expect_arguments(&self, args: usize) -> MayRevert<()> {
 		if self.input.len() >= self.cursor + args * 32 {
 			Ok(())
 		} else {
-			Err(ErrorKind::ExpectedAtLeastNArguments(args).into())
+			Err(RevertReason::ExpectedAtLeastNArguments(args).into())
 		}
 	}
 
 	/// Read data from the input.
-	pub fn read<T: EvmData>(&mut self) -> Result<T, Error> {
+	pub fn read<T: EvmData>(&mut self) -> MayRevert<T> {
 		T::read(self)
 	}
 
 	/// Read raw bytes from the input.
 	/// Doesn't handle any alignment checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
-	pub fn read_raw_bytes(&mut self, len: usize) -> Result<&[u8], Error> {
+	pub fn read_raw_bytes(&mut self, len: usize) -> MayRevert<&[u8]> {
 		let range = self.move_cursor(len)?;
 
 		let data = self
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("raw bytes"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("raw bytes"))?;
 
 		Ok(data)
 	}
 
 	/// Reads a pointer, returning a reader targetting the pointed location.
-	pub fn read_pointer(&mut self) -> Result<Self, Error> {
+	pub fn read_pointer(&mut self) -> MayRevert<Self> {
 		let offset: usize = self
 			.read::<U256>()
-			.map_err(|_| ErrorKind::read_out_of_bounds("pointer"))?
+			.map_err(|_| RevertReason::read_out_of_bounds("pointer"))?
 			.try_into()
-			.map_err(|_| ErrorKind::value_is_too_large("pointer"))?;
+			.map_err(|_| RevertReason::value_is_too_large("pointer"))?;
 
 		if offset >= self.input.len() {
-			return Err(ErrorKind::PointerToOutofBound.into());
+			return Err(RevertReason::PointerToOutofBound.into());
 		}
 
 		Ok(Self {
@@ -189,13 +189,13 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read remaining bytes
-	pub fn read_till_end(&mut self) -> Result<&[u8], Error> {
+	pub fn read_till_end(&mut self) -> MayRevert<&[u8]> {
 		let range = self.move_cursor(self.input.len() - self.cursor)?;
 
 		let data = self
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("raw bytes"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("raw bytes"))?;
 
 		Ok(data)
 	}
@@ -203,12 +203,12 @@ impl<'a> EvmDataReader<'a> {
 	/// Move the reading cursor with provided length, and return a range from the previous cursor
 	/// location to the new one.
 	/// Checks cursor overflows.
-	fn move_cursor(&mut self, len: usize) -> Result<Range<usize>, Error> {
+	fn move_cursor(&mut self, len: usize) -> MayRevert<Range<usize>> {
 		let start = self.cursor;
 		let end = self
 			.cursor
 			.checked_add(len)
-			.ok_or_else(|| ErrorKind::CursorOverflow)?;
+			.ok_or_else(|| RevertReason::CursorOverflow)?;
 
 		self.cursor = end;
 
@@ -335,7 +335,7 @@ impl Default for EvmDataWriter {
 
 /// Data that can be converted from and to EVM data types.
 pub trait EvmData: Sized {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error>;
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self>;
 	fn write(writer: &mut EvmDataWriter, value: Self);
 	fn has_static_size() -> bool;
 }
@@ -346,7 +346,7 @@ impl EvmData for Tuple {
 		for_tuples!(#( Tuple::has_static_size() )&*)
 	}
 
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		if !Self::has_static_size() {
 			let reader = &mut reader.read_pointer()?;
 			Ok(for_tuples!( ( #( reader.read::<Tuple>().in_field(stringify!(Tuple))? ),* ) ))
@@ -367,13 +367,13 @@ impl EvmData for Tuple {
 }
 
 impl EvmData for H256 {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("bytes32"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("bytes32"))?;
 
 		Ok(H256::from_slice(data))
 	}
@@ -388,13 +388,13 @@ impl EvmData for H256 {
 }
 
 impl EvmData for Address {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("address"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("address"))?;
 
 		Ok(H160::from_slice(&data[12..32]).into())
 	}
@@ -409,13 +409,13 @@ impl EvmData for Address {
 }
 
 impl EvmData for U256 {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
 
 		let data = reader
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("uint256"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("uint256"))?;
 
 		Ok(U256::from_big_endian(data))
 	}
@@ -435,15 +435,15 @@ macro_rules! impl_evmdata_for_uints {
 	($($uint:ty, )*) => {
 		$(
 			impl EvmData for $uint {
-				fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+				fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 					let value256: U256 = reader.read()
-					.map_err(|_| ErrorKind::read_out_of_bounds(
+					.map_err(|_| RevertReason::read_out_of_bounds(
 						alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
 					))?;
 
 					value256
 						.try_into()
-						.map_err(|_| ErrorKind::value_is_too_large(
+						.map_err(|_| RevertReason::value_is_too_large(
 							alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
 						).into())
 				}
@@ -463,8 +463,8 @@ macro_rules! impl_evmdata_for_uints {
 impl_evmdata_for_uints!(u8, u16, u32, u64, u128,);
 
 impl EvmData for bool {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
-		let h256 = H256::read(reader).map_err(|_| ErrorKind::read_out_of_bounds("bool"))?;
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let h256 = H256::read(reader).map_err(|_| RevertReason::read_out_of_bounds("bool"))?;
 
 		Ok(!h256.is_zero())
 	}
@@ -484,7 +484,7 @@ impl EvmData for bool {
 }
 
 impl EvmData for Bytes {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		Ok(Bytes(BoundedBytes::<ConstU32Max>::read(reader)?.into_vec()))
 	}
 
@@ -504,18 +504,18 @@ impl EvmData for Bytes {
 }
 
 impl<S: Get<u32>> EvmData for BoundedBytes<S> {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
 		// Read bytes/string size.
 		let array_size: usize = inner_reader
 			.read::<U256>()
-			.map_err(|_| ErrorKind::read_out_of_bounds("length"))?
+			.map_err(|_| RevertReason::read_out_of_bounds("length"))?
 			.try_into()
-			.map_err(|_| ErrorKind::value_is_too_large("length"))?;
+			.map_err(|_| RevertReason::value_is_too_large("length"))?;
 
 		if array_size > S::get() as usize {
-			return Err(ErrorKind::value_is_too_large("length").into());
+			return Err(RevertReason::value_is_too_large("length").into());
 		}
 
 		// Get valid range over the bytes data.
@@ -524,7 +524,7 @@ impl<S: Get<u32>> EvmData for BoundedBytes<S> {
 		let data = inner_reader
 			.input
 			.get(range)
-			.ok_or_else(|| ErrorKind::read_out_of_bounds("bytes/string"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("bytes/string"))?;
 
 		let bytes = Self {
 			inner: data.to_owned(),
@@ -564,7 +564,7 @@ impl<S: Get<u32>> EvmData for BoundedBytes<S> {
 }
 
 impl<T: EvmData> EvmData for Vec<T> {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		BoundedVec::<T, ConstU32Max>::read(reader).map(|x| x.into_vec())
 	}
 
@@ -597,17 +597,17 @@ impl<T, S: Get<u32>> BoundedVec<T, S> {
 }
 
 impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
-	fn read(reader: &mut EvmDataReader) -> Result<Self, Error> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let mut inner_reader = reader.read_pointer()?;
 
 		let array_size: usize = inner_reader
 			.read::<U256>()
-			.map_err(|_| ErrorKind::read_out_of_bounds("length"))?
+			.map_err(|_| RevertReason::read_out_of_bounds("length"))?
 			.try_into()
-			.map_err(|_| ErrorKind::value_is_too_large("length"))?;
+			.map_err(|_| RevertReason::value_is_too_large("length"))?;
 
 		if array_size > S::get() as usize {
-			return Err(ErrorKind::value_is_too_large("length").into());
+			return Err(RevertReason::value_is_too_large("length").into());
 		}
 
 		let mut array = vec![];
@@ -616,7 +616,7 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 			input: inner_reader
 				.input
 				.get(32..)
-				.ok_or_else(|| ErrorKind::read_out_of_bounds("array content"))?,
+				.ok_or_else(|| RevertReason::read_out_of_bounds("array content"))?,
 			cursor: 0,
 		};
 

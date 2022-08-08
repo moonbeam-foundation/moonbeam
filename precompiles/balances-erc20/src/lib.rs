@@ -259,10 +259,6 @@ where
 	fn total_supply(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Parse input.
-		let input = handle.read_input()?;
-		input.expect_arguments(0)?;
-
 		// Fetch info.
 		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
 
@@ -277,7 +273,7 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -296,8 +292,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -321,8 +317,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let spender: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
+		let amount: U256 = input.read().in_field("value")?;
 
 		// Write into storage.
 		{
@@ -355,14 +351,14 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let to: H160 = input.read::<Address>().in_field("to")?.into();
+		let amount: U256 = input.read().in_field("value")?;
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
+			let amount = Self::u256_to_amount(amount).in_field("value")?;
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -396,16 +392,16 @@ where
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>()?.into();
-		let to: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let from: H160 = input.read::<Address>().in_field("from")?.into();
+		let to: H160 = input.read::<Address>().in_field("to")?.into();
+		let amount: U256 = input.read().in_field("value")?;
 
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount)?;
+			let amount = Self::u256_to_amount(amount).in_field("value")?;
 
 			// If caller is "from", it can spend as much as it wants.
 			if caller != from {
@@ -478,7 +474,7 @@ where
 	fn deposit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Deposit only makes sense for the native currency.
 		if !Metadata::is_native_currency() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		let caller: Runtime::AccountId =
@@ -518,13 +514,13 @@ where
 	fn withdraw(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Withdraw only makes sense for the native currency.
 		if !Metadata::is_native_currency() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(2, 32)?;
 
 		let mut input = handle.read_input()?;
-		let withdrawn_amount: U256 = input.read()?;
+		let withdrawn_amount: U256 = input.read().in_field("value")?;
 
 		let account_amount: U256 = {
 			let owner: Runtime::AccountId =
@@ -533,7 +529,7 @@ where
 		};
 
 		if withdrawn_amount > account_amount {
-			return Err(revert("trying to withdraw more than owned"));
+			return Err(revert("Trying to withdraw more than owned"));
 		}
 
 		log2(
@@ -547,9 +543,9 @@ where
 		Ok(succeed([]))
 	}
 
-	fn u256_to_amount(value: U256) -> EvmResult<BalanceOf<Runtime, Instance>> {
+	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime, Instance>> {
 		value
 			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
 	}
 }

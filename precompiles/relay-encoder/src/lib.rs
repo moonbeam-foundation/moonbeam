@@ -129,11 +129,14 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
 
-		let address: [u8; 32] = input.read::<H256>()?.into();
-		let amount: U256 = input.read()?;
+		let address: [u8; 32] = input.read::<H256>().in_field("address")?.into();
+		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
+		let reward_destination = input
+			.read::<RewardDestinationWrapper>()
+			.in_field("reward_destination")?
+			.into();
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 			address.into(),
 			relay_amount,
@@ -150,7 +153,8 @@ where
 
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
-		let amount: U256 = input.read()?;
+
+		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
@@ -166,7 +170,7 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let amount: U256 = input.read()?;
+		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
@@ -182,7 +186,7 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let num_slashing_spans: u32 = input.read()?;
+		let num_slashing_spans: u32 = input.read().in_field("slashes")?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans))
 				.as_slice()
@@ -315,12 +319,12 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 }
 
 impl EvmData for RewardDestinationWrapper {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
 		let reward_destination_bytes = reward_destination.into_vec();
 		ensure!(
 			reward_destination_bytes.len() > 0,
-			revert("Reward destinations cannot be empty")
+			RevertReason::custom("Reward destinations cannot be empty")
 		);
 		// For simplicity we use an EvmReader here
 		let mut encoded_reward_destination = EvmDataReader::new(&reward_destination_bytes);
@@ -339,7 +343,7 @@ impl EvmData for RewardDestinationWrapper {
 				)))
 			}
 			4u8 => Ok(RewardDestinationWrapper(RewardDestination::None)),
-			_ => Err(revert("Not available enum")),
+			_ => Err(RevertReason::custom("Unknown reward destination").into()),
 		}
 	}
 

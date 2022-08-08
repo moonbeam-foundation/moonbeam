@@ -160,7 +160,7 @@ where
 				let result = {
 					let selector = match handle.read_selector() {
 						Ok(selector) => selector,
-						Err(e) => return Some(Err(e)),
+						Err(e) => return Some(Err(e.into())),
 					};
 
 					if let Err(err) = handle.check_function_modifier(match selector {
@@ -169,7 +169,7 @@ where
 						}
 						_ => FunctionModifier::View,
 					}) {
-						return Some(Err(err));
+						return Some(Err(err.into()));
 					}
 
 					match selector {
@@ -255,10 +255,6 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Parse input.
-		let input = handle.read_input()?;
-		input.expect_arguments(0)?;
-
 		// Fetch info.
 		let amount: U256 =
 			pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into();
@@ -277,12 +273,12 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
+		let who: H160 = input.read::<Address>().in_field("who")?.into();
 
 		// Fetch info.
 		let amount: U256 = {
-			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
-			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &owner).into()
+			let who: Runtime::AccountId = Runtime::AddressMapping::into_account_id(who);
+			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &who).into()
 		};
 
 		// Build output.
@@ -299,8 +295,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -325,8 +321,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let spender: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
+		let amount: U256 = input.read().in_field("value")?;
 
 		Self::approve_inner(asset_id, handle, handle.context().caller, spender, amount)?;
 
@@ -394,8 +390,10 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let to: H160 = input.read::<Address>().in_field("to")?.into();
+		let amount = input
+			.read::<BalanceOf<Runtime, Instance>>()
+			.in_field("value")?;
 
 		// Build call with origin.
 		{
@@ -436,9 +434,11 @@ where
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>()?.into();
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let from: H160 = input.read::<Address>().in_field("from")?.into();
+		let to: H160 = input.read::<Address>().in_field("to")?.into();
+		let amount = input
+			.read::<BalanceOf<Runtime, Instance>>()
+			.in_field("value")?;
 
 		{
 			let caller: Runtime::AccountId =
@@ -544,7 +544,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
@@ -553,8 +553,10 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let to: H160 = input.read::<Address>().in_field("to")?.into();
+		let amount = input
+			.read::<BalanceOf<Runtime, Instance>>()
+			.in_field("amount")?;
 
 		// Build call with origin.
 		{
@@ -591,7 +593,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
@@ -600,13 +602,15 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		let from: H160 = input.read::<Address>().in_field("from")?.into();
+		let amount = input
+			.read::<BalanceOf<Runtime, Instance>>()
+			.in_field("amount")?;
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let from = Runtime::AddressMapping::into_account_id(from);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -614,7 +618,7 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::burn {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
+					who: Runtime::Lookup::unlookup(from),
 					amount,
 				},
 			)?;
@@ -623,7 +627,7 @@ where
 		log3(
 			handle.context().address,
 			SELECTOR_LOG_TRANSFER,
-			to,
+			from,
 			H160::default(),
 			EvmDataWriter::new().write(amount).build(),
 		)
@@ -638,14 +642,14 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let to: H160 = input.read::<Address>()?.into();
+		let to: H160 = input.read::<Address>().in_field("account")?.into();
 
 		// Build call with origin.
 		{
@@ -672,14 +676,14 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let to: H160 = input.read::<Address>()?.into();
+		let to: H160 = input.read::<Address>().in_field("account")?.into();
 
 		// Build call with origin.
 		{
@@ -706,7 +710,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.
@@ -730,7 +734,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.
@@ -754,14 +758,14 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
 
 		// Build call with origin.
 		{
@@ -788,16 +792,16 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let issuer: H160 = input.read::<Address>()?.into();
-		let admin: H160 = input.read::<Address>()?.into();
-		let freezer: H160 = input.read::<Address>()?.into();
+		let issuer: H160 = input.read::<Address>().in_field("issuer")?.into();
+		let admin: H160 = input.read::<Address>().in_field("admin")?.into();
+		let freezer: H160 = input.read::<Address>().in_field("freezer")?.into();
 
 		// Build call with origin.
 		{
@@ -828,16 +832,18 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> = input.read()?;
-		let symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> = input.read()?;
-		let decimals: u8 = input.read()?;
+		let name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> =
+			input.read().in_field("name")?;
+		let symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> =
+			input.read().in_field("symbol")?;
+		let decimals: u8 = input.read().in_field("decimals")?;
 
 		// Build call with origin.
 		{
@@ -865,7 +871,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.

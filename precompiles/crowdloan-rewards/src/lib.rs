@@ -99,7 +99,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		let contributor: H160 = input.read::<Address>().in_field("contributor")?.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -126,7 +126,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		let contributor: H160 = input.read::<Address>().in_field("contributor")?.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -143,11 +143,11 @@ where
 			let total_reward: u128 = reward_info
 				.total_reward
 				.try_into()
-				.map_err(|_| revert("Amount is too large for provided balance type"))?;
+				.map_err(|_| RevertReason::value_is_too_large("balance type"))?;
 			let claimed_reward: u128 = reward_info
 				.claimed_reward
 				.try_into()
-				.map_err(|_| revert("Amount is too large for provided balance type"))?;
+				.map_err(|_| RevertReason::value_is_too_large("balance type"))?;
 
 			(total_reward.into(), claimed_reward.into())
 		} else {
@@ -184,7 +184,7 @@ where
 		input.expect_arguments(1)?;
 
 		// parse the address
-		let new_address: H160 = input.read::<Address>()?.into();
+		let new_address: H160 = input.read::<Address>().in_field("new_address")?.into();
 
 		let new_reward_account = Runtime::AddressMapping::into_account_id(new_address);
 

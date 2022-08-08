@@ -209,7 +209,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let round = input.read::<u32>()?;
+		let round = input.read::<u32>().in_field("round")?;
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -245,7 +245,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let address = input.read::<Address>()?.0;
+		let address = input.read::<Address>().in_field("candidate")?.0;
 		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
@@ -280,7 +280,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let address = input.read::<Address>()?.0;
+		let address = input.read::<Address>().in_field("delegator")?.0;
 		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
@@ -331,7 +331,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let address = input.read::<Address>()?.0;
+		let address = input.read::<Address>().in_field("delegator")?.0;
 		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
@@ -346,7 +346,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let address = input.read::<Address>()?.0;
+		let address = input.read::<Address>().in_field("candidate")?.0;
 		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
@@ -361,7 +361,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let address = input.read::<Address>()?.0;
+		let address = input.read::<Address>().in_field("candidate")?.0;
 		let address = Runtime::AddressMapping::into_account_id(address);
 
 		// Fetch info.
@@ -381,10 +381,12 @@ where
 		input.expect_arguments(2)?;
 
 		// First argument is delegator
-		let delegator = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let delegator = input.read::<Address>().in_field("delegator")?.0;
+		let delegator = Runtime::AddressMapping::into_account_id(delegator);
 
 		// Second argument is candidate
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -407,7 +409,8 @@ where
 		input.expect_arguments(1)?;
 
 		// Only argument is candidate
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -439,7 +442,8 @@ where
 		input.expect_arguments(1)?;
 
 		// Only argument is candidate
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -474,8 +478,8 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let bond: BalanceOf<Runtime> = input.read()?;
-		let candidate_count = input.read()?;
+		let bond: BalanceOf<Runtime> = input.read().in_field("amount")?;
+		let candidate_count = input.read().in_field("candidateCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -497,7 +501,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let candidate_count = input.read()?;
+		let candidate_count = input.read().in_field("candidateCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -518,9 +522,9 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let candidate_delegation_count = input.read()?;
+		let candidate_delegation_count = input.read().in_field("candidateCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -542,7 +546,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let candidate_count = input.read()?;
+		let candidate_count = input.read().in_field("candidateCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -590,7 +594,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let more: BalanceOf<Runtime> = input.read()?;
+		let more: BalanceOf<Runtime> = input.read().in_field("more")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -609,7 +613,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let less: BalanceOf<Runtime> = input.read()?;
+		let less: BalanceOf<Runtime> = input.read().in_field("more")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -628,7 +632,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.
@@ -663,10 +667,12 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(4)?;
-		let candidate = Runtime::AddressMapping::into_account_id(input.read::<Address>()?.0);
-		let amount: BalanceOf<Runtime> = input.read()?;
-		let candidate_delegation_count = input.read()?;
-		let delegation_count = input.read()?;
+
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
+		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		let amount: BalanceOf<Runtime> = input.read().in_field("amount")?;
+		let candidate_delegation_count = input.read().in_field("candidateDelegationCount")?;
+		let delegation_count = input.read().in_field("delegatorDelegationCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -704,9 +710,9 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let delegator = input.read::<Address>()?.0;
+		let delegator = input.read::<Address>().in_field("delegator")?.0;
 		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let delegation_count = input.read()?;
+		let delegation_count = input.read().in_field("delegatorDelegationCount")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -742,7 +748,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let collator = input.read::<Address>()?.0;
+		let collator = input.read::<Address>().in_field("candidate")?.0;
 		let collator = Runtime::AddressMapping::into_account_id(collator);
 
 		// Build call with origin.
@@ -763,9 +769,9 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let more: BalanceOf<Runtime> = input.read()?;
+		let more: BalanceOf<Runtime> = input.read().in_field("more")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -785,9 +791,9 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let less: BalanceOf<Runtime> = input.read()?;
+		let less: BalanceOf<Runtime> = input.read().in_field("less")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -809,9 +815,9 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(2)?;
-		let delegator = input.read::<Address>()?.0;
+		let delegator = input.read::<Address>().in_field("delegator")?.0;
 		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.
@@ -834,7 +840,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>()?.0;
+		let candidate = input.read::<Address>().in_field("candidate")?.0;
 		let candidate = Runtime::AddressMapping::into_account_id(candidate);
 
 		// Build call with origin.

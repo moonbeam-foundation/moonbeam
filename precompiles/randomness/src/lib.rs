@@ -200,9 +200,10 @@ where
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let request_id: u64 = handle
 			.read_input()?
-			.read::<U256>()?
+			.read::<U256>()
+			.in_field("requestId")?
 			.try_into()
-			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
+			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let status =
@@ -224,11 +225,11 @@ where
 			.read_input()?
 			.read::<U256>()?
 			.try_into()
-			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
+			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let RequestState { request, .. } =
-			Pallet::<Runtime>::requests(request_id).ok_or(error("Request Does Not Exist"))?;
+			Pallet::<Runtime>::requests(request_id).ok_or(revert("Request Does Not Exist"))?;
 		let status = if request.is_expired() {
 			RequestStatus::Expired
 		} else if request.can_be_fulfilled() {
@@ -289,23 +290,26 @@ where
 	}
 	/// Make request for babe randomness one epoch ago
 	fn request_babe_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>()?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		let gas_limit = input.read::<u64>()?;
-		let salt = input.read::<H256>()?;
-		let num_words = input.read::<u8>()?;
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
+		
+		let mut input = handle.read_input()?;
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>().in_field("fee")?
+			.try_into()
+			.map_err(|_| revert("amount is too large for provided balance type"))?;
+		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
+		let salt = input.read::<H256>().in_field("salt")?;
+		let num_words = input.read::<u8>().in_field("numWords")?;
+		
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
-				.ok_or(error("Epoch Index (u64) overflowed"))?;
+				.ok_or(revert("Epoch Index (u64) overflowed"))?;
+		
 		let request = Request {
 			refund_address,
 			contract_address,
@@ -317,7 +321,7 @@ where
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.map_err(|e| revert(alloc::format!("{:?}", e)))?
 			.into();
 
 		Ok(PrecompileOutput {
@@ -327,28 +331,33 @@ where
 	}
 	/// Make request for local VRF randomness
 	fn request_local_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>()?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		let gas_limit = input.read::<u64>()?;
-		let salt = input.read::<H256>()?;
-		let num_words = input.read::<u8>()?;
-		let blocks_after_current = input.read::<u64>()?;
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
+		
+		let mut input = handle.read_input()?;
+		let contract_address = handle.context().caller;
+		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
+		let fee: BalanceOf<Runtime> = input
+			.read::<U256>().in_field("fee")?
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into()).in_field("fee")?;
+
+		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
+		let salt = input.read::<H256>().in_field("salt")?;
+		let num_words = input.read::<u8>().in_field("numWords")?;
+		let blocks_after_current = input.read::<u64>().in_field("delay")?;
+		
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
 			.map_err(|_| revert("block number overflowed u64"))?;
+
 		let requested_block_number = blocks_after_current
 			.checked_add(current_block_number)
-			.ok_or(error("addition result overflowed u64"))?
+			.ok_or(revert("addition result overflowed u64"))?
 			.try_into()
 			.map_err(|_| revert("u64 addition result overflowed block number type"))?;
+
 		let request = Request {
 			refund_address,
 			contract_address,
@@ -360,7 +369,7 @@ where
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?
+			.map_err(|e| revert(alloc::format!("{:?}", e)))?
 			.into();
 
 		Ok(PrecompileOutput {
@@ -372,16 +381,15 @@ where
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let request_id: u64 = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
+			.read::<u64>().in_field("requestId")?;
+
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
 			request,
 			deposit,
 			randomness,
 		} = Pallet::<Runtime>::prepare_fulfillment(request_id)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
 			handle.code_address(),
@@ -432,14 +440,14 @@ where
 		let request_id: u64 = input
 			.read::<U256>()?
 			.try_into()
-			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
+			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
 		let fee_increase: BalanceOf<Runtime> = input
 			.read::<U256>()?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
 		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -454,10 +462,10 @@ where
 		let request_id: u64 = input
 			.read::<U256>()?
 			.try_into()
-			.map_err(|_| error("Input RequestId overflows u64 type set in Pallet"))?;
+			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
 		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
-			.map_err(|e| error(alloc::format!("{:?}", e)))?;
+			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),

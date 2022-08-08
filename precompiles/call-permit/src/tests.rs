@@ -129,7 +129,7 @@ fn valid_permit_returns() {
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: b"TEST".to_vec(),
+						output: revert_output(b"TEST"),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
@@ -137,7 +137,7 @@ fn valid_permit_returns() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(b"TEST".to_vec());
+				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
 		})
 }
 
@@ -228,7 +228,7 @@ fn valid_permit_reverts() {
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: b"TEST".to_vec(),
+						output: revert_output(b"TEST"),
 						cost: 13,
 						logs: vec![],
 					}
@@ -302,7 +302,7 @@ fn invalid_permit_nonce() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"invalid permit");
+				.execute_reverts(|x| x == b"Invalid permit: signer doesn't match from field");
 		})
 }
 
@@ -434,7 +434,7 @@ fn invalid_permit_gas_limit_overflow() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(100_000 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"call require too much gas (u64 overflow)");
+				.execute_reverts(|x| x == b"Call require too much gas (uint64 overflow)");
 		})
 }
 
@@ -657,6 +657,6 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(b"TEST".to_vec());
+				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
 		})
 }

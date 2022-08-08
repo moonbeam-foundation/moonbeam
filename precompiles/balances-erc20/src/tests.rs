@@ -805,7 +805,7 @@ fn withdraw_more_than_owned() {
 						.write(U256::from(1001))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"trying to withdraw more than owned");
+				.execute_reverts(|output| output == b"Trying to withdraw more than owned");
 
 			// Check Alice balance is still 1000.
 			precompiles()

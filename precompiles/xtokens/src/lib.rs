@@ -384,8 +384,11 @@ pub struct Currency {
 }
 // For Currencies
 impl EvmData for Currency {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let (address, amount) = reader.read()?;
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let mut inner_reader = reader.read_pointer()?;
+		let address = inner_reader.read().in_field("address")?;
+		let amount = inner_reader.read().in_field("amount")?;
+
 		Ok(Currency { address, amount })
 	}
 
@@ -414,8 +417,11 @@ pub struct EvmMultiAsset {
 }
 
 impl EvmData for EvmMultiAsset {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let (location, amount) = reader.read()?;
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let mut inner_reader = reader.read_pointer()?;
+		let location = inner_reader.read().in_field("location")?;
+		let amount = inner_reader.read().in_field("amount")?;
+
 		Ok(EvmMultiAsset { location, amount })
 	}
 

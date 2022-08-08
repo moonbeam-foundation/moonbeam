@@ -46,7 +46,7 @@ fn selector_less_than_four_bytes() {
 				Account::ForeignAssetId(0u128),
 				vec![1u8, 2u8, 3u8],
 			)
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -67,7 +67,7 @@ fn no_selector_exists_but_length_is_right() {
 				Account::ForeignAssetId(0u128),
 				vec![1u8, 2u8, 3u8, 4u8],
 			)
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -854,7 +854,7 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"unknown selector");
+				.execute_reverts(|output| output == b"Unknown selector");
 
 			precompiles()
 				.prepare_test(
@@ -865,7 +865,7 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"unknown selector");
+				.execute_reverts(|output| output == b"Unknown selector");
 		});
 }
 
@@ -2236,7 +2236,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 
 			precompiles()
 				.prepare_test(
@@ -2318,7 +2318,7 @@ fn transfer_from_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 		});
 }
 
@@ -2355,7 +2355,7 @@ fn mint_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"amount: Value is too large for uint128");
 		});
 }
 
@@ -2398,6 +2398,6 @@ fn burn_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"amount: Value is too large for uint128");
 		});
 }

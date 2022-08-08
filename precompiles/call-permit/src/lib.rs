@@ -19,7 +19,8 @@
 use core::marker::PhantomData;
 use evm::ExitReason;
 use fp_evm::{
-	Context, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+	Context, ExitRevert, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
+	Transfer,
 };
 use frame_support::{
 	ensure,
@@ -170,34 +171,35 @@ where
 
 		// PARSE INPUT
 		let mut input = handle.read_input()?;
-		let from = input.read::<Address>()?.0;
-		let to = input.read::<Address>()?.0;
-		let value: U256 = input.read()?;
+		let from = input.read::<Address>().in_field("from")?.0;
+		let to = input.read::<Address>().in_field("to")?.0;
+		let value: U256 = input.read().in_field("value")?;
 		let data = input
-			.read::<BoundedBytes<ConstU32<CALL_DATA_LIMIT>>>()?
+			.read::<BoundedBytes<ConstU32<CALL_DATA_LIMIT>>>()
+			.in_field("data")?
 			.into_vec();
-		let gas_limit: u64 = input.read()?;
-		let deadline: U256 = input.read()?;
-		let v: u8 = input.read()?;
-		let r: H256 = input.read()?;
-		let s: H256 = input.read()?;
+		let gas_limit: u64 = input.read().in_field("gasLimit")?;
+		let deadline: U256 = input.read().in_field("deadline")?;
+		let v: u8 = input.read().in_field("v")?;
+		let r: H256 = input.read().in_field("r")?;
+		let s: H256 = input.read().in_field("s")?;
 
 		// ENSURE GASLIMIT IS SUFFICIENT
 		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
 		let total_cost = gas_limit
 			.checked_add(call_cost)
-			.ok_or_else(|| revert("call require too much gas (u64 overflow)"))?;
+			.ok_or_else(|| revert("Call require too much gas (uint64 overflow)"))?;
 
 		if total_cost > handle.remaining_gas() {
-			return Err(revert("gaslimit is too low to dispatch provided call"));
+			return Err(revert("Gaslimit is too low to dispatch provided call"));
 		}
 
 		// VERIFY PERMIT
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
-		ensure!(deadline >= timestamp, revert("permit expired"));
+		ensure!(deadline >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::get(from);
 
@@ -218,12 +220,12 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| revert("invalid permit"))?;
+			.map_err(|_| revert("Invalid permit: failed to recover signer"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == from,
-			revert("invalid permit")
+			revert("Invalid permit: signer doesn't match from field")
 		);
 
 		NoncesStorage::insert(from, nonce + U256::one());
@@ -251,8 +253,11 @@ where
 		match reason {
 			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(revert(output)),
-			ExitReason::Succeed(_) => Ok(succeed(output)),
+			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
+			}),
+			ExitReason::Succeed(_) => Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build())),
 		}
 	}
 
