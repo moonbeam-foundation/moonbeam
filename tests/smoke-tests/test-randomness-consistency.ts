@@ -176,6 +176,29 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("all results should have correct request counters", async function () {
     this.timeout(10000);
 
+    // Local count for request types
+    const requestCounts = {};
+    requestStates.forEach((request) => {
+      const requestState = context.polkadotApi.registry.createType(
+        "PalletRandomnessRequestState",
+        request.state.toHex()
+      );
+      const requestRequest = context.polkadotApi.registry.createType(
+        "PalletRandomnessRequest",
+        (requestState as any).request.toHex()
+      );
+      const requestInfo = context.polkadotApi.registry.createType(
+        "PalletRandomnessRequestInfo",
+        (requestRequest as any).info
+      );
+      if ((requestInfo as any).isBabeEpoch) {
+        const babe = (requestInfo as any).asBabeEpoch;
+        requestCounts[babe[0]] = (requestCounts[babe[0]] || new BN(0)).add(new BN(1));
+      } else {
+        const local = (requestInfo as any).asLocal;
+        requestCounts[local[0]] = (requestCounts[local[0]] || new BN(0)).add(new BN(1));
+      }
+    });
     let query = await apiAt.query.randomness.randomnessResults.entries();
     await query.forEach(([key, results]) => {
       // offset is:
@@ -190,30 +213,6 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
         `PalletRandomnessRequestType`,
         "0x" + requestTypeEncoded
       );
-
-      // Local count for request types
-      const requestCounts = {};
-      requestStates.forEach((request) => {
-        const requestState = context.polkadotApi.registry.createType(
-          "PalletRandomnessRequestState",
-          request.state.toHex()
-        );
-        const requestRequest = context.polkadotApi.registry.createType(
-          "PalletRandomnessRequest",
-          (requestState as any).request.toHex()
-        );
-        const requestInfo = context.polkadotApi.registry.createType(
-          "PalletRandomnessRequestInfo",
-          (requestRequest as any).info
-        );
-        if ((requestInfo as any).isBabeEpoch) {
-          const babe = (requestInfo as any).asBabeEpoch;
-          requestCounts[babe[0]] = (requestCounts[babe[0]] || new BN(0)).add(new BN(1));
-        } else {
-          const local = (requestInfo as any).asLocal;
-          requestCounts[local[0]] = (requestCounts[local[0]] || new BN(0)).add(new BN(1));
-        }
-      });
       const result = context.polkadotApi.registry.createType(
         "PalletRandomnessRandomnessResult",
         results.toHex()
