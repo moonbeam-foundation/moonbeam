@@ -233,10 +233,29 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 // Tests whether the input bytes appear to be random by measuring the distribution relative to
 // what would be expected of a uniformly distributed [u8; 32]
 function isRandom(bytes: Uint8Array) {
+  // test whether output bytes are statistically independent
+  chiSquareTest(bytes);
   // expect average byte of [u8; 32] = ~128 if uniformly distributed ~> expect 81 < X < 175
   averageByteWithinExpectedRange(bytes, 81, 175);
   // expect fewer than 4 repeated values in output [u8; 32]
   outputWithinExpectedRepetition(bytes, 3);
+}
+
+// Tests if byte output is independent
+function chiSquareTest(bytes: Uint8Array) {
+  let chiSquared = 0;
+  // expected value is expected average of [u8; 32]
+  const expectedValue = 128;
+  // degrees of freedom is 32 - 1 = 32, alpha is 0.05
+  // chi.pdf(31, 0.05) = 44.985
+  // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
+  const pValue = 44.985;
+  bytes.forEach((a) => (chiSquared += ((a - expectedValue) ^ 2) / expectedValue));
+  expect(chiSquared < pValue).to.equal(
+    true,
+    `Chi square value greater than or equal to expected so bytes in output appear related` +
+      `chiSquared is ${chiSquared} >= 44.985`
+  );
 }
 
 // Tests uniform distribution of outputs bytes by checking if average byte is within expected range
