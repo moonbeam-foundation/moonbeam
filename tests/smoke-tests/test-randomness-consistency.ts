@@ -246,7 +246,7 @@ function chiSquareTest(bytes: Uint8Array) {
   let chiSquared = 0;
   // expected value is expected average of [u8; 32]
   const expectedValue = 128;
-  // degrees of freedom is 32 - 1 = 32, alpha is 0.05
+  // degrees of freedom is 32 - 1 = 31, alpha is 0.05
   // chi.pdf(31, 0.05) = 44.985
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
   const pValue = 44.985;
@@ -254,7 +254,7 @@ function chiSquareTest(bytes: Uint8Array) {
   expect(chiSquared < pValue).to.equal(
     true,
     `Chi square value greater than or equal to expected so bytes in output appear related` +
-      `chiSquared is ${chiSquared} >= 44.985`
+      `chiSquared is ${chiSquared} >= ${pValue}`
   );
 }
 
