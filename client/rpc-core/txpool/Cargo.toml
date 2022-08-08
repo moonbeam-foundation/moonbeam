@@ -10,8 +10,8 @@ version = "0.6.0"
 [dependencies]
 ethereum = { version = "0.12.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = "0.13.1"
-jsonrpsee = { version = "0.13.0", default-features = false, features = [ "macros", "server" ] }
+jsonrpsee = { version = "0.14.0", default-features = false, features = [ "macros", "server" ] }
 serde = { version = "1.0", features = [ "derive" ] }
 serde_json = "1.0"
 
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23" }
+fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }

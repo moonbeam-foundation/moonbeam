@@ -272,7 +272,7 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
 	TakeWeightCredit,
-	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -470,6 +470,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
 #[frame_support::pallet]

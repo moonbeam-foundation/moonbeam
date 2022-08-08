@@ -416,6 +416,22 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl session_keys_primitives::VrfApi<Block> for Runtime {
+				fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
+					// TODO: remove in future runtime upgrade along with storage item
+					if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+						return None;
+					}
+					pallet_randomness::Pallet::<Self>::local_vrf_output()
+				}
+				fn vrf_key_lookup(
+					nimbus_id: nimbus_primitives::NimbusId
+				) -> Option<session_keys_primitives::VrfId> {
+					use session_keys_primitives::KeysLookup;
+					AuthorMapping::lookup_keys(&nimbus_id)
+				}
+			}
+
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
 

@@ -18,7 +18,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
     );
     expect(events[2].event.method).to.be.eq("ProxyAdded");
     expect(events[2].event.data[2].toString()).to.be.eq("Balances"); //ProxyType
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     const {
       result: { events: events2 },
@@ -30,7 +30,7 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
 
     expect(events2[2].event.method).to.be.eq("ProxyExecuted");
     expect(events2[2].event.data[0].toString()).to.be.eq("Ok");
-    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
     const afterCharlieBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlieBalance - beforeCharlieBalance).to.be.eq(100n);
   });
@@ -60,7 +60,7 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
     expect(events2[1].event.data[0].toString()).to.be.eq(
       `{"err":{"module":{"index":0,"error":"0x05000000"}}}`
     );
-    expect(events2[4].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
 
     // // check association failed
     expect(await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).to.eq(null);
