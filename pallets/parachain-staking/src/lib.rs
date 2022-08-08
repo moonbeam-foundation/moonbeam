@@ -500,16 +500,6 @@ pub mod pallet {
 	pub(crate) type CandidateInfo<T: Config> =
 		StorageMap<_, Twox64Concat, T::AccountId, CandidateMetadata<BalanceOf<T>>, OptionQuery>;
 
-	#[pallet::storage]
-	/// Temporary storage item to track whether a given delegator's reserve has been migrated.
-	pub(crate) type DelegatorReserveToLockMigrations<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
-
-	#[pallet::storage]
-	/// Temporary storage item to track whether a given collator's reserve has been migrated.
-	pub(crate) type CollatorReserveToLockMigrations<T: Config> =
-		StorageMap<_, Twox64Concat, T::AccountId, bool, ValueQuery>;
-
 	/// Stores outstanding delegation requests per collator.
 	#[pallet::storage]
 	#[pallet::getter(fn delegation_scheduled_requests)]
@@ -901,7 +891,6 @@ pub mod pallet {
 			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
-			<CollatorReserveToLockMigrations<T>>::insert(&acc, true);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
 			// insert empty top delegations
 			<TopDelegations<T>>::insert(&acc, empty_delegations.clone());
@@ -1224,7 +1213,6 @@ pub mod pallet {
 			<Total<T>>::put(new_total_locked);
 			<CandidateInfo<T>>::insert(&candidate, state);
 			<DelegatorState<T>>::insert(&delegator, delegator_state);
-			<DelegatorReserveToLockMigrations<T>>::insert(&delegator, true);
 			Self::deposit_event(Event::Delegation {
 				delegator: delegator,
 				locked_amount: amount,

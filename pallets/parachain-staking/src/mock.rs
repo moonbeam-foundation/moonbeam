@@ -17,9 +17,7 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, CandidateInfo, CollatorReserveToLockMigrations, Config,
-	DelegatorReserveToLockMigrations, DelegatorState, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
