@@ -170,6 +170,8 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to be a delegator
 		#[pallet::constant]
 		type MinDelegatorStk: Get<BalanceOf<Self>>;
+		/// Get the current block author
+		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
@@ -445,7 +447,18 @@ pub mod pallet {
 
 			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
+			// add on_finalize weight
+			weight = weight.saturating_add(
+				// read Author, Points, AwardedPts
+				// write Points, AwardedPts
+				T::DbWeight::get()
+					.reads(3)
+					.saturating_add(T::DbWeight::get().writes(2)),
+			);
 			weight
+		}
+		fn on_finalize(_n: T::BlockNumber) {
+			Self::award_points_to_block_author();
 		}
 	}
 
@@ -471,18 +484,6 @@ pub mod pallet {
 	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nominator_state2)]
-	/// DEPRECATED in favor of DelegatorState
-	/// Get nominator state associated with an account if account is nominating else None
-	pub(crate) type NominatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Nominator2<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
 	/// Get delegator state associated with an account if account is delegating else None
 	pub(crate) type DelegatorState<T: Config> = StorageMap<
@@ -490,18 +491,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn candidate_state)]
-	/// DEPRECATED
-	/// Get collator candidate state associated with an account if account is a candidate else None
-	pub(crate) type CandidateState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		CollatorCandidate<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -551,18 +540,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegations<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn collator_state2)]
-	/// DEPRECATED in favor of CandidateState
-	/// Get collator state associated with an account if account is collating else None
-	pub(crate) type CollatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Collator2<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -1849,8 +1826,9 @@ pub mod pallet {
 
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
-		fn note_author(author: T::AccountId) {
+	impl<T: Config> Pallet<T> {
+		fn award_points_to_block_author() {
+			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);

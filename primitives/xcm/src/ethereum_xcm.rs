@@ -46,6 +46,7 @@ pub enum EthereumXcmFee {
 #[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
 pub enum EthereumXcmTransaction {
 	V1(EthereumXcmTransactionV1),
+	V2(EthereumXcmTransactionV2),
 }
 
 /// Value for `r` and `s` for the invalid signature included in Xcm transact's Ethereum transaction.
@@ -69,6 +70,20 @@ pub struct EthereumXcmTransactionV1 {
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
+#[derive(Clone, Debug, Eq, PartialEq, Encode, Decode, TypeInfo)]
+pub struct EthereumXcmTransactionV2 {
+	/// Gas limit to be consumed by EVM execution.
+	pub gas_limit: U256,
+	/// Either a Call (the callee, account or contract address) or Create (currently unsupported).
+	pub action: TransactionAction,
+	/// Value to be transfered.
+	pub value: U256,
+	/// Input data for a contract call.
+	pub input: Vec<u8>,
+	/// Map of addresses to be pre-paid to warm storage.
+	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
+}
+
 pub trait XcmToEthereum {
 	fn into_transaction_v2(&self, base_fee: U256, nonce: U256) -> Option<TransactionV2>;
 }
@@ -77,6 +92,7 @@ impl XcmToEthereum for EthereumXcmTransaction {
 	fn into_transaction_v2(&self, base_fee: U256, nonce: U256) -> Option<TransactionV2> {
 		match self {
 			EthereumXcmTransaction::V1(v1_tx) => v1_tx.into_transaction_v2(base_fee, nonce),
+			EthereumXcmTransaction::V2(v2_tx) => v2_tx.into_transaction_v2(base_fee, nonce),
 		}
 	}
 }
@@ -159,11 +175,47 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 	}
 }
 
+impl XcmToEthereum for EthereumXcmTransactionV2 {
+	fn into_transaction_v2(&self, _base_fee: U256, nonce: U256) -> Option<TransactionV2> {
+		// We dont support creates for now
+		if self.action == TransactionAction::Create {
+			return None;
+		}
+		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
+			t.iter()
+				.map(|item| AccessListItem {
+					address: item.0.clone(),
+					storage_keys: item.1.clone(),
+				})
+				.collect::<Vec<AccessListItem>>()
+		};
+		// Eip-1559
+		Some(TransactionV2::EIP1559(EIP1559Transaction {
+			chain_id: 0,
+			nonce,
+			max_fee_per_gas: U256::zero(),
+			max_priority_fee_per_gas: U256::zero(),
+			gas_limit: self.gas_limit,
+			action: self.action,
+			value: self.value,
+			input: self.input.clone(),
+			access_list: if let Some(ref access_list) = self.access_list {
+				from_tuple_to_access_list(access_list)
+			} else {
+				Vec::new()
+			},
+			odd_y_parity: true,
+			r: rs_id(),
+			s: rs_id(),
+		}))
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
 	#[test]
-	fn test_into_ethereum_tx_with_auto_fee() {
+	fn test_into_ethereum_tx_with_auto_fee_v1() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
 			gas_limit: U256::from(1),
 			fee_payment: EthereumXcmFee::Auto,
@@ -196,7 +248,7 @@ mod tests {
 	}
 
 	#[test]
-	fn test_legacy() {
+	fn test_legacy_v1() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
 			gas_limit: U256::from(1),
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
@@ -226,7 +278,7 @@ mod tests {
 		);
 	}
 	#[test]
-	fn test_eip_2930() {
+	fn test_eip_2930_v1() {
 		let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
 		let from_tuple_to_access_list = |t: &Vec<(H160, Vec<H256>)>| -> AccessList {
 			t.iter()
@@ -267,6 +319,38 @@ mod tests {
 
 		assert_eq!(
 			xcm_transaction.into_transaction_v2(gas_price, nonce),
+			expected_tx
+		);
+	}
+
+	#[test]
+	fn test_eip1559_v2() {
+		let xcm_transaction = EthereumXcmTransactionV2 {
+			gas_limit: U256::from(1),
+			action: TransactionAction::Call(H160::default()),
+			value: U256::from(0),
+			input: vec![1u8],
+			access_list: None,
+		};
+		let nonce = U256::from(0);
+		let base_fee = U256::from(0);
+		let expected_tx = Some(TransactionV2::EIP1559(EIP1559Transaction {
+			chain_id: 0,
+			nonce,
+			max_fee_per_gas: U256::from(0),
+			max_priority_fee_per_gas: U256::zero(),
+			gas_limit: U256::from(1),
+			action: TransactionAction::Call(H160::default()),
+			value: U256::from(0),
+			input: vec![1u8],
+			access_list: vec![],
+			odd_y_parity: true,
+			r: H256::from_low_u64_be(1u64),
+			s: H256::from_low_u64_be(1u64),
+		}));
+
+		assert_eq!(
+			xcm_transaction.into_transaction_v2(base_fee, nonce),
 			expected_tx
 		);
 	}

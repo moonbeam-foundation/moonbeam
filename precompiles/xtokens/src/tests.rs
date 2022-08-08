@@ -719,7 +719,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"array length is too large");
 		});
 }
 
@@ -772,7 +772,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"array length is too large");
 		});
 }
 

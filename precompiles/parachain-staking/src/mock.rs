@@ -239,6 +239,7 @@ parameter_types! {
 	pub const MinCollatorStk: u128 = 10;
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
+	pub const BlockAuthor: Account = Account::Alice;
 }
 impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
@@ -262,6 +263,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
