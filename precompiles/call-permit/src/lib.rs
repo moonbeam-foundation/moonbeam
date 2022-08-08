@@ -155,7 +155,6 @@ where
 		pre_digest.extend_from_slice(b"\x19\x01");
 		pre_digest.extend_from_slice(&domain_separator);
 		pre_digest.extend_from_slice(&permit_content);
-
 		keccak_256(&pre_digest)
 	}
 

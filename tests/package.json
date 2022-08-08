@@ -65,7 +65,6 @@
     "chalk": "^4.0.1",
     "debug": "^4.3.2",
     "eth-object": "github:aurora-is-near/eth-object#master",
-    "eth-sig-util": "^3.0.1",
     "eth-util-lite": "1.0.1",
     "ethers": "^5.4.6",
     "merkle-patricia-tree": "^3.0.0",
