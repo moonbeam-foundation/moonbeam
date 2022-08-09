@@ -61,13 +61,28 @@ pub enum Action {
 	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
 	TransactThroughDerivativeCustomFeeAndWeight =
 		"transact_through_derivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
-	TransactThroughDerivativeMultiLocationCustomFeeAndWeight = "transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)",
+	TransactThroughDerivativeMultiLocationCustomFeeAndWeight =
+		"transact_through_derivative_multilocation(
+			uint8,
+			uint16,
+			(uint8,bytes[]),
+			uint64,bytes,
+			uint256,
+			uint64
+		)",
 	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
 	FeePerSecond = "fee_per_second((uint8,bytes[]))",
 	TransactThroughSignedMultiLocation =
 		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
-	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)",
+	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transact_through_signed_multilocation(
+			(uint8,bytes[]),
+			(uint8,bytes[]),
+			uint64,
+			bytes,
+			uint256,
+			uint64
+		)",
 	TransactThroughSignedCustomFeeAndWeight =
 		"transact_through_signed((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
 }
@@ -92,7 +107,13 @@ where
 			Action::TransactThroughDerivativeMultiLocation
 			| Action::TransactThroughDerivative
 			| Action::TransactThroughSignedMultiLocation
-			| Action::TransactThroughSigned => FunctionModifier::NonPayable,
+			| Action::TransactThroughSigned
+			| Action::TransactThroughSignedMultiLocationCustomFeeAndWeight
+			| Action::TransactThroughSignedCustomFeeAndWeight
+			| Action::TransactThroughDerivativeCustomFeeAndWeight
+			| Action::TransactThroughDerivativeMultiLocationCustomFeeAndWeight => {
+				FunctionModifier::NonPayable
+			}
 			_ => FunctionModifier::View,
 		})?;
 
