@@ -1,0 +1,83 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "inputs": [
+          {
+            "components": [
+              { "internalType": "uint8", "name": "parents", "type": "uint8" },
+              {
+                "internalType": "bytes[]",
+                "name": "interior",
+                "type": "bytes[]"
+              }
+            ],
+            "internalType": "struct XcmUtils.Multilocation",
+            "name": "multilocation",
+            "type": "tuple"
+          }
+        ],
+        "name": "multilocationToAddress",
+        "outputs": [
+          { "internalType": "address", "name": "account", "type": "address" }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "multilocationToAddress((uint8,bytes[]))": {
+          "params": {
+            "multilocation": "The multilocation that we want to know to which account maps to"
+          },
+          "returns": {
+            "account": "The account the multilocation maps to in this chain Selector: 343b3e00"
+          }
+        }
+      },
+      "title": "Xcm Utils Interface The interface through which solidity contracts will interact with xcm utils pallet Address :    0x000000000000000000000000000000000000080B",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "multilocationToAddress((uint8,bytes[]))": "343b3e00"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct XcmUtils.Multilocation\",\"name\":\"multilocation\",\"type\":\"tuple\"}],\"name\":\"multilocationToAddress\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"multilocationToAddress((uint8,bytes[]))\":{\"params\":{\"multilocation\":\"The multilocation that we want to know to which account maps to\"},\"returns\":{\"account\":\"The account the multilocation maps to in this chain Selector: 343b3e00\"}}},\"title\":\"Xcm Utils Interface The interface through which solidity contracts will interact with xcm utils pallet Address :    0x000000000000000000000000000000000000080B\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"multilocationToAddress((uint8,bytes[]))\":{\"notice\":\"Retrieve the account associated to a given MultiLocation\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"XcmUtils\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xb12ff8261f308d03a803d165632c7c7f24eea535c95c25d8a17c623e08a83ec5\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://81512374d2be08ec174de0500ae637c464736888781c0174f0c6cf3e822d412c\",\"dweb:/ipfs/QmUgr8sM5PMTqTUVKQ3r7hR7pRApVzJW3BEPiCWxKck33s\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": {
+      "kind": "user",
+      "methods": {
+        "multilocationToAddress((uint8,bytes[]))": {
+          "notice": "Retrieve the account associated to a given MultiLocation"
+        }
+      },
+      "version": 1
+    }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/**\n * @title Xcm Utils Interface\n * The interface through which solidity contracts will interact with xcm utils pallet\n * Address :    0x000000000000000000000000000000000000080B\n */\n\ninterface XcmUtils {\n\n    // A multilocation is defined by its number of parents and the encoded junctions (interior)\n    struct Multilocation {\n        uint8 parents;\n        bytes [] interior;\n    }\n\n     /** Retrieve the account associated to a given MultiLocation\n     *\n     * @param multilocation The multilocation that we want to know to which account maps to\n    * @return account The account the multilocation maps to in this chain\n\n     * Selector: 343b3e00\n     */\n    function multilocationToAddress(Multilocation memory multilocation) external view returns(address account);\n}"
+}
