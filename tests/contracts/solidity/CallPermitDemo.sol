@@ -33,7 +33,7 @@ contract CallPermitDemo {
     /// @notice The total pooled amount
     uint256 public bondedAmount;
 
-    /// @notice bonds
+    /// @notice A mapping of bond per account
     mapping(address => uint256) bonds;
 
     /// @notice The owner of the contract
@@ -44,7 +44,7 @@ contract CallPermitDemo {
         bondedAmount = 0;
     }
 
-    /// @notice Bonds a certain amount on someone else's behalf using a signed EIP712 Message
+    /// @notice Bonds BOND_AMOUNT on someone else's behalf using a signed EIP712 Message
     /// @param from The real signer of the permit
     /// @param gaslimit The maximum gas limit
     /// @param deadline The deadline for the permit
@@ -81,6 +81,7 @@ contract CallPermitDemo {
         bondedAmount += BOND_AMOUNT;
     }
 
+    /// @notice Bonds BOND_AMOUNT towards the pool
     function bond() external payable {
         address sender = msg.sender;
         uint256 amount = msg.value;
@@ -98,6 +99,7 @@ contract CallPermitDemo {
         bondedAmount += amount;
     }
 
+    /// @notice Unbonds BOND_AMOUNT from the pool
     function unbond() external {
         address payable sender = payable(msg.sender);
         uint256 bondAmount = bonds[sender];
@@ -111,13 +113,14 @@ contract CallPermitDemo {
         sender.transfer(bondAmount);
     }
 
+    /// @notice Returns the total bonded acount
     function getBondAmount(address who) external view returns (uint256) {
         return bonds[who];
     }
 
+    /// @notice Receive funds
+    /// @dev This is needed to allow the contract to accept transfers via call permit
     receive() external payable {}
-
-    // fallback() external payable {}
 
     modifier onlyOwner() {
         require(msg.sender == owner);
