@@ -132,7 +132,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
 
   it("should forbid xcmTransactor to", async () => {
 
-   const transactWeightsWell = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
+   const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
       transactRequireWeightAtMost: 0,
       overallWeight: null
     });
@@ -150,7 +150,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
       await context
         .createBlock(
           context.polkadotApi.tx.xcmTransactor
-            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeightsWell as any)
+            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeights as any)
             .signAsync(baltathar)
         )
         .catch((e) => e.toString())
