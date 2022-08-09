@@ -539,7 +539,7 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(getCompiled("ProxyCall").contract.abi);
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
       const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
@@ -574,7 +574,7 @@ describeDevMoonbeam(
     });
 
     it("should correctly trace delegatecall subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "ProxyCall");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
@@ -583,7 +583,7 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(getCompiled("ProxyCall").contract.abi);
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
       const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
@@ -620,7 +620,7 @@ describeDevMoonbeam(
     it("should correctly trace precompile subcall (call list)", async function () {
       this.timeout(10000);
 
-      const { contract: contractProxy, rawTx } = await createContract(context, "ProxyCall");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
@@ -629,7 +629,7 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(getCompiled("ProxyCall").contract.abi);
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
       const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
       const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
