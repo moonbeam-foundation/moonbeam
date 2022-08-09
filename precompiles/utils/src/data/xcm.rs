@@ -19,7 +19,7 @@
 use {
 	crate::{
 		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
-		revert::{BacktraceExt, MayRevert, RevertReason},
+		revert::{InjectBacktrace, MayRevert, RevertReason},
 	},
 	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,

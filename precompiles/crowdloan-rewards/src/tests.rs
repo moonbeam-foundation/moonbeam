@@ -59,7 +59,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -68,7 +68,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -273,6 +273,6 @@ fn test_bound_checks_for_address_parsing() {
 
 			precompiles()
 				.prepare_test(Alice, Precompile, input)
-				.execute_reverts(|output| output == b"input doesn't match expected length")
+				.execute_reverts(|output| output == b"Expected at least 1 arguments")
 		})
 }

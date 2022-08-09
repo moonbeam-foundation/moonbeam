@@ -201,8 +201,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let parst_per_billion: u32 = input.read()?;
-		let blocked: bool = input.read()?;
+		let parst_per_billion: u32 = input.read().in_field("comission")?;
+		let blocked: bool = input.read().in_field("blocked")?;
 		let fraction = Perbill::from_parts(parst_per_billion);
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
@@ -220,7 +220,8 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let nominated_as_h256: BoundedVec<H256, GetArrayLimit> = input.read()?;
+		let nominated_as_h256: BoundedVec<H256, GetArrayLimit> =
+			input.read().in_field("nominees")?;
 
 		let nominated: Vec<AccountId32> = nominated_as_h256
 			.into_vec()
@@ -254,9 +255,12 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
+		input.expect_arguments(1)?;
 
-		let reward_destination = input.read::<RewardDestinationWrapper>()?.into();
+		let reward_destination = input
+			.read::<RewardDestinationWrapper>()
+			.in_field("reward_destination")?
+			.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
@@ -270,7 +274,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let controller: [u8; 32] = input.read::<H256>()?.into();
+		let controller: [u8; 32] = input.read::<H256>().in_field("controller")?.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
@@ -286,7 +290,7 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let amount: U256 = input.read()?;
+		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
 			.as_slice()

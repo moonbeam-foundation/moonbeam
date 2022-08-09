@@ -17,7 +17,7 @@
 pub mod xcm;
 
 use {
-	crate::revert::{BacktraceExt, MayRevert, RevertReason},
+	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
 	alloc::borrow::ToOwned,
 	core::{any::type_name, marker::PhantomData, ops::Range},
 	frame_support::traits::{ConstU32, Get},

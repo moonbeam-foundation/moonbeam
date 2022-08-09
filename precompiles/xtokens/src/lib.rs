@@ -117,17 +117,14 @@ where
 		let mut input = handle.read_input()?;
 
 		// Bound check
-		input.expect_arguments(2)?;
-		let to_address: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
+		input.expect_arguments(4)?;
+		let to_address: H160 = input.read::<Address>().in_field("currency_address")?.into();
+		let amount: U256 = input.read().in_field("amount")?;
 
 		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
-
-		// Bound check
-		input.expect_arguments(1)?;
-		let dest_weight: u64 = input.read::<u64>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		// We convert the address into a currency id xtokens understands
@@ -138,7 +135,8 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
+			.in_field("amount")?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,

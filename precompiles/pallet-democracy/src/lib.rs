@@ -402,7 +402,8 @@ where
 	fn note_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let encoded_proposal: Vec<u8> = input
-			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
+			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()
+			.in_field("encoded_proposal")?
 			.into_vec();
 
 		log::trace!(
@@ -421,7 +422,8 @@ where
 	fn note_imminent_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		let encoded_proposal: Vec<u8> = input
-			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
+			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()
+			.in_field("encoded_proposal")?
 			.into_vec();
 
 		log::trace!(

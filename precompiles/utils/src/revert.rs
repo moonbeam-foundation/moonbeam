@@ -14,6 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+//! Utilities to work with revert messages with support for backtraces and
+//! consistent formatting.
+
 use crate::{Bytes, EvmDataWriter};
 use alloc::string::{String, ToString};
 use fp_evm::{ExitRevert, PrecompileFailure};
@@ -36,16 +39,19 @@ enum BacktracePart {
 	Array(usize),
 }
 
-/// Location of an error.
+/// Backtrace of an revert.
 /// Built depth-first.
-#[derive(PartialEq, Eq)]
+/// Implement `Display` to render the backtrace as a string.
+#[derive(Default, PartialEq, Eq)]
 pub struct Backtrace(Vec<BacktracePart>);
 
 impl Backtrace {
+	/// Create a new empty backtrace.
 	pub fn new() -> Self {
 		Self(Vec::new())
 	}
 
+	/// Check if the backtrace is empty.
 	pub fn is_empty(&self) -> bool {
 		self.0.is_empty()
 	}
@@ -64,29 +70,54 @@ impl core::fmt::Display for Backtrace {
 	}
 }
 
-/// Kind of error.
+/// Possible revert reasons.
 #[non_exhaustive]
 #[derive(PartialEq, Eq)]
 pub enum RevertReason {
+	/// A custom revert reason if other variants are not appropriate.
 	Custom(String),
-	ReadOutOfBounds { what: String },
+	/// Tried to read data out of bounds.
+	ReadOutOfBounds {
+		/// What was being read?
+		what: String,
+	},
+	/// An unknown selector has been provided.
 	UnknownSelector,
-	InputIsTooShort,
-	ValueIsTooLarge { what: String },
+	/// A value is too large to fit in the wanted type.
+	/// For security reasons integers are always parsed as `uint256` then
+	/// casted to the wanted type. If the value overflows this type then this
+	/// revert is used.
+	ValueIsTooLarge {
+		/// What was being read?
+		what: String,
+	},
+	/// A pointer (used for structs and arrays) points out of bounds.
 	PointerToOutofBound,
+	/// The reading cursor overflowed.
+	/// This should realistically never happen as it would require an input
+	/// of length larger than 2^64, which would cost too much to be included
+	/// in a block.
 	CursorOverflow,
+	/// Used by a check that the input contains at least N static arguments.
+	/// Often use to return early if the input is too short.
 	ExpectedAtLeastNArguments(usize),
 }
 
 impl RevertReason {
+	/// Create a `RevertReason::Custom` from anything that can be converted to a `String`.
+	/// Argument is the custom revert message.
 	pub fn custom(s: impl Into<String>) -> Self {
 		RevertReason::Custom(s.into())
 	}
 
+	/// Create a `RevertReason::ReadOutOfBounds` from anything that can be converted to a `String`.
+	/// Argument names what was expected to be read.
 	pub fn read_out_of_bounds(what: impl Into<String>) -> Self {
 		RevertReason::ReadOutOfBounds { what: what.into() }
 	}
 
+	/// Create a `RevertReason::ValueIsTooLarge` from anything that can be converted to a `String`.
+	/// Argument names what was expected to be read.
 	pub fn value_is_too_large(what: impl Into<String>) -> Self {
 		RevertReason::ValueIsTooLarge { what: what.into() }
 	}
@@ -100,7 +131,6 @@ impl core::fmt::Display for RevertReason {
 				write!(f, "Tried to read {what} out of bounds")
 			}
 			RevertReason::UnknownSelector => write!(f, "Unknown selector"),
-			RevertReason::InputIsTooShort => write!(f, "InputIsTooShort"),
 			RevertReason::ValueIsTooLarge { what } => write!(f, "Value is too large for {what}"),
 			RevertReason::PointerToOutofBound => write!(f, "Pointer points to out of bound"),
 			RevertReason::CursorOverflow => write!(f, "Reading cursor overflowed"),
@@ -112,24 +142,30 @@ impl core::fmt::Display for RevertReason {
 }
 
 /// An revert returned by various functions in precompile-utils.
-/// Allows to dynamically construct the location (backtrace) of the revert
+/// Allows to dynamically construct the backtrace (backtrace) of the revert
 /// and manage it in a typed way.
 /// Can be transformed into a `PrecompileFailure::Revert` and `String`, and
 /// implement `Display` and `Debug`.
 #[derive(PartialEq, Eq)]
 pub struct Revert {
 	kind: RevertReason,
-	location: Backtrace,
+	backtrace: Backtrace,
 }
 
 impl Revert {
+	/// Create a new `Revert` with a `RevertReason` and
+	/// an empty backtrace.
 	pub fn new(kind: RevertReason) -> Self {
 		Self {
 			kind,
-			location: Backtrace::new(),
+			backtrace: Backtrace::new(),
 		}
 	}
 
+	/// For all `RevertReason` variants that have a `what` field, change its value.
+	/// Otherwise do nothing.
+	/// It is useful when writing custom types `EvmData` implementations using
+	/// simpler types.
 	pub fn change_what(mut self, what: impl Into<String>) -> Self {
 		let what = what.into();
 
@@ -142,6 +178,7 @@ impl Revert {
 		self
 	}
 
+	/// Transforms the revert into its bytes representation (from a String).
 	pub fn to_bytes(self) -> Vec<u8> {
 		self.into()
 	}
@@ -155,8 +192,8 @@ impl From<RevertReason> for Revert {
 
 impl core::fmt::Display for Revert {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> Result<(), core::fmt::Error> {
-		if !self.location.is_empty() {
-			write!(f, "{}: ", self.location)?;
+		if !self.backtrace.is_empty() {
+			write!(f, "{}: ", self.backtrace)?;
 		}
 
 		write!(f, "{}", self.kind)
@@ -175,12 +212,36 @@ impl Into<Vec<u8>> for Revert {
 	}
 }
 
-pub trait BacktraceExt {
-	fn in_field(self, field: impl Into<String>) -> Self;
-	fn in_array(self, index: usize) -> Self;
+/// Allows to inject backtrace data.
+pub trait InjectBacktrace {
+	/// Output type of the injection.
+	/// Should be a type that can hold a backtrace.
+	type Output;
+
+	/// Occurs in a field.
+	fn in_field(self, field: impl Into<String>) -> Self::Output;
+
+	/// Occurs in an array at provided index.
+	fn in_array(self, index: usize) -> Self::Output;
 }
 
-impl BacktraceExt for Backtrace {
+impl InjectBacktrace for RevertReason {
+	// `RevertReason` cannot hold a backtrace, thus it wraps
+	// it into a `Revert`.
+	type Output = Revert;
+
+	fn in_field(self, field: impl Into<String>) -> Revert {
+		Revert::new(self).in_field(field)
+	}
+
+	fn in_array(self, index: usize) -> Revert {
+		Revert::new(self).in_array(index)
+	}
+}
+
+impl InjectBacktrace for Backtrace {
+	type Output = Self;
+
 	fn in_field(mut self, field: impl Into<String>) -> Self {
 		self.0.push(BacktracePart::Field(field.into()));
 		self
@@ -192,19 +253,23 @@ impl BacktraceExt for Backtrace {
 	}
 }
 
-impl BacktraceExt for Revert {
+impl InjectBacktrace for Revert {
+	type Output = Self;
+
 	fn in_field(mut self, field: impl Into<String>) -> Self {
-		self.location = self.location.in_field(field);
+		self.backtrace = self.backtrace.in_field(field);
 		self
 	}
 
 	fn in_array(mut self, index: usize) -> Self {
-		self.location = self.location.in_array(index);
+		self.backtrace = self.backtrace.in_array(index);
 		self
 	}
 }
 
-impl<T> BacktraceExt for Result<T, Revert> {
+impl<T> InjectBacktrace for Result<T, Revert> {
+	type Output = Self;
+
 	fn in_field(self, field: impl Into<String>) -> Self {
 		self.map_err(|e| e.in_field(field))
 	}

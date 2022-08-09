@@ -26,7 +26,7 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{costs::call_cost, prelude::*, testing::*, revert::RevertSelector};
+use precompile_utils::{costs::call_cost, prelude::*, revert::RevertSelector, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {

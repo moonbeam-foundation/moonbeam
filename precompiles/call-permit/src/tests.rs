@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, prelude::*, testing::*};
+use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -129,7 +129,7 @@ fn valid_permit_returns() {
 
 					SubcallOutput {
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
-						output: revert_output(b"TEST"),
+						output: b"TEST".to_vec(),
 						cost: 13,
 						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
@@ -228,7 +228,7 @@ fn valid_permit_reverts() {
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: revert_output(b"TEST"),
+						output: encoded_revert(b"TEST"),
 						cost: 13,
 						logs: vec![],
 					}
@@ -368,7 +368,7 @@ fn invalid_permit_gas_limit_too_low() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 99_999 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"gaslimit is too low to dispatch provided call");
+				.execute_reverts(|x| x == b"Gaslimit is too low to dispatch provided call");
 		})
 }
 

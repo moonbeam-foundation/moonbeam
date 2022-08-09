@@ -17,8 +17,8 @@
 use {
 	crate::{
 		data::xcm::{network_id_from_bytes, network_id_to_bytes},
-		revert::Backtrace,
 		prelude::*,
+		revert::Backtrace,
 	},
 	hex_literal::hex,
 	pallet_evm::Context,
@@ -911,7 +911,11 @@ fn test_check_function_modifier() {
 	};
 
 	let payable_error = || Revert::new(RevertReason::custom("Function is not payable"));
-	let static_error = || Revert::new(RevertReason::custom("Can't call non-static function in static context"));
+	let static_error = || {
+		Revert::new(RevertReason::custom(
+			"Can't call non-static function in static context",
+		))
+	};
 
 	// Can't call non-static functions in static context.
 	assert_eq!(

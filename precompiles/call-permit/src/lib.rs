@@ -257,7 +257,9 @@ where
 				exit_status: ExitRevert::Reverted,
 				output,
 			}),
-			ExitReason::Succeed(_) => Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build())),
+			ExitReason::Succeed(_) => {
+				Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build()))
+			}
 		}
 	}
 

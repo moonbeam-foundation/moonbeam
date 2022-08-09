@@ -223,7 +223,8 @@ where
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let request_id: u64 = handle
 			.read_input()?
-			.read::<U256>()?
+			.read::<U256>()
+			.in_field("requestId")?
 			.try_into()
 			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
 		// record cost of 2 DB reads
@@ -293,23 +294,24 @@ where
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
-		
+
 		let mut input = handle.read_input()?;
 		let contract_address = handle.context().caller;
 		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
 		let fee: BalanceOf<Runtime> = input
-			.read::<U256>().in_field("fee")?
+			.read::<U256>()
+			.in_field("fee")?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
 		let salt = input.read::<H256>().in_field("salt")?;
 		let num_words = input.read::<u8>().in_field("numWords")?;
-		
+
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
 				.checked_add(2u64)
 				.ok_or(revert("Epoch Index (u64) overflowed"))?;
-		
+
 		let request = Request {
 			refund_address,
 			contract_address,
@@ -334,20 +336,22 @@ where
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
-		
+
 		let mut input = handle.read_input()?;
 		let contract_address = handle.context().caller;
 		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
 		let fee: BalanceOf<Runtime> = input
-			.read::<U256>().in_field("fee")?
+			.read::<U256>()
+			.in_field("fee")?
 			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("balance type").into()).in_field("fee")?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
+			.in_field("fee")?;
 
 		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
 		let salt = input.read::<H256>().in_field("salt")?;
 		let num_words = input.read::<u8>().in_field("numWords")?;
 		let blocks_after_current = input.read::<u64>().in_field("delay")?;
-		
+
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
 			.map_err(|_| revert("block number overflowed u64"))?;
@@ -380,8 +384,7 @@ where
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		let request_id: u64 = input
-			.read::<u64>().in_field("requestId")?;
+		let request_id: u64 = input.read::<u64>().in_field("requestId")?;
 
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
