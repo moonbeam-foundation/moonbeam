@@ -435,7 +435,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes,uint256,uint64)",
+      `transact_through_signed_multilocation(` +
+        `(uint8,bytes[]),` +
+        `(uint8,bytes[]),` +
+        `uint64,bytes,` +
+        `uint256,uint64)`,
       [dest, asset, transactWeight, transact_call, feeAmount, overallWeight]
     );
 
@@ -568,9 +572,17 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes,uint256,uint64)",
+      `transact_through_derivative_multilocation(` +
+        `uint8,` +
+        `uint16,` +
+        `(uint8,bytes[]),` +
+        `uint64,bytes,` +
+        `uint256,` +
+        `uint64` +
+        `)`,
       [transactor, index, asset, transactWeight, transact_call, feeAmount, overallWeight]
     );
+
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,

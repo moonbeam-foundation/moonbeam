@@ -62,26 +62,26 @@ pub enum Action {
 	TransactThroughDerivativeCustomFeeAndWeight =
 		"transact_through_derivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
 	TransactThroughDerivativeMultiLocationCustomFeeAndWeight =
-		"transact_through_derivative_multilocation(
-			uint8,
-			uint16,
-			(uint8,bytes[]),
-			uint64,bytes,
-			uint256,
-			uint64
-		)",
+		"transact_through_derivative_multilocation(\
+		uint8,\
+		uint16,\
+		(uint8,bytes[]),\
+		uint64,bytes,\
+		uint256,\
+		uint64\
+	)",
 	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
 	FeePerSecond = "fee_per_second((uint8,bytes[]))",
 	TransactThroughSignedMultiLocation =
 		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
-	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transact_through_signed_multilocation(
-			(uint8,bytes[]),
-			(uint8,bytes[]),
-			uint64,
-			bytes,
-			uint256,
-			uint64
+	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transact_through_signed_multilocation(\
+			(uint8,bytes[]),\
+			(uint8,bytes[]),\
+			uint64,\
+			bytes,\
+			uint256,\
+			uint64\
 		)",
 	TransactThroughSignedCustomFeeAndWeight =
 		"transact_through_signed((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",

@@ -37,6 +37,22 @@ fn test_selector_enum() {
 		0x9f89f03e
 	);
 	assert_eq!(Action::TransactThroughDerivative as u32, 0x267d4062);
+	assert_eq!(
+		Action::TransactThroughDerivativeMultiLocationCustomFeeAndWeight as u32,
+		0x25f5ef2a
+	);
+	assert_eq!(
+		Action::TransactThroughSignedCustomFeeAndWeight as u32,
+		0x6528b125
+	);
+	assert_eq!(
+		Action::TransactThroughSignedMultiLocationCustomFeeAndWeight as u32,
+		0x831ddd41
+	);
+	assert_eq!(
+		Action::TransactThroughDerivativeCustomFeeAndWeight as u32,
+		0xd91644d0
+	);
 }
 
 #[test]
