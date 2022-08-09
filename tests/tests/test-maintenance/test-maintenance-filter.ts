@@ -131,11 +131,26 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should forbid xcmTransactor to", async () => {
+
+   const transactWeightsWell = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
+      transactRequireWeightAtMost: 0,
+      overallWeight: null
+    });
+
+    let fee = context.polkadotApi.createType("PalletXcmTransactorCurrencyPayment", {
+      currency: {
+        AsCurrencyId: {
+          SelfReserve: null
+        }
+      },
+      feeAmount: null
+    });
+
     expect(
       await context
         .createBlock(
           context.polkadotApi.tx.xcmTransactor
-            .transactThroughDerivative("Relay", 0, "SelfReserve", 4000000000n, "")
+            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeightsWell as any)
             .signAsync(baltathar)
         )
         .catch((e) => e.toString())
