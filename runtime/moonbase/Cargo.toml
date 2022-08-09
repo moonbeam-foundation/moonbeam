@@ -50,9 +50,9 @@ pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-
 pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
+pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
 pallet-evm-precompile-xtokens = { path = "../../precompiles/xtokens", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
-pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
 
 # Moonbeam tracing
 evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", optional = true, default-features = false }
