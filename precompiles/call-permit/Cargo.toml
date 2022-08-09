@@ -16,17 +16,17 @@ precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
-frame-support = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-sp-core = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-sp-io = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
-sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Frontier
-evm = { git = "https://github.com/rust-blockchain/evm", branch = "master", default-features = false, features = [ "with-codec" ] }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.23", default-features = false }
+evm = { git = "https://github.com/rust-blockchain/evm", rev = "51b8c2ce3104265e1fd5bb0fe5cdfd2e0938239c", default-features = false, features = [ "with-codec" ] }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 [dev-dependencies]
 derive_more = { version = "0.99" }
@@ -36,11 +36,11 @@ serde = { version = "1.0.100" }
 sha3 = "0.8"
 
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
-pallet-balances = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
-pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 precompile-utils = { path = "../utils", features = [ "testing" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.23" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 [features]
 default = [ "std" ]

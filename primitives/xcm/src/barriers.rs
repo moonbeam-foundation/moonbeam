@@ -28,8 +28,10 @@ use xcm::latest::{
 };
 use xcm_executor::traits::ShouldExecute;
 
-pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+/// Barrier allowing a top level paid message with DescendOrigin instruction
+/// first
+pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
@@ -38,7 +40,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin:
+			"AllowTopLevelPaidExecutionDescendOriginFirst origin:
 			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
 			origin, message, max_weight, _weight_credit,
 		);

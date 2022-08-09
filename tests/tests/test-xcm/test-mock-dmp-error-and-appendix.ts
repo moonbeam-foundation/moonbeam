@@ -27,7 +27,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with non-triggered error handl
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -126,7 +126,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with triggered error handler",
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -226,7 +226,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -321,7 +321,7 @@ describeDevMoonbeam("Mock XCM - downward transfer with always triggered appendix
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -421,7 +421,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
     // BuyExecution does not charge for fees because we registered it for not doing so

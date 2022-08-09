@@ -283,6 +283,18 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		res
 	}
 
+	fn decode_revert_message(encoded: &[u8]) -> &[u8] {
+		let encoded_len = encoded.len();
+		// selector 4 + offset 32 + string length 32
+		if encoded_len > 68 {
+			let message_len = encoded[36..68].iter().sum::<u8>();
+			if encoded_len >= 68 + message_len as usize {
+				return &encoded[68..68 + message_len as usize];
+			}
+		}
+		b"decode_revert_message: error"
+	}
+
 	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
 	pub fn execute_some(mut self) {
@@ -318,7 +330,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		assert_matches!(
 			res,
 			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if check(&output)
+				if check(Self::decode_revert_message(&output))
 		);
 		self.assert_optionals();
 	}
