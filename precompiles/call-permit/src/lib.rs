@@ -19,7 +19,8 @@
 use core::marker::PhantomData;
 use evm::ExitReason;
 use fp_evm::{
-	Context, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+	Context, ExitRevert, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
+	Transfer,
 };
 use frame_support::{
 	ensure,
@@ -249,7 +250,10 @@ where
 		match reason {
 			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(revert(EvmDataWriter::new().write(Bytes(output)).build())),
+			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
+			}),
 			ExitReason::Succeed(_) => {
 				Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build()))
 			}

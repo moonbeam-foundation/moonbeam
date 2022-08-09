@@ -236,9 +236,7 @@ fn valid_permit_reverts() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_no_logs()
-				.execute_reverts(|x| {
-					x == EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build()
-				});
+				.execute_reverts(|x| x == b"TEST".to_vec());
 		})
 }
 
