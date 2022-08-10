@@ -1507,6 +1507,10 @@
 <span id="1502">1502</span>
 <span id="1503">1503</span>
 <span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
+<span id="1508">1508</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2019,11 +2023,15 @@
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_collective::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
 }
 
+<span class="comment">// The purpose of this offset is to ensure that a democratic proposal will not apply in the same</span>
+<span class="comment">// block as a round change.</span>
+<span class="kw">const</span> <span class="ident">ENACTMENT_OFFSET</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">900</span>;
+
 <span class="kw">impl</span> <span class="ident">pallet_democracy::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
 	<span class="kw">type</span> <span class="ident">Proposal</span> <span class="op">=</span> <span class="ident">Call</span>;
 	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
 	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">EnactmentPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">2</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
+	<span class="kw">type</span> <span class="ident">EnactmentPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">2</span> <span class="op">*</span> <span class="ident">DAYS</span> <span class="op">+</span> <span class="ident">ENACTMENT_OFFSET</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">LaunchPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">VotingPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">14</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">VoteLockingPeriod</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">7</span> <span class="op">*</span> <span class="ident">DAYS</span> }<span class="op">&gt;</span>;
