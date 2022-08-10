@@ -1,5 +1,31 @@
 #!/usr/bin/env ts-node
 
+/**
+ * Usage:
+ *
+ * Encode storage key:
+ *  ./scale.ts key \
+ *    --pallet System \
+ *    --storage Account \
+ *    --key 0x6Df05cBd5113261Dd0f63fb8ce89FC0e236B844e
+ *
+ * Decode storage item:
+ *  ./scale.ts decode \
+ *    --ws wss://wss.api.moonbase.moonbeam.network \
+ *    --type FrameSystemAccountInfo \
+ *    --value '0x1600...de' \
+ *    --explain
+ *
+ * Encode storage item:
+ * ./scale.ts encode \
+ *    --ws wss://wss.api.moonbase.moonbeam.network \
+ *    --type FrameSystemAccountInfo \
+ *    --value '{  "nonce": "22",
+ *       "consumers": "0",
+ *        ...
+ *      }'
+ */
+
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { u8aToHex, hexToU8a } from "@polkadot/util";
 import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
