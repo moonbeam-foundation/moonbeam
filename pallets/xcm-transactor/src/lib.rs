@@ -642,10 +642,7 @@ pub mod pallet {
 			})?;
 
 			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
-
-			// Ensure the asset is a reserve
-			Self::transfer_allowed(&fee, &dest)?;
+			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -696,7 +693,7 @@ pub mod pallet {
 			})?;
 
 			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, fee_amount, total_weight)?;
+			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
 
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -736,12 +733,17 @@ pub mod pallet {
 		fn calculate_fee(
 			fee_location: MultiLocation,
 			fee_amount: Option<u128>,
+			destination: MultiLocation,
 			total_weight: Weight,
 		) -> Result<MultiAsset, DispatchError> {
 			// Multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
 			let amount = fee_amount.ok_or("").or_else(|_| {
-				Self::take_fee_per_second_from_storage(fee_location.clone(), total_weight)
+				Self::take_fee_per_second_from_storage(
+					fee_location.clone(),
+					destination,
+					total_weight,
+				)
 			})?;
 
 			// Construct MultiAsset
@@ -965,10 +967,17 @@ pub mod pallet {
 		/// it takes this information from storage
 		pub fn take_fee_per_second_from_storage(
 			fee_location: MultiLocation,
+			destination: MultiLocation,
 			total_weight: Weight,
 		) -> Result<u128, DispatchError> {
 			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
 				.ok_or(Error::<T>::FeePerSecondNotSet)?;
+
+			// Ensure the asset is a reserve
+			// We only store information about asset fee per second on its reserve chain
+			// if amount is provided, we first check whether we have this information
+			Self::transfer_allowed(&(fee_location, fee_per_second).into(), &destination)?;
+
 			Ok(Self::calculate_fee_per_second(total_weight, fee_per_second))
 		}
 
