@@ -6797,7 +6797,6 @@ dependencies = [
 name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
- "account",
  "ethereum",
  "ethereum-types",
  "fp-ethereum",
