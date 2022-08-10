@@ -23,6 +23,8 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
+/// Ensure that a proxy between `delegator` and `delegatee` exists in order to deny or grant
+/// permission to do xcm-transact to `transact_through_proxy`.
 pub trait EnsureProxy<AccountId> {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str>;
 }
