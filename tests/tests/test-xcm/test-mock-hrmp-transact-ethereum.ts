@@ -686,9 +686,10 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
       ).data.free.toBigInt();
       expect(testAccountBalance).to.eq(0n);
 
-      // Make sure ALITH has been deducted fees once (in xcm-executor) but transfered nothing.
-      const alithAccountBalance = await context.web3.eth.getBalance(descendAddress);
-      expect(BigInt(alithAccountBalance)).to.eq(transferredBalance - feeAmount);
+      // Make sure the descended address has been deducted fees once (in xcm-executor) but
+      // transfered nothing.
+      const descendOriginBalance = await context.web3.eth.getBalance(descendAddress);
+      expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
     }
   });
 });
