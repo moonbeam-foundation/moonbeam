@@ -550,7 +550,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     random = generateKeyringPair();
     transferredBalance = 10_000_000_000_000_000_000n;
 
-    // We first fund parachain 2000 sovreign account
+    // We first fund the descend origin derivated address
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance)
