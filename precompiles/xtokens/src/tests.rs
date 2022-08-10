@@ -719,7 +719,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"array length is too large");
+				.execute_reverts(|output| output == b"currencies: Value is too large for length");
 		});
 }
 
@@ -772,7 +772,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"array length is too large");
+				.execute_reverts(|output| output == b"assets: Value is too large for length");
 		});
 }
 
@@ -821,7 +821,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 						.build(),
 				)
 				.execute_reverts(|output| {
-					output == b"Provided vector either not sorted nor deduplicated"
+					output == b"assets: Provided assets either not sorted nor deduplicated"
 				});
 		});
 }

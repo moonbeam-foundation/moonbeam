@@ -312,13 +312,39 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_returns(mut self, output: Vec<u8>) {
 		let res = self.execute();
-		assert_eq!(
-			res,
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = Self::decode_revert_message(&output);
+				eprintln!(
+					"Revert message (bytes): {:?}",
+					sp_core::hexdisplay::HexDisplay::from(&decoded)
+				);
+				eprintln!(
+					"Revert message (string): {:?}",
+					core::str::from_utf8(decoded).ok()
+				);
+				panic!("Shouldn't have reverted");
+			}
 			Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output
-			}))
-		);
+				output: execution_output,
+			})) => {
+				if execution_output != output {
+					eprintln!(
+						"Output (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&execution_output)
+					);
+					eprintln!(
+						"Output (string): {:?}",
+						core::str::from_utf8(&execution_output).ok()
+					);
+					panic!("Output doesn't match");
+				}
+			}
+			other => panic!("Unexpected result: {:?}", other),
+		}
+
 		self.assert_optionals();
 	}
 

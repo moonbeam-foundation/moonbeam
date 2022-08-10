@@ -220,12 +220,12 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| revert("Invalid permit: failed to recover signer"))?;
+			.map_err(|_| revert("Invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == from,
-			revert("Invalid permit: signer doesn't match from field")
+			revert("Invalid permit")
 		);
 
 		NoncesStorage::insert(from, nonce + U256::one());

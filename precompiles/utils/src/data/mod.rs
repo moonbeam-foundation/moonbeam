@@ -349,9 +349,19 @@ impl EvmData for Tuple {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		if !Self::has_static_size() {
 			let reader = &mut reader.read_pointer()?;
-			Ok(for_tuples!( ( #( reader.read::<Tuple>().in_field(stringify!(Tuple))? ),* ) ))
+			let mut index = 0;
+			Ok(for_tuples!( ( #( {
+				let elem = reader.read::<Tuple>().in_tuple(index)?;
+				index +=1;
+				elem
+			} ),* ) ))
 		} else {
-			Ok(for_tuples!( ( #( reader.read::<Tuple>().in_field(stringify!(Tuple))? ),* ) ))
+			let mut index = 0;
+			Ok(for_tuples!( ( #( {
+				let elem = reader.read::<Tuple>().in_tuple(index)?;
+				index +=1;
+				elem
+			} ),* ) ))
 		}
 	}
 

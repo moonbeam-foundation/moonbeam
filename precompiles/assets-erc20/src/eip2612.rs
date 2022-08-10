@@ -192,20 +192,20 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
-		let value: U256 = input.read()?;
-		let deadline: U256 = input.read()?;
-		let v: u8 = input.read()?;
-		let r: H256 = input.read()?;
-		let s: H256 = input.read()?;
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
+		let value: U256 = input.read().in_field("value")?;
+		let deadline: U256 = input.read().in_field("deadline")?;
+		let v: u8 = input.read().in_field("v")?;
+		let r: H256 = input.read().in_field("r")?;
+		let s: H256 = input.read().in_field("s")?;
 
 		let address = handle.code_address();
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
 
-		ensure!(deadline >= timestamp, revert("permit expired"));
+		ensure!(deadline >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::<Instance>::get(address, owner);
 
@@ -218,12 +218,12 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| revert("invalid permit"))?;
+			.map_err(|_| revert("Invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == owner,
-			revert("invalid permit")
+			revert("Invalid permit")
 		);
 
 		NoncesStorage::<Instance>::insert(address, owner, nonce + U256::one());
@@ -251,7 +251,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
 
 		let nonce = NoncesStorage::<Instance>::get(handle.code_address(), owner);
 

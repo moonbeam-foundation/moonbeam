@@ -251,10 +251,9 @@ impl EvmData for Junctions {
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-		let parents = inner_reader.read().in_field("parents")?;
-		let interior = inner_reader.read().in_field("interior")?;
-
+		let (parents, interior) = reader
+			.read()
+			.map_in_tuple_to_field(&["parents", "interior"])?;
 		Ok(MultiLocation { parents, interior })
 	}
 

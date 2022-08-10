@@ -302,7 +302,7 @@ fn invalid_permit_nonce() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"Invalid permit: signer doesn't match from field");
+				.execute_reverts(|x| x == b"Invalid permit");
 		})
 }
 

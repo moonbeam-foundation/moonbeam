@@ -1817,7 +1817,7 @@ fn permit_invalid_nonce() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1897,7 +1897,7 @@ fn permit_invalid_signature() {
 						.write(H256::random())
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1993,7 +1993,7 @@ fn permit_invalid_deadline() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"permit expired");
+				.execute_reverts(|output| output == b"Permit expired");
 
 			precompiles()
 				.prepare_test(

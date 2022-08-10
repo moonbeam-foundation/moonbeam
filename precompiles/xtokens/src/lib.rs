@@ -135,8 +135,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
-			.in_field("amount")?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer {
 			currency_id,
@@ -154,15 +153,15 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(5)?;
 
-		let to_address: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
-		let fee: U256 = input.read()?;
+		let to_address: H160 = input.read::<Address>().in_field("currency_address")?.into();
+		let amount: U256 = input.read().in_field("amount")?;
+		let fee: U256 = input.read().in_field("fee")?;
 
 		// We use the MultiLocation, which we have instructed how to read
 		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 		// We convert the address into a currency id xtokens understands
@@ -175,12 +174,12 @@ where
 		// Transferred amount
 		let amount = amount
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
 		// Fee amount
 		let fee = fee
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_with_fee {
 			currency_id,
@@ -197,24 +196,23 @@ where
 
 	fn transfer_multiasset(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
+		input.expect_arguments(4)?;
+
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
-		// Bound check
-		input.expect_arguments(1)?;
-		let amount: U256 = input.read()?;
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>().in_field("asset")?;
+
+		let amount: U256 = input.read().in_field("amount")?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
 
-		// Bound check
-		input.expect_arguments(1)?;
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let to_balance = amount
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
@@ -238,22 +236,22 @@ where
 
 		// asset is defined as a multiLocation. For now we are assuming these are concrete
 		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>()?;
-		let amount: U256 = input.read()?;
-		let fee: U256 = input.read()?;
+		let asset_multilocation: MultiLocation = input.read::<MultiLocation>().in_field("asset")?;
+		let amount: U256 = input.read().in_field("amount")?;
+		let fee: U256 = input.read().in_field("fee")?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("amount"))?;
 		let fee = fee
 			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
@@ -278,15 +276,15 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> = input.read()?;
-		let non_mapped_currencies = non_mapped_currencies.into_vec();
+		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> =
+			input.read().in_field("currencies")?;
 
-		let fee_item: u32 = input.read::<u32>()?;
+		let fee_item: u32 = input.read::<u32>().in_field("fee_item")?;
 
 		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
 
-		let dest_weight: u64 = input.read::<u64>()?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -297,20 +295,26 @@ where
 				XBalanceOf<Runtime>,
 			)>,
 		> = non_mapped_currencies
-			.iter()
-			.map(|currency| {
-				let address_as_h160: H160 = currency.address.clone().into();
-				let amount = currency
-					.amount
-					.clone()
-					.try_into()
-					.map_err(|_| revert("Amount is too large for provided balance type"))?;
+			.into_vec()
+			.into_iter()
+			.enumerate()
+			.map(|(index, currency)| {
+				let address_as_h160: H160 = currency.address.into();
+				let amount = currency.amount.try_into().map_err(|_| {
+					RevertReason::value_is_too_large("balance type")
+						.in_array(index)
+						.in_field("currencies")
+				})?;
 
 				Ok((
 					Runtime::account_to_currency_id(Runtime::AddressMapping::into_account_id(
 						address_as_h160,
 					))
-					.ok_or(revert("cannot convert into currency id"))?,
+					.ok_or(
+						RevertReason::custom("Cannot convert into currency id")
+							.in_array(index)
+							.in_field("currencies"),
+					)?,
 					amount,
 				))
 			})
@@ -333,34 +337,36 @@ where
 	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> = input.read()?;
-		let assets = assets.into_vec();
+		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> =
+			input.read().in_field("assets")?;
 
-		let fee_item: u32 = input.read::<u32>()?;
-
-		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>()?;
-
-		let dest_weight: u64 = input.read::<u64>()?;
+		let fee_item: u32 = input.read::<u32>().in_field("fee_item")?;
+		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
+		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let multiasset_vec: EvmResult<Vec<MultiAsset>> = assets
-			.iter()
-			.map(|evm_multiasset| {
-				let to_balance: u128 = evm_multiasset
-					.amount
-					.clone()
-					.try_into()
-					.map_err(|_| revert("Amount is too large for provided balance type"))?;
-				Ok((evm_multiasset.location.clone(), to_balance).into())
+			.into_vec()
+			.into_iter()
+			.enumerate()
+			.map(|(index, evm_multiasset)| {
+				let to_balance: u128 = evm_multiasset.amount.try_into().map_err(|_| {
+					RevertReason::value_is_too_large("balance type")
+						.in_array(index)
+						.in_field("assets")
+				})?;
+				Ok((evm_multiasset.location, to_balance).into())
 			})
 			.collect();
 
 		// Since multiassets sorts them, we need to check whether the index is still correct,
 		// and error otherwise as there is not much we can do other than that
-		let multiassets = MultiAssets::from_sorted_and_deduplicated(multiasset_vec?)
-			.map_err(|_| revert("Provided vector either not sorted nor deduplicated"))?;
+		let multiassets =
+			MultiAssets::from_sorted_and_deduplicated(multiasset_vec?).map_err(|_| {
+				RevertReason::custom("Provided assets either not sorted nor deduplicated")
+					.in_field("assets")
+			})?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiassets {
 			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
@@ -383,9 +389,9 @@ pub struct Currency {
 // For Currencies
 impl EvmData for Currency {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-		let address = inner_reader.read().in_field("address")?;
-		let amount = inner_reader.read().in_field("amount")?;
+		let (address, amount) = reader
+			.read()
+			.map_in_tuple_to_field(&["address", "amount"])?;
 
 		Ok(Currency { address, amount })
 	}
@@ -416,9 +422,9 @@ pub struct EvmMultiAsset {
 
 impl EvmData for EvmMultiAsset {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-		let location = inner_reader.read().in_field("location")?;
-		let amount = inner_reader.read().in_field("amount")?;
+		let (location, amount) = reader
+			.read()
+			.map_in_tuple_to_field(&["location", "amount"])?;
 
 		Ok(EvmMultiAsset { location, amount })
 	}

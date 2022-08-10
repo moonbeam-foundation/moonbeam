@@ -33,9 +33,10 @@ pub enum RevertSelector {
 	Generic = "Error(string)",
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 enum BacktracePart {
 	Field(String),
+	Tuple(usize),
 	Array(usize),
 }
 
@@ -63,6 +64,7 @@ impl core::fmt::Display for Backtrace {
 			match (i, part) {
 				(0, BacktracePart::Field(field)) => write!(f, "{field}")?,
 				(_, BacktracePart::Field(field)) => write!(f, ".{field}")?,
+				(_, BacktracePart::Tuple(index)) => write!(f, ".{index}")?,
 				(_, BacktracePart::Array(index)) => write!(f, "[{index}]")?,
 			}
 		}
@@ -221,8 +223,18 @@ pub trait InjectBacktrace {
 	/// Occurs in a field.
 	fn in_field(self, field: impl Into<String>) -> Self::Output;
 
+	/// Occurs in a tuple.
+	fn in_tuple(self, index: usize) -> Self::Output;
+
 	/// Occurs in an array at provided index.
 	fn in_array(self, index: usize) -> Self::Output;
+
+	/// Map last tuple entry into a field.
+	/// Does nothing if last entry is not a tuple.
+	/// As in Solidity structs are equivalent to tuples and are tricky to parse correctly,
+	/// it allows to parse any struct as a tuple (with the correct implementation in this crate) and
+	/// then map tuple indices to struct fields.
+	fn map_in_tuple_to_field(self, fields: &[&'static str]) -> Self::Output;
 }
 
 impl InjectBacktrace for RevertReason {
@@ -237,6 +249,15 @@ impl InjectBacktrace for RevertReason {
 	fn in_array(self, index: usize) -> Revert {
 		Revert::new(self).in_array(index)
 	}
+
+	fn in_tuple(self, index: usize) -> Revert {
+		Revert::new(self).in_tuple(index)
+	}
+
+	fn map_in_tuple_to_field(self, _fields: &[&'static str]) -> Revert {
+		// No entry to map
+		Revert::new(self)
+	}
 }
 
 impl InjectBacktrace for Backtrace {
@@ -249,6 +270,22 @@ impl InjectBacktrace for Backtrace {
 
 	fn in_array(mut self, index: usize) -> Self {
 		self.0.push(BacktracePart::Array(index));
+		self
+	}
+
+	fn in_tuple(mut self, index: usize) -> Self {
+		self.0.push(BacktracePart::Tuple(index));
+		self
+	}
+
+	fn map_in_tuple_to_field(mut self, fields: &[&'static str]) -> Self {
+		if let Some(entry) = self.0.last_mut() {
+			if let BacktracePart::Tuple(index) = *entry {
+				if let Some(field) = fields.get(index) {
+					*entry = BacktracePart::Field(field.to_string())
+				}
+			}
+		}
 		self
 	}
 }
@@ -265,6 +302,16 @@ impl InjectBacktrace for Revert {
 		self.backtrace = self.backtrace.in_array(index);
 		self
 	}
+
+	fn in_tuple(mut self, index: usize) -> Self {
+		self.backtrace = self.backtrace.in_tuple(index);
+		self
+	}
+
+	fn map_in_tuple_to_field(mut self, fields: &[&'static str]) -> Self {
+		self.backtrace = self.backtrace.map_in_tuple_to_field(fields);
+		self
+	}
 }
 
 impl<T> InjectBacktrace for Result<T, Revert> {
@@ -276,6 +323,14 @@ impl<T> InjectBacktrace for Result<T, Revert> {
 
 	fn in_array(self, index: usize) -> Self {
 		self.map_err(|e| e.in_array(index))
+	}
+
+	fn in_tuple(self, index: usize) -> Self {
+		self.map_err(|e| e.in_tuple(index))
+	}
+
+	fn map_in_tuple_to_field(self, fields: &[&'static str]) -> Self {
+		self.map_err(|e| e.map_in_tuple_to_field(fields))
 	}
 }
 
