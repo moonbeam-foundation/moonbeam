@@ -510,11 +510,15 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
+// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
+// block as a round change.
+const ENACTMENT_OFFSET: u32 = 900;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 2 * DAYS }>;
+	type EnactmentPeriod = ConstU32<{ 2 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 7 * DAYS }>;
 	type VotingPeriod = ConstU32<{ 14 * DAYS }>;
 	type VoteLockingPeriod = ConstU32<{ 7 * DAYS }>;
