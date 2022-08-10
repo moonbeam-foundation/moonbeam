@@ -3,11 +3,13 @@
   "version": "0.0.1",
   "license": "GPL-3.0",
   "dependencies": {
-    "@polkadot/api": "^6.6.1",
+    "@polkadot/api": "^8.14.1",
     "bip39": "^3.0.3",
     "eth-block-tracker": "^4.4.3",
     "ethereumjs-wallet": "^1.0.0",
     "ethjs-provider-http": "^0.1.6",
+    "lodash.isobject": "^3.0.2",
+    "lodash.mergewith": "^4.6.2",
     "moonbeam-types-bundle": "^2.0.7",
     "octokit": "^1.0.6",
     "pkg": "^4.4.9",
@@ -22,7 +24,9 @@
     "yargs": "^17.0.1"
   },
   "devDependencies": {
-    "@types/yargs": "^15.0.12"
+    "@types/lodash.isobject": "^3.0.7",
+    "@types/lodash.mergewith": "^4.6.7",
+    "@types/yargs": "^17.0.11"
   },
   "scripts": {
     "package-moon-key": "node_modules/.bin/tsc moon-key.ts; node_modules/.bin/pkg -t node14 moon-key.js; rm moon-key.js",
