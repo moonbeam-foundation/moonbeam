@@ -228,7 +228,7 @@ pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 // Allow paid executions
 pub type XcmBarrier = (
 	TakeWeightCredit,
-	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
