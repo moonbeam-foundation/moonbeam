@@ -195,6 +195,125 @@ fn test_transact_through_derivative_errors() {
 }
 
 #[test]
+fn test_transact_through_signed_errors() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// TransactInfo not yet set
+			assert_noop!(
+				XcmTransactor::transact_through_signed(
+					Origin::signed(1u64),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
+					vec![0u8],
+					TransactWeights {
+						transact_require_weight_at_most: 100u64,
+						overall_weight: None
+					}
+				),
+				Error::<Test>::TransactorInfoNotSet
+			);
+
+			// Root can set transact info without extra_signed being None
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				10000,
+				None
+			));
+
+			// TransactInfo present, but FeePerSecond not set
+			assert_noop!(
+				XcmTransactor::transact_through_signed(
+					Origin::signed(1u64),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
+					vec![0u8],
+					TransactWeights {
+						transact_require_weight_at_most: 100u64,
+						overall_weight: None
+					}
+				),
+				Error::<Test>::SignedTransactNotAllowedForDestination
+			);
+
+			// Root can set transact info, with extra signed
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				15000,
+				Some(12000)
+			));
+
+			// TransactInfo present, but FeePerSecond not set
+			assert_noop!(
+				XcmTransactor::transact_through_signed(
+					Origin::signed(1u64),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
+					vec![0u8],
+					TransactWeights {
+						transact_require_weight_at_most: 100u64,
+						overall_weight: None
+					}
+				),
+				Error::<Test>::FeePerSecondNotSet
+			);
+
+			// Set fee per second
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
+					1,
+					Junctions::X1(Junction::Parachain(1000))
+				))),
+				1
+			));
+
+			// TransactInfo present, but the asset is not a reserve of dest
+			assert_noop!(
+				XcmTransactor::transact_through_signed(
+					Origin::signed(1u64),
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::new(
+								1,
+								Junctions::X1(Junction::Parachain(1000))
+							))
+						)),
+						fee_amount: None
+					},
+					vec![0u8],
+					TransactWeights {
+						transact_require_weight_at_most: 100u64,
+						overall_weight: None
+					}
+				),
+				Error::<Test>::AssetIsNotReserveInDestination
+			);
+		})
+}
+
+#[test]
 fn test_transact_through_derivative_multilocation_success() {
 	ExtBuilder::default()
 		.with_balances(vec![])
