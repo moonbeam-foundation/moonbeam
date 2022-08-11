@@ -23,7 +23,7 @@ use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -46,41 +46,42 @@ fn evm_call(source: Account, input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::IsDelegator as u32, 0x1f030587);
-	assert_eq!(Action::IsCandidate as u32, 0x8545c833);
-	assert_eq!(Action::IsSelectedCandidate as u32, 0x8f6d27c7);
+	// DEPRECATED
+	assert_eq!(Action::IsDelegator as u32, 0xfd8ab482);
+	assert_eq!(Action::IsCandidate as u32, 0xd51b9e93);
+	assert_eq!(Action::IsSelectedCandidate as u32, 0x740d7d2a);
 	assert_eq!(Action::Points as u32, 0x9799b4e7);
-	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
-	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
+	assert_eq!(Action::MinDelegation as u32, 0x02985992);
+	assert_eq!(Action::CandidateCount as u32, 0xa9a981a3);
 	assert_eq!(Action::Round as u32, 0x146ca531);
-	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
-	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
-	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
-	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
-	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
-	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
-	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
-	assert_eq!(Action::ScheduleLeaveCandidates as u32, 0x60afbac6);
-	assert_eq!(Action::ExecuteLeaveCandidates as u32, 0x3fdc4c30);
-	assert_eq!(Action::CancelLeaveCandidates as u32, 0x0880b3e2);
-	assert_eq!(Action::GoOffline as u32, 0x767e0450);
-	assert_eq!(Action::GoOnline as u32, 0xd2f73ceb);
-	assert_eq!(Action::CandidateBondMore as u32, 0xc57bd3a8);
-	assert_eq!(Action::ScheduleCandidateBondLess as u32, 0x034c47bc);
-	assert_eq!(Action::ExecuteCandidateBondLess as u32, 0xa9a2b8b7);
-	assert_eq!(Action::CancelCandidateBondLess as u32, 0x583d0fdc);
+	assert_eq!(Action::CandidateDelegationCount as u32, 0x2ec087eb);
+	assert_eq!(Action::DelegatorDelegationCount as u32, 0x067ec822);
+	assert_eq!(Action::SelectedCandidates as u32, 0xbcf868a6);
+	assert_eq!(Action::DelegationRequestIsPending as u32, 0x3b16def8);
+	assert_eq!(Action::CandidateExitIsPending as u32, 0x43443682);
+	assert_eq!(Action::CandidateRequestIsPending as u32, 0xd0deec11);
+	assert_eq!(Action::JoinCandidates as u32, 0x1f2f83ad);
+	assert_eq!(Action::ScheduleLeaveCandidates as u32, 0xb1a3c1b7);
+	assert_eq!(Action::ExecuteLeaveCandidates as u32, 0x3867f308);
+	assert_eq!(Action::CancelLeaveCandidates as u32, 0x9c76ebb4);
+	assert_eq!(Action::GoOffline as u32, 0xa6485ccd);
+	assert_eq!(Action::GoOnline as u32, 0x6e5b676b);
+	assert_eq!(Action::CandidateBondMore as u32, 0xa52c8643);
+	assert_eq!(Action::ScheduleCandidateBondLess as u32, 0x60744ae0);
+	assert_eq!(Action::ExecuteCandidateBondLess as u32, 0x2e290290);
+	assert_eq!(Action::CancelCandidateBondLess as u32, 0xb5ad5f07);
 	assert_eq!(Action::Delegate as u32, 0x829f5ee3);
-	assert_eq!(Action::ScheduleLeaveDelegators as u32, 0x65a5bbd0);
-	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
-	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
-	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
-	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
-	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
-	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
-	assert_eq!(Action::DelegatorBondMore as u32, 0xf8331108);
-	assert_eq!(Action::ScheduleDelegatorBondLess as u32, 0x00043acf);
-	assert_eq!(Action::ExecuteDelegationRequest as u32, 0xe42366a6);
-	assert_eq!(Action::CancelDelegationRequest as u32, 0x7284cf50);
+	assert_eq!(Action::ScheduleLeaveDelegators as u32, 0xf939dadb);
+	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xfb1e2bf9);
+	assert_eq!(Action::CancelLeaveDelegators as u32, 0xf7421284);
+	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x1a1c740c);
+	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xfb1e2bf9);
+	assert_eq!(Action::CancelLeaveDelegators as u32, 0xf7421284);
+	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x1a1c740c);
+	assert_eq!(Action::DelegatorBondMore as u32, 0x0465135b);
+	assert_eq!(Action::ScheduleDelegatorBondLess as u32, 0xc172fd2b);
+	assert_eq!(Action::ExecuteDelegationRequest as u32, 0xe98c8abe);
+	assert_eq!(Action::CancelDelegationRequest as u32, 0xc90eee83);
 }
 
 #[test]
@@ -1181,4 +1182,29 @@ fn cancel_delegator_bonded_less_works() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["StakingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

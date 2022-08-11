@@ -23,7 +23,7 @@ use crate::StakeEncodeCall;
 use crate::*;
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
-use precompile_utils::testing::*;
+use precompile_utils::{solidity, testing::*};
 use sp_core::{H256, U256};
 use sp_runtime::Perbill;
 
@@ -33,16 +33,16 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::EncodeBond as u32, 0x31627376);
-	assert_eq!(Action::EncodeBondExtra as u32, 0x49def326);
-	assert_eq!(Action::EncodeUnbond as u32, 0x2cd61217);
-	assert_eq!(Action::EncodeWithdrawUnbonded as u32, 0x2d220331);
-	assert_eq!(Action::EncodeValidate as u32, 0x3a0d803a);
-	assert_eq!(Action::EncodeNominate as u32, 0xa7cb124b);
-	assert_eq!(Action::EncodeChill as u32, 0xbc4b2187);
-	assert_eq!(Action::EncodeSetPayee as u32, 0x9801b147);
-	assert_eq!(Action::EncodeSetController as u32, 0x7a8f48c2);
-	assert_eq!(Action::EncodeRebond as u32, 0xadd6b3bf);
+	assert_eq!(Action::EncodeBond as u32, 0xa82948d4);
+	assert_eq!(Action::EncodeBondExtra as u32, 0x813667a0);
+	assert_eq!(Action::EncodeUnbond as u32, 0x51b14e57);
+	assert_eq!(Action::EncodeWithdrawUnbonded as u32, 0xd5ad108e);
+	assert_eq!(Action::EncodeValidate as u32, 0xbb64ca0c);
+	assert_eq!(Action::EncodeNominate as u32, 0xd2ea7b08);
+	assert_eq!(Action::EncodeChill as u32, 0xb5eaac43);
+	assert_eq!(Action::EncodeSetPayee as u32, 0x414be337);
+	assert_eq!(Action::EncodeSetController as u32, 0x07f7c6dc);
+	assert_eq!(Action::EncodeRebond as u32, 0x0922ee17);
 }
 
 #[test]
@@ -349,4 +349,29 @@ fn test_encode_withdraw_unbonded() {
 						.build(),
 				);
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["RelayEncoder.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

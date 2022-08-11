@@ -80,16 +80,24 @@ pub enum Action {
 	Burn = "burn(address,uint256)",
 	Freeze = "freeze(address)",
 	Thaw = "thaw(address)",
-	FreezeAsset = "freeze_asset()",
-	ThawAsset = "thaw_asset()",
-	TransferOwnership = "transfer_ownership(address)",
-	SetTeam = "set_team(address,address,address)",
-	SetMetadata = "set_metadata(string,string,uint8)",
-	ClearMetadata = "clear_metadata()",
+	FreezeAsset = "freezeAsset()",
+	ThawAsset = "thawAsset()",
+	TransferOwnership = "transferOwnership(address)",
+	SetTeam = "setTeam(address,address,address)",
+	SetMetadata = "setMetadata(string,string,uint8)",
+	ClearMetadata = "clearMetadata()",
 	// EIP 2612
 	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
 	Eip2612Nonces = "nonces(address)",
 	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
+
+	// deprecated
+	DeprecatedFreezeAsset = "freeze_asset()",
+	DeprecatedThawAsset = "thaw_asset()",
+	DeprecatedTransferOwnership = "transfer_ownership(address)",
+	DeprecatedSetTeam = "set_team(address,address,address)",
+	DeprecatedSetMetadata = "set_metadata(string,string,uint8)",
+	DeprecatedClearMetadata = "clear_metadata()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -188,12 +196,24 @@ where
 						Action::Burn => Self::burn(asset_id, handle),
 						Action::Freeze => Self::freeze(asset_id, handle),
 						Action::Thaw => Self::thaw(asset_id, handle),
-						Action::FreezeAsset => Self::freeze_asset(asset_id, handle),
-						Action::ThawAsset => Self::thaw_asset(asset_id, handle),
-						Action::TransferOwnership => Self::transfer_ownership(asset_id, handle),
-						Action::SetTeam => Self::set_team(asset_id, handle),
-						Action::SetMetadata => Self::set_metadata(asset_id, handle),
-						Action::ClearMetadata => Self::clear_metadata(asset_id, handle),
+						Action::FreezeAsset | Action::DeprecatedFreezeAsset => {
+							Self::freeze_asset(asset_id, handle)
+						}
+						Action::ThawAsset | Action::DeprecatedThawAsset => {
+							Self::thaw_asset(asset_id, handle)
+						}
+						Action::TransferOwnership | Action::DeprecatedTransferOwnership => {
+							Self::transfer_ownership(asset_id, handle)
+						}
+						Action::SetTeam | Action::DeprecatedSetTeam => {
+							Self::set_team(asset_id, handle)
+						}
+						Action::SetMetadata | Action::DeprecatedSetMetadata => {
+							Self::set_metadata(asset_id, handle)
+						}
+						Action::ClearMetadata | Action::DeprecatedClearMetadata => {
+							Self::clear_metadata(asset_id, handle)
+						}
 						Action::Eip2612Permit => {
 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
 						}
