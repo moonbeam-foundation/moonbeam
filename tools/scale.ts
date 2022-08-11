@@ -42,19 +42,16 @@ const args = yargs
       pallet: {
         type: "string",
         demandOption: true,
-        alias: "pallet",
         describe: "The pallet's capitalized name",
       },
       storage: {
         type: "string",
         demandOption: true,
-        alias: "storage",
         describe: "The storage's capitalized name",
       },
       key: {
         type: "string",
         demandOption: true,
-        alias: "key",
         describe: "The key for the storage",
       },
     },
