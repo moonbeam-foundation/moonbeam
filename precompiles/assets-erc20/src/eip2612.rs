@@ -192,13 +192,22 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
-		let value: U256 = input.read().in_field("value")?;
-		let deadline: U256 = input.read().in_field("deadline")?;
-		let v: u8 = input.read().in_field("v")?;
-		let r: H256 = input.read().in_field("r")?;
-		let s: H256 = input.read().in_field("s")?;
+		input.expect_arguments(7)?;
+
+		read_args!(
+			input,
+			{
+				owner: Address,
+				spender: Address,
+				value: U256,
+				deadline: U256,
+				v: u8,
+				r: H256,
+				s: H256
+			}
+		);
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		let address = handle.code_address();
 
@@ -251,7 +260,10 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		input.expect_arguments(1)?;
+
+		read_args!(input, { owner: Address });
+		let owner: H160 = owner.into();
 
 		let nonce = NoncesStorage::<Instance>::get(handle.code_address(), owner);
 

@@ -93,14 +93,23 @@ where
 	pub(crate) fn permit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
-		let value: U256 = input.read().in_field("value")?;
-		let deadline: U256 = input.read().in_field("deadline")?;
-		let v: u8 = input.read().in_field("v")?;
-		let r: H256 = input.read().in_field("r")?;
-		let s: H256 = input.read().in_field("s")?;
+		let mut input = handle.read_input()?;
+		input.expect_arguments(7)?;
+
+		read_args!(
+			input,
+			{
+				owner: Address,
+				spender: Address,
+				value: U256,
+				deadline: U256,
+				v: u8,
+				r: H256,
+				s: H256
+			}
+		);
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;

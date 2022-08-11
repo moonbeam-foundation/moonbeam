@@ -389,10 +389,7 @@ pub struct Currency {
 // For Currencies
 impl EvmData for Currency {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let (address, amount) = reader
-			.read()
-			.map_in_tuple_to_field(&["address", "amount"])?;
-
+		read_struct!(reader, (address, amount));
 		Ok(Currency { address, amount })
 	}
 
@@ -422,10 +419,7 @@ pub struct EvmMultiAsset {
 
 impl EvmData for EvmMultiAsset {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let (location, amount) = reader
-			.read()
-			.map_in_tuple_to_field(&["location", "amount"])?;
-
+		read_struct!(reader, (location, amount));
 		Ok(EvmMultiAsset { location, amount })
 	}
 

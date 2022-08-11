@@ -667,3 +667,59 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 		false
 	}
 }
+
+/// Helper to read arguments of a Solidity function.
+/// Arguments are read in the provided order using the provided types.
+/// Those types should match the ones in the Solidity file,
+/// and identifiers used should match Solidity ones.
+///
+/// ```rust,ignore
+/// let mut input = handle.read_input()?;
+///
+/// read_args!(input, {owner: Address, spender: Address});
+/// let owner: H160 = owner.into();
+/// let spender: H160 = spender.into();
+/// ```
+#[macro_export]
+macro_rules! read_args {
+	($input:ident, {$($field:ident: $type:ty),+}) => {
+		$(
+			let $field: $type = $input.read().in_field(
+				stringify!(
+					paste! {[<$field:camel>]}
+
+				)
+			)?;
+		)*
+	};
+}
+
+/// Helper to write `EvmData` impl for Solidity structs.
+/// Identifiers used should match Solidity ones.
+/// Types are infered from context, which should always be
+/// possible when parsing input to build a Rust struct.
+///
+/// ```rust,ignore
+/// impl EvmData for Currency {
+/// 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+/// 		read_struct!(reader, (address, amount));
+/// 		Ok(Currency { address, amount })
+/// 	}
+///
+/// 	fn write(writer: &mut EvmDataWriter, value: Self) {
+/// 		EvmData::write(writer, (value.address, value.amount));
+/// 	}
+///
+/// 	fn has_static_size() -> bool {
+/// 		<(Address, U256)>::has_static_size()
+/// 	}
+/// }
+/// ```
+#[macro_export]
+macro_rules! read_struct {
+	($reader:ident, ($($field:ident),+)) => {
+		let ($($field),*) = $reader
+			.read()
+			.map_in_tuple_to_field(&[$(stringify!($field)),*])?;
+	};
+}

@@ -273,7 +273,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let who: H160 = input.read::<Address>().in_field("who")?.into();
+		read_args!(input, { who: Address });
+		let who: H160 = who.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -295,8 +296,9 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
+		read_args!(input, {owner: Address, spender: Address});
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -321,17 +323,17 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
-		let amount: U256 = input.read().in_field("value")?;
+		read_args!(input, {spender: Address, value: U256});
+		let spender: H160 = spender.into();
 
-		Self::approve_inner(asset_id, handle, handle.context().caller, spender, amount)?;
+		Self::approve_inner(asset_id, handle, handle.context().caller, spender, value)?;
 
 		log3(
 			handle.context().address,
 			SELECTOR_LOG_APPROVAL,
 			handle.context().caller,
 			spender,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -390,10 +392,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>().in_field("to")?.into();
-		let amount = input
-			.read::<BalanceOf<Runtime, Instance>>()
-			.in_field("value")?;
+		read_args!(input, {to: Address, value: BalanceOf<Runtime, Instance>});
+		let to: H160 = to.into();
 
 		// Build call with origin.
 		{
@@ -407,7 +407,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::transfer {
 					id: asset_id,
 					target: Runtime::Lookup::unlookup(to),
-					amount,
+					amount: value,
 				},
 			)?;
 		}
@@ -417,7 +417,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			handle.context().caller,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -434,11 +434,17 @@ where
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>().in_field("from")?.into();
-		let to: H160 = input.read::<Address>().in_field("to")?.into();
-		let amount = input
-			.read::<BalanceOf<Runtime, Instance>>()
-			.in_field("value")?;
+
+		read_args!(
+			input,
+			{
+				from: Address,
+				to: Address,
+				value: BalanceOf<Runtime, Instance>
+			}
+		);
+		let from: H160 = from.into();
+		let to: H160 = to.into();
 
 		{
 			let caller: Runtime::AccountId =
@@ -456,7 +462,7 @@ where
 						id: asset_id,
 						owner: Runtime::Lookup::unlookup(from),
 						destination: Runtime::Lookup::unlookup(to),
-						amount,
+						amount: value,
 					},
 				)?;
 			} else {
@@ -467,7 +473,7 @@ where
 					pallet_assets::Call::<Runtime, Instance>::transfer {
 						id: asset_id,
 						target: Runtime::Lookup::unlookup(to),
-						amount,
+						amount: value,
 					},
 				)?;
 			}
@@ -478,7 +484,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -553,10 +559,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>().in_field("to")?.into();
-		let amount = input
-			.read::<BalanceOf<Runtime, Instance>>()
-			.in_field("amount")?;
+		read_args!(input, {to: Address, value: BalanceOf<Runtime, Instance>});
+		let to: H160 = to.into();
 
 		// Build call with origin.
 		{
@@ -570,7 +574,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::mint {
 					id: asset_id,
 					beneficiary: Runtime::Lookup::unlookup(to),
-					amount,
+					amount: value,
 				},
 			)?;
 		}
@@ -580,7 +584,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			H160::default(),
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -602,10 +606,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let from: H160 = input.read::<Address>().in_field("from")?.into();
-		let amount = input
-			.read::<BalanceOf<Runtime, Instance>>()
-			.in_field("value")?;
+		read_args!(input, {from: Address, value: BalanceOf<Runtime, Instance>});
+		let from: H160 = from.into();
 
 		// Build call with origin.
 		{
@@ -619,7 +621,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::burn {
 					id: asset_id,
 					who: Runtime::Lookup::unlookup(from),
-					amount,
+					amount: value,
 				},
 			)?;
 		}
@@ -629,7 +631,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			H160::default(),
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -649,12 +651,13 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let to: H160 = input.read::<Address>().in_field("account")?.into();
+		read_args!(input, { account: Address });
+		let account: H160 = account.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let account = Runtime::AddressMapping::into_account_id(account);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -662,7 +665,7 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::freeze {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
+					who: Runtime::Lookup::unlookup(account),
 				},
 			)?;
 		}
@@ -683,12 +686,13 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let to: H160 = input.read::<Address>().in_field("account")?.into();
+		read_args!(input, { account: Address });
+		let account: H160 = account.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let account = Runtime::AddressMapping::into_account_id(account);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -696,7 +700,7 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::thaw {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
+					who: Runtime::Lookup::unlookup(account),
 				},
 			)?;
 		}

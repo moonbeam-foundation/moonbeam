@@ -273,7 +273,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		read_args!(input, { owner: Address });
+		let owner: H160 = owner.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -292,8 +293,9 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
+		read_args!(input, {owner: Address, spender: Address});
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -317,8 +319,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let spender: H160 = input.read::<Address>().in_field("spender")?.into();
-		let amount: U256 = input.read().in_field("value")?;
+		read_args!(input, {spender: Address, value: U256});
+		let spender: H160 = spender.into();
 
 		// Write into storage.
 		{
@@ -326,9 +328,9 @@ where
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 			// Amount saturate if too high.
-			let amount = Self::u256_to_amount(amount).unwrap_or_else(|_| Bounded::max_value());
+			let value = Self::u256_to_amount(value).unwrap_or_else(|_| Bounded::max_value());
 
-			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, amount);
+			ApprovesStorage::<Runtime, Instance>::insert(caller, spender, value);
 		}
 
 		log3(
@@ -336,7 +338,7 @@ where
 			SELECTOR_LOG_APPROVAL,
 			handle.context().caller,
 			spender,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -351,14 +353,14 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let to: H160 = input.read::<Address>().in_field("to")?.into();
-		let amount: U256 = input.read().in_field("value")?;
+		read_args!(input, {to: Address, value: U256});
+		let to: H160 = to.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let to = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount).in_field("value")?;
+			let value = Self::u256_to_amount(value).in_field("value")?;
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -366,7 +368,7 @@ where
 				Some(origin).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer {
 					dest: Runtime::Lookup::unlookup(to),
-					value: amount,
+					value: value,
 				},
 			)?;
 		}
@@ -376,7 +378,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			handle.context().caller,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -392,16 +394,17 @@ where
 		// Parse input.
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>().in_field("from")?.into();
-		let to: H160 = input.read::<Address>().in_field("to")?.into();
-		let amount: U256 = input.read().in_field("value")?;
+
+		read_args!(input, {from: Address, to: Address, value: U256});
+		let from: H160 = from.into();
+		let to: H160 = to.into();
 
 		{
 			let caller: Runtime::AccountId =
 				Runtime::AddressMapping::into_account_id(handle.context().caller);
 			let from: Runtime::AccountId = Runtime::AddressMapping::into_account_id(from);
 			let to: Runtime::AccountId = Runtime::AddressMapping::into_account_id(to);
-			let amount = Self::u256_to_amount(amount).in_field("value")?;
+			let value = Self::u256_to_amount(value).in_field("value")?;
 
 			// If caller is "from", it can spend as much as it wants.
 			if caller != from {
@@ -409,9 +412,9 @@ where
 					// Get current value, exit if None.
 					let value = entry.ok_or(revert("spender not allowed"))?;
 
-					// Remove "amount" from allowed, exit if underflow.
+					// Remove "value" from allowed, exit if underflow.
 					let new_value = value
-						.checked_sub(&amount)
+						.checked_sub(&value)
 						.ok_or_else(|| revert("trying to spend more than allowed"))?;
 
 					// Update value.
@@ -428,7 +431,7 @@ where
 				Some(from).into(),
 				pallet_balances::Call::<Runtime, Instance>::transfer {
 					dest: Runtime::Lookup::unlookup(to),
-					value: amount,
+					value: value,
 				},
 			)?;
 		}
@@ -438,7 +441,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 

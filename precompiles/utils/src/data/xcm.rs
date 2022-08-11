@@ -251,9 +251,7 @@ impl EvmData for Junctions {
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		let (parents, interior) = reader
-			.read()
-			.map_in_tuple_to_field(&["parents", "interior"])?;
+		crate::read_struct!(reader, (parents, interior));
 		Ok(MultiLocation { parents, interior })
 	}
 
