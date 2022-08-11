@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, prelude::*, testing::*};
+use precompile_utils::{costs::call_cost, prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -660,4 +660,29 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["CallPermit.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }
