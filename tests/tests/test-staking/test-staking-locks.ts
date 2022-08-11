@@ -447,13 +447,12 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
   before("setup candidate & delegations", async function () {
     this.timeout(20000);
 
-    // Create the delegators to fill the lists
-    additionalDelegators = new Array(
+    const maxDelegations =
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
-        context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
-    )
-      .fill(0)
-      .map(() => generateKeyringPair());
+      context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
+
+    // Create the delegators to fill the lists
+    additionalDelegators = new Array(maxDelegations).fill(0).map(() => generateKeyringPair());
 
     await expectOk(
       context.createBlock(
@@ -482,20 +481,29 @@ describeDevMoonbeam("Staking - Locks - bottom delegator removed", (context) => {
       `Unexpected number of locks: ${locks.map((l) => l.id.toHuman().toString()).join(` - `)}`
     );
 
-    await expectOk(
-      context.createBlock(
-        [...additionalDelegators].map((account, i) =>
-          context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, i + 1, 1)
-            .signAsync(account)
-        )
-      )
+    const txns = await [...additionalDelegators].map((account, i) =>
+      context.polkadotApi.tx.parachainStaking
+        .delegate(alith.address, MIN_GLMR_DELEGATOR + GLMR, i + 1, 1)
+        .signAsync(account)
     );
+
+    // this can no longer fit in one block
+    const batchSize = 100;
+    for (let i = 0; i < txns.length; i += batchSize) {
+      await expectOk(context.createBlock(txns.slice(i, i + batchSize)));
+    }
+
+    const alithCandidateInfo = (
+      (await context.polkadotApi.query.parachainStaking.candidateInfo(alith.address)) as any
+    ).unwrap();
+    expect(alithCandidateInfo.delegationCount.toNumber()).to.equal(additionalDelegators.length);
 
     const newLocks = await context.polkadotApi.query.balances.locks(randomAccount.address);
     expect(newLocks.length).to.be.equal(
       0,
-      "Lock should have been removed after getting removed from bottom delegations"
+      `Unexpected number of locks: ${newLocks
+        .map((l) => `${l.id.toHuman().toString()}: ${l.amount.toHuman().toString()}`)
+        .join(` - `)}`
     );
   });
 });
