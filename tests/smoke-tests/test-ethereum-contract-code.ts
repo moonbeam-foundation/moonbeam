@@ -9,10 +9,10 @@ const debug = require("debug")("smoke:ethereum-contract");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
-describeSmokeSuite( `Ethereum contract bytecode should not be large`,
+describeSmokeSuite(
+  `Ethereum contract bytecode should not be large`,
   { wssUrl, relayWssUrl },
   (context) => {
-
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
 
@@ -90,7 +90,7 @@ describeSmokeSuite( `Ethereum contract bytecode should not be large`,
 
       const hexSizeToByteSize = (hexSize: number): number => {
         return hexSize / 2 - 2;
-      }
+      };
 
       for (const accountId of Object.keys(accountCodes)) {
         const contractCode = accountCodes[accountId];
