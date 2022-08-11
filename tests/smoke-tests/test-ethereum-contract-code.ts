@@ -25,7 +25,7 @@ describeSmokeSuite(
     };
 
     before("Retrieve all contrcact bytecode", async function () {
-      this.timeout(7_200_000);
+      this.timeout(300_000);
 
       const limit = 1000;
       let last_key = "";
@@ -41,7 +41,6 @@ describeSmokeSuite(
         await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
       );
 
-      let timer;
       let doOneRequest = async () => {
         let query = await apiAt.query.evm.accountCodes.entriesPaged({
           args: [],
