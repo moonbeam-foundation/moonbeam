@@ -56,7 +56,7 @@ use frame_support::{
 
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
-use frame_system::{limits::BlockWeights, EnsureRoot, EnsureSigned};
+use frame_system::{EnsureRoot, EnsureSigned};
 pub use moonbeam_core_primitives::{
 	AccountId, AccountIndex, Address, AssetId, Balance, BlockNumber, DigestItem, Hash, Header,
 	Index, Signature,
@@ -199,9 +199,9 @@ const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
 pub const EXTRINSIC_BASE_WEIGHT: Weight = 10000 * WEIGHT_PER_GAS;
 
 pub struct RuntimeBlockWeights;
-impl Get<BlockWeights> for RuntimeBlockWeights {
-	fn get() -> BlockWeights {
-		BlockWeights::builder()
+impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
+	fn get() -> frame_system::limits::BlockWeights {
+		frame_system::limits::BlockWeights::builder()
 			.for_class(DispatchClass::Normal, |weights| {
 				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
 				weights.max_total = NORMAL_WEIGHT.into();
@@ -218,6 +218,10 @@ impl Get<BlockWeights> for RuntimeBlockWeights {
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
+	/// TODO: this is left here so that `impl_runtime_apis_plus_common` will find the same type for
+	/// `BlockWeights` in all runtimes. It can probably be removed once the custom
+	/// `RuntimeBlockWeights` has been pushed to each runtime.
+	pub BlockWeights: frame_system::limits::BlockWeights = RuntimeBlockWeights::get();
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
