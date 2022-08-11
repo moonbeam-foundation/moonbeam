@@ -7,7 +7,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Treasury proposal #1", (context) => {
   it("should not be able to be approved by a non-council member", async function () {
-    // Ethan submit a treasurery proposal
+    // Ethan submit a treasury proposal
 
     await context.createBlock(
       context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -25,7 +25,7 @@ describeDevMoonbeam("Treasury proposal #1", (context) => {
 
 describeDevMoonbeam("Treasury proposal #2", (context) => {
   it("should not be able to be rejected by a non-council member", async function () {
-    // Ethan submit a treasurery proposal
+    // Ethan submit a treasury proposal
 
     await context.createBlock(
       context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -49,7 +49,7 @@ describeDevMoonbeam("Treasury proposal #3", (context) => {
   it(
     "should be rejected if three-fifths of the treasury council did not vote in favor",
     async function () {
-      // Ethan submit a treasurery proposal
+      // Ethan submit a treasury proposal
 
       await context.createBlock(
         context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -81,7 +81,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
   it(
     "should not be rejected by less than half of the members of the treasury council",
     async function () {
-      // Ethan submit a treasurery proposal
+      // Ethan submit a treasury proposal
 
       await context.createBlock(
         context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -108,7 +108,7 @@ describeDevMoonbeam("Treasury proposal #4", (context) => {
 
 describeDevMoonbeam("Treasury proposal #5", (context) => {
   it("should be approvable by root", async function () {
-    // Ethan submit a treasurery proposal
+    // Ethan submit a treasury proposal
 
     await context.createBlock(
       context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -133,7 +133,7 @@ describeDevMoonbeam("Treasury proposal #5", (context) => {
 
 describeDevMoonbeam("Treasury proposal #6", (context) => {
   it("should be rejectable by root", async function () {
-    // Ethan submit a treasurery proposal
+    // Ethan submit a treasury proposal
 
     await context.createBlock(
       context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -167,7 +167,7 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
       // able to keep this tests within 5 seconds.
       this.timeout(10_000);
 
-      // Ethan submit a treasurery proposal
+      // Ethan submit a treasury proposal
 
       await context.createBlock(
         context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -212,7 +212,7 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
   it(
     "should NO LONGER be rejected if the half of the council voted against it",
     async function () {
-      // Ethan submit a treasurery proposal
+      // Ethan submit a treasury proposal
 
       await context.createBlock(
         context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -270,7 +270,7 @@ describeDevMoonbeam("Treasury proposal #9", (context) => {
       // able to keep this tests within 5 seconds.
       this.timeout(10_000);
 
-      // Ethan submit a treasurery proposal
+      // Ethan submit a treasury proposal
 
       await context.createBlock(
         context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)
@@ -314,7 +314,7 @@ describeDevMoonbeam("Treasury proposal #9", (context) => {
 
 describeDevMoonbeam("Treasury proposal #10", (context) => {
   it("should be rejected if the half of the treasury council voted against it", async function () {
-    // Ethan submit a treasurery proposal
+    // Ethan submit a treasury proposal
 
     await context.createBlock(
       context.polkadotApi.tx.treasury.proposeSpend(10, baltathar.address).signAsync(ethan)

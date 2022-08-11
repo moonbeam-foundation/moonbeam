@@ -525,6 +525,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
+
 // The purpose of this offset is to ensure that a democratic proposal will not apply in the same
 // block as a round change.
 const ENACTMENT_OFFSET: u32 = 900;
