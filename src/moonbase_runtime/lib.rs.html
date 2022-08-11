@@ -1513,6 +1513,26 @@
 <span id="1508">1508</span>
 <span id="1509">1509</span>
 <span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1571,7 +1591,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_evm::GenesisAccount</span>;
-<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
+<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">limits::BlockWeights</span>, <span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{
 	<span class="ident">AccountId</span>, <span class="ident">AccountIndex</span>, <span class="ident">Address</span>, <span class="ident">AssetId</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">DigestItem</span>, <span class="ident">Hash</span>, <span class="ident">Header</span>,
 	<span class="ident">Index</span>, <span class="ident">Signature</span>,
@@ -1706,13 +1726,33 @@
 }
 
 <span class="kw">const</span> <span class="ident">NORMAL_DISPATCH_RATIO</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">75</span>);
+<span class="kw">const</span> <span class="ident">NORMAL_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">*</span> <span class="number">3</span> <span class="op">/</span> <span class="number">4</span>;
+<span class="comment">// Here we assume Ethereum&#39;s base fee of 21000 gas and convert to weight, but we</span>
+<span class="comment">// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)</span>
+<span class="comment">// and some cost to account for per-byte-fee.</span>
+<span class="comment">// TODO: we should use benchmarking&#39;s overhead feature to measure this</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXTRINSIC_BASE_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">10000</span> <span class="op">*</span> <span class="ident">WEIGHT_PER_GAS</span>;
+
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimeBlockWeights</span>;
+<span class="kw">impl</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BlockWeights</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RuntimeBlockWeights</span> {
+	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">BlockWeights</span> {
+		<span class="ident">BlockWeights::builder</span>()
+			.<span class="ident">for_class</span>(<span class="ident">DispatchClass::Normal</span>, <span class="op">|</span><span class="ident">weights</span><span class="op">|</span> {
+				<span class="ident">weights</span>.<span class="ident">base_extrinsic</span> <span class="op">=</span> <span class="ident">EXTRINSIC_BASE_WEIGHT</span>;
+				<span class="ident">weights</span>.<span class="ident">max_total</span> <span class="op">=</span> <span class="ident">NORMAL_WEIGHT</span>.<span class="ident">into</span>();
+			})
+			.<span class="ident">for_class</span>(<span class="ident">DispatchClass::Operational</span>, <span class="op">|</span><span class="ident">weights</span><span class="op">|</span> {
+				<span class="ident">weights</span>.<span class="ident">max_total</span> <span class="op">=</span> <span class="ident">MAXIMUM_BLOCK_WEIGHT</span>.<span class="ident">into</span>();
+				<span class="ident">weights</span>.<span class="ident">reserved</span> <span class="op">=</span> (<span class="ident">MAXIMUM_BLOCK_WEIGHT</span> <span class="op">-</span> <span class="ident">NORMAL_WEIGHT</span>).<span class="ident">into</span>();
+			})
+			.<span class="ident">avg_block_initialization</span>(<span class="ident">Perbill::from_percent</span>(<span class="number">10</span>))
+			.<span class="ident">build</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;Provided BlockWeight definitions are valid, qed&quot;</span>)
+	}
+}
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Version</span>: <span class="ident">RuntimeVersion</span> <span class="op">=</span> <span class="ident">VERSION</span>;
-	<span class="doccomment">/// We allow for one half second of compute with a 6 second average block time.</span>
-	<span class="doccomment">/// These values are dictated by Polkadot for the parachain.</span>
-	<span class="kw">pub</span> <span class="ident">BlockWeights</span>: <span class="ident">frame_system::limits::BlockWeights</span> <span class="op">=</span> <span class="ident">frame_system::limits::BlockWeights</span>
-		<span class="ident">::with_sensible_defaults</span>(<span class="ident">MAXIMUM_BLOCK_WEIGHT</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
 	<span class="doccomment">/// We allow for 5 MB blocks.</span>
 	<span class="kw">pub</span> <span class="ident">BlockLength</span>: <span class="ident">frame_system::limits::BlockLength</span> <span class="op">=</span> <span class="ident">frame_system::limits::BlockLength</span>
 		<span class="ident">::max_with_normal_ratio</span>(<span class="number">5</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
@@ -1742,7 +1782,7 @@
 	<span class="doccomment">/// Maximum number of block number to block hash mappings to keep (oldest pruned first).</span>
 	<span class="kw">type</span> <span class="ident">BlockHashCount</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">256</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.</span>
-	<span class="kw">type</span> <span class="ident">BlockWeights</span> <span class="op">=</span> <span class="ident">BlockWeights</span>;
+	<span class="kw">type</span> <span class="ident">BlockWeights</span> <span class="op">=</span> <span class="ident">RuntimeBlockWeights</span>;
 	<span class="doccomment">/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.</span>
 	<span class="kw">type</span> <span class="ident">BlockLength</span> <span class="op">=</span> <span class="ident">BlockLength</span>;
 	<span class="doccomment">/// Runtime version.</span>
@@ -1957,7 +1997,7 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="ident">MaximumSchedulerWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">BlockWeights::get</span>().<span class="ident">max_block</span>;
+	<span class="kw">pub</span> <span class="ident">MaximumSchedulerWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="ident">NORMAL_DISPATCH_RATIO</span> <span class="op">*</span> <span class="ident">RuntimeBlockWeights::get</span>().<span class="ident">max_block</span>;
 }
 
 <span class="kw">impl</span> <span class="ident">pallet_scheduler::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
