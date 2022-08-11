@@ -1533,6 +1533,10 @@
 <span id="1528">1528</span>
 <span id="1529">1529</span>
 <span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1591,7 +1595,7 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_evm::GenesisAccount</span>;
-<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">limits::BlockWeights</span>, <span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
+<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">EnsureRoot</span>, <span class="ident">EnsureSigned</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives</span>::{
 	<span class="ident">AccountId</span>, <span class="ident">AccountIndex</span>, <span class="ident">Address</span>, <span class="ident">AssetId</span>, <span class="ident">Balance</span>, <span class="ident">BlockNumber</span>, <span class="ident">DigestItem</span>, <span class="ident">Hash</span>, <span class="ident">Header</span>,
 	<span class="ident">Index</span>, <span class="ident">Signature</span>,
@@ -1734,9 +1738,9 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXTRINSIC_BASE_WEIGHT</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">10000</span> <span class="op">*</span> <span class="ident">WEIGHT_PER_GAS</span>;
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimeBlockWeights</span>;
-<span class="kw">impl</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BlockWeights</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RuntimeBlockWeights</span> {
-	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">BlockWeights</span> {
-		<span class="ident">BlockWeights::builder</span>()
+<span class="kw">impl</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">frame_system::limits::BlockWeights</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RuntimeBlockWeights</span> {
+	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">frame_system::limits::BlockWeights</span> {
+		<span class="ident">frame_system::limits::BlockWeights::builder</span>()
 			.<span class="ident">for_class</span>(<span class="ident">DispatchClass::Normal</span>, <span class="op">|</span><span class="ident">weights</span><span class="op">|</span> {
 				<span class="ident">weights</span>.<span class="ident">base_extrinsic</span> <span class="op">=</span> <span class="ident">EXTRINSIC_BASE_WEIGHT</span>;
 				<span class="ident">weights</span>.<span class="ident">max_total</span> <span class="op">=</span> <span class="ident">NORMAL_WEIGHT</span>.<span class="ident">into</span>();
@@ -1753,6 +1757,10 @@
 
 <span class="macro">parameter_types!</span> {
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">Version</span>: <span class="ident">RuntimeVersion</span> <span class="op">=</span> <span class="ident">VERSION</span>;
+	<span class="doccomment">/// TODO: this is left here so that `impl_runtime_apis_plus_common` will find the same type for</span>
+	<span class="doccomment">/// `BlockWeights` in all runtimes. It can probably be removed once the custom</span>
+	<span class="doccomment">/// `RuntimeBlockWeights` has been pushed to each runtime.</span>
+	<span class="kw">pub</span> <span class="ident">BlockWeights</span>: <span class="ident">frame_system::limits::BlockWeights</span> <span class="op">=</span> <span class="ident">RuntimeBlockWeights::get</span>();
 	<span class="doccomment">/// We allow for 5 MB blocks.</span>
 	<span class="kw">pub</span> <span class="ident">BlockLength</span>: <span class="ident">frame_system::limits::BlockLength</span> <span class="op">=</span> <span class="ident">frame_system::limits::BlockLength</span>
 		<span class="ident">::max_with_normal_ratio</span>(<span class="number">5</span> <span class="op">*</span> <span class="number">1024</span> <span class="op">*</span> <span class="number">1024</span>, <span class="ident">NORMAL_DISPATCH_RATIO</span>);
