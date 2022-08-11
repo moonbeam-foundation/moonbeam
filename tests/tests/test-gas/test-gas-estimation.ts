@@ -125,17 +125,16 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context)
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) => {
   it("eth_estimateGas 0x0 gasPrice is equivalent to not setting one", async function () {
-    // const contract = await getCompiled("Incrementor");
-    const bytecode = `0x${"1".repeat(2**1)}`;
+    const contract = await getCompiled("Incrementor");
     let result = await context.web3.eth.estimateGas({
       from: alith.address,
-      data: "0x11",
+      data: contract.byteCode,
       gasPrice: "0x0",
     });
     expect(result).to.equal(175831);
     result = await context.web3.eth.estimateGas({
       from: alith.address,
-      data: "0x11",
+      data: contract.byteCode,
     });
     expect(result).to.equal(175831);
   });
