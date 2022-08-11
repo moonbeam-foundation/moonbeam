@@ -323,7 +323,7 @@ where
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| revert(alloc::format!("{:?}", e)))?
+			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
 			.into();
 
 		Ok(PrecompileOutput {
@@ -373,7 +373,7 @@ where
 		};
 
 		let request_id: U256 = Pallet::<Runtime>::request_randomness(request)
-			.map_err(|e| revert(alloc::format!("{:?}", e)))?
+			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
 			.into();
 
 		Ok(PrecompileOutput {
