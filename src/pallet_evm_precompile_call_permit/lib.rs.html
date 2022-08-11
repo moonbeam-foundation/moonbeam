@@ -283,6 +283,10 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -304,7 +308,8 @@
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">evm::ExitReason</span>;
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{
-	<span class="ident">Context</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>, <span class="ident">Transfer</span>,
+	<span class="ident">Context</span>, <span class="ident">ExitRevert</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>,
+	<span class="ident">Transfer</span>,
 };
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">ensure</span>,
@@ -436,7 +441,6 @@
 			.<span class="ident">write</span>(<span class="ident">deadline</span>)
 			.<span class="ident">build</span>();
 		<span class="kw">let</span> <span class="ident">permit_content</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">permit_content</span>);
-
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pre_digest</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">2</span> <span class="op">+</span> <span class="number">32</span> <span class="op">+</span> <span class="number">32</span>);
 		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\x19\x01&quot;</span>);
 		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">domain_separator</span>);
@@ -532,12 +536,16 @@
 
 		<span class="kw">let</span> (<span class="ident">reason</span>, <span class="ident">output</span>) <span class="op">=</span>
 			<span class="ident">handle</span>.<span class="ident">call</span>(<span class="ident">to</span>, <span class="ident">transfer</span>, <span class="ident">data</span>, <span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>), <span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="ident">sub_context</span>);
-
 		<span class="kw">match</span> <span class="ident">reason</span> {
 			<span class="ident">ExitReason::Error</span>(<span class="ident">exit_status</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> { <span class="ident">exit_status</span> }),
 			<span class="ident">ExitReason::Fatal</span>(<span class="ident">exit_status</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Fatal</span> { <span class="ident">exit_status</span> }),
-			<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="ident">output</span>)),
-			<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">output</span>)),
+			<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> {
+				<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
+				<span class="ident">output</span>,
+			}),
+			<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; {
+				<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">Bytes</span>(<span class="ident">output</span>)).<span class="ident">build</span>()))
+			}
 		}
 	}
 
