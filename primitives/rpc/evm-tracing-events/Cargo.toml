@@ -17,9 +17,9 @@ sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch 
 # Ethereum
 ethereum = { version = "0.12.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = { version = "0.13.1", default-features = false }
-evm = { git = "https://github.com/rust-blockchain/evm", rev = "51b8c2ce3104265e1fd5bb0fe5cdfd2e0938239c", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { git = "https://github.com/rust-blockchain/evm", rev = "51b8c2ce3104265e1fd5bb0fe5cdfd2e0938239c", default-features = false }
-evm-runtime = { git = "https://github.com/rust-blockchain/evm", rev = "51b8c2ce3104265e1fd5bb0fe5cdfd2e0938239c", default-features = false }
+evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false, features = [ "with-codec" ] }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 [features]
 default = [ "std" ]
