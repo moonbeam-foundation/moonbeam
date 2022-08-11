@@ -613,7 +613,7 @@ where
 		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
 		// Read input.
 		input.expect_arguments(1)?;
-		let less: BalanceOf<Runtime> = input.read().in_field("more")?;
+		let less: BalanceOf<Runtime> = input.read().in_field("less")?;
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);

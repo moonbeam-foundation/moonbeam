@@ -605,7 +605,7 @@ where
 		let from: H160 = input.read::<Address>().in_field("from")?.into();
 		let amount = input
 			.read::<BalanceOf<Runtime, Instance>>()
-			.in_field("amount")?;
+			.in_field("value")?;
 
 		// Build call with origin.
 		{
