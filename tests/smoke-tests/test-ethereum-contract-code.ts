@@ -114,9 +114,7 @@ describeSmokeSuite(
 
       // Additional debug logs
       let numAccounts = Object.keys(accountCodeSizesByAddress).length;
-      debug(
-        `Verified ${numAccounts} total account codes (at #${atBlockNumber})`
-      );
+      debug(`Verified ${numAccounts} total account codes (at #${atBlockNumber})`);
     });
   }
 );
