@@ -29,10 +29,12 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
@@ -85,8 +87,6 @@ use sp_runtime::{
 	SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
-
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -525,12 +525,15 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
+// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
+// block as a round change.
+const ENACTMENT_OFFSET: u32 = 900;
 
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 2 * DAYS }>;
+	type EnactmentPeriod = ConstU32<{ 2 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 7 * DAYS }>;
 	type VotingPeriod = ConstU32<{ 14 * DAYS }>;
 	type VoteLockingPeriod = ConstU32<{ 7 * DAYS }>;
@@ -745,6 +748,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
+	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -753,7 +757,6 @@ impl pallet_parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
-	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
@@ -783,9 +786,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockNumber = relay_chain::BlockNumber;
+	type VestingBlockProvider = RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1095,6 +1097,49 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
+}
+
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	fn get_epoch_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+}
+
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfKeyLookup = AuthorMapping;
+	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MaxRandomWords = ConstU8<100>;
+	type MinBlockDelay = ConstU32<2>;
+	type MaxBlockDelay = ConstU32<2_000>;
+	type BlockExpirationDelay = ConstU32<10_000>;
+	type EpochExpirationDelay = ConstU64<10_000>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1164,6 +1209,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+
+		// Randomness
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 	}
 }
 
@@ -1209,18 +1257,6 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
-			None
-		}
-		fn vrf_key_lookup(
-			nimbus_id: nimbus_primitives::NimbusId
-		) -> Option<session_keys_primitives::VrfId> {
-			use session_keys_primitives::KeysLookup;
-			AuthorMapping::lookup_keys(&nimbus_id)
-		}
-	}
-
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
