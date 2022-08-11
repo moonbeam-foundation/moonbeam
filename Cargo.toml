@@ -15,6 +15,7 @@ members = [
 	"precompiles/author-mapping",
 	"precompiles/balances-erc20",
 	"precompiles/batch",
+	"precompiles/collective",
 	"precompiles/call-permit",
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
