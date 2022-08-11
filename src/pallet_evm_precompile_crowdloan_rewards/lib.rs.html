@@ -204,6 +204,15 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -253,10 +262,15 @@
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">IsContributor</span> <span class="op">=</span> <span class="string">&quot;is_contributor(address)&quot;</span>,
-	<span class="ident">RewardInfo</span> <span class="op">=</span> <span class="string">&quot;reward_info(address)&quot;</span>,
+	<span class="ident">IsContributor</span> <span class="op">=</span> <span class="string">&quot;isContributor(address)&quot;</span>,
+	<span class="ident">RewardInfo</span> <span class="op">=</span> <span class="string">&quot;rewardInfo(address)&quot;</span>,
 	<span class="ident">Claim</span> <span class="op">=</span> <span class="string">&quot;claim()&quot;</span>,
-	<span class="ident">UpdateRewardAddress</span> <span class="op">=</span> <span class="string">&quot;update_reward_address(address)&quot;</span>,
+	<span class="ident">UpdateRewardAddress</span> <span class="op">=</span> <span class="string">&quot;updateRewardAddress(address)&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedIsContributor</span> <span class="op">=</span> <span class="string">&quot;is_contributor(address)&quot;</span>,
+	<span class="ident">DeprecatedRewardInfo</span> <span class="op">=</span> <span class="string">&quot;reward_info(address)&quot;</span>,
+	<span class="ident">DeprecatedUpdateRewardAddress</span> <span class="op">=</span> <span class="string">&quot;update_reward_address(address)&quot;</span>,
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet_crowdloan_rewards.</span>
@@ -274,16 +288,20 @@
 		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
 
 		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::Claim</span> <span class="op">|</span> <span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			<span class="ident">Action::Claim</span> <span class="op">|</span> <span class="ident">Action::UpdateRewardAddress</span> <span class="op">|</span> <span class="ident">Action::DeprecatedUpdateRewardAddress</span> =&gt; {
+				<span class="ident">FunctionModifier::NonPayable</span>
+			}
 			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
 		})<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Check for accessor methods first. These return results immediately</span>
-			<span class="ident">Action::IsContributor</span> =&gt; <span class="ident"><span class="self">Self</span>::is_contributor</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::RewardInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::reward_info</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::IsContributor</span> <span class="op">|</span> <span class="ident">Action::DeprecatedIsContributor</span> =&gt; <span class="ident"><span class="self">Self</span>::is_contributor</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::RewardInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedRewardInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::reward_info</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Claim</span> =&gt; <span class="ident"><span class="self">Self</span>::claim</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::UpdateRewardAddress</span> =&gt; <span class="ident"><span class="self">Self</span>::update_reward_address</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::UpdateRewardAddress</span> <span class="op">|</span> <span class="ident">Action::DeprecatedUpdateRewardAddress</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::update_reward_address</span>(<span class="ident">handle</span>)
+			}
 		}
 	}
 }

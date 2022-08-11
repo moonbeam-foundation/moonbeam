@@ -371,6 +371,34 @@
 <span id="366">366</span>
 <span id="367">367</span>
 <span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -424,17 +452,31 @@
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">IndexToAccount</span> <span class="op">=</span> <span class="string">&quot;index_to_account(uint16)&quot;</span>,
+	<span class="ident">IndexToAccount</span> <span class="op">=</span> <span class="string">&quot;indexToAccount(uint16)&quot;</span>,
 	<span class="comment">// DEPRECATED</span>
-	<span class="ident">TransactInfo</span> <span class="op">=</span> <span class="string">&quot;transact_info((uint8,bytes[]))&quot;</span>,
+	<span class="ident">TransactInfo</span> <span class="op">=</span> <span class="string">&quot;transactInfo((uint8,bytes[]))&quot;</span>,
 	<span class="ident">TransactThroughDerivativeMultiLocation</span> <span class="op">=</span>
-		<span class="string">&quot;transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">TransactThroughDerivative</span> <span class="op">=</span> <span class="string">&quot;transact_through_derivative(uint8,uint16,address,uint64,bytes)&quot;</span>,
-	<span class="ident">TransactInfoWithSigned</span> <span class="op">=</span> <span class="string">&quot;transact_info_with_signed((uint8,bytes[]))&quot;</span>,
-	<span class="ident">FeePerSecond</span> <span class="op">=</span> <span class="string">&quot;fee_per_second((uint8,bytes[]))&quot;</span>,
+		<span class="string">&quot;transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)&quot;</span>,
+	<span class="ident">TransactThroughDerivative</span> <span class="op">=</span> <span class="string">&quot;transactThroughDerivative(uint8,uint16,address,uint64,bytes)&quot;</span>,
+	<span class="ident">TransactInfoWithSigned</span> <span class="op">=</span> <span class="string">&quot;transactInfoWithSigned((uint8,bytes[]))&quot;</span>,
+	<span class="ident">FeePerSecond</span> <span class="op">=</span> <span class="string">&quot;feePerSecond((uint8,bytes[]))&quot;</span>,
 	<span class="ident">TransactThroughSignedMultiLocation</span> <span class="op">=</span>
+		<span class="string">&quot;transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)&quot;</span>,
+	<span class="ident">TransactThroughSigned</span> <span class="op">=</span> <span class="string">&quot;transactThroughSigned((uint8,bytes[]),address,uint64,bytes)&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedIndexToAccount</span> <span class="op">=</span> <span class="string">&quot;index_to_account(uint16)&quot;</span>,
+	<span class="ident">DeprecatedTransactInfo</span> <span class="op">=</span> <span class="string">&quot;transact_info((uint8,bytes[]))&quot;</span>,
+	<span class="ident">DeprecatedTransactThroughDerivativeMultiLocation</span> <span class="op">=</span>
+		<span class="string">&quot;transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)&quot;</span>,
+	<span class="ident">DeprecatedTransactThroughDerivative</span> <span class="op">=</span>
+		<span class="string">&quot;transact_through_derivative(uint8,uint16,address,uint64,bytes)&quot;</span>,
+	<span class="ident">DeprecatedTransactInfoWithSigned</span> <span class="op">=</span> <span class="string">&quot;transact_info_with_signed((uint8,bytes[]))&quot;</span>,
+	<span class="ident">DeprecatedFeePerSecond</span> <span class="op">=</span> <span class="string">&quot;fee_per_second((uint8,bytes[]))&quot;</span>,
+	<span class="ident">DeprecatedTransactThroughSignedMultiLocation</span> <span class="op">=</span>
 		<span class="string">&quot;transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">TransactThroughSigned</span> <span class="op">=</span> <span class="string">&quot;transact_through_signed((uint8,bytes[]),address,uint64,bytes)&quot;</span>,
+	<span class="ident">DeprecatedTransactThroughSigned</span> <span class="op">=</span>
+		<span class="string">&quot;transact_through_signed((uint8,bytes[]),address,uint64,bytes)&quot;</span>,
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from xcm transactor</span>
@@ -457,25 +499,39 @@
 			<span class="ident">Action::TransactThroughDerivativeMultiLocation</span>
 			<span class="op">|</span> <span class="ident">Action::TransactThroughDerivative</span>
 			<span class="op">|</span> <span class="ident">Action::TransactThroughSignedMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::TransactThroughSigned</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			<span class="op">|</span> <span class="ident">Action::TransactThroughSigned</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivativeMultiLocation</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivative</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSignedMultiLocation</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSigned</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
 			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
 		})<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Check for accessor methods first. These return results immediately</span>
-			<span class="ident">Action::IndexToAccount</span> =&gt; <span class="ident"><span class="self">Self</span>::account_index</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::IndexToAccount</span> <span class="op">|</span> <span class="ident">Action::DeprecatedIndexToAccount</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::account_index</span>(<span class="ident">handle</span>)
+			}
 			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::TransactInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::transact_info</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransactInfoWithSigned</span> =&gt; <span class="ident"><span class="self">Self</span>::transact_info_with_signed</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::FeePerSecond</span> =&gt; <span class="ident"><span class="self">Self</span>::fee_per_second</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransactThroughDerivativeMultiLocation</span> =&gt; {
+			<span class="ident">Action::TransactInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::transact_info</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::TransactInfoWithSigned</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactInfoWithSigned</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transact_info_with_signed</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::FeePerSecond</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFeePerSecond</span> =&gt; <span class="ident"><span class="self">Self</span>::fee_per_second</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::TransactThroughDerivativeMultiLocation</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivativeMultiLocation</span> =&gt; {
 				<span class="ident"><span class="self">Self</span>::transact_through_derivative_multilocation</span>(<span class="ident">handle</span>)
 			}
-			<span class="ident">Action::TransactThroughDerivative</span> =&gt; <span class="ident"><span class="self">Self</span>::transact_through_derivative</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransactThroughSignedMultiLocation</span> =&gt; {
+			<span class="ident">Action::TransactThroughDerivative</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivative</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transact_through_derivative</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::TransactThroughSignedMultiLocation</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSignedMultiLocation</span> =&gt; {
 				<span class="ident"><span class="self">Self</span>::transact_through_signed_multilocation</span>(<span class="ident">handle</span>)
 			}
-			<span class="ident">Action::TransactThroughSigned</span> =&gt; <span class="ident"><span class="self">Self</span>::transact_through_signed</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::TransactThroughSigned</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSigned</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transact_through_signed</span>(<span class="ident">handle</span>)
+			}
 		}
 	}
 }

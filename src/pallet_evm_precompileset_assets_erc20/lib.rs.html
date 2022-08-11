@@ -889,6 +889,26 @@
 <span id="884">884</span>
 <span id="885">885</span>
 <span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -971,16 +991,24 @@
 	<span class="ident">Burn</span> <span class="op">=</span> <span class="string">&quot;burn(address,uint256)&quot;</span>,
 	<span class="ident">Freeze</span> <span class="op">=</span> <span class="string">&quot;freeze(address)&quot;</span>,
 	<span class="ident">Thaw</span> <span class="op">=</span> <span class="string">&quot;thaw(address)&quot;</span>,
-	<span class="ident">FreezeAsset</span> <span class="op">=</span> <span class="string">&quot;freeze_asset()&quot;</span>,
-	<span class="ident">ThawAsset</span> <span class="op">=</span> <span class="string">&quot;thaw_asset()&quot;</span>,
-	<span class="ident">TransferOwnership</span> <span class="op">=</span> <span class="string">&quot;transfer_ownership(address)&quot;</span>,
-	<span class="ident">SetTeam</span> <span class="op">=</span> <span class="string">&quot;set_team(address,address,address)&quot;</span>,
-	<span class="ident">SetMetadata</span> <span class="op">=</span> <span class="string">&quot;set_metadata(string,string,uint8)&quot;</span>,
-	<span class="ident">ClearMetadata</span> <span class="op">=</span> <span class="string">&quot;clear_metadata()&quot;</span>,
+	<span class="ident">FreezeAsset</span> <span class="op">=</span> <span class="string">&quot;freezeAsset()&quot;</span>,
+	<span class="ident">ThawAsset</span> <span class="op">=</span> <span class="string">&quot;thawAsset()&quot;</span>,
+	<span class="ident">TransferOwnership</span> <span class="op">=</span> <span class="string">&quot;transferOwnership(address)&quot;</span>,
+	<span class="ident">SetTeam</span> <span class="op">=</span> <span class="string">&quot;setTeam(address,address,address)&quot;</span>,
+	<span class="ident">SetMetadata</span> <span class="op">=</span> <span class="string">&quot;setMetadata(string,string,uint8)&quot;</span>,
+	<span class="ident">ClearMetadata</span> <span class="op">=</span> <span class="string">&quot;clearMetadata()&quot;</span>,
 	<span class="comment">// EIP 2612</span>
 	<span class="ident">Eip2612Permit</span> <span class="op">=</span> <span class="string">&quot;permit(address,address,uint256,uint256,uint8,bytes32,bytes32)&quot;</span>,
 	<span class="ident">Eip2612Nonces</span> <span class="op">=</span> <span class="string">&quot;nonces(address)&quot;</span>,
 	<span class="ident">Eip2612DomainSeparator</span> <span class="op">=</span> <span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedFreezeAsset</span> <span class="op">=</span> <span class="string">&quot;freeze_asset()&quot;</span>,
+	<span class="ident">DeprecatedThawAsset</span> <span class="op">=</span> <span class="string">&quot;thaw_asset()&quot;</span>,
+	<span class="ident">DeprecatedTransferOwnership</span> <span class="op">=</span> <span class="string">&quot;transfer_ownership(address)&quot;</span>,
+	<span class="ident">DeprecatedSetTeam</span> <span class="op">=</span> <span class="string">&quot;set_team(address,address,address)&quot;</span>,
+	<span class="ident">DeprecatedSetMetadata</span> <span class="op">=</span> <span class="string">&quot;set_metadata(string,string,uint8)&quot;</span>,
+	<span class="ident">DeprecatedClearMetadata</span> <span class="op">=</span> <span class="string">&quot;clear_metadata()&quot;</span>,
 }
 
 <span class="doccomment">/// This trait ensure we can convert AccountIds to AssetIds</span>
@@ -1079,12 +1107,24 @@
 						<span class="ident">Action::Burn</span> =&gt; <span class="ident"><span class="self">Self</span>::burn</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
 						<span class="ident">Action::Freeze</span> =&gt; <span class="ident"><span class="self">Self</span>::freeze</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
 						<span class="ident">Action::Thaw</span> =&gt; <span class="ident"><span class="self">Self</span>::thaw</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::FreezeAsset</span> =&gt; <span class="ident"><span class="self">Self</span>::freeze_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::ThawAsset</span> =&gt; <span class="ident"><span class="self">Self</span>::thaw_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::TransferOwnership</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_ownership</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::SetTeam</span> =&gt; <span class="ident"><span class="self">Self</span>::set_team</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::SetMetadata</span> =&gt; <span class="ident"><span class="self">Self</span>::set_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::ClearMetadata</span> =&gt; <span class="ident"><span class="self">Self</span>::clear_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
+						<span class="ident">Action::FreezeAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFreezeAsset</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::freeze_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
+						<span class="ident">Action::ThawAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedThawAsset</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::thaw_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
+						<span class="ident">Action::TransferOwnership</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferOwnership</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::transfer_ownership</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
+						<span class="ident">Action::SetTeam</span> <span class="op">|</span> <span class="ident">Action::DeprecatedSetTeam</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::set_team</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
+						<span class="ident">Action::SetMetadata</span> <span class="op">|</span> <span class="ident">Action::DeprecatedSetMetadata</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::set_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
+						<span class="ident">Action::ClearMetadata</span> <span class="op">|</span> <span class="ident">Action::DeprecatedClearMetadata</span> =&gt; {
+							<span class="ident"><span class="self">Self</span>::clear_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+						}
 						<span class="ident">Action::Eip2612Permit</span> =&gt; {
 							<span class="ident">eip2612::Eip2612</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::permit</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
 						}

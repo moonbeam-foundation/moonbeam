@@ -440,6 +440,31 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -492,20 +517,32 @@
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">PublicPropCount</span> <span class="op">=</span> <span class="string">&quot;public_prop_count()&quot;</span>,
-	<span class="ident">DepositOf</span> <span class="op">=</span> <span class="string">&quot;deposit_of(uint256)&quot;</span>,
-	<span class="ident">LowestUnbaked</span> <span class="op">=</span> <span class="string">&quot;lowest_unbaked()&quot;</span>,
-	<span class="ident">OngoingReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;ongoing_referendum_info(uint256)&quot;</span>,
-	<span class="ident">FinishedReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;finished_referendum_info(uint256)&quot;</span>,
+	<span class="ident">PublicPropCount</span> <span class="op">=</span> <span class="string">&quot;publicPropCount()&quot;</span>,
+	<span class="ident">DepositOf</span> <span class="op">=</span> <span class="string">&quot;depositOf(uint256)&quot;</span>,
+	<span class="ident">LowestUnbaked</span> <span class="op">=</span> <span class="string">&quot;lowestUnbaked()&quot;</span>,
+	<span class="ident">OngoingReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;ongoingReferendumInfo(uint256)&quot;</span>,
+	<span class="ident">FinishedReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;finishedReferendumInfo(uint256)&quot;</span>,
 	<span class="ident">Propose</span> <span class="op">=</span> <span class="string">&quot;propose(bytes32,uint256)&quot;</span>,
 	<span class="ident">Second</span> <span class="op">=</span> <span class="string">&quot;second(uint256,uint256)&quot;</span>,
-	<span class="ident">StandardVote</span> <span class="op">=</span> <span class="string">&quot;standard_vote(uint256,bool,uint256,uint256)&quot;</span>,
-	<span class="ident">RemoveVote</span> <span class="op">=</span> <span class="string">&quot;remove_vote(uint256)&quot;</span>,
+	<span class="ident">StandardVote</span> <span class="op">=</span> <span class="string">&quot;standardVote(uint256,bool,uint256,uint256)&quot;</span>,
+	<span class="ident">RemoveVote</span> <span class="op">=</span> <span class="string">&quot;removeVote(uint256)&quot;</span>,
 	<span class="ident">Delegate</span> <span class="op">=</span> <span class="string">&quot;delegate(address,uint256,uint256)&quot;</span>,
-	<span class="ident">UnDelegate</span> <span class="op">=</span> <span class="string">&quot;un_delegate()&quot;</span>,
+	<span class="ident">UnDelegate</span> <span class="op">=</span> <span class="string">&quot;unDelegate()&quot;</span>,
 	<span class="ident">Unlock</span> <span class="op">=</span> <span class="string">&quot;unlock(address)&quot;</span>,
-	<span class="ident">NotePreimage</span> <span class="op">=</span> <span class="string">&quot;note_preimage(bytes)&quot;</span>,
-	<span class="ident">NoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;note_imminent_preimage(bytes)&quot;</span>,
+	<span class="ident">NotePreimage</span> <span class="op">=</span> <span class="string">&quot;notePreimage(bytes)&quot;</span>,
+	<span class="ident">NoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;noteImminentPreimage(bytes)&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedPublicPropCount</span> <span class="op">=</span> <span class="string">&quot;public_prop_count()&quot;</span>,
+	<span class="ident">DeprecatedDepositOf</span> <span class="op">=</span> <span class="string">&quot;deposit_of(uint256)&quot;</span>,
+	<span class="ident">DeprecatedLowestUnbaked</span> <span class="op">=</span> <span class="string">&quot;lowest_unbaked()&quot;</span>,
+	<span class="ident">DeprecatedOngoingReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;ongoing_referendum_info(uint256)&quot;</span>,
+	<span class="ident">DeprecatedFinishedReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;finished_referendum_info(uint256)&quot;</span>,
+	<span class="ident">DeprecatedStandardVote</span> <span class="op">=</span> <span class="string">&quot;standard_vote(uint256,bool,uint256,uint256)&quot;</span>,
+	<span class="ident">DeprecatedRemoveVote</span> <span class="op">=</span> <span class="string">&quot;remove_vote(uint256)&quot;</span>,
+	<span class="ident">DeprecatedUnDelegate</span> <span class="op">=</span> <span class="string">&quot;un_delegate()&quot;</span>,
+	<span class="ident">DeprecatedNotePreimage</span> <span class="op">=</span> <span class="string">&quot;note_preimage(bytes)&quot;</span>,
+	<span class="ident">DeprecatedNoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;note_imminent_preimage(bytes)&quot;</span>,
 }
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet democracy.</span>
@@ -539,28 +576,41 @@
 			<span class="op">|</span> <span class="ident">Action::UnDelegate</span>
 			<span class="op">|</span> <span class="ident">Action::Unlock</span>
 			<span class="op">|</span> <span class="ident">Action::NotePreimage</span>
-			<span class="op">|</span> <span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
+			<span class="op">|</span> <span class="ident">Action::NoteImminentPreimage</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedStandardVote</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedRemoveVote</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedUnDelegate</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedNotePreimage</span>
+			<span class="op">|</span> <span class="ident">Action::DeprecatedNoteImminentPreimage</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
 			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
 		})<span class="question-mark">?</span>;
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Storage Accessors</span>
-			<span class="ident">Action::PublicPropCount</span> =&gt; <span class="ident"><span class="self">Self</span>::public_prop_count</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::DepositOf</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit_of</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::LowestUnbaked</span> =&gt; <span class="ident"><span class="self">Self</span>::lowest_unbaked</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::OngoingReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::ongoing_referendum_info</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::FinishedReferendumInfo</span> =&gt; <span class="ident"><span class="self">Self</span>::finished_referendum_info</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::PublicPropCount</span> <span class="op">|</span> <span class="ident">Action::DeprecatedPublicPropCount</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::public_prop_count</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::DepositOf</span> <span class="op">|</span> <span class="ident">Action::DeprecatedDepositOf</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit_of</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::LowestUnbaked</span> <span class="op">|</span> <span class="ident">Action::DeprecatedLowestUnbaked</span> =&gt; <span class="ident"><span class="self">Self</span>::lowest_unbaked</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::OngoingReferendumInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedOngoingReferendumInfo</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::ongoing_referendum_info</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::FinishedReferendumInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFinishedReferendumInfo</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::finished_referendum_info</span>(<span class="ident">handle</span>)
+			}
 
 			<span class="comment">// Dispatchables</span>
 			<span class="ident">Action::Propose</span> =&gt; <span class="ident"><span class="self">Self</span>::propose</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Second</span> =&gt; <span class="ident"><span class="self">Self</span>::second</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::StandardVote</span> =&gt; <span class="ident"><span class="self">Self</span>::standard_vote</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::RemoveVote</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_vote</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::StandardVote</span> <span class="op">|</span> <span class="ident">Action::DeprecatedStandardVote</span> =&gt; <span class="ident"><span class="self">Self</span>::standard_vote</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::RemoveVote</span> <span class="op">|</span> <span class="ident">Action::DeprecatedRemoveVote</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_vote</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::UnDelegate</span> =&gt; <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::UnDelegate</span> <span class="op">|</span> <span class="ident">Action::DeprecatedUnDelegate</span> =&gt; <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">handle</span>),
 			<span class="ident">Action::Unlock</span> =&gt; <span class="ident"><span class="self">Self</span>::unlock</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::NotePreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::NoteImminentPreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::NotePreimage</span> <span class="op">|</span> <span class="ident">Action::DeprecatedNotePreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::NoteImminentPreimage</span> <span class="op">|</span> <span class="ident">Action::DeprecatedNoteImminentPreimage</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">handle</span>)
+			}
 		}
 	}
 }

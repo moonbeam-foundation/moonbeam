@@ -266,6 +266,87 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -292,18 +373,24 @@
 };
 
 <span class="doccomment">/// Represents a declared custom type struct within a solidity file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SolidityStruct</span> {
 	<span class="doccomment">/// Struct name</span>
 	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
 	<span class="doccomment">/// List of parameter types</span>
 	<span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Is struct an enum</span>
+	<span class="kw">pub</span> <span class="ident">is_enum</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">SolidityStruct</span> {
 	<span class="doccomment">/// Returns the representative signature for the solidity struct</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-		<span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>))
+		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_enum</span> {
+			<span class="string">&quot;uint8&quot;</span>.<span class="ident">to_string</span>()
+		} <span class="kw">else</span> {
+			<span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>))
+		}
 	}
 }
 
@@ -340,14 +427,34 @@
 
 <span class="doccomment">/// Returns a list of [SolidityFunction] defined in a solidity file</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_selectors</span>(<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SolidityFunction</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">filename</span>).<span class="ident">expect</span>(<span class="string">&quot;failed opening file&quot;</span>);
+	<span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">filename</span>)
+		.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;failed opening file &#39;{}&#39;: {}&quot;</span>, <span class="ident">filename</span>, <span class="ident">e</span>));
 	<span class="ident">get_selectors_from_reader</span>(<span class="ident">file</span>)
+}
+
+<span class="doccomment">/// Attempts to lookup a custom struct and returns its primitive signature</span>
+<span class="kw">fn</span> <span class="ident">try_lookup_custom_type</span>(<span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">custom_types</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SolidityStruct</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
+	<span class="kw">match</span> <span class="ident">word</span>.<span class="ident">strip_suffix</span>(<span class="string">&quot;[]&quot;</span>) {
+		<span class="prelude-val">Some</span>(<span class="ident">word</span>) =&gt; {
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">custom_types</span>.<span class="ident">get</span>(<span class="ident">word</span>) {
+				<span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{}[]&quot;</span>, <span class="ident">t</span>.<span class="ident">signature</span>());
+			}
+		}
+		<span class="prelude-val">None</span> =&gt; {
+			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">custom_types</span>.<span class="ident">get</span>(<span class="ident">word</span>) {
+				<span class="kw">return</span> <span class="ident">t</span>.<span class="ident">signature</span>();
+			}
+		}
+	};
+
+	<span class="ident">word</span>.<span class="ident">to_string</span>()
 }
 
 <span class="kw">fn</span> <span class="ident">get_selectors_from_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SolidityFunction</span><span class="op">&gt;</span> {
 	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 	<span class="kw">enum</span> <span class="ident">Stage</span> {
 		<span class="ident">Start</span>,
+		<span class="ident">Enum</span>,
 		<span class="ident">Struct</span>,
 		<span class="ident">StructParams</span>,
 		<span class="ident">FnName</span>,
@@ -378,8 +485,8 @@
 	<span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
 		<span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">expect</span>(<span class="string">&quot;failed unwrapping line&quot;</span>).<span class="ident">trim</span>().<span class="ident">to_string</span>();
 		<span class="comment">// identify declared selector</span>
-		<span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/// Selector: &quot;</span>) <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">stage</span>, <span class="ident">Stage::Start</span>) {
-			<span class="ident">solidity_fn</span>.<span class="ident">docs_selector</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">replace</span>(<span class="string">&quot;/// Selector: &quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">to_string</span>();
+		<span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/// @custom:selector &quot;</span>) <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">stage</span>, <span class="ident">Stage::Start</span>) {
+			<span class="ident">solidity_fn</span>.<span class="ident">docs_selector</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">replace</span>(<span class="string">&quot;/// @custom:selector &quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">to_string</span>();
 		}
 
 		<span class="comment">// skip comments</span>
@@ -393,6 +500,24 @@
 				<span class="kw">continue</span>;
 			}
 			<span class="kw">match</span> (<span class="ident">stage</span>, <span class="ident">pair</span>, <span class="ident">word</span>) {
+				<span class="comment">// parse custom type enums</span>
+				(<span class="ident">Stage::Start</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;enum&quot;</span>) =&gt; {
+					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Enum</span>;
+					<span class="ident">pair</span>.<span class="ident">next</span>();
+				}
+				(<span class="ident">Stage::Enum</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
+					<span class="ident">custom_types</span>.<span class="ident">insert</span>(
+						<span class="ident">word</span>.<span class="ident">to_string</span>(),
+						<span class="ident">SolidityStruct</span> {
+							<span class="ident">name</span>: <span class="ident">word</span>.<span class="ident">to_string</span>(),
+							<span class="ident">is_enum</span>: <span class="bool-val">true</span>,
+							<span class="ident">params</span>: <span class="macro">vec!</span>[],
+						},
+					);
+					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
+					<span class="ident">pair</span> <span class="op">=</span> <span class="ident">Pair::First</span>;
+				}
+
 				<span class="comment">// parse custom type structs</span>
 				(<span class="ident">Stage::Start</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;struct&quot;</span>) =&gt; {
 					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Struct</span>;
@@ -410,7 +535,8 @@
 					<span class="ident">solidity_struct</span> <span class="op">=</span> <span class="ident">SolidityStruct::default</span>();
 				}
 				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::First</span>, <span class="kw">_</span>) =&gt; {
-					<span class="ident">solidity_struct</span>.<span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">word</span>.<span class="ident">to_string</span>());
+					<span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">try_lookup_custom_type</span>(<span class="kw-2">&amp;</span><span class="ident">word</span>, <span class="kw-2">&amp;</span><span class="ident">custom_types</span>);
+					<span class="ident">solidity_struct</span>.<span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">param</span>);
 					<span class="ident">pair</span>.<span class="ident">next</span>();
 				}
 				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
@@ -435,13 +561,12 @@
 				}
 				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::First</span>, <span class="kw">_</span>) =&gt; {
 					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">word</span>.<span class="ident">to_string</span>();
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">custom_types</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>) {
-						<span class="ident">arg</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">signature</span>()
-					}
+					<span class="ident">arg</span> <span class="op">=</span> <span class="ident">try_lookup_custom_type</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="ident">custom_types</span>);
+
 					<span class="ident">solidity_fn</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
 					<span class="ident">pair</span>.<span class="ident">next</span>();
 				}
-				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::Second</span>, <span class="string">&quot;memory&quot;</span>) =&gt; (),
+				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::Second</span>, <span class="string">&quot;memory&quot;</span> <span class="op">|</span> <span class="string">&quot;calldata&quot;</span> <span class="op">|</span> <span class="string">&quot;storage&quot;</span>) =&gt; (),
 				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; <span class="ident">pair</span>.<span class="ident">next</span>(),
 				<span class="kw">_</span> =&gt; {
 					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
@@ -513,19 +638,56 @@
 				<span class="ident">String::from</span>(<span class="string">&quot;fnMemoryArrayArgs(address[],uint256[],bytes[])&quot;</span>),
 			),
 			(
+				<span class="ident">String::from</span>(<span class="string">&quot;ec26cf1c&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;1ea61a4e&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;fnCalldataArgs(string,bytes[])&quot;</span>),
+			),
+			(
+				<span class="ident">String::from</span>(<span class="string">&quot;d779295d&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;9f066a4e&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;fnStorageArgs(string,bytes[])&quot;</span>),
+			),
+			(
 				<span class="ident">String::from</span>(<span class="string">&quot;f29f96de&quot;</span>),
 				<span class="ident">String::from</span>(<span class="string">&quot;d8af1a4e&quot;</span>),
 				<span class="ident">String::from</span>(<span class="string">&quot;fnCustomArgs((uint8,bytes[]),bytes[],uint64)&quot;</span>),
 			),
 			(
+				<span class="ident">String::from</span>(<span class="string">&quot;d751d651&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;e8af1642&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;fnEnumArgs(uint8,uint64)&quot;</span>),
+			),
+			(
 				<span class="ident">String::from</span>(<span class="string">&quot;b2c9f1a3&quot;</span>),
 				<span class="ident">String::from</span>(<span class="string">&quot;550c1a4e&quot;</span>),
 				<span class="ident">String::from</span>(
-					<span class="string">&quot;fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[])&quot;</span>.<span class="ident">to_owned</span>()
-						<span class="op">+</span> <span class="string">&quot;,bytes[],uint64)&quot;</span>,
+					<span class="string">&quot;fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
+					uint64)&quot;</span>,
+				),
+			),
+			(
+				<span class="ident">String::from</span>(<span class="string">&quot;d5363eee&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;77af1a40&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;fnCustomArrayArgs((uint8,bytes[])[],bytes[])&quot;</span>),
+			),
+			(
+				<span class="ident">String::from</span>(<span class="string">&quot;b82da727&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;80af0a40&quot;</span>),
+				<span class="ident">String::from</span>(
+					<span class="string">&quot;fnCustomComposedArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[]),uint64)&quot;</span>,
+				),
+			),
+			(
+				<span class="ident">String::from</span>(<span class="string">&quot;586a2193&quot;</span>),
+				<span class="ident">String::from</span>(<span class="string">&quot;97baa040&quot;</span>),
+				<span class="ident">String::from</span>(
+					<span class="string">&quot;fnCustomComposedArrayArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[])[],uint64)&quot;</span>,
 				),
 			),
 		];
+
 		<span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
 	}
 }

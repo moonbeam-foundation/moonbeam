@@ -381,6 +381,30 @@
 <span id="376">376</span>
 <span id="377">377</span>
 <span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -453,16 +477,28 @@
 <span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">EncodeBond</span> <span class="op">=</span> <span class="string">&quot;encode_bond(uint256,uint256,bytes)&quot;</span>,
-	<span class="ident">EncodeBondExtra</span> <span class="op">=</span> <span class="string">&quot;encode_bond_extra(uint256)&quot;</span>,
-	<span class="ident">EncodeUnbond</span> <span class="op">=</span> <span class="string">&quot;encode_unbond(uint256)&quot;</span>,
-	<span class="ident">EncodeWithdrawUnbonded</span> <span class="op">=</span> <span class="string">&quot;encode_withdraw_unbonded(uint32)&quot;</span>,
-	<span class="ident">EncodeValidate</span> <span class="op">=</span> <span class="string">&quot;encode_validate(uint256,bool)&quot;</span>,
-	<span class="ident">EncodeNominate</span> <span class="op">=</span> <span class="string">&quot;encode_nominate(uint256[])&quot;</span>,
-	<span class="ident">EncodeChill</span> <span class="op">=</span> <span class="string">&quot;encode_chill()&quot;</span>,
-	<span class="ident">EncodeSetPayee</span> <span class="op">=</span> <span class="string">&quot;encode_set_payee(bytes)&quot;</span>,
-	<span class="ident">EncodeSetController</span> <span class="op">=</span> <span class="string">&quot;encode_set_controller(uint256)&quot;</span>,
-	<span class="ident">EncodeRebond</span> <span class="op">=</span> <span class="string">&quot;encode_rebond(uint256)&quot;</span>,
+	<span class="ident">EncodeBond</span> <span class="op">=</span> <span class="string">&quot;encodeBond(uint256,uint256,bytes)&quot;</span>,
+	<span class="ident">EncodeBondExtra</span> <span class="op">=</span> <span class="string">&quot;encodeBondExtra(uint256)&quot;</span>,
+	<span class="ident">EncodeUnbond</span> <span class="op">=</span> <span class="string">&quot;encodeUnbond(uint256)&quot;</span>,
+	<span class="ident">EncodeWithdrawUnbonded</span> <span class="op">=</span> <span class="string">&quot;encodeWithdrawUnbonded(uint32)&quot;</span>,
+	<span class="ident">EncodeValidate</span> <span class="op">=</span> <span class="string">&quot;encodeValidate(uint256,bool)&quot;</span>,
+	<span class="ident">EncodeNominate</span> <span class="op">=</span> <span class="string">&quot;encodeNominate(uint256[])&quot;</span>,
+	<span class="ident">EncodeChill</span> <span class="op">=</span> <span class="string">&quot;encodeChill()&quot;</span>,
+	<span class="ident">EncodeSetPayee</span> <span class="op">=</span> <span class="string">&quot;encodeSetPayee(bytes)&quot;</span>,
+	<span class="ident">EncodeSetController</span> <span class="op">=</span> <span class="string">&quot;encodeSetController(uint256)&quot;</span>,
+	<span class="ident">EncodeRebond</span> <span class="op">=</span> <span class="string">&quot;encodeRebond(uint256)&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedEncodeBond</span> <span class="op">=</span> <span class="string">&quot;encode_bond(uint256,uint256,bytes)&quot;</span>,
+	<span class="ident">DeprecatedEncodeBondExtra</span> <span class="op">=</span> <span class="string">&quot;encode_bond_extra(uint256)&quot;</span>,
+	<span class="ident">DeprecatedEncodeUnbond</span> <span class="op">=</span> <span class="string">&quot;encode_unbond(uint256)&quot;</span>,
+	<span class="ident">DeprecatedEncodeWithdrawUnbonded</span> <span class="op">=</span> <span class="string">&quot;encode_withdraw_unbonded(uint32)&quot;</span>,
+	<span class="ident">DeprecatedEncodeValidate</span> <span class="op">=</span> <span class="string">&quot;encode_validate(uint256,bool)&quot;</span>,
+	<span class="ident">DeprecatedEncodeNominate</span> <span class="op">=</span> <span class="string">&quot;encode_nominate(uint256[])&quot;</span>,
+	<span class="ident">DeprecatedEncodeChill</span> <span class="op">=</span> <span class="string">&quot;encode_chill()&quot;</span>,
+	<span class="ident">DeprecatedEncodeSetPayee</span> <span class="op">=</span> <span class="string">&quot;encode_set_payee(bytes)&quot;</span>,
+	<span class="ident">DeprecatedEncodeSetController</span> <span class="op">=</span> <span class="string">&quot;encode_set_controller(uint256)&quot;</span>,
+	<span class="ident">DeprecatedEncodeRebond</span> <span class="op">=</span> <span class="string">&quot;encode_rebond(uint256)&quot;</span>,
 }
 
 <span class="doccomment">/// A precompile to provide relay stake calls encoding through evm</span>
@@ -486,16 +522,28 @@
 		<span class="comment">// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector</span>
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="comment">// Storage Accessors</span>
-			<span class="ident">Action::EncodeBond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_bond</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeBondExtra</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_bond_extra</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeUnbond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_unbond</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeWithdrawUnbonded</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_withdraw_unbonded</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeValidate</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_validate</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeNominate</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_nominate</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeChill</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_chill</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeSetPayee</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_set_payee</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeSetController</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_set_controller</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::EncodeRebond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_rebond</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::EncodeBond</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeBond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_bond</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::EncodeBondExtra</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeBondExtra</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_bond_extra</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeUnbond</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeUnbond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_unbond</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::EncodeWithdrawUnbonded</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeWithdrawUnbonded</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_withdraw_unbonded</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeValidate</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeValidate</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_validate</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeNominate</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeNominate</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_nominate</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeChill</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeChill</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_chill</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::EncodeSetPayee</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeSetPayee</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_set_payee</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeSetController</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeSetController</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::encode_set_controller</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::EncodeRebond</span> <span class="op">|</span> <span class="ident">Action::DeprecatedEncodeRebond</span> =&gt; <span class="ident"><span class="self">Self</span>::encode_rebond</span>(<span class="ident">handle</span>),
 		}
 	}
 }

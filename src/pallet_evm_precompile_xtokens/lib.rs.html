@@ -441,6 +441,27 @@
 <span id="436">436</span>
 <span id="437">437</span>
 <span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -508,13 +529,24 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
 	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferWithFee</span> <span class="op">=</span> <span class="string">&quot;transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferMultiAsset</span> <span class="op">=</span> <span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">TransferWithFee</span> <span class="op">=</span> <span class="string">&quot;transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">TransferMultiAsset</span> <span class="op">=</span> <span class="string">&quot;transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
 	<span class="ident">TransferMultiAssetWithFee</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
+		<span class="string">&quot;transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
 	<span class="ident">TransferMultiCurrencies</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
+		<span class="string">&quot;transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
 	<span class="ident">TransferMultiAssets</span> <span class="op">=</span>
+		<span class="string">&quot;transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
+
+	<span class="comment">// deprecated</span>
+	<span class="ident">DeprecatedTransferWithFee</span> <span class="op">=</span> <span class="string">&quot;transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">DeprecatedTransferMultiAsset</span> <span class="op">=</span>
+		<span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">DeprecatedTransferMultiAssetWithFee</span> <span class="op">=</span>
+		<span class="string">&quot;transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">DeprecatedTransferMultiCurrencies</span> <span class="op">=</span>
+		<span class="string">&quot;transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
+	<span class="ident">DeprecatedTransferMultiAssets</span> <span class="op">=</span>
 		<span class="string">&quot;transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
 }
 
@@ -538,11 +570,21 @@
 
 		<span class="kw">match</span> <span class="ident">selector</span> {
 			<span class="ident">Action::Transfer</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferWithFee</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_with_fee</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferMultiAsset</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_multiasset</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferMultiAssetWithFee</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_multiasset_with_fee</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferMultiCurrencies</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_multi_currencies</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferMultiAssets</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_multi_assets</span>(<span class="ident">handle</span>),
+			<span class="ident">Action::TransferWithFee</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferWithFee</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transfer_with_fee</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::TransferMultiAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAsset</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transfer_multiasset</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::TransferMultiAssetWithFee</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAssetWithFee</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transfer_multiasset_with_fee</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::TransferMultiCurrencies</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiCurrencies</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transfer_multi_currencies</span>(<span class="ident">handle</span>)
+			}
+			<span class="ident">Action::TransferMultiAssets</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAssets</span> =&gt; {
+				<span class="ident"><span class="self">Self</span>::transfer_multi_assets</span>(<span class="ident">handle</span>)
+			}
 		}
 	}
 }
