@@ -2398,6 +2398,6 @@ fn burn_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"amount: Value is too large for uint128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 		});
 }
