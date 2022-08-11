@@ -16,7 +16,13 @@ describeSmokeSuite(
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
 
-    const accountCodes: { [account: string]: string } = {};
+    const accountCodeSizesByAddress: { [account: string]: number } = {};
+
+    // returns the length in bytes of the byte array represented by the given hex string.
+    // assumes a prefixed "0x".
+    const byteLengthOfHexString = (hex: string): number => {
+      return (hex.length - 2) / 2;
+    };
 
     before("Retrieve all contrcact bytecode", async function () {
       this.timeout(7_200_000);
@@ -51,7 +57,7 @@ describeSmokeSuite(
         for (const accountCode of query) {
           let accountId = `0x${accountCode[0].toHex().slice(-40)}`;
           last_key = accountCode[0].toString();
-          accountCodes[accountId] = accountCode[1].toHex();
+          accountCodeSizesByAddress[accountId] = byteLengthOfHexString(accountCode[1].toHex());
         }
 
         // Debug logs to make sure it keeps progressing
@@ -88,14 +94,10 @@ describeSmokeSuite(
 
       const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
-      const hexSizeToByteSize = (hexSize: number): number => {
-        return hexSize / 2 - 2;
-      };
-
-      for (const accountId of Object.keys(accountCodes)) {
-        const contractCode = accountCodes[accountId];
-        if (contractCode.length > MAX_CONTRACT_SIZE_HEX) {
-          failedContractCodes.push({ accountId, codesize: hexSizeToByteSize(contractCode.length) });
+      for (const accountId of Object.keys(accountCodeSizesByAddress)) {
+        const codesize = accountCodeSizesByAddress[accountId];
+        if (codesize > MAX_CONTRACT_SIZE_HEX) {
+          failedContractCodes.push({ accountId, codesize });
         }
       }
 
@@ -112,8 +114,9 @@ describeSmokeSuite(
       expect(failedContractCodes.length, "Failed contract code max length").to.equal(0);
 
       // Additional debug logs
+      let numAccounts = Object.keys(accountCodeSizesByAddress).length;
       debug(
-        `Verified ${Object.keys(accountCodes).length} total account codes (at #${atBlockNumber})`
+        `Verified ${numAccounts} total account codes (at #${atBlockNumber})`
       );
     });
   }
