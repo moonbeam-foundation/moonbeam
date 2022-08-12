@@ -11,22 +11,24 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Pallet EVM - call", (context) => {
   it("should fail without sudo", async function () {
-    const {
-      result: { events },
-    } = await context.createBlock(
-      context.polkadotApi.tx.evm.call(
-        alith.address,
-        baltathar.address,
-        "0x0",
-        100_000_000_000_000_000_000n,
-        12_000_000n,
-        1_000_000_000n,
-        "0",
-        undefined,
-        []
-      )
-    );
-    expect(events[6].event.method).to.eq("ExtrinsicFailed");
+    expect(
+      await context
+        .createBlock(
+          context.polkadotApi.tx.evm.call(
+            alith.address,
+            baltathar.address,
+            "0x0",
+            100_000_000_000_000_000_000n,
+            12_000_000n,
+            1_000_000_000n,
+            "0",
+            undefined,
+            []
+          )
+        )
+        .catch((e) => e.toString())
+    ).to.equal("RpcError: 1010: Invalid Transaction: Transaction call is not expected");
+
     expect(await context.web3.eth.getBalance(baltathar.address)).to.equal(
       DEFAULT_GENESIS_BALANCE.toString()
     );
