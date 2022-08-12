@@ -121,11 +121,11 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         id: id,
         amount: amount,
       };
-      countedDelegationSum = countedDelegationSum.add(new BN(amount));
+      countedDelegationSum = countedDelegationSum.addn(amount);
     }
-    let totalCountedLessTotalCounted = new BN(total).sub(countedDelegationSum.add(new BN(bond)));
+    const totalCountedLessTotalCounted = total.sub(countedDelegationSum.addn(bond));
     expect(total.toString()).to.equal(
-      countedDelegationSum.add(new BN(bond)).toString(),
+      countedDelegationSum.addn(bond).toString(),
       `Total counted (denominator) ${total} - total counted (numerator ${countedDelegationSum.add(
         new BN(bond)
       )} = ${totalCountedLessTotalCounted}` +
@@ -198,7 +198,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   // check if total paid out to collators and delegators matches with expectations
   let rewardedByBalanceTransfer = new BN(0);
   const totalSelected = await apiAtRewarded.query.parachainStaking.totalSelected();
-  let counter = new BN(0);
+  const counter = 0;
   while (counter <= totalSelected) {
     const apiAfterRewardedN = await api.at(
       await api.rpc.chain.getBlockHash(nowRound.first.add(counter))
