@@ -110,7 +110,12 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		// disallow re-adding proxy via precompile to prevent privilege escalation
+		// Disallow re-adding proxy via precompile to prevent privilege escalation attack.
+		// If a proxy account manages to call this precompile via `pallet_proxy.proxy` they can 
+		// escalate their own privileges.
+		// See: https://github.com/PureStake/sr-moonbeam/issues/30
+		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
+		// filtered via CallFilter
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		if ProxyPallet::<Runtime>::proxies(&origin)
 			.0
