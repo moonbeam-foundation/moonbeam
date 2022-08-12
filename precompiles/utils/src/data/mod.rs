@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 pub mod xcm;
+pub use affix::paste;
 
 use {
 	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
@@ -668,32 +669,6 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 	}
 }
 
-/// Helper to read arguments of a Solidity function.
-/// Arguments are read in the provided order using the provided types.
-/// Those types should match the ones in the Solidity file,
-/// and identifiers used should match Solidity ones.
-///
-/// ```rust,ignore
-/// let mut input = handle.read_input()?;
-///
-/// read_args!(input, {owner: Address, spender: Address});
-/// let owner: H160 = owner.into();
-/// let spender: H160 = spender.into();
-/// ```
-#[macro_export]
-macro_rules! read_args {
-	($input:ident, {$($field:ident: $type:ty),+}) => {
-		$(
-			let $field: $type = $input.read().in_field(
-				stringify!(
-					paste! {[<$field:camel>]}
-
-				)
-			)?;
-		)*
-	};
-}
-
 /// Helper to write `EvmData` impl for Solidity structs.
 /// Identifiers used should match Solidity ones.
 /// Types are infered from context, which should always be
@@ -721,5 +696,34 @@ macro_rules! read_struct {
 		let ($($field),*) = $reader
 			.read()
 			.map_in_tuple_to_field(&[$(stringify!($field)),*])?;
+	};
+}
+
+/// Helper to read arguments of a Solidity function.
+/// Arguments are read in the provided order using the provided types.
+/// Those types should match the ones in the Solidity file,
+/// and identifiers used should match Solidity ones.
+///
+/// Identifiers written in Rust in snake_case are converted to
+/// camelCase to match Solidity conventions. 
+///
+/// ```rust,ignore
+/// let mut input = handle.read_input()?;
+///
+/// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.
+/// read_args!(input, {owner: Address, account_index: U256});
+/// let owner: H160 = owner.into();
+///
+/// ```
+#[macro_export]
+macro_rules! read_args {
+	($input:ident, {$($field:ident: $type:ty),+}) => {
+		$crate::data::paste! {
+			$(
+				let $field: $type = $input.read().in_field(
+					stringify!([<$field:camel>])
+				)?;
+			)*
+		}
 	};
 }

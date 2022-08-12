@@ -789,7 +789,8 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(1)?;
 
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		read_args!(input, {owner: Address});
+		let owner: H160 = owner.into();
 
 		// Build call with origin.
 		{
@@ -823,9 +824,10 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let issuer: H160 = input.read::<Address>().in_field("issuer")?.into();
-		let admin: H160 = input.read::<Address>().in_field("admin")?.into();
-		let freezer: H160 = input.read::<Address>().in_field("freezer")?.into();
+		read_args!(input, {issuer: Address, admin: Address, freezer: Address});
+		let issuer: H160 = issuer.into();
+		let admin: H160 = admin.into();
+		let freezer: H160 = freezer.into();
 
 		// Build call with origin.
 		{
@@ -863,11 +865,11 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> =
-			input.read().in_field("name")?;
-		let symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>> =
-			input.read().in_field("symbol")?;
-		let decimals: u8 = input.read().in_field("decimals")?;
+		read_args!(input, {
+			name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
+			symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
+			decimals: u8
+		});
 
 		// Build call with origin.
 		{

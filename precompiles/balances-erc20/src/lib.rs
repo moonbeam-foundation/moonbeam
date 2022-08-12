@@ -409,16 +409,16 @@ where
 			// If caller is "from", it can spend as much as it wants.
 			if caller != from {
 				ApprovesStorage::<Runtime, Instance>::mutate(from.clone(), caller, |entry| {
-					// Get current value, exit if None.
-					let value = entry.ok_or(revert("spender not allowed"))?;
+					// Get current allowed value, exit if None.
+					let allowed = entry.ok_or(revert("spender not allowed"))?;
 
 					// Remove "value" from allowed, exit if underflow.
-					let new_value = value
+					let allowed = allowed
 						.checked_sub(&value)
 						.ok_or_else(|| revert("trying to spend more than allowed"))?;
 
-					// Update value.
-					*entry = Some(new_value);
+					// Update allowed value.
+					*entry = Some(allowed);
 
 					EvmResult::Ok(())
 				})?;

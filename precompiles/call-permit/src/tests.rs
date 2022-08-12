@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, solidity, encoded_revert, prelude::*, testing::*};
+use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
