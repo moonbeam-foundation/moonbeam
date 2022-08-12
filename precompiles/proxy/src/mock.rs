@@ -21,7 +21,7 @@ use frame_support::{
 	traits::{Everything, InstanceFilter},
 };
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
+	AddressMapping, EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping,
 };
 use precompile_utils::precompile_set::{
 	AddressU64, LimitRecursionTo, PrecompileAt, PrecompileSetBuilder,
@@ -168,6 +168,25 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyWrapper<R>, LimitRecursionTo<1>>,),
 >;
 
+pub struct EnsureAddressAlways;
+impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {
+	type Success = ();
+
+	fn try_address_origin(
+		_address: &H160,
+		_origin: OuterOrigin,
+	) -> Result<Self::Success, OuterOrigin> {
+		Ok(())
+	}
+
+	fn ensure_address_origin(
+		_address: &H160,
+		_origin: OuterOrigin,
+	) -> Result<Self::Success, sp_runtime::traits::BadOrigin> {
+		Ok(())
+	}
+}
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
@@ -175,7 +194,7 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<Account>;
+	type CallOrigin = EnsureAddressAlways;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
 	type Currency = Balances;

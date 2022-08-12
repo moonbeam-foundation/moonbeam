@@ -22,10 +22,13 @@ use crate::{
 	Action,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
+use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use precompile_utils::{assert_event_emitted, prelude::*, solidity, testing::*};
+use precompile_utils::{
+	assert_event_emitted, assert_event_not_emitted, prelude::*, solidity, testing::*,
+};
 use sp_core::H160;
 use std::str::from_utf8;
 
@@ -476,4 +479,58 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			}
 		}
 	}
+}
+
+use sp_core::U256;
+
+#[test]
+fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 100000000), (Bob, 100000000)])
+		.build()
+		.execute_with(|| {
+			// make Bob a ProxyType::Something for Alice
+			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+				delegate: Bob,
+				proxy_type: ProxyType::Something,
+				delay: 0u64,
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::All
+			let bob: H160 = Bob.into();
+			let add_proxy_precompile = EvmDataWriter::new_with_selector(Action::AddProxy)
+				.write::<Address>(bob.into())
+				.write::<u8>(ProxyType::All as u8)
+				.write::<u32>(0)
+				.build();
+
+			let evm_call = Call::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: Precompile.into(),
+				input: add_proxy_precompile,
+				value: U256::zero(),
+				gas_limit: u64::max_value(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
+				nonce: None,
+				access_list: Vec::new(),
+			});
+
+			// call the evm call in a proxy call
+			assert_ok!(<ProxyPallet<Runtime>>::proxy(
+				Origin::signed(Bob.into()),
+				Alice.into(),
+				None,
+				Box::new(evm_call)
+			));
+
+			// assert Bob was not assigned ProxyType::All
+			assert_event_not_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
+				delegator: Alice,
+				delegatee: Bob,
+				proxy_type: ProxyType::All,
+				delay: 0,
+			}));
+		})
 }

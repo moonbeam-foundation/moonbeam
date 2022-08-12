@@ -24,7 +24,7 @@ use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
-use sp_core::H160;
+use sp_runtime::codec::Decode;
 use sp_std::{fmt::Debug, marker::PhantomData};
 
 #[cfg(test)]
@@ -49,7 +49,7 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::ProxyType: TryFrom<u8>,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode,
 	<Runtime as frame_system::Config>::Call:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
@@ -58,7 +58,11 @@ where
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
+
+		handle.check_function_modifier(match selector {
+			Action::IsProxy => FunctionModifier::View,
+			_ => FunctionModifier::NonPayable,
+		})?;
 
 		match selector {
 			Action::AddProxy => Self::add_proxy(handle),
@@ -74,7 +78,7 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::ProxyType: TryFrom<u8>,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode,
 	<Runtime as frame_system::Config>::Call:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
@@ -92,16 +96,32 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let delegate: H160 = input.read::<Address>()?.into();
+		let delegate = input
+			.read::<Address>()
+			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
 		let proxy_type = input
-			.read::<u8>()?
-			.try_into()
-			.map_err(|_| revert("failed decoding proxy_type"))?;
+			.read::<u8>()
+			.map_err(|_| revert("failed reading proxy_type"))
+			.and_then(|value| {
+				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
+					.map_err(|_| revert("failed decoding proxy_type"))
+			})?;
 		let delay = input.read::<u32>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		// disallow re-adding proxy via precompile to prevent privelge escalation
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		if ProxyPallet::<Runtime>::proxies(&origin)
+			.0
+			.iter()
+			.any(|pd| pd.delegate == delegate)
+		{
+			return Err(revert("Duplicate"));
+		}
+
 		let call = ProxyCall::<Runtime>::add_proxy {
-			delegate: Runtime::AddressMapping::into_account_id(delegate),
+			delegate,
 			proxy_type,
 			delay,
 		}
@@ -123,16 +143,21 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(3)?;
 
-		let delegate: H160 = input.read::<Address>()?.into();
+		let delegate = input
+			.read::<Address>()
+			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
 		let proxy_type = input
-			.read::<u8>()?
-			.try_into()
-			.map_err(|_| revert("failed decoding proxy_type"))?;
+			.read::<u8>()
+			.map_err(|_| revert("failed reading proxy_type"))
+			.and_then(|value| {
+				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
+					.map_err(|_| revert("failed decoding proxy_type"))
+			})?;
 		let delay = input.read::<u32>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxy {
-			delegate: Runtime::AddressMapping::into_account_id(delegate),
+			delegate,
 			proxy_type,
 			delay,
 		}
@@ -165,19 +190,24 @@ where
 		let mut input = handle.read_input()?;
 		input.expect_arguments(2)?;
 
-		let real: H160 = input.read::<Address>()?.into();
-		let real = Runtime::AddressMapping::into_account_id(real);
-		let proxy_type: Runtime::ProxyType = input
-			.read::<u8>()?
-			.try_into()
-			.map_err(|_| revert("failed decoding proxy_type"))?;
+		let delegate = input
+			.read::<Address>()
+			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
+		let proxy_type = input
+			.read::<u8>()
+			.map_err(|_| revert("failed reading proxy_type"))
+			.and_then(|value| {
+				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
+					.map_err(|_| revert("failed decoding proxy_type"))
+			})?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let is_proxy = ProxyPallet::<Runtime>::proxies(origin)
 			.0
 			.iter()
-			.any(|pd| pd.delegate == real && pd.proxy_type == proxy_type);
+			.any(|pd| pd.delegate == delegate && pd.proxy_type == proxy_type);
 
 		Ok(succeed(EvmDataWriter::new().write(is_proxy).build()))
 	}
