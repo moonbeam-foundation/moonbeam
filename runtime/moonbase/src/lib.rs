@@ -89,7 +89,7 @@ use sp_runtime::{
 	SaturatedConversion,
 };
 use sp_std::{
-	convert::{From, Into, TryFrom},
+	convert::{From, Into},
 	prelude::*,
 };
 #[cfg(feature = "std")]
@@ -858,24 +858,6 @@ impl InstanceFilter<Call> for ProxyType {
 			(ProxyType::Any, _) => true,
 			(_, ProxyType::Any) => false,
 			_ => false,
-		}
-	}
-}
-
-impl TryFrom<u8> for ProxyType {
-	type Error = &'static str;
-
-	fn try_from(value: u8) -> Result<Self, Self::Error> {
-		match value {
-			0 => Ok(ProxyType::Any),
-			1 => Ok(ProxyType::NonTransfer),
-			2 => Ok(ProxyType::Governance),
-			3 => Ok(ProxyType::Staking),
-			4 => Ok(ProxyType::CancelProxy),
-			5 => Ok(ProxyType::Balances),
-			6 => Ok(ProxyType::AuthorMapping),
-			7 => Ok(ProxyType::IdentityJudgement),
-			_ => Err("unable to decode ProxyType from provided value"),
 		}
 	}
 }
