@@ -24,6 +24,7 @@ extern crate alloc;
 use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
+use frame_support::traits::Get;
 use pallet_randomness::{
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
 };
@@ -42,6 +43,7 @@ use solidity_types::*;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	RelayEpochIndex = "relayEpochIndex()",
+	RequiredDeposit = "requiredDeposit()",
 	GetRequestStatus = "getRequestStatus(uint256)",
 	GetRequest = "getRequest(uint256)",
 	RequestRelayBabeEpochRandomWords =
@@ -172,6 +174,7 @@ where
 
 		match selector {
 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
+			Action::RequiredDeposit => Self::required_deposit(handle),
 			Action::GetRequestStatus => Self::get_request_status(handle),
 			Action::GetRequest => Self::get_request(handle),
 			Action::RequestRelayBabeEpochRandomWords => Self::request_babe_randomness(handle),
@@ -195,6 +198,15 @@ where
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index();
 		Ok(succeed(
 			EvmDataWriter::new().write(relay_epoch_index).build(),
+		))
+	}
+	fn required_deposit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let required_deposit: u128 = <Runtime as pallet_randomness::Config>::Deposit::get()
+			.try_into()
+			.map_err(|_| revert("Amount is too large for provided balance type"))?;
+		Ok(succeed(
+			EvmDataWriter::new().write(required_deposit).build(),
 		))
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
