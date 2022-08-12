@@ -22,7 +22,6 @@
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	ensure,
 	traits::Get,
 };
 use pallet_evm::{AddressMapping, Precompile};
@@ -51,17 +50,39 @@ pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxA
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
+struct GetMaxAssets<R>(PhantomData<R>);
+
+impl<R> Get<u32> for GetMaxAssets<R>
+where
+	R: orml_xtokens::Config,
+{
+	fn get() -> u32 {
+		<R as orml_xtokens::Config>::MaxAssetsForTransfer::get() as u32
+	}
+}
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-	TransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	TransferWithFee = "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAsset = "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAssetWithFee =
-		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiCurrencies =
-		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
 	TransferMultiAssets =
+		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
+
+	// deprecated
+	DeprecatedTransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAsset =
+		"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAssetWithFee =
+		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiCurrencies =
+		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAssets =
 		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 }
 
@@ -85,11 +106,21 @@ where
 
 		match selector {
 			Action::Transfer => Self::transfer(handle),
-			Action::TransferWithFee => Self::transfer_with_fee(handle),
-			Action::TransferMultiAsset => Self::transfer_multiasset(handle),
-			Action::TransferMultiAssetWithFee => Self::transfer_multiasset_with_fee(handle),
-			Action::TransferMultiCurrencies => Self::transfer_multi_currencies(handle),
-			Action::TransferMultiAssets => Self::transfer_multi_assets(handle),
+			Action::TransferWithFee | Action::DeprecatedTransferWithFee => {
+				Self::transfer_with_fee(handle)
+			}
+			Action::TransferMultiAsset | Action::DeprecatedTransferMultiAsset => {
+				Self::transfer_multiasset(handle)
+			}
+			Action::TransferMultiAssetWithFee | Action::DeprecatedTransferMultiAssetWithFee => {
+				Self::transfer_multiasset_with_fee(handle)
+			}
+			Action::TransferMultiCurrencies | Action::DeprecatedTransferMultiCurrencies => {
+				Self::transfer_multi_currencies(handle)
+			}
+			Action::TransferMultiAssets | Action::DeprecatedTransferMultiAssets => {
+				Self::transfer_multi_assets(handle)
+			}
 		}
 	}
 }
@@ -270,15 +301,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let non_mapped_currencies: Vec<Currency> = input.read::<Vec<Currency>>()?;
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
-
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= non_mapped_currencies.len(),
-			revert("More than max number of assets given")
-		);
+		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> = input.read()?;
+		let non_mapped_currencies = non_mapped_currencies.into_vec();
 
 		let fee_item: u32 = input.read::<u32>()?;
 
@@ -332,15 +356,8 @@ where
 	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
 		input.expect_arguments(4)?;
-		let assets: Vec<EvmMultiAsset> = input.read::<Vec<EvmMultiAsset>>()?;
-		let max_assets = MaxAssetsForTransfer::<Runtime>::get();
-
-		// We check this here so that we avoid iterating over the vec
-		// if the len is more than the max permitted
-		ensure!(
-			max_assets >= assets.len(),
-			revert("More than max number of assets given")
-		);
+		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> = input.read()?;
+		let assets = assets.into_vec();
 
 		let fee_item: u32 = input.read::<u32>()?;
 

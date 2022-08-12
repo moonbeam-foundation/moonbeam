@@ -1,17 +1,18 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { BN, u8aToHex } from "@polkadot/util";
+import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
-import { customWeb3Request } from "../../util/providers";
-import { descendOriginFromAddress, registerForeignAsset } from "../../util/xcm";
+import {
+  descendOriginFromAddress,
+  registerForeignAsset,
+  injectHrmpMessageAndSeal,
+  RawXcmMessage,
+} from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { createContract } from "../../util/transactions";
 
@@ -152,22 +153,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
           },
         ],
       };
-      const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-        "XcmpMessageFormat",
-        "ConcatenatedVersionedXcm"
-      ) as any;
-      const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-        "XcmVersionedXcm",
-        xcmMessage
-      ) as any;
 
-      const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-      // Send RPC call to inject XCM message
-      // We will set a specific message knowing that it should mint the statemint asset
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
-
-      // Create a block in which the XCM will be executed
-      await context.createBlock();
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
 
       // Make sure the state has ALITH's foreign parachain tokens
       const testAccountBalance = (
@@ -317,22 +308,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
           },
         ],
       };
-      const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-        "XcmpMessageFormat",
-        "ConcatenatedVersionedXcm"
-      ) as any;
-      const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-        "XcmVersionedXcm",
-        xcmMessage
-      ) as any;
 
-      const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-      // Send RPC call to inject XCM message
-      // We will set a specific message knowing that it should mint the statemint asset
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
-
-      // Create a block in which the XCM will be executed
-      await context.createBlock();
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
 
       expect(await contractDeployed.methods.count().call()).to.eq(expectedCalls.toString());
     }
@@ -393,7 +374,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
     // Deposit asset
@@ -433,24 +414,13 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
 
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    const r = await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
-      totalMessage,
-    ]);
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, statemint_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
+
     // Make sure descended address has the transferred foreign assets (minus the xcm fees).
     expect(
       (await context.polkadotApi.query.assets.account(assetId, descendedAddress))
@@ -544,22 +514,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
           },
         ],
       };
-      const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-        "XcmpMessageFormat",
-        "ConcatenatedVersionedXcm"
-      ) as any;
-      const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-        "XcmVersionedXcm",
-        xcmMessage
-      ) as any;
 
-      const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-      // Send RPC call to inject XCM message
-      // We will set a specific message knowing that it should mint the statemint asset
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
-
-      // Create a block in which the XCM will be executed
-      await context.createBlock();
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
 
       expect(await contractDeployed.methods.count().call()).to.eq(expectedCalls.toString());
     }

@@ -20,7 +20,10 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::ConstU32,
+};
 use pallet_evm::{AddressMapping, PrecompileOutput};
 use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
 use precompile_utils::prelude::*;
@@ -42,20 +45,37 @@ mod tests;
 pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Transactor;
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
+type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	IndexToAccount = "index_to_account(uint16)",
+	IndexToAccount = "indexToAccount(uint16)",
 	// DEPRECATED
-	TransactInfo = "transact_info((uint8,bytes[]))",
+	TransactInfo = "transactInfo((uint8,bytes[]))",
 	TransactThroughDerivativeMultiLocation =
-		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
-	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
-	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
-	FeePerSecond = "fee_per_second((uint8,bytes[]))",
+		"transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	TransactThroughDerivative = "transactThroughDerivative(uint8,uint16,address,uint64,bytes)",
+	TransactInfoWithSigned = "transactInfoWithSigned((uint8,bytes[]))",
+	FeePerSecond = "feePerSecond((uint8,bytes[]))",
 	TransactThroughSignedMultiLocation =
+		"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	TransactThroughSigned = "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
+
+	// deprecated
+	DeprecatedIndexToAccount = "index_to_account(uint16)",
+	DeprecatedTransactInfo = "transact_info((uint8,bytes[]))",
+	DeprecatedTransactThroughDerivativeMultiLocation =
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	DeprecatedTransactThroughDerivative =
+		"transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+	DeprecatedTransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
+	DeprecatedFeePerSecond = "fee_per_second((uint8,bytes[]))",
+	DeprecatedTransactThroughSignedMultiLocation =
 		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
-	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
+	DeprecatedTransactThroughSigned =
+		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -78,25 +98,39 @@ where
 			Action::TransactThroughDerivativeMultiLocation
 			| Action::TransactThroughDerivative
 			| Action::TransactThroughSignedMultiLocation
-			| Action::TransactThroughSigned => FunctionModifier::NonPayable,
+			| Action::TransactThroughSigned
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactThroughDerivative
+			| Action::DeprecatedTransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSigned => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(handle),
+			Action::IndexToAccount | Action::DeprecatedIndexToAccount => {
+				Self::account_index(handle)
+			}
 			// DEPRECATED
-			Action::TransactInfo => Self::transact_info(handle),
-			Action::TransactInfoWithSigned => Self::transact_info_with_signed(handle),
-			Action::FeePerSecond => Self::fee_per_second(handle),
-			Action::TransactThroughDerivativeMultiLocation => {
+			Action::TransactInfo | Action::DeprecatedTransactInfo => Self::transact_info(handle),
+			Action::TransactInfoWithSigned | Action::DeprecatedTransactInfoWithSigned => {
+				Self::transact_info_with_signed(handle)
+			}
+			Action::FeePerSecond | Action::DeprecatedFeePerSecond => Self::fee_per_second(handle),
+			Action::TransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
 				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
-			Action::TransactThroughSignedMultiLocation => {
+			Action::TransactThroughDerivative | Action::DeprecatedTransactThroughDerivative => {
+				Self::transact_through_derivative(handle)
+			}
+			Action::TransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSignedMultiLocation => {
 				Self::transact_through_signed_multilocation(handle)
 			}
-			Action::TransactThroughSigned => Self::transact_through_signed(handle),
+			Action::TransactThroughSigned | Action::DeprecatedTransactThroughSigned => {
+				Self::transact_through_signed(handle)
+			}
 		}
 	}
 }
@@ -215,7 +249,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -226,7 +260,7 @@ where
 				index,
 				fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
 				dest_weight: weight,
-				inner_call: inner_call.0,
+				inner_call,
 			};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -253,7 +287,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// inner call
-		let inner_call = input.read::<Bytes>()?;
+		let inner_call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -272,7 +306,7 @@ where
 			index,
 			currency_id,
 			dest_weight: weight,
-			inner_call: inner_call.0,
+			inner_call: inner_call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -299,7 +333,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -308,7 +342,7 @@ where
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_location: Box::new(xcm::VersionedMultiLocation::V1(fee_multilocation)),
 			dest_weight: weight,
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -343,7 +377,7 @@ where
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
-		let call = input.read::<Bytes>()?;
+		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -352,7 +386,7 @@ where
 			dest: Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			fee_currency_id: currency_id,
 			dest_weight: weight,
-			call: call.0,
+			call,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
