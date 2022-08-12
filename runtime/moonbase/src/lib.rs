@@ -989,7 +989,7 @@ impl Contains<Call> for NormalFilter {
 			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
-			// this can be seen as an additional security 
+			// this can be seen as an additional security
 			Call::EVM(_) => false,
 			_ => true,
 		}
