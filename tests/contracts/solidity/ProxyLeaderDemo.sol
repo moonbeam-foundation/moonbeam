@@ -291,8 +291,12 @@ contract ProxyLeaderDemo {
         proxy.addProxy(winnerGovernor, Proxy.ProxyType.Governance, 0);
         emit ProxyAdded(winnerGovernor, Proxy.ProxyType.Governance);
 
-        proxy.addProxy(winnerStaker, Proxy.ProxyType.Staking, 0);
-        emit ProxyAdded(winnerStaker, Proxy.ProxyType.Staking);
+        // we can only add a single proxy type per account, so ensure that
+        // we only add the most permissible proxy
+        if (winnerGovernor != winnerStaker) {
+            proxy.addProxy(winnerStaker, Proxy.ProxyType.Staking, 0);
+            emit ProxyAdded(winnerStaker, Proxy.ProxyType.Staking);
+        }
 
         governor = winnerGovernor;
         staker = winnerStaker;
