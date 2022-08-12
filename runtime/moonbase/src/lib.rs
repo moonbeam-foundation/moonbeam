@@ -1553,7 +1553,7 @@ mod tests {
 		];
 
 		for (input, expected) in test_cases {
-			let actual = ProxyType::try_from(input);
+			let actual = ProxyType::decode(&mut input.to_le_bytes().as_slice());
 			assert_eq!(
 				Ok(expected),
 				actual,
