@@ -293,8 +293,6 @@ impl<T: Config> Pallet<T> {
 									<Error<T>>::DelegatorBondBelowMin
 								);
 
-								Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
-
 								Ok(())
 							})?;
 
@@ -529,9 +527,6 @@ impl<T: Config> Pallet<T> {
 			scheduled_requests.remove(request_idx).action.amount();
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
-
-		// TODO: reveiew -- we're about to leave, so this is mostly extra work (extra writes)
-		Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 
 		// set state.total so that state.adjust_bond_lock will remove lock
 		let unstaked_amount = state.total();

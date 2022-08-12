@@ -88,7 +88,7 @@ describeDevMoonbeam("Author Mapping - Fail to reassociate alice", (context) => {
     //check state
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.free.toBigInt()
-    ).to.eq(1208925819590952822705800n);
+    ).to.eq(1208925819582767722705800n);
     expect(
       (await context.polkadotApi.query.system.account(baltathar.address)).data.reserved.toBigInt()
     ).to.eq(0n);

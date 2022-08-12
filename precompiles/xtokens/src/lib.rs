@@ -65,13 +65,24 @@ where
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-	TransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	TransferWithFee = "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)",
+	TransferMultiAsset = "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
 	TransferMultiAssetWithFee =
-		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
 	TransferMultiCurrencies =
-		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
 	TransferMultiAssets =
+		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
+
+	// deprecated
+	DeprecatedTransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAsset =
+		"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAssetWithFee =
+		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiCurrencies =
+		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
+	DeprecatedTransferMultiAssets =
 		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
 }
 
@@ -95,11 +106,21 @@ where
 
 		match selector {
 			Action::Transfer => Self::transfer(handle),
-			Action::TransferWithFee => Self::transfer_with_fee(handle),
-			Action::TransferMultiAsset => Self::transfer_multiasset(handle),
-			Action::TransferMultiAssetWithFee => Self::transfer_multiasset_with_fee(handle),
-			Action::TransferMultiCurrencies => Self::transfer_multi_currencies(handle),
-			Action::TransferMultiAssets => Self::transfer_multi_assets(handle),
+			Action::TransferWithFee | Action::DeprecatedTransferWithFee => {
+				Self::transfer_with_fee(handle)
+			}
+			Action::TransferMultiAsset | Action::DeprecatedTransferMultiAsset => {
+				Self::transfer_multiasset(handle)
+			}
+			Action::TransferMultiAssetWithFee | Action::DeprecatedTransferMultiAssetWithFee => {
+				Self::transfer_multiasset_with_fee(handle)
+			}
+			Action::TransferMultiCurrencies | Action::DeprecatedTransferMultiCurrencies => {
+				Self::transfer_multi_currencies(handle)
+			}
+			Action::TransferMultiAssets | Action::DeprecatedTransferMultiAssets => {
+				Self::transfer_multi_assets(handle)
+			}
 		}
 	}
 }
