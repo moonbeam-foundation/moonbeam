@@ -29,7 +29,8 @@ use sc_cli::Result;
 use sc_client_api::BlockBackend;
 use sp_core::{ecdsa, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
-use sp_runtime::{generic::{Era, SignedPayload}, OpaqueExtrinsic, SaturatedConversion};
+use sp_runtime::{generic::{Era, SignedPayload}, OpaqueExtrinsic};
+use sha3::{Digest, Keccak256};
 
 use crate::FullClient;
 
@@ -50,7 +51,11 @@ impl BenchmarkExtrinsicBuilder {
 impl frame_benchmarking_cli::ExtrinsicBuilder for BenchmarkExtrinsicBuilder {
 	fn remark(&self, nonce: u32) -> std::result::Result<OpaqueExtrinsic, &'static str> {
 		// TODO: use well-known testing keypairs
-		let keypair = sp_core::ecdsa::Pair::generate().0;
+		const ALICE_PRIV_KEY: &str = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
+		let keypair = sp_core::ecdsa::Pair::
+			from_string(ALICE_PRIV_KEY, None)
+			.expect("Alices' private key works");
+
 		let extrinsic: OpaqueExtrinsic = create_benchmark_extrinsic(
 			self.client.as_ref(),
 			keypair,
@@ -80,20 +85,13 @@ pub fn create_benchmark_extrinsic(
 		.flatten()
 		.expect("Genesis block exists; qed");
 	let best_hash = client.chain_info().best_hash;
-	let best_block = client.chain_info().best_number;
+	// let best_block = client.chain_info().best_number;
 
-	let period = runtime::BlockHashCount::get()
-		.checked_next_power_of_two()
-		.map(|c| c / 2)
-		.unwrap_or(2) as u64;
 	let extra: runtime::SignedExtra = (
 		frame_system::CheckSpecVersion::<runtime::Runtime>::new(),
 		frame_system::CheckTxVersion::<runtime::Runtime>::new(),
 		frame_system::CheckGenesis::<runtime::Runtime>::new(),
-		frame_system::CheckEra::<runtime::Runtime>::from(Era::mortal(
-			period,
-			best_block.saturated_into(),
-		)),
+		frame_system::CheckEra::<runtime::Runtime>::from(Era::Immortal),
 		frame_system::CheckNonce::<runtime::Runtime>::from(nonce),
 		frame_system::CheckWeight::<runtime::Runtime>::new(),
 		pallet_transaction_payment::ChargeTransactionPayment::<runtime::Runtime>::from(0),
@@ -112,7 +110,13 @@ pub fn create_benchmark_extrinsic(
 			(),
 		),
 	);
-	let signature = raw_payload.using_encoded(|e| sender.sign(e));
+
+	let signature = raw_payload.using_encoded(|e| {
+		let mut m = [0u8; 32];
+		let digest = &Keccak256::digest(e);
+		m.copy_from_slice(digest);
+		sender.sign_prehashed(&m)
+	});
 	let signer: EthereumSigner = sender.public().into();
 
 	runtime::UncheckedExtrinsic::new_signed(
