@@ -100,6 +100,7 @@ const TYPES_0_4: RegistryTypes = {
     nonce: "U256",
     balance: "u128",
   },
+  EthTransaction: "LegacyTransaction",
 };
 const { RefCount, ...TYPES_5_5 } = TYPES_0_4;
 
