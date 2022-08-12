@@ -79,16 +79,6 @@ interface SolidityTest {
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
-    /// @custom:selector 9f066a4e
-    function fnStorageArgs(string storage arg0, bytes[] memory arg1) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector 1ea61a4e
-    function fnCalldataArgs(string calldata arg0, bytes[] memory arg1) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
     /// @param arg2 Arg2 Description
     /// @custom:selector d8af1a4e
     function fnCustomArgs(
@@ -96,11 +86,6 @@ interface SolidityTest {
         bytes[] memory arg1,
         uint64 arg2
     ) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector e8af1642
-    function fnEnumArgs(CustomEnum0 arg0, uint64 arg1) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
@@ -118,23 +103,6 @@ interface SolidityTest {
         bytes[] memory arg2,
         uint64 arg3
     ) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector 77af1a40
-    function fnCustomArrayArgs(CustomArg0[] memory arg0, bytes[] memory arg1)
-        external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector 80af0a40
-    function fnCustomComposedArg(CustomArg2 memory arg0, uint64 arg1) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector 97baa040
-    function fnCustomComposedArrayArg(CustomArg2[] memory arg0, uint64 arg1)
-        external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
