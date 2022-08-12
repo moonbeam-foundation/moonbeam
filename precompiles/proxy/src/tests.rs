@@ -107,6 +107,62 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 }
 
 #[test]
+fn test_add_proxy_fails_if_less_permissive_proxy() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+				delegate: Bob,
+				proxy_type: ProxyType::Something,
+				delay: 0u64,
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let bob: H160 = Bob.into();
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::AddProxy)
+						.write::<Address>(bob.into())
+						.write::<u8>(ProxyType::Nothing as u8)
+						.write::<u32>(0)
+						.build(),
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("Duplicate"));
+		})
+}
+
+#[test]
+fn test_add_proxy_fails_if_more_permissive_proxy() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+				delegate: Bob,
+				proxy_type: ProxyType::Something,
+				delay: 0u64,
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let bob: H160 = Bob.into();
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::AddProxy)
+						.write::<Address>(bob.into())
+						.write::<u8>(ProxyType::Any as u8)
+						.write::<u32>(0)
+						.build(),
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("Duplicate"));
+		})
+}
+
+#[test]
 fn test_add_proxy_succeeds() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
@@ -139,108 +195,6 @@ fn test_add_proxy_succeeds() {
 					proxy_type: ProxyType::Something,
 					delay: 1,
 				}],
-			)
-		})
-}
-
-#[test]
-fn test_add_proxy_multiple_call_adds_less_permissive_type() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
-				proxy_type: ProxyType::All,
-				delay: 0u64,
-			})
-			.dispatch(Origin::signed(Alice)));
-
-			let bob: H160 = Bob.into();
-			PrecompilesValue::get()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(0)
-						.build(),
-				)
-				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
-				delegator: Alice,
-				delegatee: Bob,
-				proxy_type: ProxyType::Something,
-				delay: 0,
-			}));
-
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
-			assert_eq!(
-				proxies,
-				vec![
-					ProxyDefinition {
-						delegate: Bob,
-						proxy_type: ProxyType::All,
-						delay: 0,
-					},
-					ProxyDefinition {
-						delegate: Bob,
-						proxy_type: ProxyType::Something,
-						delay: 0,
-					}
-				],
-			)
-		})
-}
-
-#[test]
-fn test_add_proxy_multiple_call_adds_more_permissive_type() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
-		.build()
-		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
-				proxy_type: ProxyType::Something,
-				delay: 0u64,
-			})
-			.dispatch(Origin::signed(Alice)));
-
-			let bob: H160 = Bob.into();
-			PrecompilesValue::get()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::All as u8)
-						.write::<u32>(0)
-						.build(),
-				)
-				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
-				delegator: Alice,
-				delegatee: Bob,
-				proxy_type: ProxyType::All,
-				delay: 0,
-			}));
-
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
-			assert_eq!(
-				proxies,
-				vec![
-					ProxyDefinition {
-						delegate: Bob,
-						proxy_type: ProxyType::All,
-						delay: 0,
-					},
-					ProxyDefinition {
-						delegate: Bob,
-						proxy_type: ProxyType::Something,
-						delay: 0,
-					}
-				],
 			)
 		})
 }
@@ -345,7 +299,7 @@ fn test_remove_proxies_succeeds() {
 			.dispatch(Origin::signed(Alice)));
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Charlie,
-				proxy_type: ProxyType::All,
+				proxy_type: ProxyType::Any,
 				delay: 0u64,
 			})
 			.dispatch(Origin::signed(Alice)));
@@ -422,7 +376,7 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsProxy)
 						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::All as u8)
+						.write::<u8>(ProxyType::Any as u8)
 						.build(),
 				)
 				.execute_returns(EvmDataWriter::new().write(false).build());
@@ -497,11 +451,11 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::All
+			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::Any
 			let bob: H160 = Bob.into();
 			let add_proxy_precompile = EvmDataWriter::new_with_selector(Action::AddProxy)
 				.write::<Address>(bob.into())
-				.write::<u8>(ProxyType::All as u8)
+				.write::<u8>(ProxyType::Any as u8)
 				.write::<u32>(0)
 				.build();
 
@@ -525,11 +479,11 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 				Box::new(evm_call)
 			));
 
-			// assert Bob was not assigned ProxyType::All
+			// assert Bob was not assigned ProxyType::Any
 			assert_event_not_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
 				delegator: Alice,
 				delegatee: Bob,
-				proxy_type: ProxyType::All,
+				proxy_type: ProxyType::Any,
 				delay: 0,
 			}));
 		})

@@ -220,16 +220,18 @@ impl pallet_timestamp::Config for Runtime {
 }
 
 #[repr(u8)]
-#[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, TypeInfo)]
+#[derive(
+	Debug, Eq, PartialEq, Ord, PartialOrd, Decode, MaxEncodedLen, Encode, Clone, Copy, TypeInfo,
+)]
 pub enum ProxyType {
-	All = 0,
+	Any = 0,
 	Something = 1,
-	None = 2,
+	Nothing = 2,
 }
 
 impl std::default::Default for ProxyType {
 	fn default() -> Self {
-		ProxyType::All
+		ProxyType::Any
 	}
 }
 
@@ -238,21 +240,8 @@ impl InstanceFilter<Call> for ProxyType {
 		true
 	}
 
-	fn is_superset(&self, _o: &Self) -> bool {
-		true
-	}
-}
-
-impl TryFrom<u8> for ProxyType {
-	type Error = &'static str;
-
-	fn try_from(t: u8) -> Result<Self, Self::Error> {
-		match t {
-			0 => Ok(ProxyType::All),
-			1 => Ok(ProxyType::Something),
-			2 => Ok(ProxyType::None),
-			_ => Err("invalid ProxyType u8"),
-		}
+	fn is_superset(&self, o: &Self) -> bool {
+		(*self as u8) > (*o as u8)
 	}
 }
 
