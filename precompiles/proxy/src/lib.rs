@@ -110,7 +110,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		// disallow re-adding proxy via precompile to prevent privelge escalation
+		// disallow re-adding proxy via precompile to prevent privilege escalation
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		if ProxyPallet::<Runtime>::proxies(&origin)
 			.0
