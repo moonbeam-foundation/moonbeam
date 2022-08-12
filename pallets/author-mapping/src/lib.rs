@@ -117,6 +117,22 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		// DEPRECATED EVENTS, added for indexers to decode old events
+		AuthorRegistered {
+			author_id: NimbusId,
+			account_id: T::AccountId,
+		},
+		AuthorDeRegistered {
+			author_id: NimbusId,
+		},
+		AuthorRotated {
+			new_author_id: NimbusId,
+			account_id: T::AccountId,
+		},
+		DefunctAuthorBusted {
+			author_id: NimbusId,
+			account_id: T::AccountId,
+		},
 		/// A NimbusId has been registered and mapped to an AccountId.
 		KeysRegistered {
 			nimbus_id: NimbusId,
