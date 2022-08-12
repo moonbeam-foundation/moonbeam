@@ -124,14 +124,14 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       countedDelegationSum = countedDelegationSum.add(new BN(amount));
     }
     let totalCountedLessTotalCounted = new BN(total).sub(countedDelegationSum.add(new BN(bond)));
-    // expect(total.toString()).to.equal(
-    //   countedDelegationSum.add(new BN(bond)).toString(),
-    //   `Total counted (denominator) ${total} - total counted (numerator ${countedDelegationSum.add(
-    //     new BN(bond)
-    //   )} = ${totalCountedLessTotalCounted}` +
-    //     ` so this collator and its delegations receive fewer rewards for round ` +
-    //     `${originalRoundNumber.toString()}`
-    // );
+    expect(total.toString()).to.equal(
+      countedDelegationSum.add(new BN(bond)).toString(),
+      `Total counted (denominator) ${total} - total counted (numerator ${countedDelegationSum.add(
+        new BN(bond)
+      )} = ${totalCountedLessTotalCounted}` +
+        ` so this collator and its delegations receive fewer rewards for round ` +
+        `${originalRoundNumber.toString()}`
+    );
 
     for (const topDelegation of topDelegations) {
       if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
