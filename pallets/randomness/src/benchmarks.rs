@@ -17,6 +17,7 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
+use crate::vrf::*;
 use crate::{BalanceOf, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
@@ -24,7 +25,9 @@ use frame_support::{
 	traits::{Currency, Get},
 };
 use pallet_evm::AddressMapping;
-use sp_core::{H160, H256};
+use session_keys_primitives::vrf::benchmark_vrf::*;
+use sp_consensus_vrf::schnorrkel;
+use sp_core::{ByteArray, Pair, H160, H256};
 use sp_runtime::traits::One;
 
 /// Create a funded user from the input
@@ -41,16 +44,20 @@ benchmarks! {
 	// set_babe_randomness_results {}: _(RawOrigin::None)
 	// verify { }
 
-	// // TODO: need to produce Vrf PreDigest using authoring NimbusId and insert both into digests
-	// set_output {
-	// 	// needs to be 2nd block to reflect expected costs every block
-	// 	crate::vrf::set_input::<T>();
-	// 	crate::vrf::set_output::<T>();
-	// 	crate::vrf::set_input::<T>();
-	// }: {
-	// 	crate::vrf::set_output::<T>();
-	// }
-	// verify {}
+	vrf_verification {
+		let public_key =
+			schnorrkel::PublicKey::from_bytes(benchmark_keys().public().as_slice()).unwrap();
+		let transcript = make_transcript::<T::Hash>(T::Hash::default());
+		let (vrf_output, vrf_proof) = sign_transcript(transcript.clone());
+	}: {
+		verify_vrf(
+			public_key,
+			transcript,
+			&vrf_output,
+			&vrf_proof,
+		);
+	}
+	verify {}
 
 	request_randomness {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();

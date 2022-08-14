@@ -29,6 +29,34 @@ pub fn make_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> Transcript {
 	transcript
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmark_vrf {
+	use super::*;
+	use sp_consensus_vrf::schnorrkel::{VRFOutput, VRFProof};
+	pub fn benchmark_keys() -> sr25519::Pair {
+		let (pair, _) = sr25519::Pair::from_entropy(&[1u8; 32], None);
+		pair
+	}
+	pub fn sign_transcript(transcript: Transcript) -> (VRFOutput, VRFProof) {
+		let (inout, proof, _) = benchmark_keys().as_ref().vrf_sign(transcript);
+		(VRFOutput(inout.to_output()), VRFProof(proof))
+	}
+}
+
+// form the transcript
+// use transcript + keys to get the output and the proof
+
+// assert!(
+// 	pubkey
+// 		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
+// 		.is_ok(),
+// 	"VRF signature verification failed"
+// );
+
+// pub fn sign_vrf(input: Transcript) {
+
+// }
+
 /// Make a VRF transcript data container
 #[cfg(feature = "std")]
 pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {

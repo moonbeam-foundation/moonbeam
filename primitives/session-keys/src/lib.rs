@@ -22,6 +22,7 @@ pub mod inherent;
 pub mod vrf;
 pub use digest::*;
 pub use inherent::*;
+pub use sp_consensus_babe::Transcript;
 pub use vrf::*;
 
 /// A Trait to lookup keys from AuthorIds

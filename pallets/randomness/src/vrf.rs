@@ -20,12 +20,27 @@ use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
-use session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
-use sp_consensus_vrf::schnorrkel;
+use session_keys_primitives::{
+	KeysLookup, PreDigest, Transcript, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT,
+};
+use sp_consensus_vrf::schnorrkel::{self, VRFOutput, VRFProof};
 use sp_core::crypto::ByteArray;
 
 /// VRF output
 type Randomness = schnorrkel::Randomness;
+
+/// Verify VRFOutput + Proof using Transcript + PublicKey
+pub(crate) fn verify_vrf(
+	public_key: schnorrkel::PublicKey,
+	transcript: Transcript,
+	output: &VRFOutput,
+	proof: &VRFProof,
+) {
+	assert!(
+		public_key.vrf_verify(transcript, output, proof).is_ok(),
+		"VRF signature verification failed"
+	);
+}
 
 /// Returns weight consumed in `on_initialize`
 pub(crate) fn set_output<T: Config>() -> Weight {
@@ -73,12 +88,7 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 	// VRF input is the previous VRF output
 	let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 	// Verify VRF output + proof using input transcript and VrfId
-	assert!(
-		pubkey
-			.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
-			.is_ok(),
-		"VRF signature verification failed"
-	);
+	verify_vrf(pubkey, transcript.clone(), &vrf_output, &vrf_proof);
 	let vrf_output: Randomness = vrf_output
 		.attach_input_hash(&pubkey, transcript)
 		.ok()
