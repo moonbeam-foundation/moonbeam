@@ -43,20 +43,6 @@ pub mod benchmark_vrf {
 	}
 }
 
-// form the transcript
-// use transcript + keys to get the output and the proof
-
-// assert!(
-// 	pubkey
-// 		.vrf_verify(transcript.clone(), &vrf_output, &vrf_proof)
-// 		.is_ok(),
-// 	"VRF signature verification failed"
-// );
-
-// pub fn sign_vrf(input: Transcript) {
-
-// }
-
 /// Make a VRF transcript data container
 #[cfg(feature = "std")]
 pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {

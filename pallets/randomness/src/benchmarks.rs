@@ -18,12 +18,13 @@
 
 //! Benchmarking
 use crate::vrf::*;
-use crate::{BalanceOf, Config, Pallet, RandomnessResults, Request, RequestType};
+use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
 	traits::{Currency, Get},
 };
+use frame_system::RawOrigin;
 use pallet_evm::AddressMapping;
 use session_keys_primitives::vrf::benchmark_vrf::*;
 use sp_consensus_vrf::schnorrkel;
@@ -41,8 +42,8 @@ benchmarks! {
 	// TODO: causes panic:
 	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
 	// on_initialize', runtime/moonbase/src/lib.rs:1111
-	// set_babe_randomness_results {}: _(RawOrigin::None)
-	// verify { }
+	set_babe_randomness_results {}: _(RawOrigin::None)
+	verify {}
 
 	vrf_verification {
 		let public_key =
