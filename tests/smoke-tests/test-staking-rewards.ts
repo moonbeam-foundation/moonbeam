@@ -194,37 +194,13 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       break;
     }
   }
-  // check if total paid out to collators and delegators matches with expectations
-  let rewardedByBalanceTransfer = new BN(0);
-  const totalSelected = await apiAtRewarded.query.parachainStaking.totalSelected();
-  let counter = new BN(0);
-  while (counter <= totalSelected) {
-    const apiAfterRewardedN = await api.at(
-      await api.rpc.chain.getBlockHash(nowRound.first.add(counter))
-    );
-    const nBlockRewardedEvents = await apiAfterRewardedN.query.system.events();
-    for (const { phase, event } of nBlockRewardedEvents) {
-      if (apiAtRewarded.events.parachainStaking.Rewarded.is(event)) {
-        rewardedByBalanceTransfer = rewardedByBalanceTransfer.add(event.data[1]);
-      }
-    }
-    counter = counter.add(new BN(1));
-  }
-  // total expected staking reward less reserved for parachain bond
+
+  // total expected staking reward minus the amount reserved for parachain bond
   const totalExpectedStakingIssuance = (
     await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
   )
     .unwrap()
     .totalStakingReward.sub(reservedForParachainBond);
-  // expect sum of all reward transfers to equal total expected staking reward
-  expect(rewardedByBalanceTransfer.toString()).to.equal(
-    totalExpectedStakingIssuance.toString(),
-    `Total rewarded events did not match total expected issuance for collators + delegators:
-    ${rewardedByBalanceTransfer} != ${totalExpectedStakingIssuance} \n
-    Inflation was ${totalExpectedStakingIssuance.sub(
-      rewardedByBalanceTransfer
-    )} less than expected for round ${originalRoundNumber}`
-  );
 
   const totalStakingReward = (function () {
     const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
@@ -264,6 +240,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<`0x${string}`>();
+  let totalRewardedAmount = new BN(0);
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
@@ -277,6 +254,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       totalStakingReward,
       stakedValue
     );
+    totalRewardedAmount = totalRewardedAmount.add(rewarded.amount);
 
     expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
@@ -306,6 +284,16 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       )}" were unexpectedly rewarded for collator "${rewarded.collator}" at block ${blockNumber}`
     ).to.be.empty;
   }
+
+  // check that sum of all reward transfers is equal to total expected staking reward
+  expect(totalRewardedAmount.toString()).to.equal(
+    totalExpectedStakingIssuance.toString(),
+    `Total rewarded events did not match total expected issuance for collators + delegators:
+    ${totalRewardedAmount} != ${totalExpectedStakingIssuance} \n
+    Inflation was ${totalExpectedStakingIssuance.sub(
+      totalRewardedAmount
+    )} less than expected for round ${originalRoundNumber}`
+  );
 
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
@@ -365,9 +353,12 @@ async function assertRewardedEventsAtBlock(
   let rewarded = {
     collator: null as `0x${string}`,
     delegators: new Set<string>(),
+    amount: new BN(0),
   };
 
   for (const accountId of Object.keys(rewards) as `0x${string}`[]) {
+    rewarded.amount = rewarded.amount.add(rewards[accountId].amount);
+
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
@@ -418,7 +409,7 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
   ).to.be.true;
 }
 
-type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
+type Rewarded = { collator: `0x${string}` | null; delegators: Set<string>; amount: BN };
 
 type StakedValueData = {
   id: string;
