@@ -99,6 +99,9 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		type EpochExpirationDelay: Get<u64>;
+		/// Benchmark feature to set AuthorMapping without directly inheriting it
+		#[cfg(feature = "runtime-benchmarks")]
+		type KeySetter: pallet_author_mapping::BenchmarkSetKeys<NimbusId, Self::AccountId, VrfId>;
 	}
 
 	#[pallet::error]

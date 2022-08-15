@@ -18,16 +18,22 @@
 
 //! Benchmarking
 use crate::vrf::*;
-use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
+use crate::{
+	BalanceOf, Call, Config, LocalVrfOutput, Pallet, RandomnessResults, Request, RequestType,
+};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{Currency, Get},
+	traits::{Currency, Get, OnInitialize},
 };
 use frame_system::RawOrigin;
+use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
+use pallet_author_mapping::BenchmarkSetKeys;
 use pallet_evm::AddressMapping;
-use session_keys_primitives::vrf::benchmark_vrf::*;
-use sp_consensus_vrf::schnorrkel;
+use parity_scale_codec::Decode;
+use session_keys_primitives::{
+	digest::CompatibleDigestItem as VrfDigest, vrf::bench::*, PreDigest, VrfId,
+};
 use sp_core::{ByteArray, Pair, H160, H256};
 use sp_runtime::traits::One;
 
@@ -42,23 +48,47 @@ benchmarks! {
 	// TODO: causes panic:
 	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
 	// on_initialize', runtime/moonbase/src/lib.rs:1111
-	set_babe_randomness_results {}: _(RawOrigin::None)
-	verify {}
+	// set_babe_randomness_results {
+	// 	// set relay epoch
+	// 	// set storage value to read new epoch > current epoch
+	// 	//
+	// }: _(RawOrigin::None)
+	// verify {}
 
-	vrf_verification {
-		let public_key =
-			schnorrkel::PublicKey::from_bytes(benchmark_keys().public().as_slice()).unwrap();
-		let transcript = make_transcript::<T::Hash>(T::Hash::default());
-		let (vrf_output, vrf_proof) = sign_transcript(transcript.clone());
-	}: {
-		verify_vrf(
-			public_key,
-			transcript,
-			&vrf_output,
-			&vrf_proof,
+	// Benchmark for VRF verification and everything else in `set_output`, in `on_initialize`
+	on_initialize {
+		let key_pair = mock_key_pair();
+		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
+		let (vrf_output, vrf_proof) = mock_sign_vrf(key_pair.clone(), transcript.clone());
+		let nimbus_id: NimbusId = key_pair.public().into();
+		let vrf_id: VrfId = nimbus_id.clone().into();
+		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
+		let vrf_digest_item = VrfDigest::vrf_pre_digest(
+			PreDigest { vrf_output: vrf_output.clone(), vrf_proof }
 		);
+		let digest =  sp_runtime::generic::Digest { logs: vec![nimbus_digest_item, vrf_digest_item] };
+		// insert digest into frame_system storage
+		frame_system::Pallet::<T>::initialize(&T::BlockNumber::default(), &T::Hash::default(), &digest);
+		// set author mapping keys
+		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
+	}: {
+		Pallet::<T>::on_initialize(T::BlockNumber::default());
 	}
-	verify {}
+	verify {
+		// verify VrfOutput was inserted into storage as expected
+		let pubkey = sp_consensus_vrf::schnorrkel::PublicKey::from_bytes(vrf_id.as_slice())
+			.expect("Expect VrfId is valid schnorrkel Public key");
+		let vrf_output: sp_consensus_vrf::schnorrkel::Randomness = vrf_output
+			.attach_input_hash(&pubkey, transcript)
+			.ok()
+			.map(|inout| inout.make_bytes(&session_keys_primitives::VRF_INOUT_CONTEXT))
+			.expect("VRF output encoded in pre-runtime digest must be valid");
+		let randomness_output = T::Hash::decode(&mut &vrf_output[..])
+			.ok()
+			.expect("VRF output bytes can be decode into T::Hash");
+		// convert vrf output and check if it matches as expected
+		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
+	}
 
 	request_randomness {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();

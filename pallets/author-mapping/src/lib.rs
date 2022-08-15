@@ -385,4 +385,25 @@ pub mod pallet {
 			NimbusLookup::<T>::get(account_id)
 		}
 	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	pub trait BenchmarkSetKeys<Id, Account, Keys> {
+		fn benchmark_set_keys(id: Id, account: Account, keys: Keys);
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	impl<T: Config> BenchmarkSetKeys<NimbusId, T::AccountId, T::Keys> for Pallet<T> {
+		// Sets keys WITHOUT reserving deposit
+		fn benchmark_set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
+			use sp_runtime::traits::Zero;
+			MappingWithDeposit::<T>::insert(
+				id,
+				RegistrationInfo {
+					account,
+					deposit: Zero::zero(),
+					keys,
+				},
+			);
+		}
+	}
 }
