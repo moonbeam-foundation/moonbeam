@@ -30,6 +30,7 @@ use frame_support::{
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
 	StorageHasher, Twox128,
+	weights::DispatchClass,
 };
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
