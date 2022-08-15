@@ -211,7 +211,6 @@ where
 			Arc::clone(&frontier_backend),
 			is_authority,
 			Arc::clone(&block_data_cache),
-			fc_rpc::format::Geth,
 			fee_history_cache,
 			fee_history_limit,
 		)
@@ -355,15 +354,6 @@ where
 			),
 		);
 	}
-
-	params.task_manager.spawn_essential_handle().spawn(
-		"frontier-schema-cache-task",
-		Some("frontier"),
-		EthTask::ethereum_schema_cache_task(
-			Arc::clone(&params.client),
-			Arc::clone(&params.frontier_backend),
-		),
-	);
 
 	// Spawn Frontier FeeHistory cache maintenance task.
 	params.task_manager.spawn_essential_handle().spawn(

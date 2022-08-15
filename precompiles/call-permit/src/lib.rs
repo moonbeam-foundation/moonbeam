@@ -19,12 +19,13 @@
 use core::marker::PhantomData;
 use evm::ExitReason;
 use fp_evm::{
-	Context, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+	Context, ExitRevert, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
+	Transfer,
 };
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},
-	traits::{Get, StorageInstance},
+	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
 use precompile_utils::{costs::call_cost, prelude::*};
@@ -69,6 +70,8 @@ pub const PERMIT_TYPEHASH: [u8; 32] = keccak256!(
 const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
+
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
@@ -149,7 +152,6 @@ where
 			.write(deadline)
 			.build();
 		let permit_content = keccak_256(&permit_content);
-
 		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
 		pre_digest.extend_from_slice(b"\x19\x01");
 		pre_digest.extend_from_slice(&domain_separator);
@@ -171,7 +173,9 @@ where
 		let from = input.read::<Address>()?.0;
 		let to = input.read::<Address>()?.0;
 		let value: U256 = input.read()?;
-		let data = input.read::<Bytes>()?.0;
+		let data = input
+			.read::<BoundedBytes<ConstU32<CALL_DATA_LIMIT>>>()?
+			.into_vec();
 		let gas_limit: u64 = input.read()?;
 		let deadline: U256 = input.read()?;
 		let v: u8 = input.read()?;
@@ -243,12 +247,16 @@ where
 
 		let (reason, output) =
 			handle.call(to, transfer, data, Some(gas_limit), false, &sub_context);
-
 		match reason {
 			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(revert(output)),
-			ExitReason::Succeed(_) => Ok(succeed(output)),
+			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
+			}),
+			ExitReason::Succeed(_) => {
+				Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build()))
+			}
 		}
 	}
 

@@ -18,7 +18,7 @@
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
-use cumulus_client_service::genesis::generate_genesis_block;
+use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::info;
@@ -409,7 +409,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonriver-native")]
 				chain_spec if chain_spec.is_moonriver() => {
 					let block: service::moonriver_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -421,7 +421,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbeam-native")]
 				chain_spec if chain_spec.is_moonbeam() => {
 					let block: service::moonbeam_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -433,7 +433,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbase-native")]
 				_ => {
 					let block: service::moonbase_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -778,19 +778,19 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						let block: service::moonriver_runtime::Block =
-							generate_genesis_block(&spec, state_version)?;
+							generate_genesis_block(&**spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						let block: service::moonbeam_runtime::Block =
-							generate_genesis_block(&spec, state_version)?;
+							generate_genesis_block(&**spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbase-native")]
 					_ => {
 						let block: service::moonbase_runtime::Block =
-							generate_genesis_block(&config.chain_spec, state_version)?;
+							generate_genesis_block(&*config.chain_spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(not(feature = "moonbase-native"))]

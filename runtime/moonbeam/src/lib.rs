@@ -29,10 +29,12 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
+use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 #[cfg(feature = "std")]
 pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
@@ -42,7 +44,7 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
-		Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, Imbalance, InstanceFilter,
+		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
 		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 	},
 	weights::{
@@ -85,8 +87,6 @@ use sp_runtime::{
 	SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
-
-use cumulus_primitives_core::{relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler};
 
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -169,7 +169,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1700,
+	spec_version: 1800,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -319,6 +319,7 @@ impl WeightToFeePolynomial for LengthToFee {
 }
 
 impl pallet_transaction_payment::Config for Runtime {
+	type Event = Event;
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
 	type WeightToFee = ConstantMultiplier<Balance, ConstU128<{ currency::WEIGHT_FEE }>>;
@@ -509,11 +510,15 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
+// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
+// block as a round change.
+const ENACTMENT_OFFSET: u32 = 900;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 2 * DAYS }>;
+	type EnactmentPeriod = ConstU32<{ 2 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 7 * DAYS }>;
 	type VotingPeriod = ConstU32<{ 14 * DAYS }>;
 	type VoteLockingPeriod = ConstU32<{ 7 * DAYS }>;
@@ -535,12 +540,12 @@ impl pallet_democracy::Config for Runtime {
 	type InstantOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
 	// To cancel a proposal which has been passed.
-	type CancellationOrigin = EnsureOneOf<
+	type CancellationOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 	>;
 	// To cancel a proposal before it has been passed.
-	type CancelProposalOrigin = EnsureOneOf<
+	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
 	>;
@@ -565,12 +570,12 @@ parameter_types! {
 	pub const TreasuryId: PalletId = PalletId(*b"py/trsry");
 }
 
-type TreasuryApproveOrigin = EnsureOneOf<
+type TreasuryApproveOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 >;
 
-type TreasuryRejectOrigin = EnsureOneOf<
+type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -594,13 +599,14 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
-type IdentityForceOrigin = EnsureOneOf<
+type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
-type IdentityRegistrarOrigin = EnsureOneOf<
+type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -661,6 +667,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 impl parachain_info::Config for Runtime {}
 
@@ -726,6 +733,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
+	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
@@ -734,7 +742,6 @@ impl pallet_parachain_staking::Config for Runtime {
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
-	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
@@ -764,9 +771,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockNumber = relay_chain::BlockNumber;
+	type VestingBlockProvider = RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -1076,6 +1082,49 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
+}
+
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	fn get_epoch_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+}
+
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfKeyLookup = AuthorMapping;
+	type Deposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type MaxRandomWords = ConstU8<100>;
+	type MinBlockDelay = ConstU32<2>;
+	type MaxBlockDelay = ConstU32<2_000>;
+	type BlockExpirationDelay = ConstU32<10_000>;
+	type EpochExpirationDelay = ConstU64<10_000>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1091,7 +1140,7 @@ construct_runtime! {
 
 		// Monetary stuff.
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>} = 10,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 11,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 11,
 
 		// Consensus support.
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 20,
@@ -1143,6 +1192,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+
+		// Randomness
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 	}
 }
 
@@ -1188,18 +1240,6 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
-			None
-		}
-		fn vrf_key_lookup(
-			nimbus_id: nimbus_primitives::NimbusId
-		) -> Option<session_keys_primitives::VrfId> {
-			use session_keys_primitives::KeysLookup;
-			AuthorMapping::lookup_keys(&nimbus_id)
-		}
-	}
-
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,

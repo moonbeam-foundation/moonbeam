@@ -34,7 +34,7 @@ extern crate alloc;
 #[cfg(feature = "try-runtime")]
 use alloc::format;
 use frame_support::{
-	migration::{remove_storage_prefix, storage_key_iter},
+	migration::storage_key_iter,
 	pallet_prelude::PhantomData,
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,

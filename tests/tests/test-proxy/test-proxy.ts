@@ -20,7 +20,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept unknown proxy", (context) =
         .proxy(alith.address, null, context.polkadotApi.tx.balances.transfer(charleth.address, 100))
         .signAsync(baltathar)
     );
-    expect(events[5].event.method).to.be.eq("ExtrinsicFailed");
+    expect(events[6].event.method).to.be.eq("ExtrinsicFailed");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
   });
@@ -36,7 +36,7 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
     );
     expect(events[2].event.method).to.be.eq("ProxyAdded");
     expect(events[2].event.data[2].toString()).to.be.eq("Any"); //ProxyType
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     const {
       result: { events: events2 },
@@ -47,7 +47,7 @@ describeDevMoonbeam("Pallet proxy - should accept known proxy", (context) => {
     );
     expect(events2[2].event.method).to.be.eq("ProxyExecuted");
     expect(events2[2].event.data[0].toString()).to.be.eq("Ok");
-    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(100n);
   });
@@ -61,14 +61,14 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept removed proxy", (context) =
     } = await context.createBlock(
       context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 0)
     );
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     const {
       result: { events: events2 },
     } = await context.createBlock(
       context.polkadotApi.tx.proxy.removeProxy(baltathar.address, "Any", 0)
     );
-    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
 
     const {
       result: { events: events3 },
@@ -79,7 +79,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept removed proxy", (context) =
         context.polkadotApi.tx.balances.transfer(charleth.address, 100)
       )
     );
-    expect(events3[3].event.method).to.be.eq("ExtrinsicFailed");
+    expect(events3[4].event.method).to.be.eq("ExtrinsicFailed");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
   });
@@ -93,7 +93,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
     } = await context.createBlock(
       context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2)
     );
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     const {
       result: { events: events2 },
@@ -102,7 +102,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept instant for delayed proxy",
         .proxy(alith.address, null, context.polkadotApi.tx.balances.transfer(charleth.address, 100))
         .signAsync(baltathar)
     );
-    expect(events2[3].event.method).to.be.eq("ExtrinsicFailed");
+    expect(events2[4].event.method).to.be.eq("ExtrinsicFailed");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
   });
@@ -117,7 +117,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
       context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 6)
     );
     events.forEach(({ event }) => debug(`1${event.method}(${event.data})`));
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     const transfer = context.polkadotApi.tx.balances.transfer(charleth.address, 100);
 
@@ -128,7 +128,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
     );
     events2.forEach(({ event }) => debug(`2${event.method}(${event.data})`));
     expect(events2[2].event.method).to.be.eq("Announced");
-    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
 
     // Too early.
     const {
@@ -139,7 +139,7 @@ describeDevMoonbeam("Pallet proxy - shouldn't accept early delayed proxy", (cont
         .signAsync(baltathar)
     );
     events3.forEach(({ event }) => debug(`3${event.method}(${event.data})`));
-    expect(events3[3].event.method).to.be.eq("ExtrinsicFailed");
+    expect(events3[4].event.method).to.be.eq("ExtrinsicFailed");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(0n);
   });
@@ -153,7 +153,7 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
     } = await context.createBlock(
       context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Any", 2)
     );
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
 
     // Build transaction
     const transfer = context.polkadotApi.tx.balances.transfer(charleth.address, 100);
@@ -167,7 +167,7 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
     );
     expect(events2[2].event.method).to.be.eq("Announced");
     expect(events2[2].event.data[2].toHex()).to.eq(transfer_hash);
-    expect(events2[5].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
 
     await context.createBlock();
     await context.createBlock();
@@ -180,7 +180,7 @@ describeDevMoonbeam("Pallet proxy - should accept on-time delayed proxy", (conte
         .proxyAnnounced(baltathar.address, alith.address, null, transfer)
         .signAsync(baltathar)
     );
-    expect(events3[1].event.method).not.to.be.eq("ExtrinsicFailed");
+    expect(events3[2].event.method).not.to.be.eq("ExtrinsicFailed");
     const afterCharlethBalance = BigInt(await context.web3.eth.getBalance(charleth.address));
     expect(afterCharlethBalance - beforeCharlethBalance).to.be.eq(100n);
   });

@@ -1,17 +1,13 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { XcmpMessageFormat } from "@polkadot/types/interfaces";
-import { BN, u8aToHex } from "@polkadot/util";
+import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
-import { customWeb3Request } from "../../util/providers";
-import { descendOriginFromAddress } from "../../util/xcm";
+import { descendOriginFromAddress, injectHrmpMessageAndSeal, RawXcmMessage } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 
 import { expectOk } from "../../util/expect";
 
@@ -107,23 +103,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
 
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [1, totalMessage]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, 1, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's foreign parachain tokens
     const testAccountBalance = (

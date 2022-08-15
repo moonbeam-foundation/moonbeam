@@ -55,7 +55,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
     expect(context.polkadotApi.events.democracy.Voted.is(events[1].event)).to.be.true;
     expect(events[2].event.data[0].toString()).to.equal("Ok");
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4].event)).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5].event)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[6].event)).to.be.true;
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
     let dorothyAccountData = await context.polkadotApi.query.system.account(dorothy.address);
