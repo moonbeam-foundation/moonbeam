@@ -16,10 +16,14 @@
 
 use std::str::from_utf8;
 
-use crate::{eip2612::Eip2612, mock::*, *};
+use crate::{
+	eip2612::Eip2612,
+	mock::{Account::*, *},
+	*,
+};
 
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{testing::*, Bytes, EvmDataWriter, LogsBuilder};
+use precompile_utils::{solidity, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 
@@ -139,7 +143,8 @@ fn approve() {
 						.build(),
 				)
 				.expect_cost(1756)
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_APPROVAL,
 					Account::Alice,
 					Account::Bob,
@@ -165,7 +170,8 @@ fn approve_saturating() {
 						.build(),
 				)
 				.expect_cost(1756u64)
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_APPROVAL,
 					Account::Alice,
 					Account::Bob,
@@ -256,8 +262,9 @@ fn transfer() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(159201756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_TRANSFER,
 					Account::Alice,
 					Account::Bob,
@@ -342,8 +349,9 @@ fn transfer_from() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(159201756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_TRANSFER,
 					Account::Alice,
 					Account::Bob,
@@ -437,8 +445,9 @@ fn transfer_from_self() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(159201756u64) // 1 weight => 1 gas in mock
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_TRANSFER,
 					Account::Alice,
 					Account::Bob,
@@ -588,14 +597,17 @@ fn deposit(data: Vec<u8>) {
 						amount: 500
 					}),
 					// Log is correctly emited.
-					Event::Evm(pallet_evm::Event::Log(
-						LogsBuilder::new(Account::Precompile.into()).log2(
+					Event::Evm(pallet_evm::Event::Log {
+						log: log2(
+							Precompile,
 							SELECTOR_LOG_DEPOSIT,
 							Account::Alice,
 							EvmDataWriter::new().write(U256::from(500)).build(),
 						)
-					)),
-					Event::Evm(pallet_evm::Event::Executed(Account::Precompile.into())),
+					}),
+					Event::Evm(pallet_evm::Event::Executed {
+						address: Account::Precompile.into()
+					}),
 				]
 			);
 
@@ -680,9 +692,9 @@ fn deposit_zero() {
 
 			assert_eq!(
 				events(),
-				vec![Event::Evm(pallet_evm::Event::ExecutedFailed(
-					Account::Precompile.into()
-				)),]
+				vec![Event::Evm(pallet_evm::Event::ExecutedFailed {
+					address: Account::Precompile.into()
+				}),]
 			);
 
 			// Check precompile balance is still 0.
@@ -742,7 +754,8 @@ fn withdraw() {
 						.build(),
 				)
 				.expect_cost(1381)
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log2(
+				.expect_log(log2(
+					Precompile,
 					SELECTOR_LOG_WITHDRAWAL,
 					Account::Alice,
 					EvmDataWriter::new().write(U256::from(500)).build(),
@@ -860,7 +873,8 @@ fn permit_valid() {
 						.build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_APPROVAL,
 					Account::Alice,
 					Account::Bob,
@@ -1278,7 +1292,8 @@ fn permit_valid_with_metamask_signed_data() {
 						.build(),
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_log(LogsBuilder::new(Account::Precompile.into()).log3(
+				.expect_log(log3(
+					Precompile,
 					SELECTOR_LOG_APPROVAL,
 					Account::Alice,
 					Account::Bob,
@@ -1286,4 +1301,29 @@ fn permit_valid_with_metamask_signed_data() {
 				))
 				.execute_returns(vec![]);
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["ERC20.sol", "Permit.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

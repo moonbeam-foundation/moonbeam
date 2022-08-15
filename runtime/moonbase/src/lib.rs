@@ -28,7 +28,8 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 use account::AccountId20;
@@ -41,14 +42,14 @@ use frame_support::{
 	parameter_types,
 	traits::{
 		ConstBool, ConstU128, ConstU16, ConstU32, ConstU64, ConstU8, Contains,
-		Currency as CurrencyT, EnsureOneOf, EqualPrivilegeOnly, FindAuthor, Imbalance,
+		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor, Imbalance,
 		InstanceFilter, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 		OnUnbalanced,
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		DispatchClass, GetDispatchInfo, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
-		WeightToFeePolynomial,
+		DispatchClass, GetDispatchInfo, IdentityFee, Weight, WeightToFeeCoefficient,
+		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -70,7 +71,7 @@ use pallet_evm::{
 	FeeCalculator, GasWeightMapping, OnChargeEVMTransaction as OnChargeEVMTransactionT, Runner,
 };
 use pallet_transaction_payment::{CurrencyAdapter, Multiplier, MultiplierUpdate};
-pub use parachain_staking::{InflationInfo, Range};
+pub use pallet_parachain_staking::{InflationInfo, Range};
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_api::impl_runtime_apis;
@@ -79,12 +80,13 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, Convert, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf,
+		PostDispatchInfoOf, UniqueSaturatedInto,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, Perbill, Percent, Permill, Perquintill, SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
+	SaturatedConversion,
 };
 use sp_std::{
 	convert::{From, Into, TryFrom},
@@ -171,8 +173,8 @@ pub mod opaque {
 pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
-	authoring_version: 3,
-	spec_version: 1601,
+	authoring_version: 4,
+	spec_version: 1800,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -189,13 +191,37 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
+// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
+// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
+// and some cost to account for per-byte-fee.
+// TODO: we should use benchmarking's overhead feature to measure this
+pub const EXTRINSIC_BASE_WEIGHT: Weight = 10000 * WEIGHT_PER_GAS;
+
+pub struct RuntimeBlockWeights;
+impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
+	fn get() -> frame_system::limits::BlockWeights {
+		frame_system::limits::BlockWeights::builder()
+			.for_class(DispatchClass::Normal, |weights| {
+				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
+				weights.max_total = NORMAL_WEIGHT.into();
+			})
+			.for_class(DispatchClass::Operational, |weights| {
+				weights.max_total = MAXIMUM_BLOCK_WEIGHT.into();
+				weights.reserved = (MAXIMUM_BLOCK_WEIGHT - NORMAL_WEIGHT).into();
+			})
+			.avg_block_initialization(Perbill::from_percent(10))
+			.build()
+			.expect("Provided BlockWeight definitions are valid, qed")
+	}
+}
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
-	/// We allow for one half second of compute with a 6 second average block time.
-	/// These values are dictated by Polkadot for the parachain.
-	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
+	/// TODO: this is left here so that `impl_runtime_apis_plus_common` will find the same type for
+	/// `BlockWeights` in all runtimes. It can probably be removed once the custom
+	/// `RuntimeBlockWeights` has been pushed to each runtime.
+	pub BlockWeights: frame_system::limits::BlockWeights = RuntimeBlockWeights::get();
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
@@ -225,7 +251,7 @@ impl frame_system::Config for Runtime {
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = ConstU32<256>;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
-	type BlockWeights = BlockWeights;
+	type BlockWeights = RuntimeBlockWeights;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	type BlockLength = BlockLength;
 	/// Runtime version.
@@ -299,28 +325,6 @@ where
 	}
 }
 
-pub struct WeightToFee;
-impl WeightToFeePolynomial for WeightToFee {
-	type Balance = Balance;
-
-	/// Return a vec of coefficients. Here we just use one coefficient and reduce it to a constant
-	/// modifier in order to closely match Ethereum-based fees.
-	///
-	/// Calculation, per the documentation in `frame_support`:
-	///
-	/// ```ignore
-	/// coeff_integer * x^(degree) + coeff_frac * x^(degree)
-	/// ```
-	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		smallvec![WeightToFeeCoefficient {
-			degree: 1,
-			coeff_frac: Perbill::zero(),
-			coeff_integer: currency::WEIGHT_FEE,
-			negative: false,
-		}]
-	}
-}
-
 pub struct LengthToFee;
 impl WeightToFeePolynomial for LengthToFee {
 	type Balance = Balance;
@@ -336,7 +340,7 @@ impl WeightToFeePolynomial for LengthToFee {
 			WeightToFeeCoefficient {
 				degree: 3,
 				coeff_frac: Perbill::zero(),
-				coeff_integer: 1,
+				coeff_integer: 1 * currency::SUPPLY_FACTOR,
 				negative: false,
 			},
 		]
@@ -344,9 +348,10 @@ impl WeightToFeePolynomial for LengthToFee {
 }
 
 impl pallet_transaction_payment::Config for Runtime {
+	type Event = Event;
 	type OnChargeTransaction = CurrencyAdapter<Balances, DealWithFees<Runtime>>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-	type WeightToFee = WeightToFee;
+	type WeightToFee = IdentityFee<Balance>;
 	type LengthToFee = LengthToFee;
 	type FeeMultiplierUpdate = FixedGasPrice;
 }
@@ -391,22 +396,14 @@ parameter_types! {
 /// pallet-transaction-payment) which returns a fixed fee.
 pub struct FixedGasPrice;
 impl FixedGasPrice {
-	pub fn gas_price() -> U256 {
+	fn gas_price() -> U256 {
 		(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into()
-	}
-	pub fn weight_multiplier() -> Multiplier {
-		// note that 'as_u128' will panic if gas_price() overflows a u128
-		let weight_price = Self::gas_price() / U256::from(WEIGHT_PER_GAS);
-		weight_price.as_u128().into()
 	}
 }
 
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
-		(
-			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
-		)
+		(Self::gas_price(), 0u64)
 	}
 }
 
@@ -417,11 +414,14 @@ impl FeeCalculator for FixedGasPrice {
 /// integrity_test() hook. The important conversion occurs in its on_finalize() hook and uses the
 /// Convert trait.
 ///
-/// Reminder: Multiplier is a FixedU128, which is a fixed point unsigned in the range
+/// Reminder: FixedU128 is a fixed point unsigned in the range
 /// [0.000000000000000000, 340282366920938463463.374607431768211455]
 impl MultiplierUpdate for FixedGasPrice {
 	fn min() -> Multiplier {
-		Self::weight_multiplier()
+		Self::gas_price()
+			.saturating_mul(WEIGHT_PER_GAS.into())
+			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
+			.into()
 	}
 	fn target() -> Perquintill {
 		Perquintill::from_percent(0)
@@ -433,7 +433,10 @@ impl MultiplierUpdate for FixedGasPrice {
 
 impl Convert<Multiplier, Multiplier> for FixedGasPrice {
 	fn convert(_previous: Multiplier) -> Multiplier {
-		Self::weight_multiplier()
+		Self::gas_price()
+			.saturating_mul(WEIGHT_PER_GAS.into())
+			.as_u128() // TODO: this panics. we should enforce the upper bound from FixedU128
+			.into()
 	}
 }
 
@@ -454,7 +457,7 @@ where
 	}
 }
 
-runtime_common::impl_on_charge_evm_transaction!();
+moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
@@ -462,7 +465,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = runtime_common::IntoAddressMapping;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -472,11 +475,10 @@ impl pallet_evm::Config for Runtime {
 	type OnChargeTransaction = OnChargeEVMTransaction<DealWithFees<Runtime>>;
 	type BlockGasLimit = BlockGasLimit;
 	type FindAuthor = FindAuthorAdapter<AccountId20, H160, AuthorInherent>;
-	type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -526,11 +528,15 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
+// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
+// block as a round change.
+const ENACTMENT_OFFSET: u32 = 300;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 1 * DAYS }>;
+	type EnactmentPeriod = ConstU32<{ 1 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 1 * DAYS }>;
 	type VotingPeriod = ConstU32<{ 5 * DAYS }>;
 	type VoteLockingPeriod = ConstU32<{ 1 * DAYS }>;
@@ -552,12 +558,12 @@ impl pallet_democracy::Config for Runtime {
 	type InstantOrigin =
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
 	// To cancel a proposal which has been passed.
-	type CancellationOrigin = EnsureOneOf<
+	type CancellationOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 	>;
 	// To cancel a proposal before it has been passed.
-	type CancelProposalOrigin = EnsureOneOf<
+	type CancelProposalOrigin = EitherOfDiverse<
 		EnsureRoot<AccountId>,
 		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
 	>;
@@ -582,12 +588,12 @@ parameter_types! {
 	pub const TreasuryId: PalletId = PalletId(*b"pc/trsry");
 }
 
-type TreasuryApproveOrigin = EnsureOneOf<
+type TreasuryApproveOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
 >;
 
-type TreasuryRejectOrigin = EnsureOneOf<
+type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -611,13 +617,14 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
+	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
 }
 
-type IdentityForceOrigin = EnsureOneOf<
+type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
-type IdentityRegistrarOrigin = EnsureOneOf<
+type IdentityRegistrarOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -669,6 +676,13 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
+}
+
 parameter_types! {
 	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
 	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
@@ -683,6 +697,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -695,9 +710,9 @@ parameter_types! {
 }
 
 pub struct OnCollatorPayout;
-impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
+impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
 	fn on_collator_payout(
-		for_round: parachain_staking::RoundIndex,
+		for_round: pallet_parachain_staking::RoundIndex,
 		collator_id: AccountId,
 		amount: Balance,
 	) -> Weight {
@@ -705,13 +720,13 @@ impl parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayou
 	}
 }
 pub struct OnNewRound;
-impl parachain_staking::OnNewRound for OnNewRound {
-	fn on_new_round(round_index: parachain_staking::RoundIndex) -> Weight {
+impl pallet_parachain_staking::OnNewRound for OnNewRound {
+	fn on_new_round(round_index: pallet_parachain_staking::RoundIndex) -> Weight {
 		MoonbeamOrbiters::on_new_round(round_index)
 	}
 }
 
-impl parachain_staking::Config for Runtime {
+impl pallet_parachain_staking::Config for Runtime {
 	type Event = Event;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
@@ -749,15 +764,15 @@ impl parachain_staking::Config for Runtime {
 	type MinDelegation = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type BlockAuthor = AuthorInherent;
 	type OnCollatorPayout = OnCollatorPayout;
 	type OnNewRound = OnNewRound;
-	type WeightInfo = parachain_staking::weights::SubstrateWeight<Runtime>;
+	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }
 
 impl pallet_author_inherent::Config for Runtime {
 	type SlotBeacon = RelaychainBlockNumberProvider<Self>;
 	type AccountLookup = MoonbeamOrbiters;
-	type EventHandler = ParachainStaking;
 	type CanAuthor = AuthorFilter;
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
@@ -825,6 +840,8 @@ pub enum ProxyType {
 	Balances = 5,
 	/// Allow extrinsic related to AuthorMapping.
 	AuthorMapping = 6,
+	/// Allow extrinsic related to IdentityJudgement.
+	IdentityJudgement = 7,
 }
 
 impl Default for ProxyType {
@@ -868,6 +885,10 @@ impl InstanceFilter<Call> for ProxyType {
 			),
 			ProxyType::Balances => matches!(c, Call::Balances(..) | Call::Utility(..)),
 			ProxyType::AuthorMapping => matches!(c, Call::AuthorMapping(..)),
+			ProxyType::IdentityJudgement => matches!(
+				c,
+				Call::Identity(pallet_identity::Call::provide_judgement { .. }) | Call::Utility(..)
+			),
 		}
 	}
 
@@ -904,15 +925,13 @@ impl pallet_proxy::Config for Runtime {
 
 impl pallet_migrations::Config for Runtime {
 	type Event = Event;
-	//TODO wire up our correct list of migrations here. Maybe this shouldn't be in `runtime_common`.
-	type MigrationsList = (
-		runtime_common::migrations::CommonMigrations<
-			Runtime,
-			CouncilCollective,
-			TechCommitteeCollective,
-		>,
-		runtime_common::migrations::XcmMigrations<Runtime>,
-	);
+	// TODO wire up our correct list of migrations here. Maybe this shouldn't be in
+	// `moonbeam_runtime_common`.
+	type MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations<
+		Runtime,
+		CouncilCollective,
+		TechCommitteeCollective,
+	>;
 }
 
 /// Maintenance mode Call filter
@@ -970,6 +989,13 @@ impl Contains<Call> for NormalFilter {
 			Call::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
+			},
+			// We filter anonymous proxy as they make "reserve" inconsistent
+			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
+			Call::Proxy(method) => match method {
+				pallet_proxy::Call::anonymous { .. } => false,
+				pallet_proxy::Call::kill_anonymous { .. } => false,
+				_ => true,
 			},
 			_ => true,
 		}
@@ -1109,8 +1135,51 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type OrbiterReserveIdentifier = OrbiterReserveIdentifier;
 	type RotatePeriod = ConstU32<3>;
 	/// Round index type.
-	type RoundIndex = parachain_staking::RoundIndex;
+	type RoundIndex = pallet_parachain_staking::RoundIndex;
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
+}
+
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
+}
+
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	fn get_epoch_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+}
+
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfKeyLookup = AuthorMapping;
+	type Deposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type MaxRandomWords = ConstU8<100>;
+	type MinBlockDelay = ConstU32<2>;
+	type MaxBlockDelay = ConstU32<2_000>;
+	type BlockExpirationDelay = ConstU32<10_000>;
+	type EpochExpirationDelay = ConstU64<10_000>;
 }
 
 construct_runtime! {
@@ -1126,12 +1195,12 @@ construct_runtime! {
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>} = 4,
 		RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet, Storage} = 5,
 		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>} = 6,
-		TransactionPayment: pallet_transaction_payment::{Pallet, Storage} = 7,
+		TransactionPayment: pallet_transaction_payment::{Pallet, Storage, Event<T>} = 7,
 		ParachainInfo: parachain_info::{Pallet, Storage, Config} = 8,
 		EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = 9,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event<T>} = 10,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = 11,
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Event<T>, Config<T>} = 12,
 		Scheduler: pallet_scheduler::{Pallet, Storage, Event<T>, Call} = 13,
 		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call} = 14,
 		CouncilCollective:
@@ -1154,12 +1223,13 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 30,
 		AssetManager: pallet_asset_manager::{Pallet, Call, Storage, Event<T>} = 31,
 		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>} = 32,
-		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 33,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config<T>} = 34,
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 	}
 }
 
@@ -1204,7 +1274,7 @@ pub type Executive = frame_executive::Executive<
 //     // Specific impls provided to the `impl_runtime_apis_plus_common!` macro.
 // }
 // ```
-runtime_common::impl_runtime_apis_plus_common! {
+moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,
@@ -1289,7 +1359,7 @@ struct CheckInherents;
 impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
 	fn check_inherents(
 		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
+		relay_state_proof: &RelayChainStateProof,
 	) -> sp_inherents::CheckInherentsResult {
 		let relay_chain_slot = relay_state_proof
 			.read_slot()
@@ -1314,7 +1384,7 @@ cumulus_pallet_parachain_system::register_validate_block!(
 	CheckInherents = CheckInherents,
 );
 
-runtime_common::impl_self_contained_call!();
+moonbeam_runtime_common::impl_self_contained_call!();
 
 // Shorthand for a Get field of a pallet Config.
 #[macro_export]
@@ -1339,7 +1409,9 @@ mod tests {
 		);
 		assert!(std::mem::size_of::<pallet_evm::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_ethereum::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(std::mem::size_of::<parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(
+			std::mem::size_of::<pallet_parachain_staking::Call<Runtime>>() <= CALL_ALIGN as usize
+		);
 		assert!(
 			std::mem::size_of::<pallet_author_inherent::Call<Runtime>>() <= CALL_ALIGN as usize
 		);
@@ -1356,7 +1428,7 @@ mod tests {
 		assert!(std::mem::size_of::<orml_xtokens::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_asset_manager::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(std::mem::size_of::<pallet_migrations::Call<Runtime>>() <= CALL_ALIGN as usize);
-		assert!(std::mem::size_of::<xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
+		assert!(std::mem::size_of::<pallet_xcm_transactor::Call<Runtime>>() <= CALL_ALIGN as usize);
 		assert!(
 			std::mem::size_of::<pallet_proxy_genesis_companion::Call<Runtime>>()
 				<= CALL_ALIGN as usize
@@ -1406,19 +1478,19 @@ mod tests {
 
 		// staking minimums
 		assert_eq!(
-			get!(parachain_staking, MinCollatorStk, u128),
+			get!(pallet_parachain_staking, MinCollatorStk, u128),
 			Balance::from(1 * KILOUNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinCandidateStk, u128),
+			get!(pallet_parachain_staking, MinCandidateStk, u128),
 			Balance::from(500 * UNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinDelegation, u128),
+			get!(pallet_parachain_staking, MinDelegation, u128),
 			Balance::from(1 * UNIT)
 		);
 		assert_eq!(
-			get!(parachain_staking, MinDelegatorStk, u128),
+			get!(pallet_parachain_staking, MinDelegatorStk, u128),
 			Balance::from(1 * UNIT)
 		);
 
@@ -1454,22 +1526,21 @@ mod tests {
 	}
 
 	#[test]
-	// Required migration is parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
+	// Required migration is
+	// pallet_parachain_staking::migrations::IncreaseMaxTopDelegationsPerCandidate
 	// Purpose of this test is to remind of required migration if constant is ever changed
 	fn updating_maximum_delegators_per_candidate_requires_configuring_required_migration() {
 		assert_eq!(
-			get!(parachain_staking, MaxTopDelegationsPerCandidate, u32),
+			get!(pallet_parachain_staking, MaxTopDelegationsPerCandidate, u32),
 			300
 		);
 		assert_eq!(
-			get!(parachain_staking, MaxBottomDelegationsPerCandidate, u32),
+			get!(
+				pallet_parachain_staking,
+				MaxBottomDelegationsPerCandidate,
+				u32
+			),
 			50
 		);
-	}
-
-	#[test]
-	fn fixed_gas_price_as_weight_multiplier_is_known() {
-		// this also tests that the conversions do not panic (assuming it uses constants)
-		assert_eq!(FixedGasPrice::weight_multiplier(), 40_000.into());
 	}
 }

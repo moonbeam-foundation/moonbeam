@@ -27,13 +27,13 @@ use crate::mock::{
 	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
-	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_event_not_emitted,
-	assert_last_event, assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations,
-	CandidateInfo, CandidateMetadata, CandidatePool, CandidateState, CapacityStatus,
-	CollatorCandidate, CollatorStatus, Config, DelegationScheduledRequests, Delegations, Delegator,
-	DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range, TopDelegations, Total,
+	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
+	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
+	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
+	Delegations, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range,
+	TopDelegations, DELEGATOR_LOCK_ID,
 };
-use frame_support::{assert_noop, assert_ok, traits::ReservableCurrency};
+use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 
 // ~~ ROOT ~~
@@ -656,15 +656,13 @@ fn join_candidates_reserves_balance() {
 		.with_balances(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&1), 0);
-			assert_eq!(Balances::free_balance(&1), 10);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 10);
 			assert_ok!(ParachainStaking::join_candidates(
 				Origin::signed(1),
 				10u128,
 				0u32
 			));
-			assert_eq!(Balances::reserved_balance(&1), 10);
-			assert_eq!(Balances::free_balance(&1), 0);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 		});
 }
 
@@ -771,8 +769,8 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 			assert_noop!(
 				ParachainStaking::join_candidates(Origin::signed(1), 501u128, 100u32),
 				DispatchError::Module(ModuleError {
-					index: 1,
-					error: [2, 0, 0, 0],
+					index: 2,
+					error: [8, 0, 0, 0],
 					message: Some("InsufficientBalance")
 				})
 			);
@@ -1004,8 +1002,7 @@ fn execute_leave_candidates_unreserves_balance() {
 		.with_candidates(vec![(1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&1), 10);
-			assert_eq!(Balances::free_balance(&1), 0);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
 				Origin::signed(1),
 				1u32
@@ -1016,8 +1013,7 @@ fn execute_leave_candidates_unreserves_balance() {
 				1,
 				0
 			));
-			assert_eq!(Balances::reserved_balance(&1), 0);
-			assert_eq!(Balances::free_balance(&1), 10);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 10);
 		});
 }
 
@@ -1064,7 +1060,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 				1,
 				0
 			));
-			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(ParachainStaking::candidate_info(1).is_none());
 		});
 }
 
@@ -1104,13 +1100,17 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 				1,
 				1
 			));
-			assert!(ParachainStaking::candidate_state(1).is_none());
+			assert!(ParachainStaking::candidate_info(1).is_none());
 			assert!(
 				!ParachainStaking::delegation_scheduled_requests(&1)
 					.iter()
 					.any(|x| x.delegator == 2),
 				"delegation request not removed"
-			)
+			);
+			assert!(
+				!<DelegationScheduledRequests<Test>>::contains_key(&1),
+				"the key was not removed from storage"
+			);
 		});
 }
 
@@ -1393,11 +1393,9 @@ fn candidate_bond_more_reserves_balance() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&1), 20);
-			assert_eq!(Balances::free_balance(&1), 30);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 30);
 			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
-			assert_eq!(Balances::reserved_balance(&1), 50);
-			assert_eq!(Balances::free_balance(&1), 0);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 		});
 }
 
@@ -1585,8 +1583,7 @@ fn execute_candidate_bond_less_unreserves_balance() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&1), 30);
-			assert_eq!(Balances::free_balance(&1), 0);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
 				Origin::signed(1),
 				10
@@ -1596,8 +1593,7 @@ fn execute_candidate_bond_less_unreserves_balance() {
 				Origin::signed(1),
 				1
 			));
-			assert_eq!(Balances::reserved_balance(&1), 20);
-			assert_eq!(Balances::free_balance(&1), 10);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 10);
 		});
 }
 
@@ -1760,11 +1756,12 @@ fn delegate_reserves_balance() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				10
+			);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 		});
 }
 
@@ -1779,7 +1776,7 @@ fn delegate_updates_delegator_state() {
 			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
 			let delegator_state =
 				ParachainStaking::delegator_state(2).expect("just delegated => exists");
-			assert_eq!(delegator_state.total, 10);
+			assert_eq!(delegator_state.total(), 10);
 			assert_eq!(delegator_state.delegations.0[0].owner, 1);
 			assert_eq!(delegator_state.delegations.0[0].amount, 10);
 		});
@@ -2155,8 +2152,10 @@ fn execute_leave_delegators_unreserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 0);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				00
+			);
 			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
 				2
 			)));
@@ -2166,8 +2165,11 @@ fn execute_leave_delegators_unreserves_balance() {
 				2,
 				1
 			));
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				10
+			);
+			assert_eq!(crate::mock::query_lock_amount(2, DELEGATOR_LOCK_ID), None);
 		});
 }
 
@@ -2328,6 +2330,41 @@ fn cannot_execute_leave_delegators_before_delay() {
 }
 
 #[test]
+fn cannot_execute_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 2),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, and the round delay after which
+			// all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			roll_to(20);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				2
+			));
+		});
+}
+
+#[test]
 fn insufficient_execute_leave_delegators_weight_hint_fails() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
@@ -2409,6 +2446,36 @@ fn cancel_leave_delegators_updates_delegator_state() {
 			let delegator =
 				ParachainStaking::delegator_state(&2).expect("just cancelled exit so exists");
 			assert!(delegator.is_active());
+		});
+}
+
+#[test]
+fn cannot_cancel_leave_delegators_if_single_delegation_revoke_manually_cancelled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30), (3, 30)])
+		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert_ok!(ParachainStaking::cancel_delegation_request(
+				Origin::signed(2),
+				3
+			));
+			roll_to(10);
+			assert_noop!(
+				ParachainStaking::cancel_leave_delegators(Origin::signed(2)),
+				Error::<Test>::DelegatorNotLeaving
+			);
+			// can execute after manually scheduling revoke, without waiting for round delay after
+			// which all revokes can be executed
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				3
+			));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
 		});
 }
 
@@ -2539,15 +2606,13 @@ fn delegator_bond_more_reserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 5);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 5);
 			assert_ok!(ParachainStaking::delegator_bond_more(
 				Origin::signed(2),
 				1,
 				5
 			));
-			assert_eq!(Balances::reserved_balance(&2), 15);
-			assert_eq!(Balances::free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 		});
 }
 
@@ -2578,7 +2643,9 @@ fn delegator_bond_more_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total,
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				10
 			);
 			assert_ok!(ParachainStaking::delegator_bond_more(
@@ -2587,7 +2654,9 @@ fn delegator_bond_more_updates_delegator_state() {
 				5
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total,
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				15
 			);
 		});
@@ -3073,8 +3142,7 @@ fn execute_revoke_delegation_unreserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
 				Origin::signed(2),
 				1
@@ -3085,8 +3153,10 @@ fn execute_revoke_delegation_unreserves_balance() {
 				2,
 				1
 			));
-			assert_eq!(Balances::reserved_balance(&2), 0);
-			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				10
+			);
 		});
 }
 
@@ -3313,15 +3383,17 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 				3,
 				10
 			));
-			roll_to(10);
+			roll_to(100);
 			assert_ok!(ParachainStaking::execute_delegation_request(
 				Origin::signed(2),
 				2,
 				1
 			));
 			assert!(ParachainStaking::is_delegator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 20);
-			assert_eq!(Balances::free_balance(&2), 10);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				10
+			);
 		});
 }
 
@@ -3372,8 +3444,10 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 				in_top: true
 			}));
 			assert!(ParachainStaking::is_delegator(&2));
-			assert_eq!(Balances::reserved_balance(&2), 8);
-			assert_eq!(Balances::free_balance(&2), 22);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&2),
+				22
+			);
 		});
 }
 
@@ -3387,8 +3461,7 @@ fn execute_delegator_bond_less_unreserves_balance() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_eq!(Balances::reserved_balance(&2), 10);
-			assert_eq!(Balances::free_balance(&2), 0);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				Origin::signed(2),
 				1,
@@ -3400,8 +3473,7 @@ fn execute_delegator_bond_less_unreserves_balance() {
 				2,
 				1
 			));
-			assert_eq!(Balances::reserved_balance(&2), 5);
-			assert_eq!(Balances::free_balance(&2), 5);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 5);
 		});
 }
 
@@ -3438,7 +3510,9 @@ fn execute_delegator_bond_less_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total,
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				10
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
@@ -3453,7 +3527,9 @@ fn execute_delegator_bond_less_updates_delegator_state() {
 				1
 			));
 			assert_eq!(
-				ParachainStaking::delegator_state(2).expect("exists").total,
+				ParachainStaking::delegator_state(2)
+					.expect("exists")
+					.total(),
 				5
 			);
 		});
@@ -5671,7 +5747,7 @@ fn multiple_delegations() {
 			expected.append(&mut new3);
 			assert_eq_events!(expected);
 			// verify that delegations are removed after collator leaves, not before
-			assert_eq!(ParachainStaking::delegator_state(7).unwrap().total, 90);
+			assert_eq!(ParachainStaking::delegator_state(7).unwrap().total(), 90);
 			assert_eq!(
 				ParachainStaking::delegator_state(7)
 					.unwrap()
@@ -5680,7 +5756,7 @@ fn multiple_delegations() {
 					.len(),
 				2usize
 			);
-			assert_eq!(ParachainStaking::delegator_state(6).unwrap().total, 40);
+			assert_eq!(ParachainStaking::delegator_state(6).unwrap().total(), 40);
 			assert_eq!(
 				ParachainStaking::delegator_state(6)
 					.unwrap()
@@ -5689,18 +5765,24 @@ fn multiple_delegations() {
 					.len(),
 				4usize
 			);
-			assert_eq!(Balances::reserved_balance(&6), 40);
-			assert_eq!(Balances::reserved_balance(&7), 90);
-			assert_eq!(Balances::free_balance(&6), 60);
-			assert_eq!(Balances::free_balance(&7), 10);
+			assert_eq!(Balances::locks(&6)[0].amount, 40);
+			assert_eq!(Balances::locks(&7)[0].amount, 90);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&6),
+				60
+			);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				10
+			);
 			roll_to(40);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
 				Origin::signed(2),
 				2,
 				5
 			));
-			assert_eq!(ParachainStaking::delegator_state(7).unwrap().total, 10);
-			assert_eq!(ParachainStaking::delegator_state(6).unwrap().total, 30);
+			assert_eq!(ParachainStaking::delegator_state(7).unwrap().total(), 10);
+			assert_eq!(ParachainStaking::delegator_state(6).unwrap().total(), 30);
 			assert_eq!(
 				ParachainStaking::delegator_state(7)
 					.unwrap()
@@ -5717,10 +5799,14 @@ fn multiple_delegations() {
 					.len(),
 				3usize
 			);
-			assert_eq!(Balances::reserved_balance(&6), 30);
-			assert_eq!(Balances::reserved_balance(&7), 10);
-			assert_eq!(Balances::free_balance(&6), 70);
-			assert_eq!(Balances::free_balance(&7), 90);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&6),
+				70
+			);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				90
+			);
 		});
 }
 
@@ -7292,829 +7378,6 @@ fn patch_incorrect_delegations_sums() {
 		});
 }
 
-#[test]
-/// Kicks extra bottom delegations to force leave delegators if last delegation
-fn split_candidate_state_kicks_extra_bottom_delegators_to_exit() {
-	#[allow(deprecated)]
-	ExtBuilder::default()
-		.with_balances(vec![(11, 22), (12, 20)])
-		.build()
-		.execute_with(|| {
-			for i in 11..13 {
-				let old_delegator_state = Delegator {
-					id: i,
-					delegations: OrderedSet::from(vec![
-						Bond {
-							owner: 1,
-							amount: 10,
-						},
-						Bond {
-							owner: 2,
-							amount: 10,
-						},
-					]),
-					total: 20,
-					less_total: 0,
-					status: DelegatorStatus::Active,
-				};
-				<DelegatorState<Test>>::insert(&i, old_delegator_state);
-			}
-			assert_ok!(<Test as Config>::Currency::reserve(&11, 22));
-			assert_ok!(<Test as Config>::Currency::reserve(&12, 20));
-			assert_eq!(Balances::reserved_balance(&11), 22);
-			assert_eq!(Balances::reserved_balance(&12), 20);
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 19,
-						},
-						Bond {
-							owner: 4,
-							amount: 18,
-						},
-						Bond {
-							owner: 5,
-							amount: 17,
-						},
-						Bond {
-							owner: 6,
-							amount: 16,
-						},
-					],
-					bottom_delegations: vec![
-						Bond {
-							owner: 12,
-							amount: 10,
-						},
-						Bond {
-							owner: 11,
-							amount: 11,
-						},
-						Bond {
-							owner: 10,
-							amount: 12,
-						},
-						Bond {
-							owner: 9,
-							amount: 13,
-						},
-						Bond {
-							owner: 8,
-							amount: 14,
-						},
-						Bond {
-							owner: 7,
-							amount: 15,
-						},
-					],
-					total_counted: 90,
-					total_backing: 165,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			// total is 165 * 2 = 330
-			<Total<Test>>::put(330);
-			assert!(ParachainStaking::is_delegator(&11));
-			assert!(ParachainStaking::is_delegator(&12));
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 11,
-				candidate: 1,
-				unstaked_amount: 11
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 11,
-				candidate: 2,
-				unstaked_amount: 11
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 12,
-				candidate: 1,
-				unstaked_amount: 10
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 12,
-				candidate: 2,
-				unstaked_amount: 10
-			});
-			assert_event_emitted!(Event::DelegatorLeft {
-				delegator: 12,
-				unstaked_amount: 10
-			});
-			assert_event_emitted!(Event::DelegatorLeft {
-				delegator: 11,
-				unstaked_amount: 11
-			});
-			// kicked 11 and 12 and revoked them
-			assert_eq!(Balances::free_balance(&11), 22);
-			assert_eq!(Balances::free_balance(&12), 20);
-			assert!(!ParachainStaking::is_delegator(&11));
-			assert!(!ParachainStaking::is_delegator(&12));
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 70);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 19
-						},
-						Bond {
-							owner: 4,
-							amount: 18
-						},
-						Bond {
-							owner: 5,
-							amount: 17
-						},
-						Bond {
-							owner: 6,
-							amount: 16
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 54);
-				assert_eq!(
-					bottom_delegations.delegations,
-					vec![
-						Bond {
-							owner: 7,
-							amount: 15
-						},
-						Bond {
-							owner: 8,
-							amount: 14
-						},
-						Bond {
-							owner: 9,
-							amount: 13
-						},
-						Bond {
-							owner: 10,
-							amount: 12
-						}
-					]
-				);
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
-			}
-		});
-}
-
-#[test]
-/// Force revokes candidate state
-fn split_candidate_state_kicks_extra_bottom_delegations_without_exit() {
-	#[allow(deprecated)]
-	ExtBuilder::default()
-		.with_balances(vec![(11, 32), (12, 30)])
-		.build()
-		.execute_with(|| {
-			for i in 11..13 {
-				let old_delegator_state = Delegator {
-					id: i,
-					delegations: OrderedSet::from(vec![
-						Bond {
-							owner: 1,
-							amount: 10,
-						},
-						Bond {
-							owner: 2,
-							amount: 10,
-						},
-						Bond {
-							owner: 3,
-							amount: 10,
-						},
-					]),
-					total: 30,
-					less_total: 0,
-					status: DelegatorStatus::Active,
-				};
-				<DelegatorState<Test>>::insert(&i, old_delegator_state);
-			}
-			assert_ok!(<Test as Config>::Currency::reserve(&11, 32));
-			assert_ok!(<Test as Config>::Currency::reserve(&12, 30));
-			assert_eq!(Balances::reserved_balance(&11), 32);
-			assert_eq!(Balances::reserved_balance(&12), 30);
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 19,
-						},
-						Bond {
-							owner: 4,
-							amount: 18,
-						},
-						Bond {
-							owner: 5,
-							amount: 17,
-						},
-						Bond {
-							owner: 6,
-							amount: 16,
-						},
-					],
-					bottom_delegations: vec![
-						Bond {
-							owner: 12,
-							amount: 10,
-						},
-						Bond {
-							owner: 11,
-							amount: 11,
-						},
-						Bond {
-							owner: 10,
-							amount: 12,
-						},
-						Bond {
-							owner: 9,
-							amount: 13,
-						},
-						Bond {
-							owner: 8,
-							amount: 14,
-						},
-						Bond {
-							owner: 7,
-							amount: 15,
-						},
-					],
-					total_counted: 90,
-					total_backing: 165,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			// total is 165 * 2 + 20 = 330
-			<Total<Test>>::put(350);
-			assert!(ParachainStaking::is_delegator(&11));
-			assert!(ParachainStaking::is_delegator(&12));
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 11,
-				candidate: 1,
-				unstaked_amount: 11,
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 11,
-				candidate: 2,
-				unstaked_amount: 11,
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 12,
-				candidate: 1,
-				unstaked_amount: 10,
-			});
-			assert_event_emitted!(Event::DelegationKicked {
-				delegator: 12,
-				candidate: 2,
-				unstaked_amount: 10,
-			});
-			assert_event_not_emitted!(Event::DelegatorLeft {
-				delegator: 12,
-				unstaked_amount: 10,
-			});
-			assert_event_not_emitted!(Event::DelegatorLeft {
-				delegator: 11,
-				unstaked_amount: 10,
-			});
-			// kicked 11 and 12 and revoked them
-			assert_eq!(Balances::free_balance(&11), 22);
-			assert_eq!(Balances::free_balance(&12), 20);
-			assert_eq!(Balances::reserved_balance(&11), 10);
-			assert_eq!(Balances::reserved_balance(&12), 10);
-			assert!(ParachainStaking::is_delegator(&11));
-			assert!(ParachainStaking::is_delegator(&12));
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 70);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 19
-						},
-						Bond {
-							owner: 4,
-							amount: 18
-						},
-						Bond {
-							owner: 5,
-							amount: 17
-						},
-						Bond {
-							owner: 6,
-							amount: 16
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 54);
-				assert_eq!(
-					bottom_delegations.delegations,
-					vec![
-						Bond {
-							owner: 7,
-							amount: 15
-						},
-						Bond {
-							owner: 8,
-							amount: 14
-						},
-						Bond {
-							owner: 9,
-							amount: 13
-						},
-						Bond {
-							owner: 10,
-							amount: 12
-						}
-					]
-				);
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
-			}
-		});
-}
-
-#[test]
-fn split_candidate_state_migrates_empty_delegations_correctly() {
-	ExtBuilder::default()
-		// .with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		// .with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		.build()
-		.execute_with(|| {
-			// set candidate state as per commented out lines above
-			for i in 1..5 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::new(),
-					top_delegations: Vec::new(),
-					bottom_delegations: Vec::new(),
-					total_counted: 20,
-					total_backing: 20,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			for i in 1..5 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 0);
-				assert!(top_delegations.delegations.is_empty());
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 0);
-				assert!(bottom_delegations.delegations.is_empty());
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Empty);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 0);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
-			}
-		});
-}
-
-#[test]
-fn split_candidate_state_migrates_partial_top_delegations_correctly() {
-	ExtBuilder::default()
-		// .with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		// .with_candidates(vec![(1, 20), (2, 20)])
-		// .with_delegations(vec![(3, 1, 10), (4, 1, 10), (3, 2, 10), (4, 2, 10)])
-		.build()
-		.execute_with(|| {
-			// set up candidate state as per commented out lines above
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 10,
-						},
-						Bond {
-							owner: 4,
-							amount: 10,
-						},
-					],
-					bottom_delegations: Vec::new(),
-					total_counted: 40,
-					total_backing: 40,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 20);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 10
-						},
-						Bond {
-							owner: 4,
-							amount: 10
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 0);
-				assert!(bottom_delegations.delegations.is_empty());
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Partial);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
-			}
-		});
-}
-
-#[test]
-fn split_candidate_state_migrates_full_top_delegations_correctly() {
-	ExtBuilder::default()
-		// .with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 20), (6, 20)])
-		// .with_candidates(vec![(1, 20), (2, 20)])
-		// .with_delegations(vec![
-		// 	(3, 1, 10),
-		// 	(4, 1, 10),
-		// 	(5, 1, 10),
-		// 	(6, 1, 10),
-		// 	(3, 2, 10),
-		// 	(4, 2, 10),
-		// 	(5, 2, 10),
-		// 	(6, 2, 10),
-		// ])
-		.build()
-		.execute_with(|| {
-			// set up candidate state as per commented out lines
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4, 5, 6]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 10,
-						},
-						Bond {
-							owner: 4,
-							amount: 10,
-						},
-						Bond {
-							owner: 5,
-							amount: 10,
-						},
-						Bond {
-							owner: 6,
-							amount: 10,
-						},
-					],
-					bottom_delegations: Vec::new(),
-					total_counted: 60,
-					total_backing: 60,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 40);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 10
-						},
-						Bond {
-							owner: 4,
-							amount: 10
-						},
-						Bond {
-							owner: 5,
-							amount: 10
-						},
-						Bond {
-							owner: 6,
-							amount: 10
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 0);
-				assert!(bottom_delegations.delegations.is_empty());
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Empty);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 10);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 0);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 0);
-			}
-		});
-}
-
-#[test]
-fn split_candidate_state_migrates_full_top_partial_bottom_delegations_correctly() {
-	ExtBuilder::default()
-		// .with_balances(vec![
-		// 	(1, 20),
-		// 	(2, 20),
-		// 	(3, 38),
-		// 	(4, 36),
-		// 	(5, 34),
-		// 	(6, 32),
-		// 	(7, 30),
-		// 	(8, 28),
-		// ])
-		// .with_candidates(vec![(1, 20), (2, 20)])
-		// .with_delegations(vec![
-		// 	(3, 1, 19),
-		// 	(4, 1, 18),
-		// 	(5, 1, 17),
-		// 	(6, 1, 16),
-		// 	(7, 1, 15),
-		// 	(8, 1, 14),
-		// 	(3, 2, 19),
-		// 	(4, 2, 18),
-		// 	(5, 2, 17),
-		// 	(6, 2, 16),
-		// 	(7, 2, 15),
-		// 	(8, 2, 14),
-		// ])
-		.build()
-		.execute_with(|| {
-			// set up candidate state as per commented out lines
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 19,
-						},
-						Bond {
-							owner: 4,
-							amount: 18,
-						},
-						Bond {
-							owner: 5,
-							amount: 17,
-						},
-						Bond {
-							owner: 6,
-							amount: 16,
-						},
-					],
-					bottom_delegations: vec![
-						Bond {
-							owner: 8,
-							amount: 14,
-						},
-						Bond {
-							owner: 7,
-							amount: 15,
-						},
-					],
-					total_counted: 90,
-					total_backing: 119,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 70);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 19
-						},
-						Bond {
-							owner: 4,
-							amount: 18
-						},
-						Bond {
-							owner: 5,
-							amount: 17
-						},
-						Bond {
-							owner: 6,
-							amount: 16
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 29);
-				assert_eq!(
-					bottom_delegations.delegations,
-					vec![
-						Bond {
-							owner: 7,
-							amount: 15
-						},
-						Bond {
-							owner: 8,
-							amount: 14
-						}
-					]
-				);
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Partial);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 14);
-			}
-		});
-}
-
-#[test]
-fn split_candidate_state_migrates_full_top_and_bottom_delegations_correctly() {
-	ExtBuilder::default()
-		// .with_balances(vec![
-		// 	(1, 20),
-		// 	(2, 20),
-		// 	(3, 38),
-		// 	(4, 36),
-		// 	(5, 34),
-		// 	(6, 32),
-		// 	(7, 30),
-		// 	(8, 28),
-		// 	(9, 26),
-		// 	(10, 24),
-		// ])
-		// .with_candidates(vec![(1, 20), (2, 20)])
-		// .with_delegations(vec![
-		// 	(3, 1, 19),
-		// 	(4, 1, 18),
-		// 	(5, 1, 17),
-		// 	(6, 1, 16),
-		// 	(7, 1, 15),
-		// 	(8, 1, 14),
-		// 	(9, 1, 13),
-		// 	(10, 1, 12),
-		// 	(3, 2, 19),
-		// 	(4, 2, 18),
-		// 	(5, 2, 17),
-		// 	(6, 2, 16),
-		// 	(7, 2, 15),
-		// 	(8, 2, 14),
-		// 	(9, 2, 13),
-		// 	(10, 2, 12),
-		// ])
-		.build()
-		.execute_with(|| {
-			// set up candidate state as per commented out lines
-			for i in 1..3 {
-				let old_candidate_state = CollatorCandidate {
-					id: i,
-					bond: 20,
-					delegators: OrderedSet::from(vec![3, 4, 5, 6, 7, 8, 9, 10]),
-					top_delegations: vec![
-						Bond {
-							owner: 3,
-							amount: 19,
-						},
-						Bond {
-							owner: 4,
-							amount: 18,
-						},
-						Bond {
-							owner: 5,
-							amount: 17,
-						},
-						Bond {
-							owner: 6,
-							amount: 16,
-						},
-					],
-					bottom_delegations: vec![
-						Bond {
-							owner: 10,
-							amount: 12,
-						},
-						Bond {
-							owner: 9,
-							amount: 13,
-						},
-						Bond {
-							owner: 8,
-							amount: 14,
-						},
-						Bond {
-							owner: 7,
-							amount: 15,
-						},
-					],
-					total_counted: 90,
-					total_backing: 144,
-					request: None,
-					state: CollatorStatus::Active,
-				};
-				<CandidateState<Test>>::insert(&i, old_candidate_state);
-			}
-			crate::migrations::SplitCandidateStateToDecreasePoV::<Test>::on_runtime_upgrade();
-			for i in 1..3 {
-				let top_delegations = <TopDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(top_delegations.total, 70);
-				assert_eq!(
-					top_delegations.delegations,
-					vec![
-						Bond {
-							owner: 3,
-							amount: 19
-						},
-						Bond {
-							owner: 4,
-							amount: 18
-						},
-						Bond {
-							owner: 5,
-							amount: 17
-						},
-						Bond {
-							owner: 6,
-							amount: 16
-						}
-					]
-				);
-				let bottom_delegations = <BottomDelegations<Test>>::get(&i).unwrap();
-				assert_eq!(bottom_delegations.total, 54);
-				assert_eq!(
-					bottom_delegations.delegations,
-					vec![
-						Bond {
-							owner: 7,
-							amount: 15
-						},
-						Bond {
-							owner: 8,
-							amount: 14
-						},
-						Bond {
-							owner: 9,
-							amount: 13
-						},
-						Bond {
-							owner: 10,
-							amount: 12
-						}
-					]
-				);
-				let candidate_metadata = <CandidateInfo<Test>>::get(&i).unwrap();
-				assert_eq!(candidate_metadata.top_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.bottom_capacity, CapacityStatus::Full);
-				assert_eq!(candidate_metadata.lowest_top_delegation_amount, 16);
-				assert_eq!(candidate_metadata.highest_bottom_delegation_amount, 15);
-				assert_eq!(candidate_metadata.lowest_bottom_delegation_amount, 12);
-			}
-		});
-}
-
 // #[test]
 // fn remove_exit_queue_migration_migrates_leaving_candidates() {
 // 	use crate::pallet::ExitQueue2;
@@ -8942,5 +8205,304 @@ fn test_delegation_request_revoke_exists_returns_true_when_revoke_exists() {
 				}],
 			);
 			assert!(ParachainStaking::delegation_request_revoke_exists(&1, &2));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_ok!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2, 3, 4] // 4 does not exist, but is OK for idempotency
+				)
+			);
+
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(2));
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(3));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_specified_keys() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_ok!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2]
+				)
+			);
+
+			assert!(!<DelegationScheduledRequests<Test>>::contains_key(2));
+			assert!(<DelegationScheduledRequests<Test>>::contains_key(3));
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests_not_empty() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				2,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			<DelegationScheduledRequests<Test>>::insert(
+				3,
+				vec![ScheduledRequest {
+					delegator: 10,
+					when_executable: 1,
+					action: DelegationAction::Revoke(10),
+				}],
+			);
+
+			assert_noop!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![2, 3]
+				),
+				<Error<Test>>::CandidateNotLeaving,
+			);
+		});
+}
+
+#[test]
+fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidate_not_exited() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20)])
+		.with_candidates(vec![(1, 20)])
+		.build()
+		.execute_with(|| {
+			// invalid state
+			<DelegationScheduledRequests<Test>>::insert(
+				1,
+				Vec::<ScheduledRequest<u64, u128>>::new(),
+			);
+			assert_noop!(
+				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
+					Origin::signed(1),
+					vec![1]
+				),
+				<Error<Test>>::CandidateNotLeaving,
+			);
+		});
+}
+
+#[test]
+fn locking_zero_amount_is_ignored() {
+	use frame_support::traits::{LockableCurrency, WithdrawReasons};
+
+	// this test demonstrates the behavior of pallet Balance's `LockableCurrency` implementation of
+	// `set_locks()` when an amount of 0 is provided: it is a no-op
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID), None);
+
+			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 1, WithdrawReasons::all());
+			assert_eq!(
+				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
+				Some(1)
+			);
+
+			Balances::set_lock(DELEGATOR_LOCK_ID, &1, 0, WithdrawReasons::all());
+			// Note that we tried to call `set_lock(0)` and it ignored it, we still have our lock
+			assert_eq!(
+				crate::mock::query_lock_amount(1, DELEGATOR_LOCK_ID),
+				Some(1)
+			);
+		});
+}
+
+#[test]
+fn revoke_last_removes_lock() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100), (3, 100)])
+		.with_candidates(vec![(1, 25), (2, 25)])
+		.with_delegations(vec![(3, 1, 30), (3, 2, 25)])
+		.build()
+		.execute_with(|| {
+			assert_eq!(
+				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+				Some(55)
+			);
+
+			// schedule and remove one...
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(3),
+				1
+			));
+			roll_to_round_begin(3);
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(3),
+				3,
+				1
+			));
+			assert_eq!(
+				crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID),
+				Some(25)
+			);
+
+			// schedule and remove the other...
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(3),
+				2
+			));
+			roll_to_round_begin(5);
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(3),
+				3,
+				2
+			));
+			assert_eq!(crate::mock::query_lock_amount(3, DELEGATOR_LOCK_ID), None);
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_schedule_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
+				2
+			)));
+			assert!(<DelegationScheduledRequests<Test>>::get(1)
+				.iter()
+				.any(|r| r.delegator == 2 && matches!(r.action, DelegationAction::Revoke(_))));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitScheduled {
+				round: 1,
+				delegator: 2,
+				scheduled_exit: 3
+			}));
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Active));
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_cancel_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_last_event!(MetaEvent::ParachainStaking(Event::DelegatorExitCancelled {
+				delegator: 2
+			}));
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Active));
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_can_execute_leave_delegators_as_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			roll_to(10);
+			assert_ok!(ParachainStaking::execute_leave_delegators(
+				Origin::signed(2),
+				2,
+				1
+			));
+			assert_event_emitted!(Event::DelegatorLeft {
+				delegator: 2,
+				unstaked_amount: 10
+			});
+
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(state.is_none());
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators_early_no_fix() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 40)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 10)])
+		.build()
+		.execute_with(|| {
+			<DelegatorState<Test>>::mutate(2, |value| {
+				value.as_mut().map(|mut state| {
+					state.status = DelegatorStatus::Leaving(2);
+				})
+			});
+			let state = <DelegatorState<Test>>::get(2);
+			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
+
+			assert_noop!(
+				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
+				Error::<Test>::DelegatorCannotLeaveYet
+			);
 		});
 }

@@ -20,7 +20,7 @@ use crate::mock::{
 };
 use crate::{Action, Currency, EvmMultiAsset};
 use orml_xtokens::Event as XtokensEvent;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
 use sp_runtime::traits::Convert;
 use xcm::latest::{
@@ -34,10 +34,10 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 #[test]
 fn test_selector_enum() {
 	assert_eq!(Action::Transfer as u32, 0xb9f813ff);
-	assert_eq!(Action::TransferMultiAsset as u32, 0xb38c60fa);
-	assert_eq!(Action::TransferMultiCurrencies as u32, 0x8a362d5c);
-	assert_eq!(Action::TransferWithFee as u32, 0x94f69115);
-	assert_eq!(Action::TransferMultiAssetWithFee as u32, 0x89a570fc);
+	assert_eq!(Action::TransferMultiAsset as u32, 0xb4f76f96);
+	assert_eq!(Action::TransferMultiCurrencies as u32, 0xab946323);
+	assert_eq!(Action::TransferWithFee as u32, 0x3e506ef0);
+	assert_eq!(Action::TransferMultiAssetWithFee as u32, 0x150c016a);
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn transfer_self_reserve_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -386,7 +386,7 @@ fn transfer_multi_asset_self_reserve_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -434,7 +434,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 						.write(U256::from(4000000u32))
 						.build(),
 				)
-				.expect_cost(3000)
+				.expect_cost(2000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -719,7 +719,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"array length is too large");
 		});
 }
 
@@ -772,7 +772,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"More than max number of assets given");
+				.execute_reverts(|output| output == b"array length is too large");
 		});
 }
 
@@ -824,4 +824,29 @@ fn transfer_multi_assets_is_not_sorted_error() {
 					output == b"Provided vector either not sorted nor deduplicated"
 				});
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["Xtokens.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

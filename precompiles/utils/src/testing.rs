@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
-use core::assert_matches::assert_matches;
-use fp_evm::{ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet};
-use sp_std::boxed::Box;
+use {
+	core::assert_matches::assert_matches,
+	fp_evm::{
+		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
+		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
+	},
+	sp_core::{H160, H256, U256},
+	sp_std::boxed::Box,
+};
 
 pub struct Subcall {
 	pub address: H160,
@@ -66,20 +71,6 @@ impl MockHandle {
 			is_static: false,
 		}
 	}
-
-	// pub fn with_gas_limit(gas_limit: u64) -> Self {
-	// 	Self {
-	// 		gas_limit,
-	// 		gas_used: 0,
-	// 		logs: vec![],
-	// 		subcall_handle: None,
-	// 	}
-	// }
-
-	// pub fn with_subcall_handle(mut self, handle: Option<SubcallHandle>) -> Self {
-	// 	self.subcall_handle = handle;
-	// 	self
-	// }
 }
 
 impl PrecompileHandle for MockHandle {
@@ -95,7 +86,7 @@ impl PrecompileHandle for MockHandle {
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
 		if self
-			.record_cost(super::call_cost(
+			.record_cost(crate::costs::call_cost(
 				context.apparent_value,
 				&evm::Config::london(),
 			))
@@ -292,6 +283,18 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		res
 	}
 
+	fn decode_revert_message(encoded: &[u8]) -> &[u8] {
+		let encoded_len = encoded.len();
+		// selector 4 + offset 32 + string length 32
+		if encoded_len > 68 {
+			let message_len = encoded[36..68].iter().sum::<u8>();
+			if encoded_len >= 68 + message_len as usize {
+				return &encoded[68..68 + message_len as usize];
+			}
+		}
+		b"decode_revert_message: error"
+	}
+
 	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
 	pub fn execute_some(mut self) {
@@ -327,7 +330,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		assert_matches!(
 			res,
 			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if check(&output)
+				if check(Self::decode_revert_message(&output))
 		);
 		self.assert_optionals();
 	}

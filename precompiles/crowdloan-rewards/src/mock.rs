@@ -32,7 +32,7 @@ use frame_support::{
 use frame_system::{EnsureSigned, RawOrigin};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
@@ -131,6 +131,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ();
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
 parameter_types! {
@@ -200,6 +201,7 @@ where
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
 }
 
@@ -216,10 +218,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesType = TestPrecompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {

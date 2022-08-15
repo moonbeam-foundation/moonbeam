@@ -15,11 +15,13 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate as parachain_staking;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
+use crate as pallet_parachain_staking;
+use crate::{
+	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -46,7 +48,8 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ParachainStaking: parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		BlockAuthor: block_author::{Pallet, Storage},
 	}
 );
 
@@ -97,6 +100,7 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 }
+impl block_author::Config for Test {}
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
@@ -138,6 +142,7 @@ impl Config for Test {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
@@ -218,7 +223,7 @@ impl ExtBuilder {
 		}
 		.assimilate_storage(&mut t)
 		.expect("Pallet balances storage can be assimilated");
-		parachain_staking::GenesisConfig::<Test> {
+		pallet_parachain_staking::GenesisConfig::<Test> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
@@ -234,7 +239,6 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 pub(crate) fn roll_one_block() -> u64 {
-	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -399,10 +403,20 @@ macro_rules! assert_event_not_emitted {
 	};
 }
 
-// Same storage changes as EventHandler::note_author impl
+// Same storage changes as ParachainStaking::on_finalize
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+/// fn to query the lock amount
+pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<Balance> {
+	for lock in Balances::locks(&account_id) {
+		if lock.id == id {
+			return Some(lock.amount);
+		}
+	}
+	None
 }
 
 #[test]
@@ -425,28 +439,45 @@ fn geneses() {
 		.execute_with(|| {
 			assert!(System::events().is_empty());
 			// collators
-			assert_eq!(Balances::reserved_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&1), 500);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&1),
+				500
+			);
+			assert_eq!(query_lock_amount(1, COLLATOR_LOCK_ID), Some(500));
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(Balances::free_balance(&2), 100);
+			assert_eq!(query_lock_amount(2, COLLATOR_LOCK_ID), Some(200));
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&2),
+				100
+			);
 			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 0);
-				assert_eq!(Balances::reserved_balance(&x), 100);
+				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 0);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(100));
 			}
 			// uninvolved
 			for x in 7..10 {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
-			assert_eq!(Balances::free_balance(&7), 100);
-			assert_eq!(Balances::reserved_balance(&7), 0);
-			assert_eq!(Balances::free_balance(&8), 9);
-			assert_eq!(Balances::reserved_balance(&8), 0);
-			assert_eq!(Balances::free_balance(&9), 4);
-			assert_eq!(Balances::reserved_balance(&9), 0);
+			// no delegator staking locks
+			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
+			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
+			// no collator staking locks
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&8), 9);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&9), 4);
 		});
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -475,19 +506,46 @@ fn geneses() {
 			// collators
 			for x in 1..5 {
 				assert!(ParachainStaking::is_candidate(&x));
-				assert_eq!(Balances::free_balance(&x), 80);
-				assert_eq!(Balances::reserved_balance(&x), 20);
+				assert_eq!(query_lock_amount(x, COLLATOR_LOCK_ID), Some(20));
+				assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&x), 80);
 			}
 			assert!(ParachainStaking::is_candidate(&5));
-			assert_eq!(Balances::free_balance(&5), 90);
-			assert_eq!(Balances::reserved_balance(&5), 10);
+			assert_eq!(query_lock_amount(5, COLLATOR_LOCK_ID), Some(10));
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&5), 90);
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 90);
-				assert_eq!(Balances::reserved_balance(&x), 10);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
+				assert_eq!(
+					ParachainStaking::get_delegator_stakable_free_balance(&x),
+					90
+				);
 			}
 		});
+}
+
+#[frame_support::pallet]
+pub mod block_author {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Get;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn block_author)]
+	pub(super) type BlockAuthor<T> = StorageValue<_, AccountId, ValueQuery>;
+
+	impl<T: Config> Get<AccountId> for Pallet<T> {
+		fn get() -> AccountId {
+			<BlockAuthor<T>>::get()
+		}
+	}
 }
 
 #[test]

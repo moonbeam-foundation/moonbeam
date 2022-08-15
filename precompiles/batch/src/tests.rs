@@ -26,7 +26,7 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{call_cost, testing::*, Address, Bytes, EvmDataWriter, LogExt, LogsBuilder};
+use precompile_utils::{costs::call_cost, prelude::*, solidity, testing::*, Error as RevertError};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -146,7 +146,6 @@ fn batch_returns(
 					Bytes::from(b"two".as_slice()),
 				])
 				.write::<Vec<U256>>(vec![])
-				.write(true)
 				.build(),
 		)
 		.with_target_gas(Some(100_000))
@@ -188,9 +187,7 @@ fn batch_returns(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				}
 				a if a == Charlie.into() => {
@@ -216,9 +213,7 @@ fn batch_returns(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 17,
-						logs: vec![
-							LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![])
-						],
+						logs: vec![log1(Charlie, H256::repeat_byte(0x22), vec![])],
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -231,9 +226,9 @@ fn batch_returns(
 fn batch_some_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchSome)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -243,9 +238,9 @@ fn batch_some_returns() {
 fn batch_some_until_failure_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchSomeUntilFailure)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -255,9 +250,9 @@ fn batch_some_until_failure_returns() {
 fn batch_all_returns() {
 	ExtBuilder::default().build().execute_with(|| {
 		batch_returns(&precompiles(), Action::BatchAll)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
-			.expect_log(LogsBuilder::new(Charlie.into()).log1(H256::repeat_byte(0x22), vec![]))
+			.expect_log(log1(Charlie, H256::repeat_byte(0x22), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 1))
 			.execute_returns(Vec::new())
 	})
@@ -411,9 +406,7 @@ fn batch_incomplete(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 13,
-						logs: vec![
-							LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![])
-						],
+						logs: vec![log1(Bob, H256::repeat_byte(0x11), vec![])],
 					}
 				}
 				a if a == Charlie.into() => {
@@ -437,7 +430,9 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: b"Revert message".to_vec(),
+						output: EvmDataWriter::new_with_selector(RevertError::Generic)
+							.write::<Bytes>(Bytes(b"Revert message".to_vec()))
+							.build(),
 						cost: 17,
 						logs: vec![],
 					}
@@ -465,9 +460,7 @@ fn batch_incomplete(
 						reason: ExitReason::Succeed(ExitSucceed::Returned),
 						output: Vec::new(),
 						cost: 19,
-						logs: vec![
-							LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![])
-						],
+						logs: vec![log1(Alice, H256::repeat_byte(0x33), vec![])],
 					}
 				}
 				_ => panic!("unexpected subcall"),
@@ -481,10 +474,10 @@ fn batch_some_incomplete() {
 		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSome)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
-			.expect_log(LogsBuilder::new(Alice.into()).log1(H256::repeat_byte(0x33), vec![]))
+			.expect_log(log1(Alice, H256::repeat_byte(0x33), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 2))
 			.expect_cost(13 + 17 + 19 + total_call_cost * 3)
 			.execute_returns(Vec::new())
@@ -497,7 +490,7 @@ fn batch_some_until_failure_incomplete() {
 		let (_, total_call_cost) = costs();
 
 		batch_incomplete(&precompiles(), Action::BatchSomeUntilFailure)
-			.expect_log(LogsBuilder::new(Bob.into()).log1(H256::repeat_byte(0x11), vec![]))
+			.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
 			.expect_log(log_subcall_succeeded(Precompile, 0))
 			.expect_log(log_subcall_failed(Precompile, 1))
 			.expect_cost(13 + 17 + total_call_cost * 2)
@@ -667,7 +660,6 @@ fn evm_batch_some_transfers_enough() {
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -687,7 +679,6 @@ fn evm_batch_some_until_failure_transfers_enough() {
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -707,7 +698,6 @@ fn evm_batch_all_transfers_enough() {
 					.write(vec![U256::from(1_000u16), U256::from(2_000u16)])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -738,7 +728,6 @@ fn evm_batch_some_transfers_too_much() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -771,7 +760,6 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -804,7 +792,6 @@ fn evm_batch_all_transfers_too_much() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -837,7 +824,6 @@ fn evm_batch_some_contract_revert() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -870,7 +856,6 @@ fn evm_batch_some_until_failure_contract_revert() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -903,7 +888,6 @@ fn evm_batch_all_contract_revert() {
 					])
 					.write::<Vec<Bytes>>(vec![])
 					.write::<Vec<U256>>(vec![])
-					.write(true)
 					.build()
 			))
 			.dispatch(Origin::root()));
@@ -913,4 +897,96 @@ fn evm_batch_all_contract_revert() {
 			assert_eq!(balance(Revert), 0);
 			assert_eq!(balance(David), 0);
 		})
+}
+
+#[test]
+fn evm_batch_recursion_under_limit() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// Mock sets the recursion limit to 2, and we 2 nested batch.
+			// Thus it succeeds.
+
+			let input = EvmDataWriter::new_with_selector(Action::BatchAll)
+				.write::<Vec<Address>>(vec![Address(Precompile.into())])
+				.write::<Vec<U256>>(vec![])
+				.write::<Vec<Bytes>>(vec![Bytes(
+					EvmDataWriter::new_with_selector(Action::BatchAll)
+						.write::<Vec<Address>>(vec![Address(Bob.into())])
+						.write::<Vec<U256>>(vec![1000_u32.into()])
+						.write::<Vec<Bytes>>(vec![])
+						.write::<Vec<U256>>(vec![])
+						.build(),
+				)])
+				.write::<Vec<U256>>(vec![])
+				.build();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 9_000); // gasprice = 0
+			assert_eq!(balance(Bob), 1_000);
+		})
+}
+
+#[test]
+fn evm_batch_recursion_over_limit() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// Mock sets the recursion limit to 2, and we 3 nested batch.
+			// Thus it reverts.
+
+			let input = EvmDataWriter::new_with_selector(Action::BatchAll)
+				.write::<Vec<Address>>(vec![Address(Precompile.into())])
+				.write::<Vec<U256>>(vec![])
+				.write::<Vec<Bytes>>(vec![Bytes(
+					EvmDataWriter::new_with_selector(Action::BatchAll)
+						.write::<Vec<Address>>(vec![Address(Precompile.into())])
+						.write::<Vec<U256>>(vec![])
+						.write::<Vec<Bytes>>(vec![Bytes(
+							EvmDataWriter::new_with_selector(Action::BatchAll)
+								.write::<Vec<Address>>(vec![Address(Bob.into())])
+								.write::<Vec<U256>>(vec![1000_u32.into()])
+								.write::<Vec<Bytes>>(vec![])
+								.write::<Vec<U256>>(vec![])
+								.build(),
+						)])
+						.write::<Vec<U256>>(vec![])
+						.build(),
+				)])
+				.write::<Vec<U256>>(vec![])
+				.build();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			assert_eq!(balance(Alice), 10_000); // gasprice = 0
+			assert_eq!(balance(Bob), 0);
+		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["Batch.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

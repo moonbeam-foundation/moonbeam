@@ -23,7 +23,7 @@ use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_author_mapping::Call as AuthorMappingCall;
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::{succeed, EvmResult, FunctionModifier, PrecompileHandleExt, RuntimeHelper};
+use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
 use sp_std::{fmt::Debug, marker::PhantomData};
@@ -33,20 +33,26 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[precompile_utils::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	AddAssociation = "add_association(bytes32)",
-	UpdateAssociation = "update_association(bytes32,bytes32)",
-	ClearAssociation = "clear_association(bytes32)",
-	RemoveKeys = "remove_keys()",
-	SetKeys = "set_keys(bytes)",
+	AddAssociation = "addAssociation(bytes32)",
+	UpdateAssociation = "updateAssociation(bytes32,bytes32)",
+	ClearAssociation = "clearAssociation(bytes32)",
+	RemoveKeys = "removeKeys()",
+	SetKeys = "setKeys(bytes)",
+
+	// deprecated
+	DeprecatedAddAssociation = "add_association(bytes32)",
+	DeprecatedUpdateAssociation = "update_association(bytes32,bytes32)",
+	DeprecatedClearAssociation = "clear_association(bytes32)",
+	DeprecatedRemoveKeys = "remove_keys()",
+	DeprecatedSetKeys = "set_keys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
 pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
 
-// TODO: Migrate to precompile_utils::Precompile.
 impl<Runtime> Precompile for AuthorMappingWrapper<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
@@ -64,11 +70,17 @@ where
 
 		match selector {
 			// Dispatchables
-			Action::AddAssociation => Self::add_association(handle),
-			Action::UpdateAssociation => Self::update_association(handle),
-			Action::ClearAssociation => Self::clear_association(handle),
-			Action::RemoveKeys => Self::remove_keys(handle),
-			Action::SetKeys => Self::set_keys(handle),
+			Action::AddAssociation | Action::DeprecatedAddAssociation => {
+				Self::add_association(handle)
+			}
+			Action::UpdateAssociation | Action::DeprecatedUpdateAssociation => {
+				Self::update_association(handle)
+			}
+			Action::ClearAssociation | Action::DeprecatedClearAssociation => {
+				Self::clear_association(handle)
+			}
+			Action::RemoveKeys | Action::DeprecatedRemoveKeys => Self::remove_keys(handle),
+			Action::SetKeys | Action::DeprecatedSetKeys => Self::set_keys(handle),
 		}
 	}
 }

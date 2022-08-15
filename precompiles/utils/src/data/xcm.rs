@@ -16,11 +16,17 @@
 
 //! Encoding of XCM types for solidity
 
-use crate::{revert, Bytes, EvmData, EvmDataReader, EvmDataWriter, EvmResult};
+use {
+	crate::{
+		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
+		revert, EvmResult,
+	},
+	frame_support::{ensure, traits::ConstU32},
+	sp_std::vec::Vec,
+	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
+};
 
-use frame_support::ensure;
-use sp_std::vec::Vec;
-use xcm::latest::{Junction, Junctions, MultiLocation, NetworkId};
+pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
 
 // Function to convert network id to bytes
 // We don't implement EVMData here as these bytes will be appended only
@@ -38,9 +44,9 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 			encoded.push(0u8);
 			encoded
 		}
-		NetworkId::Named(mut name) => {
+		NetworkId::Named(name) => {
 			encoded.push(1u8);
-			encoded.append(&mut name);
+			encoded.append(&mut name.into_inner());
 			encoded
 		}
 		NetworkId::Polkadot => {
@@ -64,7 +70,11 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> EvmResult<Network
 	match network_selector[0] {
 		0 => Ok(NetworkId::Any),
 		1 => Ok(NetworkId::Named(
-			encoded_network_id.read_till_end()?.to_vec(),
+			encoded_network_id
+				.read_till_end()?
+				.to_vec()
+				.try_into()
+				.map_err(|_| revert("network name is too long"))?,
 		)),
 		2 => Ok(NetworkId::Polkadot),
 		3 => Ok(NetworkId::Kusama),
@@ -74,8 +84,8 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> EvmResult<Network
 
 impl EvmData for Junction {
 	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let junction = reader.read::<Bytes>()?;
-		let junction_bytes = junction.as_bytes();
+		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
+		let junction_bytes = junction.into_vec();
 
 		ensure!(
 			junction_bytes.len() > 0,
@@ -140,7 +150,11 @@ impl EvmData for Junction {
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
 			6 => Ok(Junction::GeneralKey(
-				encoded_junction.read_till_end()?.to_vec(),
+				encoded_junction
+					.read_till_end()?
+					.to_vec()
+					.try_into()
+					.map_err(|_| revert("junction general key is too long"))?,
 			)),
 			7 => Ok(Junction::OnlyChild),
 			_ => Err(revert("No selector for this")),
@@ -183,9 +197,9 @@ impl EvmData for Junction {
 				encoded.append(&mut id.to_be_bytes().to_vec());
 				encoded.as_slice().into()
 			}
-			Junction::GeneralKey(mut key) => {
+			Junction::GeneralKey(key) => {
 				encoded.push(6u8);
-				encoded.append(&mut key);
+				encoded.append(&mut key.into_inner());
 				encoded.as_slice().into()
 			}
 			Junction::OnlyChild => {

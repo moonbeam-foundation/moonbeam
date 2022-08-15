@@ -51,14 +51,21 @@ pub const INVALID_ETH_TX: &str =
 	0e2d49fcc2afbc582e1abd3eeb027242b92abcebcec7cdefab63ea001732f6fac84acdd5b096554230\
 	75003e7f07430652c3d6722e18f50b3d34e29";
 
+pub fn rpc_run_to_block(n: u32) {
+	while System::block_number() < n {
+		Ethereum::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		Ethereum::on_initialize(System::block_number());
+	}
+}
+
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
+	// Finalize the first block
+	Ethereum::on_finalize(System::block_number());
+	AuthorInherent::on_finalize(System::block_number());
 	while System::block_number() < n {
-		// Finalize the previous block
-		Ethereum::on_finalize(System::block_number());
-		AuthorInherent::on_finalize(System::block_number());
-
 		// Set the new block number and author
 		match author {
 			Some(ref author) => {
@@ -81,6 +88,11 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
+
+		// Finalize the block
+		Ethereum::on_finalize(System::block_number());
+		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 	}
 }
 
@@ -234,7 +246,7 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,

@@ -14,10 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! VRF Key type, which is sr25519
+//! VRF Key type
 use nimbus_primitives::NimbusId;
 use sp_application_crypto::{sr25519, KeyTypeId, UncheckedFrom};
+use sp_consensus_babe::Transcript;
+#[cfg(feature = "std")]
+use sp_keystore::vrf::{VRFTranscriptData, VRFTranscriptValue};
 use sp_runtime::{BoundToRuntimeAppPublic, ConsensusEngineId};
+
+/// Make VRF transcript from the VrfInput
+pub fn make_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> Transcript {
+	let mut transcript = Transcript::new(&VRF_ENGINE_ID);
+	transcript.append_message(b"last vrf output", last_vrf_output.as_ref());
+	transcript
+}
+
+/// Make a VRF transcript data container
+#[cfg(feature = "std")]
+pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {
+	VRFTranscriptData {
+		label: &VRF_ENGINE_ID,
+		items: vec![(
+			"last vrf output",
+			VRFTranscriptValue::Bytes(last_vrf_output.as_ref().to_vec()),
+		)],
+	}
+}
 
 /// Struct to implement `BoundToRuntimeAppPublic` by assigning Public = VrfId
 pub struct VrfSessionKey;
@@ -40,6 +62,9 @@ pub const VRF_ENGINE_ID: ConsensusEngineId = *b"rand";
 /// The KeyTypeId used for VRF keys
 pub const VRF_KEY_ID: KeyTypeId = KeyTypeId(VRF_ENGINE_ID);
 
+/// VRFInOut context.
+pub static VRF_INOUT_CONTEXT: &[u8] = b"VRFInOutContext";
+
 // The strongly-typed crypto wrappers to be used by VRF in the keystore
 mod vrf_crypto {
 	use sp_application_crypto::{app_crypto, sr25519};
@@ -55,6 +80,13 @@ pub type VrfSignature = vrf_crypto::Signature;
 sp_application_crypto::with_pair! {
 	/// A vrf key pair
 	pub type VrfPair = vrf_crypto::Pair;
+}
+
+sp_api::decl_runtime_apis! {
+	pub trait VrfApi {
+		fn get_last_vrf_output() -> Option<Block::Hash>;
+		fn vrf_key_lookup(nimbus_id: nimbus_primitives::NimbusId) -> Option<crate::VrfId>;
+	}
 }
 
 #[test]

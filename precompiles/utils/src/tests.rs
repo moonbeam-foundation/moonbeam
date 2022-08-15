@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
-use crate::data::xcm::{network_id_from_bytes, network_id_to_bytes};
-use hex_literal::hex;
-use sp_core::{H256, U256};
-use sp_std::convert::TryInto;
-use xcm::latest::{Junction, Junctions, NetworkId};
+use {
+	crate::{
+		data::xcm::{network_id_from_bytes, network_id_to_bytes},
+		prelude::*,
+		Error as RevertError,
+	},
+	fp_evm::PrecompileFailure,
+	hex_literal::hex,
+	pallet_evm::Context,
+	sp_core::{H160, H256, U256},
+	sp_std::convert::TryInto,
+	xcm::latest::{Junction, Junctions, NetworkId},
+};
 
 fn u256_repeat_byte(byte: u8) -> U256 {
 	let value = H256::repeat_byte(byte);
@@ -368,7 +375,12 @@ fn read_address_array_size_too_big() {
 	match reader.read::<Vec<Address>>() {
 		Ok(_) => panic!("should not parse correctly"),
 		Err(PrecompileFailure::Revert { output: err, .. }) => {
-			assert_eq!(err, b"tried to parse H160 out of bounds")
+			assert_eq!(
+				err,
+				EvmDataWriter::new_with_selector(RevertError::Generic)
+					.write::<Bytes>(Bytes(b"tried to parse H160 out of bounds".to_vec()))
+					.build()
+			)
 		}
 		Err(_) => panic!("unexpected error"),
 	}
@@ -675,7 +687,7 @@ impl EvmData for MultiLocation {
 	}
 }
 
-#[crate::generate_function_selector]
+#[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	TransferMultiAsset = "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
@@ -872,8 +884,12 @@ fn network_id_decoder_works() {
 	);
 
 	assert_eq!(
-		network_id_from_bytes(network_id_to_bytes(NetworkId::Named(b"myname".to_vec()))),
-		Ok(NetworkId::Named(b"myname".to_vec()))
+		network_id_from_bytes(network_id_to_bytes(NetworkId::Named(
+			b"myname".to_vec().try_into().expect("name not too long")
+		))),
+		Ok(NetworkId::Named(
+			b"myname".to_vec().try_into().expect("name not too long")
+		))
 	);
 
 	assert_eq!(

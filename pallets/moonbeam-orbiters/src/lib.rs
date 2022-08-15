@@ -141,6 +141,11 @@ pub mod pallet {
 		OptionQuery,
 	>;
 
+	#[pallet::storage]
+	#[pallet::getter(fn orbiter)]
+	/// Check if account is an orbiter
+	pub type RegisteredOrbiter<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, bool>;
+
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
 		pub min_orbiter_deposit: BalanceOf<T>,
@@ -173,7 +178,12 @@ pub mod pallet {
 			if let Some(round_to_prune) =
 				CurrentRound::<T>::get().checked_sub(&T::MaxRoundArchive::get())
 			{
-				OrbiterPerRound::<T>::remove_prefix(round_to_prune, None);
+				// TODO: Find better limit.
+				// Is it sure to be cleared in a single block? In which case we can probably have
+				// a lower limit.
+				// Otherwise, we should still have a lower limit, and implement a multi-block clear
+				// by using the return value of clear_prefix for subsequent blocks.
+				let _result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
 				T::DbWeight::get().reads_writes(1, 1)
 			} else {
 				T::DbWeight::get().reads(1)
@@ -228,6 +238,13 @@ pub mod pallet {
 			old_orbiter: Option<T::AccountId>,
 			new_orbiter: Option<T::AccountId>,
 		},
+		/// An orbiter has registered
+		OrbiterRegistered {
+			account: T::AccountId,
+			deposit: BalanceOf<T>,
+		},
+		/// An orbiter has unregistered
+		OrbiterUnregistered { account: T::AccountId },
 	}
 
 	#[pallet::call]
@@ -307,7 +324,13 @@ pub mod pallet {
 					&T::OrbiterReserveIdentifier::get(),
 					&orbiter,
 					min_orbiter_deposit,
-				)
+				)?;
+				RegisteredOrbiter::<T>::insert(&orbiter, true);
+				Self::deposit_event(Event::OrbiterRegistered {
+					account: orbiter,
+					deposit: min_orbiter_deposit,
+				});
+				Ok(())
 			} else {
 				Err(Error::<T>::MinOrbiterDepositNotSet.into())
 			}
@@ -336,6 +359,8 @@ pub mod pallet {
 			);
 
 			T::Currency::unreserve_all_named(&T::OrbiterReserveIdentifier::get(), &orbiter);
+			RegisteredOrbiter::<T>::remove(&orbiter);
+			Self::deposit_event(Event::OrbiterUnregistered { account: orbiter });
 
 			Ok(())
 		}

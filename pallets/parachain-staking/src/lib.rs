@@ -80,7 +80,10 @@ pub mod pallet {
 	};
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Get, Imbalance, ReservableCurrency};
+	use frame_support::traits::{
+		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
+		ReservableCurrency,
+	};
 	use frame_system::pallet_prelude::*;
 	use parity_scale_codec::Decode;
 	use sp_runtime::{
@@ -99,13 +102,18 @@ pub mod pallet {
 	pub type BalanceOf<T> =
 		<<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
+	pub const COLLATOR_LOCK_ID: LockIdentifier = *b"stkngcol";
+	pub const DELEGATOR_LOCK_ID: LockIdentifier = *b"stkngdel";
+
 	/// Configuration trait of this pallet.
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// The currency type
-		type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type Currency: Currency<Self::AccountId>
+			+ ReservableCurrency<Self::AccountId>
+			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
 		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
 		/// Minimum number of blocks per round
@@ -162,6 +170,8 @@ pub mod pallet {
 		/// Minimum stake for any registered on-chain account to be a delegator
 		#[pallet::constant]
 		type MinDelegatorStk: Get<BalanceOf<Self>>;
+		/// Get the current block author
+		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
@@ -437,7 +447,18 @@ pub mod pallet {
 
 			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
+			// add on_finalize weight
+			weight = weight.saturating_add(
+				// read Author, Points, AwardedPts
+				// write Points, AwardedPts
+				T::DbWeight::get()
+					.reads(3)
+					.saturating_add(T::DbWeight::get().writes(2)),
+			);
 			weight
+		}
+		fn on_finalize(_n: T::BlockNumber) {
+			Self::award_points_to_block_author();
 		}
 	}
 
@@ -463,18 +484,6 @@ pub mod pallet {
 	pub(crate) type Round<T: Config> = StorageValue<_, RoundInfo<T::BlockNumber>, ValueQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn nominator_state2)]
-	/// DEPRECATED in favor of DelegatorState
-	/// Get nominator state associated with an account if account is nominating else None
-	pub(crate) type NominatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Nominator2<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
 	#[pallet::getter(fn delegator_state)]
 	/// Get delegator state associated with an account if account is delegating else None
 	pub(crate) type DelegatorState<T: Config> = StorageMap<
@@ -482,18 +491,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegator<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn candidate_state)]
-	/// DEPRECATED
-	/// Get collator candidate state associated with an account if account is a candidate else None
-	pub(crate) type CandidateState<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		CollatorCandidate<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -533,18 +530,6 @@ pub mod pallet {
 		Twox64Concat,
 		T::AccountId,
 		Delegations<T::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn collator_state2)]
-	/// DEPRECATED in favor of CandidateState
-	/// Get collator state associated with an account if account is collating else None
-	pub(crate) type CollatorState2<T: Config> = StorageMap<
-		_,
-		Twox64Concat,
-		T::AccountId,
-		Collator2<T::AccountId, BalanceOf<T>>,
 		OptionQuery,
 	>;
 
@@ -638,7 +623,7 @@ pub mod pallet {
 			// Initialize the candidates
 			for &(ref candidate, balance) in &self.candidates {
 				assert!(
-					T::Currency::free_balance(candidate) >= balance,
+					<Pallet<T>>::get_collator_stakable_free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
 				candidate_count = candidate_count.saturating_add(1u32);
@@ -657,7 +642,7 @@ pub mod pallet {
 			// Initialize the delegations
 			for &(ref delegator, ref target, balance) in &self.delegations {
 				assert!(
-					T::Currency::free_balance(delegator) >= balance,
+					<Pallet<T>>::get_delegator_stakable_free_balance(delegator) >= balance,
 					"Account does not have enough balance to place delegation."
 				);
 				let cd_count = if let Some(x) = col_delegator_count.get(target) {
@@ -899,7 +884,11 @@ pub mod pallet {
 				}),
 				Error::<T>::CandidateExists
 			);
-			T::Currency::reserve(&acc, bond)?;
+			ensure!(
+				Self::get_collator_stakable_free_balance(&acc) >= bond,
+				Error::<T>::InsufficientBalance,
+			);
+			T::Currency::set_lock(COLLATOR_LOCK_ID, &acc, bond, WithdrawReasons::all());
 			let candidate = CandidateMetadata::new(bond);
 			<CandidateInfo<T>>::insert(&acc, candidate);
 			let empty_delegations: Delegations<T::AccountId, BalanceOf<T>> = Default::default();
@@ -960,15 +949,15 @@ pub mod pallet {
 				Error::<T>::TooLowCandidateDelegationCountToLeaveCandidates
 			);
 			state.can_leave::<T>()?;
-			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| {
-				T::Currency::unreserve(&bond.owner, bond.amount);
+			let return_stake = |bond: Bond<T::AccountId, BalanceOf<T>>| -> DispatchResult {
 				// remove delegation from delegator state
 				let mut delegator = DelegatorState::<T>::get(&bond.owner).expect(
 					"Collator state and delegator state are consistent. 
 						Collator state has a record of this delegation. Therefore, 
 						Delegator state also has a record. qed.",
 				);
-				if let Some(remaining) = delegator.rm_delegation(&candidate) {
+
+				if let Some(remaining) = delegator.rm_delegation::<T>(&candidate) {
 					Self::delegation_remove_request_with_state(
 						&candidate,
 						&bond.owner,
@@ -980,10 +969,16 @@ pub mod pallet {
 						// since it is assumed that they were removed incrementally before only the
 						// last delegation was left.
 						<DelegatorState<T>>::remove(&bond.owner);
+						T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
 					} else {
 						<DelegatorState<T>>::insert(&bond.owner, delegator);
 					}
+				} else {
+					// TODO: review. we assume here that this delegator has no remaining staked
+					// balance, so we ensure the lock is cleared
+					T::Currency::remove_lock(DELEGATOR_LOCK_ID, &bond.owner);
 				}
+				Ok(())
 			};
 			// total backing stake is at least the candidate self bond
 			let mut total_backing = state.bond;
@@ -991,19 +986,20 @@ pub mod pallet {
 			let top_delegations =
 				<TopDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in top_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(top_delegations.total);
 			// return all bottom delegations
 			let bottom_delegations =
 				<BottomDelegations<T>>::take(&candidate).expect("CandidateInfo existence checked");
 			for bond in bottom_delegations.delegations {
-				return_stake(bond);
+				return_stake(bond)?;
 			}
 			total_backing = total_backing.saturating_add(bottom_delegations.total);
 			// return stake to collator
-			T::Currency::unreserve(&candidate, state.bond);
+			T::Currency::remove_lock(COLLATOR_LOCK_ID, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
+			<DelegationScheduledRequests<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -1158,10 +1154,11 @@ pub mod pallet {
 			let delegator = ensure_signed(origin)?;
 			// check that caller can reserve the amount before any changes to storage
 			ensure!(
-				T::Currency::can_reserve(&delegator, amount),
+				Self::get_delegator_stakable_free_balance(&delegator) >= amount,
 				Error::<T>::InsufficientBalance
 			);
-			let delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator) {
+			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator)
+			{
 				// delegation after first
 				ensure!(
 					amount >= T::MinDelegation::get(),
@@ -1204,8 +1201,8 @@ pub mod pallet {
 					amount,
 				},
 			)?;
-			T::Currency::reserve(&delegator, amount)
-				.expect("verified can reserve at top of this extrinsic body");
+			// TODO: causes redundant free_balance check
+			delegator_state.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
 			// only is_some if kicked the lowest bottom as a consequence of this new delegation
 			let net_total_increase = if let Some(less) = less_total_staked {
 				amount.saturating_sub(less)
@@ -1309,6 +1306,34 @@ pub mod pallet {
 			let delegator = ensure_signed(origin)?;
 			Self::delegation_cancel_request(candidate, delegator)
 		}
+
+		/// Hotfix to remove existing empty entries for candidates that have left.
+		#[pallet::weight(
+			T::DbWeight::get().reads_writes(2 * candidates.len() as u64, candidates.len() as u64)
+		)]
+		pub fn hotfix_remove_delegation_requests_exited_candidates(
+			origin: OriginFor<T>,
+			candidates: Vec<T::AccountId>,
+		) -> DispatchResult {
+			ensure_signed(origin)?;
+			ensure!(candidates.len() < 100, <Error<T>>::InsufficientBalance);
+			for candidate in &candidates {
+				ensure!(
+					<CandidateInfo<T>>::get(&candidate).is_none(),
+					<Error<T>>::CandidateNotLeaving
+				);
+				ensure!(
+					<DelegationScheduledRequests<T>>::get(&candidate).is_empty(),
+					<Error<T>>::CandidateNotLeaving
+				);
+			}
+
+			for candidate in candidates {
+				<DelegationScheduledRequests<T>>::remove(candidate);
+			}
+
+			Ok(().into())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -1320,6 +1345,22 @@ pub mod pallet {
 		}
 		pub fn is_selected_candidate(acc: &T::AccountId) -> bool {
 			<SelectedCandidates<T>>::get().binary_search(acc).is_ok()
+		}
+		/// Returns an account's free balance which is not locked in delegation staking
+		pub fn get_delegator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			let mut balance = T::Currency::free_balance(acc);
+			if let Some(state) = <DelegatorState<T>>::get(acc) {
+				balance = balance.saturating_sub(state.total());
+			}
+			balance
+		}
+		/// Returns an account's free balance which is not locked in collator staking
+		pub fn get_collator_stakable_free_balance(acc: &T::AccountId) -> BalanceOf<T> {
+			let mut balance = T::Currency::free_balance(acc);
+			if let Some(info) = <CandidateInfo<T>>::get(acc) {
+				balance = balance.saturating_sub(info.bond);
+			}
+			balance
 		}
 		/// Caller must ensure candidate is active before calling
 		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
@@ -1353,7 +1394,6 @@ pub mod pallet {
 		) -> DispatchResult {
 			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
 			state.rm_delegation_if_exists::<T>(&candidate, delegator.clone(), amount)?;
-			T::Currency::unreserve(&delegator, amount);
 			let new_total_locked = <Total<T>>::get().saturating_sub(amount);
 			<Total<T>>::put(new_total_locked);
 			let new_total = state.total_counted;
@@ -1646,8 +1686,9 @@ pub mod pallet {
 
 	/// Add reward points to block authors:
 	/// * 20 points to the block producer for producing a block in the chain
-	impl<T: Config> nimbus_primitives::EventHandler<T::AccountId> for Pallet<T> {
-		fn note_author(author: T::AccountId) {
+	impl<T: Config> Pallet<T> {
+		fn award_points_to_block_author() {
+			let author = T::BlockAuthor::get();
 			let now = <Round<T>>::get().current;
 			let score_plus_20 = <AwardedPts<T>>::get(now, &author).saturating_add(20);
 			<AwardedPts<T>>::insert(now, author, score_plus_20);

@@ -1,30 +1,33 @@
+import "@moonbeam-network/api-augment";
+
 import { expect } from "chai";
-import { createContract } from "../../util/transactions";
+import { Log } from "web3-core";
+
+import { ALITH_CONTRACT_ADDRESSES } from "../../util/accounts";
+import { EnhancedWeb3, web3Subscribe } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { web3Subscribe } from "../../util/providers";
+import { createContract } from "../../util/transactions";
 
 describeDevMoonbeam("Subscription - Past Events", (context) => {
-  let web3Ws;
+  let web3Ws: EnhancedWeb3;
 
   before("Setup: Create 4 blocks with transfer", async () => {
     web3Ws = await context.createWeb3("ws");
 
-    const { rawTx: rawTx1 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx1 } = await createContract(context, "EventEmitter", {
       nonce: 0,
     });
-    const { rawTx: rawTx2 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx2 } = await createContract(context, "EventEmitter", {
       nonce: 1,
     });
-    const { rawTx: rawTx3 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx3 } = await createContract(context, "EventEmitter", {
       nonce: 2,
     });
-    const { rawTx: rawTx4 } = await createContract(context, "SingleEventContract", {
+    const { rawTx: rawTx4 } = await createContract(context, "EventEmitter", {
       nonce: 3,
     });
 
-    await context.createBlock({
-      transactions: [rawTx1, rawTx2, rawTx3, rawTx4],
-    });
+    await context.createBlock([rawTx1, rawTx2, rawTx3, rawTx4]);
   });
 
   it("should be retrieved by topic", async function () {
@@ -34,7 +37,7 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 4) resolve(data);
@@ -48,11 +51,11 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
   it("should be retrieved by address", async function () {
     const subscription = web3Subscribe(web3Ws, "logs", {
       fromBlock: "0x0",
-      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      address: "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 1) resolve(data);
@@ -67,11 +70,11 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
     const subscription = web3Subscribe(web3Ws, "logs", {
       fromBlock: "0x0",
       topics: ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
-      address: "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+      address: "0xc01Ee7f10EA4aF4673cFff62710E1D7792aBa8f3",
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 1) resolve(data);
@@ -87,16 +90,16 @@ describeDevMoonbeam("Subscription - Past Events", (context) => {
       fromBlock: "0x0",
       topics: ["0x0040d54d5e5b097202376b55bcbaaedd2ee468ce4496f1d30030c4e5308bf94d"],
       address: [
-        "0xe573BCA813c741229ffB2488F7856C6cAa841041",
-        "0xF8cef78E923919054037a1D03662bBD884fF4edf",
-        "0x42e2EE7Ba8975c473157634Ac2AF4098190fc741",
-        "0x5c4242beB94dE30b922f57241f1D02f36e906915",
-        "0xC2Bf5F29a4384b1aB0C063e1c666f02121B6084a",
+        ALITH_CONTRACT_ADDRESSES[4],
+        ALITH_CONTRACT_ADDRESSES[3],
+        ALITH_CONTRACT_ADDRESSES[2],
+        ALITH_CONTRACT_ADDRESSES[1],
+        ALITH_CONTRACT_ADDRESSES[0],
       ],
     });
 
     const data = await new Promise((resolve) => {
-      const data = [];
+      const data: Log[] = [];
       subscription.on("data", function (d: any) {
         data.push(d);
         if (data.length == 4) resolve(data);
