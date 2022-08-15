@@ -390,6 +390,10 @@ pub mod pallet {
 	pub trait BenchmarkSetKeys<Id, Account, Keys> {
 		fn benchmark_set_keys(id: Id, account: Account, keys: Keys);
 	}
+	#[cfg(feature = "runtime-benchmarks")]
+	impl<Id, Account, Keys> BenchmarkSetKeys<Id, Account, Keys> for () {
+		fn benchmark_set_keys(_id: Id, _account: Account, _keys: Keys) {}
+	}
 
 	#[cfg(feature = "runtime-benchmarks")]
 	impl<T: Config> BenchmarkSetKeys<NimbusId, T::AccountId, T::Keys> for Pallet<T> {

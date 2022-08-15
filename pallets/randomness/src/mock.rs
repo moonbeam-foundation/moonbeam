@@ -142,6 +142,8 @@ impl Config for Test {
 	type MaxBlockDelay = MaxBlockDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
 	type EpochExpirationDelay = MaxBlockDelay;
+	#[cfg(feature = "runtime-benchmarks")]
+	type KeySetter = ();
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {
