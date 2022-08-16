@@ -82,8 +82,8 @@ benchmarks! {
 			ret.copy_from_slice(&output[0..64]);
 			Decode::decode(&mut ret.as_slice()).expect("expect to decode predigest")
 		}
-		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode("0x4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52".to_string())).into();
-		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode("0x4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b".to_string())).into();
+		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode("4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52".to_string())).into();
+		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode("4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b".to_string())).into();
 		let vrf_input: [u8; 32] = hex_decode("7d2b74fab7f37c93344abcc282d428985ddee49e494a8950c76df0342bfe6f02".to_string());
 		let vrf_pre_digest = predigest_decode("708859b63dd8284e829de2cbd90cb9b7de7eb9bec2d15ec45523e9039216fd362aacbc19ff00abbed38bac4be9acebef32e5d5ab4b1b3aa60bcbc7ca3b22880824f93050f4d51798a0ea41e8be7f0e1a541b60df46103f7785a9129e425da107".to_string());
 		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok().expect("decode into same type");
