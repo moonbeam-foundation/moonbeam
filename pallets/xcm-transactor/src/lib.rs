@@ -634,13 +634,13 @@ pub mod pallet {
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
-				Self::take_weight_from_transact_info(
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| Self::take_weight_from_transact_info(
 					dest.clone(),
 					weight_info.transact_require_weight_at_most,
-				)
-			})?;
-
+				),
+				|v| Ok(v)
+			)?;
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
 
@@ -684,13 +684,13 @@ pub mod pallet {
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
-
-			let total_weight: u64 = weight_info.overall_weight.ok_or("").or_else(|_| {
-				Self::take_weight_from_transact_info_signed(
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| Self::take_weight_from_transact_info_signed(
 					dest.clone(),
 					weight_info.transact_require_weight_at_most,
-				)
-			})?;
+				),
+				|v| Ok(v)
+			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
@@ -921,7 +921,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			dest_weight: Weight,
 		) -> Result<Weight, DispatchError> {
-			// Grab transact info for the fee loation provided
+			// Grab transact info for the fee location provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
@@ -930,7 +930,7 @@ pub mod pallet {
 				.ok_or(Error::<T>::WeightOverflow)?;
 
 			ensure!(
-				total_weight < transactor_info.max_weight,
+				total_weight <= transactor_info.max_weight,
 				Error::<T>::MaxWeightTransactReached
 			);
 			Ok(total_weight)
@@ -942,7 +942,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			dest_weight: Weight,
 		) -> Result<Weight, DispatchError> {
-			// Grab transact info for the fee loation provided
+			// Grab transact info for the fee location provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
@@ -957,7 +957,7 @@ pub mod pallet {
 				.ok_or(Error::<T>::WeightOverflow)?;
 
 			ensure!(
-				total_weight < transactor_info.max_weight,
+				total_weight <= transactor_info.max_weight,
 				Error::<T>::MaxWeightTransactReached
 			);
 			Ok(total_weight)

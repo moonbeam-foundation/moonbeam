@@ -464,7 +464,6 @@ where
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
-
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
@@ -499,7 +498,6 @@ where
 	pub(crate) fn transact_through_signed_custom_fee_and_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let mut input = handle.read_input()?;
 
@@ -516,7 +514,7 @@ where
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
-
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
 				.ok_or(revert("cannot convert into currency id"))?;
