@@ -211,13 +211,13 @@ pub mod pallet {
 	#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 	/// Struct tindicating information about transact weights
 	/// It allows to specify:
-	/// - transact_require_weight_at_most: the amount of weight the Transact instruction
+	/// - transact_required_weight_at_most: the amount of weight the Transact instruction
 	///   should consume at most
 	/// - overall_weight: the overall weight to be used for the whole XCM message execution.
 	///   If None, then this amount will be tried to be derived from storage.  If the storage item
 	pub struct TransactWeights {
 		// the amount of weight the Transact instruction should consume at most
-		pub transact_require_weight_at_most: Weight,
+		pub transact_required_weight_at_most: Weight,
 		// the overall weight to be used for the whole XCM message execution. If None,
 		// then this amount will be tried to be derived from storage.  If the storage item
 		// for the chain is not populated, then it fails
@@ -382,7 +382,7 @@ pub mod pallet {
 			Pallet::<T>::weight_of_transact_through_derivative(
 				index,
 				&dest,
-				&weight_info.transact_require_weight_at_most,
+				&weight_info.transact_required_weight_at_most,
 				inner_call
 			)
 		)]
@@ -446,7 +446,7 @@ pub mod pallet {
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
 			Pallet::<T>::weight_of_transact_through_sovereign(
-				&weight_info.transact_require_weight_at_most,
+				&weight_info.transact_required_weight_at_most,
 				call,
 				*origin_kind
 			)
@@ -635,11 +635,13 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight: u64 = weight_info.overall_weight.map_or_else(
-				|| Self::take_weight_from_transact_info(
-					dest.clone(),
-					weight_info.transact_require_weight_at_most,
-				),
-				|v| Ok(v)
+				|| {
+					Self::take_weight_from_transact_info(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
 			)?;
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
@@ -663,7 +665,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_require_weight_at_most,
+				weight_info.transact_required_weight_at_most,
 				origin_kind,
 			)?;
 
@@ -685,11 +687,13 @@ pub mod pallet {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
 			let total_weight: u64 = weight_info.overall_weight.map_or_else(
-				|| Self::take_weight_from_transact_info_signed(
-					dest.clone(),
-					weight_info.transact_require_weight_at_most,
-				),
-				|v| Ok(v)
+				|| {
+					Self::take_weight_from_transact_info_signed(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
 			)?;
 
 			// Calculate fee based on FeePerSecond and total_weight
@@ -709,7 +713,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_require_weight_at_most,
+				weight_info.transact_required_weight_at_most,
 				origin_kind,
 			)?;
 

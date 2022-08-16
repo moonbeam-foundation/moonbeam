@@ -16,7 +16,7 @@ interface XcmTransactorV2 {
     /// @param index The index of which we want to retrieve the account
     /// @return owner The owner of the derivative index
     ///
-    function indexToAccount(uint16 index) external view returns(address owner);
+    function indexToAccount(uint16 index) external view returns (address owner);
 
     /// Get transact info of a multilocation
     /// @custom:selector b689e20c
@@ -51,7 +51,7 @@ interface XcmTransactorV2 {
     /// @param index The index to be used
     /// @param feeAsset The asset in which we want to pay fees.
     /// It has to be a reserve of the destination chain
-    /// @param transactRequireWeightAtMost The weight we want to buy in the destination chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
@@ -60,7 +60,7 @@ interface XcmTransactorV2 {
         uint8 transactor,
         uint16 index,
         Multilocation memory feeAsset,
-        uint64 transactRequireWeightAtMost,
+        uint64 transactRequiredWeightAtMost,
         bytes memory innerCall,
         uint256 feeAmount,
         uint64 overallWeight
@@ -73,7 +73,7 @@ interface XcmTransactorV2 {
     /// @param index The index to be used
     /// @param currencyId Address of the currencyId of the asset to be used for fees
     /// It has to be a reserve of the destination chain
-    /// @param transactRequireWeightAtMost The weight we want to buy in the destination chain
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
@@ -82,7 +82,7 @@ interface XcmTransactorV2 {
         uint8 transactor,
         uint16 index,
         address currencyId,
-        uint64 transactRequireWeightAtMost,
+        uint64 transactRequiredWeightAtMost,
         bytes memory innerCall,
         uint256 feeAmount,
         uint64 overallWeight

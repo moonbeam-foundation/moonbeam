@@ -116,7 +116,7 @@ benchmarks! {
 			fee_amount: None
 		},
 		call,
-		TransactWeights { transact_require_weight_at_most: dest_weight, overall_weight: None }
+		TransactWeights { transact_required_weight_at_most: dest_weight, overall_weight: None }
 	)
 }
 

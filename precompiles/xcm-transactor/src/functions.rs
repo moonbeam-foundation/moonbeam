@@ -176,7 +176,7 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: None,
 			},
 		};
@@ -230,7 +230,7 @@ where
 			},
 			inner_call,
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 		};
@@ -281,7 +281,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: None,
 			},
 			inner_call,
@@ -339,7 +339,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			inner_call,
@@ -389,7 +389,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			call,
@@ -433,7 +433,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: None,
 			},
 			call,
@@ -447,8 +447,6 @@ where
 	pub(crate) fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
 		let mut input = handle.read_input()?;
 
 		// Bound check
@@ -462,17 +460,18 @@ where
 
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
-		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
-			Runtime::account_to_currency_id(to_account)
-				.ok_or(revert("cannot convert into currency id"))?;
-
 		// read weight amount
 		let weight: u64 = input.read::<u64>()?;
 
 		// call
 		let call = input.read::<BoundedBytes<GetDataLimit>>()?.into_vec();
+
+		// We convert the address into a currency
+		// This involves a DB read in moonbeam, hence the db Read
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(revert("cannot convert into currency id"))?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -484,7 +483,7 @@ where
 				fee_amount: None,
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: None,
 			},
 			call,
@@ -498,7 +497,6 @@ where
 	pub(crate) fn transact_through_signed_custom_fee_and_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-
 		let mut input = handle.read_input()?;
 
 		// Bound check
@@ -510,14 +508,6 @@ where
 		// read currencyId
 		let to_address: H160 = input.read::<Address>()?.into();
 
-		let to_account = Runtime::AddressMapping::into_account_id(to_address);
-
-		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
-		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
-			Runtime::account_to_currency_id(to_account)
-				.ok_or(revert("cannot convert into currency id"))?;
 
 		// read weight amount
 		let weight: u64 = input.read::<u64>()?;
@@ -531,6 +521,15 @@ where
 		// overall weight
 		let overall_weight = input.read::<u64>()?;
 
+		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
+		// We convert the address into a currency
+		// This involves a DB read in moonbeam, hence the db Read
+		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let currency_id: <Runtime as pallet_xcm_transactor::Config>::CurrencyId =
+			Runtime::account_to_currency_id(to_account)
+				.ok_or(revert("cannot convert into currency id"))?;
+
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -541,7 +540,7 @@ where
 				fee_amount: Some(fee_amount),
 			},
 			weight_info: TransactWeights {
-				transact_require_weight_at_most: weight,
+				transact_required_weight_at_most: weight,
 				overall_weight: Some(overall_weight),
 			},
 			call,

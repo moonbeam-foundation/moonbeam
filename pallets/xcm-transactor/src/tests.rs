@@ -69,7 +69,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -93,7 +93,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -123,7 +123,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -157,7 +157,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -185,7 +185,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 10000u64,
+						transact_required_weight_at_most: 10000u64,
 						overall_weight: None
 					}
 				),
@@ -213,7 +213,7 @@ fn test_transact_through_signed_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -242,7 +242,7 @@ fn test_transact_through_signed_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -271,7 +271,7 @@ fn test_transact_through_signed_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -304,7 +304,7 @@ fn test_transact_through_signed_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -351,7 +351,7 @@ fn test_transact_through_derivative_multilocation_success() {
 				},
 				vec![1u8],
 				TransactWeights {
-					transact_require_weight_at_most: 100u64,
+					transact_required_weight_at_most: 100u64,
 					overall_weight: None
 				}
 			));
@@ -420,7 +420,7 @@ fn test_transact_through_derivative_success() {
 				},
 				vec![1u8],
 				TransactWeights {
-					transact_require_weight_at_most: 100u64,
+					transact_required_weight_at_most: 100u64,
 					overall_weight: None
 				}
 			));
@@ -474,7 +474,7 @@ fn test_root_can_transact_through_sovereign() {
 					vec![1u8],
 					OriginKind::SovereignAccount,
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -511,7 +511,7 @@ fn test_root_can_transact_through_sovereign() {
 				vec![1u8],
 				OriginKind::SovereignAccount,
 				TransactWeights {
-					transact_require_weight_at_most: 100u64,
+					transact_required_weight_at_most: 100u64,
 					overall_weight: None
 				}
 			));
@@ -652,7 +652,7 @@ fn test_transact_through_signed_fails_if_transact_info_not_set_at_all() {
 					},
 					vec![1u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -687,7 +687,7 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 					},
 					vec![1u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -722,7 +722,7 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 					},
 					vec![1u8],
 					TransactWeights {
-						transact_require_weight_at_most: 10064,
+						transact_required_weight_at_most: 10064,
 						overall_weight: None
 					}
 				),
@@ -757,7 +757,7 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 					},
 					vec![1u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100000u64,
+						transact_required_weight_at_most: 100000u64,
 						overall_weight: None
 					}
 				),
@@ -792,7 +792,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 					},
 					vec![1u8],
 					TransactWeights {
-						transact_require_weight_at_most: 100u64,
+						transact_required_weight_at_most: 100u64,
 						overall_weight: None
 					}
 				),
@@ -834,7 +834,7 @@ fn test_transact_through_signed_works() {
 				},
 				vec![1u8],
 				TransactWeights {
-					transact_require_weight_at_most: 100u64,
+					transact_required_weight_at_most: 100u64,
 					overall_weight: None
 				}
 			));
@@ -941,7 +941,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 				},
 				vec![1u8],
 				TransactWeights {
-					transact_require_weight_at_most: tx_weight,
+					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
 				}
 			));
@@ -1012,7 +1012,7 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 				vec![1u8],
 				OriginKind::SovereignAccount,
 				TransactWeights {
-					transact_require_weight_at_most: tx_weight,
+					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
 				}
 			));
@@ -1075,7 +1075,7 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 				},
 				vec![1u8],
 				TransactWeights {
-					transact_require_weight_at_most: tx_weight,
+					transact_required_weight_at_most: tx_weight,
 					overall_weight: Some(total_weight)
 				}
 			));

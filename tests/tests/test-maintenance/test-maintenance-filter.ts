@@ -132,7 +132,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
 
   it("should forbid xcmTransactor to", async () => {
     const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
-      transactRequireWeightAtMost: 0,
+      transactRequiredWeightAtMost: 0,
       overallWeight: null,
     });
 
