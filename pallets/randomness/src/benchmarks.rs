@@ -27,10 +27,16 @@ use frame_support::{
 use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
 use pallet_author_mapping::BenchmarkSetKeys;
 use pallet_evm::AddressMapping;
+use parity_scale_codec::alloc::string::ToString;
 use parity_scale_codec::Decode;
+use scale_info::prelude::string::String;
 use session_keys_primitives::{digest::CompatibleDigestItem as VrfDigest, PreDigest, VrfId};
-use sp_core::{crypto::UncheckedFrom, sr25519, ByteArray, H160, H256};
+use sp_core::{
+	crypto::{ByteArray, UncheckedFrom},
+	sr25519, H160, H256,
+};
 use sp_runtime::traits::One;
+use sp_std::vec;
 
 /// Create a funded user from the input
 fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
