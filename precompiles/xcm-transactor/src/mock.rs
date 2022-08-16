@@ -253,7 +253,7 @@ pub fn precompile_address_v1() -> H160 {
 }
 
 pub fn precompile_address_v2() -> H160 {
-	H160::from_low_u64_be(1)
+	H160::from_low_u64_be(2)
 }
 
 parameter_types! {

@@ -575,7 +575,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if ActionV1::try_from(selector).is_err() {
+			if ActionV2::try_from(selector).is_err() {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,

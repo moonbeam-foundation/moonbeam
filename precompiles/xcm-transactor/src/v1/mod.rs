@@ -42,27 +42,6 @@ pub enum Action {
 	TransactThroughSignedMultiLocation =
 		"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
 	TransactThroughSigned = "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
-	TransactThroughDerivativeCustomFeeAndWeight =
-		"transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
-	TransactThroughDerivativeMultiLocationCustomFeeAndWeight =
-		"transactThroughDerivativeMultilocation(\
-		uint8,\
-		uint16,\
-		(uint8,bytes[]),\
-		uint64,bytes,\
-		uint256,\
-		uint64\
-	)",
-	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transactThroughSignedMultilocation(\
-		(uint8,bytes[]),\
-		(uint8,bytes[]),\
-		uint64,\
-		bytes,\
-		uint256,\
-		uint64\
-	)",
-	TransactThroughSignedCustomFeeAndWeight =
-		"transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
 
 	// deprecated
 	DeprecatedIndexToAccount = "index_to_account(uint16)",
@@ -103,13 +82,7 @@ where
 			| Action::DeprecatedTransactThroughDerivativeMultiLocation
 			| Action::DeprecatedTransactThroughDerivative
 			| Action::DeprecatedTransactThroughSignedMultiLocation
-			| Action::DeprecatedTransactThroughSigned
-			| Action::TransactThroughSignedMultiLocationCustomFeeAndWeight
-			| Action::TransactThroughSignedCustomFeeAndWeight
-			| Action::TransactThroughDerivativeCustomFeeAndWeight
-			| Action::TransactThroughDerivativeMultiLocationCustomFeeAndWeight => {
-				FunctionModifier::NonPayable
-			}
+			| Action::DeprecatedTransactThroughSigned => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
@@ -119,11 +92,15 @@ where
 				XcmTransactorWrapper::<Runtime>::account_index(handle)
 			}
 			// DEPRECATED
-			Action::TransactInfo | Action::DeprecatedTransactInfo => XcmTransactorWrapper::<Runtime>::transact_info(handle),
+			Action::TransactInfo | Action::DeprecatedTransactInfo => {
+				XcmTransactorWrapper::<Runtime>::transact_info(handle)
+			}
 			Action::TransactInfoWithSigned | Action::DeprecatedTransactInfoWithSigned => {
 				XcmTransactorWrapper::<Runtime>::transact_info_with_signed(handle)
 			}
-			Action::FeePerSecond | Action::DeprecatedFeePerSecond => XcmTransactorWrapper::<Runtime>::fee_per_second(handle),
+			Action::FeePerSecond | Action::DeprecatedFeePerSecond => {
+				XcmTransactorWrapper::<Runtime>::fee_per_second(handle)
+			}
 			Action::TransactThroughDerivativeMultiLocation
 			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
 				XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation(handle)
@@ -137,18 +114,6 @@ where
 			}
 			Action::TransactThroughSigned | Action::DeprecatedTransactThroughSigned => {
 				XcmTransactorWrapper::<Runtime>::transact_through_signed(handle)
-			}
-			Action::TransactThroughDerivativeCustomFeeAndWeight => {
-				XcmTransactorWrapper::<Runtime>::transact_through_derivative_custom_fee_and_weight(handle)
-			}
-			Action::TransactThroughDerivativeMultiLocationCustomFeeAndWeight => {
-				XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation_custom_fee_and_weight(handle)
-			}
-			Action::TransactThroughSignedMultiLocationCustomFeeAndWeight => {
-				XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation_custom_fee_and_weight(handle)
-			}
-			Action::TransactThroughSignedCustomFeeAndWeight => {
-				XcmTransactorWrapper::<Runtime>::transact_through_signed_custom_fee_and_weight(handle)
 			}
 		}
 	}
