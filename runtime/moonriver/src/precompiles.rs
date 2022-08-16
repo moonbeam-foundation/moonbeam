@@ -30,7 +30,7 @@ use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xcm_transactor::v1::XcmTransactorWrapperV1;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -110,7 +110,7 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2051>, DemocracyWrapper<R>>,
 				PrecompileAt<AddressU64<2052>, XtokensWrapper<R>>,
 				PrecompileAt<AddressU64<2053>, RelayEncoderWrapper<R, KusamaEncoder>>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
+				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
 			),

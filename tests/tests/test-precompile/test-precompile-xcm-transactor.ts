@@ -7,7 +7,7 @@ import { ethers } from "ethers";
 import { alith } from "../../util/accounts";
 import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
 import { verifyLatestBlockFees } from "../../util/block";
-import { PRECOMPILE_XCM_TRANSACTOR_ADDRESS } from "../../util/constants";
+import { PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1, PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2 } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
@@ -18,8 +18,10 @@ import {
 } from "../../util/transactions";
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
-const XCM_TRANSACTOR_CONTRACT = getCompiled("XcmTransactorInstance");
-const XCM_TRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT.contract.abi);
+const XCM_TRANSACTOR_CONTRACT_V1 = getCompiled("XcmTransactorV1Instance");
+const XCM_TRANSACTOR_INTERFACE_V1 = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT_V1.contract.abi);
+const XCM_TRANSACTOR_CONTRACT_V2 = getCompiled("XcmTransactorV2Instance");
+const XCM_TRANSACTOR_INTERFACE_V2 = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT_V2.contract.abi);
 
 const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
@@ -69,8 +71,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(
       (
         await web3EthCall(context.web3, {
-          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("index_to_account", [0]),
+          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
+          data: XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData("indexToAccount", [0]),
         })
       ).result
     ).to.equal("0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
@@ -83,8 +85,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(
       (
         await web3EthCall(context.web3, {
-          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("transact_info", [asset]),
+          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
+          data: XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData("transactInfo", [asset]),
         })
       ).result
     ).to.equal(
@@ -144,15 +146,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // weight
     const weight = 1000;
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+      "transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
         data,
       })
     );
@@ -228,15 +230,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // weight
     const weight = 1000;
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+      "transactThroughDerivative(uint8,uint16,address,uint64,bytes)",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
         data,
       })
     );
@@ -273,13 +275,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         1,
         [],
       ];
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "fee_per_second",
+      "feePerSecond",
       [asset]
     );
     const tx_call = await web3EthCall(context.web3, {
-      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
       data,
     });
 
@@ -296,13 +298,13 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
         1,
         [],
       ];
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transact_info_with_signed",
+      "transactInfoWithSigned",
       [asset]
     );
     const tx_call = await web3EthCall(context.web3, {
-      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+      to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
       data,
     });
 
@@ -336,16 +338,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // weight
     const weight = 1000;
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
+      "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
       [dest, asset, weight, transact_call]
     );
 
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
         data,
       })
     );
@@ -383,16 +385,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // weight
     const weight = 1000;
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+      "transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
       [dest, asset, weight, transact_call]
     );
 
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
         data,
       })
     );
@@ -433,9 +435,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     const feeAmount = 1000;
 
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData(
       // action
-      `transact_through_signed_multilocation(` +
+      `transactThroughSignedMultilocation(` +
         `(uint8,bytes[]),` +
         `(uint8,bytes[]),` +
         `uint64,bytes,` +
@@ -446,7 +448,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
         data,
       })
     );
@@ -482,16 +484,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     const feeAmount = 1000;
 
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData(
       // action
-      "transact_through_signed((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
+      "transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
       [dest, asset, transactWeight, transact_call, feeAmount, overallWeight]
     );
 
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
         data,
       })
     );
@@ -507,8 +509,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(
       (
         await web3EthCall(context.web3, {
-          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("index_to_account", [0]),
+          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
+          data: XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData("indexToAccount", [0]),
         })
       ).result
     ).to.equal("0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
@@ -570,9 +572,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Fee amount
     const feeAmount = 1000;
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData(
       // action
-      `transact_through_derivative_multilocation(` +
+      `transactThroughDerivativeMultilocation(` +
         `uint8,` +
         `uint16,` +
         `(uint8,bytes[]),` +
@@ -586,7 +588,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
         data,
       })
     );
@@ -616,8 +618,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     expect(
       (
         await web3EthCall(context.web3, {
-          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("index_to_account", [0]),
+          to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
+          data: XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData("indexToAccount", [0]),
         })
       ).result
     ).to.equal("0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
@@ -677,16 +679,16 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     const feeAmount = 1000;
 
     // Call the precompile
-    const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
+    const data = XCM_TRANSACTOR_INTERFACE_V2.encodeFunctionData(
       // action
-      "transact_through_derivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
+      "transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
       [transactor, index, asset, transactWeight, transact_call, feeAmount, overallWeight]
     );
 
     await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
+        to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
         data,
       })
     );
