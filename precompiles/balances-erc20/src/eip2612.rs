@@ -93,11 +93,8 @@ where
 	pub(crate) fn permit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(7)?;
-
 		read_args!(
-			input,
+			handle,
 			{
 				owner: Address,
 				spender: Address,
@@ -168,8 +165,8 @@ where
 	pub(crate) fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		let owner: H160 = input.read::<Address>().in_field("owner")?.into();
+		read_args!(handle, { owner: Address });
+		let owner: H160 = owner.into();
 
 		let nonce = NoncesStorage::<Instance>::get(owner);
 

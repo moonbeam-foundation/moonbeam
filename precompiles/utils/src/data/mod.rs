@@ -692,8 +692,9 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 /// ```
 #[macro_export]
 macro_rules! read_struct {
-	($reader:ident, ($($field:ident),+)) => {
-		let ($($field),*) = $reader
+	($reader:ident, {$($field:ident: $type:ty),+}) => {
+		use $crate::revert::BacktraceExt as _;
+		let ($($field),*): ($($type),*) = $reader
 			.read()
 			.map_in_tuple_to_field(&[$(stringify!($field)),*])?;
 	};
@@ -705,22 +706,24 @@ macro_rules! read_struct {
 /// and identifiers used should match Solidity ones.
 ///
 /// Identifiers written in Rust in snake_case are converted to
-/// camelCase to match Solidity conventions. 
+/// camelCase to match Solidity conventions.
 ///
 /// ```rust,ignore
-/// let mut input = handle.read_input()?;
-///
 /// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.
-/// read_args!(input, {owner: Address, account_index: U256});
+/// read_args!(handle, {owner: Address, account_index: U256});
 /// let owner: H160 = owner.into();
 ///
 /// ```
 #[macro_export]
 macro_rules! read_args {
-	($input:ident, {$($field:ident: $type:ty),+}) => {
+	(@count) => (0usize);
+	(@count $x:ident $($xs:ident)* ) => (1usize + read_args!(@count $($xs)*));
+	($handle:ident, {$($field:ident: $type:ty),*}) => {
 		$crate::data::paste! {
+			let mut input = $handle.read_after_selector()?;
+			input.expect_arguments(read_args!(@count $($field)*))?;
 			$(
-				let $field: $type = $input.read().in_field(
+				let $field: $type = input.read().in_field(
 					stringify!([<$field:camel>])
 				)?;
 			)*

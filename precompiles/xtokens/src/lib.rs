@@ -135,19 +135,16 @@ where
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
 	fn transfer(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
+		read_args!(handle, {
+			currency_address: Address,
+			amount: U256,
+			destination: MultiLocation,
+			weight: u64
+		});
 
-		// Bound check
-		input.expect_arguments(4)?;
-		let to_address: H160 = input.read::<Address>().in_field("currency_address")?.into();
-		let amount: U256 = input.read().in_field("amount")?;
-
-		// We use the MultiLocation, which we have instructed how to read
-		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
-
+		let to_address: H160 = currency_address.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
 		// We convert the address into a currency id xtokens understands
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
@@ -162,7 +159,7 @@ where
 			currency_id,
 			amount,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -171,24 +168,22 @@ where
 	}
 
 	fn transfer_with_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(5)?;
+		read_args!(handle, {
+			currency_address: Address,
+			amount: U256,
+			fee: U256,
+			destination: MultiLocation,
+			weight: u64
+		});
 
-		let to_address: H160 = input.read::<Address>().in_field("currency_address")?.into();
-		let amount: U256 = input.read().in_field("amount")?;
-		let fee: U256 = input.read().in_field("fee")?;
-
-		// We use the MultiLocation, which we have instructed how to read
-		// In the end we are using the encoding
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
-
+		let to_address: H160 = currency_address.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
+
 		// We convert the address into a currency id xtokens understands
 		let currency_id: <Runtime as orml_xtokens::Config>::CurrencyId =
-			Runtime::account_to_currency_id(to_account)
-				.ok_or(revert("cannot convert into currency id"))?;
+			Runtime::account_to_currency_id(to_account).ok_or(
+				RevertReason::custom("Cannot convert into currency id").in_field("currencyAddress"),
+			)?;
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -207,7 +202,7 @@ where
 			amount,
 			fee,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -216,19 +211,12 @@ where
 	}
 
 	fn transfer_multiasset(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(4)?;
-
-		// asset is defined as a multiLocation. For now we are assuming these are concrete
-		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>().in_field("asset")?;
-
-		let amount: U256 = input.read().in_field("amount")?;
-
-		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
+		read_args!(handle, {
+			asset: MultiLocation,
+			amount: U256,
+			destination: MultiLocation,
+			weight: u64
+		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let to_balance = amount
@@ -237,11 +225,11 @@ where
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
-				id: AssetId::Concrete(asset_multilocation),
+				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(to_balance),
 			})),
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -252,19 +240,13 @@ where
 	fn transfer_multiasset_with_fee(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(5)?;
-
-		// asset is defined as a multiLocation. For now we are assuming these are concrete
-		// fungible assets
-		let asset_multilocation: MultiLocation = input.read::<MultiLocation>().in_field("asset")?;
-		let amount: U256 = input.read().in_field("amount")?;
-		let fee: U256 = input.read().in_field("fee")?;
-
-		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
+		read_args!(handle, {
+			asset: MultiLocation,
+			amount: U256,
+			fee: U256,
+			destination: MultiLocation,
+			weight: u64
+		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
@@ -276,15 +258,15 @@ where
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multiasset_with_fee {
 			asset: Box::new(VersionedMultiAsset::V1(MultiAsset {
-				id: AssetId::Concrete(asset_multilocation.clone()),
+				id: AssetId::Concrete(asset.clone()),
 				fun: Fungibility::Fungible(amount),
 			})),
 			fee: Box::new(VersionedMultiAsset::V1(MultiAsset {
-				id: AssetId::Concrete(asset_multilocation),
+				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(fee),
 			})),
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -295,27 +277,17 @@ where
 	fn transfer_multi_currencies(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(4)?;
-		let non_mapped_currencies: BoundedVec<Currency, GetMaxAssets<Runtime>> =
-			input.read().in_field("currencies")?;
-
-		let fee_item: u32 = input.read::<u32>().in_field("fee_item")?;
-
-		// read destination
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
+		read_args!(handle, {
+			currencies: BoundedVec<Currency, GetMaxAssets<Runtime>>,
+			fee_item: u32,
+			destination: MultiLocation,
+			weight: u64
+		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		// Build all currencies
-		let currencies: EvmResult<
-			Vec<(
-				<Runtime as orml_xtokens::Config>::CurrencyId,
-				XBalanceOf<Runtime>,
-			)>,
-		> = non_mapped_currencies
+		let currencies = currencies
 			.into_vec()
 			.into_iter()
 			.enumerate()
@@ -339,15 +311,13 @@ where
 					amount,
 				))
 			})
-			.collect();
-
-		let currencies_non_result = currencies?;
+			.collect::<EvmResult<_>>()?;
 
 		let call = orml_xtokens::Call::<Runtime>::transfer_multicurrencies {
-			currencies: currencies_non_result,
+			currencies,
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -356,14 +326,12 @@ where
 	}
 
 	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(4)?;
-		let assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>> =
-			input.read().in_field("assets")?;
-
-		let fee_item: u32 = input.read::<u32>().in_field("fee_item")?;
-		let destination: MultiLocation = input.read::<MultiLocation>().in_field("destination")?;
-		let dest_weight: u64 = input.read::<u64>().in_field("weight")?;
+		read_args!(handle, {
+			assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>>,
+			fee_item: u32,
+			destination: MultiLocation,
+			weight: u64
+		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -393,7 +361,7 @@ where
 			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight,
+			dest_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -410,7 +378,7 @@ pub struct Currency {
 // For Currencies
 impl EvmData for Currency {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		read_struct!(reader, (address, amount));
+		read_struct!(reader, {address: Address, amount: U256});
 		Ok(Currency { address, amount })
 	}
 
@@ -440,7 +408,7 @@ pub struct EvmMultiAsset {
 
 impl EvmData for EvmMultiAsset {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		read_struct!(reader, (location, amount));
+		read_struct!(reader, {location: MultiLocation, amount: U256});
 		Ok(EvmMultiAsset { location, amount })
 	}
 

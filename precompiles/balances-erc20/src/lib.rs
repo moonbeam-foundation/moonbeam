@@ -269,11 +269,7 @@ where
 	fn balance_of(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		read_args!(input, { owner: Address });
+		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
 		// Fetch info.
@@ -289,11 +285,7 @@ where
 	fn allowance(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {owner: Address, spender: Address});
+		read_args!(handle, {owner: Address, spender: Address});
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
@@ -315,11 +307,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {spender: Address, value: U256});
+		read_args!(handle, {spender: Address, value: U256});
 		let spender: H160 = spender.into();
 
 		// Write into storage.
@@ -349,11 +337,7 @@ where
 	fn transfer(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {to: Address, value: U256});
+		read_args!(handle, {to: Address, value: U256});
 		let to: H160 = to.into();
 
 		// Build call with origin.
@@ -391,11 +375,7 @@ where
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
-		read_args!(input, {from: Address, to: Address, value: U256});
+		read_args!(handle, {from: Address, to: Address, value: U256});
 		let from: H160 = from.into();
 		let to: H160 = to.into();
 
@@ -522,8 +502,7 @@ where
 
 		handle.record_log_costs_manual(2, 32)?;
 
-		let mut input = handle.read_input()?;
-		let withdrawn_amount: U256 = input.read().in_field("value")?;
+		read_args!(handle, { value: U256 });
 
 		let account_amount: U256 = {
 			let owner: Runtime::AccountId =
@@ -531,7 +510,7 @@ where
 			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
 		};
 
-		if withdrawn_amount > account_amount {
+		if value > account_amount {
 			return Err(revert("Trying to withdraw more than owned"));
 		}
 
@@ -539,7 +518,7 @@ where
 			handle.context().address,
 			SELECTOR_LOG_WITHDRAWAL,
 			handle.context().caller,
-			EvmDataWriter::new().write(withdrawn_amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 

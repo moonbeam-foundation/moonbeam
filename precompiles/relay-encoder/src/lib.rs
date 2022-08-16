@@ -150,17 +150,15 @@ where
 	fn encode_bond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(4)?;
-
-		let address: [u8; 32] = input.read::<H256>().in_field("address")?.into();
-		let amount: U256 = input.read().in_field("amount")?;
+		read_args!(handle, {
+			controller_address: H256,
+			amount: U256,
+			reward_destination: RewardDestinationWrapper
+		});
+		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
+		let reward_destination = reward_destination.into();
 
-		let reward_destination = input
-			.read::<RewardDestinationWrapper>()
-			.in_field("reward_destination")?
-			.into();
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 			address.into(),
 			relay_amount,
@@ -175,10 +173,8 @@ where
 	fn encode_bond_extra(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
+		read_args!(handle, { amount: U256 });
 
-		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
@@ -191,10 +187,8 @@ where
 	fn encode_unbond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
+		read_args!(handle, { amount: U256 });
 
-		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
@@ -207,12 +201,10 @@ where
 	fn encode_withdraw_unbonded(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
+		read_args!(handle, { slashes: u32 });
 
-		let num_slashing_spans: u32 = input.read().in_field("slashes")?;
 		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(num_slashing_spans))
+			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
 				.as_slice()
 				.into();
 
@@ -222,12 +214,9 @@ where
 	fn encode_validate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
+		read_args!(handle, {comission: u32, blocked: bool});
 
-		let parst_per_billion: u32 = input.read().in_field("comission")?;
-		let blocked: bool = input.read().in_field("blocked")?;
-		let fraction = Perbill::from_parts(parst_per_billion);
+		let fraction = Perbill::from_parts(comission);
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
@@ -243,11 +232,9 @@ where
 	fn encode_nominate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		let nominated_as_h256: BoundedVec<H256, GetArrayLimit> =
-			input.read().in_field("nominees")?;
+		read_args!(handle, { nominees: BoundedVec<H256, GetArrayLimit> });
 
-		let nominated: Vec<AccountId32> = nominated_as_h256
+		let nominated: Vec<AccountId32> = nominees
 			.into_vec()
 			.iter()
 			.map(|&add| {
@@ -265,8 +252,7 @@ where
 	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let input = handle.read_input()?;
-		input.expect_arguments(0)?;
+		read_args!(handle, {});
 
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
 			.as_slice()
@@ -278,13 +264,8 @@ where
 	fn encode_set_payee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		let reward_destination = input
-			.read::<RewardDestinationWrapper>()
-			.in_field("reward_destination")?
-			.into();
+		read_args!(handle, { reward_destination: RewardDestinationWrapper });
+		let reward_destination = reward_destination.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
@@ -297,8 +278,8 @@ where
 	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		let controller: [u8; 32] = input.read::<H256>().in_field("controller")?.into();
+		read_args!(handle, { controller: H256 });
+		let controller: [u8; 32] = controller.into();
 
 		let encoded: Bytes =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
@@ -311,10 +292,8 @@ where
 	fn encode_rebond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
+		read_args!(handle, { amount: U256 });
 
-		let amount: U256 = input.read().in_field("amount")?;
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
 			.as_slice()

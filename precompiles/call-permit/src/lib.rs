@@ -169,19 +169,23 @@ where
 		handle.record_cost(Self::dispatch_inherent_cost())?;
 
 		// PARSE INPUT
-		let mut input = handle.read_input()?;
-		let from = input.read::<Address>().in_field("from")?.0;
-		let to = input.read::<Address>().in_field("to")?.0;
-		let value: U256 = input.read().in_field("value")?;
-		let data = input
-			.read::<BoundedBytes<ConstU32<CALL_DATA_LIMIT>>>()
-			.in_field("data")?
-			.into_vec();
-		let gas_limit: u64 = input.read().in_field("gasLimit")?;
-		let deadline: U256 = input.read().in_field("deadline")?;
-		let v: u8 = input.read().in_field("v")?;
-		let r: H256 = input.read().in_field("r")?;
-		let s: H256 = input.read().in_field("s")?;
+		read_args!(
+			handle,
+			{
+				from: Address,
+				to: Address,
+				value: U256,
+				data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
+				gas_limit: u64,
+				deadline: U256,
+				v: u8,
+				r: H256,
+				s: H256
+			}
+		);
+		let from: H160 = from.into();
+		let to: H160 = to.into();
+		let data: Vec<u8> = data.into_vec();
 
 		// ENSURE GASLIMIT IS SUFFICIENT
 		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
@@ -264,10 +268,10 @@ where
 	fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		let from: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { owner: Address });
+		let owner: H160 = owner.into();
 
-		let nonce = NoncesStorage::get(from);
+		let nonce = NoncesStorage::get(owner);
 
 		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
 	}

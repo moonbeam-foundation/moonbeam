@@ -318,10 +318,7 @@ where
 	// Storage Getters
 
 	fn points(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let round = input.read::<u32>().in_field("round")?;
+		read_args!(handle, { round: u32 });
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -354,16 +351,13 @@ where
 	fn candidate_delegation_count(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let address = input.read::<Address>().in_field("candidate")?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result = if let Some(state) =
-			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&address)
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
 		{
 			let candidate_delegation_count: u32 = state.delegation_count;
 
@@ -377,7 +371,7 @@ where
 			log::trace!(
 				target: "staking-precompile",
 				"Candidate {:?} not found, so delegation count is 0",
-				address
+				candidate
 			);
 			0u32
 		};
@@ -389,16 +383,13 @@ where
 	fn delegator_delegation_count(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let address = input.read::<Address>().in_field("delegator")?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		read_args!(handle, { delegator: Address });
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let result = if let Some(state) =
-			<pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&address)
+			<pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
 		{
 			let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
 
@@ -413,7 +404,7 @@ where
 			log::trace!(
 				target: "staking-precompile",
 				"Delegator {:?} not found, so delegation count is 0",
-				address
+				delegator
 			);
 			0u32
 		};
@@ -440,46 +431,37 @@ where
 	// Role Verifiers
 
 	fn is_delegator(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let address = input.read::<Address>().in_field("delegator")?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		read_args!(handle, { delegator: Address });
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_delegator = pallet_parachain_staking::Pallet::<Runtime>::is_delegator(&address);
+		let is_delegator = pallet_parachain_staking::Pallet::<Runtime>::is_delegator(&delegator);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_delegator).build()))
 	}
 
 	fn is_candidate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let address = input.read::<Address>().in_field("candidate")?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_candidate = pallet_parachain_staking::Pallet::<Runtime>::is_candidate(&address);
+		let is_candidate = pallet_parachain_staking::Pallet::<Runtime>::is_candidate(&candidate);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_candidate).build()))
 	}
 
 	fn is_selected_candidate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let address = input.read::<Address>().in_field("candidate")?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let is_selected =
-			pallet_parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
+			pallet_parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate);
 
 		// Build output.
 		Ok(succeed(EvmDataWriter::new().write(is_selected).build()))
@@ -488,17 +470,9 @@ where
 	fn delegation_request_is_pending(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-
-		// First argument is delegator
-		let delegator = input.read::<Address>().in_field("delegator")?.0;
-		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-
-		// Second argument is candidate
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, {delegator: Address, candidate: Address});
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -516,13 +490,8 @@ where
 	fn candidate_exit_is_pending(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-
-		// Only argument is candidate
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -549,13 +518,8 @@ where
 	fn candidate_request_is_pending(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-
-		// Only argument is candidate
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -587,16 +551,11 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-		let bond: BalanceOf<Runtime> = input.read().in_field("amount")?;
-		let candidate_count = input.read().in_field("candidateCount")?;
-
+		read_args!(handle, {amount: BalanceOf<Runtime>, candidate_count: u32});
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::join_candidates {
-			bond,
+			bond: amount,
 			candidate_count,
 		};
 
@@ -610,10 +569,7 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let candidate_count = input.read().in_field("candidateCount")?;
+		read_args!(handle, { candidate_count: u32 });
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -631,18 +587,14 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let candidate_delegation_count = input.read().in_field("candidateCount")?;
+		read_args!(handle, {candidate: Address, candidate_count: u32});
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_candidates {
 			candidate,
-			candidate_delegation_count,
+			candidate_delegation_count: candidate_count,
 		};
 
 		// Return call information
@@ -655,10 +607,7 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let candidate_count = input.read().in_field("candidateCount")?;
+		read_args!(handle, { candidate_count: u32 });
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -703,10 +652,7 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let more: BalanceOf<Runtime> = input.read().in_field("more")?;
+		read_args!(handle, {more: BalanceOf<Runtime>});
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -722,10 +668,7 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let less: BalanceOf<Runtime> = input.read().in_field("less")?;
+		read_args!(handle, {less: BalanceOf<Runtime>});
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -741,11 +684,8 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -776,15 +716,13 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(4)?;
-
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let amount: BalanceOf<Runtime> = input.read().in_field("amount")?;
-		let candidate_delegation_count = input.read().in_field("candidateDelegationCount")?;
-		let delegation_count = input.read().in_field("delegatorDelegationCount")?;
+		read_args!(handle, {
+			candidate: Address,
+			amount: BalanceOf<Runtime>,
+			candidate_delegation_count: u32,
+			delegator_delegation_count: u32
+		});
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -792,7 +730,7 @@ where
 			candidate,
 			amount,
 			candidate_delegation_count,
-			delegation_count,
+			delegation_count: delegator_delegation_count,
 		};
 
 		// Return call information
@@ -819,18 +757,14 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-		let delegator = input.read::<Address>().in_field("delegator")?.0;
-		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let delegation_count = input.read().in_field("delegatorDelegationCount")?;
+		read_args!(handle, {delegator: Address, delegator_delegation_count: u32});
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_delegators {
 			delegator,
-			delegation_count,
+			delegation_count: delegator_delegation_count,
 		};
 
 		// Return call information
@@ -857,16 +791,14 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let collator = input.read::<Address>().in_field("candidate")?.0;
-		let collator = Runtime::AddressMapping::into_account_id(collator);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call =
-			pallet_parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_revoke_delegation {
+			collator: candidate,
+		};
 
 		// Return call information
 		Ok((Some(origin).into(), call))
@@ -878,12 +810,8 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let more: BalanceOf<Runtime> = input.read().in_field("more")?;
+		read_args!(handle, {candidate: Address, more: BalanceOf<Runtime>});
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -900,12 +828,8 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let less: BalanceOf<Runtime> = input.read().in_field("less")?;
+		read_args!(handle, {candidate: Address, less: BalanceOf<Runtime>});
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -924,13 +848,9 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(2)?;
-		let delegator = input.read::<Address>().in_field("delegator")?.0;
-		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, {delegator: Address, candidate: Address});
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -949,11 +869,8 @@ where
 		<Runtime::Call as Dispatchable>::Origin,
 		pallet_parachain_staking::Call<Runtime>,
 	)> {
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		// Read input.
-		input.expect_arguments(1)?;
-		let candidate = input.read::<Address>().in_field("candidate")?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		read_args!(handle, { candidate: Address });
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);

@@ -142,7 +142,6 @@ fn valid_permit_returns() {
 }
 
 #[test]
-#[ignore = "encoding issues, will be enabled in https://github.com/PureStake/moonbeam/pull/1734"]
 fn valid_permit_reverts() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])

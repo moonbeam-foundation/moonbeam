@@ -80,7 +80,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Network
 				.in_field("name")?
 				.to_vec()
 				.try_into()
-				.map_err(|_| RevertReason::value_is_too_large("network name"))?,
+				.map_err(|_| RevertReason::value_is_too_large("network name").in_field("name"))?,
 		)),
 		2 => Ok(NetworkId::Polkadot),
 		3 => Ok(NetworkId::Kusama),
@@ -251,7 +251,7 @@ impl EvmData for Junctions {
 
 impl EvmData for MultiLocation {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		crate::read_struct!(reader, (parents, interior));
+		crate::read_struct!(reader, {parents: u8, interior: Junctions});
 		Ok(MultiLocation { parents, interior })
 	}
 

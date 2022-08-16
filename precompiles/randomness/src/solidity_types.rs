@@ -31,7 +31,7 @@ pub enum RandomnessSource {
 
 impl EvmData for RequestStatus {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		match reader.read()? {
+		match reader.read().in_field("variant")? {
 			0u8 => Ok(RequestStatus::DoesNotExist),
 			1u8 => Ok(RequestStatus::Pending),
 			2u8 => Ok(RequestStatus::Ready),
@@ -57,7 +57,7 @@ impl EvmData for RequestStatus {
 
 impl EvmData for RandomnessSource {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		match reader.read()? {
+		match reader.read().in_field("variant")? {
 			0u8 => Ok(RandomnessSource::LocalVRF),
 			1u8 => Ok(RandomnessSource::RelayBabeEpoch),
 			_ => Err(RevertReason::custom("Unknown RandomnessSource variant").into()),

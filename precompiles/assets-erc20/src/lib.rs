@@ -289,11 +289,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		read_args!(input, { who: Address });
+		read_args!(handle, { who: Address });
 		let who: H160 = who.into();
 
 		// Fetch info.
@@ -312,11 +308,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {owner: Address, spender: Address});
+		read_args!(handle, {owner: Address, spender: Address});
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
@@ -339,11 +331,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {spender: Address, value: U256});
+		read_args!(handle, {spender: Address, value: U256});
 		let spender: H160 = spender.into();
 
 		Self::approve_inner(asset_id, handle, handle.context().caller, spender, value)?;
@@ -408,11 +396,7 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {to: Address, value: BalanceOf<Runtime, Instance>});
+		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
 		let to: H160 = to.into();
 
 		// Build call with origin.
@@ -451,12 +435,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
 		read_args!(
-			input,
+			handle,
 			{
 				from: Address,
 				to: Address,
@@ -575,11 +555,7 @@ where
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {to: Address, value: BalanceOf<Runtime, Instance>});
+		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
 		let to: H160 = to.into();
 
 		// Build call with origin.
@@ -622,11 +598,7 @@ where
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		read_args!(input, {from: Address, value: BalanceOf<Runtime, Instance>});
+		read_args!(handle, {from: Address, value: BalanceOf<Runtime, Instance>});
 		let from: H160 = from.into();
 
 		// Build call with origin.
@@ -667,11 +639,7 @@ where
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		read_args!(input, { account: Address });
+		read_args!(handle, { account: Address });
 		let account: H160 = account.into();
 
 		// Build call with origin.
@@ -702,11 +670,7 @@ where
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		read_args!(input, { account: Address });
+		read_args!(handle, { account: Address });
 		let account: H160 = account.into();
 
 		// Build call with origin.
@@ -785,11 +749,7 @@ where
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		read_args!(input, {owner: Address});
+		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
 		// Build call with origin.
@@ -820,11 +780,7 @@ where
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
-		read_args!(input, {issuer: Address, admin: Address, freezer: Address});
+		read_args!(handle, {issuer: Address, admin: Address, freezer: Address});
 		let issuer: H160 = issuer.into();
 		let admin: H160 = admin.into();
 		let freezer: H160 = freezer.into();
@@ -861,11 +817,7 @@ where
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
-		read_args!(input, {
+		read_args!(handle, {
 			name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
 			symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
 			decimals: u8

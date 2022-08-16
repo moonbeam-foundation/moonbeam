@@ -88,32 +88,36 @@ where
 	Runtime: pallet_evm::Config,
 {
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let addresses: BoundedVec<Address, GetArrayLimit> = input.read().in_field("to")?;
-		let values: BoundedVec<U256, GetArrayLimit> = input.read().in_field("value")?;
-		let calls_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit> =
-			input.read().in_field("callData")?;
-		let gas_limits: BoundedVec<u64, GetArrayLimit> = input.read().in_field("gasLimit")?;
+		let (addresses, values, calls_data, gas_limits);
 
-		let addresses = addresses.into_vec().into_iter().enumerate();
-		let values = values
-			.into_vec()
-			.into_iter()
-			.map(|x| Some(x))
-			.chain(repeat(None));
-		let calls_data = calls_data
-			.into_vec()
-			.into_iter()
-			.map(|x| Some(x.into_vec()))
-			.chain(repeat(None));
-		let gas_limits = gas_limits.into_vec().into_iter().map(|x|
-			// x = 0 => forward all remaining gas
-			if x == 0 {
-				None
-			} else {
-				Some(x)
-			}
-		).chain(repeat(None));
+		{
+			read_args!(handle, {
+				to: BoundedVec<Address, GetArrayLimit>,
+				value: BoundedVec<U256, GetArrayLimit>,
+				call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+				gas_limit: BoundedVec<u64, GetArrayLimit>
+			});
+
+			addresses = to.into_vec().into_iter().enumerate();
+			values = value
+				.into_vec()
+				.into_iter()
+				.map(|x| Some(x))
+				.chain(repeat(None));
+			calls_data = call_data
+				.into_vec()
+				.into_iter()
+				.map(|x| Some(x.into_vec()))
+				.chain(repeat(None));
+			gas_limits = gas_limit.into_vec().into_iter().map(|x|
+				// x = 0 => forward all remaining gas
+				if x == 0 {
+					None
+				} else {
+					Some(x)
+				}
+			).chain(repeat(None));
+		}
 
 		// Cost of batch log. (doesn't change when index changes)
 		let log_cost = log_subcall_failed(handle.code_address(), 0)

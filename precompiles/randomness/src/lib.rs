@@ -178,7 +178,7 @@ where
 			Action::RequestLocalVRFRandomWords => Self::request_local_randomness(handle),
 			Action::FulfillRequest => Self::fulfill_request(handle),
 			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
-			Action::PurgeExpiredRequest => Self::execute_request_expiration(handle),
+			Action::PurgeExpiredRequest => Self::purge_expired_request(handle),
 		}
 	}
 }
@@ -198,12 +198,7 @@ where
 		))
 	}
 	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id: u64 = handle
-			.read_input()?
-			.read::<U256>()
-			.in_field("requestId")?
-			.try_into()
-			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
+		read_args!(handle, { request_id: u64 });
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let status =
@@ -221,12 +216,8 @@ where
 		Ok(succeed(EvmDataWriter::new().write(status).build()))
 	}
 	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let request_id: u64 = handle
-			.read_input()?
-			.read::<U256>()
-			.in_field("requestId")?
-			.try_into()
-			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
+		read_args!(handle, { request_id: u64 });
+
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
 		let RequestState { request, .. } =
@@ -295,17 +286,19 @@ where
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
 
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()
-			.in_field("fee")?
+		read_args!(handle, {
+			refund_address: Address,
+			fee: U256,
+			gas_limit: u64,
+			salt: H256,
+			num_words: u8
+		});
+		let refund_address: H160 = refund_address.into();
+		let fee: BalanceOf<Runtime> = fee
 			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
-		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
-		let salt = input.read::<H256>().in_field("salt")?;
-		let num_words = input.read::<u8>().in_field("numWords")?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
+
+		let contract_address = handle.context().caller;
 
 		let two_epochs_later =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index()
@@ -337,26 +330,26 @@ where
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
 
-		let mut input = handle.read_input()?;
-		let contract_address = handle.context().caller;
-		let refund_address = input.read::<Address>().in_field("refundAddress")?.0;
-		let fee: BalanceOf<Runtime> = input
-			.read::<U256>()
-			.in_field("fee")?
+		read_args!(handle, {
+			refund_address: Address,
+			fee: U256,
+			gas_limit: u64,
+			salt: H256,
+			num_words: u8,
+			delay: u64
+		});
+		let refund_address: H160 = refund_address.into();
+		let fee: BalanceOf<Runtime> = fee
 			.try_into()
-			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
-			.in_field("fee")?;
+			.map_err(|_| RevertReason::value_is_too_large("balance type").in_field("fee"))?;
 
-		let gas_limit = input.read::<u64>().in_field("gasLimit")?;
-		let salt = input.read::<H256>().in_field("salt")?;
-		let num_words = input.read::<u8>().in_field("numWords")?;
-		let blocks_after_current = input.read::<u64>().in_field("delay")?;
+		let contract_address = handle.context().caller;
 
 		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
 			.map_err(|_| revert("block number overflowed u64"))?;
 
-		let requested_block_number = blocks_after_current
+		let requested_block_number = delay
 			.checked_add(current_block_number)
 			.ok_or(revert("addition result overflowed u64"))?
 			.try_into()
@@ -383,8 +376,7 @@ where
 	}
 	/// Fulfill a randomness request due to be fulfilled
 	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let request_id: u64 = input.read::<u64>().in_field("requestId")?;
+		read_args!(handle, { request_id: u64 });
 
 		// read all the inputs
 		let pallet_randomness::FulfillArgs {
@@ -439,18 +431,19 @@ where
 	}
 	/// Increase the fee used to refund fulfillment of the request
 	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let request_id: u64 = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
-		let fee_increase: BalanceOf<Runtime> = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("amount is too large for provided balance type"))?;
 		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
+
+		read_args!(handle, {
+			request_id: u64,
+			fee_increase: U256
+		});
+		let fee_increase: BalanceOf<Runtime> = fee_increase.try_into().map_err(|_| {
+			RevertReason::value_is_too_large("balance type").in_field("feeIncrease")
+		})?;
+
 		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
+
 		Ok(PrecompileOutput {
 			exit_status: ExitSucceed::Returned,
 			output: Default::default(),
@@ -458,15 +451,11 @@ where
 	}
 	/// Execute request expiration to remove the request from storage
 	/// Transfers `fee` to caller and `deposit` back to `contract_address`
-	fn execute_request_expiration(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let request_id: u64 = input
-			.read::<U256>()?
-			.try_into()
-			.map_err(|_| revert("Input RequestId overflows u64 type set in Pallet"))?;
+	fn purge_expired_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
+
+		read_args!(handle, { request_id: u64 });
+
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 		Ok(PrecompileOutput {

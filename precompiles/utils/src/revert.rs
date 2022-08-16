@@ -150,16 +150,16 @@ impl core::fmt::Display for RevertReason {
 /// implement `Display` and `Debug`.
 #[derive(PartialEq, Eq)]
 pub struct Revert {
-	kind: RevertReason,
+	reason: RevertReason,
 	backtrace: Backtrace,
 }
 
 impl Revert {
 	/// Create a new `Revert` with a `RevertReason` and
 	/// an empty backtrace.
-	pub fn new(kind: RevertReason) -> Self {
+	pub fn new(reason: RevertReason) -> Self {
 		Self {
-			kind,
+			reason,
 			backtrace: Backtrace::new(),
 		}
 	}
@@ -171,7 +171,7 @@ impl Revert {
 	pub fn change_what(mut self, what: impl Into<String>) -> Self {
 		let what = what.into();
 
-		self.kind = match self.kind {
+		self.reason = match self.reason {
 			RevertReason::ReadOutOfBounds { .. } => RevertReason::ReadOutOfBounds { what },
 			RevertReason::ValueIsTooLarge { .. } => RevertReason::ValueIsTooLarge { what },
 			other => other,
@@ -198,7 +198,7 @@ impl core::fmt::Display for Revert {
 			write!(f, "{}: ", self.backtrace)?;
 		}
 
-		write!(f, "{}", self.kind)
+		write!(f, "{}", self.reason)
 	}
 }
 
@@ -228,13 +228,22 @@ pub trait InjectBacktrace {
 
 	/// Occurs in an array at provided index.
 	fn in_array(self, index: usize) -> Self::Output;
+}
 
+/// Additional function for everything having a Backtrace.
+pub trait BacktraceExt {
 	/// Map last tuple entry into a field.
 	/// Does nothing if last entry is not a tuple.
 	/// As in Solidity structs are equivalent to tuples and are tricky to parse correctly,
 	/// it allows to parse any struct as a tuple (with the correct implementation in this crate) and
 	/// then map tuple indices to struct fields.
-	fn map_in_tuple_to_field(self, fields: &[&'static str]) -> Self::Output;
+	fn map_in_tuple_to_field(self, fields: &[&'static str]) -> Self;
+}
+
+/// Additional functions for Revert and MayRevert.
+pub trait RevertExt {
+	/// Map the reason while keeping the same backtrace.
+	fn map_reason(self, f: impl FnOnce(RevertReason) -> RevertReason) -> Self;
 }
 
 impl InjectBacktrace for RevertReason {
@@ -252,11 +261,6 @@ impl InjectBacktrace for RevertReason {
 
 	fn in_tuple(self, index: usize) -> Revert {
 		Revert::new(self).in_tuple(index)
-	}
-
-	fn map_in_tuple_to_field(self, _fields: &[&'static str]) -> Revert {
-		// No entry to map
-		Revert::new(self)
 	}
 }
 
@@ -277,7 +281,9 @@ impl InjectBacktrace for Backtrace {
 		self.0.push(BacktracePart::Tuple(index));
 		self
 	}
+}
 
+impl BacktraceExt for Backtrace {
 	fn map_in_tuple_to_field(mut self, fields: &[&'static str]) -> Self {
 		if let Some(entry) = self.0.last_mut() {
 			if let BacktracePart::Tuple(index) = *entry {
@@ -307,14 +313,23 @@ impl InjectBacktrace for Revert {
 		self.backtrace = self.backtrace.in_tuple(index);
 		self
 	}
+}
 
+impl RevertExt for Revert {
+	fn map_reason(mut self, f: impl FnOnce(RevertReason) -> RevertReason) -> Self {
+		self.reason = f(self.reason);
+		self
+	}
+}
+
+impl BacktraceExt for Revert {
 	fn map_in_tuple_to_field(mut self, fields: &[&'static str]) -> Self {
 		self.backtrace = self.backtrace.map_in_tuple_to_field(fields);
 		self
 	}
 }
 
-impl<T> InjectBacktrace for Result<T, Revert> {
+impl<T> InjectBacktrace for MayRevert<T> {
 	type Output = Self;
 
 	fn in_field(self, field: impl Into<String>) -> Self {
@@ -328,7 +343,15 @@ impl<T> InjectBacktrace for Result<T, Revert> {
 	fn in_tuple(self, index: usize) -> Self {
 		self.map_err(|e| e.in_tuple(index))
 	}
+}
 
+impl<T> RevertExt for MayRevert<T> {
+	fn map_reason(self, f: impl FnOnce(RevertReason) -> RevertReason) -> Self {
+		self.map_err(|e| e.map_reason(f))
+	}
+}
+
+impl<T> BacktraceExt for MayRevert<T> {
 	fn map_in_tuple_to_field(self, fields: &[&'static str]) -> Self {
 		self.map_err(|e| e.map_in_tuple_to_field(fields))
 	}

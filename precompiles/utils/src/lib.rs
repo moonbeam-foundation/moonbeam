@@ -95,7 +95,7 @@ pub mod prelude {
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
 			read_args, read_struct, revert,
-			revert::{InjectBacktrace, MayRevert, Revert, RevertReason},
+			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::RuntimeHelper,
 			succeed, EvmResult, StatefulPrecompile,
 		},

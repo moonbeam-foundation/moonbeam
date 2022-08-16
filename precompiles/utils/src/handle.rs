@@ -42,7 +42,7 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> MayRevert<EvmDataReader>;
+	fn read_after_selector(&self) -> MayRevert<EvmDataReader>;
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
@@ -83,7 +83,7 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> MayRevert<EvmDataReader> {
+	fn read_after_selector(&self) -> MayRevert<EvmDataReader> {
 		EvmDataReader::new_skip_selector(self.input())
 	}
 }
