@@ -19,7 +19,8 @@
 use core::marker::PhantomData;
 use evm::ExitReason;
 use fp_evm::{
-	Context, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
+	Context, ExitRevert, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
+	Transfer,
 };
 use frame_support::{
 	ensure,
@@ -151,7 +152,6 @@ where
 			.write(deadline)
 			.build();
 		let permit_content = keccak_256(&permit_content);
-
 		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
 		pre_digest.extend_from_slice(b"\x19\x01");
 		pre_digest.extend_from_slice(&domain_separator);
@@ -247,12 +247,16 @@ where
 
 		let (reason, output) =
 			handle.call(to, transfer, data, Some(gas_limit), false, &sub_context);
-
 		match reason {
 			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(revert(output)),
-			ExitReason::Succeed(_) => Ok(succeed(output)),
+			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
+			}),
+			ExitReason::Succeed(_) => {
+				Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build()))
+			}
 		}
 	}
 

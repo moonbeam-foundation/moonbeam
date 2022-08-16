@@ -50,20 +50,32 @@ type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
-	PublicPropCount = "public_prop_count()",
-	DepositOf = "deposit_of(uint256)",
-	LowestUnbaked = "lowest_unbaked()",
-	OngoingReferendumInfo = "ongoing_referendum_info(uint256)",
-	FinishedReferendumInfo = "finished_referendum_info(uint256)",
+	PublicPropCount = "publicPropCount()",
+	DepositOf = "depositOf(uint256)",
+	LowestUnbaked = "lowestUnbaked()",
+	OngoingReferendumInfo = "ongoingReferendumInfo(uint256)",
+	FinishedReferendumInfo = "finishedReferendumInfo(uint256)",
 	Propose = "propose(bytes32,uint256)",
 	Second = "second(uint256,uint256)",
-	StandardVote = "standard_vote(uint256,bool,uint256,uint256)",
-	RemoveVote = "remove_vote(uint256)",
+	StandardVote = "standardVote(uint256,bool,uint256,uint256)",
+	RemoveVote = "removeVote(uint256)",
 	Delegate = "delegate(address,uint256,uint256)",
-	UnDelegate = "un_delegate()",
+	UnDelegate = "unDelegate()",
 	Unlock = "unlock(address)",
-	NotePreimage = "note_preimage(bytes)",
-	NoteImminentPreimage = "note_imminent_preimage(bytes)",
+	NotePreimage = "notePreimage(bytes)",
+	NoteImminentPreimage = "noteImminentPreimage(bytes)",
+
+	// deprecated
+	DeprecatedPublicPropCount = "public_prop_count()",
+	DeprecatedDepositOf = "deposit_of(uint256)",
+	DeprecatedLowestUnbaked = "lowest_unbaked()",
+	DeprecatedOngoingReferendumInfo = "ongoing_referendum_info(uint256)",
+	DeprecatedFinishedReferendumInfo = "finished_referendum_info(uint256)",
+	DeprecatedStandardVote = "standard_vote(uint256,bool,uint256,uint256)",
+	DeprecatedRemoveVote = "remove_vote(uint256)",
+	DeprecatedUnDelegate = "un_delegate()",
+	DeprecatedNotePreimage = "note_preimage(bytes)",
+	DeprecatedNoteImminentPreimage = "note_imminent_preimage(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet democracy.
@@ -97,28 +109,41 @@ where
 			| Action::UnDelegate
 			| Action::Unlock
 			| Action::NotePreimage
-			| Action::NoteImminentPreimage => FunctionModifier::NonPayable,
+			| Action::NoteImminentPreimage
+			| Action::DeprecatedStandardVote
+			| Action::DeprecatedRemoveVote
+			| Action::DeprecatedUnDelegate
+			| Action::DeprecatedNotePreimage
+			| Action::DeprecatedNoteImminentPreimage => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Storage Accessors
-			Action::PublicPropCount => Self::public_prop_count(handle),
-			Action::DepositOf => Self::deposit_of(handle),
-			Action::LowestUnbaked => Self::lowest_unbaked(handle),
-			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(handle),
-			Action::FinishedReferendumInfo => Self::finished_referendum_info(handle),
+			Action::PublicPropCount | Action::DeprecatedPublicPropCount => {
+				Self::public_prop_count(handle)
+			}
+			Action::DepositOf | Action::DeprecatedDepositOf => Self::deposit_of(handle),
+			Action::LowestUnbaked | Action::DeprecatedLowestUnbaked => Self::lowest_unbaked(handle),
+			Action::OngoingReferendumInfo | Action::DeprecatedOngoingReferendumInfo => {
+				Self::ongoing_referendum_info(handle)
+			}
+			Action::FinishedReferendumInfo | Action::DeprecatedFinishedReferendumInfo => {
+				Self::finished_referendum_info(handle)
+			}
 
 			// Dispatchables
 			Action::Propose => Self::propose(handle),
 			Action::Second => Self::second(handle),
-			Action::StandardVote => Self::standard_vote(handle),
-			Action::RemoveVote => Self::remove_vote(handle),
+			Action::StandardVote | Action::DeprecatedStandardVote => Self::standard_vote(handle),
+			Action::RemoveVote | Action::DeprecatedRemoveVote => Self::remove_vote(handle),
 			Action::Delegate => Self::delegate(handle),
-			Action::UnDelegate => Self::un_delegate(handle),
+			Action::UnDelegate | Action::DeprecatedUnDelegate => Self::un_delegate(handle),
 			Action::Unlock => Self::unlock(handle),
-			Action::NotePreimage => Self::note_preimage(handle),
-			Action::NoteImminentPreimage => Self::note_imminent_preimage(handle),
+			Action::NotePreimage | Action::DeprecatedNotePreimage => Self::note_preimage(handle),
+			Action::NoteImminentPreimage | Action::DeprecatedNoteImminentPreimage => {
+				Self::note_imminent_preimage(handle)
+			}
 		}
 	}
 }

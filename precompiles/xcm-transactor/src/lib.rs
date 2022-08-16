@@ -53,16 +53,21 @@ type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	IndexToAccount = "index_to_account(uint16)",
+	IndexToAccount = "indexToAccount(uint16)",
 	// DEPRECATED
-	TransactInfo = "transact_info((uint8,bytes[]))",
+	TransactInfo = "transactInfo((uint8,bytes[]))",
 	TransactThroughDerivativeMultiLocation =
-		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
-	TransactThroughDerivative = "transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+		"transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	TransactThroughDerivative = "transactThroughDerivative(uint8,uint16,address,uint64,bytes)",
+	TransactInfoWithSigned = "transactInfoWithSigned((uint8,bytes[]))",
+	FeePerSecond = "feePerSecond((uint8,bytes[]))",
+	TransactThroughSignedMultiLocation =
+		"transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	TransactThroughSigned = "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
 	TransactThroughDerivativeCustomFeeAndWeight =
-		"transact_through_derivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
+		"transactThroughDerivative(uint8,uint16,address,uint64,bytes,uint256,uint64)",
 	TransactThroughDerivativeMultiLocationCustomFeeAndWeight =
-		"transact_through_derivative_multilocation(\
+		"transactThroughDerivativeMultilocation(\
 		uint8,\
 		uint16,\
 		(uint8,bytes[]),\
@@ -70,21 +75,30 @@ pub enum Action {
 		uint256,\
 		uint64\
 	)",
-	TransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
-	FeePerSecond = "fee_per_second((uint8,bytes[]))",
-	TransactThroughSignedMultiLocation =
-		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
-	TransactThroughSigned = "transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
-	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transact_through_signed_multilocation(\
-			(uint8,bytes[]),\
-			(uint8,bytes[]),\
-			uint64,\
-			bytes,\
-			uint256,\
-			uint64\
-		)",
+	TransactThroughSignedMultiLocationCustomFeeAndWeight = "transactThroughSignedMultilocation(\
+		(uint8,bytes[]),\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes,\
+		uint256,\
+		uint64\
+	)",
 	TransactThroughSignedCustomFeeAndWeight =
-		"transact_through_signed((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
+		"transactThroughSigned((uint8,bytes[]),address,uint64,bytes,uint256,uint64)",
+
+	// deprecated
+	DeprecatedIndexToAccount = "index_to_account(uint16)",
+	DeprecatedTransactInfo = "transact_info((uint8,bytes[]))",
+	DeprecatedTransactThroughDerivativeMultiLocation =
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+	DeprecatedTransactThroughDerivative =
+		"transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+	DeprecatedTransactInfoWithSigned = "transact_info_with_signed((uint8,bytes[]))",
+	DeprecatedFeePerSecond = "fee_per_second((uint8,bytes[]))",
+	DeprecatedTransactThroughSignedMultiLocation =
+		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+	DeprecatedTransactThroughSigned =
+		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 }
 
 /// A precompile to wrap the functionality from xcm transactor
@@ -108,6 +122,10 @@ where
 			| Action::TransactThroughDerivative
 			| Action::TransactThroughSignedMultiLocation
 			| Action::TransactThroughSigned
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactThroughDerivative
+			| Action::DeprecatedTransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSigned
 			| Action::TransactThroughSignedMultiLocationCustomFeeAndWeight
 			| Action::TransactThroughSignedCustomFeeAndWeight
 			| Action::TransactThroughDerivativeCustomFeeAndWeight
@@ -119,19 +137,29 @@ where
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IndexToAccount => Self::account_index(handle),
+			Action::IndexToAccount | Action::DeprecatedIndexToAccount => {
+				Self::account_index(handle)
+			}
 			// DEPRECATED
-			Action::TransactInfo => Self::transact_info(handle),
-			Action::TransactInfoWithSigned => Self::transact_info_with_signed(handle),
-			Action::FeePerSecond => Self::fee_per_second(handle),
-			Action::TransactThroughDerivativeMultiLocation => {
+			Action::TransactInfo | Action::DeprecatedTransactInfo => Self::transact_info(handle),
+			Action::TransactInfoWithSigned | Action::DeprecatedTransactInfoWithSigned => {
+				Self::transact_info_with_signed(handle)
+			}
+			Action::FeePerSecond | Action::DeprecatedFeePerSecond => Self::fee_per_second(handle),
+			Action::TransactThroughDerivativeMultiLocation
+			| Action::DeprecatedTransactThroughDerivativeMultiLocation => {
 				Self::transact_through_derivative_multilocation(handle)
 			}
-			Action::TransactThroughDerivative => Self::transact_through_derivative(handle),
-			Action::TransactThroughSignedMultiLocation => {
+			Action::TransactThroughDerivative | Action::DeprecatedTransactThroughDerivative => {
+				Self::transact_through_derivative(handle)
+			}
+			Action::TransactThroughSignedMultiLocation
+			| Action::DeprecatedTransactThroughSignedMultiLocation => {
 				Self::transact_through_signed_multilocation(handle)
 			}
-			Action::TransactThroughSigned => Self::transact_through_signed(handle),
+			Action::TransactThroughSigned | Action::DeprecatedTransactThroughSigned => {
+				Self::transact_through_signed(handle)
+			}
 			Action::TransactThroughDerivativeCustomFeeAndWeight => {
 				Self::transact_through_derivative_custom_fee_and_weight(handle)
 			}
