@@ -19,15 +19,32 @@
 //! - Substrate DB read and write costs
 
 use {
-	crate::{revert, EvmResult},
+	crate::{
+		revert,
+	},
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
+		pallet_prelude::DispatchError,
 		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 		traits::Get,
 	},
 	pallet_evm::GasWeightMapping,
 };
+
+pub enum TryDispatchError {
+	Evm(ExitError),
+	Substrate(DispatchError),
+}
+
+impl From<TryDispatchError> for PrecompileFailure {
+	fn from(f: TryDispatchError) -> PrecompileFailure {
+		match f {
+			TryDispatchError::Evm(e) => PrecompileFailure::Error { exit_status: e },
+			TryDispatchError::Substrate(e) => revert(alloc::format!("Dispatched call failed with error: {e:?}")),
+		}
+	}
+}
 
 /// Helper functions requiring a Substrate runtime.
 /// This runtime must of course implement `pallet_evm::Config`.
@@ -46,7 +63,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
-	) -> EvmResult<()>
+	) -> Result<(), TryDispatchError>
 	where
 		Runtime::Call: From<Call>,
 	{
@@ -57,9 +74,7 @@ where
 		let remaining_gas = handle.remaining_gas();
 		let required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
 		if required_gas > remaining_gas {
-			return Err(PrecompileFailure::Error {
-				exit_status: ExitError::OutOfGas,
-			});
+			return Err(TryDispatchError::Evm(ExitError::OutOfGas));
 		}
 
 		// Dispatch call.
@@ -69,13 +84,17 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|e| revert(alloc::format!("Dispatched call failed with error: {:?}", e)))?
+			.map_err(|e| {
+				TryDispatchError::Substrate(e.error)
+			})?
 			.actual_weight;
 
 		let used_gas =
 			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
 
-		handle.record_cost(used_gas)?;
+		handle
+			.record_cost(used_gas)
+			.map_err(|e| TryDispatchError::Evm(e))?;
 
 		Ok(())
 	}
