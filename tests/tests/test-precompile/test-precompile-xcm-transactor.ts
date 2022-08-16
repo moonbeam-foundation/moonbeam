@@ -7,7 +7,10 @@ import { ethers } from "ethers";
 import { alith } from "../../util/accounts";
 import { mockAssetBalance, RELAY_V1_SOURCE_LOCATION } from "../../util/assets";
 import { verifyLatestBlockFees } from "../../util/block";
-import { PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1, PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2 } from "../../util/constants";
+import {
+  PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V1,
+  PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2,
+} from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
@@ -19,9 +22,13 @@ import {
 
 const ADDRESS_RELAY_ASSETS = "0xffffffff1fcacbd218edc0eba20fc2308c778080";
 const XCM_TRANSACTOR_CONTRACT_V1 = getCompiled("XcmTransactorV1Instance");
-const XCM_TRANSACTOR_INTERFACE_V1 = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT_V1.contract.abi);
+const XCM_TRANSACTOR_INTERFACE_V1 = new ethers.utils.Interface(
+  XCM_TRANSACTOR_CONTRACT_V1.contract.abi
+);
 const XCM_TRANSACTOR_CONTRACT_V2 = getCompiled("XcmTransactorV2Instance");
-const XCM_TRANSACTOR_INTERFACE_V2 = new ethers.utils.Interface(XCM_TRANSACTOR_CONTRACT_V2.contract.abi);
+const XCM_TRANSACTOR_INTERFACE_V2 = new ethers.utils.Interface(
+  XCM_TRANSACTOR_CONTRACT_V2.contract.abi
+);
 
 const registerXcmTransactorAndContract = async (context: DevTestContext) => {
   await context.createBlock(
