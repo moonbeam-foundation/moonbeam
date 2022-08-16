@@ -44,3 +44,8 @@ lto = true
 # Moonbeam runtime requires unwinding.
 opt-level = 3
 panic = "unwind"
+
+[patch.crates-io]
+jsonrpsee = { git = "https://github.com/purestake/jsonrpsee", branch = "moonbeam-v0.13.1" }
+jsonrpsee-core = { git = "https://github.com/purestake/jsonrpsee", branch = "moonbeam-v0.13.1" }
+jsonrpsee-types = { git = "https://github.com/purestake/jsonrpsee", branch = "moonbeam-v0.13.1" }
