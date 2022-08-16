@@ -29,21 +29,6 @@ pub fn make_transcript<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> Transcript {
 	transcript
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-pub mod bench {
-	use super::*;
-	use sp_application_crypto::sr25519::Pair;
-	use sp_consensus_vrf::schnorrkel::{VRFOutput, VRFProof};
-	pub fn mock_key_pair() -> Pair {
-		let (pair, _) = Pair::from_entropy(&[1u8; 32], None);
-		pair
-	}
-	pub fn mock_sign_vrf(pair: Pair, transcript: Transcript) -> (VRFOutput, VRFProof) {
-		let (inout, proof, _) = pair.as_ref().vrf_sign(transcript);
-		(VRFOutput(inout.to_output()), VRFProof(proof))
-	}
-}
-
 /// Make a VRF transcript data container
 #[cfg(feature = "std")]
 pub fn make_transcript_data<Hash: AsRef<[u8]>>(last_vrf_output: Hash) -> VRFTranscriptData {

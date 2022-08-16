@@ -18,23 +18,18 @@
 
 //! Benchmarking
 use crate::vrf::*;
-use crate::{
-	BalanceOf, Call, Config, LocalVrfOutput, Pallet, RandomnessResults, Request, RequestType,
-};
+use crate::{BalanceOf, Config, LocalVrfOutput, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
 	traits::{Currency, Get, OnInitialize},
 };
-use frame_system::RawOrigin;
 use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
 use pallet_author_mapping::BenchmarkSetKeys;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::Decode;
-use session_keys_primitives::{
-	digest::CompatibleDigestItem as VrfDigest, vrf::bench::*, PreDigest, VrfId,
-};
-use sp_core::{ByteArray, Pair, H160, H256};
+use session_keys_primitives::{digest::CompatibleDigestItem as VrfDigest, PreDigest, VrfId};
+use sp_core::{crypto::UncheckedFrom, sr25519, ByteArray, H160, H256};
 use sp_runtime::traits::One;
 
 /// Create a funded user from the input
@@ -57,19 +52,44 @@ benchmarks! {
 
 	// Benchmark for VRF verification and everything else in `set_output`, in `on_initialize`
 	on_initialize {
-		let key_pair = mock_key_pair();
+		//  Uses moonbase alpha values from blocks
+		// VRF input: 0x7d2b74fab7f37c93344abcc282d428985ddee49e494a8950c76df0342bfe6f02
+		// logs: [
+		// 	PreRuntime: [
+		// 	  nmbs
+		// 	  0x4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52
+		// 	]
+		// 	PreRuntime: [
+		// 	  rand
+		// 	  0x708859b63dd8284e829de2cbd90cb9b7de7eb9bec2d15ec45523e9039216fd362aacbc19ff00abbed38bac4be9acebef32e5d5ab4b1b3aa60bcbc7ca3b22880824f93050f4d51798a0ea41e8be7f0e1a541b60df46103f7785a9129e425da107
+		// 	]
+		// VRFId 0x4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b
+		fn hex_decode(input: String) -> [u8; 32] {
+			let output = hex::decode(input).expect("expect to decode input");
+			let mut ret: [u8; 32] = Default::default();
+			ret.copy_from_slice(&output[0..32]);
+			ret
+		}
+		fn predigest_decode(input: String) -> PreDigest {
+			let output = hex::decode(input).expect("expect to decode input");
+			let mut ret: [u8; 64] = [0u8; 64];
+			ret.copy_from_slice(&output[0..64]);
+			Decode::decode(&mut ret.as_slice()).expect("expect to decode predigest")
+		}
+		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode("0x4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52".to_string())).into();
+		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode("0x4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b".to_string())).into();
+		let vrf_input: [u8; 32] = hex_decode("7d2b74fab7f37c93344abcc282d428985ddee49e494a8950c76df0342bfe6f02".to_string());
+		let vrf_pre_digest = predigest_decode("708859b63dd8284e829de2cbd90cb9b7de7eb9bec2d15ec45523e9039216fd362aacbc19ff00abbed38bac4be9acebef32e5d5ab4b1b3aa60bcbc7ca3b22880824f93050f4d51798a0ea41e8be7f0e1a541b60df46103f7785a9129e425da107".to_string());
+		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok().expect("decode into same type");
+		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
-		let (vrf_output, vrf_proof) = mock_sign_vrf(key_pair.clone(), transcript.clone());
-		let nimbus_id: NimbusId = key_pair.public().into();
-		let vrf_id: VrfId = nimbus_id.clone().into();
+
 		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
-		let vrf_digest_item = VrfDigest::vrf_pre_digest(
-			PreDigest { vrf_output: vrf_output.clone(), vrf_proof }
-		);
+		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
 		let digest =  sp_runtime::generic::Digest { logs: vec![nimbus_digest_item, vrf_digest_item] };
 		// insert digest into frame_system storage
 		frame_system::Pallet::<T>::initialize(&T::BlockNumber::default(), &T::Hash::default(), &digest);
-		// set author mapping keys
+		// set keys in author mapping
 		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
 		Pallet::<T>::on_initialize(T::BlockNumber::default());
@@ -78,7 +98,7 @@ benchmarks! {
 		// verify VrfOutput was inserted into storage as expected
 		let pubkey = sp_consensus_vrf::schnorrkel::PublicKey::from_bytes(vrf_id.as_slice())
 			.expect("Expect VrfId is valid schnorrkel Public key");
-		let vrf_output: sp_consensus_vrf::schnorrkel::Randomness = vrf_output
+		let vrf_output: sp_consensus_vrf::schnorrkel::Randomness = vrf_pre_digest.vrf_output
 			.attach_input_hash(&pubkey, transcript)
 			.ok()
 			.map(|inout| inout.make_bytes(&session_keys_primitives::VRF_INOUT_CONTEXT))
