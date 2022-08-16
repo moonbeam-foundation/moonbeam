@@ -77,6 +77,8 @@ where
 	XcmConfig: xcm_executor::Config,
 {
 	fn multilocation_to_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		// TODO: Change once precompiles are benchmarked
+		// for now we charge a db read,
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Bound check
