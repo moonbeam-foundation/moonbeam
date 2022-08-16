@@ -967,18 +967,13 @@ parameter_types! {
 pub enum ProxyType {
 	NotAllowed = 0,
 	Any = 1,
-	EthereumXcmProxy = 2,
 }
 
 impl InstanceFilter<Call> for ProxyType {
-	fn filter(&self, c: &Call) -> bool {
+	fn filter(&self, _c: &Call) -> bool {
 		match self {
 			ProxyType::NotAllowed => false,
 			ProxyType::Any => true,
-			ProxyType::EthereumXcmProxy => matches!(
-				c,
-				Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { .. })
-			),
 		}
 	}
 	fn is_superset(&self, _o: &Self) -> bool {
@@ -1015,15 +1010,14 @@ pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
 		let f = |x: &pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64>| -> bool {
-			x.delegate == delegatee
-				&& (x.proxy_type == ProxyType::Any || x.proxy_type == ProxyType::EthereumXcmProxy)
+			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
 		};
 		Proxy::proxies(delegator)
 			.0
 			.into_iter()
 			.find(f)
 			.map(|_| ())
-			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")
+			.ok_or("proxy error: expected `ProxyType::Any`")
 	}
 }
 

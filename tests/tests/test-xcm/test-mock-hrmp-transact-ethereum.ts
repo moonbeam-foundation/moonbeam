@@ -728,7 +728,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     // Add proxy
     await context.createBlock(
       context.polkadotApi.tx.proxy
-        .addProxy(descendAddress, "EthereumXcmProxy" as any, 0)
+        .addProxy(descendAddress, "Any" as any, 0)
         .signAsync(charleth)
     );
 

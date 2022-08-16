@@ -220,9 +220,7 @@ fn test_ensure_transact_xcm_trough_no_proxy_error() {
 		assert!(r.is_err());
 		assert_eq!(
 			r.unwrap_err().error,
-			sp_runtime::DispatchError::Other(
-				"proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`"
-			),
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
 		);
 	});
 }
@@ -248,9 +246,7 @@ fn test_ensure_transact_xcm_trough_proxy_error() {
 		assert!(r.is_err());
 		assert_eq!(
 			r.unwrap_err().error,
-			sp_runtime::DispatchError::Other(
-				"proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`"
-			),
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
 		);
 	});
 }
@@ -262,7 +258,7 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 	let bob = &pairs[1];
 	let charlie = &pairs[2];
 
-	let allowed_proxies = vec![ProxyType::Any, ProxyType::EthereumXcmProxy];
+	let allowed_proxies = vec![ProxyType::Any];
 
 	for proxy in allowed_proxies.into_iter() {
 		ext.execute_with(|| {

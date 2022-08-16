@@ -640,15 +640,14 @@ pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
 		let f = |x: &pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber>| -> bool {
-			x.delegate == delegatee
-				&& (x.proxy_type == ProxyType::Any || x.proxy_type == ProxyType::EthereumXcmProxy)
+			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
 		};
 		Proxy::proxies(delegator)
 			.0
 			.into_iter()
 			.find(f)
 			.map(|_| ())
-			.ok_or("proxy error: expected `ProxyType::EthereumXcmProxy | ProxyType::Any`")
+			.ok_or("proxy error: expected `ProxyType::Any`")
 	}
 }
 
@@ -819,8 +818,6 @@ pub enum ProxyType {
 	AuthorMapping = 6,
 	/// Allow extrinsic related to IdentityJudgement.
 	IdentityJudgement = 7,
-	/// Allow EthereumXcm transact through proxy.
-	EthereumXcmProxy = 8,
 }
 
 impl Default for ProxyType {
@@ -867,10 +864,6 @@ impl InstanceFilter<Call> for ProxyType {
 			ProxyType::IdentityJudgement => matches!(
 				c,
 				Call::Identity(pallet_identity::Call::provide_judgement { .. }) | Call::Utility(..)
-			),
-			ProxyType::EthereumXcmProxy => matches!(
-				c,
-				Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { .. })
 			),
 		}
 	}

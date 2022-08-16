@@ -2658,7 +2658,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_suceeds() {
 		let _ = parachain::Proxy::add_proxy_delegate(
 			&PARAALICE.into(),
 			derived,
-			parachain::ProxyType::EthereumXcmProxy,
+			parachain::ProxyType::Any,
 			0,
 		);
 	});
