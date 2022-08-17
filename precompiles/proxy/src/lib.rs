@@ -38,7 +38,7 @@ pub enum Action {
 	AddProxy = "addProxy(address,uint8,uint32)",
 	RemoveProxy = "removeProxy(address,uint8,uint32)",
 	RemoveProxies = "removeProxies()",
-	IsProxy = "isProxy(address,uint8)",
+	IsProxy = "isProxy(address,uint8,uint32)",
 }
 
 /// A precompile to wrap the functionality from pallet-proxy.
