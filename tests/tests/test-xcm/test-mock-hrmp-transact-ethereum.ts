@@ -24,7 +24,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
   let descendAddress;
   let random: KeyringPair;
 
-  before("Should receive transact action with DescendOrigin", async function () {
+  before("should receive transact action with DescendOrigin", async function () {
     const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
@@ -43,7 +43,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
     expect(balance).to.eq(transferredBalance);
   });
 
-  it("Should receive transact and should be able to execute", async function () {
+  it("should receive transact and should be able to execute", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -182,7 +182,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
   let random: KeyringPair;
   let contractDeployed;
 
-  before("Should receive transact action with DescendOrigin and deploy", async function () {
+  before("should receive transact action with DescendOrigin and deploy", async function () {
     const { contract, rawTx } = await createContract(context, "Incrementor");
     await expectOk(context.createBlock(rawTx));
 
@@ -205,7 +205,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
     expect(balance).to.eq(transferredBalance);
   });
 
-  it("Should receive transact and should be able to execute", async function () {
+  it("should receive transact and should be able to execute", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -354,7 +354,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
 
   const assetsToTransfer = 2_900_000_000n * 2n;
 
-  before("Should Register an asset and set unit per sec", async function () {
+  before("should Register an asset and set unit per sec", async function () {
     const { contract, rawTx } = await createContract(context, "Incrementor");
     await expectOk(context.createBlock(rawTx));
 
@@ -429,7 +429,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     ).to.eq(assetsToTransfer);
   });
 
-  it("Should receive transact and should be able to execute", async function () {
+  it("should receive transact and should be able to execute", async function () {
     const xcmTransactions = [
       {
         V1: {
@@ -543,7 +543,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
   let descendAddress;
   let random: KeyringPair;
 
-  before("Should receive transact action with DescendOrigin", async function () {
+  before("should receive transact action with DescendOrigin", async function () {
     const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     sendingAddress = originAddress;
     descendAddress = descendOriginAddress;
@@ -562,7 +562,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     expect(balance).to.eq(transferredBalance);
   });
 
-  it("Should fail to transact_through_proxy without proxy", async function () {
+  it("should fail to transact_through_proxy without proxy", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -700,7 +700,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
   let descendAddress;
   let random: KeyringPair;
 
-  before("Should receive transact action with DescendOrigin", async function () {
+  before("should receive transact action with DescendOrigin", async function () {
     const { originAddress, descendOriginAddress } = descendOriginFromAddress(
       context,
       charleth.address
@@ -727,7 +727,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     );
   });
 
-  it("Should fail to transact_through_proxy with non-zero delay proxy", async function () {
+  it("should fail to transact_through_proxy with non-zero delay proxy", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -906,7 +906,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     );
   });
 
-  it("Should succeed to transact_through_proxy with proxy", async function () {
+  it("should succeed to transact_through_proxy with proxy", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(

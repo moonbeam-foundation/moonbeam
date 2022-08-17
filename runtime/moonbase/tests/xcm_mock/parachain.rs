@@ -1017,7 +1017,7 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 				Some(ProxyType::Any),
 			)
 			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
-		// We only allow to use it for delay zero proxies, as the call will inmediatly be executed
+		// We only allow to use it for delay zero proxies, as the call will iMmediatly be executed
 		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
 		Ok(())
 	}

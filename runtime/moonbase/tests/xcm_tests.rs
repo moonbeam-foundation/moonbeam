@@ -2589,7 +2589,7 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 }
 
 #[test]
-fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_suceeds() {
+fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() {
 	MockNet::reset();
 	let mut ancestry = MultiLocation::parent();
 
