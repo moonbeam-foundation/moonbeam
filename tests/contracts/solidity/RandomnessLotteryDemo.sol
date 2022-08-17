@@ -124,7 +124,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     {
         /// Because this contract can only perform 1 random request at a time,
         /// We only need to have 1 required deposit.
-        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        uint256 requiredDeposit = randomness.requiredDeposit();
         if (msg.value < requiredDeposit) {
             revert DepositTooLow(msg.value, requiredDeposit);
         }

@@ -19,7 +19,7 @@ use crate::mock::{
 use crate::Action;
 
 use frame_support::assert_ok;
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
 use xcm::v1::MultiLocation;
@@ -30,13 +30,13 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::IndexToAccount as u32, 0x71b0edfa);
-	assert_eq!(Action::TransactInfo as u32, 0xf87f493f);
+	assert_eq!(Action::IndexToAccount as u32, 0x3fdc4f36);
+	assert_eq!(Action::TransactInfo as u32, 0xd07d87c3);
 	assert_eq!(
 		Action::TransactThroughDerivativeMultiLocation as u32,
-		0x9f89f03e
+		0x94a63c54
 	);
-	assert_eq!(Action::TransactThroughDerivative as u32, 0x267d4062);
+	assert_eq!(Action::TransactThroughDerivative as u32, 0x02ae072d);
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -53,7 +53,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -393,4 +393,29 @@ fn test_transact_signed_multilocation() {
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["XcmTransactor.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

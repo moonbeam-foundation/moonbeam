@@ -34,10 +34,10 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
-	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
-	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
+	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use precompile_utils::testing::MockHandle;
 
@@ -2040,9 +2040,11 @@ fn length_fee_is_sensible() {
 
 #[test]
 fn multiplier_can_grow_from_zero() {
+	use frame_support::traits::Get;
+
 	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
 	let target = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap();
@@ -2062,11 +2064,13 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 #[ignore] // test runs for a very long time
 fn multiplier_growth_simulator() {
+	use frame_support::traits::Get;
+
 	// assume the multiplier is initially set to its minimum. We update it with values twice the
 	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
 	let block_weight = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap()
@@ -2639,6 +2643,27 @@ fn base_fee_should_default_to_associate_type_value() {
 		assert_eq!(
 			BaseFee::base_fee_per_gas(),
 			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
+	});
+}
+
+#[test]
+fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
+	use frame_support::weights::{DispatchInfo, Pays};
+	use moonbase_runtime::{currency, EXTRINSIC_BASE_WEIGHT};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let size_bytes = 0;
+		let tip = 0;
+		let dispatch_info = DispatchInfo {
+			weight: 0,
+			class: DispatchClass::Normal,
+			pays_fee: Pays::Yes,
+		};
+
+		assert_eq!(
+			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
+			EXTRINSIC_BASE_WEIGHT as u128 * currency::WEIGHT_FEE,
 		);
 	});
 }

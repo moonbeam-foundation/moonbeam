@@ -22,7 +22,7 @@
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{ConstU32, Currency};
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Vote};
+use pallet_democracy::{AccountVote, Call as DemocracyCall, Conviction, Vote};
 use pallet_evm::{AddressMapping, Precompile};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
@@ -30,7 +30,6 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
-	vec::Vec,
 };
 
 #[cfg(test)]
@@ -50,20 +49,32 @@ type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 enum Action {
-	PublicPropCount = "public_prop_count()",
-	DepositOf = "deposit_of(uint256)",
-	LowestUnbaked = "lowest_unbaked()",
-	OngoingReferendumInfo = "ongoing_referendum_info(uint256)",
-	FinishedReferendumInfo = "finished_referendum_info(uint256)",
+	PublicPropCount = "publicPropCount()",
+	DepositOf = "depositOf(uint256)",
+	LowestUnbaked = "lowestUnbaked()",
+	OngoingReferendumInfo = "ongoingReferendumInfo(uint256)",
+	FinishedReferendumInfo = "finishedReferendumInfo(uint256)",
 	Propose = "propose(bytes32,uint256)",
 	Second = "second(uint256,uint256)",
-	StandardVote = "standard_vote(uint256,bool,uint256,uint256)",
-	RemoveVote = "remove_vote(uint256)",
+	StandardVote = "standardVote(uint256,bool,uint256,uint256)",
+	RemoveVote = "removeVote(uint256)",
 	Delegate = "delegate(address,uint256,uint256)",
-	UnDelegate = "un_delegate()",
+	UnDelegate = "unDelegate()",
 	Unlock = "unlock(address)",
-	NotePreimage = "note_preimage(bytes)",
-	NoteImminentPreimage = "note_imminent_preimage(bytes)",
+	NotePreimage = "notePreimage(bytes)",
+	NoteImminentPreimage = "noteImminentPreimage(bytes)",
+
+	// deprecated
+	DeprecatedPublicPropCount = "public_prop_count()",
+	DeprecatedDepositOf = "deposit_of(uint256)",
+	DeprecatedLowestUnbaked = "lowest_unbaked()",
+	DeprecatedOngoingReferendumInfo = "ongoing_referendum_info(uint256)",
+	DeprecatedFinishedReferendumInfo = "finished_referendum_info(uint256)",
+	DeprecatedStandardVote = "standard_vote(uint256,bool,uint256,uint256)",
+	DeprecatedRemoveVote = "remove_vote(uint256)",
+	DeprecatedUnDelegate = "un_delegate()",
+	DeprecatedNotePreimage = "note_preimage(bytes)",
+	DeprecatedNoteImminentPreimage = "note_imminent_preimage(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet democracy.
@@ -97,28 +108,41 @@ where
 			| Action::UnDelegate
 			| Action::Unlock
 			| Action::NotePreimage
-			| Action::NoteImminentPreimage => FunctionModifier::NonPayable,
+			| Action::NoteImminentPreimage
+			| Action::DeprecatedStandardVote
+			| Action::DeprecatedRemoveVote
+			| Action::DeprecatedUnDelegate
+			| Action::DeprecatedNotePreimage
+			| Action::DeprecatedNoteImminentPreimage => FunctionModifier::NonPayable,
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Storage Accessors
-			Action::PublicPropCount => Self::public_prop_count(handle),
-			Action::DepositOf => Self::deposit_of(handle),
-			Action::LowestUnbaked => Self::lowest_unbaked(handle),
-			Action::OngoingReferendumInfo => Self::ongoing_referendum_info(handle),
-			Action::FinishedReferendumInfo => Self::finished_referendum_info(handle),
+			Action::PublicPropCount | Action::DeprecatedPublicPropCount => {
+				Self::public_prop_count(handle)
+			}
+			Action::DepositOf | Action::DeprecatedDepositOf => Self::deposit_of(handle),
+			Action::LowestUnbaked | Action::DeprecatedLowestUnbaked => Self::lowest_unbaked(handle),
+			Action::OngoingReferendumInfo | Action::DeprecatedOngoingReferendumInfo => {
+				Self::ongoing_referendum_info(handle)
+			}
+			Action::FinishedReferendumInfo | Action::DeprecatedFinishedReferendumInfo => {
+				Self::finished_referendum_info(handle)
+			}
 
 			// Dispatchables
 			Action::Propose => Self::propose(handle),
 			Action::Second => Self::second(handle),
-			Action::StandardVote => Self::standard_vote(handle),
-			Action::RemoveVote => Self::remove_vote(handle),
+			Action::StandardVote | Action::DeprecatedStandardVote => Self::standard_vote(handle),
+			Action::RemoveVote | Action::DeprecatedRemoveVote => Self::remove_vote(handle),
 			Action::Delegate => Self::delegate(handle),
-			Action::UnDelegate => Self::un_delegate(handle),
+			Action::UnDelegate | Action::DeprecatedUnDelegate => Self::un_delegate(handle),
 			Action::Unlock => Self::unlock(handle),
-			Action::NotePreimage => Self::note_preimage(handle),
-			Action::NoteImminentPreimage => Self::note_imminent_preimage(handle),
+			Action::NotePreimage | Action::DeprecatedNotePreimage => Self::note_preimage(handle),
+			Action::NoteImminentPreimage | Action::DeprecatedNoteImminentPreimage => {
+				Self::note_imminent_preimage(handle)
+			}
 		}
 	}
 }
@@ -143,10 +167,7 @@ where
 	}
 
 	fn deposit_of(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-		let prop_index: u32 = input.read()?;
+		read_args!(handle, { prop_index: u32 });
 
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -237,22 +258,18 @@ where
 
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	fn propose(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-
-		let proposal_hash = input.read::<H256>()?.into();
-		let amount = input.read::<BalanceOf<Runtime>>()?;
+		read_args!(handle, {proposal_hash: H256, value: BalanceOf<Runtime>});
+		let proposal_hash = proposal_hash.into();
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Proposing with hash {:?}, and amount {:?}", proposal_hash, amount
+			"Proposing with hash {:?}, and amount {:?}", proposal_hash, value
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::propose {
 			proposal_hash,
-			value: amount,
+			value,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -261,21 +278,18 @@ where
 	}
 
 	fn second(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-
-		let proposal = input.read()?;
-		let seconds_upper_bound = input.read()?;
+		// substrate arguments are u32 but Solidity one are uint256.
+		// We parse as uint32 to properly reject overflowing values.
+		read_args!(handle, {prop_index: u32, seconds_upper_bound: u32});
 
 		log::trace!(
 			target: "democracy-precompile",
-			"Seconding proposal {:?}, with bound {:?}", proposal, seconds_upper_bound
+			"Seconding proposal {:?}, with bound {:?}", prop_index, seconds_upper_bound
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::second {
-			proposal,
+			proposal: prop_index,
 			seconds_upper_bound,
 		};
 
@@ -285,20 +299,20 @@ where
 	}
 
 	fn standard_vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(4)?;
+		read_args!(handle, {
+			ref_index: u32,
+			aye: bool,
+			vote_amount: BalanceOf<Runtime>,
+			conviction: u8
+		});
+		let conviction: Conviction = conviction.try_into().map_err(|_| {
+			RevertReason::custom("Must be an integer between 0 and 6 included")
+				.in_field("conviction")
+		})?;
 
-		let ref_index = input.read()?;
-		let aye = input.read()?;
-		let balance = input.read()?;
-		let conviction = input
-			.read::<u8>()?
-			.try_into()
-			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
 		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
-			balance,
+			balance: vote_amount,
 		};
 
 		log::trace!(target: "democracy-precompile",
@@ -315,22 +329,16 @@ where
 	}
 
 	fn remove_vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-
-		let referendum_index = input.read()?;
+		read_args!(handle, { ref_index: u32 });
 
 		log::trace!(
 			target: "democracy-precompile",
 			"Removing vote from referendum {:?}",
-			referendum_index
+			ref_index
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = DemocracyCall::<Runtime>::remove_vote {
-			index: referendum_index,
-		};
+		let call = DemocracyCall::<Runtime>::remove_vote { index: ref_index };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -338,28 +346,28 @@ where
 	}
 
 	fn delegate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(3)?;
+		read_args!(handle, {
+			representative: Address,
+			conviction: u8,
+			amount: BalanceOf<Runtime>
+		});
+		let conviction: Conviction = conviction.try_into().map_err(|_| {
+			RevertReason::custom("Must be an integer between 0 and 6 included")
+				.in_field("conviction")
+		})?;
 
-		let to: H160 = input.read::<Address>()?.into();
-		let to = Runtime::AddressMapping::into_account_id(to);
-		let conviction = input
-			.read::<u8>()?
-			.try_into()
-			.map_err(|_| revert("Conviction must be an integer in the range 0-6"))?;
-		let balance = input.read()?;
+		let to = Runtime::AddressMapping::into_account_id(representative.into());
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
-			to, conviction, balance
+			to, conviction, amount
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
 			conviction,
-			balance,
+			balance: amount,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -377,11 +385,8 @@ where
 	}
 
 	fn unlock(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-
-		let target: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { target: Address });
+		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 
 		log::trace!(
@@ -398,10 +403,10 @@ where
 	}
 
 	fn note_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> = input
-			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
-			.into_vec();
+		read_args!(handle, {
+			encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>
+		});
+		let encoded_proposal = encoded_proposal.into_vec();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -417,10 +422,10 @@ where
 	}
 
 	fn note_imminent_preimage(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let encoded_proposal: Vec<u8> = input
-			.read::<BoundedBytes<GetEncodedProposalSizeLimit>>()?
-			.into_vec();
+		read_args!(handle, {
+			encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>
+		});
+		let encoded_proposal = encoded_proposal.into_vec();
 
 		log::trace!(
 			target: "democracy-precompile",
