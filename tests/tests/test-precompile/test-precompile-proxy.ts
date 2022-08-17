@@ -8,6 +8,7 @@ import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 import {
+  CONTRACT_PROXY_TYPE_ANY,
   CONTRACT_PROXY_TYPE_GOVERNANCE,
   CONTRACT_PROXY_TYPE_STAKING,
   PRECOMPILE_PROXY_ADDRESS,
@@ -214,7 +215,7 @@ describeDevMoonbeam("Precompile - Proxy - remove proxies succeeds if existing pr
   });
 });
 
-describeDevMoonbeam("Precompile - Proxy - is proxy", (context) => {
+describeDevMoonbeam("Precompile - Proxy - is proxy - fails if incorrect delay", (context) => {
   before("add proxy account", async () => {
     const { result } = await context.createBlock(
       createTransaction(context, {
@@ -230,7 +231,7 @@ describeDevMoonbeam("Precompile - Proxy - is proxy", (context) => {
     expectEVMResult(result.events, "Succeed");
   });
 
-  it("should successfully call", async () => {
+  it("should return false", async () => {
     const { result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -238,6 +239,73 @@ describeDevMoonbeam("Precompile - Proxy - is proxy", (context) => {
         data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
           BALTATHAR_ADDRESS,
           CONTRACT_PROXY_TYPE_STAKING,
+          1,
+        ]),
+      })
+    );
+
+    expect(result.successful).to.be.false;
+  });
+});
+
+describeDevMoonbeam("Precompile - Proxy - is proxy - fails if incorrect proxyType", (context) => {
+  before("add proxy account", async () => {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_STAKING,
+          0,
+        ]),
+      })
+    );
+    expectEVMResult(result.events, "Succeed");
+  });
+
+  it("should return false", async () => {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_ANY,
+          0,
+        ]),
+      })
+    );
+
+    expect(result.successful).to.be.false;
+  });
+});
+
+describeDevMoonbeam("Precompile - Proxy - is proxy - succeeds if exists", (context) => {
+  before("add proxy account", async () => {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("addProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_STAKING,
+          0,
+        ]),
+      })
+    );
+    expectEVMResult(result.events, "Succeed");
+  });
+
+  it("should return true", async () => {
+    const { result } = await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_PROXY_ADDRESS,
+        data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
+          BALTATHAR_ADDRESS,
+          CONTRACT_PROXY_TYPE_STAKING,
+          0,
         ]),
       })
     );
