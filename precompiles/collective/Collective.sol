@@ -18,7 +18,8 @@ interface Collective {
     function close(
         bytes32 proposalHash,
         uint32 proposalIndex,
-        uint64 proposalWeightBound
+        uint64 proposalWeightBound,
+        uint32 lengthBound
     ) external;
 
     function proposalHash(bytes memory proposal)
@@ -33,11 +34,5 @@ interface Collective {
         bytes32 indexed proposalHash,
         uint32 threshold
     );
-    event Voted(
-        address indexed who,
-        bytes32 indexed proposalHash,
-        bool voted,
-        uint32 yesVotes,
-        uint32 noVotes
-    );
+    event Voted(address indexed who, bytes32 indexed proposalHash, bool voted);
 }

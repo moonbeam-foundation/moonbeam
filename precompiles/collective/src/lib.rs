@@ -37,7 +37,7 @@ pub const SELECTOR_LOG_EXECUTED: [u8; 32] = keccak256!("Executed(bytes32)");
 pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(address,uint32,bytes32,uint32)");
 
 /// Solidity selector of the Voted log.
-pub const SELECTOR_LOG_VOTED: [u8; 32] = keccak256!("Voted(address,bytes32,bool,uint32,uint32)");
+pub const SELECTOR_LOG_VOTED: [u8; 32] = keccak256!("Voted(address,bytes32,bool)");
 
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 
@@ -166,7 +166,6 @@ where
 		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let pallet_index = Self::pallet_index()?;
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
 			Some(origin).into(),
@@ -177,11 +176,46 @@ where
 			},
 		)?;
 
-		todo!()
+		let log = log3(
+			handle.context().address,
+			SELECTOR_LOG_VOTED,
+			handle.context().caller,
+			proposal_hash,
+			EvmDataWriter::new()
+				.write(approve)
+				.build(),
+		);
+		handle.record_log_costs(&[&log])?;
+		log.record(handle)?;
+
+		Ok(succeed(&[]))
 	}
 
 	fn close(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		todo!()
+		read_args!(handle, {
+			proposal_hash: H256,
+			proposal_index: u32,
+			proposal_weight_bound: u64,
+			length_bound: u32
+		});
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			Some(origin).into(),
+			pallet_collective::Call::<Runtime, Instance>::close {
+				proposal_hash: proposal_hash.into(),
+				index: proposal_index,
+				proposal_weight_bound,
+				length_bound
+			},
+		)?;
+
+		// TODO: How to know if the proposal was executed or not?
+		// Ayes/Nays are private so we cannot know directly which side won.
+		// For now no events are emitted.
+
+		Ok(succeed(&[]))
 	}
 
 	fn proposal_hash(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -192,12 +226,5 @@ where
 		let hash: H256 = Runtime::Hashing::hash(&proposal.into_vec()).into();
 
 		Ok(succeed(EvmDataWriter::new().write(hash).build()))
-	}
-
-	fn pallet_index() -> EvmResult<usize> {
-		<Runtime as frame_system::Config>::PalletInfo::index::<
-			pallet_collective::Pallet<Runtime, Instance>,
-		>()
-		.ok_or_else(|| revert("cannot retreive pallet collective index"))
 	}
 }
