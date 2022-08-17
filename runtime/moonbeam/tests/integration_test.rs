@@ -47,7 +47,6 @@ use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
@@ -2369,19 +2368,13 @@ fn transact_through_signed_mult_not_enabled() {
 
 			assert_noop!(
 				Call::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
+						fee_location: Box::new(xcm::VersionedMultiLocation::V1(
+							MultiLocation::parent()
+						)),
+						dest_weight: 11000,
+						call: vec![]
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2412,6 +2405,9 @@ fn transact_through_signed_not_enabled() {
 		}])
 		.build()
 		.execute_with(|| {
+			let source_location = AssetType::Xcm(MultiLocation::parent());
+			let source_id: moonbeam_runtime::AssetId = source_location.clone().into();
+
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
 				root_origin(),
@@ -2434,17 +2430,9 @@ fn transact_through_signed_not_enabled() {
 				Call::XcmTransactor(
 					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
+						fee_currency_id: CurrencyId::ForeignAsset(source_id),
+						dest_weight: 11000,
+						call: vec![]
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2501,22 +2489,14 @@ fn transactor_cannot_use_more_than_max_weight() {
 			));
 
 			assert_noop!(
-				XcmTransactor::transact_through_derivative(
+				XcmTransactor::transact_through_derivative_multilocation(
 					origin_of(AccountId::from(ALICE)),
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
-					CurrencyPayment {
-						currency: Currency::AsMultiLocation(Box::new(
-							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-						)),
-						fee_amount: None
-					},
-					vec![],
+					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					// 2000 is the max
-					TransactWeights {
-						transact_required_weight_at_most: 17001,
-						overall_weight: None
-					}
+					17000,
+					vec![],
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2525,16 +2505,10 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonbeam_runtime::xcm_config::Transactors::Relay,
 					0,
-					CurrencyPayment {
-						currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
-						fee_amount: None
-					},
-					vec![],
+					CurrencyId::ForeignAsset(source_id),
 					// 20000 is the max
-					TransactWeights {
-						transact_required_weight_at_most: 17001,
-						overall_weight: None
-					}
+					17000,
+					vec![],
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
