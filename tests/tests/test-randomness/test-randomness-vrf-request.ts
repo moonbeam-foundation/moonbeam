@@ -155,7 +155,7 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
     );
 
     expect(result.successful).to.be.true;
-    expectEVMResult(result.events, "Error", "Other");
+    expectEVMResult(result.events, "Revert");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
@@ -178,7 +178,7 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
     );
 
     expect(result.successful).to.be.true;
-    expectEVMResult(result.events, "Error", "Other");
+    expectEVMResult(result.events, "Revert");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
@@ -203,7 +203,7 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
     );
 
     expect(result.successful).to.be.true;
-    expectEVMResult(result.events, "Error", "Other");
+    expectEVMResult(result.events, "Revert");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
@@ -228,7 +228,7 @@ describeDevMoonbeam("Randomness VRF - Requesting a random number", (context) => 
     );
 
     expect(result.successful).to.be.true;
-    expectEVMResult(result.events, "Error", "Other");
+    expectEVMResult(result.events, "Revert");
 
     const randomnessRequests = await context.polkadotApi.query.randomness.requests.entries();
     expect(randomnessRequests.length).to.equal(0);
