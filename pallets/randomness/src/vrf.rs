@@ -94,7 +94,6 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		results.randomness = Some(randomness_output);
 		RandomnessResults::<T>::insert(local_vrf_this_block, results);
 	}
-	// TODO: benchmark to fix this weight
-	// reads + writes + margin_of_safety = 5_000_000_000
-	6 * T::DbWeight::get().read + 2 * T::DbWeight::get().write + 5_000_000_000
+	use crate::weights::WeightInfo;
+	crate::weights::SubstrateWeight::<T>::on_initialize()
 }

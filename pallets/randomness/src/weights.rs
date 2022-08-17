@@ -64,6 +64,8 @@ pub trait WeightInfo {
 	fn increase_fee() -> Weight;
 	#[rustfmt::skip]
 	fn execute_request_expiration() -> Weight;
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight;
 }
 
 /// Weights for pallet_randomness using the Substrate node and recommended hardware.
@@ -112,6 +114,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
+	// Storage: Randomness NotFirstBlock (r:1 w:0)
+	// Storage: System Digest (r:1 w:0)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
+	// Storage: Randomness LocalVrfOutput (r:1 w:1)
+	// Storage: Randomness RandomnessResults (r:1 w:0)
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight {
+		(1_223_063_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -158,5 +171,16 @@ impl WeightInfo for () {
 		(49_749_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	// Storage: Randomness NotFirstBlock (r:1 w:0)
+	// Storage: System Digest (r:1 w:0)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
+	// Storage: Randomness LocalVrfOutput (r:1 w:1)
+	// Storage: Randomness RandomnessResults (r:1 w:0)
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight {
+		(1_223_063_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
 }
