@@ -83,7 +83,6 @@ benchmarks! {
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		NotFirstBlock::<T>::put(());
 		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
-
 		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
 		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
 		let digest =  sp_runtime::generic::Digest { logs: vec![nimbus_digest_item, vrf_digest_item] };
