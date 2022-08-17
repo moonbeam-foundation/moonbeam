@@ -2514,7 +2514,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 2000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17000,
+						transact_required_weight_at_most: 17001,
 						overall_weight: None
 					}
 				),
@@ -2532,7 +2532,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17000,
+						transact_required_weight_at_most: 17001,
 						overall_weight: None
 					}
 				),

@@ -508,7 +508,6 @@ where
 		// read currencyId
 		let to_address: H160 = input.read::<Address>()?.into();
 
-
 		// read weight amount
 		let weight: u64 = input.read::<u64>()?;
 

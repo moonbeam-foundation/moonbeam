@@ -185,7 +185,7 @@ fn test_transact_through_derivative_errors() {
 					},
 					vec![0u8],
 					TransactWeights {
-						transact_required_weight_at_most: 10000u64,
+						transact_required_weight_at_most: 10001u64,
 						overall_weight: None
 					}
 				),
