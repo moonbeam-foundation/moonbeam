@@ -52,29 +52,12 @@ benchmarks! {
 	// TODO: causes panic:
 	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
 	// on_initialize', runtime/moonbase/src/lib.rs:1111
-	// set_babe_randomness_results {
-	// 	// set relay epoch
-	// 	// set storage value to read new epoch > current epoch
-	// 	//
-	// }: _(RawOrigin::None)
+	// set_babe_randomness_results {}: _(RawOrigin::None)
 	// verify {}
 
 	// Benchmark for VRF verification and everything else in `set_output`, in `on_initialize`
 	on_initialize {
-		//  Uses moonbase alpha values from blocks
-		// VRF input: 0x7d2b74fab7f37c93344abcc282d428985ddee49e494a8950c76df0342bfe6f02
-		// logs: [
-		// 	PreRuntime: [
-		// 	  nmbs
-		// 	  0x4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52
-		// 	]
-		// 	PreRuntime: [
-		// 	  rand
-		// 	  0x708859b63dd8284e829de2cbd90cb9b7de7eb9bec2d15ec45523e9039216fd362aacbc19ff00abbed38
-		//bac4be9acebef32e5d5ab4b1b3aa60bcbc7ca3b22880824f93050f4d51798a0ea41e8be7f0e1a541b60df4610
-		//3f7785a9129e425da107
-		// 	]
-		// VRFId 0x4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b
+		// Uses values from moonbase alpha storage
 		fn hex_decode(input: String) -> [u8; 32] {
 			let output = hex::decode(input).expect("expect to decode input");
 			let mut ret: [u8; 32] = Default::default();
@@ -88,12 +71,14 @@ benchmarks! {
 			ret.copy_from_slice(&output[0..PRE_DIGEST_BYTE_LEN]);
 			Decode::decode(&mut ret.as_slice()).expect("expect to decode predigest")
 		}
-		// TODO: put raw inputs in own variables
-		// TODO: get inputs from TS script instead of manually
-		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode("4a3017130aa08a05121b6e1b23f9db471e32da06acddba1bfa0be25c2748bb52".to_string())).into();
-		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode("4ceed6a5aaa5377723234853ab0862d24de182b4cc66302f94229888f84adc7b".to_string())).into();
-		let vrf_input: [u8; 32] = hex_decode("7d2b74fab7f37c93344abcc282d428985ddee49e494a8950c76df0342bfe6f02".to_string());
-		let vrf_pre_digest = predigest_decode("708859b63dd8284e829de2cbd90cb9b7de7eb9bec2d15ec45523e9039216fd362aacbc19ff00abbed38bac4be9acebef32e5d5ab4b1b3aa60bcbc7ca3b22880824f93050f4d51798a0ea41e8be7f0e1a541b60df46103f7785a9129e425da107".to_string());
+		let raw_nimbus_id = "e0d47c4ea4fb92a510327774bd829d85ec64c06e63b3274587dfa4282f0b8262".to_string();
+		let raw_vrf_id = "e01d4eb5b3c482df465513ecf17f74154005ed7466166e7d2f049e0fa371ef66".to_string();
+		let raw_vrf_input = "33b52f1733a67e1a6b5c62c8be4b8e7be33f019a429fbc8af3336465ab042411".to_string();
+		let raw_vrf_pre_digest = "2a2f65f1a132c41fb33f45a282808a46fda89c91575e633fb54c913ad2ef0540827bce4f8dd838e6d0acadb111c7570aaeb37340db4756f822c6d00705b2cd0165059925634e78e936bf29bb149a60e8f171ea8116d035236525293efbe19703".to_string();
+		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode(raw_nimbus_id)).into();
+		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode(raw_vrf_id)).into();
+		let vrf_input: [u8; 32] = hex_decode(raw_vrf_input);
+		let vrf_pre_digest = predigest_decode(raw_vrf_pre_digest);
 		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok().expect("decode into same type");
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		NotFirstBlock::<T>::put(());
