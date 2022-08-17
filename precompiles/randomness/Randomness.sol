@@ -74,6 +74,11 @@ interface Randomness {
     /// @custom:selector 81797566
     function relayEpochIndex() external view returns (uint64);
 
+    /// Return the deposit required to perform a request
+    /// @dev Each request will need a deposit.
+    /// @custom:selector fb7cfdd7
+    function requiredDeposit() external view returns (uint256);
+
     /// @notice Returns the request status
     /// @param requestId The id of the request to check (must be < 2**64)
     /// @return status Status of the request
