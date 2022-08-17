@@ -57,6 +57,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
 
     expect(result.result).to.equal(`0x${expectedAddress.padStart(64, "0")}`);
   });
+
   it("allows to retrieve parachain-based ML account", async function () {
     const x2_parachain_asset_enum_selector = "0x00";
     const x2_parachain_id = "000007D0";
@@ -110,7 +111,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         ],
       ];
 
-    let result = await web3EthCall(context.web3, {
+    const result = await web3EthCall(context.web3, {
       to: PRECOMPILE_XCM_UTILS_ADDRESS,
       data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("multilocationToAddress", [
         multilocation,
