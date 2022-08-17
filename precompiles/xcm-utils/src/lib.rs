@@ -81,17 +81,20 @@ where
 		// for now we charge a db read,
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Bound check
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-		let multilocation: MultiLocation = input.read::<MultiLocation>()?;
+		read_args!(handle, { multilocation: MultiLocation });
 
 		let origin =
 			XcmConfig::OriginConverter::convert_origin(multilocation, OriginKind::SovereignAccount)
-				.map_err(|_| revert("Failed multilocation conversion"))?;
+				.map_err(|_| {
+					RevertReason::custom("Failed multilocation conversion")
+						.in_field("multilocation")
+				})?;
+
 		let account: H160 = origin
 			.as_signed()
-			.ok_or(revert("Failed multilocation conversion"))?
+			.ok_or(
+				RevertReason::custom("Failed multilocation conversion").in_field("multilocation"),
+			)?
 			.into();
 		Ok(succeed(
 			EvmDataWriter::new().write(Address(account)).build(),
