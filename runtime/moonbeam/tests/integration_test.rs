@@ -2532,7 +2532,7 @@ fn transactor_cannot_use_more_than_max_weight() {
 					vec![],
 					// 20000 is the max
 					TransactWeights {
-						transact_required_weight_at_most: 17001	,
+						transact_required_weight_at_most: 17001,
 						overall_weight: None
 					}
 				),
@@ -2596,7 +2596,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2060
+			2055, 2056, 2060,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
