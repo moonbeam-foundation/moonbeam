@@ -72,7 +72,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         [x2_parachain_asset_enum_selector + x2_parachain_id],
       ];
 
-    let result = await web3EthCall(context.web3, {
+    const result = await web3EthCall(context.web3, {
       to: PRECOMPILE_XCM_UTILS_ADDRESS,
       data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("multilocationToAddress", [
         multilocation,
