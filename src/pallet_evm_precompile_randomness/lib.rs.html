@@ -481,6 +481,7 @@
 <span id="476">476</span>
 <span id="477">477</span>
 <span id="478">478</span>
+<span id="479">479</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -649,9 +650,10 @@
 		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
 
 		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::RelayEpochIndex</span> <span class="op">|</span> <span class="ident">Action::GetRequestStatus</span> <span class="op">|</span> <span class="ident">Action::GetRequest</span> =&gt; {
-				<span class="ident">FunctionModifier::View</span>
-			}
+			<span class="ident">Action::RelayEpochIndex</span>
+			<span class="op">|</span> <span class="ident">Action::GetRequestStatus</span>
+			<span class="op">|</span> <span class="ident">Action::GetRequest</span>
+			<span class="op">|</span> <span class="ident">Action::RequiredDeposit</span> =&gt; <span class="ident">FunctionModifier::View</span>,
 			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
 		})<span class="question-mark">?</span>;
 
