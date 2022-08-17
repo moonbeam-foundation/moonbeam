@@ -19,12 +19,19 @@ jobs:
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
+        srtool_image_tag: ["1.62.0"]
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.to }}
+      - name: Build custom srtool image
+        run: |
+          docker build --pull --no-cache . \
+            -f docker/custom-srtool.Dockerfile \
+            --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
+            -t purestake/srtool:${{ matrix.srtool_image_tag }}
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.5.0
@@ -32,7 +39,8 @@ jobs:
           PACKAGE: "${{ matrix.chain }}-runtime -e CARGO_NET_GIT_FETCH_WITH_CLI=true -v /home/$USER/srtool/.ssh:/root/.ssh -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh --entrypoint /srtool/entrypoint.sh"
         with:
           chain: ${{ matrix.chain }}
-          tag: 1.62.0
+          image: purestake/srtool
+          tag: ${{ matrix.srtool_image_tag }}
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
