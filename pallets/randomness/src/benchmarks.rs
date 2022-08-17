@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::vrf::*;
 use crate::{
-	BalanceOf, Config, LocalVrfOutput, NotFirstBlock, Pallet, RandomnessResults, Request,
-	RequestType,
+	BalanceOf, Config, LocalVrfOutput, NotFirstBlock, Pallet, RandomnessResult, RandomnessResults,
+	Request, RequestType,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
@@ -71,23 +71,40 @@ benchmarks! {
 			ret.copy_from_slice(&output[0..PRE_DIGEST_BYTE_LEN]);
 			Decode::decode(&mut ret.as_slice()).expect("expect to decode predigest")
 		}
-		let raw_nimbus_id = "e0d47c4ea4fb92a510327774bd829d85ec64c06e63b3274587dfa4282f0b8262".to_string();
-		let raw_vrf_id = "e01d4eb5b3c482df465513ecf17f74154005ed7466166e7d2f049e0fa371ef66".to_string();
-		let raw_vrf_input = "33b52f1733a67e1a6b5c62c8be4b8e7be33f019a429fbc8af3336465ab042411".to_string();
-		let raw_vrf_pre_digest = "2a2f65f1a132c41fb33f45a282808a46fda89c91575e633fb54c913ad2ef0540827bce4f8dd838e6d0acadb111c7570aaeb37340db4756f822c6d00705b2cd0165059925634e78e936bf29bb149a60e8f171ea8116d035236525293efbe19703".to_string();
+		let raw_nimbus_id = "e0d47c4ea4fb92a510327774bd829d85ec64c06e63b3274587dfa4282f0b8262"
+			.to_string();
+		let raw_vrf_id = "e01d4eb5b3c482df465513ecf17f74154005ed7466166e7d2f049e0fa371ef66"
+			.to_string();
+		let raw_vrf_input = "33b52f1733a67e1a6b5c62c8be4b8e7be33f019a429fbc8af3336465ab042411"
+			.to_string();
+		let raw_vrf_pre_digest = "2a2f65f1a132c41fb33f45a282808a46fda89c91575e633fb54c913ad2ef05408\
+		27bce4f8dd838e6d0acadb111c7570aaeb37340db4756f822c6d00705b2cd0165059925634e78e936bf29bb149a\
+		60e8f171ea8116d035236525293efbe19703".to_string();
 		let nimbus_id: NimbusId = sr25519::Public::unchecked_from(hex_decode(raw_nimbus_id)).into();
 		let vrf_id: VrfId = sr25519::Public::unchecked_from(hex_decode(raw_vrf_id)).into();
 		let vrf_input: [u8; 32] = hex_decode(raw_vrf_input);
 		let vrf_pre_digest = predigest_decode(raw_vrf_pre_digest);
-		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok().expect("decode into same type");
+		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok()
+			.expect("decode into same type");
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		NotFirstBlock::<T>::put(());
+		RandomnessResults::<T>::insert(
+			RequestType::Local(T::BlockNumber::default()), RandomnessResult::new()
+		);
+		// insert RandomnessRequest with None and 1 request
+		// so this is also written
 		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
 		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
-		let digest =  sp_runtime::generic::Digest { logs: vec![nimbus_digest_item, vrf_digest_item] };
+		let digest =  sp_runtime::generic::Digest {
+			logs: vec![nimbus_digest_item, vrf_digest_item]
+		};
 		// insert digest into frame_system storage
-		frame_system::Pallet::<T>::initialize(&T::BlockNumber::default(), &T::Hash::default(), &digest);
+		frame_system::Pallet::<T>::initialize(
+			&T::BlockNumber::default(),
+			&T::Hash::default(),
+			&digest
+		);
 		// set keys in author mapping
 		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
@@ -108,6 +125,11 @@ benchmarks! {
 			.expect("VRF output bytes can be decode into T::Hash");
 		// convert vrf output and check if it matches as expected
 		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
+		assert_eq!(
+			RandomnessResults::<T>::get(RequestType::Local(T::BlockNumber::default()))
+				.expect("Never fulfilled original request").randomness,
+			Some(randomness_output)
+		);
 	}
 
 	request_randomness {
@@ -197,7 +219,11 @@ benchmarks! {
 			info: RequestType::Local(10u32.into()).into()
 		});
 	}: {
-		let result = Pallet::<T>::increase_request_fee(&H160::default(), 0u64, BalanceOf::<T>::one());
+		let result = Pallet::<T>::increase_request_fee(
+			&H160::default(),
+			0u64,
+			BalanceOf::<T>::one()
+		);
 		assert_eq!(result, DispatchResult::Ok(()));
 	}
 	verify { }
