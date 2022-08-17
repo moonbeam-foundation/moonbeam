@@ -1,7 +1,7 @@
 [package]
 name = "pallet-evm-precompile-xcm-utils"
 authors = [ "PureStake" ]
-description = "A Precompile to make xcm-transactor accessible to pallet-evm"
+description = "A Precompile to make xcm utilities accessible to pallet-evm"
 edition = "2021"
 version = "0.1.0"
 
