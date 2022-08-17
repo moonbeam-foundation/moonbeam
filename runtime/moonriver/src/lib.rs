@@ -493,9 +493,9 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
 	/// The maximum number of proposals that can be open in the treasury council at once.
-	type MaxProposals = ConstU32<100>;
+	type MaxProposals = ConstU32<20>;
 	/// The maximum number of treasury council members.
-	type MaxMembers = ConstU32<100>;
+	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
