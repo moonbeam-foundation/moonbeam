@@ -48,5 +48,9 @@ interface Proxy {
     /// @custom:selector f71c3873
     /// @param delegate The account that the caller has maybe proxied
     /// @param proxyType The permissions allowed for the proxy
-    function isProxy(address delegate, ProxyType proxyType) external;
+    /// @return exists True if a proxy exists, False otherwise
+    function isProxy(address delegate, ProxyType proxyType)
+        external
+        view
+        returns (bool exists);
 }

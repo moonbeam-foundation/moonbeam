@@ -122,7 +122,7 @@ where
 			.iter()
 			.any(|pd| pd.delegate == delegate)
 		{
-			return Err(revert("Duplicate"));
+			return Err(revert("cannot add more than one proxy"));
 		}
 
 		let call = ProxyCall::<Runtime>::add_proxy {
@@ -191,9 +191,10 @@ where
 	/// Parameters:
 	/// * delegate: The account that the caller has maybe proxied
 	/// * proxyType: The permissions allowed for the proxy
+	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
 	fn is_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
+		input.expect_arguments(3)?;
 
 		let delegate = input
 			.read::<Address>()
@@ -205,6 +206,7 @@ where
 				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
 					.map_err(|_| revert("failed decoding proxy_type"))
 			})?;
+		let delay = input.read::<u32>()?.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -212,7 +214,7 @@ where
 		let is_proxy = ProxyPallet::<Runtime>::proxies(origin)
 			.0
 			.iter()
-			.any(|pd| pd.delegate == delegate && pd.proxy_type == proxy_type);
+			.any(|pd| pd.delegate == delegate && pd.proxy_type == proxy_type && pd.delay == delay);
 
 		Ok(succeed(EvmDataWriter::new().write(is_proxy).build()))
 	}

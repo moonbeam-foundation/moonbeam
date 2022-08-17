@@ -102,7 +102,11 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("Duplicate"));
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("cannot add more than one proxy")
+				});
 		})
 }
 
@@ -130,7 +134,11 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("Duplicate"));
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("cannot add more than one proxy")
+				});
 		})
 }
 
@@ -158,7 +166,11 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| from_utf8(&output).unwrap().contains("Duplicate"));
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("cannot add more than one proxy")
+				});
 		})
 }
 
@@ -350,6 +362,7 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 					EvmDataWriter::new_with_selector(Action::IsProxy)
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Something as u8)
+						.write::<u32>(0)
 						.build(),
 				)
 				.execute_returns(EvmDataWriter::new().write(false).build());
@@ -377,6 +390,35 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 					EvmDataWriter::new_with_selector(Action::IsProxy)
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Any as u8)
+						.write::<u32>(0)
+						.build(),
+				)
+				.execute_returns(EvmDataWriter::new().write(false).build());
+		})
+}
+
+#[test]
+fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+				delegate: Bob,
+				proxy_type: ProxyType::Something,
+				delay: 1u64,
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			let bob: H160 = Bob.into();
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::IsProxy)
+						.write::<Address>(bob.into())
+						.write::<u8>(ProxyType::Any as u8)
+						.write::<u32>(0)
 						.build(),
 				)
 				.execute_returns(EvmDataWriter::new().write(false).build());
@@ -392,7 +434,7 @@ fn test_is_proxy_returns_true_if_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 1u64,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -404,6 +446,7 @@ fn test_is_proxy_returns_true_if_proxy() {
 					EvmDataWriter::new_with_selector(Action::IsProxy)
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Something as u8)
+						.write::<u32>(1)
 						.build(),
 				)
 				.execute_returns(EvmDataWriter::new().write(true).build());
