@@ -93,6 +93,8 @@ pub mod pallet {
 		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 
 		/// Number of rounds before changing the selected orbiter.
+		/// WARNING: when changing `RotatePeriod`, you need a migration code that sets
+		/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
 		type RotatePeriod: Get<Self::RoundIndex>;
 
 		/// Round index type.
@@ -125,6 +127,12 @@ pub mod pallet {
 	#[pallet::storage]
 	/// Current round index
 	pub(crate) type CurrentRound<T: Config> = StorageValue<_, T::RoundIndex, ValueQuery>;
+
+	#[pallet::storage]
+	/// If true, it forces the rotation at the next round.
+	/// A use case: when changing RotatePeriod, you need a migration code that sets this value to
+	/// true to avoid holes in OrbiterPerRound.
+	pub(crate) type ForceRotation<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn min_orbiter_deposit)]
@@ -503,7 +511,10 @@ pub mod pallet {
 		pub fn on_new_round(round_index: T::RoundIndex) -> Weight {
 			CurrentRound::<T>::put(round_index);
 
-			if round_index % T::RotatePeriod::get() == Zero::zero() {
+			if ForceRotation::<T>::get() {
+				ForceRotation::<T>::put(false);
+				Self::on_rotate(round_index) + T::DbWeight::get().writes(2)
+			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
 				Self::on_rotate(round_index) + T::DbWeight::get().write
 			} else {
 				T::DbWeight::get().write
