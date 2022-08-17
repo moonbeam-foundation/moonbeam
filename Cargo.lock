@@ -6827,6 +6827,7 @@ dependencies = [
  "pallet-balances",
  "pallet-ethereum",
  "pallet-evm",
+ "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
  "rlp",
