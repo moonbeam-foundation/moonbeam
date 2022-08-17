@@ -18,7 +18,7 @@
 
 use frame_support::{
 	codec::MaxEncodedLen,
-	construct_runtime, parameter_types,
+	construct_runtime, ensure, parameter_types,
 	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
 	weights::{GetDispatchInfo, Weight},
 	PalletId,
@@ -29,7 +29,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{BlakeTwo256, Hash, IdentityLookup},
+	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -1009,15 +1009,17 @@ impl pallet_proxy::Config for Runtime {
 pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
-		let f = |x: &pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64>| -> bool {
-			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
-		};
-		Proxy::proxies(delegator)
-			.0
-			.into_iter()
-			.find(f)
-			.map(|_| ())
-			.ok_or("proxy error: expected `ProxyType::Any`")
+		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
+		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64> =
+			pallet_proxy::Pallet::<Runtime>::find_proxy(
+				&delegator,
+				&delegatee,
+				Some(ProxyType::Any),
+			)
+			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
+		// We only allow to use it for delay zero proxies, as the call will inmediatly be executed
+		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
+		Ok(())
 	}
 }
 

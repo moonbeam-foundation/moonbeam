@@ -695,6 +695,171 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 });
 
 describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (context) => {
+  let transferredBalance;
+  let sendingAddress;
+  let descendAddress;
+  let random: KeyringPair;
+
+  before("Should receive transact action with DescendOrigin", async function () {
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(
+      context,
+      charleth.address
+    );
+    sendingAddress = originAddress;
+    descendAddress = descendOriginAddress;
+    random = generateKeyringPair();
+    transferredBalance = 10_000_000_000_000_000_000n;
+
+    // We first fund the descend origin derivated address
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance)
+      )
+    );
+    const balance = (
+      (await context.polkadotApi.query.system.account(descendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+
+    // Add proxy with delay 1
+    await context.createBlock(
+      context.polkadotApi.tx.proxy.addProxy(descendAddress, "Any" as any, 1).signAsync(charleth)
+    );
+  });
+
+  it("Should fail to transact_through_proxy with non-zero delay proxy", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const amountToTransfer = transferredBalance / 10n;
+
+    const xcmTransactions = [
+      {
+        V1: {
+          gas_limit: 21000,
+          fee_payment: {
+            Auto: {
+              Low: null,
+            },
+          },
+          action: {
+            Call: random.address,
+          },
+          value: amountToTransfer,
+          input: [],
+          access_list: null,
+        },
+      },
+      {
+        V2: {
+          gas_limit: 21000,
+          action: {
+            Call: random.address,
+          },
+          value: amountToTransfer,
+          input: [],
+          access_list: null,
+        },
+      },
+    ];
+
+    let feeAmount = 0n;
+
+    const targetXcmWeight = 925_000_000n;
+    const targetXcmFee = targetXcmWeight * 50_000n;
+
+    for (const xcmTransaction of xcmTransactions) {
+      feeAmount += targetXcmFee;
+      // TODO need to update lookup types for xcm ethereum transaction V2
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transactThroughProxy(
+        sendingAddress,
+        xcmTransaction
+      );
+      const transferCallEncoded = transferCall?.method.toHex();
+
+      // We are going to test that we can receive a transact operation from parachain 1
+      // using descendOrigin first
+      const xcmMessage = {
+        V2: [
+          {
+            DescendOrigin: {
+              X1: {
+                AccountKey20: {
+                  network: "Any",
+                  key: sendingAddress,
+                },
+              },
+            },
+          },
+          {
+            WithdrawAsset: [
+              {
+                id: {
+                  Concrete: {
+                    parents: 0,
+                    interior: {
+                      X1: { PalletInstance: balancesPalletIndex },
+                    },
+                  },
+                },
+                fun: { Fungible: targetXcmFee },
+              },
+            ],
+          },
+          {
+            BuyExecution: {
+              fees: {
+                id: {
+                  Concrete: {
+                    parents: 0,
+                    interior: {
+                      X1: { PalletInstance: balancesPalletIndex },
+                    },
+                  },
+                },
+                fun: { Fungible: targetXcmFee },
+              },
+              weightLimit: { Limited: targetXcmWeight },
+            },
+          },
+          {
+            Transact: {
+              originType: "SovereignAccount",
+              requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+              call: {
+                encoded: transferCallEncoded,
+              },
+            },
+          },
+        ],
+      };
+
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+
+      // Make sure the state for the transfer recipient didn't change
+      const testAccountBalance = (
+        await context.polkadotApi.query.system.account(random.address)
+      ).data.free.toBigInt();
+      expect(testAccountBalance).to.eq(0n);
+
+      // Make sure the descended address has been deducted fees once (in xcm-executor) but
+      // transfered nothing.
+      const descendOriginBalance = await context.web3.eth.getBalance(descendAddress);
+      expect(BigInt(descendOriginBalance)).to.eq(transferredBalance - feeAmount);
+    }
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (context) => {
   let charlethBalance;
   let charlethNonce;
   let transferredBalance;
