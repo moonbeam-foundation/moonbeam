@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 /// @title Xcm Utils Interface
 /// The interface through which solidity contracts will interact with xcm utils pallet
-/// @custom:address 0x000000000000000000000000000000000000080B
+/// @custom:address 0x000000000000000000000000000000000000080C
 
 interface XcmUtils {
 
