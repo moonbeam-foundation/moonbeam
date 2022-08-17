@@ -166,9 +166,10 @@ where
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
-			Action::RelayEpochIndex | Action::GetRequestStatus | Action::GetRequest | Action::RequiredDeposit => {
-				FunctionModifier::View
-			}
+			Action::RelayEpochIndex
+			| Action::GetRequestStatus
+			| Action::GetRequest
+			| Action::RequiredDeposit => FunctionModifier::View,
 			_ => FunctionModifier::NonPayable,
 		})?;
 
