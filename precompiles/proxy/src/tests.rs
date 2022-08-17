@@ -37,7 +37,7 @@ fn test_selector_less_than_four_bytes_reverts() {
 	ExtBuilder::default().build().execute_with(|| {
 		PrecompilesValue::get()
 			.prepare_test(Alice, Precompile, vec![1u8, 2, 3])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -46,7 +46,7 @@ fn test_unimplemented_selector_reverts() {
 	ExtBuilder::default().build().execute_with(|| {
 		PrecompilesValue::get()
 			.prepare_test(Alice, Precompile, vec![1u8, 2, 3, 4])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -74,7 +74,7 @@ fn test_add_proxy_fails_if_invalid_value_for_proxy_type() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| output == b"failed decoding proxy_type");
+				.execute_reverts(|o| o == b"proxyType: Failed decoding value to ProxyType");
 		})
 }
 
@@ -102,11 +102,7 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("cannot add more than one proxy")
-				});
+				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
 }
 
@@ -134,11 +130,7 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("cannot add more than one proxy")
-				});
+				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
 }
 
@@ -166,11 +158,7 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("cannot add more than one proxy")
-				});
+				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
 }
 
@@ -235,7 +223,7 @@ fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_reverts(|output| output == b"failed decoding proxy_type");
+				.execute_reverts(|o| o == b"proxyType: Failed decoding value to ProxyType");
 		})
 }
 

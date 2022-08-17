@@ -93,20 +93,14 @@ where
 	/// * proxy_type: The permissions allowed for this proxy account.
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
 	fn add_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
+		read_args!(handle, { delegate: Address, proxy_type: u8, delay: u32 });
 
-		let delegate = input
-			.read::<Address>()
-			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
-		let proxy_type = input
-			.read::<u8>()
-			.map_err(|_| revert("failed reading proxy_type"))
-			.and_then(|value| {
-				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
-					.map_err(|_| revert("failed decoding proxy_type"))
+		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
+			.map_err(|_| {
+				RevertReason::custom("Failed decoding value to ProxyType").in_field("proxyType")
 			})?;
-		let delay = input.read::<u32>()?.into();
+		let delay = delay.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
@@ -122,7 +116,7 @@ where
 			.iter()
 			.any(|pd| pd.delegate == delegate)
 		{
-			return Err(revert("cannot add more than one proxy"));
+			return Err(revert("Cannot add more than one proxy"));
 		}
 
 		let call = ProxyCall::<Runtime>::add_proxy {
@@ -145,20 +139,14 @@ where
 	/// * proxy_type: The permissions currently enabled for the removed proxy account.
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
 	fn remove_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
+		read_args!(handle, { delegate: Address, proxy_type: u8, delay: u32 });
 
-		let delegate = input
-			.read::<Address>()
-			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
-		let proxy_type = input
-			.read::<u8>()
-			.map_err(|_| revert("failed reading proxy_type"))
-			.and_then(|value| {
-				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
-					.map_err(|_| revert("failed decoding proxy_type"))
+		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
+			.map_err(|_| {
+				RevertReason::custom("Failed decoding value to ProxyType").in_field("proxyType")
 			})?;
-		let delay = input.read::<u32>()?.into();
+		let delay = delay.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxy {
@@ -193,20 +181,14 @@ where
 	/// * proxyType: The permissions allowed for the proxy
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
 	fn is_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
+		read_args!(handle, { delegate: Address, proxy_type: u8, delay: u32 });
 
-		let delegate = input
-			.read::<Address>()
-			.map(|addr| Runtime::AddressMapping::into_account_id(addr.into()))?;
-		let proxy_type = input
-			.read::<u8>()
-			.map_err(|_| revert("failed reading proxy_type"))
-			.and_then(|value| {
-				Runtime::ProxyType::decode(&mut value.to_le_bytes().as_slice())
-					.map_err(|_| revert("failed decoding proxy_type"))
+		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
+			.map_err(|_| {
+				RevertReason::custom("Failed decoding value to ProxyType").in_field("proxyType")
 			})?;
-		let delay = input.read::<u32>()?.into();
+		let delay = delay.into();
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
