@@ -88,8 +88,9 @@ benchmarks! {
 			.expect("decode into same type");
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		NotFirstBlock::<T>::put(());
+		let block_number = frame_system::Pallet::<T>::block_number();
 		RandomnessResults::<T>::insert(
-			RequestType::Local(T::BlockNumber::default()), RandomnessResult::new()
+			RequestType::Local(block_number), RandomnessResult::new()
 		);
 		// insert RandomnessRequest with None and 1 request
 		// so this is also written
@@ -101,7 +102,7 @@ benchmarks! {
 		};
 		// insert digest into frame_system storage
 		frame_system::Pallet::<T>::initialize(
-			&T::BlockNumber::default(),
+			&block_number,
 			&T::Hash::default(),
 			&digest
 		);
@@ -109,7 +110,7 @@ benchmarks! {
 		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
 		// verification failing, try different set of inputs
-		Pallet::<T>::on_initialize(T::BlockNumber::default());
+		Pallet::<T>::on_initialize(block_number);
 	}
 	verify {
 		// verify VrfOutput was inserted into storage as expected
@@ -126,7 +127,7 @@ benchmarks! {
 		// convert vrf output and check if it matches as expected
 		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
 		assert_eq!(
-			RandomnessResults::<T>::get(RequestType::Local(T::BlockNumber::default()))
+			RandomnessResults::<T>::get(RequestType::Local(block_number))
 				.expect("Never fulfilled original request").randomness,
 			Some(randomness_output)
 		);
