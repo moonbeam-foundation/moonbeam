@@ -7,7 +7,7 @@ interface SolidityTest {
     enum CustomEnum0 {
         A,
         B,
-        C,
+        C
     }
 
     /// A custom type
@@ -18,14 +18,14 @@ interface SolidityTest {
 
     /// A custom type
     struct CustomArg1 {
-        address[] p0;  
+        address[] p0;
         uint256[] p1;
         bytes[] p2;
     }
 
     /// A composed custom type
     struct CustomArg2 {
-        CustomArg0 p0;  
+        CustomArg0 p0;
         CustomArg1[] p1;
     }
 
@@ -69,24 +69,13 @@ interface SolidityTest {
     function fnMemoryArrayArgs(
         address[] memory arg0,
         uint256[] memory arg1,
-        bytes[] arg2,
+        bytes[] memory arg2
     ) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
     /// @custom:selector 1ea61a4e
-    function fnCalldataArgs(
-        string calldata arg0,
-        bytes[] arg1,
-    ) external;
-
-    /// @param arg0 Arg0 Description
-    /// @param arg1 Arg1 Description
-    /// @custom:selector 9f066a4e
-    function fnStorageArgs(
-        string storage arg0,
-        bytes[] arg1,
-    ) external;
+    function fnCalldataArgs(string calldata arg0, bytes[] memory arg1) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
@@ -94,17 +83,14 @@ interface SolidityTest {
     /// @custom:selector d8af1a4e
     function fnCustomArgs(
         CustomArg0 memory arg0,
-        bytes[] arg1,
-        uint64 arg2, 
+        bytes[] memory arg1,
+        uint64 arg2
     ) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
     /// @custom:selector e8af1642
-    function fnEnumArgs(
-        CustomEnum0 arg0,
-        uint64 arg1, 
-    ) external;
+    function fnEnumArgs(CustomEnum0 arg0, uint64 arg1) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
@@ -114,31 +100,24 @@ interface SolidityTest {
     function fnCustomArgsMultiple(
         CustomArg0 memory arg0,
         CustomArg1 memory arg1,
-        bytes[] arg2,
-        uint64 arg3, 
+        bytes[] memory arg2,
+        uint64 arg3
     ) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
     /// @custom:selector 77af1a40
-    function fnCustomArrayArgs(
-        CustomArg0[] memory arg0,
-        bytes[] arg1,
-    ) external;
+    function fnCustomArrayArgs(CustomArg0[] memory arg0, bytes[] memory arg1)
+        external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
     /// @custom:selector 80af0a40
-    function fnCustomComposedArg(
-        CustomArg2 memory arg0,
-        uint64 arg1,
-    ) external;
+    function fnCustomComposedArg(CustomArg2 memory arg0, uint64 arg1) external;
 
     /// @param arg0 Arg0 Description
     /// @param arg1 Arg1 Description
     /// @custom:selector 97baa040
-    function fnCustomComposedArrayArg(
-        CustomArg2[] memory arg0,
-        uint64 arg1,
-    ) external;
+    function fnCustomComposedArrayArg(CustomArg2[] memory arg0, uint64 arg1)
+        external;
 }

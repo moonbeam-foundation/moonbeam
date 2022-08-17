@@ -20,9 +20,7 @@ describeDevMoonbeam("Precompiles - Staking - Genesis", (context) => {
   it("should include collator from the specs", async function () {
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("is_selected_candidate", [
-        alith.address,
-      ]),
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("isSelectedCandidate", [alith.address]),
     });
 
     expect(Number(result)).to.equal(1);
@@ -31,7 +29,7 @@ describeDevMoonbeam("Precompiles - Staking - Genesis", (context) => {
   it("should have one collator", async function () {
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("candidate_count"),
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("candidateCount"),
     });
 
     expect(Number(result)).to.equal(1);
@@ -44,7 +42,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Candidates", (con
       createTransaction(context, {
         ...ETHAN_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("join_candidates", [
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("joinCandidates", [
           MIN_GLMR_STAKING,
           1,
         ]),
@@ -69,7 +67,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Candidates", (con
 
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("is_candidate", [alith.address]),
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("isCandidate", [alith.address]),
     });
 
     expect(Number(result)).to.equal(1);
@@ -83,7 +81,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Collator Leaving", (co
       createTransaction(context, {
         ...ETHAN_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("join_candidates", [
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("joinCandidates", [
           MIN_GLMR_STAKING,
           1,
         ]),
@@ -99,7 +97,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Collator Leaving", (co
       createTransaction(context, {
         ...ETHAN_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("candidate_exit_is_pending", [
+        data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("candidateExitIsPending", [
           ethan.address,
         ]),
       })
@@ -159,7 +157,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
 
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegation_request_is_pending", [
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegationRequestIsPending", [
         ethan.address,
         alith.address,
       ]),
@@ -179,7 +177,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     // Check that there exists a pending request
     const { result } = await web3EthCall(context.web3, {
       to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
-      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegation_request_is_pending", [
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegationRequestIsPending", [
         ethan.address,
         alith.address,
       ]),
