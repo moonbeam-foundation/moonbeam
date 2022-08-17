@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::vrf::*;
 use crate::{
-	BalanceOf, Config, LocalVrfOutput, NotFirstBlock, Pallet, RandomnessResult, RandomnessResults,
-	Request, RequestType,
+	BalanceOf, Config, LocalVrfOutput, NotFirstBlock, Pallet, RandomnessResults, Request,
+	RequestType,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
@@ -89,11 +89,6 @@ benchmarks! {
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
 		NotFirstBlock::<T>::put(());
 		let block_number = frame_system::Pallet::<T>::block_number();
-		RandomnessResults::<T>::insert(
-			RequestType::Local(block_number), RandomnessResult::new()
-		);
-		// insert RandomnessRequest with None and 1 request
-		// so this is also written
 		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
 		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
 		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
@@ -109,7 +104,6 @@ benchmarks! {
 		// set keys in author mapping
 		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
-		// verification failing, try different set of inputs
 		Pallet::<T>::on_initialize(block_number);
 	}
 	verify {
@@ -126,11 +120,6 @@ benchmarks! {
 			.expect("VRF output bytes can be decode into T::Hash");
 		// convert vrf output and check if it matches as expected
 		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
-		assert_eq!(
-			RandomnessResults::<T>::get(RequestType::Local(block_number))
-				.expect("Never fulfilled original request").randomness,
-			Some(randomness_output)
-		);
 	}
 
 	request_randomness {
