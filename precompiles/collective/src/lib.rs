@@ -23,7 +23,7 @@ use fp_evm::{Precompile, PrecompileOutput};
 use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
-	traits::{ConstU32, PalletInfo},
+	traits::ConstU32,
 	weights::{GetDispatchInfo, PostDispatchInfo},
 };
 use pallet_evm::AddressMapping;
@@ -44,7 +44,7 @@ type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	Execute = "execute(bytes,uint32)",
+	Execute = "execute(bytes)",
 	Propose = "propose(uint32,bytes)",
 	Vote = "vote(bytes32,uint32,bool)",
 	Close = "close(bytes32,uint32,uint64)",
@@ -94,7 +94,44 @@ where
 		+ Into<<Runtime as frame_system::Config>::Hash>,
 {
 	fn contract_execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		todo!()
+		read_args!(handle, {
+			proposal: BoundedBytes<GetProposalLimit>
+		});
+
+		let proposal: Vec<_> = proposal.into_vec();
+		let proposal_hash: H256 = Runtime::Hashing::hash(&proposal).into();
+		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
+			RevertReason::value_is_too_large("uint32")
+				.in_field("length")
+				.in_field("proposal")
+		})?;
+
+		let proposal = Runtime::Call::decode(&mut &*proposal)
+			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
+			.into();
+		let proposal = Box::new(proposal);
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::<Runtime>::try_dispatch(
+			handle,
+			Some(origin).into(),
+			pallet_collective::Call::<Runtime, Instance>::execute {
+				proposal,
+				length_bound: proposal_length,
+			},
+		)?;
+
+		let log = log2(
+			handle.context().address,
+			SELECTOR_LOG_EXECUTED,
+			proposal_hash,
+			Vec::new(),
+		);
+
+		handle.record_log_costs(&[&log])?;
+		log.record(handle)?;
+
+		Ok(succeed(&[]))
 	}
 
 	fn propose(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -176,14 +213,15 @@ where
 			},
 		)?;
 
+		// TODO: Since we cannot access ayes/nays of a proposal we cannot
+		// include it in the EVM events to mirror Substrate events.
+
 		let log = log3(
 			handle.context().address,
 			SELECTOR_LOG_VOTED,
 			handle.context().caller,
 			proposal_hash,
-			EvmDataWriter::new()
-				.write(approve)
-				.build(),
+			EvmDataWriter::new().write(approve).build(),
 		);
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
@@ -207,7 +245,7 @@ where
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
 				proposal_weight_bound,
-				length_bound
+				length_bound,
 			},
 		)?;
 

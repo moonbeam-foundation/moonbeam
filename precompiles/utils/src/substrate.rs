@@ -19,14 +19,12 @@
 //! - Substrate DB read and write costs
 
 use {
-	crate::{
-		revert,
-	},
+	crate::revert,
 	core::marker::PhantomData,
 	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
 	frame_support::{
-		pallet_prelude::DispatchError,
 		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+		pallet_prelude::DispatchError,
 		traits::Get,
 	},
 	pallet_evm::GasWeightMapping,
@@ -41,7 +39,9 @@ impl From<TryDispatchError> for PrecompileFailure {
 	fn from(f: TryDispatchError) -> PrecompileFailure {
 		match f {
 			TryDispatchError::Evm(e) => PrecompileFailure::Error { exit_status: e },
-			TryDispatchError::Substrate(e) => revert(alloc::format!("Dispatched call failed with error: {e:?}")),
+			TryDispatchError::Substrate(e) => {
+				revert(alloc::format!("Dispatched call failed with error: {e:?}"))
+			}
 		}
 	}
 }
@@ -84,9 +84,7 @@ where
 		// computations.
 		let used_weight = call
 			.dispatch(origin)
-			.map_err(|e| {
-				TryDispatchError::Substrate(e.error)
-			})?
+			.map_err(|e| TryDispatchError::Substrate(e.error))?
 			.actual_weight;
 
 		let used_gas =

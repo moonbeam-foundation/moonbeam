@@ -5,7 +5,7 @@ pragma solidity >=0.8.0;
 /// Allows to interact with Substrate pallet_collective from the EVM.
 /// Address: TODO
 interface Collective {
-    function execute(bytes memory proposal, uint32 lengthBound) external;
+    function execute(bytes memory proposal) external;
 
     function propose(uint32 threshold, bytes memory proposal) external;
 
