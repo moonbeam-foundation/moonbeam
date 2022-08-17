@@ -41,7 +41,7 @@ fn test_get_account_parent() {
 			.build();
 
 		let expected_address: H160 = TestAccount::Parent.into();
-		// Expected result is zero
+
 		precompiles()
 			.prepare_test(Alice, Precompile, input)
 			.expect_cost(1)
@@ -65,7 +65,7 @@ fn test_get_account_sibling() {
 			.build();
 
 		let expected_address: H160 = TestAccount::SiblingParachain(2000u32).into();
-		// Expected result is zero
+
 		precompiles()
 			.prepare_test(Alice, Precompile, input)
 			.expect_cost(1)
