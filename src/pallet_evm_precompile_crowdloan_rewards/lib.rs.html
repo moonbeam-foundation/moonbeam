@@ -201,18 +201,6 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
-<span id="204">204</span>
-<span id="205">205</span>
-<span id="206">206</span>
-<span id="207">207</span>
-<span id="208">208</span>
-<span id="209">209</span>
-<span id="210">210</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -318,12 +306,8 @@
 	<span class="kw">fn</span> <span class="ident">is_contributor</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
 
-		<span class="comment">// Bound check</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">contributor</span>: <span class="ident">Address</span> });
+		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">contributor</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">contributor</span>);
 
@@ -345,12 +329,8 @@
 	<span class="kw">fn</span> <span class="ident">reward_info</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>; <span class="comment">// accounts_payable</span>
 
-		<span class="comment">// Bound check</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">contributor</span>: <span class="ident">Address</span> });
+		<span class="kw">let</span> <span class="ident">contributor</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">contributor</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">contributor</span>);
 
@@ -367,11 +347,11 @@
 			<span class="kw">let</span> <span class="ident">total_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>
 				.<span class="ident">total_reward</span>
 				.<span class="ident">try_into</span>()
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>))<span class="question-mark">?</span>;
 			<span class="kw">let</span> <span class="ident">claimed_reward</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">reward_info</span>
 				.<span class="ident">claimed_reward</span>
 				.<span class="ident">try_into</span>()
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>))<span class="question-mark">?</span>;
 
 			(<span class="ident">total_reward</span>.<span class="ident">into</span>(), <span class="ident">claimed_reward</span>.<span class="ident">into</span>())
 		} <span class="kw">else</span> {
@@ -403,12 +383,8 @@
 			<span class="string">&quot;In update_reward_address dispatchable wrapper&quot;</span>
 		);
 
-		<span class="comment">// Bound check</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// parse the address</span>
-		<span class="kw">let</span> <span class="ident">new_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">new_address</span>: <span class="ident">Address</span> });
+		<span class="kw">let</span> <span class="ident">new_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">new_address</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">new_reward_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">new_address</span>);
 

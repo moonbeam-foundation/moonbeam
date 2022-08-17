@@ -392,19 +392,6 @@
 <span id="387">387</span>
 <span id="388">388</span>
 <span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -557,14 +544,15 @@
 	<span class="kw">fn</span> <span class="ident">encode_bond</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">address</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">controller_address</span>: <span class="ident">H256</span>,
+			<span class="ident">amount</span>: <span class="ident">U256</span>,
+			<span class="ident">reward_destination</span>: <span class="ident">RewardDestinationWrapper</span>
+		});
+		<span class="kw">let</span> <span class="ident">address</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">controller_address</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into</span>();
 
-		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">RewardDestinationWrapper</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Bond</span>(
 			<span class="ident">address</span>.<span class="ident">into</span>(),
 			<span class="ident">relay_amount</span>,
@@ -579,9 +567,8 @@
 	<span class="kw">fn</span> <span class="ident">encode_bond_extra</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">amount</span>: <span class="ident">U256</span> });
+
 		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span>
 			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::BondExtra</span>(<span class="ident">relay_amount</span>))
@@ -594,10 +581,8 @@
 	<span class="kw">fn</span> <span class="ident">encode_unbond</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">amount</span>: <span class="ident">U256</span> });
 
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Unbond</span>(<span class="ident">relay_amount</span>))
@@ -610,12 +595,10 @@
 	<span class="kw">fn</span> <span class="ident">encode_withdraw_unbonded</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">slashes</span>: <span class="ident">u32</span> });
 
-		<span class="kw">let</span> <span class="ident">num_slashing_spans</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span>
-			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::WithdrawUnbonded</span>(<span class="ident">num_slashing_spans</span>))
+			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::WithdrawUnbonded</span>(<span class="ident">slashes</span>))
 				.<span class="ident">as_slice</span>()
 				.<span class="ident">into</span>();
 
@@ -625,12 +608,9 @@
 	<span class="kw">fn</span> <span class="ident">encode_validate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">comission</span>: <span class="ident">u32</span>, <span class="ident">blocked</span>: <span class="ident">bool</span>});
 
-		<span class="kw">let</span> <span class="ident">parst_per_billion</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">blocked</span>: <span class="ident">bool</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="ident">Perbill::from_parts</span>(<span class="ident">parst_per_billion</span>);
+		<span class="kw">let</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="ident">Perbill::from_parts</span>(<span class="ident">comission</span>);
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Validate</span>(
 			<span class="ident">pallet_staking::ValidatorPrefs</span> {
 				<span class="ident">commission</span>: <span class="ident">fraction</span>,
@@ -646,10 +626,9 @@
 	<span class="kw">fn</span> <span class="ident">encode_nominate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">nominated_as_h256</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">nominees</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> });
 
-		<span class="kw">let</span> <span class="ident">nominated</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">nominated_as_h256</span>
+		<span class="kw">let</span> <span class="ident">nominated</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">nominees</span>
 			.<span class="ident">into_vec</span>()
 			.<span class="ident">iter</span>()
 			.<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">add</span><span class="op">|</span> {
@@ -667,8 +646,7 @@
 	<span class="kw">fn</span> <span class="ident">encode_chill</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">0</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {});
 
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Chill</span>)
 			.<span class="ident">as_slice</span>()
@@ -680,10 +658,8 @@
 	<span class="kw">fn</span> <span class="ident">encode_set_payee</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">RewardDestinationWrapper</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">reward_destination</span>: <span class="ident">RewardDestinationWrapper</span> });
+		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span>
 			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::SetPayee</span>(<span class="ident">reward_destination</span>))
@@ -696,8 +672,8 @@
 	<span class="kw">fn</span> <span class="ident">encode_set_controller</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">controller</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">controller</span>: <span class="ident">H256</span> });
+		<span class="kw">let</span> <span class="ident">controller</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">controller</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span>
 			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::SetController</span>(<span class="ident">controller</span>.<span class="ident">into</span>()))
@@ -710,10 +686,8 @@
 	<span class="kw">fn</span> <span class="ident">encode_rebond</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">amount</span>: <span class="ident">U256</span> });
 
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">encoded</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Rebond</span>(<span class="ident">relay_amount</span>))
 			.<span class="ident">as_slice</span>()
@@ -746,12 +720,12 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">RewardDestinationWrapper</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetRewardDestinationSizeLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">reward_destination_bytes</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into_vec</span>();
 		<span class="macro">ensure!</span>(
 			<span class="ident">reward_destination_bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>,
-			<span class="ident">revert</span>(<span class="string">&quot;Reward destinations cannot be empty&quot;</span>)
+			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Reward destinations cannot be empty&quot;</span>)
 		);
 		<span class="comment">// For simplicity we use an EvmReader here</span>
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_reward_destination</span> <span class="op">=</span> <span class="ident">EvmDataReader::new</span>(<span class="kw-2">&amp;</span><span class="ident">reward_destination_bytes</span>);
@@ -770,7 +744,7 @@
 				)))
 			}
 			<span class="number">4u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::None</span>)),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Not available enum&quot;</span>)),
+			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Unknown reward destination&quot;</span>).<span class="ident">into</span>()),
 		}
 	}
 

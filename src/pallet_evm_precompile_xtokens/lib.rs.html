@@ -434,34 +434,6 @@
 <span id="429">429</span>
 <span id="430">430</span>
 <span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -599,22 +571,16 @@
 	<span class="ident">Runtime</span>: <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
 	<span class="kw">fn</span> <span class="ident">transfer</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">currency_address</span>: <span class="ident">Address</span>,
+			<span class="ident">amount</span>: <span class="ident">U256</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// We use the MultiLocation, which we have instructed how to read</span>
-		<span class="comment">// In the end we are using the encoding</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
+		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency_address</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
+
 		<span class="comment">// We convert the address into a currency id xtokens understands</span>
 		<span class="kw">let</span> <span class="ident">currency_id</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span> <span class="op">=</span>
 			<span class="ident">Runtime::account_to_currency_id</span>(<span class="ident">to_account</span>)
@@ -623,13 +589,13 @@
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer</span> {
 			<span class="ident">currency_id</span>,
 			<span class="ident">amount</span>,
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -638,43 +604,41 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer_with_fee</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">5</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">currency_address</span>: <span class="ident">Address</span>,
+			<span class="ident">amount</span>: <span class="ident">U256</span>,
+			<span class="ident">fee</span>: <span class="ident">U256</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
-		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">fee</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// We use the MultiLocation, which we have instructed how to read</span>
-		<span class="comment">// In the end we are using the encoding</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
+		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency_address</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
+
 		<span class="comment">// We convert the address into a currency id xtokens understands</span>
 		<span class="kw">let</span> <span class="ident">currency_id</span>: <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span> <span class="op">=</span>
-			<span class="ident">Runtime::account_to_currency_id</span>(<span class="ident">to_account</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;cannot convert into currency id&quot;</span>))<span class="question-mark">?</span>;
+			<span class="ident">Runtime::account_to_currency_id</span>(<span class="ident">to_account</span>).<span class="ident">ok_or</span>(
+				<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Cannot convert into currency id&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;currencyAddress&quot;</span>),
+			)<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
 		<span class="comment">// Transferred amount</span>
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="comment">// Fee amount</span>
 		<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">fee</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_with_fee</span> {
 			<span class="ident">currency_id</span>,
 			<span class="ident">amount</span>,
 			<span class="ident">fee</span>,
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -683,33 +647,25 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer_multiasset</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// asset is defined as a multiLocation. For now we are assuming these are concrete</span>
-		<span class="comment">// fungible assets</span>
-		<span class="kw">let</span> <span class="ident">asset_multilocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// read destination</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">amount</span>: <span class="ident">U256</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">to_balance</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiasset</span> {
 			<span class="ident">asset</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiAsset::V1</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset_multilocation</span>),
+				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset</span>),
 				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">to_balance</span>),
 			})),
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -720,39 +676,33 @@
 	<span class="kw">fn</span> <span class="ident">transfer_multiasset_with_fee</span>(
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">5</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// asset is defined as a multiLocation. For now we are assuming these are concrete</span>
-		<span class="comment">// fungible assets</span>
-		<span class="kw">let</span> <span class="ident">asset_multilocation</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">fee</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// read destination</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">amount</span>: <span class="ident">U256</span>,
+			<span class="ident">fee</span>: <span class="ident">U256</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">fee</span>
 			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiasset_with_fee</span> {
 			<span class="ident">asset</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiAsset::V1</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset_multilocation</span>.<span class="ident">clone</span>()),
+				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset</span>.<span class="ident">clone</span>()),
 				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
 			})),
 			<span class="ident">fee</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiAsset::V1</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset_multilocation</span>),
+				<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">asset</span>),
 				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">fee</span>),
 			})),
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -763,53 +713,47 @@
 	<span class="kw">fn</span> <span class="ident">transfer_multi_currencies</span>(
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
 	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">non_mapped_currencies</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Currency</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">non_mapped_currencies</span> <span class="op">=</span> <span class="ident">non_mapped_currencies</span>.<span class="ident">into_vec</span>();
-
-		<span class="kw">let</span> <span class="ident">fee_item</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// read destination</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">currencies</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Currency</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">fee_item</span>: <span class="ident">u32</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
 		<span class="comment">// Build all currencies</span>
-		<span class="kw">let</span> <span class="ident">currencies</span>: <span class="ident">EvmResult</span><span class="op">&lt;</span>
-			<span class="ident">Vec</span><span class="op">&lt;</span>(
-				<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>,
-				<span class="ident">XBalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-			)<span class="op">&gt;</span>,
-		<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">non_mapped_currencies</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">currency</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">address_as_h160</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency</span>.<span class="ident">address</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
-				<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">currency</span>
-					.<span class="ident">amount</span>
-					.<span class="ident">clone</span>()
-					.<span class="ident">try_into</span>()
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">currencies</span> <span class="op">=</span> <span class="ident">currencies</span>
+			.<span class="ident">into_vec</span>()
+			.<span class="ident">into_iter</span>()
+			.<span class="ident">enumerate</span>()
+			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">currency</span>)<span class="op">|</span> {
+				<span class="kw">let</span> <span class="ident">address_as_h160</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency</span>.<span class="ident">address</span>.<span class="ident">into</span>();
+				<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">currency</span>.<span class="ident">amount</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+					<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>)
+						.<span class="ident">in_array</span>(<span class="ident">index</span>)
+						.<span class="ident">in_field</span>(<span class="string">&quot;currencies&quot;</span>)
+				})<span class="question-mark">?</span>;
 
 				<span class="prelude-val">Ok</span>((
 					<span class="ident">Runtime::account_to_currency_id</span>(<span class="ident">Runtime::AddressMapping::into_account_id</span>(
 						<span class="ident">address_as_h160</span>,
 					))
-					.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;cannot convert into currency id&quot;</span>))<span class="question-mark">?</span>,
+					.<span class="ident">ok_or</span>(
+						<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Cannot convert into currency id&quot;</span>)
+							.<span class="ident">in_array</span>(<span class="ident">index</span>)
+							.<span class="ident">in_field</span>(<span class="string">&quot;currencies&quot;</span>),
+					)<span class="question-mark">?</span>,
 					<span class="ident">amount</span>,
 				))
 			})
-			.<span class="ident">collect</span>();
-
-		<span class="kw">let</span> <span class="ident">currencies_non_result</span> <span class="op">=</span> <span class="ident">currencies</span><span class="question-mark">?</span>;
+			.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">EvmResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multicurrencies</span> {
-			<span class="ident">currencies</span>: <span class="ident">currencies_non_result</span>,
+			<span class="ident">currencies</span>,
 			<span class="ident">fee_item</span>,
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -818,42 +762,42 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer_multi_assets</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">assets</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">assets</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">into_vec</span>();
-
-		<span class="kw">let</span> <span class="ident">fee_item</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// read destination</span>
-		<span class="kw">let</span> <span class="ident">destination</span>: <span class="ident">MultiLocation</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">dest_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">assets</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+			<span class="ident">fee_item</span>: <span class="ident">u32</span>,
+			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+			<span class="ident">weight</span>: <span class="ident">u64</span>
+		});
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
 		<span class="kw">let</span> <span class="ident">multiasset_vec</span>: <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">assets</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">evm_multiasset</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">to_balance</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">evm_multiasset</span>
-					.<span class="ident">amount</span>
-					.<span class="ident">clone</span>()
-					.<span class="ident">try_into</span>()
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
-				<span class="prelude-val">Ok</span>((<span class="ident">evm_multiasset</span>.<span class="ident">location</span>.<span class="ident">clone</span>(), <span class="ident">to_balance</span>).<span class="ident">into</span>())
+			.<span class="ident">into_vec</span>()
+			.<span class="ident">into_iter</span>()
+			.<span class="ident">enumerate</span>()
+			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">evm_multiasset</span>)<span class="op">|</span> {
+				<span class="kw">let</span> <span class="ident">to_balance</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">evm_multiasset</span>.<span class="ident">amount</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+					<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>)
+						.<span class="ident">in_array</span>(<span class="ident">index</span>)
+						.<span class="ident">in_field</span>(<span class="string">&quot;assets&quot;</span>)
+				})<span class="question-mark">?</span>;
+				<span class="prelude-val">Ok</span>((<span class="ident">evm_multiasset</span>.<span class="ident">location</span>, <span class="ident">to_balance</span>).<span class="ident">into</span>())
 			})
 			.<span class="ident">collect</span>();
 
 		<span class="comment">// Since multiassets sorts them, we need to check whether the index is still correct,</span>
 		<span class="comment">// and error otherwise as there is not much we can do other than that</span>
-		<span class="kw">let</span> <span class="ident">multiassets</span> <span class="op">=</span> <span class="ident">MultiAssets::from_sorted_and_deduplicated</span>(<span class="ident">multiasset_vec</span><span class="question-mark">?</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Provided vector either not sorted nor deduplicated&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">multiassets</span> <span class="op">=</span>
+			<span class="ident">MultiAssets::from_sorted_and_deduplicated</span>(<span class="ident">multiasset_vec</span><span class="question-mark">?</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+				<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Provided assets either not sorted nor deduplicated&quot;</span>)
+					.<span class="ident">in_field</span>(<span class="string">&quot;assets&quot;</span>)
+			})<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">orml_xtokens::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transfer_multiassets</span> {
 			<span class="ident">assets</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiAssets::V1</span>(<span class="ident">multiassets</span>)),
 			<span class="ident">fee_item</span>,
 			<span class="ident">dest</span>: <span class="ident">Box::new</span>(<span class="ident">VersionedMultiLocation::V1</span>(<span class="ident">destination</span>)),
-			<span class="ident">dest_weight</span>,
+			<span class="ident">dest_weight</span>: <span class="ident">weight</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -869,8 +813,8 @@
 }
 <span class="comment">// For Currencies</span>
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Currency</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">address</span>, <span class="ident">amount</span>) <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="macro">read_struct!</span>(<span class="ident">reader</span>, {<span class="ident">address</span>: <span class="ident">Address</span>, <span class="ident">amount</span>: <span class="ident">U256</span>});
 		<span class="prelude-val">Ok</span>(<span class="ident">Currency</span> { <span class="ident">address</span>, <span class="ident">amount</span> })
 	}
 
@@ -899,8 +843,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">EvmMultiAsset</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">location</span>, <span class="ident">amount</span>) <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+		<span class="macro">read_struct!</span>(<span class="ident">reader</span>, {<span class="ident">location</span>: <span class="ident">MultiLocation</span>, <span class="ident">amount</span>: <span class="ident">U256</span>});
 		<span class="prelude-val">Ok</span>(<span class="ident">EvmMultiAsset</span> { <span class="ident">location</span>, <span class="ident">amount</span> })
 	}
 

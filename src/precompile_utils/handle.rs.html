@@ -109,7 +109,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> {
-	<span class="kw">crate</span>::{<span class="ident">data::EvmDataReader</span>, <span class="ident">modifier::FunctionModifier</span>, <span class="ident">EvmResult</span>},
+	<span class="kw">crate</span>::{<span class="ident">data::EvmDataReader</span>, <span class="ident">modifier::FunctionModifier</span>, <span class="ident">revert::MayRevert</span>, <span class="ident">EvmResult</span>},
 	<span class="ident">fp_evm</span>::{<span class="ident">Log</span>, <span class="ident">PrecompileHandle</span>},
 };
 
@@ -126,17 +126,17 @@
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Check that a function call is compatible with the context it is</span>
 	<span class="doccomment">/// called into.</span>
-	<span class="kw">fn</span> <span class="ident">check_function_modifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modifier</span>: <span class="ident">FunctionModifier</span>) -&gt; <span class="ident">EvmResult</span>;
+	<span class="kw">fn</span> <span class="ident">check_function_modifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modifier</span>: <span class="ident">FunctionModifier</span>) -&gt; <span class="ident">MayRevert</span>;
 
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Read the selector from the input data.</span>
-	<span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+	<span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">T</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Returns a reader of the input, skipping the selector.</span>
-	<span class="kw">fn</span> <span class="ident">read_input</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">EvmDataReader</span><span class="op">&gt;</span>;
+	<span class="kw">fn</span> <span class="ident">read_after_selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">EvmDataReader</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PrecompileHandle</span><span class="op">&gt;</span> <span class="ident">PrecompileHandleExt</span> <span class="kw">for</span> <span class="ident">T</span> {
@@ -162,13 +162,13 @@
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Check that a function call is compatible with the context it is</span>
 	<span class="doccomment">/// called into.</span>
-	<span class="kw">fn</span> <span class="ident">check_function_modifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modifier</span>: <span class="ident">FunctionModifier</span>) -&gt; <span class="ident">EvmResult</span> {
+	<span class="kw">fn</span> <span class="ident">check_function_modifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">modifier</span>: <span class="ident">FunctionModifier</span>) -&gt; <span class="ident">MayRevert</span> {
 		<span class="ident"><span class="kw">crate</span>::modifier::check_function_modifier</span>(<span class="self">self</span>.<span class="ident">context</span>(), <span class="self">self</span>.<span class="ident">is_static</span>(), <span class="ident">modifier</span>)
 	}
 
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Read the selector from the input data.</span>
-	<span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
+	<span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>
 	<span class="kw">where</span>
 		<span class="ident">S</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
 	{
@@ -177,7 +177,7 @@
 
 	<span class="attribute">#[<span class="ident">must_use</span>]</span>
 	<span class="doccomment">/// Returns a reader of the input, skipping the selector.</span>
-	<span class="kw">fn</span> <span class="ident">read_input</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">EvmDataReader</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">read_after_selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">EvmDataReader</span><span class="op">&gt;</span> {
 		<span class="ident">EvmDataReader::new_skip_selector</span>(<span class="self">self</span>.<span class="ident">input</span>())
 	}
 }

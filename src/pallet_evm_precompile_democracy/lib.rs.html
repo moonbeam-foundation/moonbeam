@@ -445,26 +445,6 @@
 <span id="440">440</span>
 <span id="441">441</span>
 <span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -489,7 +469,7 @@
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Currency</span>};
-<span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Vote</span>};
+<span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Conviction</span>, <span class="ident">Vote</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
@@ -497,7 +477,6 @@
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
 	<span class="ident">fmt::Debug</span>,
 	<span class="ident">marker::PhantomData</span>,
-	<span class="ident">vec::Vec</span>,
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -635,10 +614,7 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">deposit_of</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">prop_index</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">prop_index</span>: <span class="ident">u32</span> });
 
 		<span class="comment">// Fetch data from pallet</span>
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -729,22 +705,18 @@
 
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.</span>
 	<span class="kw">fn</span> <span class="ident">propose</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">proposal_hash</span>: <span class="ident">H256</span>, <span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>});
+		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">proposal_hash</span>.<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
-			<span class="string">&quot;Proposing with hash {:?}, and amount {:?}&quot;</span>, <span class="ident">proposal_hash</span>, <span class="ident">amount</span>
+			<span class="string">&quot;Proposing with hash {:?}, and amount {:?}&quot;</span>, <span class="ident">proposal_hash</span>, <span class="ident">value</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::propose</span> {
 			<span class="ident">proposal_hash</span>,
-			<span class="ident">value</span>: <span class="ident">amount</span>,
+			<span class="ident">value</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -753,21 +725,18 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">second</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">seconds_upper_bound</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="comment">// substrate arguments are u32 but Solidity one are uint256.</span>
+		<span class="comment">// We parse as uint32 to properly reject overflowing values.</span>
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">prop_index</span>: <span class="ident">u32</span>, <span class="ident">seconds_upper_bound</span>: <span class="ident">u32</span>});
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
-			<span class="string">&quot;Seconding proposal {:?}, with bound {:?}&quot;</span>, <span class="ident">proposal</span>, <span class="ident">seconds_upper_bound</span>
+			<span class="string">&quot;Seconding proposal {:?}, with bound {:?}&quot;</span>, <span class="ident">prop_index</span>, <span class="ident">seconds_upper_bound</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::second</span> {
-			<span class="ident">proposal</span>,
+			<span class="ident">proposal</span>: <span class="ident">prop_index</span>,
 			<span class="ident">seconds_upper_bound</span>,
 		};
 
@@ -777,20 +746,20 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">standard_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">4</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">ref_index</span>: <span class="ident">u32</span>,
+			<span class="ident">aye</span>: <span class="ident">bool</span>,
+			<span class="ident">vote_amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
+			<span class="ident">conviction</span>: <span class="ident">u8</span>
+		});
+		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
+				.<span class="ident">in_field</span>(<span class="string">&quot;conviction&quot;</span>)
+		})<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">ref_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">aye</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">conviction</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">vote</span> <span class="op">=</span> <span class="ident">AccountVote::Standard</span> {
 			<span class="ident">vote</span>: <span class="ident">Vote</span> { <span class="ident">aye</span>, <span class="ident">conviction</span> },
-			<span class="ident">balance</span>,
+			<span class="ident">balance</span>: <span class="ident">vote_amount</span>,
 		};
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -807,22 +776,16 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">remove_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">referendum_index</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">ref_index</span>: <span class="ident">u32</span> });
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Removing vote from referendum {:?}&quot;</span>,
-			<span class="ident">referendum_index</span>
+			<span class="ident">ref_index</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_vote</span> {
-			<span class="ident">index</span>: <span class="ident">referendum_index</span>,
-		};
+		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_vote</span> { <span class="ident">index</span>: <span class="ident">ref_index</span> };
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
@@ -830,28 +793,28 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">3</span>)<span class="question-mark">?</span>;
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">representative</span>: <span class="ident">Address</span>,
+			<span class="ident">conviction</span>: <span class="ident">u8</span>,
+			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+		});
+		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
+				.<span class="ident">in_field</span>(<span class="string">&quot;conviction&quot;</span>)
+		})<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to</span>);
-		<span class="kw">let</span> <span class="ident">conviction</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Conviction must be an integer in the range 0-6&quot;</span>))<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">balance</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">representative</span>.<span class="ident">into</span>());
 
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Delegating vote to {:?} with balance {:?} and {:?}&quot;</span>,
-			<span class="ident">to</span>, <span class="ident">conviction</span>, <span class="ident">balance</span>
+			<span class="ident">to</span>, <span class="ident">conviction</span>, <span class="ident">amount</span>
 		);
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegate</span> {
 			<span class="ident">to</span>,
 			<span class="ident">conviction</span>,
-			<span class="ident">balance</span>,
+			<span class="ident">balance</span>: <span class="ident">amount</span>,
 		};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
@@ -869,11 +832,8 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">unlock</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="comment">// Bound check</span>
-		<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">into</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">target</span>: <span class="ident">Address</span> });
+		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">target</span>);
 
 		<span class="macro">log::trace!</span>(
@@ -890,10 +850,10 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">note_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
-			.<span class="ident">into_vec</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>
+		});
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into_vec</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -909,10 +869,10 @@
 	}
 
 	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>
-			.<span class="ident">into_vec</span>();
+		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+			<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>
+		});
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into_vec</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,

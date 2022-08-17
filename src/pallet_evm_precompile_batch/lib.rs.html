@@ -265,6 +265,11 @@
 <span id="260">260</span>
 <span id="261">261</span>
 <span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -355,36 +360,41 @@
 	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
 {
 	<span class="kw">fn</span> <span class="ident">batch</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">action</span>: <span class="ident">Action</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_input</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">addresses</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">values</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">calls_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">gas_limits</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">read</span>()<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="ident">addresses</span>, <span class="ident">values</span>, <span class="ident">calls_data</span>, <span class="ident">gas_limits</span>);
 
-		<span class="kw">let</span> <span class="ident">addresses</span> <span class="op">=</span> <span class="ident">addresses</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">enumerate</span>();
-		<span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">values</span>
-			.<span class="ident">into_vec</span>()
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>))
-			.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
-		<span class="kw">let</span> <span class="ident">calls_data</span> <span class="op">=</span> <span class="ident">calls_data</span>
-			.<span class="ident">into_vec</span>()
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">into_vec</span>()))
-			.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
-		<span class="kw">let</span> <span class="ident">gas_limits</span> <span class="op">=</span> <span class="ident">gas_limits</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span>
-			<span class="comment">// x = 0 =&gt; forward all remaining gas</span>
-			<span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="prelude-val">None</span>
-			} <span class="kw">else</span> {
-				<span class="prelude-val">Some</span>(<span class="ident">x</span>)
-			}
-		).<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+		{
+			<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
+				<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+				<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+				<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+				<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>
+			});
+
+			<span class="ident">addresses</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">enumerate</span>();
+			<span class="ident">values</span> <span class="op">=</span> <span class="ident">value</span>
+				.<span class="ident">into_vec</span>()
+				.<span class="ident">into_iter</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>))
+				.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+			<span class="ident">calls_data</span> <span class="op">=</span> <span class="ident">call_data</span>
+				.<span class="ident">into_vec</span>()
+				.<span class="ident">into_iter</span>()
+				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">into_vec</span>()))
+				.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+			<span class="ident">gas_limits</span> <span class="op">=</span> <span class="ident">gas_limit</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span>
+				<span class="comment">// x = 0 =&gt; forward all remaining gas</span>
+				<span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span> {
+					<span class="prelude-val">None</span>
+				} <span class="kw">else</span> {
+					<span class="prelude-val">Some</span>(<span class="ident">x</span>)
+				}
+			).<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+		}
 
 		<span class="comment">// Cost of batch log. (doesn&#39;t change when index changes)</span>
 		<span class="kw">let</span> <span class="ident">log_cost</span> <span class="op">=</span> <span class="ident">log_subcall_failed</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="number">0</span>)
 			.<span class="ident">compute_cost</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
 
 		<span class="kw">for</span> ((<span class="ident">i</span>, <span class="ident">address</span>), (<span class="ident">value</span>, (<span class="ident">call_data</span>, <span class="ident">gas_limit</span>))) <span class="kw">in</span>
 			<span class="ident">addresses</span>.<span class="ident">zip</span>(<span class="ident">values</span>.<span class="ident">zip</span>(<span class="ident">calls_data</span>.<span class="ident">zip</span>(<span class="ident">gas_limits</span>)))
