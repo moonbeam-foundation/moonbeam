@@ -118,12 +118,12 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Digest (r:1 w:0)
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
 	// Storage: Randomness LocalVrfOutput (r:1 w:1)
-	// Storage: Randomness RandomnessResults (r:1 w:0)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
 	#[rustfmt::skip]
 	fn on_initialize() -> Weight {
-		(1_223_063_000 as Weight)
+		(1_260_307_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
 	}
 }
 
@@ -176,11 +176,11 @@ impl WeightInfo for () {
 	// Storage: System Digest (r:1 w:0)
 	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
 	// Storage: Randomness LocalVrfOutput (r:1 w:1)
-	// Storage: Randomness RandomnessResults (r:1 w:0)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
 	#[rustfmt::skip]
 	fn on_initialize() -> Weight {
-		(1_223_063_000 as Weight)
+		(1_260_307_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
 	}
 }
