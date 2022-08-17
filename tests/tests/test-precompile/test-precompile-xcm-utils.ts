@@ -6,14 +6,14 @@ import { ethers } from "ethers";
 import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
-import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
+import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { descendOriginFromAddress } from "../../util/xcm";
 
 const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xcm UTILS", (context) => {
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
   it("allows to retrieve parent-based ML account", async function () {
     const multilocation: [number, {}[]] =
       // Destination as multilocation
@@ -22,7 +22,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm UTILS", (context) => {
         1,
         [],
       ];
-    let result = await web3EthCall(context.web3, {
+    const result = await web3EthCall(context.web3, {
       to: PRECOMPILE_XCM_UTILS_ADDRESS,
       data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("multilocationToAddress", [
         multilocation,
@@ -44,7 +44,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm UTILS", (context) => {
         1,
         [],
       ];
-    let result = await web3EthCall(context.web3, {
+    const result = await web3EthCall(context.web3, {
       to: PRECOMPILE_XCM_UTILS_ADDRESS,
       data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("multilocationToAddress", [
         multilocation,
