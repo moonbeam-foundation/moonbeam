@@ -27,7 +27,6 @@ use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
-use pallet_evm_precompile_proxy::ProxyWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
