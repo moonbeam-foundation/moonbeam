@@ -2558,7 +2558,7 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_reverts(|output| output == b"Failed multilocation conversion");
+			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
 	});
 }
 
