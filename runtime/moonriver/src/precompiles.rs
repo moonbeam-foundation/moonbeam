@@ -114,7 +114,6 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)
