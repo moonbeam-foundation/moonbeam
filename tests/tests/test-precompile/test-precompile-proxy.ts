@@ -14,6 +14,7 @@ import {
   PRECOMPILE_PROXY_ADDRESS,
 } from "../../util/constants";
 import { expectEVMResult } from "../../util/eth-transactions";
+import { web3EthCall } from "../../util/providers";
 
 const PROXY_CONTRACT_JSON = getCompiled("Proxy");
 const PROXY_INTERFACE = new ethers.utils.Interface(PROXY_CONTRACT_JSON.contract.abi);
@@ -232,19 +233,16 @@ describeDevMoonbeam("Precompile - Proxy - is proxy - fails if incorrect delay", 
   });
 
   it("should return false", async () => {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_PROXY_ADDRESS,
-        data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
-          BALTATHAR_ADDRESS,
-          CONTRACT_PROXY_TYPE_STAKING,
-          1,
-        ]),
-      })
-    );
-
-    expect(result.successful).to.be.false;
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PROXY_ADDRESS,
+      data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
+        ALITH_ADDRESS,
+        BALTATHAR_ADDRESS,
+        CONTRACT_PROXY_TYPE_STAKING,
+        1,
+      ]),
+    });
+    expect(Number(result)).to.equal(0);
   });
 });
 
@@ -265,19 +263,16 @@ describeDevMoonbeam("Precompile - Proxy - is proxy - fails if incorrect proxyTyp
   });
 
   it("should return false", async () => {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_PROXY_ADDRESS,
-        data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
-          BALTATHAR_ADDRESS,
-          CONTRACT_PROXY_TYPE_ANY,
-          0,
-        ]),
-      })
-    );
-
-    expect(result.successful).to.be.false;
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PROXY_ADDRESS,
+      data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
+        ALITH_ADDRESS,
+        BALTATHAR_ADDRESS,
+        CONTRACT_PROXY_TYPE_ANY,
+        0,
+      ]),
+    });
+    expect(Number(result)).to.equal(0);
   });
 });
 
@@ -298,18 +293,15 @@ describeDevMoonbeam("Precompile - Proxy - is proxy - succeeds if exists", (conte
   });
 
   it("should return true", async () => {
-    const { result } = await context.createBlock(
-      createTransaction(context, {
-        ...ALITH_TRANSACTION_TEMPLATE,
-        to: PRECOMPILE_PROXY_ADDRESS,
-        data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
-          BALTATHAR_ADDRESS,
-          CONTRACT_PROXY_TYPE_STAKING,
-          0,
-        ]),
-      })
-    );
-
-    expect(result.successful).to.be.true;
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PROXY_ADDRESS,
+      data: PROXY_INTERFACE.encodeFunctionData("isProxy", [
+        ALITH_ADDRESS,
+        BALTATHAR_ADDRESS,
+        CONTRACT_PROXY_TYPE_STAKING,
+        0,
+      ]),
+    });
+    expect(Number(result)).to.equal(1);
   });
 });

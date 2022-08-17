@@ -343,11 +343,13 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 		.build()
 		.execute_with(|| {
 			let bob: H160 = Bob.into();
+			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsProxy)
+						.write::<Address>(alice.into())
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Something as u8)
 						.write::<u32>(0)
@@ -371,11 +373,13 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 			.dispatch(Origin::signed(Alice)));
 
 			let bob: H160 = Bob.into();
+			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsProxy)
+						.write::<Address>(alice.into())
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Any as u8)
 						.write::<u32>(0)
@@ -399,11 +403,13 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 			.dispatch(Origin::signed(Alice)));
 
 			let bob: H160 = Bob.into();
+			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsProxy)
+						.write::<Address>(alice.into())
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Any as u8)
 						.write::<u32>(0)
@@ -427,11 +433,13 @@ fn test_is_proxy_returns_true_if_proxy() {
 			.dispatch(Origin::signed(Alice)));
 
 			let bob: H160 = Bob.into();
+			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(Action::IsProxy)
+						.write::<Address>(alice.into())
 						.write::<Address>(bob.into())
 						.write::<u8>(ProxyType::Something as u8)
 						.write::<u32>(1)

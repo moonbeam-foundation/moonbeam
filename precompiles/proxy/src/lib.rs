@@ -38,7 +38,7 @@ pub enum Action {
 	AddProxy = "addProxy(address,uint8,uint32)",
 	RemoveProxy = "removeProxy(address,uint8,uint32)",
 	RemoveProxies = "removeProxies()",
-	IsProxy = "isProxy(address,uint8,uint32)",
+	IsProxy = "isProxy(address,address,uint8,uint32)",
 }
 
 /// A precompile to wrap the functionality from pallet-proxy.
@@ -181,7 +181,7 @@ where
 	/// * proxyType: The permissions allowed for the proxy
 	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
 	fn is_proxy(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, { delegate: Address, proxy_type: u8, delay: u32 });
+		read_args!(handle, { real: Address, delegate: Address, proxy_type: u8, delay: u32 });
 
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
@@ -190,10 +190,10 @@ where
 			})?;
 		let delay = delay.into();
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let real = Runtime::AddressMapping::into_account_id(real.into());
 
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_proxy = ProxyPallet::<Runtime>::proxies(origin)
+		let is_proxy = ProxyPallet::<Runtime>::proxies(real)
 			.0
 			.iter()
 			.any(|pd| pd.delegate == delegate && pd.proxy_type == proxy_type && pd.delay == delay);

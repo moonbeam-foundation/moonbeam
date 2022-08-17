@@ -45,12 +45,14 @@ interface Proxy {
     function removeProxies() external;
 
     /// @dev Checks if the caller has an account proxied with a given proxy type
-    /// @custom:selector c7e6c0bd
+    /// @custom:selector e26d38ed
+    /// @param real The real account that maybe has a proxy
     /// @param delegate The account that the caller has maybe proxied
     /// @param proxyType The permissions allowed for the proxy
     /// @param delay The announcement period required of the initial proxy, will generally be zero
     /// @return exists True if a proxy exists, False otherwise
     function isProxy(
+        address real,
         address delegate,
         ProxyType proxyType,
         uint32 delay
