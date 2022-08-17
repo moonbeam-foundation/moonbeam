@@ -45,7 +45,7 @@ interface Proxy {
     function removeProxies() external;
 
     /// @dev Checks if the caller has an account proxied with a given proxy type
-    /// @custom:selector f71c3873
+    /// @custom:selector c7e6c0bd
     /// @param delegate The account that the caller has maybe proxied
     /// @param proxyType The permissions allowed for the proxy
     /// @param delay The announcement period required of the initial proxy, will generally be zero
