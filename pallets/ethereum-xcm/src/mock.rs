@@ -19,7 +19,7 @@
 use ethereum::{TransactionAction, TransactionSignature};
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, FindAuthor},
+	traits::{ConstU32, FindAuthor, InstanceFilter},
 	weights::Weight,
 	ConsensusEngineId, PalletId,
 };
@@ -56,6 +56,7 @@ frame_support::construct_runtime! {
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin},
 		EthereumXcm: crate::{Pallet, Call, Origin},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 	}
 }
 
@@ -183,11 +184,72 @@ parameter_types! {
 	pub ReservedXcmpWeight: Weight = u64::max_value();
 }
 
+#[derive(
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+)]
+pub enum ProxyType {
+	NotAllowed = 0,
+	Any = 1,
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, _c: &Call) -> bool {
+		match self {
+			ProxyType::NotAllowed => false,
+			ProxyType::Any => true,
+		}
+	}
+	fn is_superset(&self, _o: &Self) -> bool {
+		false
+	}
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::NotAllowed
+	}
+}
+
+parameter_types! {
+	pub const ProxyCost: u64 = 1;
+}
+
+impl pallet_proxy::Config for Test {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyCost;
+	type ProxyDepositFactor = ProxyCost;
+	type MaxProxies = ConstU32<32>;
+	type WeightInfo = pallet_proxy::weights::SubstrateWeight<Test>;
+	type MaxPending = ConstU32<32>;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = ProxyCost;
+	type AnnouncementDepositFactor = ProxyCost;
+}
+
+pub struct EthereumXcmEnsureProxy;
+impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId32, delegatee: AccountId32) -> Result<(), &'static str> {
+		let f = |x: &pallet_proxy::ProxyDefinition<AccountId32, ProxyType, u64>| -> bool {
+			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
+		};
+		Proxy::proxies(delegator)
+			.0
+			.into_iter()
+			.find(f)
+			.map(|_| ())
+			.ok_or("proxy error: expected `ProxyType::Any`")
+	}
+}
+
 impl crate::Config for Test {
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = crate::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type EnsureProxy = EthereumXcmEnsureProxy;
 }
 
 impl fp_self_contained::SelfContainedCall for Call {

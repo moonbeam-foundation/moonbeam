@@ -45,7 +45,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -54,7 +54,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -719,7 +719,7 @@ fn transfer_multi_currencies_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"array length is too large");
+				.execute_reverts(|output| output == b"currencies: Value is too large for length");
 		});
 }
 
@@ -772,7 +772,7 @@ fn transfer_multi_assets_cannot_insert_more_than_max() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"array length is too large");
+				.execute_reverts(|output| output == b"assets: Value is too large for length");
 		});
 }
 
@@ -821,7 +821,7 @@ fn transfer_multi_assets_is_not_sorted_error() {
 						.build(),
 				)
 				.execute_reverts(|output| {
-					output == b"Provided vector either not sorted nor deduplicated"
+					output == b"assets: Provided assets either not sorted nor deduplicated"
 				});
 		});
 }
