@@ -41,6 +41,7 @@ use moonbase_runtime::{
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
+use std::str::from_utf8;
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
 use xcm_primitives::Account20Hash;
@@ -2500,6 +2501,51 @@ fn transact_through_signed_precompile_works_v2() {
 				.expect_cost(17125)
 				.expect_no_logs()
 				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&output).unwrap().contains("ErrorSending")
+				});
 		});
 }
 
