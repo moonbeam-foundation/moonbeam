@@ -57,7 +57,7 @@ const registerXcmTransactorAndContract = async (context: DevTestContext) => {
     )
   );
 
-  const { rawTx } = await createContract(context, "XcmTransactorInstance");
+  const { rawTx } = await createContract(context, "XcmTransactorV1Instance");
   await context.createBlock(rawTx);
 };
 
