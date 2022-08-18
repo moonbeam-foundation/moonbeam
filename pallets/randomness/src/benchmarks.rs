@@ -28,12 +28,13 @@ use frame_support::{
 	traits::{Currency, Get, OnInitialize},
 };
 use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
-use pallet_author_mapping::BenchmarkSetKeys;
 use pallet_evm::AddressMapping;
 use parity_scale_codec::alloc::string::ToString;
 use parity_scale_codec::Decode;
 use scale_info::prelude::string::String;
-use session_keys_primitives::{digest::CompatibleDigestItem as VrfDigest, PreDigest, VrfId};
+use session_keys_primitives::{
+	digest::CompatibleDigestItem as VrfDigest, KeysLookup, PreDigest, VrfId,
+};
 use sp_core::{
 	crypto::{ByteArray, UncheckedFrom},
 	sr25519, H160, H256,
@@ -109,7 +110,7 @@ benchmarks! {
 			&digest
 		);
 		// set keys in author mapping
-		T::KeysLookup::set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
+		T::VrfKeyLookup::set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
 		Pallet::<T>::on_initialize(block_num);
 	}

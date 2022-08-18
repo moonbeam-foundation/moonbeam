@@ -364,7 +364,7 @@ pub mod pallet {
 		}
 	}
 
-	impl<T: Config> KeysLookup<NimbusId, T::Keys> for Pallet<T> {
+	impl<T: Config> KeysLookup<NimbusId, T::AccountId, T::Keys> for Pallet<T> {
 		fn lookup_keys(author: &NimbusId) -> Option<T::Keys> {
 			Self::keys_of(author)
 		}
