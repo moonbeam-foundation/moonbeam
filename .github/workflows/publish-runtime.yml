@@ -19,18 +19,43 @@ jobs:
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
+        srtool_image:
+          - purestake/srtool
+        srtool_image_tag:
+          - 1.62.0
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.to }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build & Push purestake/srtool image
+        run: |
+          docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
+
+          if [[ $image_exists = "false" ]]; then
+            echo building "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+            docker build --pull --no-cache . \
+              -f docker/custom-srtool.Dockerfile \
+              --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
+              -t ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}
+
+            echo pushing "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+            docker push "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+          else
+            echo skiping build "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}", image already exists
+          fi
       - name: Srtool build
         id: srtool_build
         uses: chevdor/srtool-actions@v0.5.0
         with:
           chain: ${{ matrix.chain }}
-          tag: 1.62.0
+          tag: ${{ matrix.srtool_image_tag }}
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
