@@ -38,6 +38,7 @@ sourcesIndex["pallet_evm_precompile_call_permit"] = {"name":"","files":["lib.rs"
 sourcesIndex["pallet_evm_precompile_crowdloan_rewards"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_democracy"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_parachain_staking"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_evm_precompile_proxy"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_randomness"] = {"name":"","files":["lib.rs","solidity_types.rs"]};
 sourcesIndex["pallet_evm_precompile_relay_encoder"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_xcm_transactor"] = {"name":"","files":["lib.rs"]};

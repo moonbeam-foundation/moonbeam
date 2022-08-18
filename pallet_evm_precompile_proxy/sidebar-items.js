@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Action",""]],"struct":[["ProxyWrapper","A precompile to wrap the functionality from pallet-proxy."]]});

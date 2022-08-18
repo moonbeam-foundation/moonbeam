@@ -1555,6 +1555,37 @@
 <span id="1550">1550</span>
 <span id="1551">1551</span>
 <span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1646,7 +1677,7 @@
 	<span class="ident">SaturatedConversion</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
-	<span class="ident">convert</span>::{<span class="ident">From</span>, <span class="ident">Into</span>, <span class="ident">TryFrom</span>},
+	<span class="ident">convert</span>::{<span class="ident">From</span>, <span class="ident">Into</span>},
 	<span class="ident">prelude</span>::<span class="kw-2">*</span>,
 };
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -2560,6 +2591,12 @@
 				<span class="ident">pallet_proxy::Call::kill_anonymous</span> { .. } =&gt; <span class="bool-val">false</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
+			<span class="comment">// We filter EVM calls as allowing these calls can cause potential attack vectors</span>
+			<span class="comment">// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)</span>
+			<span class="comment">// See https://github.com/PureStake/sr-moonbeam/issues/30</span>
+			<span class="comment">// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so</span>
+			<span class="comment">// this can be seen as an additional security</span>
+			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}
 	}
@@ -3105,6 +3142,31 @@
 			),
 			<span class="number">50</span>
 		);
+	}
+
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="kw">fn</span> <span class="ident">test_proxy_type_can_be_decoded_from_valid_values</span>() {
+		<span class="kw">let</span> <span class="ident">test_cases</span> <span class="op">=</span> <span class="macro">vec!</span>[
+			<span class="comment">// (input, expected)</span>
+			(<span class="number">0u8</span>, <span class="ident">ProxyType::Any</span>),
+			(<span class="number">1</span>, <span class="ident">ProxyType::NonTransfer</span>),
+			(<span class="number">2</span>, <span class="ident">ProxyType::Governance</span>),
+			(<span class="number">3</span>, <span class="ident">ProxyType::Staking</span>),
+			(<span class="number">4</span>, <span class="ident">ProxyType::CancelProxy</span>),
+			(<span class="number">5</span>, <span class="ident">ProxyType::Balances</span>),
+			(<span class="number">6</span>, <span class="ident">ProxyType::AuthorMapping</span>),
+			(<span class="number">7</span>, <span class="ident">ProxyType::IdentityJudgement</span>),
+		];
+
+		<span class="kw">for</span> (<span class="ident">input</span>, <span class="ident">expected</span>) <span class="kw">in</span> <span class="ident">test_cases</span> {
+			<span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">ProxyType::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">input</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_slice</span>());
+			<span class="macro">assert_eq!</span>(
+				<span class="prelude-val">Ok</span>(<span class="ident">expected</span>),
+				<span class="ident">actual</span>,
+				<span class="string">&quot;failed decoding ProxyType for value &#39;{}&#39;&quot;</span>,
+				<span class="ident">input</span>
+			);
+		}
 	}
 }
 </code></pre></div>

@@ -1511,6 +1511,12 @@
 <span id="1506">1506</span>
 <span id="1507">1507</span>
 <span id="1508">1508</span>
+<span id="1509">1509</span>
+<span id="1510">1510</span>
+<span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2480,6 +2486,12 @@
 				<span class="ident">pallet_xcm_transactor::Call::transact_through_signed</span> { .. } =&gt; <span class="bool-val">false</span>,
 				<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 			},
+			<span class="comment">// We filter EVM calls as allowing these calls can cause potential attack vectors</span>
+			<span class="comment">// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)</span>
+			<span class="comment">// See https://github.com/PureStake/sr-moonbeam/issues/30</span>
+			<span class="comment">// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so</span>
+			<span class="comment">// this can be seen as an additional security</span>
+			<span class="ident">Call::EVM</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_</span> =&gt; <span class="bool-val">true</span>,
 		}
 	}
