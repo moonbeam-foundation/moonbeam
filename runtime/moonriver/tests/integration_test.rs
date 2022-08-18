@@ -41,6 +41,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xcm_transactor::v1::Action as XcmTransactorActionV1;
 use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
@@ -57,6 +58,7 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError, ModuleError, TokenError,
 };
+use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
@@ -2336,6 +2338,63 @@ fn transactor_cannot_use_more_than_max_weight() {
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
+}
+
+#[test]
+fn transact_through_signed_precompile_not_enabled() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				Some(4000)
+			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1,
+			));
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v1_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV1::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(15000))
+					.write(bytes)
+					.build(),
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&output).unwrap().contains("CallFiltered")
+				});
+		});
 }
 
 #[test]

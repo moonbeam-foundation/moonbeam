@@ -55,8 +55,12 @@ use pallet_evm_precompile_randomness::{
 	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
 	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
 };
+use pallet_evm_precompile_xcm_transactor::{
+	v1::Action as XcmTransactorActionV1, v2::Action as XcmTransactorActionV2,
+};
 use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
+
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
@@ -2403,6 +2407,102 @@ fn transactor_cannot_use_more_than_max_weight() {
 		})
 }
 
+#[test]
+fn transact_through_signed_precompile_works_v1() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				Some(4000)
+			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1,
+			));
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v1_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV1::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(15000))
+					.write(bytes)
+					.build(),
+				)
+				.expect_cost(17125)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_precompile_works_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.expect_cost(17125)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
 // Test to ensure we can use either in crowdloan rewards without worrying for migrations
 #[test]
 fn account_id_32_encodes_like_32_byte_u8_slice() {
@@ -2643,7 +2743,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2060,
+			2055, 2056, 2057, 2058, 2060, 2061,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

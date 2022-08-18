@@ -3005,14 +3005,20 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 	encoded.append(&mut call_bytes);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::Origin::signed(PARAALICE.into()),
 			Box::new(xcm::VersionedMultiLocation::V1(para_b_location)),
-			Box::new(xcm::VersionedMultiLocation::V1(para_b_balances)),
-			// 4000000000 for transfer + 4000 for XCM
-			// 1-1 to fee
-			4000000000,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
 			encoded,
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000,
+				overall_weight: None
+			}
 		));
 	});
 
@@ -3126,14 +3132,20 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 	encoded.append(&mut call_bytes);
 
 	ParaA::execute_with(|| {
-		assert_ok!(XcmTransactor::transact_through_signed_multilocation(
+		assert_ok!(XcmTransactor::transact_through_signed(
 			parachain::Origin::signed(PARAALICE.into()),
 			Box::new(xcm::VersionedMultiLocation::V1(para_b_location)),
-			Box::new(xcm::VersionedMultiLocation::V1(para_b_balances)),
-			// 4000000000 for transfer + 4000 for XCM
-			// 1-1 to fee
-			4000000000,
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					para_b_balances
+				))),
+				fee_amount: None
+			},
 			encoded,
+			TransactWeights {
+				transact_required_weight_at_most: 4000000000,
+				overall_weight: None
+			}
 		));
 	});
 

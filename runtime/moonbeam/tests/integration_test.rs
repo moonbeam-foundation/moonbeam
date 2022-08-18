@@ -32,6 +32,8 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
+use pallet_evm_precompile_xcm_transactor::v1::Action as XcmTransactorActionV1;
+
 use moonbeam_runtime::{
 	asset_config::LocalAssetInstance, currency::GLMR, xcm_config::CurrencyId, AccountId, Balances,
 	BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
@@ -58,6 +60,7 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError, ModuleError, TokenError,
 };
+use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
@@ -2330,6 +2333,63 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 				)),
 				frame_system::Error::<Runtime>::CallFiltered
 			);
+		});
+}
+
+#[test]
+fn transact_through_signed_precompile_not_enabled() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * GLMR),
+			(AccountId::from(BOB), 1_000 * GLMR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				Some(4000)
+			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1,
+			));
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v1_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV1::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(15000))
+					.write(bytes)
+					.build(),
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&output).unwrap().contains("CallFiltered")
+				});
 		});
 }
 
