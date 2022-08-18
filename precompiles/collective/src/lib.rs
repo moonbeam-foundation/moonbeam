@@ -30,6 +30,11 @@ use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{Decode, H256};
 
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
 /// Solidity selector of the Executed log.
 pub const SELECTOR_LOG_EXECUTED: [u8; 32] = keccak256!("Executed(bytes32)");
 
@@ -261,8 +266,16 @@ where
 			proposal: BoundedBytes<GetProposalLimit>
 		});
 
-		let hash: H256 = Runtime::Hashing::hash(&proposal.into_vec()).into();
+		let hash = hash::<Runtime>(&proposal.into_vec());
 
 		Ok(succeed(EvmDataWriter::new().write(hash).build()))
 	}
+}
+
+pub fn hash<Runtime>(data: &[u8]) -> H256
+where
+	Runtime: frame_system::Config,
+	H256: From<<Runtime as frame_system::Config>::Hash>,
+{
+	<Runtime as frame_system::Config>::Hashing::hash(data).into()
 }
