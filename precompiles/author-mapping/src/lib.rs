@@ -95,12 +95,8 @@ where
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	fn add_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-
-		// Bound check
-		input.expect_arguments(1)?;
-
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, { nimbus_id: H256 });
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -116,12 +112,9 @@ where
 	}
 
 	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-
-		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, {old_nimbus_id: H256, new_nimbus_id: H256});
+		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(old_nimbus_id).into();
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(new_nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -140,10 +133,8 @@ where
 	}
 
 	fn clear_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, { nimbus_id: H256 });
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -173,11 +164,10 @@ where
 	}
 
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		read_args!(handle, { keys: Bytes });
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::set_keys {
-			// Taking all input minus selector (4 bytes)
-			keys: handle.input()[4..].to_vec(),
-		};
+		let call = AuthorMappingCall::<Runtime>::set_keys { keys: keys.into() };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 

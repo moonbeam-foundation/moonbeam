@@ -8,17 +8,17 @@ contract XcmTransactorInstance is XcmTransactor {
     XcmTransactor public xcmtransactor =
         XcmTransactor(0x0000000000000000000000000000000000000806);
 
-    function index_to_account(uint16 index)
+    function indexToAccount(uint16 index)
         external
         view
         override
         returns (address)
     {
         // We nominate our target collator with all the tokens provided
-        return xcmtransactor.index_to_account(index);
+        return xcmtransactor.indexToAccount(index);
     }
 
-    function transact_info(Multilocation memory multilocation)
+    function transactInfo(Multilocation memory multilocation)
         external
         view
         override
@@ -28,10 +28,10 @@ contract XcmTransactorInstance is XcmTransactor {
             uint64
         )
     {
-        return xcmtransactor.transact_info(multilocation);
+        return xcmtransactor.transactInfo(multilocation);
     }
 
-    function transact_info_with_signed(Multilocation memory multilocation)
+    function transactInfoWithSigned(Multilocation memory multilocation)
         external
         view
         override
@@ -41,73 +41,73 @@ contract XcmTransactorInstance is XcmTransactor {
             uint64
         )
     {
-        return xcmtransactor.transact_info_with_signed(multilocation);
+        return xcmtransactor.transactInfoWithSigned(multilocation);
     }
 
-    function fee_per_second(Multilocation memory multilocation)
+    function feePerSecond(Multilocation memory multilocation)
         external
         view
         override
         returns (uint256)
     {
-        return xcmtransactor.fee_per_second(multilocation);
+        return xcmtransactor.feePerSecond(multilocation);
     }
 
-    function transact_through_derivative_multilocation(
+    function transactThroughDerivativeMultilocation(
         uint8 transactor,
         uint16 index,
-        Multilocation memory fee_asset,
+        Multilocation memory feeAsset,
         uint64 weight,
-        bytes memory inner_call
+        bytes memory innerCall
     ) external override {
-        xcmtransactor.transact_through_derivative_multilocation(
+        xcmtransactor.transactThroughDerivativeMultilocation(
             transactor,
             index,
-            fee_asset,
+            feeAsset,
             weight,
-            inner_call
+            innerCall
         );
     }
 
-    function transact_through_derivative(
+    function transactThroughDerivative(
         uint8 transactor,
         uint16 index,
-        address currency_id,
+        address currencyId,
         uint64 weight,
-        bytes memory inner_call
+        bytes memory innerCall
     ) external override {
-        xcmtransactor.transact_through_derivative(
+        xcmtransactor.transactThroughDerivative(
             transactor,
             index,
-            currency_id,
+            currencyId,
             weight,
-            inner_call
+            innerCall
         );
     }
 
-    function transact_through_signed(
+    function transactThroughSigned(
         Multilocation memory dest,
-        address fee_location_address,
+        address feeLocationAddress,
         uint64 weight,
         bytes memory call
     ) external override {
-        xcmtransactor.transact_through_signed(
+        xcmtransactor.transactThroughSigned(
             dest,
-            fee_location_address,
+            feeLocationAddress,
             weight,
             call
         );
     }
 
-    function transact_through_signed_multilocation(
+    function transactThroughSignedMultilocation(
         Multilocation memory dest,
-        Multilocation memory fee_location,
+        Multilocation memory feeLocation,
         uint64 weight,
         bytes memory call
     ) external override {
-        xcmtransactor.transact_through_signed_multilocation(
+        xcmtransactor.transactThroughSignedMultilocation(
             dest,
-            fee_location,
+            feeLocation,
             weight,
             call
         );

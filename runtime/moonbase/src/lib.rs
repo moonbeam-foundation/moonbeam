@@ -37,7 +37,7 @@ use account::AccountId20;
 // Re-export required by get! macro.
 pub use frame_support::traits::Get;
 use frame_support::{
-	construct_runtime,
+	construct_runtime, ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -80,7 +80,7 @@ use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
 		BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, IdentityLookup,
-		PostDispatchInfoOf, UniqueSaturatedInto,
+		PostDispatchInfoOf, UniqueSaturatedInto, Zero,
 	},
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -89,7 +89,7 @@ use sp_runtime::{
 	SaturatedConversion,
 };
 use sp_std::{
-	convert::{From, Into, TryFrom},
+	convert::{From, Into},
 	prelude::*,
 };
 #[cfg(feature = "std")]
@@ -664,11 +664,29 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
+pub struct EthereumXcmEnsureProxy;
+impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
+		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
+		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber> =
+			pallet_proxy::Pallet::<Runtime>::find_proxy(
+				&delegator,
+				&delegatee,
+				Some(ProxyType::Any),
+			)
+			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
+		// We only allow to use it for delay zero proxies, as the call will immediatly be executed
+		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
+		Ok(())
+	}
+}
+
 impl pallet_ethereum_xcm::Config for Runtime {
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type EnsureProxy = EthereumXcmEnsureProxy;
 }
 
 parameter_types! {
@@ -985,6 +1003,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
+			// We filter EVM calls as allowing these calls can cause potential attack vectors
+			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// See https://github.com/PureStake/sr-moonbeam/issues/30
+			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
+			// this can be seen as an additional security
+			Call::EVM(_) => false,
 			_ => true,
 		}
 	}
@@ -1532,5 +1556,30 @@ mod tests {
 			),
 			50
 		);
+	}
+
+	#[test]
+	fn test_proxy_type_can_be_decoded_from_valid_values() {
+		let test_cases = vec![
+			// (input, expected)
+			(0u8, ProxyType::Any),
+			(1, ProxyType::NonTransfer),
+			(2, ProxyType::Governance),
+			(3, ProxyType::Staking),
+			(4, ProxyType::CancelProxy),
+			(5, ProxyType::Balances),
+			(6, ProxyType::AuthorMapping),
+			(7, ProxyType::IdentityJudgement),
+		];
+
+		for (input, expected) in test_cases {
+			let actual = ProxyType::decode(&mut input.to_le_bytes().as_slice());
+			assert_eq!(
+				Ok(expected),
+				actual,
+				"failed decoding ProxyType for value '{}'",
+				input
+			);
+		}
 	}
 }

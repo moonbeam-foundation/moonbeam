@@ -55,7 +55,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -64,7 +64,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -299,9 +299,14 @@ fn set_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
+			// Create input with keys inside a Solidity bytes.
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([2u8; 32]))
-				.write(sp_core::H256::from([4u8; 32]))
+				.write(Bytes(
+					EvmDataWriter::new()
+						.write(sp_core::H256::from([2u8; 32]))
+						.write(sp_core::H256::from([4u8; 32]))
+						.build(),
+				))
 				.build();
 
 			// Make sure the call goes through successfully
