@@ -18,7 +18,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_bond", [
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeBond", [
             ALITH_SESSION_ADDRESS,
             100,
             0x02,
@@ -38,7 +38,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_bond_extra", [100]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeBondExtra", [100]),
         })
       ).result
     ).to.equal(
@@ -53,7 +53,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_unbond", [100]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeUnbond", [100]),
         })
       ).result
     ).to.equal(
@@ -68,7 +68,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_chill", []),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeChill", []),
         })
       ).result
     ).to.equal(
@@ -83,7 +83,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_withdraw_unbonded", [100]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeWithdrawUnbonded", [100]),
         })
       ).result
     ).to.equal(
@@ -98,7 +98,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_validate", [100000000, false]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeValidate", [100000000, false]),
         })
       ).result
     ).to.equal(
@@ -113,7 +113,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_nominate", [
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeNominate", [
             [ALITH_SESSION_ADDRESS, BALTATHAR_SESSION_ADDRESS],
           ]),
         })
@@ -132,7 +132,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_set_payee", [0x02]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeSetPayee", [0x02]),
         })
       ).result
     ).to.equal(
@@ -147,7 +147,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_set_controller", [
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeSetController", [
             ALITH_SESSION_ADDRESS,
           ]),
         })
@@ -165,7 +165,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - relay-encoder", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_RELAY_ENCODER_ADDRESS,
-          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encode_rebond", [100]),
+          data: RELAY_ENCODER_INTERFACE.encodeFunctionData("encodeRebond", [100]),
         })
       ).result
     ).to.equal(

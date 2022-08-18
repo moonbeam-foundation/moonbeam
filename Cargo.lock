@@ -5019,6 +5019,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
@@ -5455,6 +5456,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
@@ -5746,6 +5748,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-xcm-transactor",
+ "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
  "pallet-identity",
@@ -6830,6 +6833,7 @@ dependencies = [
  "pallet-balances",
  "pallet-ethereum",
  "pallet-evm",
+ "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
  "rlp",
@@ -7235,6 +7239,35 @@ dependencies = [
  "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
+]
+
+[[package]]
+name = "pallet-evm-precompile-xcm-utils"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "derive_more",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "num_enum",
+ "orml-traits",
+ "pallet-balances",
+ "pallet-evm",
+ "pallet-timestamp",
+ "parity-scale-codec",
+ "polkadot-parachain",
+ "precompile-utils",
+ "scale-info",
+ "serde",
+ "sha3 0.9.1",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
 ]
 
 [[package]]

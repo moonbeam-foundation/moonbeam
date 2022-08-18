@@ -124,7 +124,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
     const data = XTOKENS_INTERFACE.encodeFunctionData(
       // action
-      "transfer_with_fee",
+      "transferWithFee",
       [
         // address of the multiasset, in this case our own balances
         PRECOMPILE_NATIVE_ERC20_ADDRESS,
@@ -204,7 +204,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // encode the input with ethers
     const data = XTOKENS_INTERFACE.encodeFunctionData(
       // action
-      "transfer_multiasset",
+      "transferMultiasset",
       [
         asset,
         // amount
@@ -286,7 +286,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // encode the input with ethers
     const data = XTOKENS_INTERFACE.encodeFunctionData(
       // action
-      "transfer_multiasset_with_fee",
+      "transferMultiassetWithFee",
       [
         asset,
         // amount
@@ -357,7 +357,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
     const data = XTOKENS_INTERFACE.encodeFunctionData(
       // action
-      "transfer_multi_currencies",
+      "transferMultiCurrencies",
       [
         // currencies, only one in this case
         currencies,
@@ -437,7 +437,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
 
     const data = XTOKENS_INTERFACE.encodeFunctionData(
       // action
-      "transfer_multi_assets",
+      "transferMultiAssets",
       [
         // assets, only one in this case
         multiassets,

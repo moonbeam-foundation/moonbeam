@@ -39,6 +39,7 @@ xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 [dev-dependencies]
 pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 hex = "0.4.3"
 # Parity
