@@ -41,6 +41,7 @@ sourcesIndex["pallet_evm_precompile_parachain_staking"] = {"name":"","files":["l
 sourcesIndex["pallet_evm_precompile_randomness"] = {"name":"","files":["lib.rs","solidity_types.rs"]};
 sourcesIndex["pallet_evm_precompile_relay_encoder"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_xcm_transactor"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["pallet_evm_precompile_xcm_utils"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompile_xtokens"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_evm_precompileset_assets_erc20"] = {"name":"","files":["eip2612.rs","lib.rs"]};
 sourcesIndex["pallet_maintenance_mode"] = {"name":"","files":["lib.rs","types.rs"]};

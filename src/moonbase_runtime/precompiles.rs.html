@@ -135,6 +135,9 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -152,6 +155,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::asset_config</span>::{<span class="ident">ForeignAssetInstance</span>, <span class="ident">LocalAssetInstance</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::xcm_config::XcmExecutorConfig</span>;
 <span class="kw">use</span> <span class="ident">frame_support::parameter_types</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::westend::WestendEncoder</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_author_mapping::AuthorMappingWrapper</span>;
@@ -170,6 +174,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_sha3fips::Sha3FIPS256</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_simple</span>::{<span class="ident">ECRecover</span>, <span class="ident">ECRecoverPublicKey</span>, <span class="ident">Identity</span>, <span class="ident">Ripemd160</span>, <span class="ident">Sha256</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_xcm_utils::XcmUtilsWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_xtokens::XtokensWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompileset_assets_erc20</span>::{<span class="ident">Erc20AssetsPrecompileSet</span>, <span class="ident">IsForeign</span>, <span class="ident">IsLocal</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils::precompile_set</span>::<span class="kw-2">*</span>;
@@ -254,6 +259,7 @@
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2056</span><span class="op">&gt;</span>, <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="number">2</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2057</span><span class="op">&gt;</span>, <span class="ident">RandomnessWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2058</span><span class="op">&gt;</span>, <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2060</span><span class="op">&gt;</span>, <span class="ident">XcmUtilsWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			),
 		<span class="op">&gt;</span>,
 		<span class="comment">// Prefixed precompile sets (XC20)</span>
