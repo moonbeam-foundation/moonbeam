@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 /// @title Xcm Transactor Interface
 /// The interface through which solidity contracts will interact with xcm transactor pallet
-/// @custom:address 0x000000000000000000000000000000000000080C
+/// @custom:address 0x000000000000000000000000000000000000080D
 interface XcmTransactorV2 {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)
     struct Multilocation {
