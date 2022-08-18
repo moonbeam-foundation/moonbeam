@@ -428,3 +428,37 @@ impl core::fmt::Debug for PrettyLog {
 			.finish()
 	}
 }
+
+/// Panics if an event is not found in the system log of events
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
+
+// Panics if an event is found in the system log of events
+#[macro_export]
+macro_rules! assert_event_not_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_none(),
+					"Event {:?} was found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
