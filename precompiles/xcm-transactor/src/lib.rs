@@ -19,24 +19,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::PrecompileHandle;
-use frame_support::{
-	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
-	traits::ConstU32,
-};
-use pallet_evm::{AddressMapping, PrecompileOutput};
-use pallet_xcm_transactor::RemoteTransactInfoWithMaxWeight;
-use precompile_utils::prelude::*;
-use sp_core::H160;
-use sp_std::{
-	boxed::Box,
-	convert::{TryFrom, TryInto},
-	fmt::Debug,
-	marker::PhantomData,
-};
-use xcm::latest::MultiLocation;
-use xcm_primitives::AccountIdToCurrencyId;
-
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
