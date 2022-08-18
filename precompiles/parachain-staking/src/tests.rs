@@ -1208,3 +1208,46 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"min_delegation()",
+		"candidate_count()",
+		"candidate_delegation_count(address)",
+		"delegator_delegation_count(address)",
+		"selected_candidates()",
+		"is_delegator(address)",
+		"is_candidate(address)",
+		"is_selected_candidate(address)",
+		"delegation_request_is_pending(address,address)",
+		"candidate_exit_is_pending(address)",
+		"candidate_request_is_pending(address)",
+		"join_candidates(uint256,uint256)",
+		"schedule_leave_candidates(uint256)",
+		"execute_leave_candidates(address,uint256)",
+		"cancel_leave_candidates(uint256)",
+		"go_offline()",
+		"go_online()",
+		"schedule_candidate_bond_less(uint256)",
+		"candidate_bond_more(uint256)",
+		"execute_candidate_bond_less(address)",
+		"cancel_candidate_bond_less()",
+		"schedule_leave_delegators()",
+		"execute_leave_delegators(address,uint256)",
+		"cancel_leave_delegators()",
+		"schedule_revoke_delegation(address)",
+		"schedule_delegator_bond_less(address,uint256)",
+		"delegator_bond_more(address,uint256)",
+		"execute_delegation_request(address,address)",
+		"cancel_delegation_request(address)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
+}

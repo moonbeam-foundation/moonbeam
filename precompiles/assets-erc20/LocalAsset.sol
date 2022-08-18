@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: GPL-3.0-only
 pragma solidity ^0.8.0;
 
+/// @author The Moonbeam Team
 /// @title Extension of the ERC20 interface that allows an owner
-/// contract to pilot the ERC20 contract.
+/// @dev Contract to pilot the ERC20 contract.
 interface LocalAsset {
     /// @dev Mint tokens to an address
     /// @custom:selector 40c10f19

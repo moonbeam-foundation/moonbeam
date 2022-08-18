@@ -419,3 +419,25 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"index_to_account(uint16)",
+		"transact_info((uint8,bytes[]))",
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+		"transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+		"transact_info_with_signed((uint8,bytes[]))",
+		"fee_per_second((uint8,bytes[]))",
+		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
+}

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
+/// @author The Moonbeam Team
 /// @title Pallet AuthorMapping Interface
-///
-/// The interface through which solidity contracts will interact with pallet-author.mapping
+/// @dev The interface through which solidity contracts will interact with pallet-author.mapping
 /// @custom:address 0x0000000000000000000000000000000000000807
 interface AuthorMapping {
     /// @dev Add association

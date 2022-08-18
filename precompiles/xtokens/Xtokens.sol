@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
+/// @author The Moonbeam Team
 /// @title Xtokens Interface
-/// The interface through which solidity contracts will interact with xtokens pallet
+/// @dev The interface through which solidity contracts will interact with xtokens pallet
 /// @custom:address 0x0000000000000000000000000000000000000804
 interface Xtokens {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)

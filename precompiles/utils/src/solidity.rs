@@ -64,16 +64,21 @@ impl SolidityFunction {
 
 	/// Computes the selector code for the solidity function
 	pub fn compute_selector(&self) -> u32 {
-		let output = keccak_256(self.signature().as_bytes());
-		let mut buf = [0u8; 4];
-		buf.clone_from_slice(&output[..4]);
-		u32::from_be_bytes(buf)
+		compute_selector(&self.signature())
 	}
 
 	/// Computes the selector code as a hex string for the solidity function
 	pub fn compute_selector_hex(&self) -> String {
 		format!("{:0>8x}", self.compute_selector())
 	}
+}
+
+/// Computes a solidity selector from a given string
+pub fn compute_selector(v: &str) -> u32 {
+	let output = keccak_256(v.as_bytes());
+	let mut buf = [0u8; 4];
+	buf.clone_from_slice(&output[..4]);
+	u32::from_be_bytes(buf)
 }
 
 /// Returns a list of [SolidityFunction] defined in a solidity file

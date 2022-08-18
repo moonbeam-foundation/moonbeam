@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.0;
 
+/// @author The Moonbeam Team
 /// @title Xcm Transactor Interface
-/// The interface through which solidity contracts will interact with xcm transactor pallet
+/// @dev The interface through which solidity contracts will interact with xcm transactor pallet
 /// @custom:address 0x0000000000000000000000000000000000000806
 interface XcmTransactor {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)

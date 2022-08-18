@@ -361,3 +361,22 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"add_association(bytes32)",
+		"update_association(bytes32,bytes32)",
+		"clear_association(bytes32)",
+		"remove_keys()",
+		"set_keys(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
+}

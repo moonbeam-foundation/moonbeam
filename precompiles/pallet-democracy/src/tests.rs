@@ -1170,3 +1170,27 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"public_prop_count()",
+		"deposit_of(uint256)",
+		"lowest_unbaked()",
+		"ongoing_referendum_info(uint256)",
+		"finished_referendum_info(uint256)",
+		"standard_vote(uint256,bool,uint256,uint256)",
+		"remove_vote(uint256)",
+		"un_delegate()",
+		"note_preimage(bytes)",
+		"note_imminent_preimage(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
+}
