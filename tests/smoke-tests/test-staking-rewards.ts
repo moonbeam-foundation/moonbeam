@@ -32,6 +32,7 @@ async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: numbe
 
 async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const latestBlock = await api.rpc.chain.getBlock();
+  const latestBlockHash = latestBlock.block.hash;
   const latestBlockNumber = latestBlock.block.header.number.toNumber();
   const latestRound = await (await api.at(latestBlock.block.hash)).query.parachainStaking.round();
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
@@ -70,7 +71,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
-  latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlock.block.hash.toHex()})
+  latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
   now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
   round   ${originalRoundNumber.toString()} (prior round last block \
   ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
