@@ -2,6 +2,7 @@
 pragma solidity >=0.8.0;
 
 /// @author The Moonbeam Team
+/// @title Pallet Proxy Interface
 /// @title The interface through which solidity contracts will interact with the Proxy pallet
 /// @custom:address 0x000000000000000000000000000000000000080b
 interface Proxy {
