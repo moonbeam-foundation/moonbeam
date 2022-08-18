@@ -89,7 +89,7 @@ use sp_runtime::{
 	SaturatedConversion,
 };
 use sp_std::{
-	convert::{From, Into, TryFrom},
+	convert::{From, Into},
 	prelude::*,
 };
 #[cfg(feature = "std")]
@@ -1003,6 +1003,12 @@ impl Contains<Call> for NormalFilter {
 				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
+			// We filter EVM calls as allowing these calls can cause potential attack vectors
+			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// See https://github.com/PureStake/sr-moonbeam/issues/30
+			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
+			// this can be seen as an additional security
+			Call::EVM(_) => false,
 			_ => true,
 		}
 	}
@@ -1548,5 +1554,30 @@ mod tests {
 			),
 			50
 		);
+	}
+
+	#[test]
+	fn test_proxy_type_can_be_decoded_from_valid_values() {
+		let test_cases = vec![
+			// (input, expected)
+			(0u8, ProxyType::Any),
+			(1, ProxyType::NonTransfer),
+			(2, ProxyType::Governance),
+			(3, ProxyType::Staking),
+			(4, ProxyType::CancelProxy),
+			(5, ProxyType::Balances),
+			(6, ProxyType::AuthorMapping),
+			(7, ProxyType::IdentityJudgement),
+		];
+
+		for (input, expected) in test_cases {
+			let actual = ProxyType::decode(&mut input.to_le_bytes().as_slice());
+			assert_eq!(
+				Ok(expected),
+				actual,
+				"failed decoding ProxyType for value '{}'",
+				input
+			);
+		}
 	}
 }
