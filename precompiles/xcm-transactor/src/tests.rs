@@ -46,7 +46,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, precompile_address_v1(), vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -55,7 +55,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -404,6 +404,8 @@ fn test_transact_signed() {
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
 
+			let total_weight = 1_000_000_000u64;
+
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
@@ -414,6 +416,8 @@ fn test_transact_signed() {
 						.write(Address(AssetId(0).into()))
 						.write(U256::from(4000000))
 						.write(bytes)
+						.write(total_weight as u128)
+						.write(total_weight)
 						.build(),
 				)
 				.expect_cost(428130001)

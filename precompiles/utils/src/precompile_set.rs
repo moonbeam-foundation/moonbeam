@@ -157,7 +157,7 @@ where
 		// Check DELEGATECALL config.
 		if !D::allow_delegate_call() && code_address != handle.context().address {
 			return Some(Err(revert(
-				"cannot be called with DELEGATECALL or CALLCODE",
+				"Cannot be called with DELEGATECALL or CALLCODE",
 			)));
 		}
 
@@ -166,14 +166,16 @@ where
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
 					if *recursion_level > max_recursion_level {
-						return Some(Err(revert("precompile is called with too high nesting")));
+						return Some(Err(
+							revert("Precompile is called with too high nesting").into()
+						));
 					}
 
 					*recursion_level += 1;
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
 			}
 		}
 
@@ -187,7 +189,7 @@ where
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
 			}
 		}
 
@@ -244,8 +246,9 @@ where
 		// Check DELEGATECALL config.
 		if !D::allow_delegate_call() && code_address != handle.context().address {
 			return Some(Err(revert(
-				"cannot be called with DELEGATECALL or CALLCODE",
-			)));
+				"Cannot be called with DELEGATECALL or CALLCODE",
+			)
+			.into()));
 		}
 
 		// Check and increase recursion level if needed.
@@ -253,14 +256,16 @@ where
 			match self.current_recursion_level.try_borrow_mut() {
 				Ok(mut recursion_level) => {
 					if *recursion_level > max_recursion_level {
-						return Some(Err(revert("precompile is called with too high nesting")));
+						return Some(Err(
+							revert("Precompile is called with too high nesting").into()
+						));
 					}
 
 					*recursion_level += 1;
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting").into())),
 			}
 		}
 
@@ -274,7 +279,7 @@ where
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 
@@ -330,7 +335,7 @@ where
 		// Check DELEGATECALL config.
 		if !D::allow_delegate_call() && code_address != handle.context().address {
 			return Some(Err(revert(
-				"cannot be called with DELEGATECALL or CALLCODE",
+				"Cannot be called with DELEGATECALL or CALLCODE",
 			)));
 		}
 
@@ -341,14 +346,14 @@ where
 					let recursion_level = recursion_level_map.entry(code_address).or_insert(0);
 
 					if *recursion_level > max_recursion_level {
-						return Some(Err(revert("precompile is called with too high nesting")));
+						return Some(Err(revert("Precompile is called with too high nesting")));
 					}
 
 					*recursion_level += 1;
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 
@@ -360,14 +365,14 @@ where
 				Ok(mut recursion_level_map) => {
 					let recursion_level = match recursion_level_map.get_mut(&code_address) {
 						Some(recursion_level) => recursion_level,
-						None => return Some(Err(revert("couldn't retreive precompile nesting"))),
+						None => return Some(Err(revert("Couldn't retreive precompile nesting"))),
 					};
 
 					*recursion_level -= 1;
 				}
 				// We don't hold the borrow and are in single-threaded code, thus we should
 				// not be able to fail borrowing in nested calls.
-				Err(_) => return Some(Err(revert("couldn't check precompile nesting"))),
+				Err(_) => return Some(Err(revert("Couldn't check precompile nesting"))),
 			}
 		}
 

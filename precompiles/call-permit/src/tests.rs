@@ -24,7 +24,7 @@ use crate::{
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, prelude::*, solidity, testing::*};
+use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -142,7 +142,6 @@ fn valid_permit_returns() {
 }
 
 #[test]
-#[ignore = "encoding issues, will be enabled in https://github.com/PureStake/moonbeam/pull/1734"]
 fn valid_permit_reverts() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
@@ -229,7 +228,7 @@ fn valid_permit_reverts() {
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: b"TEST".to_vec(),
+						output: encoded_revert(b"TEST"),
 						cost: 13,
 						logs: vec![],
 					}
@@ -303,7 +302,7 @@ fn invalid_permit_nonce() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"invalid permit");
+				.execute_reverts(|x| x == b"Invalid permit");
 		})
 }
 
@@ -369,7 +368,7 @@ fn invalid_permit_gas_limit_too_low() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 99_999 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"gaslimit is too low to dispatch provided call");
+				.execute_reverts(|x| x == b"Gaslimit is too low to dispatch provided call");
 		})
 }
 
@@ -435,7 +434,7 @@ fn invalid_permit_gas_limit_overflow() {
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(100_000 + dispatch_cost()))
 				.expect_cost(dispatch_cost())
-				.execute_reverts(|x| x == b"call require too much gas (u64 overflow)");
+				.execute_reverts(|x| x == b"Call require too much gas (uint64 overflow)");
 		})
 }
 

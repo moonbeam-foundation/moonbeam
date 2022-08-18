@@ -155,7 +155,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+      "transactThroughDerivativeMultilocation",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
@@ -239,7 +239,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transactThroughDerivative(uint8,uint16,address,uint64,bytes)",
+      "transactThroughDerivative",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
@@ -347,7 +347,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transactThroughSigned((uint8,bytes[]),address,uint64,bytes)",
+      "transactThroughSigned",
       [dest, asset, weight, transact_call]
     );
 
@@ -394,7 +394,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE_V1.encodeFunctionData(
       // action
-      "transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+      "transactThroughSignedMultilocation",
       [dest, asset, weight, transact_call]
     );
 

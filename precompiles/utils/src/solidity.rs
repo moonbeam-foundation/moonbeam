@@ -294,11 +294,6 @@ mod tests {
 				String::from("fnCalldataArgs(string,bytes[])"),
 			),
 			(
-				String::from("d779295d"),
-				String::from("9f066a4e"),
-				String::from("fnStorageArgs(string,bytes[])"),
-			),
-			(
 				String::from("f29f96de"),
 				String::from("d8af1a4e"),
 				String::from("fnCustomArgs((uint8,bytes[]),bytes[],uint64)"),
