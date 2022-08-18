@@ -89,16 +89,16 @@ where
 			}
 			Action::FeePerSecond => XcmTransactorWrapper::<Runtime>::fee_per_second(handle),
 			Action::TransactThroughDerivativeMultiLocation => {
-				XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation_custom_fee_and_weight(handle)
+				XcmTransactorWrapper::<Runtime>::transact_through_derivative_multilocation_fee_weight(handle)
 			}
 			Action::TransactThroughDerivative => {
-				XcmTransactorWrapper::<Runtime>::transact_through_derivative_custom_fee_and_weight(handle)
+				XcmTransactorWrapper::<Runtime>::transact_through_derivative_fee_weight(handle)
 			}
 			Action::TransactThroughSignedMultiLocation => {
-				XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation_custom_fee_and_weight(handle)
+				XcmTransactorWrapper::<Runtime>::transact_through_signed_multilocation_fee_weight(handle)
 			}
 			Action::TransactThroughSigned => {
-				XcmTransactorWrapper::<Runtime>::transact_through_signed_custom_fee_and_weight(handle)
+				XcmTransactorWrapper::<Runtime>::transact_through_signed_fee_weight(handle)
 			}
 		}
 	}

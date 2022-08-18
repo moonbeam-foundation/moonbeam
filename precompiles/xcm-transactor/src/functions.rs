@@ -172,7 +172,7 @@ where
 		Ok(succeed([]))
 	}
 
-	pub(crate) fn transact_through_derivative_multilocation_custom_fee_and_weight(
+	pub(crate) fn transact_through_derivative_multilocation_fee_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {
@@ -262,7 +262,7 @@ where
 		Ok(succeed([]))
 	}
 
-	pub(crate) fn transact_through_derivative_custom_fee_and_weight(
+	pub(crate) fn transact_through_derivative_fee_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {
@@ -346,7 +346,7 @@ where
 		Ok(succeed([]))
 	}
 
-	pub(crate) fn transact_through_signed_multilocation_custom_fee_and_weight(
+	pub(crate) fn transact_through_signed_multilocation_fee_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {
@@ -425,7 +425,7 @@ where
 		Ok(succeed([]))
 	}
 
-	pub(crate) fn transact_through_signed_custom_fee_and_weight(
+	pub(crate) fn transact_through_signed_fee_weight(
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {
