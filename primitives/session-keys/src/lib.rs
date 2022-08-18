@@ -25,13 +25,17 @@ pub use inherent::*;
 pub use vrf::*;
 
 /// A Trait to lookup keys from AuthorIds
-pub trait KeysLookup<AuthorId, Keys> {
+pub trait KeysLookup<AuthorId, Account, Keys> {
 	fn lookup_keys(author: &AuthorId) -> Option<Keys>;
+	#[cfg(feature = "runtime-benchmarks")]
+	fn set_keys(id: AuthorId, account: Account, keys: Keys);
 }
 
 // A dummy impl used in simple tests
-impl<AuthorId, Keys> KeysLookup<AuthorId, Keys> for () {
+impl<AuthorId, Account, Keys> KeysLookup<AuthorId, Account, Keys> for () {
 	fn lookup_keys(_: &AuthorId) -> Option<Keys> {
 		None
 	}
+	#[cfg(feature = "runtime-benchmarks")]
+	fn set_keys(_id: AuthorId, _account: Account, _keys: Keys) {}
 }

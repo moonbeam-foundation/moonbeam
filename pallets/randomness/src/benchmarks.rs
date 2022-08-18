@@ -109,7 +109,7 @@ benchmarks! {
 			&digest
 		);
 		// set keys in author mapping
-		T::KeySetter::benchmark_set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
+		T::KeysLookup::set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
 	}: {
 		Pallet::<T>::on_initialize(block_num);
 	}

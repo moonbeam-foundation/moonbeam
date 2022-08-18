@@ -368,6 +368,19 @@ pub mod pallet {
 		fn lookup_keys(author: &NimbusId) -> Option<T::Keys> {
 			Self::keys_of(author)
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		/// Sets keys WITHOUT reserving deposit, for benchmarking purposes only
+		fn set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
+			use sp_runtime::traits::Zero;
+			MappingWithDeposit::<T>::insert(
+				id,
+				RegistrationInfo {
+					account,
+					deposit: Zero::zero(),
+					keys,
+				},
+			);
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -383,31 +396,6 @@ pub mod pallet {
 		/// A helper function to lookup NimbusId associated with a given AccountId
 		pub fn nimbus_id_of(account_id: &T::AccountId) -> Option<NimbusId> {
 			NimbusLookup::<T>::get(account_id)
-		}
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	pub trait BenchmarkSetKeys<Id, Account, Keys> {
-		fn benchmark_set_keys(id: Id, account: Account, keys: Keys);
-	}
-	#[cfg(feature = "runtime-benchmarks")]
-	impl<Id, Account, Keys> BenchmarkSetKeys<Id, Account, Keys> for () {
-		fn benchmark_set_keys(_id: Id, _account: Account, _keys: Keys) {}
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	impl<T: Config> BenchmarkSetKeys<NimbusId, T::AccountId, T::Keys> for Pallet<T> {
-		// Sets keys WITHOUT reserving deposit
-		fn benchmark_set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
-			use sp_runtime::traits::Zero;
-			MappingWithDeposit::<T>::insert(
-				id,
-				RegistrationInfo {
-					account,
-					deposit: Zero::zero(),
-					keys,
-				},
-			);
 		}
 	}
 }

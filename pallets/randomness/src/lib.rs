@@ -78,7 +78,7 @@ pub mod pallet {
 		/// Get the BABE data from the runtime
 		type BabeDataGetter: GetBabeData<u64, Option<Self::Hash>>;
 		/// Takes NimbusId to return VrfId
-		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
+		type VrfKeyLookup: KeysLookup<NimbusId, Self::AccountId, VrfId>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
@@ -99,9 +99,6 @@ pub mod pallet {
 		#[pallet::constant]
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		type EpochExpirationDelay: Get<u64>;
-		/// Benchmark feature to set AuthorMapping without directly inheriting it
-		#[cfg(feature = "runtime-benchmarks")]
-		type KeySetter: pallet_author_mapping::BenchmarkSetKeys<NimbusId, Self::AccountId, VrfId>;
 	}
 
 	#[pallet::error]
