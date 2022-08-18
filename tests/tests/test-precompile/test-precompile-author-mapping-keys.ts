@@ -43,7 +43,7 @@ const setKeysThroughPrecompile = async (
       from: account,
       privateKey: private_key,
       to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("set_keys", [keys]),
+      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("setKeys", [keys]),
     })
   );
 };
