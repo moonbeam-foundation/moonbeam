@@ -7648,6 +7648,7 @@ dependencies = [
  "hex",
  "log",
  "nimbus-primitives",
+ "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
  "parity-scale-codec",
