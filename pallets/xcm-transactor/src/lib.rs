@@ -20,30 +20,50 @@
 //!
 //! Module to provide transact capabilities on other chains
 //!
-//! For the transaction to successfully be dispatched in the destination chain, pallet-utility
-//! needs to be installed and at least paid xcm message execution should be allowed (and
-//! WithdrawAsset,BuyExecution and Transact messages allowed) in the destination chain
+//! In this pallet we will make distinctions between sovereign, derivative accounts and
+//! multilocation-based derived accounts. The first is the account the parachain controls
+//! in the destination chain, the second is an account derived from the
+//! sovereign account itself, e.g., by hashing it with an index, while the third is an account
+//! derived from the multilocation of a use in this chain (tipically, hashing the ML).
+//! Such distinction is important since we want to keep the integrity of the sovereign account
 //!
-//! In this pallet we will make distinctions between sovereign
-//! and derivative accounts. The first is the account the parachain controls
-//! in the destination chain, while the latter is an account derived from the
-//! sovereign account itself, e.g., by hashing it with an index. Such distinction
-//! is important since we want to keep the integrity of the sovereign account
+//! This pallet provides three ways of sending Transact operations to anothe chain
 //!
-//! The transactions are dispatched from a derivative account
-//! of the sovereign account
-//! This pallet only stores the index of the derivative account used, but
-//! not the derivative account itself. The only assumption this pallet makes
-//! is the existence of the pallet_utility pallet in the destination chain
-//! through the XcmTransact trait.
+//! - transact_through_derivative: Transact through an address derived from this chains sovereign
+//! 	account in the destination chain. For the transaction to successfully be dispatched in the
+//! 	destination chain, pallet-utility needs to be installed and at least paid xcm message
+//! 	execution should be allowed (and WithdrawAsset,BuyExecution and Transact messages allowed)
+//! 	in the destination chain
 //!
-//! All calls will be wrapped around utility::as_derivative. This makes sure
-//! the inner call is executed from the derivative account and not the sovereign
-//! account itself.
 //!
-//! Index registration happens through DerivativeAddressRegistrationOrigin.
-//! This derivative account can be funded by external users to
-//! ensure it has enough funds to make the calls
+//!
+//! 	The transactions are dispatched from a derivative account
+//! 	of the sovereign account
+//! 	This pallet only stores the index of the derivative account used, but
+//! 	not the derivative account itself. The only assumption this pallet makes
+//! 	is the existence of the pallet_utility pallet in the destination chain
+//! 	through the XcmTransact trait.
+//!
+//! 	All calls will be wrapped around utility::as_derivative. This makes sure
+//! 	the inner call is executed from the derivative account and not the sovereign
+//! 	account itself.
+//!
+//! 	Index registration happens through DerivativeAddressRegistrationOrigin.
+//! 	This derivative account can be funded by external users to
+//! 	ensure it has enough funds to make the calls
+//!
+//! - transact_through_sovereign: Transact through the sovereign account representing this chain.
+//! 	For the transaction to successfully be dispatched in the destination chain, at least paid
+//! 	xcm message execution should be allowed (and WithdrawAsset,BuyExecution and Transact
+//! 	messages allowed) in the destination chain. Only callable by Root
+//!
+//! - transact_through_signed: Transact through an account derived from the multilocation
+//! 	representing the signed user making the call. We ensure this by prepending DescendOrigin as
+//! 	the first instruction of the XCM message. For the transaction to successfully be dispatched
+//! 	in the destination chain, at least descended paid xcm message execution should be allowed
+//! 	(and DescendOrigin + WithdrawAsset + BuyExecution + Transact messages allowed) in the
+//! 	destination chain. Additionally, a ML-based derivation mechanism needs to be implemented
+//! 	in the destination chain.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

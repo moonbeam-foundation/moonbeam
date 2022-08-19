@@ -7939,7 +7939,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm-transactor"
-version = "1.0.0"
+version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "frame-benchmarking",
