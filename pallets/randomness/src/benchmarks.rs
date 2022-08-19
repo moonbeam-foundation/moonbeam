@@ -50,6 +50,7 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 }
 
 benchmarks! {
+	where_clause { where <T::VrfKeyLookup as KeysLookup<NimbusId, VrfId>>::Account: From<T::AccountId> }
 	// TODO: causes panic:
 	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
 	// on_initialize', runtime/moonbase/src/lib.rs:1111
@@ -110,7 +111,8 @@ benchmarks! {
 			&digest
 		);
 		// set keys in author mapping
-		T::VrfKeyLookup::set_keys(nimbus_id, account("key", 0u32, 0u32), vrf_id.clone());
+		let dummy_account: T::AccountId = account("key", 0u32, 0u32);
+		T::VrfKeyLookup::set_keys(nimbus_id, dummy_account.into(), vrf_id.clone());
 	}: {
 		Pallet::<T>::on_initialize(block_num);
 	}
