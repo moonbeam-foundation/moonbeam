@@ -26,6 +26,7 @@ use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadat
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
 use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -38,7 +39,6 @@ use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
 use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
-use pallet_evm_precompile_collective::CollectivePrecompile;
 use precompile_utils::precompile_set::*;
 
 pub struct NativeErc20Metadata;

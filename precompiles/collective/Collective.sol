@@ -5,23 +5,69 @@ pragma solidity >=0.8.0;
 /// Allows to interact with Substrate pallet_collective from the EVM.
 /// Address: TODO
 interface Collective {
+    /// @dev Execute a proposal as a single member of the collective.
+    /// The sender must be a member of the collective.
+    ///
+    /// @param proposal SCALE-encoded Substrate call.
+    ///
+    /// @custom:selector 09c5eabe
     function execute(bytes memory proposal) external;
 
-    function propose(uint32 threshold, bytes memory proposal) external;
+    /// @dev Make a proposal for a call.
+    /// The sender must be a member of the collective.
+    /// If the threshold is less than 2 then the proposal will be dispatched
+    /// directly from the group of one member of the collective.
+    ///
+    /// @param threshold Amount of members required to dispatch the proposal.
+    /// @param proposal SCALE-encoded Substrate call.
+    /// @return index Index of the new proposal. Meaningless if threshold < 2
+    ///
+    /// @custom:selector c57f3260
+    function propose(uint32 threshold, bytes memory proposal)
+        external
+        returns (uint32 index);
 
+    /// @dev Vote for a proposal.
+    /// The sender must be a member of the collective.
+    ///
+    /// @param proposalHash Hash of the proposal to vote for. Ensure the caller knows what they're
+    /// voting in case of front-running or reorgs.
+    /// @param proposalIndex Index of the proposal (returned by propose).
+    /// @param approve The vote itself, is the caller approving or not the proposal.
+    ///
+    /// @custom:selector 73e37688
     function vote(
         bytes32 proposalHash,
         uint32 proposalIndex,
         bool approve
     ) external;
 
+    /// @dev Close a proposal.
+    /// Can be called by anyone once there is enough votes.
+    /// Reverts if called at a non appropriate time.
+    ///
+    /// @param proposalHash Hash of the proposal to close.
+    /// @param proposalIndex Index of the proposal.
+    /// @param proposalWeightBound Maximum amount of Substrate weight the proposal can use.
+    /// This call will revert if the proposal call would use more.
+    /// @param lengthBound Must be a value higher or equal to the length of the SCALE-encoded
+    /// proposal in bytes.
+    /// @return executed Was the proposal executed or removed?
+    ///
+    /// @custom:selector 638d9d47
     function close(
         bytes32 proposalHash,
         uint32 proposalIndex,
         uint64 proposalWeightBound,
         uint32 lengthBound
-    ) external;
+    ) external returns (bool executed);
 
+    /// @dev Compute the hash of a proposal.
+    ///
+    /// @param proposal SCALE-encoded Substrate call.
+    /// @return proposalHash Hash of the proposal.
+    ///
+    /// @custom:selector fc379417
     function proposalHash(bytes memory proposal)
         external
         view
@@ -35,4 +81,5 @@ interface Collective {
         uint32 threshold
     );
     event Voted(address indexed who, bytes32 indexed proposalHash, bool voted);
+    event Closed(bytes32 indexed proposalHash);
 }

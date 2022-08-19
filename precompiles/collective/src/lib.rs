@@ -19,16 +19,16 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{Precompile, PrecompileOutput};
+use fp_evm::{Log, Precompile, PrecompileOutput};
 use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, PostDispatchInfo},
+	weights::{GetDispatchInfo, Pays, PostDispatchInfo},
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{Decode, H256};
+use sp_core::{Decode, H160, H256};
 use sp_std::{boxed::Box, vec::Vec};
 
 #[cfg(test)]
@@ -45,6 +45,44 @@ pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(address,uint32,
 /// Solidity selector of the Voted log.
 pub const SELECTOR_LOG_VOTED: [u8; 32] = keccak256!("Voted(address,bytes32,bool)");
 
+/// Solidity selector of the Closed log.
+pub const SELECTOR_LOG_CLOSED: [u8; 32] = keccak256!("Closed(bytes32)");
+
+pub fn log_executed(address: impl Into<H160>, hash: H256) -> Log {
+	log2(address.into(), SELECTOR_LOG_EXECUTED, hash, Vec::new())
+}
+
+pub fn log_proposed(
+	address: impl Into<H160>,
+	who: impl Into<H160>,
+	index: u32,
+	hash: H256,
+	threshold: u32,
+) -> Log {
+	log4(
+		address.into(),
+		SELECTOR_LOG_PROPOSED,
+		who.into(),
+		H256::from_slice(&EvmDataWriter::new().write(index).build()),
+		hash,
+		EvmDataWriter::new().write(threshold).build(),
+	)
+}
+
+pub fn log_voted(address: impl Into<H160>, who: impl Into<H160>, hash: H256, voted: bool) -> Log {
+	log3(
+		address.into(),
+		SELECTOR_LOG_VOTED,
+		who.into(),
+		hash,
+		EvmDataWriter::new().write(voted).build(),
+	)
+}
+
+pub fn log_closed(address: impl Into<H160>, hash: H256) -> Log {
+	log2(address.into(), SELECTOR_LOG_CLOSED, hash, Vec::new())
+}
+
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 
 #[generate_function_selector]
@@ -53,7 +91,7 @@ pub enum Action {
 	Execute = "execute(bytes)",
 	Propose = "propose(uint32,bytes)",
 	Vote = "vote(bytes32,uint32,bool)",
-	Close = "close(bytes32,uint32,uint64)",
+	Close = "close(bytes32,uint32,uint64,uint32)",
 	ProposalHash = "proposalHash(bytes)",
 }
 
@@ -127,12 +165,7 @@ where
 			},
 		)?;
 
-		let log = log2(
-			handle.context().address,
-			SELECTOR_LOG_EXECUTED,
-			proposal_hash,
-			Vec::new(),
-		);
+		let log = log_executed(handle.context().address, proposal_hash);
 
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
@@ -178,27 +211,21 @@ where
 		// In pallet_collective a threshold < 2 means the proposal has been
 		// executed directly.
 		let log = if threshold < 2 {
-			log2(
-				handle.context().address,
-				SELECTOR_LOG_EXECUTED,
-				proposal_hash,
-				Vec::new(),
-			)
+			log_executed(handle.context().address, proposal_hash)
 		} else {
-			log4(
+			log_proposed(
 				handle.context().address,
-				SELECTOR_LOG_PROPOSED,
 				handle.context().caller,
-				H256::from_slice(&EvmDataWriter::new().write(proposal_index).build()),
+				proposal_index,
 				proposal_hash,
-				EvmDataWriter::new().write(threshold).build(),
+				threshold,
 			)
 		};
 
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(succeed(EvmDataWriter::new().write(proposal_index).build()))
 	}
 
 	fn vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -222,12 +249,11 @@ where
 		// TODO: Since we cannot access ayes/nays of a proposal we cannot
 		// include it in the EVM events to mirror Substrate events.
 
-		let log = log3(
+		let log = log_voted(
 			handle.context().address,
-			SELECTOR_LOG_VOTED,
 			handle.context().caller,
 			proposal_hash,
-			EvmDataWriter::new().write(approve).build(),
+			approve,
 		);
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
@@ -244,7 +270,7 @@ where
 		});
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		RuntimeHelper::<Runtime>::try_dispatch(
+		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
 			Some(origin).into(),
 			pallet_collective::Call::<Runtime, Instance>::close {
@@ -255,11 +281,16 @@ where
 			},
 		)?;
 
-		// TODO: How to know if the proposal was executed or not?
-		// Ayes/Nays are private so we cannot know directly which side won.
-		// For now no events are emitted.
+		// We can know if the proposal was executed or not based on the `pays_fee` in
+		// `PostDispatchInfo`.
+		let (executed, log) = match post_dispatch_info.pays_fee {
+			Pays::Yes => (true, log_executed(handle.context().address, proposal_hash)),
+			Pays::No => (false, log_closed(handle.context().address, proposal_hash)),
+		};
+		handle.record_log_costs(&[&log])?;
+		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(succeed(EvmDataWriter::new().write(executed).build()))
 	}
 
 	fn proposal_hash(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {

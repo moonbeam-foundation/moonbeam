@@ -19,10 +19,7 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{
-		ConstU128, ConstU64, Everything, GenesisBuild, MapSuccess, OnFinalize,
-		OnInitialize,
-	},
+	traits::{ConstU128, ConstU64, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
 use pallet_evm::{

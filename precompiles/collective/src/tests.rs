@@ -15,18 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	assert_event_emitted, hash,
+	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{
 		Account::{self, Alice, Bob, Charlie, Precompile},
 		ExtBuilder, Precompiles, PrecompilesValue, Runtime,
 	},
 	Action,
 };
-use frame_support::{
-	dispatch::{Encode},
-};
+use frame_support::dispatch::Encode;
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::{H256};
+use sp_core::H256;
 use sp_runtime::DispatchError;
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -96,7 +94,7 @@ fn selectors() {
 	assert_eq!(Action::Execute as u32, 0x09c5eabe);
 	assert_eq!(Action::Propose as u32, 0xc57f3260);
 	assert_eq!(Action::Vote as u32, 0x73e37688);
-	assert_eq!(Action::Close as u32, 0x73d23051);
+	assert_eq!(Action::Close as u32, 0x638d9d47);
 	assert_eq!(Action::ProposalHash as u32, 0xfc379417);
 }
 
@@ -119,6 +117,7 @@ fn non_member_cannot_propose() {
 					.write(Bytes(proposal))
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
 	});
 }
@@ -136,6 +135,7 @@ fn non_member_cannot_vote() {
 					.write(false)
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
 	});
 }
@@ -158,6 +158,7 @@ fn non_member_cannot_execute() {
 					.write(Bytes(proposal))
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
 	});
 }
@@ -175,6 +176,7 @@ fn cannot_vote_for_unknown_proposal() {
 					.write(false)
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"ProposalMissing\") })"));
 	});
 }
@@ -193,6 +195,7 @@ fn cannot_close_unknown_proposal() {
 					.write(0u32)
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"ProposalMissing\") })"));
 	});
 }
@@ -219,7 +222,8 @@ fn member_can_make_instant_proposal() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_executed(Precompile, proposal_hash))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		assert_event_emitted!(pallet_collective::Event::Executed {
 			proposal_hash,
@@ -249,7 +253,8 @@ fn member_can_make_delayed_proposal() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		assert_event_emitted!(pallet_collective::Event::Proposed {
 			account: Bob,
@@ -281,7 +286,8 @@ fn member_can_vote_on_proposal() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		precompiles()
 			.prepare_test(
@@ -293,6 +299,7 @@ fn member_can_vote_on_proposal() {
 					.write(true)
 					.build(),
 			)
+			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		assert_event_emitted!(pallet_collective::Event::Voted {
@@ -327,7 +334,8 @@ fn cannot_close_if_not_enough_votes() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		precompiles()
 			.prepare_test(
@@ -340,6 +348,7 @@ fn cannot_close_if_not_enough_votes() {
 					.write(proposal_len)
 					.build(),
 			)
+			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"TooEarly\") })"));
 	});
 }
@@ -365,7 +374,8 @@ fn can_close_execute_if_enough_votes() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		precompiles()
 			.prepare_test(
@@ -377,6 +387,7 @@ fn can_close_execute_if_enough_votes() {
 					.write(true)
 					.build(),
 			)
+			.expect_log(log_voted(Precompile, Bob, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		precompiles()
@@ -389,6 +400,7 @@ fn can_close_execute_if_enough_votes() {
 					.write(true)
 					.build(),
 			)
+			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
 
 		precompiles()
@@ -402,7 +414,8 @@ fn can_close_execute_if_enough_votes() {
 					.write(proposal_len)
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_executed(Precompile, proposal_hash))
+			.execute_returns(EvmDataWriter::new().write(true).build());
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -449,7 +462,8 @@ fn can_close_refuse_if_enough_votes() {
 					.write(Bytes(proposal))
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
 
 		precompiles()
 			.prepare_test(
@@ -461,6 +475,7 @@ fn can_close_refuse_if_enough_votes() {
 					.write(false)
 					.build(),
 			)
+			.expect_log(log_voted(Precompile, Bob, proposal_hash, false))
 			.execute_returns(vec![]);
 
 		precompiles()
@@ -473,6 +488,7 @@ fn can_close_refuse_if_enough_votes() {
 					.write(false)
 					.build(),
 			)
+			.expect_log(log_voted(Precompile, Charlie, proposal_hash, false))
 			.execute_returns(vec![]);
 
 		precompiles()
@@ -486,7 +502,8 @@ fn can_close_refuse_if_enough_votes() {
 					.write(proposal_len)
 					.build(),
 			)
-			.execute_returns(vec![]);
+			.expect_log(log_closed(Precompile, proposal_hash))
+			.execute_returns(EvmDataWriter::new().write(false).build());
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -496,5 +513,50 @@ fn can_close_refuse_if_enough_votes() {
 		.into());
 
 		assert_event_emitted!(pallet_collective::Event::Disapproved { proposal_hash }.into());
+	});
+}
+
+#[test]
+fn multiple_propose_increase_index() {
+	ExtBuilder::default().build().execute_with(|| {
+		let proposal = pallet_treasury::Call::<Runtime>::spend {
+			amount: 1,
+			beneficiary: Account::Alice,
+		};
+		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal = proposal.encode();
+		let proposal_hash: H256 = hash::<Runtime>(&proposal);
+
+		precompiles()
+			.prepare_test(
+				Bob,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::Propose)
+					.write(2u32)
+					.write(Bytes(proposal))
+					.build(),
+			)
+			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(0u32).build());
+
+		let proposal = pallet_treasury::Call::<Runtime>::spend {
+			amount: 2,
+			beneficiary: Account::Alice,
+		};
+		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal = proposal.encode();
+		let proposal_hash: H256 = hash::<Runtime>(&proposal);
+
+		precompiles()
+			.prepare_test(
+				Bob,
+				Precompile,
+				EvmDataWriter::new_with_selector(Action::Propose)
+					.write(2u32)
+					.write(Bytes(proposal))
+					.build(),
+			)
+			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))
+			.execute_returns(EvmDataWriter::new().write(1u32).build());
 	});
 }

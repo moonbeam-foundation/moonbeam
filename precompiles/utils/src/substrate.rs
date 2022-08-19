@@ -63,7 +63,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		origin: <Runtime::Call as Dispatchable>::Origin,
 		call: Call,
-	) -> Result<(), TryDispatchError>
+	) -> Result<PostDispatchInfo, TryDispatchError>
 	where
 		Runtime::Call: From<Call>,
 	{
@@ -82,10 +82,11 @@ where
 		// However while Substrate handle checking weight while not making the sender pay for it,
 		// the EVM doesn't. It seems this safer to always record the costs to avoid unmetered
 		// computations.
-		let used_weight = call
+		let post_dispatch_info = call
 			.dispatch(origin)
-			.map_err(|e| TryDispatchError::Substrate(e.error))?
-			.actual_weight;
+			.map_err(|e| TryDispatchError::Substrate(e.error))?;
+
+		let used_weight = post_dispatch_info.actual_weight;
 
 		let used_gas =
 			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
@@ -94,7 +95,7 @@ where
 			.record_cost(used_gas)
 			.map_err(|e| TryDispatchError::Evm(e))?;
 
-		Ok(())
+		Ok(post_dispatch_info)
 	}
 }
 
