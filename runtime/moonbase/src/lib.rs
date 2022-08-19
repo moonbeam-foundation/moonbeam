@@ -407,10 +407,19 @@ parameter_types! {
 pub struct FixedGasPrice;
 impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
-		(
-			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
-		)
+		// TODO: return real weight (or should it be treated as a free read since it's read so
+		//       frequently?)
+		// TODO: transaction-payment differs from EIP-1559 in that its tip and length fees are not
+		//       scaled by the multiplier, which means its multiplier will be overstated when
+		//       applied to an ethereum transaction
+		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
+		//       updated once per block in on_initialize) and a 'WeightToFee' implementation. Our
+		//       runtime implements this as a 'ConstantModifier', so we can get away with a simple
+		//       multiplication here.
+		let total_weight_multiplier =
+			TransactionPayment::next_fee_multiplier().saturating_mul_int(currency::WEIGHT_FEE);
+		let gas_price = total_weight_multiplier * WEIGHT_PER_GAS as u128;
+		(gas_price.into(), 0u64.into())
 	}
 }
 
