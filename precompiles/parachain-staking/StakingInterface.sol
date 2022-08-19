@@ -165,12 +165,12 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
-    /// schedule individual revokes instead
+    /// @notice DEPRECATED use batch util with scheduleRevokeDelegation for all delegations
     /// @dev Request to leave the set of delegators
     /// @custom:selector f939dadb
     function scheduleLeaveDelegators() external;
 
-    /// execute individual revokes instead
+    /// @notice DEPRECATED use batch util with executeDelegationRequest for all delegations
     /// @dev Execute request to leave the set of delegators and revoke all delegations
     /// @custom:selector fb1e2bf9
     /// @param delegator The leaving delegator
@@ -180,7 +180,7 @@ interface ParachainStaking {
         uint256 delegatorDelegationCount
     ) external;
 
-    /// cancel individual revokes instead
+    /// @notice DEPRECATED use batch util with cancelDelegationRequest for all delegations
     /// @dev Cancel request to leave the set of delegators
     /// @custom:selector f7421284
     function cancelLeaveDelegators() external;
