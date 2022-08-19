@@ -41,7 +41,7 @@ jobs:
           if [[ $image_exists = "false" ]]; then
             echo building "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
             docker build --pull --no-cache . \
-              -f docker/custom-srtool.Dockerfile \
+              -f docker/moonbeam-srtool.Dockerfile \
               --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
               -t ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}
 
