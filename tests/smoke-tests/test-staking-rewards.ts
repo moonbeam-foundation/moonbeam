@@ -39,7 +39,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
   const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
   const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
-  const _specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
+  const specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
     .unwrap()
     .specVersion.toNumber();
 
@@ -285,15 +285,17 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     ).to.be.empty;
   }
 
-  // check that sum of all reward transfers is equal to total expected staking reward
-  expect(totalRewardedAmount.toString()).to.equal(
-    totalExpectedStakingIssuance.toString(),
-    `Total rewarded events did not match total expected issuance for collators + delegators:
+  if (specVersion >= 1800) {
+    // check that sum of all reward transfers is equal to total expected staking reward
+    expect(totalRewardedAmount.toString()).to.equal(
+      totalExpectedStakingIssuance.toString(),
+      `Total rewarded events did not match total expected issuance for collators + delegators:
     ${totalRewardedAmount} != ${totalExpectedStakingIssuance} \n
     Inflation was ${totalExpectedStakingIssuance.sub(
       totalRewardedAmount
     )} less than expected for round ${originalRoundNumber}`
-  );
+    );
+  }
 
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
