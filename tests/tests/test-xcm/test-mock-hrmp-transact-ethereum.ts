@@ -94,7 +94,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       expectedTransferredAmount += amountToTransfer;
       expectedTransferredAmountPlusFees += amountToTransfer + targetXcmFee;
       // TODO need to update lookup types for xcm ethereum transaction V2
-      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction);
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
       const transferCallEncoded = transferCall?.method.toHex();
 
       // We are going to test that we can receive a transact operation from parachain 1
@@ -250,7 +250,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
       expectedCalls++;
 
       // TODO need to update lookup types for xcm ethereum transaction V2
-      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction);
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
       const transferCallEncoded = transferCall?.method.toHex();
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
@@ -466,7 +466,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
       expectedCalls++;
 
       // TODO need to update lookup types for xcm ethereum transaction V2
-      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction);
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
       const transferCallEncoded = transferCall?.method.toHex();
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
