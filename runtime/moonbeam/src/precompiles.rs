@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
+use crate::xcm_config::XcmExecutorConfig;
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::polkadot::PolkadotEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
@@ -31,6 +32,7 @@ use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -113,6 +115,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
+				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)

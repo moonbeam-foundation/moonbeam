@@ -42,12 +42,14 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
+use polkadot_parachain::primitives::Sibling;
 use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{ByteArray, Pair, H160, U256};
@@ -57,6 +59,8 @@ use sp_runtime::{
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
+use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
+use xcm_executor::traits::Convert as XcmConvert;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -2374,7 +2378,7 @@ fn transact_through_signed_mult_not_enabled() {
 							MultiLocation::parent()
 						)),
 						dest_weight: 11000,
-						call: vec![],
+						call: vec![]
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2432,7 +2436,7 @@ fn transact_through_signed_not_enabled() {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 						fee_currency_id: CurrencyId::ForeignAsset(source_id),
 						dest_weight: 11000,
-						call: vec![],
+						call: vec![]
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2565,12 +2569,87 @@ fn call_xtokens_with_fee() {
 }
 
 #[test]
+fn test_xcm_utils_ml_to_account() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let expected_address_parent: H160 =
+			ParentIsPreset::<AccountId>::convert_ref(MultiLocation::parent())
+				.unwrap()
+				.into();
+
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(MultiLocation::parent())
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_parent))
+					.build(),
+			);
+
+		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
+		let expected_address_parachain: H160 =
+			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_ref(
+				parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
+
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(parachain_2000_multilocation)
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_parachain))
+					.build(),
+			);
+
+		let alice_in_parachain_2000_multilocation = MultiLocation::new(
+			1,
+			X2(
+				Parachain(2000),
+				AccountKey20 {
+					network: Any,
+					key: ALICE,
+				},
+			),
+		);
+
+		// this should fail, this convertor is not allowed in moonriver
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(alice_in_parachain_2000_multilocation)
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
+	});
+}
+
+#[test]
 fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056,
+			2055, 2056, 2060,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

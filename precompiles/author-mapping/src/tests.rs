@@ -299,9 +299,14 @@ fn set_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
+			// Create input with keys inside a Solidity bytes.
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([2u8; 32]))
-				.write(sp_core::H256::from([4u8; 32]))
+				.write(Bytes(
+					EvmDataWriter::new()
+						.write(sp_core::H256::from([2u8; 32]))
+						.write(sp_core::H256::from([4u8; 32]))
+						.build(),
+				))
 				.build();
 
 			// Make sure the call goes through successfully

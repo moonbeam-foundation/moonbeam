@@ -16,7 +16,7 @@ describeDevMoonbeam("Ethers.js", (context) => {
 describeDevMoonbeam("Ethers.js contract", (context) => {
   it("should be deployable", async function () {
     let signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
-    const contractData = await getCompiled("MultiplyBy7");
+    const contractData = getCompiled("MultiplyBy7");
     const contractFactory = new ethers.ContractFactory(
       contractData.contract.abi as ethers.ContractInterface,
       contractData.byteCode,
@@ -42,7 +42,7 @@ describeDevMoonbeam("Ethers.js contract", (context) => {
 describeDevMoonbeam("Ethers.js contract", (context) => {
   it("should be callable", async function () {
     let signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
-    const contractData = await getCompiled("MultiplyBy7");
+    const contractData = getCompiled("MultiplyBy7");
     const contractFactory = new ethers.ContractFactory(
       contractData.contract.abi as ethers.ContractInterface,
       contractData.byteCode,

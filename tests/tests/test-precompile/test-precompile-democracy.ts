@@ -43,8 +43,8 @@ import {
 const SELECTORS = {
   propose: "7824e7d1",
   second: "c7a76601",
-  standard_vote: "3f3c21cc",
-  note_preimage: "200881f5",
+  standardVote: "6cd18b0d",
+  notePreimage: "cb00f603",
 };
 
 const DEMOCRACY_INTERFACE = new ethers.utils.Interface(getCompiled("Democracy").contract.abi);
@@ -66,7 +66,7 @@ export const notePreimagePrecompile = async <
 
   const data = iFace.encodeFunctionData(
     // action
-    "note_preimage",
+    "notePreimage",
     [encodedProposal]
   );
 
@@ -287,7 +287,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
       SELECTORS,
       alith.address,
       ALITH_PRIVATE_KEY,
-      "standard_vote",
+      "standardVote",
       [numberToHex(0), "0x01", numberToHex(Number(VOTE_AMOUNT)), numberToHex(1)]
     );
     // referendumInfoOf
