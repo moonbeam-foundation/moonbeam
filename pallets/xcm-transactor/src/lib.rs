@@ -740,15 +740,19 @@ pub mod pallet {
 			destination: MultiLocation,
 			total_weight: Weight,
 		) -> Result<MultiAsset, DispatchError> {
-			// Multiply weight*destination_units_per_second to see how much we should charge for
+			// If amount is provided, just use it
+			// Else, multiply weight*destination_units_per_second to see how much we should charge for
 			// this weight execution
-			let amount = fee_amount.ok_or("").or_else(|_| {
-				Self::take_fee_per_second_from_storage(
-					fee_location.clone(),
-					destination,
-					total_weight,
-				)
-			})?;
+			let amount: u128 = fee_amount.map_or_else(
+				|| {
+					Self::take_fee_per_second_from_storage(
+						fee_location.clone(),
+						destination,
+						total_weight,
+					)
+				},
+				|v| Ok(v),
+			)?;
 
 			// Construct MultiAsset
 			Ok(MultiAsset {
@@ -794,7 +798,7 @@ pub mod pallet {
 			})
 		}
 
-		/// Construct a withdraw instruction for the sovereign account
+		/// Construct a withdraw instruction from a sovereign account
 		fn withdraw_instruction(
 			asset: MultiAsset,
 			at: &MultiLocation,
@@ -925,7 +929,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			dest_weight: Weight,
 		) -> Result<Weight, DispatchError> {
-			// Grab transact info for the fee location provided
+			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 
@@ -946,7 +950,7 @@ pub mod pallet {
 			dest: MultiLocation,
 			dest_weight: Weight,
 		) -> Result<Weight, DispatchError> {
-			// Grab transact info for the fee location provided
+			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
 

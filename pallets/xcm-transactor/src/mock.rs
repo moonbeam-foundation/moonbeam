@@ -272,6 +272,7 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 	}
 }
 
+// Simulates sending a XCM message
 thread_local! {
 	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
 }
