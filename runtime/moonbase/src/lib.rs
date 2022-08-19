@@ -112,7 +112,9 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod governance;
 pub mod xcm_config;
+use governance::pallet_custom_origins;
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -1242,6 +1244,9 @@ construct_runtime! {
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 40,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 41,
+		Origins: pallet_custom_origins::{Origin} = 42,
 	}
 }
 
