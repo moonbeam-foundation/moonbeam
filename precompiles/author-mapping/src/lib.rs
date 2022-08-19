@@ -164,11 +164,10 @@ where
 	}
 
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		read_args!(handle, { keys: Bytes });
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::set_keys {
-			// Taking all input minus selector (4 bytes)
-			keys: handle.input()[4..].to_vec(),
-		};
+		let call = AuthorMappingCall::<Runtime>::set_keys { keys: keys.into() };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 

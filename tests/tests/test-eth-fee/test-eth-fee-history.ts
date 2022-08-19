@@ -38,7 +38,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     priority_fees: number[],
     max_fee_per_gas: string
   ) {
-    const contractData = await getCompiled("MultiplyBy7");
+    const contractData = getCompiled("MultiplyBy7");
     let nonce = await context.web3.eth.getTransactionCount(alith.address);
     for (var b = 0; b < block_count; b++) {
       for (var p = 0; p < priority_fees.length; p++) {

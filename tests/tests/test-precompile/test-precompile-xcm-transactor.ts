@@ -62,7 +62,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("index_to_account", [0]),
+          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("indexToAccount", [0]),
         })
       ).result
     ).to.equal("0x000000000000000000000000f24ff3a9cf04c71dbc94d0b566f7a27b94566cac");
@@ -76,7 +76,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       (
         await web3EthCall(context.web3, {
           to: PRECOMPILE_XCM_TRANSACTOR_ADDRESS,
-          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("transact_info", [asset]),
+          data: XCM_TRANSACTOR_INTERFACE.encodeFunctionData("transactInfo", [asset]),
         })
       ).result
     ).to.equal(
@@ -138,7 +138,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_derivative_multilocation",
+      "transactThroughDerivativeMultilocation",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
@@ -222,7 +222,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_derivative",
+      "transactThroughDerivative",
       [transactor, index, asset, weight, transact_call]
     );
     await context.createBlock(
@@ -267,7 +267,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       ];
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "fee_per_second",
+      "feePerSecond",
       [asset]
     );
     const tx_call = await web3EthCall(context.web3, {
@@ -290,7 +290,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
       ];
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_info_with_signed",
+      "transactInfoWithSigned",
       [asset]
     );
     const tx_call = await web3EthCall(context.web3, {
@@ -330,7 +330,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_signed",
+      "transactThroughSigned",
       [dest, asset, weight, transact_call]
     );
 
@@ -377,7 +377,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm transactor", (context) => {
     // Call the precompile
     const data = XCM_TRANSACTOR_INTERFACE.encodeFunctionData(
       // action
-      "transact_through_signed_multilocation",
+      "transactThroughSignedMultilocation",
       [dest, asset, weight, transact_call]
     );
 
