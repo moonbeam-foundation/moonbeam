@@ -24,9 +24,13 @@ const SELECTORS = {
   allowance: "dd62ed3e",
   transfer: "a9059cbb",
   transferFrom: "23b872dd",
+  deposit: "d0e30db0",
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
+
+// Error(string)
+const ABI_REVERT_SELECTOR = "0x08c379a0";
 
 async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
@@ -216,5 +220,23 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
     );
 
     await checkAllowance(context, alith.address, baltathar.address, allowedAmount);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
+  it("revert message is abi-encoded as a String(error) call", async function () {
+    const request = await web3EthCall(context.web3, {
+      to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+      data: `0x${SELECTORS.deposit}`,
+    });
+    expect(request as any).to.haveOwnProperty("error");
+    // Data
+    let data = (request as any).error.data;
+    expect(data.length).to.be.eq(266);
+    expect(data.slice(0, 10)).to.be.eq(ABI_REVERT_SELECTOR);
+    // Message
+    expect((request as any).error.message).to.be.eq(
+      "VM Exception while processing transaction: revert deposited amount must be non-zero"
+    );
   });
 });

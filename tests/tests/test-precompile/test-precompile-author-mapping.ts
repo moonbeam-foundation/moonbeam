@@ -28,7 +28,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("add_association", [
+        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("addAssociation", [
           mappingAccount.publicKey,
         ]),
       })
@@ -70,7 +70,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
 
     const tx = await createTransaction(context, {
       to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("update_association", [
+      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("updateAssociation", [
         firstMappingAccount.publicKey,
         secondMappingAccount.publicKey,
       ]),
@@ -121,7 +121,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - author mapping", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("clear_association", [
+        data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("clearAssociation", [
           mappingAccount.publicKey,
         ]),
       })

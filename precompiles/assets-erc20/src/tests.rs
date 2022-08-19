@@ -21,7 +21,7 @@ use crate::{eip2612::Eip2612, mock::*, *};
 
 use hex_literal::hex;
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::testing::*;
+use precompile_utils::{solidity, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::H256;
 
@@ -46,7 +46,7 @@ fn selector_less_than_four_bytes() {
 				Account::ForeignAssetId(0u128),
 				vec![1u8, 2u8, 3u8],
 			)
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -67,7 +67,7 @@ fn no_selector_exists_but_length_is_right() {
 				Account::ForeignAssetId(0u128),
 				vec![1u8, 2u8, 3u8, 4u8],
 			)
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -220,7 +220,7 @@ fn approve() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.expect_cost(31253756u64)
+				.expect_cost(36390756u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -261,7 +261,7 @@ fn approve_saturating() {
 						.write(U256::MAX)
 						.build(),
 				)
-				.expect_cost(31253756u64)
+				.expect_cost(36390756u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -390,7 +390,7 @@ fn transfer() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
+				.expect_cost(47402756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -516,7 +516,7 @@ fn transfer_from() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(55282756u64) // 1 weight => 1 gas in mock
+				.expect_cost(61855756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -594,7 +594,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(500))
 						.build(),
 				)
-				.expect_cost(31253756u64)
+				.expect_cost(36390756u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -617,7 +617,7 @@ fn transfer_from_non_incremental_approval() {
 						.write(U256::from(300))
 						.build(),
 				)
-				.expect_cost(62037756u64)
+				.expect_cost(73149756u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -729,7 +729,7 @@ fn transfer_from_self() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
+				.expect_cost(47402756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -854,7 +854,7 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"unknown selector");
+				.execute_reverts(|output| output == b"Unknown selector");
 
 			precompiles()
 				.prepare_test(
@@ -865,7 +865,7 @@ fn local_functions_cannot_be_accessed_by_foreign_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"unknown selector");
+				.execute_reverts(|output| output == b"Unknown selector");
 		});
 }
 
@@ -900,7 +900,7 @@ fn mint_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(25994756u64) // 1 weight => 1 gas in mock
+				.expect_cost(30820756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -961,7 +961,7 @@ fn burn_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(30796756u64) // 1 weight => 1 gas in mock
+				.expect_cost(35213756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1021,7 +1021,7 @@ fn freeze_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18381000u64) // 1 weight => 1 gas in mock
+				.expect_cost(21670000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1079,7 +1079,7 @@ fn thaw_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18381000u64) // 1 weight => 1 gas in mock
+				.expect_cost(21670000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1091,7 +1091,7 @@ fn thaw_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(18215000u64) // 1 weight => 1 gas in mock
+				.expect_cost(21503000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1104,7 +1104,7 @@ fn thaw_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
+				.expect_cost(47402756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1150,7 +1150,7 @@ fn freeze_asset_local_asset() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
 				)
-				.expect_cost(14885000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18158000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1206,7 +1206,7 @@ fn thaw_asset_local_assets() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::FreezeAsset).build(),
 				)
-				.expect_cost(14885000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18158000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1216,7 +1216,7 @@ fn thaw_asset_local_assets() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::ThawAsset).build(),
 				)
-				.expect_cost(14834000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18525000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1229,7 +1229,7 @@ fn thaw_asset_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(44055756u64) // 1 weight => 1 gas in mock
+				.expect_cost(47402756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1271,7 +1271,7 @@ fn transfer_ownership_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(16033000u64) // 1 weight => 1 gas in mock
+				.expect_cost(19858000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1299,7 +1299,7 @@ fn transfer_ownership_local_assets() {
 						.write(Address(Account::Alice.into()))
 						.build(),
 				)
-				.expect_cost(16033000u64) // 1 weight => 1 gas in mock
+				.expect_cost(19858000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 		});
@@ -1337,7 +1337,7 @@ fn set_team_local_assets() {
 						.write(Address(Account::Bob.into()))
 						.build(),
 				)
-				.expect_cost(14344000u64) // 1 weight => 1 gas in mock
+				.expect_cost(18045000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1367,7 +1367,7 @@ fn set_team_local_assets() {
 						.write(U256::from(400))
 						.build(),
 				)
-				.expect_cost(25994756u64) // 1 weight => 1 gas in mock
+				.expect_cost(30820756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
 					Account::LocalAssetId(0u128),
 					SELECTOR_LOG_TRANSFER,
@@ -1423,7 +1423,7 @@ fn set_metadata() {
 						.write::<u8>(12)
 						.build(),
 				)
-				.expect_cost(27805000u64) // 1 weight => 1 gas in mock
+				.expect_cost(32448000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1495,7 +1495,7 @@ fn clear_metadata() {
 						.write::<u8>(12)
 						.build(),
 				)
-				.expect_cost(27805000u64) // 1 weight => 1 gas in mock
+				.expect_cost(32448000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1505,7 +1505,7 @@ fn clear_metadata() {
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::ClearMetadata).build(),
 				)
-				.expect_cost(28466000u64) // 1 weight => 1 gas in mock
+				.expect_cost(32893000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().write(true).build());
 
@@ -1606,7 +1606,7 @@ fn permit_valid() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.expect_cost(31252000u64)
+				.expect_cost(36389000u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -1715,7 +1715,7 @@ fn permit_valid_named_asset() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.expect_cost(31252000u64)
+				.expect_cost(36389000u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(0u128),
 					SELECTOR_LOG_APPROVAL,
@@ -1817,7 +1817,7 @@ fn permit_invalid_nonce() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1897,7 +1897,7 @@ fn permit_invalid_signature() {
 						.write(H256::random())
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1993,7 +1993,7 @@ fn permit_invalid_deadline() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"permit expired");
+				.execute_reverts(|output| output == b"Permit expired");
 
 			precompiles()
 				.prepare_test(
@@ -2193,7 +2193,7 @@ fn permit_valid_with_metamask_signed_data() {
 						.write(H256::from(s_real))
 						.build(),
 				)
-				.expect_cost(31252000u64)
+				.expect_cost(36389000u64)
 				.expect_log(log3(
 					Account::ForeignAssetId(1u128),
 					SELECTOR_LOG_APPROVAL,
@@ -2236,7 +2236,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 
 			precompiles()
 				.prepare_test(
@@ -2318,7 +2318,7 @@ fn transfer_from_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 		});
 }
 
@@ -2355,7 +2355,7 @@ fn mint_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 		});
 }
 
@@ -2398,6 +2398,31 @@ fn burn_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value too big for u128");
+				.execute_reverts(|e| e == b"value: Value is too large for uint128");
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["ERC20.sol", "LocalAsset.sol", "Permit.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

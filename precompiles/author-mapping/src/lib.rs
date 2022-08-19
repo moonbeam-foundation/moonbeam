@@ -36,11 +36,18 @@ mod tests;
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	AddAssociation = "add_association(bytes32)",
-	UpdateAssociation = "update_association(bytes32,bytes32)",
-	ClearAssociation = "clear_association(bytes32)",
-	RemoveKeys = "remove_keys()",
-	SetKeys = "set_keys(bytes)",
+	AddAssociation = "addAssociation(bytes32)",
+	UpdateAssociation = "updateAssociation(bytes32,bytes32)",
+	ClearAssociation = "clearAssociation(bytes32)",
+	RemoveKeys = "removeKeys()",
+	SetKeys = "setKeys(bytes)",
+
+	// deprecated
+	DeprecatedAddAssociation = "add_association(bytes32)",
+	DeprecatedUpdateAssociation = "update_association(bytes32,bytes32)",
+	DeprecatedClearAssociation = "clear_association(bytes32)",
+	DeprecatedRemoveKeys = "remove_keys()",
+	DeprecatedSetKeys = "set_keys(bytes)",
 }
 
 /// A precompile to wrap the functionality from pallet author mapping.
@@ -63,11 +70,17 @@ where
 
 		match selector {
 			// Dispatchables
-			Action::AddAssociation => Self::add_association(handle),
-			Action::UpdateAssociation => Self::update_association(handle),
-			Action::ClearAssociation => Self::clear_association(handle),
-			Action::RemoveKeys => Self::remove_keys(handle),
-			Action::SetKeys => Self::set_keys(handle),
+			Action::AddAssociation | Action::DeprecatedAddAssociation => {
+				Self::add_association(handle)
+			}
+			Action::UpdateAssociation | Action::DeprecatedUpdateAssociation => {
+				Self::update_association(handle)
+			}
+			Action::ClearAssociation | Action::DeprecatedClearAssociation => {
+				Self::clear_association(handle)
+			}
+			Action::RemoveKeys | Action::DeprecatedRemoveKeys => Self::remove_keys(handle),
+			Action::SetKeys | Action::DeprecatedSetKeys => Self::set_keys(handle),
 		}
 	}
 }
@@ -82,12 +95,8 @@ where
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	fn add_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-
-		// Bound check
-		input.expect_arguments(1)?;
-
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, { nimbus_id: H256 });
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -103,12 +112,9 @@ where
 	}
 
 	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-
-		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, {old_nimbus_id: H256, new_nimbus_id: H256});
+		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(old_nimbus_id).into();
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(new_nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -127,10 +133,8 @@ where
 	}
 
 	fn clear_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+		read_args!(handle, { nimbus_id: H256 });
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -160,11 +164,10 @@ where
 	}
 
 	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		read_args!(handle, { keys: Bytes });
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::set_keys {
-			// Taking all input minus selector (4 bytes)
-			keys: handle.input()[4..].to_vec(),
-		};
+		let call = AuthorMappingCall::<Runtime>::set_keys { keys: keys.into() };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 

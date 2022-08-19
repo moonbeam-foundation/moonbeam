@@ -1,11 +1,13 @@
 import { u8aToHex, BN } from "@polkadot/util";
 import { xxhashAsU8a } from "@polkadot/util-crypto";
+import { customWeb3Request } from "./providers";
 
 import { DevTestContext } from "./setup-dev-tests";
 import {
   CumulusPalletParachainSystemRelayStateSnapshotMessagingStateSnapshot,
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
 
 import { AssetMetadata } from "./assets";
 
@@ -111,4 +113,77 @@ export async function registerForeignAsset(
     events,
     registeredAsset,
   };
+}
+
+export function descendOriginFromAddress(context: DevTestContext, address?: string) {
+  const originAddress = address != null ? address : "0x0101010101010101010101010101010101010101";
+  const derivedMultiLocation = context.polkadotApi.createType(
+    "MultiLocation",
+    JSON.parse(
+      `{\
+              "parents": 1,\
+              "interior": {\
+                "X2": [\
+                  { "Parachain": 1 },\
+                  { "AccountKey20": \
+                    {\
+                      "network": "Any",\
+                      "key": "${originAddress}"\
+                    } \
+                  }\
+                ]\
+              }\
+            }`
+    )
+  );
+
+  const toHash = new Uint8Array([
+    ...new Uint8Array([32]),
+    ...new TextEncoder().encode("multiloc"),
+    ...derivedMultiLocation.toU8a(),
+  ]);
+
+  return {
+    originAddress,
+    descendOriginAddress: u8aToHex(context.polkadotApi.registry.hash(toHash).slice(0, 20)),
+  };
+}
+export interface RawXcmMessage {
+  type: string;
+  payload: any;
+  format?: string;
+}
+
+export function buildXcmpMessage(context: DevTestContext, message: RawXcmMessage): number[] {
+  const format = message.format != null ? message.format : "ConcatenatedVersionedXcm";
+  const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+    "XcmpMessageFormat",
+    format
+  ) as any;
+  const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+    message.type,
+    message.payload
+  ) as any;
+
+  return [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+}
+
+export async function injectHrmpMessage(
+  context: DevTestContext,
+  paraId: number,
+  message?: RawXcmMessage
+) {
+  let totalMessage = message != null ? buildXcmpMessage(context, message) : [];
+  // Send RPC call to inject XCM message
+  await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
+}
+
+export async function injectHrmpMessageAndSeal(
+  context: DevTestContext,
+  paraId: number,
+  message?: RawXcmMessage
+) {
+  await injectHrmpMessage(context, paraId, message);
+  // Create a block in which the XCM will be executed
+  await context.createBlock();
 }

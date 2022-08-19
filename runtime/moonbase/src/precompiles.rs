@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
+use crate::xcm_config::XcmExecutorConfig;
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::westend::WestendEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
@@ -28,11 +29,13 @@ use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
+use pallet_evm_precompile_proxy::ProxyWrapper;
 use pallet_evm_precompile_randomness::RandomnessWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -117,6 +120,8 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
 				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
+				PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>,
+				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)

@@ -13,7 +13,7 @@ describeDevMoonbeam("Precompile ERC20 - Transfering through precompile", (contex
   const randomAccount = generateKeyringPair();
   // TODO: Remove once v0.9.23 with frontier
   it.skip("should not allow overflowing the value", async function () {
-    const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+    const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
     // each tx have a different gas limit to ensure it doesn't impact gas used
 

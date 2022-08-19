@@ -22,9 +22,10 @@ use evm::{ExitError, ExitReason};
 use fp_evm::{
 	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
 };
+use frame_support::traits::ConstU32;
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
-use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec};
 
 #[cfg(test)]
 mod mock;
@@ -41,6 +42,11 @@ pub enum Action {
 
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
 pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("SubcallFailed(uint256)");
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
+pub const ARRAY_LIMIT: u32 = 2u32.pow(9);
+
+type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
+type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
 pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
 	log1(
@@ -82,35 +88,48 @@ where
 	Runtime: pallet_evm::Config,
 {
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		let addresses: Vec<Address> = input.read()?;
-		let values: Vec<U256> = input.read()?;
-		let calls_data: Vec<Bytes> = input.read()?;
-		let gas_limits: Vec<u64> = input.read()?;
+		let (addresses, values, calls_data, gas_limits);
 
-		let addresses = addresses.into_iter().enumerate();
-		let values = values.into_iter().map(|x| Some(x)).chain(repeat(None));
-		let calls_data = calls_data.into_iter().map(|x| Some(x)).chain(repeat(None));
-		let gas_limits = gas_limits.into_iter().map(|x|
-			// x = 0 => forward all remaining gas
-			if x == 0 {
-				None
-			} else {
-				Some(x)
-			}
-		).chain(repeat(None));
+		{
+			read_args!(handle, {
+				to: BoundedVec<Address, GetArrayLimit>,
+				value: BoundedVec<U256, GetArrayLimit>,
+				call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+				gas_limit: BoundedVec<u64, GetArrayLimit>
+			});
+
+			addresses = to.into_vec().into_iter().enumerate();
+			values = value
+				.into_vec()
+				.into_iter()
+				.map(|x| Some(x))
+				.chain(repeat(None));
+			calls_data = call_data
+				.into_vec()
+				.into_iter()
+				.map(|x| Some(x.into_vec()))
+				.chain(repeat(None));
+			gas_limits = gas_limit.into_vec().into_iter().map(|x|
+				// x = 0 => forward all remaining gas
+				if x == 0 {
+					None
+				} else {
+					Some(x)
+				}
+			).chain(repeat(None));
+		}
 
 		// Cost of batch log. (doesn't change when index changes)
 		let log_cost = log_subcall_failed(handle.code_address(), 0)
 			.compute_cost()
-			.map_err(|_| revert("failed to compute log cost"))?;
+			.map_err(|_| revert("Failed to compute log cost"))?;
 
 		for ((i, address), (value, (call_data, gas_limit))) in
 			addresses.zip(values.zip(calls_data.zip(gas_limits)))
 		{
 			let address = address.0;
 			let value = value.unwrap_or(U256::zero());
-			let call_data = call_data.unwrap_or(Bytes(vec![])).0;
+			let call_data = call_data.unwrap_or(vec![]);
 
 			let sub_context = Context {
 				caller: handle.context().caller,

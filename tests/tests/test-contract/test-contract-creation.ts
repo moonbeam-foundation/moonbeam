@@ -19,7 +19,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
 
 describeDevMoonbeamAllEthTxTypes("eth_call contract create", (context) => {
   it("should return the contract code", async () => {
-    const contractData = await getCompiled("MultiplyBy7");
+    const contractData = getCompiled("MultiplyBy7");
     let callCode = await context.web3.eth.call({ data: contractData.byteCode });
     const { rawTx } = await createContract(context, "MultiplyBy7");
     const { result } = await context.createBlock(rawTx);

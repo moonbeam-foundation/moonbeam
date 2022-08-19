@@ -1,18 +1,17 @@
 import "@moonbeam-network/api-augment";
 
 import { KeyringPair } from "@polkadot/keyring/types";
-import { ParaId, XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { ParaId } from "@polkadot/types/interfaces";
 import { BN, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
-import { registerForeignAsset } from "../../util/xcm";
+import { registerForeignAsset, injectHrmpMessageAndSeal, RawXcmMessage } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
-import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
@@ -65,7 +64,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -100,7 +99,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -154,25 +153,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
 
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
-      totalMessage,
-    ]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, statemint_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alith_dot_balance = (await context.polkadotApi.query.assets.account(
@@ -197,7 +183,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -264,26 +250,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
 
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    const r = await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
-      totalMessage,
-    ]);
-    console.log(r);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, statemint_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's foreign parachain tokens
     expect(
@@ -377,23 +349,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
 
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, foreign_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // The message should not have been succesfully executed, since old prefix is not supported
     // anymore
@@ -498,23 +459,12 @@ describeDevMoonbeam(
           },
         ],
       };
-      const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-        "XcmpMessageFormat",
-        "ConcatenatedVersionedXcm"
-      ) as any;
-      const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-        "XcmVersionedXcm",
-        xcmMessage
-      ) as any;
 
-      const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-
-      // Send RPC call to inject XCM message
-      // We will set a specific message knowing that it should mint the statemint asset
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
-
-      // Create a block in which the XCM will be executed
-      await context.createBlock();
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, foreign_para_id, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
 
       // We should expect sovereign balance to be 0, since we have transferred the full amount
       let balance = (
@@ -668,23 +618,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       ],
     };
 
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, totalMessage]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, foreign_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's LOCAL parachain tokens
     let alithLocalTokBalance = (
@@ -717,7 +655,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       assetIdOne = registeredAssetIdOne;
 
       expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-      expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+      expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
       expect(registeredAssetZero.owner.toHex()).to.eq(palletId.toLowerCase());
       expect(registeredAssetOne.owner.toHex()).to.eq(palletId.toLowerCase());
     }
@@ -796,25 +734,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       ],
     };
 
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
-      totalMessage,
-    ]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, statemint_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alithAssetZeroBalance = (
@@ -968,22 +892,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
       ],
     };
 
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
-
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, totalMessage]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, foreign_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Old reanchor does not work anymore so no reception of tokens
     let baltatharLocalTokBalance = (await context.polkadotApi.query.localAssets.account(
@@ -1054,25 +967,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
         },
       ],
     };
-    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
-      "XcmpMessageFormat",
-      "ConcatenatedVersionedXcm"
-    ) as any;
-    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
-      "XcmVersionedXcm",
-      xcmMessage
-    ) as any;
 
-    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
-    // Send RPC call to inject XCM message
-    // We will set a specific message knowing that it should mint the statemint asset
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
-      totalMessage,
-    ]);
-
-    // Create a block in which the XCM will be executed
-    await context.createBlock();
+    // Send an XCM and create block to execute it
+    await injectHrmpMessageAndSeal(context, statemint_para_id, {
+      type: "XcmVersionedXcm",
+      payload: xcmMessage,
+    } as RawXcmMessage);
 
     // Make sure the state has ALITH's foreign parachain tokens
     let alithAssetZeroBalance = (await context.polkadotApi.query.assets.account(

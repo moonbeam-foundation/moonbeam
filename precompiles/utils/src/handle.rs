@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
-	crate::{data::EvmDataReader, modifier::FunctionModifier, EvmResult},
+	crate::{data::EvmDataReader, modifier::FunctionModifier, revert::MayRevert, EvmResult},
 	fp_evm::{Log, PrecompileHandle},
 };
 
@@ -32,17 +32,17 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 	#[must_use]
 	/// Check that a function call is compatible with the context it is
 	/// called into.
-	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult;
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> MayRevert;
 
 	#[must_use]
 	/// Read the selector from the input data.
-	fn read_selector<T>(&self) -> EvmResult<T>
+	fn read_selector<T>(&self) -> MayRevert<T>
 	where
 		T: num_enum::TryFromPrimitive<Primitive = u32>;
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> EvmResult<EvmDataReader>;
+	fn read_after_selector(&self) -> MayRevert<EvmDataReader>;
 }
 
 impl<T: PrecompileHandle> PrecompileHandleExt for T {
@@ -68,13 +68,13 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 	#[must_use]
 	/// Check that a function call is compatible with the context it is
 	/// called into.
-	fn check_function_modifier(&self, modifier: FunctionModifier) -> EvmResult {
+	fn check_function_modifier(&self, modifier: FunctionModifier) -> MayRevert {
 		crate::modifier::check_function_modifier(self.context(), self.is_static(), modifier)
 	}
 
 	#[must_use]
 	/// Read the selector from the input data.
-	fn read_selector<S>(&self) -> EvmResult<S>
+	fn read_selector<S>(&self) -> MayRevert<S>
 	where
 		S: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
@@ -83,7 +83,7 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 
 	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
-	fn read_input(&self) -> EvmResult<EvmDataReader> {
+	fn read_after_selector(&self) -> MayRevert<EvmDataReader> {
 		EvmDataReader::new_skip_selector(self.input())
 	}
 }

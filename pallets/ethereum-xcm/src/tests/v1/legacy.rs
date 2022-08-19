@@ -43,25 +43,21 @@ const CONTRACT: &str = "608060405234801561001057600080fd5b5061011380610020600039
 						7358221220fde68a3968e0e99b16fabf9b2997a78218b32214031f8e07e2c502daf603a69e\
 						64736f6c63430006060033";
 
-fn xcm_evm_transfer_eip_2930_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_evm_transfer_legacy_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-			gas_price: Some(U256::from(1)),
-			max_fee_per_gas: None,
-		}),
+		fee_payment: EthereumXcmFee::Auto,
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
 		input: vec![],
-		access_list,
+		access_list: None,
 	})
 }
 
-fn xcm_evm_call_eip_2930_transaction(destination: H160, input: Vec<u8>) -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_evm_call_eip_legacy_transaction(
+	destination: H160,
+	input: Vec<u8>,
+) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
 		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 			gas_price: Some(U256::from(1)),
@@ -71,13 +67,11 @@ fn xcm_evm_call_eip_2930_transaction(destination: H160, input: Vec<u8>) -> Ether
 		action: ethereum::TransactionAction::Call(destination),
 		value: U256::zero(),
 		input,
-		access_list,
+		access_list: None,
 	})
 }
 
-fn xcm_erc20_creation_eip_2930_transaction() -> EthereumXcmTransaction {
-	let access_list = Some(vec![(H160::default(), vec![H256::default()])]);
-
+fn xcm_erc20_creation_legacy_transaction() -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
 		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
 			gas_price: Some(U256::from(1)),
@@ -86,8 +80,8 @@ fn xcm_erc20_creation_eip_2930_transaction() -> EthereumXcmTransaction {
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
 		value: U256::zero(),
-		input: hex::decode(ERC20_CONTRACT_BYTECODE.trim_end()).unwrap(),
-		access_list,
+		input: hex::decode(CONTRACT).unwrap(),
+		access_list: None,
 	})
 }
 
@@ -101,7 +95,7 @@ fn test_transact_xcm_evm_transfer() {
 		let balances_before = System::account(&bob.account_id);
 		EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(alice.address).into(),
-			xcm_evm_transfer_eip_2930_transaction(bob.address, U256::from(100)),
+			xcm_evm_transfer_legacy_transaction(bob.address, U256::from(100)),
 		)
 		.expect("Failed to execute transaction");
 
@@ -121,7 +115,7 @@ fn test_transact_xcm_create() {
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
-				xcm_erc20_creation_eip_2930_transaction()
+				xcm_erc20_creation_legacy_transaction()
 			),
 			DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
@@ -141,7 +135,7 @@ fn test_transact_xcm_evm_call_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		let t = EIP2930UnsignedTransaction {
+		let t = LegacyUnsignedTransaction {
 			nonce: U256::zero(),
 			gas_price: U256::from(1),
 			gas_limit: U256::from(0x100000),
@@ -149,7 +143,7 @@ fn test_transact_xcm_evm_call_works() {
 			value: U256::zero(),
 			input: hex::decode(CONTRACT).unwrap(),
 		}
-		.sign(&alice.private_key, None);
+		.sign(&alice.private_key);
 		assert_ok!(Ethereum::execute(alice.address, &t, None,));
 
 		let contract_address = hex::decode("32dcab0ef3fb2de2fce1d2e0799d36239671f04a").unwrap();
@@ -158,14 +152,14 @@ fn test_transact_xcm_evm_call_works() {
 
 		let _ = EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(bob.address).into(),
-			xcm_evm_call_eip_2930_transaction(H160::from_slice(&contract_address), foo),
+			xcm_evm_call_eip_legacy_transaction(H160::from_slice(&contract_address), foo),
 		)
 		.expect("Failed to call `foo`");
 
 		// Evm call failing still succesfully dispatched
 		let _ = EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(bob.address).into(),
-			xcm_evm_call_eip_2930_transaction(H160::from_slice(&contract_address), bar),
+			xcm_evm_call_eip_legacy_transaction(H160::from_slice(&contract_address), bar),
 		)
 		.expect("Failed to call `bar`");
 
@@ -175,7 +169,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 0 and status 1 (evm succeed).
 		let (transaction_0, _, receipt_0) = &pending[0];
 		match (transaction_0, receipt_0) {
-			(&crate::Transaction::EIP2930(ref t), &crate::Receipt::EIP2930(ref r)) => {
+			(&crate::Transaction::Legacy(ref t), &crate::Receipt::Legacy(ref r)) => {
 				assert!(t.nonce == U256::from(0u8));
 				assert!(r.status_code == 1u8);
 			}
@@ -185,7 +179,7 @@ fn test_transact_xcm_evm_call_works() {
 		// Transaction is in Pending storage, with nonce 1 and status 0 (evm failed).
 		let (transaction_1, _, receipt_1) = &pending[1];
 		match (transaction_1, receipt_1) {
-			(&crate::Transaction::EIP2930(ref t), &crate::Receipt::EIP2930(ref r)) => {
+			(&crate::Transaction::Legacy(ref t), &crate::Receipt::Legacy(ref r)) => {
 				assert!(t.nonce == U256::from(1u8));
 				assert!(r.status_code == 0u8);
 			}
@@ -201,21 +195,7 @@ fn test_transact_xcm_validation_works() {
 	let bob = &pairs[1];
 
 	ext.execute_with(|| {
-		// Not enough balance fails to validate.
-		assert_noop!(
-			EthereumXcm::transact(
-				RawOrigin::XcmEthereumTransaction(alice.address).into(),
-				xcm_evm_transfer_eip_2930_transaction(bob.address, U256::MAX),
-			),
-			DispatchErrorWithPostInfo {
-				post_info: PostDispatchInfo {
-					actual_weight: Some(0),
-					pays_fee: Pays::Yes,
-				},
-				error: DispatchError::Other("Failed to validate ethereum transaction"),
-			}
-		);
-		// Not enough base fee fails to validate.
+		// Not enough gas limit to cover the transaction cost.
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
@@ -224,11 +204,11 @@ fn test_transact_xcm_validation_works() {
 						gas_price: Some(U256::from(0)),
 						max_fee_per_gas: None,
 					}),
-					gas_limit: U256::from(0x100000),
+					gas_limit: U256::from(0x5207),
 					action: ethereum::TransactionAction::Call(bob.address),
 					value: U256::from(1),
 					input: vec![],
-					access_list: Some(vec![(H160::default(), vec![H256::default()])]),
+					access_list: None,
 				}),
 			),
 			DispatchErrorWithPostInfo {
@@ -240,4 +220,97 @@ fn test_transact_xcm_validation_works() {
 			}
 		);
 	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_no_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_legacy_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let _ = Proxy::add_proxy_delegate(
+			&bob.account_id,
+			alice.account_id.clone(),
+			ProxyType::NotAllowed,
+			0,
+		);
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_legacy_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_ok() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	let allowed_proxies = vec![ProxyType::Any];
+
+	for proxy in allowed_proxies.into_iter() {
+		ext.execute_with(|| {
+			let _ = Proxy::add_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
+			let alice_before = System::account(&alice.account_id);
+			let bob_before = System::account(&bob.account_id);
+			let charlie_before = System::account(&charlie.account_id);
+
+			let r = EthereumXcm::transact_through_proxy(
+				RawOrigin::XcmEthereumTransaction(alice.address).into(),
+				bob.address,
+				xcm_evm_transfer_legacy_transaction(charlie.address, U256::from(100)),
+			);
+			// Transact succeeded
+			assert!(r.is_ok());
+
+			let alice_after = System::account(&alice.account_id);
+			let bob_after = System::account(&bob.account_id);
+			let charlie_after = System::account(&charlie.account_id);
+
+			// Alice remains unchanged
+			assert_eq!(alice_before, alice_after);
+
+			// Bob nonce was increased
+			assert_eq!(bob_after.nonce, bob_before.nonce + 1);
+
+			// Bob sent some funds without paying any fees
+			assert_eq!(bob_after.data.free, bob_before.data.free - 100);
+
+			// Charlie receive some funds
+			assert_eq!(charlie_after.data.free, charlie_before.data.free + 100);
+
+			// Clear proxy
+			let _ =
+				Proxy::remove_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
+		});
+	}
 }

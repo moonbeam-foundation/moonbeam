@@ -76,7 +76,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context)
 
   for (const contractName of contractNames) {
     it(`should be enough for contract ${contractName}`, async function () {
-      const contract = await getCompiled(contractName);
+      const contract = getCompiled(contractName);
       const constructorAbi = contract.contract.abi.find((call) => call.type == "constructor");
       // ask RPC for an gas estimate of deploying this contract
 
@@ -125,7 +125,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context)
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) => {
   it("eth_estimateGas 0x0 gasPrice is equivalent to not setting one", async function () {
-    const contract = await getCompiled("Incrementor");
+    const contract = getCompiled("Incrementor");
     let result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
@@ -142,17 +142,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) => {
   it("all batch functions should estimate the same cost", async function () {
-    const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
+    const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
     await context.createBlock(rawTx);
     const { contract: contractDummy, rawTx: rawTx2 } = await createContract(context, "MultiplyBy7");
     await context.createBlock(rawTx2);
 
-    const proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
-    const dummyInterface = new ethers.utils.Interface(
-      (await getCompiled("MultiplyBy7")).contract.abi
-    );
+    const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+    const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
-    const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+    const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
     const callParameters = [
       [contractProxy.options.address, contractProxy.options.address],

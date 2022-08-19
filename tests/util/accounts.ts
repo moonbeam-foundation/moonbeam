@@ -11,7 +11,7 @@ const keyringEd25519 = new Keyring({ type: "ed25519" });
 const keyringSr25519 = new Keyring({ type: "sr25519" });
 
 // Prefunded accounts.
-export const ALITH_ADDRESS = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";
+export const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 export const ALITH_PRIVATE_KEY =
   "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 export const ALITH_SESSION_ADDRESS =

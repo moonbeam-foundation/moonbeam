@@ -26,7 +26,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     );
     assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 

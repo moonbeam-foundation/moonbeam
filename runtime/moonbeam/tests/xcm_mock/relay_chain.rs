@@ -140,8 +140,8 @@ use xcm_executor::traits::ShouldExecute;
 /// payments into account.
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
@@ -192,7 +192,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 pub type XcmRouter = super::RelayChainXcmRouter;
 pub type Barrier = (
 	TakeWeightCredit,
-	AllowDescendOriginFromLocal<Everything>,
+	AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,

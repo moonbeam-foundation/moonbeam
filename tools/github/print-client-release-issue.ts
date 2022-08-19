@@ -23,8 +23,7 @@ async function main() {
   const newVersion = argv.to;
 
   const template = `
-  - [ ] Create a PR with ${newVersion} (see README.md last section or last ${previousVersion} PR
-    to see the required changed)
+  - [ ] Create a PR that update the launch.ts configuration (to add client conf for this version)
   - [ ] Get that PR approved and merged
   - [ ] Tag master with ${newVersion} and push to github
   - [ ] Start the github action Publish Binary Draft with ${previousVersion} => ${newVersion}
@@ -38,7 +37,7 @@ async function main() {
   with ${newVersion}
   - [ ] Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
   Publish Docker with ${newVersion} and master
-  `;
+  - [ ] Bump client version to the next one on master  `;
 
   console.log(template);
 }
