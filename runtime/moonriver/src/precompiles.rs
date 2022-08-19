@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
-use crate::xcm_config::XcmExecutorConfig;
+use crate::{
+	asset_config::{ForeignAssetInstance, LocalAssetInstance},
+	xcm_config::XcmExecutorConfig,
+	CouncilInstance, TechCommitteeInstance,
+};
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
@@ -35,6 +38,7 @@ use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
 use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
+use pallet_evm_precompile_collective::CollectivePrecompile;
 use precompile_utils::precompile_set::*;
 
 pub struct NativeErc20Metadata;
@@ -116,6 +120,9 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
+				PrecompileAt<AddressU64<2061>, CollectivePrecompile<R, CouncilInstance>>,
+				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, TechCommitteeInstance>>,
+				// PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)

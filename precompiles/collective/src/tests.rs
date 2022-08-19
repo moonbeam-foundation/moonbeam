@@ -17,39 +17,58 @@
 use crate::{
 	assert_event_emitted, hash,
 	mock::{
-		events, roll_to,
 		Account::{self, Alice, Bob, Charlie, Precompile},
-		Balances, Call, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
+		ExtBuilder, Precompiles, PrecompilesValue, Runtime,
 	},
 	Action,
 };
 use frame_support::{
-	assert_ok,
-	dispatch::{Dispatchable, Encode},
-	traits::Currency,
+	dispatch::{Encode},
 };
-use pallet_balances::Event as BalancesEvent;
-use pallet_evm::{Call as EvmCall, Event as EvmEvent};
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::{H160, H256, U256};
+use sp_core::{H256};
 use sp_runtime::DispatchError;
-use std::{convert::TryInto, str::from_utf8};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
-fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
-	EvmCall::call {
-		source: Alice.into(),
-		target: Precompile.into(),
-		input,
-		value: U256::zero(), // No value sent in EVM
-		gas_limit: u64::max_value(),
-		max_fee_per_gas: 0.into(),
-		max_priority_fee_per_gas: Some(U256::zero()),
-		nonce: None, // Use the next nonce
-		access_list: Vec::new(),
+// fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
+// 	EvmCall::call {
+// 		source: Alice.into(),
+// 		target: Precompile.into(),
+// 		input,
+// 		value: U256::zero(), // No value sent in EVM
+// 		gas_limit: u64::max_value(),
+// 		max_fee_per_gas: 0.into(),
+// 		max_priority_fee_per_gas: Some(U256::zero()),
+// 		nonce: None, // Use the next nonce
+// 		access_list: Vec::new(),
+// 	}
+// }
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["Collective.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
 	}
 }
 
