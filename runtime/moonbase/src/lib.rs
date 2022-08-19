@@ -114,7 +114,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::pallet_custom_origins;
+use governance::{pallet_custom_origins, TreasurySpender};
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -607,9 +607,10 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	type SpendOrigin = TreasurySpender;
 }
 
+// TODO: name same origin to same type
 type IdentityForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,

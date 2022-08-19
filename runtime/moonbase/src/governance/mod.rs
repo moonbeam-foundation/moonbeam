@@ -16,13 +16,16 @@
 
 //! New governance configurations for the Moonbase runtime.
 
+use super::*;
+use crate::currency::*;
+use frame_support::traits::EitherOf;
+use frame_system::EnsureRootWithSuccess;
+
 mod origins;
 pub use origins::{
 	pallet_custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender,
 }; // WhitelistedCaller,
 mod tracks;
-use super::*;
-use crate::currency::*;
 pub use tracks::TracksInfo;
 
 parameter_types! {
@@ -45,9 +48,15 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
 }
 
+parameter_types! {
+	pub const MaxBalance: Balance = Balance::max_value();
+}
+pub type TreasurySpender = EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, Spender>;
+
 impl origins::pallet_custom_origins::Config for Runtime {}
 
 // purpose of this pallet is to authorize calls dispatched as root for later?
+// needs Preimage pallet configured for it
 // impl pallet_whitelist::Config for Runtime {
 // 	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Self>; //TODO
 // 	type Event = Event;
