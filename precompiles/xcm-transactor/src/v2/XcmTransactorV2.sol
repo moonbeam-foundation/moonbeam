@@ -21,28 +21,28 @@ interface XcmTransactorV2 {
     /// Get transact info of a multilocation
     /// @custom:selector b689e20c
     /// @param multilocation The location for which we want to know the transact info
-    /// @return transact_extra_weight The extra weight involved in the XCM message of using derivative
-    /// @return transact_extra_weight_signed The extra weight involved in the XCM message of using signed
-    /// @return max_weight Maximum allowed weight for a single message in dest
+    /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
+    /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
+    /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
     function transactInfoWithSigned(Multilocation memory multilocation)
         external
         view
         returns (
-            uint64 transact_extra_weight,
-            uint64 transact_extra_weight_signed,
-            uint64 max_weight
+            uint64 transactExtraWeight,
+            uint64 transactExtraWeightSigned,
+            uint64 maxWeight
         );
 
     /// Get fee per second charged in its reserve chain for an asset
     /// @custom:selector 906c9990
     /// @param multilocation The asset location for which we want to know the fee per second value
-    /// @return fee_per_second The fee per second that the reserve chain charges for this asset
+    /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     ///
     function feePerSecond(Multilocation memory multilocation)
         external
         view
-        returns (uint256 fee_per_second);
+        returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
     /// @custom:selector fe430475
@@ -77,7 +77,6 @@ interface XcmTransactorV2 {
     /// @param innerCall The inner call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
-    ///
     function transactThroughDerivative(
         uint8 transactor,
         uint16 index,
@@ -100,7 +99,6 @@ interface XcmTransactorV2 {
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
-    ///
     function transactThroughSignedMultilocation(
         Multilocation memory dest,
         Multilocation memory feeLocation,
@@ -122,7 +120,6 @@ interface XcmTransactorV2 {
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
-    ///
     function transactThroughSigned(
         Multilocation memory dest,
         address feeLocationAddress,

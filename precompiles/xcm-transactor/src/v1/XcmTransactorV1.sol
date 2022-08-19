@@ -18,48 +18,48 @@ interface XcmTransactorV1 {
     ///
     function indexToAccount(uint16 index) external view returns(address owner);
 
-    /// DEPRECATED, replaced by transact_info_with_signed
+    /// DEPRECATED, replaced by transactInfoWithSigned
     /// Get transact info of a multilocation
     /// @custom:selector d07d87c3
     /// @param multilocation The location for which we want to know the transact info
-    /// @return transact_extra_weight The extra weight involved in the XCM message of using derivative
-    /// @return fee_per_second The amount of fee charged for a second of execution in the dest
-    /// @return max_weight Maximum allowed weight for a single message in dest
+    /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
+    /// @return feePerSecond The amount of fee charged for a second of execution in the dest
+    /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
     function transactInfo(Multilocation memory multilocation)
         external
         view
         returns (
-            uint64 transact_extra_weight,
-            uint256 fee_per_second,
-            uint64 max_weight
+            uint64 transactExtraWeight,
+            uint256 feePerSecond,
+            uint64 maxWeight
         );
 
     /// Get transact info of a multilocation
     /// @custom:selector b689e20c
     /// @param multilocation The location for which we want to know the transact info
-    /// @return transact_extra_weight The extra weight involved in the XCM message of using derivative
-    /// @return transact_extra_weight_signed The extra weight involved in the XCM message of using signed
-    /// @return max_weight Maximum allowed weight for a single message in dest
+    /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
+    /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
+    /// @return maxWeight Maximum allowed weight for a single message in dest
     ///
     function transactInfoWithSigned(Multilocation memory multilocation)
         external
         view
         returns (
-            uint64 transact_extra_weight,
-            uint64 transact_extra_weight_signed,
-            uint64 max_weight
+            uint64 transactExtraWeight,
+            uint64 transactExtraWeightSigned,
+            uint64 maxWeight
         );
 
     /// Get fee per second charged in its reserve chain for an asset
     /// @custom:selector 906c9990
     /// @param multilocation The asset location for which we want to know the fee per second value
-    /// @return fee_per_second The fee per second that the reserve chain charges for this asset
+    /// @return feePerSecond The fee per second that the reserve chain charges for this asset
     ///
     function feePerSecond(Multilocation memory multilocation)
         external
         view
-        returns (uint256 fee_per_second);
+        returns (uint256 feePerSecond);
 
     /// Transact through XCM using fee based on its multilocation
     /// @custom:selector 94a63c54
@@ -70,7 +70,6 @@ interface XcmTransactorV1 {
     /// It has to be a reserve of the destination chain
     /// @param weight The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
-    ///
     function transactThroughDerivativeMultilocation(
         uint8 transactor,
         uint16 index,
@@ -78,8 +77,8 @@ interface XcmTransactorV1 {
         uint64 weight,
         bytes memory innerCall
     ) external;
-    
-    /// Transact through XCM using fee based on its currency_id
+
+    /// Transact through XCM using fee based on its currencyId
     /// @custom:selector 02ae072d
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param transactor The transactor to be used
@@ -88,7 +87,6 @@ interface XcmTransactorV1 {
     /// It has to be a reserve of the destination chain
     /// @param weight The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain
-    ///
     function transactThroughDerivative(
         uint8 transactor,
         uint16 index,
@@ -107,7 +105,6 @@ interface XcmTransactorV1 {
     /// It has to be a reserve of the destination chain
     /// @param weight The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
-    ///
     function transactThroughSignedMultilocation(
         Multilocation memory dest,
         Multilocation memory feeLocation,
@@ -125,7 +122,6 @@ interface XcmTransactorV1 {
     /// only callable if such an asset has been BRIDGED to our chain
     /// @param weight The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
-    ///
     function transactThroughSigned(
         Multilocation memory dest,
         address feeLocationAddress,
