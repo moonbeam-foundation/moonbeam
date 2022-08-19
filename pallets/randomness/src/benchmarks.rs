@@ -50,7 +50,9 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 }
 
 benchmarks! {
-	where_clause { where <T::VrfKeyLookup as KeysLookup<NimbusId, VrfId>>::Account: From<T::AccountId> }
+	where_clause {
+		where <T::VrfKeyLookup as KeysLookup<NimbusId, VrfId>>::Account: From<T::AccountId>
+	}
 	// TODO: causes panic:
 	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
 	// on_initialize', runtime/moonbase/src/lib.rs:1111
