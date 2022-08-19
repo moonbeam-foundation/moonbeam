@@ -110,6 +110,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         .unwrap()
         .delegations.map((d) => d.owner.toHex())
     );
+    let countedDelegationSum = new BN(0);
     for (const { owner, amount } of delegations) {
       if (!topDelegations.has(owner.toHex())) {
         continue;
@@ -120,7 +121,16 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         id: id,
         amount: amount,
       };
+      countedDelegationSum = countedDelegationSum.add(amount);
     }
+    const totalCountedLessTotalCounted = total.sub(countedDelegationSum.add(bond));
+    // expect(total.toString()).to.equal(
+    //   countedDelegationSum.add(bond).toString(),
+    //   `Total counted (denominator) ${total} - total counted (numerator
+    // ${countedDelegationSum.add(new BN(bond))} = ${totalCountedLessTotalCounted}` +
+    //     ` so this collator and its delegations receive fewer rewards for round ` +
+    //     `${originalRoundNumber.toString()}`
+    // );
 
     for (const topDelegation of topDelegations) {
       if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
@@ -185,6 +195,13 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     }
   }
 
+  // total expected staking reward minus the amount reserved for parachain bond
+  const totalExpectedStakingIssuance = (
+    await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
+  )
+    .unwrap()
+    .totalStakingReward.sub(reservedForParachainBond);
+
   const totalStakingReward = (function () {
     const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
     if (!reservedForParachainBond.isZero()) {
@@ -223,6 +240,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<`0x${string}`>();
+  let totalRewardedAmount = new BN(0);
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
@@ -236,6 +254,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       totalStakingReward,
       stakedValue
     );
+    totalRewardedAmount = totalRewardedAmount.add(rewarded.amount);
 
     expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
@@ -265,6 +284,16 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       )}" were unexpectedly rewarded for collator "${rewarded.collator}" at block ${blockNumber}`
     ).to.be.empty;
   }
+
+  // check that sum of all reward transfers is equal to total expected staking reward
+  expect(totalRewardedAmount.toString()).to.equal(
+    totalExpectedStakingIssuance.toString(),
+    `Total rewarded events did not match total expected issuance for collators + delegators:
+    ${totalRewardedAmount} != ${totalExpectedStakingIssuance} \n
+    Inflation was ${totalExpectedStakingIssuance.sub(
+      totalRewardedAmount
+    )} less than expected for round ${originalRoundNumber}`
+  );
 
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
@@ -324,9 +353,12 @@ async function assertRewardedEventsAtBlock(
   let rewarded = {
     collator: null as `0x${string}`,
     delegators: new Set<string>(),
+    amount: new BN(0),
   };
 
   for (const accountId of Object.keys(rewards) as `0x${string}`[]) {
+    rewarded.amount = rewarded.amount.add(rewards[accountId].amount);
+
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
@@ -377,7 +409,7 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
   ).to.be.true;
 }
 
-type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
+type Rewarded = { collator: `0x${string}` | null; delegators: Set<string>; amount: BN };
 
 type StakedValueData = {
   id: string;
