@@ -369,7 +369,6 @@ pub mod pallet {
 			Self::keys_of(author)
 		}
 		/// Sets keys WITHOUT reserving deposit, for benchmarking purposes only
-		// #[cfg(feature = "runtime-benchmarking")] // will not compile if commented in
 		fn set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
 			use sp_runtime::traits::Zero;
 			MappingWithDeposit::<T>::insert(
