@@ -15,7 +15,7 @@ nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moo
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 serde = { version = "1.0.101", optional = true }
-session-keys-primitives = { path = "../../primitives/session-keys", default-features = false, features = [ "runtime-benchmarks" ] }
+session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
@@ -51,5 +51,6 @@ std = [
 ]
 runtime-benchmarks = [
 	"frame-benchmarking",
+	"session-keys-primitives/runtime-benchmarks",
 ]
 # try-runtime = [ "frame-support/try-runtime" ]

@@ -78,7 +78,7 @@ pub mod pallet {
 		/// Get the BABE data from the runtime
 		type BabeDataGetter: GetBabeData<u64, Option<Self::Hash>>;
 		/// Takes NimbusId to return VrfId
-		type VrfKeyLookup: KeysLookup<NimbusId, Self::AccountId, VrfId>;
+		type VrfKeyLookup: KeysLookup<NimbusId, VrfId>;
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
