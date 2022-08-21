@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
+use crate::weights::{SubstrateWeight, WeightInfo};
 use crate::{Config, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType};
 use frame_support::{pallet_prelude::Weight, traits::Get};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
@@ -94,6 +95,5 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		results.randomness = Some(randomness_output);
 		RandomnessResults::<T>::insert(local_vrf_this_block, results);
 	}
-	use crate::weights::WeightInfo;
-	crate::weights::SubstrateWeight::<T>::on_initialize()
+	SubstrateWeight::<T>::on_initialize()
 }
