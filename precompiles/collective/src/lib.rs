@@ -143,7 +143,7 @@ where
 		});
 
 		let proposal: Vec<_> = proposal.into_vec();
-		let proposal_hash: H256 = Runtime::Hashing::hash(&proposal).into();
+		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
 				.in_field("length")
@@ -189,7 +189,7 @@ where
 		})?;
 
 		let proposal_index = pallet_collective::Pallet::<Runtime, Instance>::proposal_count();
-		let proposal_hash: H256 = Runtime::Hashing::hash(&proposal).into();
+		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let proposal = Runtime::Call::decode(&mut &*proposal)
 			.map_err(|_| RevertReason::custom("Failed to decode proposal").in_field("proposal"))?
 			.into();

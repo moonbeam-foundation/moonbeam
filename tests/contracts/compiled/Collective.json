@@ -1,0 +1,193 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Executed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "threshold",
+            "type": "uint32"
+          }
+        ],
+        "name": "Proposed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "voted",
+            "type": "bool"
+          }
+        ],
+        "name": "Voted",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "proposalWeightBound",
+            "type": "uint64"
+          },
+          { "internalType": "uint32", "name": "lengthBound", "type": "uint32" }
+        ],
+        "name": "close",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "execute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "proposalHash",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "threshold", "type": "uint32" },
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "propose",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          { "internalType": "bool", "name": "approve", "type": "bool" }
+        ],
+        "name": "vote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {},
+      "title": "Collective precompile Allows to interact with Substrate pallet_collective from the EVM. Address: TODO",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "close(bytes32,uint32,uint64,uint32)": "638d9d47",
+        "execute(bytes)": "09c5eabe",
+        "proposalHash(bytes)": "fc379417",
+        "propose(uint32,bytes)": "c57f3260",
+        "vote(bytes32,uint32,bool)": "73e37688"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"}],\"name\":\"Executed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"}],\"name\":\"Proposed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"voted\",\"type\":\"bool\"}],\"name\":\"Voted\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint64\",\"name\":\"proposalWeightBound\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"lengthBound\",\"type\":\"uint32\"}],\"name\":\"close\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"execute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"proposalHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"propose\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"internalType\":\"bool\",\"name\":\"approve\",\"type\":\"bool\"}],\"name\":\"vote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"Collective precompile Allows to interact with Substrate pallet_collective from the EVM. Address: TODO\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Collective\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xdd9aaf4bf652553fd67f52fe4df8f98504c6ce56157eb9e5e2d81193040a12e8\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://cc5867dd06e4497de381de345eee36539192b9a8c1ccfbfe5a9ffb9f181568a3\",\"dweb:/ipfs/QmQtGX4mZ3w4Fysk2YD8G7Cxu9zVtWsm7qA4neFuByF3it\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/// @title Collective precompile\n/// Allows to interact with Substrate pallet_collective from the EVM.\n/// Address: TODO\ninterface Collective {\n    function execute(bytes memory proposal) external;\n\n    function propose(uint32 threshold, bytes memory proposal) external;\n\n    function vote(\n        bytes32 proposalHash,\n        uint32 proposalIndex,\n        bool approve\n    ) external;\n\n    function close(\n        bytes32 proposalHash,\n        uint32 proposalIndex,\n        uint64 proposalWeightBound,\n        uint32 lengthBound\n    ) external;\n\n    function proposalHash(bytes memory proposal)\n        external\n        view\n        returns (bytes32 proposalHash);\n\n    event Executed(bytes32 indexed proposalHash);\n    event Proposed(\n        address indexed who,\n        uint32 indexed proposalIndex,\n        bytes32 indexed proposalHash,\n        uint32 threshold\n    );\n    event Voted(address indexed who, bytes32 indexed proposalHash, bool voted);\n}\n"
+}

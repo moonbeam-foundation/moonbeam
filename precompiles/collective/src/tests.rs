@@ -31,20 +31,6 @@ fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
-// fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
-// 	EvmCall::call {
-// 		source: Alice.into(),
-// 		target: Precompile.into(),
-// 		input,
-// 		value: U256::zero(), // No value sent in EVM
-// 		gas_limit: u64::max_value(),
-// 		max_fee_per_gas: 0.into(),
-// 		max_priority_fee_per_gas: Some(U256::zero()),
-// 		nonce: None, // Use the next nonce
-// 		access_list: Vec::new(),
-// 	}
-// }
-
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["Collective.sol"] {
@@ -154,7 +140,7 @@ fn non_member_cannot_execute() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
+				EvmDataWriter::new_with_selector(Action::Execute)
 					.write(Bytes(proposal))
 					.build(),
 			)
@@ -188,7 +174,7 @@ fn cannot_close_unknown_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
+				EvmDataWriter::new_with_selector(Action::Close)
 					.write(H256::zero())
 					.write(1u32)
 					.write(0u64)
