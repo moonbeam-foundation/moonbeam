@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 /// @title Collective precompile
 /// Allows to interact with Substrate pallet_collective from the EVM.
