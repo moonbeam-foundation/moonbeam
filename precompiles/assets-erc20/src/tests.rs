@@ -456,7 +456,7 @@ fn transfer_not_enough_founds() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("BalanceLow")
 				});
 		});
@@ -638,10 +638,8 @@ fn transfer_from_non_incremental_approval() {
 				)
 				.execute_reverts(|output| {
 					output
-						== b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
-					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
-					message: Some(\"Unapproved\") }) }"
+						== b"Dispatched call failed with error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") })"
 				});
 		});
 }
@@ -689,10 +687,8 @@ fn transfer_from_above_allowance() {
 				)
 				.execute_reverts(|output| {
 					output
-						== b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
-					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
-					message: Some(\"Unapproved\") }) }"
+						== b"Dispatched call failed with error: Module(ModuleError { index: 2, error: [10, 0, 0, 0], \
+					message: Some(\"Unapproved\") })"
 				});
 		});
 }
@@ -1035,7 +1031,7 @@ fn freeze_local_assets() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("Frozen")
 				});
 		});
@@ -1164,7 +1160,7 @@ fn freeze_asset_local_asset() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("Frozen")
 				});
 		});
@@ -1285,7 +1281,7 @@ fn transfer_ownership_local_assets() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("NoPermission")
 				});
 
@@ -1352,7 +1348,7 @@ fn set_team_local_assets() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("NoPermission")
 				});
 
