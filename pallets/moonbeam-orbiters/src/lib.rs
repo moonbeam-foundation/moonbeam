@@ -83,15 +83,18 @@ pub mod pallet {
 		/// Origin that is allowed to remove a collator from orbiters program.
 		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
 
+		#[pallet::constant]
 		/// Maximum number of orbiters per collator.
 		type MaxPoolSize: Get<u32>;
 
+		#[pallet::constant]
 		/// Maximum number of round to keep on storage.
 		type MaxRoundArchive: Get<Self::RoundIndex>;
 
 		/// Reserve identifier for this pallet instance.
 		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 
+		#[pallet::constant]
 		/// Number of rounds before changing the selected orbiter.
 		/// WARNING: when changing `RotatePeriod`, you need a migration code that sets
 		/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
