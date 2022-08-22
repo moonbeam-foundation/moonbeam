@@ -17,7 +17,9 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
+use crate::{
+	BalanceOf, Call, Config, Pallet, RandomnessResult, RandomnessResults, Request, RequestType,
+};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
@@ -39,7 +41,12 @@ benchmarks! {
 	set_babe_randomness_results {
 		// set the current relay epoch as 9, `get_epoch_index` configured to return 10
 		const BENCHMARKING_OLD_EPOCH: u64 = 9u64;
-		let benchmarking_babe_output: T::Hash = T::Hash::default();
+		let benchmarking_babe_output = T::Hash::default();
+		let benchmarking_new_epoch = BENCHMARKING_OLD_EPOCH.saturating_add(1u64);
+		RandomnessResults::<T>::insert(
+			RequestType::BabeEpoch(benchmarking_new_epoch),
+			RandomnessResult::new()
+		);
 	}: _(RawOrigin::None)
 	verify {
 		// verify randomness result
