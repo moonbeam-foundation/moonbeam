@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;

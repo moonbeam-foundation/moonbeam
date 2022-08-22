@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity ^0.8.0;
+pragma solidity >=0.8.3;
 
 /// @title Extension of the ERC20 interface that allows users to
 /// sign permit messages to interact with contracts without needing to
