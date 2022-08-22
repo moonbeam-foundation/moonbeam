@@ -17,12 +17,13 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
-use crate::{BalanceOf, Config, Pallet, RandomnessResults, Request, RequestType};
+use crate::{BalanceOf, Call, Config, Pallet, RandomnessResults, Request, RequestType};
 use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
 	traits::{Currency, Get},
 };
+use frame_system::RawOrigin;
 use pallet_evm::AddressMapping;
 use sp_core::{H160, H256};
 use sp_runtime::traits::One;
@@ -35,11 +36,20 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 }
 
 benchmarks! {
-	// TODO: causes panic:
-	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
-	// on_initialize', runtime/moonbase/src/lib.rs:1111
-	// set_babe_randomness_results {}: _(RawOrigin::None)
-	// verify { }
+	set_babe_randomness_results {
+		// set the current relay epoch as 9, `get_epoch_index` configured to return 10
+		const BENCHMARKING_OLD_EPOCH: u64 = 9u64;
+		let benchmarking_babe_output: T::Hash = T::Hash::default();
+	}: _(RawOrigin::None)
+	verify {
+		// verify randomness result
+		assert_eq!(
+			RandomnessResults::<T>::get(
+				RequestType::BabeEpoch(BENCHMARKING_OLD_EPOCH.saturating_add(1u64))
+			).unwrap().randomness,
+			Some(benchmarking_babe_output)
+		);
+	}
 
 	// // TODO: need to produce Vrf PreDigest using authoring NimbusId and insert both into digests
 	// set_output {
