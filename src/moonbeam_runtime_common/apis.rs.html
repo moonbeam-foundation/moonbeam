@@ -635,13 +635,6 @@
 <span id="630">630</span>
 <span id="631">631</span>
 <span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1094,8 +1087,6 @@
 					<span class="kw">use</span> <span class="ident">pallet_author_inherent::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorInherent</span>;
 					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_xcm_transactor::Pallet</span> <span class="kw">as</span> <span class="ident">XcmTransactorBench</span>;
-
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="kw">use</span> <span class="ident">pallet_randomness::Pallet</span> <span class="kw">as</span> <span class="ident">RandomnessBench</span>;
 
 					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BenchmarkList</span><span class="op">&gt;</span><span class="ident">::new</span>();
@@ -1109,8 +1100,6 @@
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_inherent</span>, <span class="ident">PalletAuthorInherent</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_asset_manager</span>, <span class="ident">PalletAssetManagerBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">xcm_transactor</span>, <span class="ident">XcmTransactorBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_randomness</span>, <span class="ident">RandomnessBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
 					<span class="kw">let</span> <span class="ident">storage_info</span> <span class="op">=</span> <span class="ident">AllPalletsWithSystem::storage_info</span>();
@@ -1136,8 +1125,6 @@
 					<span class="kw">use</span> <span class="ident">pallet_author_inherent::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorInherent</span>;
 					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
 					<span class="kw">use</span> <span class="ident">pallet_xcm_transactor::Pallet</span> <span class="kw">as</span> <span class="ident">XcmTransactorBench</span>;
-
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="kw">use</span> <span class="ident">pallet_randomness::Pallet</span> <span class="kw">as</span> <span class="ident">RandomnessBench</span>;
 
 					<span class="kw">let</span> <span class="ident">whitelist</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackedStorageKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
@@ -1247,7 +1234,6 @@
 						<span class="ident">XcmTransactorBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 					);
 
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-runtime-benchmarks&quot;</span>)]</span>
 					<span class="macro">add_benchmark!</span>(
 						<span class="ident">params</span>,
 						<span class="ident">batches</span>,

@@ -102,7 +102,6 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
-<span id="100">100</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -120,6 +119,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="doccomment">//! VRF logic</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::weights</span>::{<span class="ident">SubstrateWeight</span>, <span class="ident">WeightInfo</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Config</span>, <span class="ident">LocalVrfOutput</span>, <span class="ident">NotFirstBlock</span>, <span class="ident">RandomnessResults</span>, <span class="ident">RequestType</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude::Weight</span>, <span class="ident">traits::Get</span>};
 <span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">NimbusId</span>, <span class="ident">NIMBUS_ENGINE_ID</span>};
@@ -199,9 +199,7 @@
 		<span class="ident">results</span>.<span class="ident">randomness</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">randomness_output</span>);
 		<span class="ident">RandomnessResults</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">local_vrf_this_block</span>, <span class="ident">results</span>);
 	}
-	<span class="comment">// TODO: benchmark to fix this weight</span>
-	<span class="comment">// reads + writes + margin_of_safety = 5_000_000_000</span>
-	<span class="number">6</span> <span class="op">*</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">read</span> <span class="op">+</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">write</span> <span class="op">+</span> <span class="number">5_000_000_000</span>
+	<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_initialize</span>()
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_randomness" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>

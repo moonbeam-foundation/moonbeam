@@ -606,7 +606,7 @@
 			<span class="ident">ensure_none</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
 			<span class="kw">let</span> <span class="ident">last_relay_epoch_index</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RelayEpoch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
-			<span class="comment">// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)</span>
+			<span class="comment">// populate the `RandomnessResults` for BABE epoch randomness</span>
 			<span class="kw">let</span> <span class="ident">relay_epoch_index</span> <span class="op">=</span> <span class="ident">T::BabeDataGetter::get_epoch_index</span>();
 			<span class="kw">if</span> <span class="ident">relay_epoch_index</span> <span class="op">&gt;</span> <span class="ident">last_relay_epoch_index</span> {
 				<span class="kw">let</span> <span class="ident">babe_one_epoch_ago_this_block</span> <span class="op">=</span> <span class="ident">RequestType::BabeEpoch</span>(<span class="ident">relay_epoch_index</span>);
