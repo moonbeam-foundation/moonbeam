@@ -26,6 +26,7 @@ use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadat
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
 use pallet_evm_precompile_democracy::DemocracyWrapper;
@@ -119,6 +120,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
+				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
 				PrecompileAt<AddressU64<2061>, CollectivePrecompile<R, CouncilInstance>>,
 				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, TechCommitteeInstance>>,

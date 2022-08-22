@@ -1616,19 +1616,22 @@ pub mod pallet {
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
-				let snapshot_total = state.total_counted;
-				let top_rewardable_delegations = Self::get_rewardable_delegators(&account);
+				let CountedDelegations {
+					uncounted_stake,
+					rewardable_delegations,
+				} = Self::get_rewardable_delegators(&account);
+				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: top_rewardable_delegations,
-					total: state.total_counted,
+					delegations: rewardable_delegations,
+					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
 					collator_account: account.clone(),
-					total_exposed_amount: snapshot_total,
+					total_exposed_amount: state.total_counted,
 				});
 			}
 			// insert canonical collator set
@@ -1645,15 +1648,13 @@ pub mod pallet {
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
-		fn get_rewardable_delegators(
-			collator: &T::AccountId,
-		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
+		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();
-
-			<TopDelegations<T>>::get(collator)
+			let mut uncounted_stake = BalanceOf::<T>::zero();
+			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
@@ -1666,6 +1667,7 @@ pub mod pallet {
 								revoke request",
 								bond.owner
 							);
+							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
@@ -1674,13 +1676,18 @@ pub mod pallet {
 								decrease request",
 								bond.owner
 							);
+							uncounted_stake = uncounted_stake.saturating_add(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
 					};
 
 					bond
 				})
-				.collect()
+				.collect();
+			CountedDelegations {
+				uncounted_stake,
+				rewardable_delegations,
+			}
 		}
 	}
 
