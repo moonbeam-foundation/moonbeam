@@ -430,7 +430,7 @@ describeDevMoonbeam("Treasury council precompile #9", (context) => {
         COLLECTIVE_INTERFACE.encodeFunctionData("close", [
           proposalHash,
           0,
-          10_000_000,
+          10_000_000_000,
           proposal.length / 2 - 1,
         ])
       );
@@ -455,7 +455,7 @@ describeDevMoonbeam("Treasury council precompile #10", (context) => {
     expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth proposed that the council reject the treasury proposal
-    const proposal = encode(context.polkadotApi.tx.treasury.approveProposal(0));
+    const proposal = encode(context.polkadotApi.tx.treasury.rejectProposal(0));
     const proposalHash = blake2AsHex(proposal).toString();
 
     await successfulTreasuryCouncilCall(
@@ -468,13 +468,13 @@ describeDevMoonbeam("Treasury council precompile #10", (context) => {
     await successfulTreasuryCouncilCall(
       context,
       CHARLETH_TRANSACTION_TEMPLATE,
-      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, false])
+      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, true])
     );
 
     await successfulTreasuryCouncilCall(
       context,
       DOROTHY_TRANSACTION_TEMPLATE,
-      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, false])
+      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, true])
     );
 
     await successfulTreasuryCouncilCall(
@@ -483,7 +483,7 @@ describeDevMoonbeam("Treasury council precompile #10", (context) => {
       COLLECTIVE_INTERFACE.encodeFunctionData("close", [
         proposalHash,
         0,
-        10_000_000,
+        10_000_000_000,
         proposal.length / 2 - 1,
       ])
     );
