@@ -3,7 +3,10 @@ pragma solidity >=0.8.3;
 
 /// @title Collective precompile
 /// Allows to interact with Substrate pallet_collective from the EVM.
-/// Address: TODO
+/// Addresses:
+/// - 0x000000000000000000000000000000000000080e: Council
+/// - 0x000000000000000000000000000000000000080f: Technical Committee
+/// - 0x0000000000000000000000000000000000000810: Treasury Council.
 interface Collective {
     /// @dev Execute a proposal as a single member of the collective.
     /// The sender must be a member of the collective.
