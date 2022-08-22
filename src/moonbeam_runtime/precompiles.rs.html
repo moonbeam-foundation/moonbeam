@@ -134,6 +134,8 @@
 <span id="129">129</span>
 <span id="130">130</span>
 <span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -159,6 +161,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_batch::BatchPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_call_permit::CallPermitPrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_democracy::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
@@ -251,6 +254,7 @@
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2054</span><span class="op">&gt;</span>, <span class="ident">XcmTransactorWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2055</span><span class="op">&gt;</span>, <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2056</span><span class="op">&gt;</span>, <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="number">2</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2058</span><span class="op">&gt;</span>, <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2060</span><span class="op">&gt;</span>, <span class="ident">XcmUtilsWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			),
 		<span class="op">&gt;</span>,
