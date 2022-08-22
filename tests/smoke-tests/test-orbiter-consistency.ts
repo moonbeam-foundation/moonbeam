@@ -121,12 +121,14 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
 
   it("should have matching rewards", async function () {
     if (specVersion >= 1800) {
-      let rotatePeriod: number= (await apiAt.consts.moonbeamOrbiters.rotatePeriod as any).toNumber();
+      let rotatePeriod: number = (
+        (await apiAt.consts.moonbeamOrbiters.rotatePeriod) as any
+      ).toNumber();
 
       // Get parent collators
       const parentCollators = new Set();
       collatorsPools.forEach((o) => parentCollators.add(o[0].args[0].toHex()));
-  
+
       // Get collators rewards
       let collatorRewards = {};
       for (const { event, phase } of events) {
@@ -143,9 +145,9 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
           }
         }
       }
-  
+
       //console.log(collatorRewards);
-  
+
       if (Object.keys(collatorRewards).length > 0) {
         // Compute expected reward for each orbiter
         const lastRotateRound = currentRound - (currentRound % rotatePeriod);
@@ -153,13 +155,13 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
         orbiterPerRound.forEach((o) => {
           let [round, collator] = o[0].args;
           let orbiter = o[1];
-  
+
           if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
             expectedOrbiterRewards[orbiter.unwrap().toHex()] = collatorRewards[collator.toHex()];
           }
         });
         const sortedExpectedOrbiterRewards = sortObjectByKeys(expectedOrbiterRewards);
-  
+
         // Verify orbiters rewards
         let actualOrbiterRewards = {};
         for (const { event, phase } of events) {
@@ -175,10 +177,10 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
           }
         }
         const sortedActualOrbiterRewards = sortObjectByKeys(actualOrbiterRewards);
-  
+
         //console.log(sortedExpectedOrbiterRewards);
         //console.log(sortedActualOrbiterRewards);
-  
+
         expect(
           sortedActualOrbiterRewards,
           `Orbiter rewards doesn't match expectation for block #${atBlockNumber}.`
