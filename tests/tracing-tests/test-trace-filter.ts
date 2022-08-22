@@ -55,7 +55,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
       value: "0x0",
     });
     expect(response.result[0].result).to.include({
-      address: ALITH_CONTRACT_ADDRESSES[0],
+      address: ALITH_CONTRACT_ADDRESSES[0].toLocaleLowerCase(),
       gasUsed: "0x159c6", // TODO : Compare with value from another (comparable) network.
     });
 
