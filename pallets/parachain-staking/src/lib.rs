@@ -1221,16 +1221,20 @@ pub mod pallet {
 			});
 			Ok(().into())
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
+
+		/// DEPRECATED use batch util with schedule_revoke_delegation for all delegations
 		/// Request to leave the set of delegators. If successful, the caller is scheduled to be
 		/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.
 		/// Success forbids future delegation requests until the request is invoked or cancelled.
+		#[pallet::weight(<T as Config>::WeightInfo::schedule_leave_delegators())]
 		pub fn schedule_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegator_schedule_revoke_all(delegator)
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators(*delegation_count))]
+
+		/// DEPRECATED use batch util with execute_delegation_request for all delegations
 		/// Execute the right to exit the set of delegators and revoke all ongoing delegations.
+		#[pallet::weight(<T as Config>::WeightInfo::execute_leave_delegators(*delegation_count))]
 		pub fn execute_leave_delegators(
 			origin: OriginFor<T>,
 			delegator: T::AccountId,
@@ -1239,9 +1243,11 @@ pub mod pallet {
 			ensure_signed(origin)?;
 			Self::delegator_execute_scheduled_revoke_all(delegator, delegation_count)
 		}
-		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators())]
+
+		/// DEPRECATED use batch util with cancel_delegation_request for all delegations
 		/// Cancel a pending request to exit the set of delegators. Success clears the pending exit
 		/// request (thereby resetting the delay upon another `leave_delegators` call).
+		#[pallet::weight(<T as Config>::WeightInfo::cancel_leave_delegators())]
 		pub fn cancel_leave_delegators(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegator_cancel_scheduled_revoke_all(delegator)
@@ -1616,19 +1622,22 @@ pub mod pallet {
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
-				let snapshot_total = state.total_counted;
-				let top_rewardable_delegations = Self::get_rewardable_delegators(&account);
+				let CountedDelegations {
+					uncounted_stake,
+					rewardable_delegations,
+				} = Self::get_rewardable_delegators(&account);
+				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: top_rewardable_delegations,
-					total: state.total_counted,
+					delegations: rewardable_delegations,
+					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
 					collator_account: account.clone(),
-					total_exposed_amount: snapshot_total,
+					total_exposed_amount: state.total_counted,
 				});
 			}
 			// insert canonical collator set
@@ -1645,15 +1654,13 @@ pub mod pallet {
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
-		fn get_rewardable_delegators(
-			collator: &T::AccountId,
-		) -> Vec<Bond<T::AccountId, BalanceOf<T>>> {
+		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();
-
-			<TopDelegations<T>>::get(collator)
+			let mut uncounted_stake = BalanceOf::<T>::zero();
+			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
@@ -1666,6 +1673,7 @@ pub mod pallet {
 								revoke request",
 								bond.owner
 							);
+							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
@@ -1674,13 +1682,18 @@ pub mod pallet {
 								decrease request",
 								bond.owner
 							);
+							uncounted_stake = uncounted_stake.saturating_add(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
 					};
 
 					bond
 				})
-				.collect()
+				.collect();
+			CountedDelegations {
+				uncounted_stake,
+				rewardable_delegations,
+			}
 		}
 	}
 

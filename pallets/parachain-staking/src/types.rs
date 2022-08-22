@@ -31,6 +31,11 @@ use sp_runtime::{
 };
 use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
 
+pub struct CountedDelegations<T: Config> {
+	pub uncounted_stake: BalanceOf<T>,
+	pub rewardable_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>>,
+}
+
 #[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct Bond<AccountId, Balance> {
 	pub owner: AccountId,
