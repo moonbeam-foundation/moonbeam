@@ -2584,7 +2584,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error:")
 						&& from_utf8(&output).unwrap().contains("ErrorSending")
 				});
 		});
