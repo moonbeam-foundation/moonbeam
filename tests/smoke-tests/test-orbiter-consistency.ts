@@ -15,8 +15,6 @@ const debug = require("debug")("smoke:orbiter");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
-// TODO: rotatePeriod is not exposed in metada yet, change that after RT1800
-const rotatePeriod: number = process.env.ROTATE_PERIOD ? parseInt(process.env.ROTATE_PERIOD) : 3;
 
 describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
@@ -30,6 +28,7 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
   let currentRound: number = null;
   let orbiterPerRound: [StorageKey<[u32, AccountId20]>, Option<AccountId20>][] = null;
   let events: FrameSystemEventRecord[] = null;
+  let specVersion: number = 0;
 
   before("Setup api & retrieve data", async function () {
     const runtimeVersion = await context.polkadotApi.runtimeVersion.specVersion.toNumber();
@@ -46,6 +45,7 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
     currentRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
     orbiterPerRound = await apiAt.query.moonbeamOrbiters.orbiterPerRound.entries();
     events = await apiAt.query.system.events();
+    specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
   });
 
   it("should have reserved tokens", async function () {
@@ -120,66 +120,70 @@ describeSmokeSuite(`Verify orbiters`, { wssUrl, relayWssUrl }, (context) => {
   });
 
   it("should have matching rewards", async function () {
-    // Get parent collators
-    const parentCollators = new Set();
-    collatorsPools.forEach((o) => parentCollators.add(o[0].args[0].toHex()));
+    if (specVersion >= 1800) {
+      let rotatePeriod: number= (await apiAt.consts.moonbeamOrbiters.rotatePeriod as any).toNumber();
 
-    // Get collators rewards
-    let collatorRewards = {};
-    for (const { event, phase } of events) {
-      if (
-        phase.isInitialization &&
-        event.section == "parachainStaking" &&
-        event.method == "Rewarded"
-      ) {
-        const data = event.data as any;
-        const account = data.account.toHex();
-        const rewards = data.rewards.toBigInt();
-        if (parentCollators.has(account)) {
-          collatorRewards[account] = rewards;
-        }
-      }
-    }
-
-    //console.log(collatorRewards);
-
-    if (Object.keys(collatorRewards).length > 0) {
-      // Compute expected reward for each orbiter
-      const lastRotateRound = currentRound - (currentRound % rotatePeriod);
-      let expectedOrbiterRewards = {};
-      orbiterPerRound.forEach((o) => {
-        let [round, collator] = o[0].args;
-        let orbiter = o[1];
-
-        if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
-          expectedOrbiterRewards[orbiter.unwrap().toHex()] = collatorRewards[collator.toHex()];
-        }
-      });
-      const sortedExpectedOrbiterRewards = sortObjectByKeys(expectedOrbiterRewards);
-
-      // Verify orbiters rewards
-      let actualOrbiterRewards = {};
+      // Get parent collators
+      const parentCollators = new Set();
+      collatorsPools.forEach((o) => parentCollators.add(o[0].args[0].toHex()));
+  
+      // Get collators rewards
+      let collatorRewards = {};
       for (const { event, phase } of events) {
         if (
           phase.isInitialization &&
-          event.section == "MoonbeamOrbiters" &&
-          event.method == "OrbiterRewarded"
+          event.section == "parachainStaking" &&
+          event.method == "Rewarded"
         ) {
           const data = event.data as any;
-          const orbiter = data.account.toHex();
+          const account = data.account.toHex();
           const rewards = data.rewards.toBigInt();
-          actualOrbiterRewards[orbiter] = rewards;
+          if (parentCollators.has(account)) {
+            collatorRewards[account] = rewards;
+          }
         }
       }
-      const sortedActualOrbiterRewards = sortObjectByKeys(actualOrbiterRewards);
-
-      //console.log(sortedExpectedOrbiterRewards);
-      //console.log(sortedActualOrbiterRewards);
-
-      expect(
-        sortedActualOrbiterRewards,
-        `Orbiter rewards doesn't match expectation for block #${atBlockNumber}.`
-      ).to.deep.equal(sortedExpectedOrbiterRewards);
+  
+      //console.log(collatorRewards);
+  
+      if (Object.keys(collatorRewards).length > 0) {
+        // Compute expected reward for each orbiter
+        const lastRotateRound = currentRound - (currentRound % rotatePeriod);
+        let expectedOrbiterRewards = {};
+        orbiterPerRound.forEach((o) => {
+          let [round, collator] = o[0].args;
+          let orbiter = o[1];
+  
+          if (round.toNumber() == lastRotateRound && collatorRewards[collator.toHex()]) {
+            expectedOrbiterRewards[orbiter.unwrap().toHex()] = collatorRewards[collator.toHex()];
+          }
+        });
+        const sortedExpectedOrbiterRewards = sortObjectByKeys(expectedOrbiterRewards);
+  
+        // Verify orbiters rewards
+        let actualOrbiterRewards = {};
+        for (const { event, phase } of events) {
+          if (
+            phase.isInitialization &&
+            event.section == "MoonbeamOrbiters" &&
+            event.method == "OrbiterRewarded"
+          ) {
+            const data = event.data as any;
+            const orbiter = data.account.toHex();
+            const rewards = data.rewards.toBigInt();
+            actualOrbiterRewards[orbiter] = rewards;
+          }
+        }
+        const sortedActualOrbiterRewards = sortObjectByKeys(actualOrbiterRewards);
+  
+        //console.log(sortedExpectedOrbiterRewards);
+        //console.log(sortedActualOrbiterRewards);
+  
+        expect(
+          sortedActualOrbiterRewards,
+          `Orbiter rewards doesn't match expectation for block #${atBlockNumber}.`
+        ).to.deep.equal(sortedExpectedOrbiterRewards);
+      }
     }
   });
 });
