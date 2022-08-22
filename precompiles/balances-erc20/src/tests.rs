@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use std::str::from_utf8;
-
 use crate::{
 	eip2612::Eip2612,
 	mock::{Account::*, *},
@@ -314,10 +312,9 @@ fn transfer_not_enough_funds() {
 						.build(),
 				)
 				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
-						&& from_utf8(&output).unwrap().contains("InsufficientBalance")
+					output
+						== b"Dispatched call failed with error: Module(ModuleError { index: 1, error: [2, 0, 0, 0], \
+					message: Some(\"InsufficientBalance\") })"
 				});
 		});
 }
