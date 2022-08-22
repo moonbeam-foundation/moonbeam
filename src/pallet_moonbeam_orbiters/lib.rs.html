@@ -557,6 +557,26 @@
 <span id="552">552</span>
 <span id="553">553</span>
 <span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -586,6 +606,7 @@
 <span class="doccomment">//! currently selected orbiter.</span>
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">step_trait</span>)]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
@@ -610,7 +631,7 @@
 	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Imbalance</span>, <span class="ident">NamedReservableCurrency</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">CheckedSub</span>, <span class="ident">One</span>, <span class="ident">StaticLookup</span>, <span class="ident">Zero</span>};
+	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">CheckedSub</span>, <span class="ident">One</span>, <span class="ident">Saturating</span>, <span class="ident">StaticLookup</span>, <span class="ident">Zero</span>};
 
 	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
@@ -641,16 +662,21 @@
 		<span class="doccomment">/// Origin that is allowed to remove a collator from orbiters program.</span>
 		<span class="kw">type</span> <span class="ident">DelCollatorOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
 
+		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// Maximum number of orbiters per collator.</span>
 		<span class="kw">type</span> <span class="ident">MaxPoolSize</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
 
+		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// Maximum number of round to keep on storage.</span>
 		<span class="kw">type</span> <span class="ident">MaxRoundArchive</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::RoundIndex</span><span class="op">&gt;</span>;
 
 		<span class="doccomment">/// Reserve identifier for this pallet instance.</span>
 		<span class="kw">type</span> <span class="ident">OrbiterReserveIdentifier</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">ReserveIdentifierOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
+		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// Number of rounds before changing the selected orbiter.</span>
+		<span class="doccomment">/// WARNING: when changing `RotatePeriod`, you need a migration code that sets</span>
+		<span class="doccomment">/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.</span>
 		<span class="kw">type</span> <span class="ident">RotatePeriod</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::RoundIndex</span><span class="op">&gt;</span>;
 
 		<span class="doccomment">/// Round index type.</span>
@@ -661,7 +687,8 @@
 			<span class="op">+</span> <span class="ident">Default</span>
 			<span class="op">+</span> <span class="ident">sp_runtime::traits::MaybeDisplay</span>
 			<span class="op">+</span> <span class="ident">sp_runtime::traits::AtLeast32Bit</span>
-			<span class="op">+</span> <span class="ident">Copy</span>;
+			<span class="op">+</span> <span class="ident">Copy</span>
+			<span class="op">+</span> <span class="ident">core::iter::Step</span>;
 
 		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
 		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
@@ -682,6 +709,12 @@
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="doccomment">/// Current round index</span>
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">CurrentRound</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T::RoundIndex</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+
+	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
+	<span class="doccomment">/// If true, it forces the rotation at the next round.</span>
+	<span class="doccomment">/// A use case: when changing RotatePeriod, you need a migration code that sets this value to</span>
+	<span class="doccomment">/// true to avoid holes in OrbiterPerRound.</span>
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ForceRotation</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bool</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">min_orbiter_deposit</span>)]</span>
@@ -1020,22 +1053,26 @@
 							<span class="ident">collator</span>.<span class="ident">clone</span>(),
 							<span class="prelude-ty">Option</span>::<span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span><span class="ident">::None</span>,
 						);
+						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 						<span class="comment">// Insert new current orbiter</span>
 						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
 							<span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
 							<span class="prelude-val">Some</span>(<span class="ident">collator</span>.<span class="ident">clone</span>()),
 						);
-						<span class="ident">OrbiterPerRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-							<span class="ident">round_index</span>,
-							<span class="ident">collator</span>.<span class="ident">clone</span>(),
-							<span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
-						);
+						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+						<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">Zero::zero</span>()..<span class="ident">T::RotatePeriod::get</span>() {
+							<span class="ident">OrbiterPerRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
+								<span class="ident">round_index</span>.<span class="ident">saturating_add</span>(<span class="ident">i</span>),
+								<span class="ident">collator</span>.<span class="ident">clone</span>(),
+								<span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
+							);
+							<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+						}
 						<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterRotation</span> {
 							<span class="ident">collator</span>,
 							<span class="ident">old_orbiter</span>: <span class="ident">maybe_old_orbiter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">orbiter</span><span class="op">|</span> <span class="ident">orbiter</span>.<span class="ident">account_id</span>),
 							<span class="ident">new_orbiter</span>: <span class="prelude-val">Some</span>(<span class="ident">next_orbiter</span>),
 						});
-						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">3</span>;
 					} <span class="kw">else</span> {
 						<span class="comment">// If there is no more active orbiter, you have to remove the collator override.</span>
 						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">collator</span>.<span class="ident">clone</span>());
@@ -1056,7 +1093,10 @@
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_new_round</span>(<span class="ident">round_index</span>: <span class="ident">T::RoundIndex</span>) -&gt; <span class="ident">Weight</span> {
 			<span class="ident">CurrentRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">round_index</span>);
 
-			<span class="kw">if</span> <span class="ident">round_index</span> <span class="op">%</span> <span class="ident">T::RotatePeriod::get</span>() <span class="op">==</span> <span class="ident">Zero::zero</span>() {
+			<span class="kw">if</span> <span class="ident">ForceRotation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>() {
+				<span class="ident">ForceRotation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">false</span>);
+				<span class="ident"><span class="self">Self</span>::on_rotate</span>(<span class="ident">round_index</span>) <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span>)
+			} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">round_index</span> <span class="op">%</span> <span class="ident">T::RotatePeriod::get</span>() <span class="op">==</span> <span class="ident">Zero::zero</span>() {
 				<span class="ident"><span class="self">Self</span>::on_rotate</span>(<span class="ident">round_index</span>) <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>
 			} <span class="kw">else</span> {
 				<span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>
