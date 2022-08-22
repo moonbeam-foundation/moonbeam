@@ -31,6 +31,11 @@ use sp_runtime::{
 };
 use sp_std::{cmp::Ordering, collections::btree_map::BTreeMap, prelude::*};
 
+pub struct CountedDelegations<T: Config> {
+	pub uncounted_stake: BalanceOf<T>,
+	pub rewardable_delegations: Vec<Bond<T::AccountId, BalanceOf<T>>>,
+}
+
 #[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
 pub struct Bond<AccountId, Balance> {
 	pub owner: AccountId,
@@ -411,7 +416,6 @@ impl<
 	where
 		BalanceOf<T>: From<Balance>,
 	{
-		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		ensure!(
 			<Pallet<T>>::get_collator_stakable_free_balance(&who) >= more.into(),
 			Error::<T>::InsufficientBalance
@@ -478,7 +482,6 @@ impl<
 		// Arithmetic assumptions are self.bond > less && self.bond - less > CollatorMinBond
 		// (assumptions enforced by `schedule_bond_less`; if storage corrupts, must re-verify)
 		self.bond = self.bond.saturating_sub(request.amount);
-		<Pallet<T>>::jit_ensure_collator_reserve_migrated(&who.clone())?;
 		T::Currency::set_lock(
 			COLLATOR_LOCK_ID,
 			&who.clone(),
@@ -1305,19 +1308,6 @@ impl<
 		self.total
 	}
 
-	pub fn total_add_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
-	where
-		T: Config,
-		T::AccountId: From<AccountId>,
-		BalanceOf<T>: From<Balance>,
-		F: Fn(Balance) -> DispatchResult,
-	{
-		let total = self.total.saturating_add(amount);
-		check(total)?;
-		self.total = total;
-		self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))
-	}
-
 	pub fn total_sub_if<T, F>(&mut self, amount: Balance, check: F) -> DispatchResult
 	where
 		T: Config,
@@ -1390,7 +1380,6 @@ impl<
 			.collect();
 		if let Some(balance) = amt {
 			self.delegations = OrderedSet::from(delegations);
-			let _ = <Pallet<T>>::jit_ensure_delegator_reserve_migrated(&self.id.clone().into());
 			self.total_sub::<T>(balance)
 				.expect("Decreasing lock cannot fail, qed");
 			Some(self.total)
@@ -1416,9 +1405,8 @@ impl<
 			if x.owner == candidate {
 				let before_amount: BalanceOf<T> = x.amount.into();
 				x.amount = x.amount.saturating_add(amount);
-				self.total_add_if::<T, _>(amount, |_| {
-					<Pallet<T>>::jit_ensure_delegator_reserve_migrated(&delegator_id.clone())
-				})?;
+				self.total = self.total.saturating_add(amount);
+				self.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
 
 				// update collator state delegation
 				let mut collator_state =

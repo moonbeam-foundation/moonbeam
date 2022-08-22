@@ -54,3 +54,8 @@ If the changes are to be listed in the runtime changelog, associate the label `B
 If the changes should be listed in the binary changelog, associate the label `B5-clientnoteworthy` with your PR.
 
 If the changes are not to be listed in any changelog, associate the label `B0-silent` with your PR.
+
+# Git branch conventions
+
+For branch conventions related to this git repository,
+see [Git branch conventions](docs/git-branches-conventions.md).

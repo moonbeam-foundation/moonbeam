@@ -26,7 +26,9 @@ use evm::ExitReason;
 use fp_evm::{ExitError, ExitRevert, ExitSucceed};
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{costs::call_cost, prelude::*, testing::*, Error as RevertError};
+use precompile_utils::{
+	costs::call_cost, prelude::*, revert::RevertSelector, solidity, testing::*,
+};
 use sp_core::{H160, H256, U256};
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -430,7 +432,7 @@ fn batch_incomplete(
 
 					SubcallOutput {
 						reason: ExitReason::Revert(ExitRevert::Reverted),
-						output: EvmDataWriter::new_with_selector(RevertError::Generic)
+						output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
 							.write::<Bytes>(Bytes(b"Revert message".to_vec()))
 							.build(),
 						cost: 17,
@@ -964,4 +966,29 @@ fn evm_batch_recursion_over_limit() {
 			assert_eq!(balance(Alice), 10_000); // gasprice = 0
 			assert_eq!(balance(Bob), 0);
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["Batch.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

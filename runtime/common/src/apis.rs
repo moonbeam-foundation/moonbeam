@@ -416,6 +416,22 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
+			impl session_keys_primitives::VrfApi<Block> for Runtime {
+				fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
+					// TODO: remove in future runtime upgrade along with storage item
+					if pallet_randomness::Pallet::<Self>::not_first_block().is_none() {
+						return None;
+					}
+					pallet_randomness::Pallet::<Self>::local_vrf_output()
+				}
+				fn vrf_key_lookup(
+					nimbus_id: nimbus_primitives::NimbusId
+				) -> Option<session_keys_primitives::VrfId> {
+					use session_keys_primitives::KeysLookup;
+					AuthorMapping::lookup_keys(&nimbus_id)
+				}
+			}
+
 			#[cfg(feature = "runtime-benchmarks")]
 			impl frame_benchmarking::Benchmark<Block> for Runtime {
 
@@ -434,8 +450,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -449,8 +463,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
-
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
@@ -476,8 +488,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -587,7 +597,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						XcmTransactorBench::<Runtime>
 					);
 
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,
 						batches,

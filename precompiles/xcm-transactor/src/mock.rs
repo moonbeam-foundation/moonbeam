@@ -15,8 +15,10 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use super::*;
+use crate::v1::XcmTransactorWrapperV1;
+use crate::v2::XcmTransactorWrapperV2;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
@@ -26,14 +28,16 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
 	PrecompileSet,
 };
+use precompile_utils::prelude::*;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::{H256, U256};
+use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
 	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 };
+use sp_std::marker::PhantomData;
 use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
@@ -44,6 +48,7 @@ use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
 };
+use xcm_primitives::AccountIdToCurrencyId;
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
@@ -227,22 +232,28 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	XcmTransactorWrapper<R>: Precompile,
+	XcmTransactorWrapperV1<R>: Precompile,
+	XcmTransactorWrapperV2<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(XcmTransactorWrapper::<R>::execute(handle)),
+			a if a == precompile_address_v1() => Some(XcmTransactorWrapperV1::<R>::execute(handle)),
+			a if a == precompile_address_v2() => Some(XcmTransactorWrapperV2::<R>::execute(handle)),
 			_ => None,
 		}
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		address == precompile_address()
+		address == precompile_address_v1() || address == precompile_address_v2()
 	}
 }
 
-pub fn precompile_address() -> H160 {
+pub fn precompile_address_v1() -> H160 {
 	H160::from_low_u64_be(1)
+}
+
+pub fn precompile_address_v2() -> H160 {
+	H160::from_low_u64_be(2)
 }
 
 parameter_types! {

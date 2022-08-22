@@ -29,7 +29,8 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 use account::AccountId20;
-use cumulus_pallet_parachain_system::RelaychainBlockNumberProvider;
+use cumulus_pallet_parachain_system::{RelayChainStateProof, RelaychainBlockNumberProvider};
+use cumulus_primitives_core::relay_chain;
 use fp_rpc::TransactionStatus;
 
 // Re-export required by get! macro.
@@ -452,6 +453,7 @@ impl pallet_scheduler::Config for Runtime {
 
 type CouncilInstance = pallet_collective::Instance1;
 type TechCommitteeInstance = pallet_collective::Instance2;
+type TreasuryCouncilInstance = pallet_collective::Instance3;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Origin = Origin;
@@ -460,7 +462,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the council at once.
+	/// The maximum number of proposals that can be open in the council at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
@@ -475,7 +477,7 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the technical committee at once.
+	/// The maximum number of proposals that can be open in the technical committee at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
@@ -483,11 +485,30 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
+impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	type MotionDuration = ConstU32<{ 3 * DAYS }>;
+	/// The maximum number of proposals that can be open in the treasury council at once.
+	type MaxProposals = ConstU32<20>;
+	/// The maximum number of treasury council members.
+	type MaxMembers = ConstU32<9>;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+}
+
+// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
+// block as a round change.
+const ENACTMENT_OFFSET: u32 = 300;
+
 impl pallet_democracy::Config for Runtime {
 	type Proposal = Call;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 1 * DAYS }>;
+	type EnactmentPeriod = ConstU32<{ 1 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 1 * DAYS }>;
 	type VotingPeriod = ConstU32<{ 5 * DAYS }>;
 
@@ -542,12 +563,12 @@ parameter_types! {
 
 type TreasuryApproveOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
 >;
 
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
 
 impl pallet_treasury::Config for Runtime {
@@ -773,9 +794,8 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 	type RewardAddressChangeOrigin = EnsureSigned<Self::AccountId>;
 	type RewardAddressRelayVoteThreshold = RelaySignaturesThreshold;
 	type SignatureNetworkIdentifier = SignatureNetworkIdentifier;
-	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
-	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+	type VestingBlockNumber = relay_chain::BlockNumber;
+	type VestingBlockProvider = RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = pallet_crowdloan_rewards::weights::SubstrateWeight<Runtime>;
 }
 
@@ -966,10 +986,15 @@ impl Contains<Call> for NormalFilter {
 			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
 				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
 				_ => true,
 			},
+			// We filter EVM calls as allowing these calls can cause potential attack vectors
+			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// See https://github.com/PureStake/sr-moonbeam/issues/30
+			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
+			// this can be seen as an additional security
+			Call::EVM(_) => false,
 			_ => true,
 		}
 	}
@@ -1085,6 +1110,49 @@ impl pallet_moonbeam_orbiters::Config for Runtime {
 	type WeightInfo = pallet_moonbeam_orbiters::weights::SubstrateWeight<Runtime>;
 }
 
+/// Only callable after `set_validation_data` is called which forms this proof the same way
+fn relay_chain_state_proof() -> RelayChainStateProof {
+	let relay_storage_root = ParachainSystem::validation_data()
+		.expect("set in `set_validation_data`")
+		.relay_parent_storage_root;
+	let relay_chain_state =
+		ParachainSystem::relay_state_proof().expect("set in `set_validation_data`");
+	RelayChainStateProof::new(ParachainInfo::get(), relay_storage_root, relay_chain_state)
+		.expect("Invalid relay chain state proof, already constructed in `set_validation_data`")
+}
+
+pub struct BabeDataGetter;
+impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
+	// Tolerate panic here because only ever called in inherent (so can be omitted)
+	fn get_epoch_index() -> u64 {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
+			.ok()
+			.flatten()
+			.expect("expected to be able to read epoch index from relay chain state proof")
+	}
+	fn get_epoch_randomness() -> Option<Hash> {
+		relay_chain_state_proof()
+			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
+			.ok()
+			.flatten()
+	}
+}
+
+impl pallet_randomness::Config for Runtime {
+	type Event = Event;
+	type AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
+	type Currency = Balances;
+	type BabeDataGetter = BabeDataGetter;
+	type VrfKeyLookup = AuthorMapping;
+	type Deposit = ConstU128<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type MaxRandomWords = ConstU8<100>;
+	type MinBlockDelay = ConstU32<2>;
+	type MaxBlockDelay = ConstU32<2_000>;
+	type BlockExpirationDelay = ConstU32<10_000>;
+	type EpochExpirationDelay = ConstU64<10_000>;
+}
+
 construct_runtime! {
 	pub enum Runtime where
 		Block = Block,
@@ -1134,6 +1202,8 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechCommitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+		TreasuryCouncilCollective:
+			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,
@@ -1151,6 +1221,9 @@ construct_runtime! {
 		XTokens: orml_xtokens::{Pallet, Call, Storage, Event<T>} = 106,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>} = 107,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
+
+		// Randomness
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
 	}
 }
 
@@ -1196,18 +1269,6 @@ pub type Executive = frame_executive::Executive<
 // }
 // ```
 moonbeam_runtime_common::impl_runtime_apis_plus_common! {
-	impl session_keys_primitives::VrfApi<Block> for Runtime {
-		fn get_last_vrf_output() -> Option<<Block as BlockT>::Hash> {
-			None
-		}
-		fn vrf_key_lookup(
-			nimbus_id: nimbus_primitives::NimbusId
-		) -> Option<session_keys_primitives::VrfId> {
-			use session_keys_primitives::KeysLookup;
-			AuthorMapping::lookup_keys(&nimbus_id)
-		}
-	}
-
 	impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
 		fn validate_transaction(
 			source: TransactionSource,

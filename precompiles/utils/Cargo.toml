@@ -6,6 +6,7 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
+affix = "0.1.2"
 hex = { version = "0.4.3", default-features = false }
 impl-trait-for-tuples = "0.2.2"
 log = "0.4"
@@ -25,7 +26,7 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Frontier
-evm = { git = "https://github.com/rust-blockchain/evm", rev = "51b8c2ce3104265e1fd5bb0fe5cdfd2e0938239c", default-features = false, features = [ "with-codec" ] }
+evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false, features = [ "with-codec" ] }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
