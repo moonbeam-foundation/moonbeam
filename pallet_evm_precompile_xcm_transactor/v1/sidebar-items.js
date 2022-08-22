@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Action",""]],"struct":[["XcmTransactorWrapperV1","A precompile to wrap the functionality from xcm transactor"]]});

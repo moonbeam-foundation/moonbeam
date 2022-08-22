@@ -3,17 +3,23 @@
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../pallet_xcm_transactor/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"><a href="#">Crate pallet_xcm_transactor</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.1.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li></ul></div></section><div id="sidebar-vars" data-name="pallet_xcm_transactor" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../pallet_xcm_transactor/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">pallet_xcm_transactor</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/pallet_xcm_transactor/lib.rs.html#17-988">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="xcm-transactor-module"><a href="#xcm-transactor-module">Xcm Transactor Module</a></h2><h3 id="overview"><a href="#overview">Overview</a></h3>
+        </a><h2 class="location"><a href="#">Crate pallet_xcm_transactor</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.2.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li></ul></div></section><div id="sidebar-vars" data-name="pallet_xcm_transactor" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../pallet_xcm_transactor/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">pallet_xcm_transactor</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/pallet_xcm_transactor/lib.rs.html#17-1022">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="xcm-transactor-module"><a href="#xcm-transactor-module">Xcm Transactor Module</a></h2><h3 id="overview"><a href="#overview">Overview</a></h3>
 <p>Module to provide transact capabilities on other chains</p>
-<p>For the transaction to successfully be dispatched in the destination chain, pallet-utility
-needs to be installed and at least paid xcm message execution should be allowed (and
-WithdrawAsset,BuyExecution and Transact messages allowed) in the destination chain</p>
-<p>In this pallet we will make distinctions between sovereign
-and derivative accounts. The first is the account the parachain controls
-in the destination chain, while the latter is an account derived from the
-sovereign account itself, e.g., by hashing it with an index. Such distinction
-is important since we want to keep the integrity of the sovereign account</p>
+<p>In this pallet we will make distinctions between sovereign, derivative accounts and
+multilocation-based derived accounts. The first is the account the parachain controls
+in the destination chain, the second is an account derived from the
+sovereign account itself, e.g., by hashing it with an index, while the third is an account
+derived from the multilocation of a use in this chain (tipically, hashing the ML).
+Such distinction is important since we want to keep the integrity of the sovereign account</p>
+<p>This pallet provides three ways of sending Transact operations to anothe chain</p>
+<ul>
+<li>
+<p>transact_through_derivative: Transact through an address derived from this chains sovereign
+account in the destination chain. For the transaction to successfully be dispatched in the
+destination chain, pallet-utility needs to be installed and at least paid xcm message
+execution should be allowed (and WithdrawAsset,BuyExecution and Transact messages allowed)
+in the destination chain</p>
 <p>The transactions are dispatched from a derivative account
 of the sovereign account
 This pallet only stores the index of the derivative account used, but
@@ -26,6 +32,23 @@ account itself.</p>
 <p>Index registration happens through DerivativeAddressRegistrationOrigin.
 This derivative account can be funded by external users to
 ensure it has enough funds to make the calls</p>
+</li>
+<li>
+<p>transact_through_sovereign: Transact through the sovereign account representing this chain.
+For the transaction to successfully be dispatched in the destination chain, at least paid
+xcm message execution should be allowed (and WithdrawAsset,BuyExecution and Transact
+messages allowed) in the destination chain. Only callable by Root</p>
+</li>
+<li>
+<p>transact_through_signed: Transact through an account derived from the multilocation
+representing the signed user making the call. We ensure this by prepending DescendOrigin as
+the first instruction of the XCM message. For the transaction to successfully be dispatched
+in the destination chain, at least descended paid xcm message execution should be allowed
+(and DescendOrigin + WithdrawAsset + BuyExecution + Transact messages allowed) in the
+destination chain. Additionally, a ML-based derivation mechanism needs to be implemented
+in the destination chain.</p>
+</li>
+</ul>
 </div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use <a class="mod" href="pallet/index.html" title="mod pallet_xcm_transactor::pallet">pallet</a>::*;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="migrations/index.html" title="pallet_xcm_transactor::migrations mod">migrations</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="pallet/index.html" title="pallet_xcm_transactor::pallet mod">pallet</a></div><div class="item-right docblock-short"><p>The module that hosts all the
