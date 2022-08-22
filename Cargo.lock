@@ -7245,7 +7245,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-evm-precompile-xcm-transactor"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
@@ -7681,6 +7681,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex",
  "log",
  "nimbus-primitives",
  "pallet-author-mapping",
@@ -7975,7 +7976,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-xcm-transactor"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "frame-benchmarking",

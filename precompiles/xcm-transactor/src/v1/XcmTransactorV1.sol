@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 /// @title Xcm Transactor Interface
 /// The interface through which solidity contracts will interact with xcm transactor pallet
 /// @custom:address 0x0000000000000000000000000000000000000806
-interface XcmTransactor {
+interface XcmTransactorV1 {
     // A multilocation is defined by its number of parents and the encoded junctions (interior)
     struct Multilocation {
         uint8 parents;
@@ -15,7 +15,8 @@ interface XcmTransactor {
     /// @custom:selector 3fdc4f36
     /// @param index The index of which we want to retrieve the account
     /// @return owner The owner of the derivative index
-    function indexToAccount(uint16 index) external view returns (address owner);
+    ///
+    function indexToAccount(uint16 index) external view returns(address owner);
 
     /// DEPRECATED, replaced by transactInfoWithSigned
     /// Get transact info of a multilocation
@@ -24,6 +25,7 @@ interface XcmTransactor {
     /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
     /// @return feePerSecond The amount of fee charged for a second of execution in the dest
     /// @return maxWeight Maximum allowed weight for a single message in dest
+    ///
     function transactInfo(Multilocation memory multilocation)
         external
         view
@@ -39,6 +41,7 @@ interface XcmTransactor {
     /// @return transactExtraWeight The extra weight involved in the XCM message of using derivative
     /// @return transactExtraWeightSigned The extra weight involved in the XCM message of using signed
     /// @return maxWeight Maximum allowed weight for a single message in dest
+    ///
     function transactInfoWithSigned(Multilocation memory multilocation)
         external
         view
@@ -52,6 +55,7 @@ interface XcmTransactor {
     /// @custom:selector 906c9990
     /// @param multilocation The asset location for which we want to know the fee per second value
     /// @return feePerSecond The fee per second that the reserve chain charges for this asset
+    ///
     function feePerSecond(Multilocation memory multilocation)
         external
         view
@@ -62,7 +66,7 @@ interface XcmTransactor {
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param transactor The transactor to be used
     /// @param index The index to be used
-    /// @param feeAsset The asset in which we want to pay fees.
+    /// @param feeAsset The asset in which we want to pay fees. 
     /// It has to be a reserve of the destination chain
     /// @param weight The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain

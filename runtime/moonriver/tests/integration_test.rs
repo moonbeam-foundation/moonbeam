@@ -41,12 +41,14 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xcm_transactor::v1::Action as XcmTransactorActionV1;
 use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::{prelude::*, testing::*};
@@ -56,6 +58,7 @@ use sp_runtime::{
 	traits::{Convert, One},
 	DispatchError, ModuleError, TokenError,
 };
+use std::str::from_utf8;
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
@@ -2329,14 +2332,22 @@ fn transactor_cannot_use_more_than_max_weight() {
 			));
 
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					// 2000 is the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![],
+					// 2000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2345,14 +2356,77 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonriver_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonriver_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
-					// 20000 is the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
+						fee_amount: None
+					},
 					vec![],
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
+}
+
+#[test]
+fn transact_through_signed_precompile_not_enabled() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * MOVR),
+			(AccountId::from(BOB), 1_000 * MOVR),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				Some(4000)
+			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1,
+			));
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v1_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV1::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(15000))
+					.write(bytes)
+					.build(),
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						&& from_utf8(&output).unwrap().contains("CallFiltered")
+				});
+		});
 }
 
 #[test]
@@ -2395,13 +2469,19 @@ fn transact_through_signed_mult_not_enabled() {
 
 			assert_noop!(
 				Call::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed_multilocation {
+					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee_location: Box::new(xcm::VersionedMultiLocation::V1(
-							MultiLocation::parent()
-						)),
-						dest_weight: 11000,
+						fee: CurrencyPayment {
+							currency: Currency::AsMultiLocation(Box::new(
+								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+							)),
+							fee_amount: None
+						},
 						call: vec![],
+						weight_info: TransactWeights {
+							transact_required_weight_at_most: 11000,
+							overall_weight: None
+						}
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2457,9 +2537,15 @@ fn transact_through_signed_not_enabled() {
 				Call::XcmTransactor(
 					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
 						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee_currency_id: CurrencyId::ForeignAsset(source_id),
-						dest_weight: 11000,
+						fee: CurrencyPayment {
+							currency: Currency::AsCurrencyId(CurrencyId::ForeignAsset(source_id)),
+							fee_amount: None
+						},
 						call: vec![],
+						weight_info: TransactWeights {
+							transact_required_weight_at_most: 11000,
+							overall_weight: None
+						}
 					}
 				)
 				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
@@ -2600,7 +2686,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2060, 2058, 2061, 2062,
+			2055, 2056, 2058, 2060, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
