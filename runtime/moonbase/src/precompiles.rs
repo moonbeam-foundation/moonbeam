@@ -34,7 +34,9 @@ use pallet_evm_precompile_randomness::RandomnessWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xcm_transactor::{
+	v1::XcmTransactorWrapperV1, v2::XcmTransactorWrapperV2,
+};
 use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
@@ -115,13 +117,14 @@ pub type MoonbasePrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2051>, DemocracyWrapper<R>>,
 				PrecompileAt<AddressU64<2052>, XtokensWrapper<R>>,
 				PrecompileAt<AddressU64<2053>, RelayEncoderWrapper<R, WestendEncoder>>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
+				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
 				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
 				PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>,
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
+				PrecompileAt<AddressU64<2061>, XcmTransactorWrapperV2<R>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)
