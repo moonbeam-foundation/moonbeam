@@ -1720,6 +1720,12 @@
 <span id="1715">1715</span>
 <span id="1716">1716</span>
 <span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2943,16 +2949,20 @@
 			});
 			<span class="prelude-val">Ok</span>(().<span class="ident">into</span>())
 		}
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_leave_delegators</span>())]</span>
+
+		<span class="doccomment">/// DEPRECATED use batch util with schedule_revoke_delegation for all delegations</span>
 		<span class="doccomment">/// Request to leave the set of delegators. If successful, the caller is scheduled to be</span>
 		<span class="doccomment">/// allowed to exit via a [DelegationAction::Revoke] towards all existing delegations.</span>
 		<span class="doccomment">/// Success forbids future delegation requests until the request is invoked or cancelled.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::schedule_leave_delegators</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="ident"><span class="self">Self</span>::delegator_schedule_revoke_all</span>(<span class="ident">delegator</span>)
 		}
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::execute_leave_delegators</span>(<span class="kw-2">*</span><span class="ident">delegation_count</span>))]</span>
+
+		<span class="doccomment">/// DEPRECATED use batch util with execute_delegation_request for all delegations</span>
 		<span class="doccomment">/// Execute the right to exit the set of delegators and revoke all ongoing delegations.</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::execute_leave_delegators</span>(<span class="kw-2">*</span><span class="ident">delegation_count</span>))]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_leave_delegators</span>(
 			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 			<span class="ident">delegator</span>: <span class="ident">T::AccountId</span>,
@@ -2961,9 +2971,11 @@
 			<span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="ident"><span class="self">Self</span>::delegator_execute_scheduled_revoke_all</span>(<span class="ident">delegator</span>, <span class="ident">delegation_count</span>)
 		}
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_leave_delegators</span>())]</span>
+
+		<span class="doccomment">/// DEPRECATED use batch util with cancel_delegation_request for all delegations</span>
 		<span class="doccomment">/// Cancel a pending request to exit the set of delegators. Success clears the pending exit</span>
 		<span class="doccomment">/// request (thereby resetting the delay upon another `leave_delegators` call).</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::cancel_leave_delegators</span>())]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 			<span class="ident"><span class="self">Self</span>::delegator_cancel_scheduled_revoke_all</span>(<span class="ident">delegator</span>)

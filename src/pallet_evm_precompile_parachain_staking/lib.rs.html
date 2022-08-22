@@ -886,6 +886,8 @@
 <span id="881">881</span>
 <span id="882">882</span>
 <span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -951,14 +953,16 @@
 	<span class="ident">ExecuteCandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;executeCandidateBondLess(address)&quot;</span>,
 	<span class="ident">CancelCandidateBondLess</span> <span class="op">=</span> <span class="string">&quot;cancelCandidateBondLess()&quot;</span>,
 	<span class="ident">Delegate</span> <span class="op">=</span> <span class="string">&quot;delegate(address,uint256,uint256,uint256)&quot;</span>,
-	<span class="ident">ScheduleLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;scheduleLeaveDelegators()&quot;</span>,
-	<span class="ident">ExecuteLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;executeLeaveDelegators(address,uint256)&quot;</span>,
-	<span class="ident">CancelLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;cancelLeaveDelegators()&quot;</span>,
 	<span class="ident">ScheduleRevokeDelegation</span> <span class="op">=</span> <span class="string">&quot;scheduleRevokeDelegation(address)&quot;</span>,
 	<span class="ident">ScheduleDelegatorBondLess</span> <span class="op">=</span> <span class="string">&quot;scheduleDelegatorBondLess(address,uint256)&quot;</span>,
 	<span class="ident">DelegatorBondMore</span> <span class="op">=</span> <span class="string">&quot;delegatorBondMore(address,uint256)&quot;</span>,
 	<span class="ident">ExecuteDelegationRequest</span> <span class="op">=</span> <span class="string">&quot;executeDelegationRequest(address,address)&quot;</span>,
 	<span class="ident">CancelDelegationRequest</span> <span class="op">=</span> <span class="string">&quot;cancelDelegationRequest(address)&quot;</span>,
+
+	<span class="comment">// deprecated in favor of batch util</span>
+	<span class="ident">ScheduleLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;scheduleLeaveDelegators()&quot;</span>,
+	<span class="ident">ExecuteLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;executeLeaveDelegators(address,uint256)&quot;</span>,
+	<span class="ident">CancelLeaveDelegators</span> <span class="op">=</span> <span class="string">&quot;cancelLeaveDelegators()&quot;</span>,
 
 	<span class="comment">// deprecated</span>
 	<span class="ident">DeprecatedMinDelegation</span> <span class="op">=</span> <span class="string">&quot;min_delegation()&quot;</span>,
