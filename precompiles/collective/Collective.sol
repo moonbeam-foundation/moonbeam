@@ -7,6 +7,7 @@ pragma solidity >=0.8.0;
 interface Collective {
     /// @dev Execute a proposal as a single member of the collective.
     /// The sender must be a member of the collective.
+    /// This will NOT revert if the Substrate proposal is dispatched but fails !
     ///
     /// @param proposal SCALE-encoded Substrate call.
     ///
