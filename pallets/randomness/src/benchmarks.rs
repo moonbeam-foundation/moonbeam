@@ -58,6 +58,7 @@ benchmarks! {
 	set_babe_randomness_results {
 		// set the current relay epoch as 9, `get_epoch_index` configured to return 10
 		const BENCHMARKING_OLD_EPOCH: u64 = 9u64;
+		RelayEpoch::<T>::put(BENCHMARKING_OLD_EPOCH);
 		let benchmarking_babe_output = T::Hash::default();
 		let benchmarking_new_epoch = BENCHMARKING_OLD_EPOCH.saturating_add(1u64);
 		RandomnessResults::<T>::insert(
