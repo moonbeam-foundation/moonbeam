@@ -451,7 +451,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -465,8 +464,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_author_inherent, PalletAuthorInherent::<Runtime>);
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
-
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
@@ -493,7 +490,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -603,7 +599,6 @@ macro_rules! impl_runtime_apis_plus_common {
 						XcmTransactorBench::<Runtime>
 					);
 
-					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					add_benchmark!(
 						params,
 						batches,
