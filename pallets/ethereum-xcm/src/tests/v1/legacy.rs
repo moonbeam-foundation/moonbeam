@@ -45,10 +45,7 @@ const CONTRACT: &str = "608060405234801561001057600080fd5b5061011380610020600039
 
 fn xcm_evm_transfer_legacy_transaction(destination: H160, value: U256) -> EthereumXcmTransaction {
 	EthereumXcmTransaction::V1(EthereumXcmTransactionV1 {
-		fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-			gas_price: Some(U256::from(1)),
-			max_fee_per_gas: None,
-		}),
+		fee_payment: EthereumXcmFee::Auto,
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
@@ -223,4 +220,97 @@ fn test_transact_xcm_validation_works() {
 			}
 		);
 	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_no_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_legacy_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_error() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let _ = Proxy::add_proxy_delegate(
+			&bob.account_id,
+			alice.account_id.clone(),
+			ProxyType::NotAllowed,
+			0,
+		);
+		let r = EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_legacy_transaction(bob.address, U256::from(100)),
+		);
+		assert!(r.is_err());
+		assert_eq!(
+			r.unwrap_err().error,
+			sp_runtime::DispatchError::Other("proxy error: expected `ProxyType::Any`"),
+		);
+	});
+}
+
+#[test]
+fn test_ensure_transact_xcm_trough_proxy_ok() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	let allowed_proxies = vec![ProxyType::Any];
+
+	for proxy in allowed_proxies.into_iter() {
+		ext.execute_with(|| {
+			let _ = Proxy::add_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
+			let alice_before = System::account(&alice.account_id);
+			let bob_before = System::account(&bob.account_id);
+			let charlie_before = System::account(&charlie.account_id);
+
+			let r = EthereumXcm::transact_through_proxy(
+				RawOrigin::XcmEthereumTransaction(alice.address).into(),
+				bob.address,
+				xcm_evm_transfer_legacy_transaction(charlie.address, U256::from(100)),
+			);
+			// Transact succeeded
+			assert!(r.is_ok());
+
+			let alice_after = System::account(&alice.account_id);
+			let bob_after = System::account(&bob.account_id);
+			let charlie_after = System::account(&charlie.account_id);
+
+			// Alice remains unchanged
+			assert_eq!(alice_before, alice_after);
+
+			// Bob nonce was increased
+			assert_eq!(bob_after.nonce, bob_before.nonce + 1);
+
+			// Bob sent some funds without paying any fees
+			assert_eq!(bob_after.data.free, bob_before.data.free - 100);
+
+			// Charlie receive some funds
+			assert_eq!(charlie_after.data.free, charlie_before.data.free + 100);
+
+			// Clear proxy
+			let _ =
+				Proxy::remove_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
+		});
+	}
 }

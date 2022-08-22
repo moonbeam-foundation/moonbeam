@@ -27,7 +27,7 @@ use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::U256;
 
@@ -55,7 +55,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -64,17 +64,17 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
-	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
-	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
-	assert_eq!(Action::RemoveKeys as u32, 0x3b6c4284);
-	assert_eq!(Action::SetKeys as u32, 0xbcb24ddc);
+	assert_eq!(Action::AddAssociation as u32, 0xef8b6cd8);
+	assert_eq!(Action::UpdateAssociation as u32, 0x25a39da5);
+	assert_eq!(Action::ClearAssociation as u32, 0x448b54d6);
+	assert_eq!(Action::RemoveKeys as u32, 0xa36fee17);
+	assert_eq!(Action::SetKeys as u32, 0xf1ec919c);
 }
 
 #[test]
@@ -299,9 +299,14 @@ fn set_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
+			// Create input with keys inside a Solidity bytes.
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([2u8; 32]))
-				.write(sp_core::H256::from([4u8; 32]))
+				.write(Bytes(
+					EvmDataWriter::new()
+						.write(sp_core::H256::from([2u8; 32]))
+						.write(sp_core::H256::from([4u8; 32]))
+						.build(),
+				))
 				.build();
 
 			// Make sure the call goes through successfully
@@ -335,4 +340,29 @@ fn set_keys_works() {
 				]
 			);
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["AuthorMappingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

@@ -51,6 +51,9 @@ pub const SELECTOR_LOG_TRANSFER: [u8; 32] = keccak256!("Transfer(address,address
 /// Solidity selector of the Approval log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_APPROVAL: [u8; 32] = keccak256!("Approval(address,address,uint256)");
 
+/// Length limit of strings (symbol and name).
+type GetAssetsStringLimit<R, I> = <R as pallet_assets::Config<I>>::StringLimit;
+
 /// Alias for the Balance type for the provided Runtime and Instance.
 pub type BalanceOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<Instance>>::Balance;
 
@@ -77,16 +80,24 @@ pub enum Action {
 	Burn = "burn(address,uint256)",
 	Freeze = "freeze(address)",
 	Thaw = "thaw(address)",
-	FreezeAsset = "freeze_asset()",
-	ThawAsset = "thaw_asset()",
-	TransferOwnership = "transfer_ownership(address)",
-	SetTeam = "set_team(address,address,address)",
-	SetMetadata = "set_metadata(string,string,uint8)",
-	ClearMetadata = "clear_metadata()",
+	FreezeAsset = "freezeAsset()",
+	ThawAsset = "thawAsset()",
+	TransferOwnership = "transferOwnership(address)",
+	SetTeam = "setTeam(address,address,address)",
+	SetMetadata = "setMetadata(string,string,uint8)",
+	ClearMetadata = "clearMetadata()",
 	// EIP 2612
 	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
 	Eip2612Nonces = "nonces(address)",
 	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
+
+	// deprecated
+	DeprecatedFreezeAsset = "freeze_asset()",
+	DeprecatedThawAsset = "thaw_asset()",
+	DeprecatedTransferOwnership = "transfer_ownership(address)",
+	DeprecatedSetTeam = "set_team(address,address,address)",
+	DeprecatedSetMetadata = "set_metadata(string,string,uint8)",
+	DeprecatedClearMetadata = "clear_metadata()",
 }
 
 /// This trait ensure we can convert AccountIds to AssetIds
@@ -157,7 +168,7 @@ where
 				let result = {
 					let selector = match handle.read_selector() {
 						Ok(selector) => selector,
-						Err(e) => return Some(Err(e)),
+						Err(e) => return Some(Err(e.into())),
 					};
 
 					if let Err(err) = handle.check_function_modifier(match selector {
@@ -166,7 +177,7 @@ where
 						}
 						_ => FunctionModifier::View,
 					}) {
-						return Some(Err(err));
+						return Some(Err(err.into()));
 					}
 
 					match selector {
@@ -185,12 +196,24 @@ where
 						Action::Burn => Self::burn(asset_id, handle),
 						Action::Freeze => Self::freeze(asset_id, handle),
 						Action::Thaw => Self::thaw(asset_id, handle),
-						Action::FreezeAsset => Self::freeze_asset(asset_id, handle),
-						Action::ThawAsset => Self::thaw_asset(asset_id, handle),
-						Action::TransferOwnership => Self::transfer_ownership(asset_id, handle),
-						Action::SetTeam => Self::set_team(asset_id, handle),
-						Action::SetMetadata => Self::set_metadata(asset_id, handle),
-						Action::ClearMetadata => Self::clear_metadata(asset_id, handle),
+						Action::FreezeAsset | Action::DeprecatedFreezeAsset => {
+							Self::freeze_asset(asset_id, handle)
+						}
+						Action::ThawAsset | Action::DeprecatedThawAsset => {
+							Self::thaw_asset(asset_id, handle)
+						}
+						Action::TransferOwnership | Action::DeprecatedTransferOwnership => {
+							Self::transfer_ownership(asset_id, handle)
+						}
+						Action::SetTeam | Action::DeprecatedSetTeam => {
+							Self::set_team(asset_id, handle)
+						}
+						Action::SetMetadata | Action::DeprecatedSetMetadata => {
+							Self::set_metadata(asset_id, handle)
+						}
+						Action::ClearMetadata | Action::DeprecatedClearMetadata => {
+							Self::clear_metadata(asset_id, handle)
+						}
 						Action::Eip2612Permit => {
 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
 						}
@@ -252,10 +275,6 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Parse input.
-		let input = handle.read_input()?;
-		input.expect_arguments(0)?;
-
 		// Fetch info.
 		let amount: U256 =
 			pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into();
@@ -270,16 +289,13 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		let owner: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { who: Address });
+		let who: H160 = who.into();
 
 		// Fetch info.
 		let amount: U256 = {
-			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
-			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &owner).into()
+			let who: Runtime::AccountId = Runtime::AddressMapping::into_account_id(who);
+			pallet_assets::Pallet::<Runtime, Instance>::balance(asset_id, &who).into()
 		};
 
 		// Build output.
@@ -292,12 +308,9 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Read input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
+		read_args!(handle, {owner: Address, spender: Address});
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		// Fetch info.
 		let amount: U256 = {
@@ -318,21 +331,17 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
+		read_args!(handle, {spender: Address, value: U256});
+		let spender: H160 = spender.into();
 
-		let spender: H160 = input.read::<Address>()?.into();
-		let amount: U256 = input.read()?;
-
-		Self::approve_inner(asset_id, handle, handle.context().caller, spender, amount)?;
+		Self::approve_inner(asset_id, handle, handle.context().caller, spender, value)?;
 
 		log3(
 			handle.context().address,
 			SELECTOR_LOG_APPROVAL,
 			handle.context().caller,
 			spender,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -387,12 +396,8 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
+		let to: H160 = to.into();
 
 		// Build call with origin.
 		{
@@ -406,7 +411,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::transfer {
 					id: asset_id,
 					target: Runtime::Lookup::unlookup(to),
-					amount,
+					amount: value,
 				},
 			)?;
 		}
@@ -416,7 +421,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			handle.context().caller,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -430,12 +435,16 @@ where
 	) -> EvmResult<PrecompileOutput> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-		let from: H160 = input.read::<Address>()?.into();
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		read_args!(
+			handle,
+			{
+				from: Address,
+				to: Address,
+				value: BalanceOf<Runtime, Instance>
+			}
+		);
+		let from: H160 = from.into();
+		let to: H160 = to.into();
 
 		{
 			let caller: Runtime::AccountId =
@@ -453,7 +462,7 @@ where
 						id: asset_id,
 						owner: Runtime::Lookup::unlookup(from),
 						destination: Runtime::Lookup::unlookup(to),
-						amount,
+						amount: value,
 					},
 				)?;
 			} else {
@@ -464,7 +473,7 @@ where
 					pallet_assets::Call::<Runtime, Instance>::transfer {
 						id: asset_id,
 						target: Runtime::Lookup::unlookup(to),
-						amount,
+						amount: value,
 					},
 				)?;
 			}
@@ -475,7 +484,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			from,
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -541,17 +550,13 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
+		let to: H160 = to.into();
 
 		// Build call with origin.
 		{
@@ -565,7 +570,7 @@ where
 				pallet_assets::Call::<Runtime, Instance>::mint {
 					id: asset_id,
 					beneficiary: Runtime::Lookup::unlookup(to),
-					amount,
+					amount: value,
 				},
 			)?;
 		}
@@ -575,7 +580,7 @@ where
 			SELECTOR_LOG_TRANSFER,
 			H160::default(),
 			to,
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -588,22 +593,18 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(2)?;
-
-		let to: H160 = input.read::<Address>()?.into();
-		let amount = input.read::<BalanceOf<Runtime, Instance>>()?;
+		read_args!(handle, {from: Address, value: BalanceOf<Runtime, Instance>});
+		let from: H160 = from.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let from = Runtime::AddressMapping::into_account_id(from);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -611,8 +612,8 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::burn {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
-					amount,
+					who: Runtime::Lookup::unlookup(from),
+					amount: value,
 				},
 			)?;
 		}
@@ -620,9 +621,9 @@ where
 		log3(
 			handle.context().address,
 			SELECTOR_LOG_TRANSFER,
-			to,
+			from,
 			H160::default(),
-			EvmDataWriter::new().write(amount).build(),
+			EvmDataWriter::new().write(value).build(),
 		)
 		.record(handle)?;
 
@@ -635,19 +636,16 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		let to: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { account: Address });
+		let account: H160 = account.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let account = Runtime::AddressMapping::into_account_id(account);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -655,7 +653,7 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::freeze {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
+					who: Runtime::Lookup::unlookup(account),
 				},
 			)?;
 		}
@@ -669,19 +667,16 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		let to: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { account: Address });
+		let account: H160 = account.into();
 
 		// Build call with origin.
 		{
 			let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-			let to = Runtime::AddressMapping::into_account_id(to);
+			let account = Runtime::AddressMapping::into_account_id(account);
 
 			// Dispatch call (if enough gas).
 			RuntimeHelper::<Runtime>::try_dispatch(
@@ -689,7 +684,7 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::thaw {
 					id: asset_id,
-					who: Runtime::Lookup::unlookup(to),
+					who: Runtime::Lookup::unlookup(account),
 				},
 			)?;
 		}
@@ -703,7 +698,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.
@@ -727,7 +722,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.
@@ -751,14 +746,11 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		let owner: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { owner: Address });
+		let owner: H160 = owner.into();
 
 		// Build call with origin.
 		{
@@ -785,16 +777,13 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
-		let issuer: H160 = input.read::<Address>()?.into();
-		let admin: H160 = input.read::<Address>()?.into();
-		let freezer: H160 = input.read::<Address>()?.into();
+		read_args!(handle, {issuer: Address, admin: Address, freezer: Address});
+		let issuer: H160 = issuer.into();
+		let admin: H160 = admin.into();
+		let freezer: H160 = freezer.into();
 
 		// Build call with origin.
 		{
@@ -825,16 +814,14 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		// Parse input.
-		let mut input = handle.read_input()?;
-		input.expect_arguments(3)?;
-
-		let name: Bytes = input.read::<Bytes>()?.into();
-		let symbol: Bytes = input.read::<Bytes>()?.into();
-		let decimals: u8 = input.read::<u8>()?.into();
+		read_args!(handle, {
+			name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
+			symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
+			decimals: u8
+		});
 
 		// Build call with origin.
 		{
@@ -846,8 +833,8 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::set_metadata {
 					id: asset_id,
-					name: name.into(),
-					symbol: symbol.into(),
+					name: name.into_vec(),
+					symbol: symbol.into_vec(),
 					decimals,
 				},
 			)?;
@@ -862,7 +849,7 @@ where
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<PrecompileOutput> {
 		if !IsLocal::get() {
-			return Err(revert("unknown selector"));
+			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		// Build call with origin.

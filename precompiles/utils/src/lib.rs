@@ -24,6 +24,7 @@ pub mod handle;
 pub mod logs;
 pub mod modifier;
 pub mod precompile_set;
+pub mod revert;
 pub mod substrate;
 
 #[cfg(feature = "testing")]
@@ -35,45 +36,30 @@ pub mod testing;
 #[cfg(test)]
 mod tests;
 
-use crate::alloc::borrow::ToOwned;
-use fp_evm::{
-	ExitError, ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput,
-};
+use crate::alloc::{borrow::ToOwned, vec::Vec};
+use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
 
 pub mod data;
-use data::{Bytes, EvmDataWriter};
 
-// pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
-// pub use fp_evm::Precompile;
-// pub use precompile_utils_macro::{generate_function_selector, keccak256};
+pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use fp_evm::Precompile;
+pub use precompile_utils_macro::{generate_function_selector, keccak256};
 
-/// Return an error with provided (static) text.
-/// Using the `revert` function of `Gasometer` is preferred as erroring
-/// consumed all the gas limit and the error message is not easily
-/// retrievable.
-#[must_use]
-pub fn error<T: Into<alloc::borrow::Cow<'static, str>>>(text: T) -> PrecompileFailure {
-	PrecompileFailure::Error {
-		exit_status: ExitError::Other(text.into()),
-	}
-}
-
-/// Generic error to build abi-encoded revert output.
-/// See: https://docs.soliditylang.org/en/latest/control-structures.html?highlight=revert#revert
-#[precompile_utils_macro::generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Error {
-	Generic = "Error(string)",
-}
-
+/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
+/// If the revert needs improved formatting such as backtraces, `Revert` type should
+/// be used instead.
 #[must_use]
 pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
 	PrecompileFailure::Revert {
 		exit_status: ExitRevert::Reverted,
-		output: EvmDataWriter::new_with_selector(Error::Generic)
-			.write::<Bytes>(Bytes(output.as_ref().to_owned()))
-			.build(),
+		output: encoded_revert(output),
 	}
+}
+
+pub fn encoded_revert(output: impl AsRef<[u8]>) -> Vec<u8> {
+	EvmDataWriter::new_with_selector(revert::RevertSelector::Generic)
+		.write::<Bytes>(Bytes(output.as_ref().to_owned()))
+		.build()
 }
 
 #[must_use]
@@ -102,12 +88,14 @@ pub trait StatefulPrecompile {
 pub mod prelude {
 	pub use {
 		crate::{
-			data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter},
-			error,
+			data::{
+				Address, BoundedBytes, BoundedVec, Bytes, EvmData, EvmDataReader, EvmDataWriter,
+			},
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
-			revert,
+			read_args, read_struct, revert,
+			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
 			substrate::RuntimeHelper,
 			succeed, EvmResult, StatefulPrecompile,
 		},

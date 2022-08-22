@@ -530,7 +530,7 @@ describeDevMoonbeam(
   "Trace (call list)",
   (context) => {
     it("should correctly trace subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
@@ -539,10 +539,8 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("MultiplyBy7")).contract.abi
-      );
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -576,7 +574,7 @@ describeDevMoonbeam(
     });
 
     it("should correctly trace delegatecall subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
@@ -585,10 +583,8 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("MultiplyBy7")).contract.abi
-      );
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -624,7 +620,7 @@ describeDevMoonbeam(
     it("should correctly trace precompile subcall (call list)", async function () {
       this.timeout(10000);
 
-      const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
@@ -633,11 +629,9 @@ describeDevMoonbeam(
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface((await getCompiled("Proxy")).contract.abi);
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("MultiplyBy7")).contract.abi
-      );
-      const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
+      const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -715,9 +709,7 @@ describeDevMoonbeam("Raw trace limits", (context) => {
     const { contract: contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
     await context.createBlock(rawTx);
 
-    const contractInterface = new ethers.utils.Interface(
-      (await getCompiled("TraceFilter")).contract.abi
-    );
+    const contractInterface = new ethers.utils.Interface(getCompiled("TraceFilter").contract.abi);
 
     let callTx = await context.web3.eth.accounts.signTransaction(
       {

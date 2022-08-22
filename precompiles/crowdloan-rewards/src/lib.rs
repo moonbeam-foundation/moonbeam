@@ -47,10 +47,15 @@ pub type BalanceOf<Runtime> =
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
-	IsContributor = "is_contributor(address)",
-	RewardInfo = "reward_info(address)",
+	IsContributor = "isContributor(address)",
+	RewardInfo = "rewardInfo(address)",
 	Claim = "claim()",
-	UpdateRewardAddress = "update_reward_address(address)",
+	UpdateRewardAddress = "updateRewardAddress(address)",
+
+	// deprecated
+	DeprecatedIsContributor = "is_contributor(address)",
+	DeprecatedRewardInfo = "reward_info(address)",
+	DeprecatedUpdateRewardAddress = "update_reward_address(address)",
 }
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
@@ -68,16 +73,20 @@ where
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
-			Action::Claim | Action::UpdateRewardAddress => FunctionModifier::NonPayable,
+			Action::Claim | Action::UpdateRewardAddress | Action::DeprecatedUpdateRewardAddress => {
+				FunctionModifier::NonPayable
+			}
 			_ => FunctionModifier::View,
 		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
-			Action::IsContributor => Self::is_contributor(handle),
-			Action::RewardInfo => Self::reward_info(handle),
+			Action::IsContributor | Action::DeprecatedIsContributor => Self::is_contributor(handle),
+			Action::RewardInfo | Action::DeprecatedRewardInfo => Self::reward_info(handle),
 			Action::Claim => Self::claim(handle),
-			Action::UpdateRewardAddress => Self::update_reward_address(handle),
+			Action::UpdateRewardAddress | Action::DeprecatedUpdateRewardAddress => {
+				Self::update_reward_address(handle)
+			}
 		}
 	}
 }
@@ -94,12 +103,8 @@ where
 	fn is_contributor(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
-		// Bound check
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { contributor: Address });
+		let contributor: H160 = contributor.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -121,12 +126,8 @@ where
 	fn reward_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?; // accounts_payable
 
-		// Bound check
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		// parse the address
-		let contributor: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { contributor: Address });
+		let contributor: H160 = contributor.into();
 
 		let account = Runtime::AddressMapping::into_account_id(contributor);
 
@@ -143,11 +144,11 @@ where
 			let total_reward: u128 = reward_info
 				.total_reward
 				.try_into()
-				.map_err(|_| revert("Amount is too large for provided balance type"))?;
+				.map_err(|_| RevertReason::value_is_too_large("balance type"))?;
 			let claimed_reward: u128 = reward_info
 				.claimed_reward
 				.try_into()
-				.map_err(|_| revert("Amount is too large for provided balance type"))?;
+				.map_err(|_| RevertReason::value_is_too_large("balance type"))?;
 
 			(total_reward.into(), claimed_reward.into())
 		} else {
@@ -179,12 +180,8 @@ where
 			"In update_reward_address dispatchable wrapper"
 		);
 
-		// Bound check
-		let mut input = handle.read_input()?;
-		input.expect_arguments(1)?;
-
-		// parse the address
-		let new_address: H160 = input.read::<Address>()?.into();
+		read_args!(handle, { new_address: Address });
+		let new_address: H160 = new_address.into();
 
 		let new_reward_account = Runtime::AddressMapping::into_account_id(new_address);
 

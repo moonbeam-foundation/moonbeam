@@ -2,15 +2,17 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { baltathar } from "../../util/accounts";
+import { customWeb3Request } from "../../util/providers";
+import { alith, ALITH_PRIVATE_KEY, baltathar, generateKeyringPair } from "../../util/accounts";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
+import { EXTRINSIC_GAS_LIMIT } from "../../util/constants";
 
 describeDevMoonbeam(
   "Substrate Length Fees - Transaction (Moonbase)",
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(12772901520875n);
+      expect(fee).to.equal(20958001520875n);
     });
   },
   "Legacy",
@@ -22,7 +24,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have expensive runtime-upgrade fees", async () => {
       const fee = await testRuntimeUpgrade(context);
-      expect(fee).to.equal(9226793130623667008n);
+      expect(fee).to.equal(9226801315723667008n);
     });
   },
   "Legacy",
@@ -119,3 +121,65 @@ const testRuntimeUpgrade = async (context: DevTestContext) => {
   const fee = initialBalance - afterBalance;
   return fee;
 };
+
+describeDevMoonbeam("Substrate Length Fees - Ethereum txn Interaction", (context) => {
+  it("should not charge length fee for precompile from Ethereum txn", async () => {
+    // we use modexp here because it allows us to send large-ish transactions
+    const MODEXP_PRECOMPILE_ADDRESS = "0x0000000000000000000000000000000000000005";
+
+    // directly call the modexp precompile with a large txn. this precompile lets us do two things
+    // which are useful:
+    //
+    // 1. specify an input length up to 1024 for each of mod, exp, and base
+    // 2. returns early and uses little gas (200) if all ore 0
+    //
+    // This allows us to create an Ethereum transaction whose fee is largely made up of Ethereum's
+    // per-byte length fee (reminder: this is 4 gas for a 0 and 16 for any non-zero byte). What we
+    // want to show is that this length fee is applied but our exponential LengthToFee (part of our
+    // Substrate-based fees) is not applied.
+    const tx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: alith.address,
+        to: MODEXP_PRECOMPILE_ADDRESS,
+        gas: EXTRINSIC_GAS_LIMIT,
+        value: "0x00",
+        nonce: 0,
+        data:
+          "0x0000000000000000000000000000000000000000000000000000000000000004" + // base
+          "0000000000000000000000000000000000000000000000000000000000000004" + // exp
+          "0000000000000000000000000000000000000000000000000000000000000004" + // mod
+          "0".repeat(2048) + // 2048 hex nibbles -> 1024 bytes
+          "0".repeat(2048) +
+          "0".repeat(2048),
+      },
+      ALITH_PRIVATE_KEY
+    );
+
+    const result = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      tx.rawTransaction,
+    ]);
+
+    await context.createBlock();
+
+    const receipt = await context.web3.eth.getTransactionReceipt(result.result);
+    expect(receipt.status).to.be.true;
+
+    // rough math on what the exponential LengthToFee modifier would do to this:
+    // * input data alone is (3 * 1024) + (3 * 32) = 3168
+    // * 3168 ** 3 = 31_794_757_632
+    // * 31_794_757_632 / WEIGHT_PER_GAS = 1_271_790
+    //
+    // conclusion: the LengthToFee modifier is NOT involved
+
+    const expected = 33908;
+    expect(receipt.gasUsed).to.equal(expected);
+
+    // furthermore, we can account for the entire fee:
+    const non_zero_byte_fee = 3 * 16;
+    const zero_byte_fee = 3165 * 4;
+    const base_ethereum_fee = 21000;
+    const modexp_min_cost = 200; // see MIN_GAS_COST in frontier's modexp precompile
+    const entire_fee = non_zero_byte_fee + zero_byte_fee + base_ethereum_fee + modexp_min_cost;
+    expect(entire_fee).to.equal(expected);
+  });
+});

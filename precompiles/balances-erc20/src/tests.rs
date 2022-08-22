@@ -23,7 +23,7 @@ use crate::{
 };
 
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::testing::*;
+use precompile_utils::{solidity, testing::*};
 use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 
@@ -805,7 +805,7 @@ fn withdraw_more_than_owned() {
 						.write(U256::from(1001))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"trying to withdraw more than owned");
+				.execute_reverts(|output| output == b"Trying to withdraw more than owned");
 
 			// Check Alice balance is still 1000.
 			precompiles()
@@ -959,7 +959,7 @@ fn permit_invalid_nonce() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1025,7 +1025,7 @@ fn permit_invalid_signature() {
 						.write(H256::repeat_byte(0x11))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"invalid permit");
+				.execute_reverts(|output| output == b"Invalid permit");
 
 			precompiles()
 				.prepare_test(
@@ -1106,7 +1106,7 @@ fn permit_invalid_deadline() {
 						.write(H256::from(rs.s.b32()))
 						.build(),
 				)
-				.execute_reverts(|output| output == b"permit expired");
+				.execute_reverts(|output| output == b"Permit expired");
 
 			precompiles()
 				.prepare_test(
@@ -1301,4 +1301,29 @@ fn permit_valid_with_metamask_signed_data() {
 				))
 				.execute_returns(vec![]);
 		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["ERC20.sol", "Permit.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
 }

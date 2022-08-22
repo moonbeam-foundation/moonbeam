@@ -15,7 +15,6 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
-	core::assert_matches::assert_matches,
 	fp_evm::{
 		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
 		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
@@ -313,13 +312,39 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_returns(mut self, output: Vec<u8>) {
 		let res = self.execute();
-		assert_eq!(
-			res,
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = Self::decode_revert_message(&output);
+				eprintln!(
+					"Revert message (bytes): {:?}",
+					sp_core::hexdisplay::HexDisplay::from(&decoded)
+				);
+				eprintln!(
+					"Revert message (string): {:?}",
+					core::str::from_utf8(decoded).ok()
+				);
+				panic!("Shouldn't have reverted");
+			}
 			Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output
-			}))
-		);
+				output: execution_output,
+			})) => {
+				if execution_output != output {
+					eprintln!(
+						"Output (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&execution_output)
+					);
+					eprintln!(
+						"Output (string): {:?}",
+						core::str::from_utf8(&execution_output).ok()
+					);
+					panic!("Output doesn't match");
+				}
+			}
+			other => panic!("Unexpected result: {:?}", other),
+		}
+
 		self.assert_optionals();
 	}
 
@@ -327,11 +352,25 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
 		let res = self.execute();
-		assert_matches!(
-			res,
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if check(Self::decode_revert_message(&output))
-		);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = Self::decode_revert_message(&output);
+				if !check(decoded) {
+					eprintln!(
+						"Revert message (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&decoded)
+					);
+					eprintln!(
+						"Revert message (string): {:?}",
+						core::str::from_utf8(decoded).ok()
+					);
+					panic!("Revert reason doesn't match !");
+				}
+			}
+			other => panic!("Didn't revert, instead returned {:?}", other),
+		}
+
 		self.assert_optionals();
 	}
 
@@ -388,4 +427,38 @@ impl core::fmt::Debug for PrettyLog {
 			.field("data_utf8", &message)
 			.finish()
 	}
+}
+
+/// Panics if an event is not found in the system log of events
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
+
+// Panics if an event is found in the system log of events
+#[macro_export]
+macro_rules! assert_event_not_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_none(),
+					"Event {:?} was found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
 }

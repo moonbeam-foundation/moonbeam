@@ -17,16 +17,11 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, CandidateInfo, CollatorReserveToLockMigrations, Config,
-	DelegatorReserveToLockMigrations, DelegatorState, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{
-		Everything, GenesisBuild, LockIdentifier, LockableCurrency, OnFinalize, OnInitialize,
-		ReservableCurrency,
-	},
+	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -54,6 +49,7 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		BlockAuthor: block_author::{Pallet, Storage},
 	}
 );
 
@@ -104,6 +100,7 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 }
+impl block_author::Config for Test {}
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
@@ -145,6 +142,7 @@ impl Config for Test {
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
@@ -241,7 +239,6 @@ impl ExtBuilder {
 
 /// Rolls forward one block. Returns the new block number.
 pub(crate) fn roll_one_block() -> u64 {
-	ParachainStaking::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -406,7 +403,7 @@ macro_rules! assert_event_not_emitted {
 	};
 }
 
-// Same storage changes as EventHandler::note_author impl
+// Same storage changes as ParachainStaking::on_finalize
 pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
@@ -420,28 +417,6 @@ pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<B
 		}
 	}
 	None
-}
-
-/// fn to reverse-migrate a delegator account from locks back to reserve.
-/// This is used to test the reserve -> lock migration.
-pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
-	<DelegatorReserveToLockMigrations<Test>>::remove(&account_id);
-	Balances::remove_lock(DELEGATOR_LOCK_ID, &account_id);
-
-	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, delegator_state.total()).expect("reserve() failed");
-	}
-}
-
-/// fn to reverse-migrate a collator account from locks back to reserve.
-/// This is used to test the reserve -> lock migration.
-pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
-	<CollatorReserveToLockMigrations<Test>>::remove(&account_id);
-	Balances::remove_lock(COLLATOR_LOCK_ID, &account_id);
-
-	if let Some(collator_state) = <CandidateInfo<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, collator_state.bond).expect("reserve() failed");
-	}
 }
 
 #[test]
@@ -547,6 +522,30 @@ fn geneses() {
 				);
 			}
 		});
+}
+
+#[frame_support::pallet]
+pub mod block_author {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Get;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn block_author)]
+	pub(super) type BlockAuthor<T> = StorageValue<_, AccountId, ValueQuery>;
+
+	impl<T: Config> Get<AccountId> for Pallet<T> {
+		fn get() -> AccountId {
+			<BlockAuthor<T>>::get()
+		}
+	}
 }
 
 #[test]
