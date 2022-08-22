@@ -204,7 +204,7 @@ pub mod pallet {
 			ensure_none(origin)?;
 
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
-			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
+			// populate the `RandomnessResults` for BABE epoch randomness
 			let relay_epoch_index = T::BabeDataGetter::get_epoch_index();
 			if relay_epoch_index > last_relay_epoch_index {
 				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);

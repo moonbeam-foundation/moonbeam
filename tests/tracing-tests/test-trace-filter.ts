@@ -50,7 +50,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action).to.include({
       creationMethod: "create",
-      from: ALITH_ADDRESS,
+      from: ALITH_ADDRESS.toLocaleLowerCase(),
       gas: "0x6bdea",
       value: "0x0",
     });
@@ -81,7 +81,7 @@ describeDevMoonbeam("Trace filter - Contract creation ", (context) => {
 
     expect(response.result.length).to.equal(1);
     expect(response.result[0].action.creationMethod).to.equal("create");
-    expect(response.result[0].action.from).to.equal(ALITH_ADDRESS);
+    expect(response.result[0].action.from).to.equal(ALITH_ADDRESS.toLocaleLowerCase());
     expect(response.result[0].action.gas).to.equal("0x758");
     expect(response.result[0].action.init).to.be.a("string");
     expect(response.result[0].action.value).to.equal("0x0");

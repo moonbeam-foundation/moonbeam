@@ -118,6 +118,22 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonriver_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonriver_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonriver_runtime::AuthorMapping>("AuthorMapping");
+	is_pallet_prefix::<moonriver_runtime::Identity>("Identity");
+	is_pallet_prefix::<moonriver_runtime::XcmpQueue>("XcmpQueue");
+	is_pallet_prefix::<moonriver_runtime::CumulusXcm>("CumulusXcm");
+	is_pallet_prefix::<moonriver_runtime::DmpQueue>("DmpQueue");
+	is_pallet_prefix::<moonriver_runtime::PolkadotXcm>("PolkadotXcm");
+	is_pallet_prefix::<moonriver_runtime::Assets>("Assets");
+	is_pallet_prefix::<moonriver_runtime::XTokens>("XTokens");
+	is_pallet_prefix::<moonriver_runtime::AssetManager>("AssetManager");
+	is_pallet_prefix::<moonriver_runtime::Migrations>("Migrations");
+	is_pallet_prefix::<moonriver_runtime::XcmTransactor>("XcmTransactor");
+	is_pallet_prefix::<moonriver_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
+	is_pallet_prefix::<moonriver_runtime::BaseFee>("BaseFee");
+	is_pallet_prefix::<moonriver_runtime::LocalAssets>("LocalAssets");
+	is_pallet_prefix::<moonriver_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
+	is_pallet_prefix::<moonriver_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -251,25 +267,41 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonriver_runtime::AuthorInherent>(21);
 	is_pallet_index::<moonriver_runtime::AuthorFilter>(22);
 	is_pallet_index::<moonriver_runtime::AuthorMapping>(23);
+	is_pallet_index::<moonriver_runtime::MoonbeamOrbiters>(24);
 	// Handy utilities
 	is_pallet_index::<moonriver_runtime::Utility>(30);
 	is_pallet_index::<moonriver_runtime::Proxy>(31);
 	is_pallet_index::<moonriver_runtime::MaintenanceMode>(32);
+	is_pallet_index::<moonriver_runtime::Identity>(33);
+	is_pallet_index::<moonriver_runtime::Migrations>(34);
+	is_pallet_index::<moonriver_runtime::ProxyGenesisCompanion>(35);
 	// TODO Sudo was previously index 40, should we test that there is nothing there now?
 	// Ethereum compatibility
 	is_pallet_index::<moonriver_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonriver_runtime::EVM>(51);
 	is_pallet_index::<moonriver_runtime::Ethereum>(52);
+	is_pallet_index::<moonriver_runtime::BaseFee>(53);
 	// Governance
 	is_pallet_index::<moonriver_runtime::Scheduler>(60);
 	is_pallet_index::<moonriver_runtime::Democracy>(61);
 	// Council
 	is_pallet_index::<moonriver_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonriver_runtime::TechCommitteeCollective>(71);
+	is_pallet_index::<moonriver_runtime::TreasuryCouncilCollective>(72);
 	// Treasury
 	is_pallet_index::<moonriver_runtime::Treasury>(80);
 	// Crowdloan
 	is_pallet_index::<moonriver_runtime::CrowdloanRewards>(90);
+	// XCM Stuff
+	is_pallet_index::<moonriver_runtime::XcmpQueue>(100);
+	is_pallet_index::<moonriver_runtime::CumulusXcm>(101);
+	is_pallet_index::<moonriver_runtime::DmpQueue>(102);
+	is_pallet_index::<moonriver_runtime::PolkadotXcm>(103);
+	is_pallet_index::<moonriver_runtime::Assets>(104);
+	is_pallet_index::<moonriver_runtime::AssetManager>(105);
+	is_pallet_index::<moonriver_runtime::XTokens>(106);
+	is_pallet_index::<moonriver_runtime::XcmTransactor>(107);
+	is_pallet_index::<moonriver_runtime::LocalAssets>(108);
 }
 
 #[test]
@@ -2654,7 +2686,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2060,
+			2055, 2056, 2060, 2058,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
