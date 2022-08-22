@@ -116,6 +116,21 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbeam_runtime::AuthorMapping>("AuthorMapping");
 	is_pallet_prefix::<moonbeam_runtime::MaintenanceMode>("MaintenanceMode");
+	is_pallet_prefix::<moonbeam_runtime::Identity>("Identity");
+	is_pallet_prefix::<moonbeam_runtime::XcmpQueue>("XcmpQueue");
+	is_pallet_prefix::<moonbeam_runtime::CumulusXcm>("CumulusXcm");
+	is_pallet_prefix::<moonbeam_runtime::DmpQueue>("DmpQueue");
+	is_pallet_prefix::<moonbeam_runtime::PolkadotXcm>("PolkadotXcm");
+	is_pallet_prefix::<moonbeam_runtime::Assets>("Assets");
+	is_pallet_prefix::<moonbeam_runtime::XTokens>("XTokens");
+	is_pallet_prefix::<moonbeam_runtime::AssetManager>("AssetManager");
+	is_pallet_prefix::<moonbeam_runtime::Migrations>("Migrations");
+	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
+	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
+	is_pallet_prefix::<moonbeam_runtime::BaseFee>("BaseFee");
+	is_pallet_prefix::<moonbeam_runtime::LocalAssets>("LocalAssets");
+	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
+	is_pallet_prefix::<moonbeam_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -236,6 +251,7 @@ fn verify_pallet_indices() {
 		);
 	}
 
+	// System support
 	is_pallet_index::<moonbeam_runtime::System>(0);
 	is_pallet_index::<moonbeam_runtime::ParachainSystem>(1);
 	is_pallet_index::<moonbeam_runtime::RandomnessCollectiveFlip>(2);
@@ -249,25 +265,41 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::AuthorInherent>(21);
 	is_pallet_index::<moonbeam_runtime::AuthorFilter>(22);
 	is_pallet_index::<moonbeam_runtime::AuthorMapping>(23);
+	is_pallet_index::<moonbeam_runtime::MoonbeamOrbiters>(24);
 	// Handy utilities
 	is_pallet_index::<moonbeam_runtime::Utility>(30);
 	is_pallet_index::<moonbeam_runtime::Proxy>(31);
 	is_pallet_index::<moonbeam_runtime::MaintenanceMode>(32);
+	is_pallet_index::<moonbeam_runtime::Identity>(33);
+	is_pallet_index::<moonbeam_runtime::Migrations>(34);
+	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
 	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
 	is_pallet_index::<moonbeam_runtime::Ethereum>(52);
+	is_pallet_index::<moonbeam_runtime::BaseFee>(53);
 	// Governance
 	is_pallet_index::<moonbeam_runtime::Scheduler>(60);
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
 	// Council
 	is_pallet_index::<moonbeam_runtime::CouncilCollective>(70);
 	is_pallet_index::<moonbeam_runtime::TechCommitteeCollective>(71);
+	is_pallet_index::<moonbeam_runtime::TreasuryCouncilCollective>(72);
 	// Treasury
 	is_pallet_index::<moonbeam_runtime::Treasury>(80);
 	// Crowdloan
 	is_pallet_index::<moonbeam_runtime::CrowdloanRewards>(90);
+	// XCM Stuff
+	is_pallet_index::<moonbeam_runtime::XcmpQueue>(100);
+	is_pallet_index::<moonbeam_runtime::CumulusXcm>(101);
+	is_pallet_index::<moonbeam_runtime::DmpQueue>(102);
+	is_pallet_index::<moonbeam_runtime::PolkadotXcm>(103);
+	is_pallet_index::<moonbeam_runtime::Assets>(104);
+	is_pallet_index::<moonbeam_runtime::AssetManager>(105);
+	is_pallet_index::<moonbeam_runtime::XTokens>(106);
+	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
+	is_pallet_index::<moonbeam_runtime::LocalAssets>(108);
 }
 
 #[test]
@@ -2649,7 +2681,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2060,
+			2055, 2056, 2060, 2058,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

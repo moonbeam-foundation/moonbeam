@@ -17,18 +17,31 @@
 #![cfg(feature = "runtime-benchmarks")]
 
 //! Benchmarking
+use crate::vrf::*;
 use crate::{
-	BalanceOf, Call, Config, Pallet, RandomnessResult, RandomnessResults, Request, RequestType,
+	BalanceOf, Call, Config, InherentIncluded, LocalVrfOutput, NotFirstBlock, Pallet,
+	RandomnessResult, RandomnessResults, RelayEpoch, Request, RequestType,
 };
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, Zero};
+use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
-	traits::{Currency, Get},
+	traits::{Currency, Get, OnInitialize},
 };
 use frame_system::RawOrigin;
+use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
 use pallet_evm::AddressMapping;
-use sp_core::{H160, H256};
+use parity_scale_codec::alloc::string::ToString;
+use parity_scale_codec::Decode;
+use scale_info::prelude::string::String;
+use session_keys_primitives::{
+	digest::CompatibleDigestItem as VrfDigest, KeysLookup, PreDigest, VrfId,
+};
+use sp_core::{
+	crypto::{ByteArray, UncheckedFrom},
+	sr25519, H160, H256,
+};
 use sp_runtime::traits::One;
+use sp_std::{mem::size_of, vec};
 
 /// Create a funded user from the input
 fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
@@ -38,6 +51,10 @@ fn fund_user<T: Config>(user: H160, fee: BalanceOf<T>) {
 }
 
 benchmarks! {
+	where_clause {
+		where <T::VrfKeyLookup as KeysLookup<NimbusId, VrfId>>::Account: From<T::AccountId>
+	}
+	// Benchmark for inherent included in every block
 	set_babe_randomness_results {
 		// set the current relay epoch as 9, `get_epoch_index` configured to return 10
 		const BENCHMARKING_OLD_EPOCH: u64 = 9u64;
@@ -52,22 +69,95 @@ benchmarks! {
 		// verify randomness result
 		assert_eq!(
 			RandomnessResults::<T>::get(
-				RequestType::BabeEpoch(BENCHMARKING_OLD_EPOCH.saturating_add(1u64))
+				RequestType::BabeEpoch(benchmarking_new_epoch)
 			).unwrap().randomness,
 			Some(benchmarking_babe_output)
 		);
+		assert!(InherentIncluded::<T>::get().is_some());
+		assert_eq!(
+			RelayEpoch::<T>::get(),
+			benchmarking_new_epoch
+		);
 	}
 
-	// // TODO: need to produce Vrf PreDigest using authoring NimbusId and insert both into digests
-	// set_output {
-	// 	// needs to be 2nd block to reflect expected costs every block
-	// 	crate::vrf::set_input::<T>();
-	// 	crate::vrf::set_output::<T>();
-	// 	crate::vrf::set_input::<T>();
-	// }: {
-	// 	crate::vrf::set_output::<T>();
-	// }
-	// verify {}
+	// Benchmark for VRF verification and everything else in `set_output`, in `on_initialize`
+	on_initialize {
+		fn decode_32_bytes(input: String) -> [u8; 32] {
+			let output = hex::decode(input).expect("expect to decode input");
+			let mut ret: [u8; 32] = Default::default();
+			ret.copy_from_slice(&output[0..32]);
+			ret
+		}
+		fn decode_key(input: String) -> sr25519::Public {
+			sr25519::Public::unchecked_from(decode_32_bytes(input))
+		}
+		fn decode_pre_digest(input: String) -> PreDigest {
+			let output = hex::decode(input).expect("expect to decode input");
+			const PRE_DIGEST_BYTE_LEN: usize = size_of::<PreDigest>() as usize;
+			let mut ret: [u8; PRE_DIGEST_BYTE_LEN] = [0u8; PRE_DIGEST_BYTE_LEN];
+			ret.copy_from_slice(&output[0..PRE_DIGEST_BYTE_LEN]);
+			Decode::decode(&mut ret.as_slice()).expect("expect to decode predigest")
+		}
+		// Uses values from moonbase alpha storage
+		let raw_nimbus_id = "e0d47c4ea4fb92a510327774bd829d85ec64c06e63b3274587dfa4282f0b8262"
+			.to_string();
+		let raw_vrf_id = "e01d4eb5b3c482df465513ecf17f74154005ed7466166e7d2f049e0fa371ef66"
+			.to_string();
+		let raw_vrf_input = "33b52f1733a67e1a6b5c62c8be4b8e7be33f019a429fbc8af3336465ab042411"
+			.to_string();
+		let raw_vrf_pre_digest = "2a2f65f1a132c41fb33f45a282808a46fda89c91575e633fb54c913ad2ef05408\
+		27bce4f8dd838e6d0acadb111c7570aaeb37340db4756f822c6d00705b2cd0165059925634e78e936bf29bb149a\
+		60e8f171ea8116d035236525293efbe19703".to_string();
+		let nimbus_id: NimbusId = decode_key(raw_nimbus_id).into();
+		let vrf_id: VrfId = decode_key(raw_vrf_id).into();
+		let vrf_input: [u8; 32] = decode_32_bytes(raw_vrf_input);
+		let vrf_pre_digest = decode_pre_digest(raw_vrf_pre_digest);
+		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok()
+			.expect("decode into same type");
+		LocalVrfOutput::<T>::put(Some(last_vrf_output));
+		NotFirstBlock::<T>::put(());
+		let block_num: T::BlockNumber = frame_system::Pallet::<T>::block_number() + 100u32.into();
+		RandomnessResults::<T>::insert(
+			RequestType::Local(block_num),
+			RandomnessResult::new().increment_request_count()
+		);
+		let transcript = make_transcript::<T::Hash>(LocalVrfOutput::<T>::get().unwrap_or_default());
+		let nimbus_digest_item = NimbusDigest::nimbus_pre_digest(nimbus_id.clone());
+		let vrf_digest_item = VrfDigest::vrf_pre_digest(vrf_pre_digest.clone());
+		let digest =  sp_runtime::generic::Digest {
+			logs: vec![nimbus_digest_item, vrf_digest_item]
+		};
+		// insert digest into frame_system storage
+		frame_system::Pallet::<T>::initialize(
+			&block_num,
+			&T::Hash::default(),
+			&digest
+		);
+		// set keys in author mapping
+		let dummy_account: T::AccountId = account("key", 0u32, 0u32);
+		T::VrfKeyLookup::set_keys(nimbus_id, dummy_account.into(), vrf_id.clone());
+	}: {
+		Pallet::<T>::on_initialize(block_num);
+	}
+	verify {
+		// verify VrfOutput was inserted into storage as expected
+		let pubkey = sp_consensus_vrf::schnorrkel::PublicKey::from_bytes(vrf_id.as_slice())
+			.expect("Expect VrfId is valid schnorrkel Public key");
+		let vrf_output: sp_consensus_vrf::schnorrkel::Randomness = vrf_pre_digest.vrf_output
+			.attach_input_hash(&pubkey, transcript)
+			.ok()
+			.map(|inout| inout.make_bytes(&session_keys_primitives::VRF_INOUT_CONTEXT))
+			.expect("VRF output encoded in pre-runtime digest must be valid");
+		let randomness_output = T::Hash::decode(&mut &vrf_output[..])
+			.ok()
+			.expect("VRF output bytes can be decode into T::Hash");
+		// convert vrf output and check if it matches as expected
+		assert_eq!(LocalVrfOutput::<T>::get(), Some(randomness_output));
+		assert_eq!(
+			RandomnessResults::<T>::get(RequestType::Local(block_num)).unwrap().randomness,
+			Some(randomness_output)
+		);
+	}
 
 	request_randomness {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
@@ -156,7 +246,11 @@ benchmarks! {
 			info: RequestType::Local(10u32.into()).into()
 		});
 	}: {
-		let result = Pallet::<T>::increase_request_fee(&H160::default(), 0u64, BalanceOf::<T>::one());
+		let result = Pallet::<T>::increase_request_fee(
+			&H160::default(),
+			0u64,
+			BalanceOf::<T>::one()
+		);
 		assert_eq!(result, DispatchResult::Ok(()));
 	}
 	verify { }

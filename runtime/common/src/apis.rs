@@ -450,7 +450,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -489,7 +488,6 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_author_inherent::Pallet as PalletAuthorInherent;
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
-
 					use pallet_randomness::Pallet as RandomnessBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
