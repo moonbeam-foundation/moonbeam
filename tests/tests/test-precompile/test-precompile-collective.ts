@@ -17,8 +17,10 @@ import { getCompiled } from "../../util/contracts";
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
+  CHARLETH_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
+  DOROTHY_TRANSACTION_TEMPLATE,
   TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
 import { expectEVMResult } from "../../util/eth-transactions";
@@ -37,10 +39,9 @@ const COLLECTIVE_INTERFACE = new ethers.utils.Interface(COLLECTIVE_CONTRACT_JSON
 
 const encode = (call) => call?.method.toHex() || "";
 
-const successfulCouncilCall = async (context, from, data) => {
+const successfulCouncilCall = async (context, template, data) => {
   const tx = await createTransaction(context, {
-    ...BALTATHAR_TRANSACTION_TEMPLATE,
-    from: from,
+    ...template,
     to: PRECOMPILE_COUNCIL_ADDRESS,
     gas: 5_000_000,
     data: data,
@@ -51,17 +52,17 @@ const successfulCouncilCall = async (context, from, data) => {
   expect(result?.successful).to.equal(true);
 };
 
-const successfulTreasuryCouncilCall = async (context, from, data) => {
-  let { result } = await context.createBlock(
-    createTransaction(context, {
-      ...BALTATHAR_TRANSACTION_TEMPLATE,
-      from: from,
-      to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-      gas: 5_000_000,
-      data: data,
-    })
-  );
-  expectEVMResult(result.events, "Succeed");
+const successfulTreasuryCouncilCall = async (context, template, data) => {
+  const tx = await createTransaction(context, {
+    ...template,
+    to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
+    gas: 5_000_000,
+    data: data,
+  });
+
+  let { result } = await context.createBlock(tx);
+
+  expect(result?.successful).to.equal(true);
 };
 
 describeDevMoonbeam("Treasury council precompile #1", (context) => {
@@ -253,22 +254,18 @@ describeDevMoonbeam("Treasury council precompile #7", (context) => {
       const proposal = encode(context.polkadotApi.tx.treasury.approveProposal(0));
       const proposalHash = blake2AsHex(proposal).toString();
 
-      console.log(proposalHash.toString())
-      console.log(1);
       await successfulCouncilCall(
         context,
-        CHARLETH_ADDRESS,
+        CHARLETH_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("propose", [
           2,
           proposal
       ]));
 
       // Charleth & Dorothy vote for this proposal and close it
-      
-      console.log(2);
       await successfulCouncilCall(
         context,
-        CHARLETH_ADDRESS,
+        CHARLETH_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
           proposalHash,
           0,
@@ -278,7 +275,7 @@ describeDevMoonbeam("Treasury council precompile #7", (context) => {
 
       await successfulCouncilCall(
         context,
-        DOROTHY_ADDRESS,
+        DOROTHY_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
           proposalHash,
           0,
@@ -290,7 +287,7 @@ describeDevMoonbeam("Treasury council precompile #7", (context) => {
       // taken into account.
       await successfulCouncilCall(
         context,
-        DOROTHY_ADDRESS,
+        DOROTHY_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("close", [
           proposalHash,
           0,
@@ -324,11 +321,10 @@ describeDevMoonbeam("Treasury council precompile #8", (context) => {
       // Charleth proposed that the council reject the treasury proposal
       const proposal = encode(context.polkadotApi.tx.treasury.approveProposal(0));
       const proposalHash = blake2AsHex(proposal);
-      console.log(`hash: ${proposalHash}`);
 
       await successfulCouncilCall(
         context,
-        CHARLETH_ADDRESS,
+        CHARLETH_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("propose", [
           2,
           proposal
@@ -337,7 +333,7 @@ describeDevMoonbeam("Treasury council precompile #8", (context) => {
       // Charleth & Dorothy vote for against this proposal and close it
       await successfulCouncilCall(
         context,
-        CHARLETH_ADDRESS,
+        CHARLETH_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
           proposalHash,
           0,
@@ -347,7 +343,7 @@ describeDevMoonbeam("Treasury council precompile #8", (context) => {
 
       await successfulCouncilCall(
         context,
-        DOROTHY_ADDRESS,
+        DOROTHY_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
           proposalHash,
           0,
@@ -359,7 +355,7 @@ describeDevMoonbeam("Treasury council precompile #8", (context) => {
       // taken into account.
       await successfulCouncilCall(
         context,
-        DOROTHY_ADDRESS,
+        DOROTHY_TRANSACTION_TEMPLATE,
         COLLECTIVE_INTERFACE.encodeFunctionData("close", [
           proposalHash,
           0,
@@ -396,61 +392,47 @@ describeDevMoonbeam("Treasury council precompile #9", (context) => {
       let proposalCount = (await context.polkadotApi.query.treasury.proposalCount()) as any;
       expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
-      const proposal = context.polkadotApi.tx.treasury.approveProposal(0);
-      const proposalHash = proposal.hash;
+      const proposal = encode(context.polkadotApi.tx.treasury.approveProposal(0));
+      const proposalHash = blake2AsHex(proposal).toString();
 
-      let {result} = await context.createBlock(
-        createTransaction(context, {
-          ...BALTATHAR_TRANSACTION_TEMPLATE,
-          from: CHARLETH_ADDRESS,
-          to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-          data: COLLECTIVE_INTERFACE.encodeFunctionData("propose", [
-            2,
-            proposal
-          ]),          
-        })
-      );
-      expectEVMResult(result.events, "Succeed");
+      await successfulTreasuryCouncilCall(
+        context,
+        CHARLETH_TRANSACTION_TEMPLATE,
+        COLLECTIVE_INTERFACE.encodeFunctionData("propose", [
+          2,
+          proposal
+      ]));
 
       // Charleth & Dorothy vote for this proposal and close it
-      await context.createBlock(
-        [
-          createTransaction(context, {
-            ...BALTATHAR_TRANSACTION_TEMPLATE,
-            from: CHARLETH_ADDRESS,
-            to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-            data: COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
-              proposalHash,
-              0,
-              true
-            ]),          
-          }),
-        
-          createTransaction(context, {
-            ...BALTATHAR_TRANSACTION_TEMPLATE,
-            from: DOROTHY_ADDRESS,
-            to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-            nonce: 0,
-            data: COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
-              proposalHash,
-              0,
-              true
-            ]),          
-          }),
+      await successfulTreasuryCouncilCall(
+        context,
+        CHARLETH_TRANSACTION_TEMPLATE,
+        COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
+          proposalHash,
+          0,
+          true
+        ])
+      );
 
-          createTransaction(context, {
-            ...BALTATHAR_TRANSACTION_TEMPLATE,
-            from: DOROTHY_ADDRESS,
-            to: PRECOMPILE_TREASURY_COUNCIL_ADDRESS,
-            nonce: 1,
-            data: COLLECTIVE_INTERFACE.encodeFunctionData("close", [
-              proposalHash,
-              0,
-              800_000_000,
-              proposal.length / 2 - 1,
-            ]),          
-          })
-        ]
+      await successfulTreasuryCouncilCall(
+        context,
+        DOROTHY_TRANSACTION_TEMPLATE,
+        COLLECTIVE_INTERFACE.encodeFunctionData("vote", [
+          proposalHash,
+          0,
+          true
+        ])
+      );
+
+      await successfulTreasuryCouncilCall(
+        context,
+        DOROTHY_TRANSACTION_TEMPLATE,
+        COLLECTIVE_INTERFACE.encodeFunctionData("close", [
+          proposalHash,
+          0,
+          10_000_000,
+          proposal.length / 2 - 1,
+        ])
       );
 
       // Verify that the proposal is approved
@@ -473,36 +455,38 @@ describeDevMoonbeam("Treasury council precompile #10", (context) => {
     expect(proposalCount.toBigInt()).to.equal(1n, "new proposal should have been added");
 
     // Charleth proposed that the council reject the treasury proposal
-    // (and therefore implicitly votes for)
-    const {
-      result: { events: rejectEvents },
-    } = await context.createBlock(
-      context.polkadotApi.tx.treasuryCouncilCollective
-        .propose(2, context.polkadotApi.tx.treasury.rejectProposal(0), 1_000)
-        .signAsync(charleth)
-    );
-    const councilProposalHash = rejectEvents
-      .find(({ event: { method } }) => method.toString() == "Proposed")
-      .event.data[2].toHex() as string;
+    const proposal = encode(context.polkadotApi.tx.treasury.approveProposal(0));
+    const proposalHash = blake2AsHex(proposal).toString();
 
-    // Charleth & Dorothy vote for against proposal and close it
-    await context.createBlock([
-      context.polkadotApi.tx.treasuryCouncilCollective
-        .vote(councilProposalHash, 0, true)
-        .signAsync(charleth),
-      context.polkadotApi.tx.treasuryCouncilCollective
-        .vote(councilProposalHash, 0, true)
-        .signAsync(dorothy),
-    ]);
-    const {
-      result: { events: closeEvents },
-    } = await context.createBlock(
-      context.polkadotApi.tx.treasuryCouncilCollective
-        .close(councilProposalHash, 0, 800_000_000, 1_000)
-        .signAsync(dorothy)
+    await successfulTreasuryCouncilCall(
+      context,
+      CHARLETH_TRANSACTION_TEMPLATE,
+      COLLECTIVE_INTERFACE.encodeFunctionData("propose", [2, proposal])
     );
-    // method: 'Rejected', section: 'treasury', index: '0x1103',
-    expect(closeEvents.map(({ event }) => event.index.toHuman())).to.contain("0x1103");
+
+    // Charleth & Dorothy vote against this proposal and close it
+    await successfulTreasuryCouncilCall(
+      context,
+      CHARLETH_TRANSACTION_TEMPLATE,
+      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, false])
+    );
+
+    await successfulTreasuryCouncilCall(
+      context,
+      DOROTHY_TRANSACTION_TEMPLATE,
+      COLLECTIVE_INTERFACE.encodeFunctionData("vote", [proposalHash, 0, false])
+    );
+
+    await successfulTreasuryCouncilCall(
+      context,
+      DOROTHY_TRANSACTION_TEMPLATE,
+      COLLECTIVE_INTERFACE.encodeFunctionData("close", [
+        proposalHash,
+        0,
+        10_000_000,
+        proposal.length / 2 - 1,
+      ])
+    );
 
     // Verify that the proposal is deleted
     expect((await context.polkadotApi.query.treasury.proposals(0)).toHuman()).to.equal(
