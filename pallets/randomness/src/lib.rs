@@ -199,7 +199,6 @@ pub mod pallet {
 		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
-		// TODO: weight
 		#[pallet::weight((
 			SubstrateWeight::<T>::set_babe_randomness_results(),
 			DispatchClass::Mandatory
