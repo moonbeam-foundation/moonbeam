@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
-use crate::xcm_config::XcmExecutorConfig;
+use crate::{
+	asset_config::{ForeignAssetInstance, LocalAssetInstance},
+	xcm_config::XcmExecutorConfig,
+	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+};
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
@@ -24,6 +27,7 @@ use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_call_permit::CallPermitPrecompile;
+use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
 use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
@@ -116,8 +120,14 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
+				// PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
+				// PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
+				// PrecompileAt<AddressU64<2061>, XcmTransactorWrapperV2<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
+				PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
+				PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)
