@@ -873,6 +873,8 @@
 <span id="868">868</span>
 <span id="869">869</span>
 <span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is 	part of Moonbeam.</span>
 
@@ -1262,7 +1264,9 @@
 				<span class="ident">delegate</span>: <span class="ident">Runtime::Lookup::unlookup</span>(<span class="ident">spender</span>),
 				<span class="ident">amount</span>,
 			},
-		)
+		)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="kw">fn</span> <span class="ident">transfer</span>(

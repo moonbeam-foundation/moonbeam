@@ -136,6 +136,16 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -152,8 +162,11 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::asset_config</span>::{<span class="ident">ForeignAssetInstance</span>, <span class="ident">LocalAssetInstance</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::xcm_config::XcmExecutorConfig</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+	<span class="ident">asset_config</span>::{<span class="ident">ForeignAssetInstance</span>, <span class="ident">LocalAssetInstance</span>},
+	<span class="ident">xcm_config::XcmExecutorConfig</span>,
+	<span class="ident">CouncilInstance</span>, <span class="ident">TechCommitteeInstance</span>, <span class="ident">TreasuryCouncilInstance</span>,
+};
 <span class="kw">use</span> <span class="ident">frame_support::parameter_types</span>;
 <span class="kw">use</span> <span class="ident">moonbeam_relay_encoder::kusama::KusamaEncoder</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_author_mapping::AuthorMappingWrapper</span>;
@@ -162,6 +175,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_blake2::Blake2F</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_bn128</span>::{<span class="ident">Bn128Add</span>, <span class="ident">Bn128Mul</span>, <span class="ident">Bn128Pairing</span>};
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_call_permit::CallPermitPrecompile</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_collective::CollectivePrecompile</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_democracy::DemocracyWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
@@ -254,8 +268,14 @@
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2054</span><span class="op">&gt;</span>, <span class="ident">XcmTransactorWrapperV1</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2055</span><span class="op">&gt;</span>, <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2056</span><span class="op">&gt;</span>, <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="number">2</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="comment">// PrecompileAt&lt;AddressU64&lt;2057&gt;, RandomnessWrapper&lt;R&gt;&gt;, (Moonbase only)</span>
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2058</span><span class="op">&gt;</span>, <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="comment">// PrecompileAt&lt;AddressU64&lt;2059&gt;, ProxyWrapper&lt;R&gt;&gt;, (Moonbase only)</span>
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2060</span><span class="op">&gt;</span>, <span class="ident">XcmUtilsWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="comment">// PrecompileAt&lt;AddressU64&lt;2061&gt;, XcmTransactorWrapperV2&lt;R&gt;&gt;, (Moonbase only)</span>
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2062</span><span class="op">&gt;</span>, <span class="ident">CollectivePrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">CouncilInstance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2063</span><span class="op">&gt;</span>, <span class="ident">CollectivePrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">TechCommitteeInstance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2064</span><span class="op">&gt;</span>, <span class="ident">CollectivePrecompile</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">TreasuryCouncilInstance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 			),
 		<span class="op">&gt;</span>,
 		<span class="comment">// Prefixed precompile sets (XC20)</span>

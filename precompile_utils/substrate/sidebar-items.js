@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RuntimeHelper","Helper functions requiring a Substrate runtime. This runtime must of course implement `pallet_evm::Config`."]]});
+initSidebarItems({"enum":[["TryDispatchError",""]],"struct":[["RuntimeHelper","Helper functions requiring a Substrate runtime. This runtime must of course implement `pallet_evm::Config`."]]});
