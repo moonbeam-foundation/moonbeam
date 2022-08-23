@@ -24,7 +24,7 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use fp_evm::{PrecompileHandle, PrecompileOutput};
+use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
@@ -115,8 +115,7 @@ enum Action {
 /// supporters who want to donate toward a perpetual nomination fund.
 pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
 
-// TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime> pallet_evm::Precompile for ParachainStakingWrapper<Runtime>
+impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
 	BalanceOf<Runtime>: EvmData,
@@ -194,101 +193,89 @@ where
 			| Action::DeprecatedCancelDelegationRequest => FunctionModifier::NonPayable,
 		})?;
 
-		// Return early if storage getter; return (origin, call) if dispatchable
-		let (origin, call) = match selector {
-			Action::MinDelegation | Action::DeprecatedMinDelegation => {
-				return Self::min_delegation(handle)
-			}
+		match selector {
+			Action::MinDelegation | Action::DeprecatedMinDelegation => Self::min_delegation(handle),
 			Action::Points => return Self::points(handle),
 			Action::CandidateCount | Action::DeprecatedCandidateCount => {
-				return Self::candidate_count(handle)
+				Self::candidate_count(handle)
 			}
 			Action::Round => return Self::round(handle),
 			Action::CandidateDelegationCount | Action::DeprecatedCandidateDelegationCount => {
-				return Self::candidate_delegation_count(handle)
+				Self::candidate_delegation_count(handle)
 			}
 			Action::DelegatorDelegationCount | Action::DeprecatedDelegatorDelegationCount => {
-				return Self::delegator_delegation_count(handle)
+				Self::delegator_delegation_count(handle)
 			}
 			Action::SelectedCandidates | Action::DeprecatedSelectedCandidates => {
-				return Self::selected_candidates(handle)
+				Self::selected_candidates(handle)
 			}
-			Action::IsDelegator | Action::DeprecatedIsDelegator => {
-				return Self::is_delegator(handle)
-			}
-			Action::IsCandidate | Action::DeprecatedIsCandidate => {
-				return Self::is_candidate(handle)
-			}
+			Action::IsDelegator | Action::DeprecatedIsDelegator => Self::is_delegator(handle),
+			Action::IsCandidate | Action::DeprecatedIsCandidate => Self::is_candidate(handle),
 			Action::IsSelectedCandidate | Action::DeprecatedIsSelectedCandidate => {
-				return Self::is_selected_candidate(handle)
+				Self::is_selected_candidate(handle)
 			}
 			Action::DelegationRequestIsPending | Action::DeprecatedDelegationRequestIsPending => {
-				return Self::delegation_request_is_pending(handle)
+				Self::delegation_request_is_pending(handle)
 			}
 			Action::CandidateExitIsPending | Action::DeprecatedCandidateExitIsPending => {
-				return Self::candidate_exit_is_pending(handle)
+				Self::candidate_exit_is_pending(handle)
 			}
 			Action::CandidateRequestIsPending | Action::DeprecatedCandidateRequestIsPending => {
-				return Self::candidate_request_is_pending(handle)
+				Self::candidate_request_is_pending(handle)
 			}
 			// runtime methods (dispatchables)
 			Action::JoinCandidates | Action::DeprecatedJoinCandidates => {
-				Self::join_candidates(handle)?
+				Self::join_candidates(handle)
 			}
 			Action::ScheduleLeaveCandidates | Action::DeprecatedScheduleLeaveCandidates => {
-				Self::schedule_leave_candidates(handle)?
+				Self::schedule_leave_candidates(handle)
 			}
 			Action::ExecuteLeaveCandidates | Action::DeprecatedExecuteLeaveCandidates => {
-				Self::execute_leave_candidates(handle)?
+				Self::execute_leave_candidates(handle)
 			}
 			Action::CancelLeaveCandidates | Action::DeprecatedCancelLeaveCandidates => {
-				Self::cancel_leave_candidates(handle)?
+				Self::cancel_leave_candidates(handle)
 			}
-			Action::GoOffline | Action::DeprecatedGoOffline => Self::go_offline(handle)?,
-			Action::GoOnline | Action::DeprecatedGoOnline => Self::go_online(handle)?,
+			Action::GoOffline | Action::DeprecatedGoOffline => Self::go_offline(handle),
+			Action::GoOnline | Action::DeprecatedGoOnline => Self::go_online(handle),
 			Action::ScheduleCandidateBondLess | Action::DeprecatedScheduleCandidateBondLess => {
-				Self::schedule_candidate_bond_less(handle)?
+				Self::schedule_candidate_bond_less(handle)
 			}
 			Action::CandidateBondMore | Action::DeprecatedCandidateBondMore => {
-				Self::candidate_bond_more(handle)?
+				Self::candidate_bond_more(handle)
 			}
 			Action::ExecuteCandidateBondLess | Action::DeprecatedExecuteCandidateBondLess => {
-				Self::execute_candidate_bond_less(handle)?
+				Self::execute_candidate_bond_less(handle)
 			}
 			Action::CancelCandidateBondLess | Action::DeprecatedCancelCandidateBondLess => {
-				Self::cancel_candidate_bond_less(handle)?
+				Self::cancel_candidate_bond_less(handle)
 			}
-			Action::Delegate => Self::delegate(handle)?,
+			Action::Delegate => Self::delegate(handle),
 			Action::ScheduleLeaveDelegators | Action::DeprecatedScheduleLeaveDelegators => {
-				Self::schedule_leave_delegators(handle)?
+				Self::schedule_leave_delegators(handle)
 			}
 			Action::ExecuteLeaveDelegators | Action::DeprecatedExecuteLeaveDelegators => {
-				Self::execute_leave_delegators(handle)?
+				Self::execute_leave_delegators(handle)
 			}
 			Action::CancelLeaveDelegators | Action::DeprecatedCancelLeaveDelegators => {
-				Self::cancel_leave_delegators(handle)?
+				Self::cancel_leave_delegators(handle)
 			}
 			Action::ScheduleRevokeDelegation | Action::DeprecatedScheduleRevokeDelegation => {
-				Self::schedule_revoke_delegation(handle)?
+				Self::schedule_revoke_delegation(handle)
 			}
 			Action::ScheduleDelegatorBondLess | Action::DeprecatedScheduleDelegatorBondLess => {
-				Self::schedule_delegator_bond_less(handle)?
+				Self::schedule_delegator_bond_less(handle)
 			}
 			Action::DelegatorBondMore | Action::DeprecatedDelegatorBondMore => {
-				Self::delegator_bond_more(handle)?
+				Self::delegator_bond_more(handle)
 			}
 			Action::ExecuteDelegationRequest | Action::DeprecatedExecuteDelegationRequest => {
-				Self::execute_delegation_request(handle)?
+				Self::execute_delegation_request(handle)
 			}
 			Action::CancelDelegationRequest | Action::DeprecatedCancelDelegationRequest => {
-				Self::cancel_delegation_request(handle)?
+				Self::cancel_delegation_request(handle)
 			}
-		};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(handle, origin, call)?;
-
-		Ok(succeed([]))
+		}
 	}
 }
 
@@ -547,12 +534,7 @@ where
 
 	// Runtime Methods (dispatchables)
 
-	fn join_candidates(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn join_candidates(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {amount: BalanceOf<Runtime>, candidate_count: u32});
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -561,16 +543,15 @@ where
 			candidate_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn schedule_leave_candidates(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { candidate_count: u32 });
 
 		// Build call with origin.
@@ -579,16 +560,13 @@ where
 			candidate_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn execute_leave_candidates(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn execute_leave_candidates(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {candidate: Address, candidate_count: u32});
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -599,16 +577,13 @@ where
 			candidate_delegation_count: candidate_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn cancel_leave_candidates(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn cancel_leave_candidates(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { candidate_count: u32 });
 
 		// Build call with origin.
@@ -616,76 +591,65 @@ where
 		let call =
 			pallet_parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn go_offline(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn go_offline(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::go_offline {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn go_online(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn go_online(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::go_online {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn candidate_bond_more(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn candidate_bond_more(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {more: BalanceOf<Runtime>});
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn schedule_candidate_bond_less(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {less: BalanceOf<Runtime>});
 
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn execute_candidate_bond_less(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { candidate: Address });
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -694,30 +658,26 @@ where
 		let call =
 			pallet_parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn cancel_candidate_bond_less(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn delegate(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn delegate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {
 			candidate: Address,
 			amount: BalanceOf<Runtime>,
@@ -735,30 +695,26 @@ where
 			delegation_count: delegator_delegation_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn schedule_leave_delegators(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn execute_leave_delegators(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn execute_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {delegator: Address, delegator_delegation_count: u32});
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
@@ -769,30 +725,26 @@ where
 			delegation_count: delegator_delegation_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn cancel_leave_delegators(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn cancel_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// Build call with origin.
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = pallet_parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn schedule_revoke_delegation(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { candidate: Address });
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -802,16 +754,13 @@ where
 			collator: candidate,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
-	fn delegator_bond_more(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	fn delegator_bond_more(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {candidate: Address, more: BalanceOf<Runtime>});
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -820,16 +769,15 @@ where
 		let call =
 			pallet_parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn schedule_delegator_bond_less(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {candidate: Address, less: BalanceOf<Runtime>});
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -840,16 +788,15 @@ where
 			less,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn execute_delegation_request(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, {delegator: Address, candidate: Address});
 		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
@@ -861,16 +808,15 @@ where
 			candidate,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 
 	fn cancel_delegation_request(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		pallet_parachain_staking::Call<Runtime>,
-	)> {
+	) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { candidate: Address });
 		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
@@ -879,7 +825,9 @@ where
 		let call =
 			pallet_parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
 	}
 }
