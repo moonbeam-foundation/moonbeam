@@ -10,6 +10,7 @@ import {
 } from "../../util/transactions";
 import { web3EthCall } from "../../util/providers";
 import { GLMR, PRECOMPILE_DISPATCH_ADDRESS } from "../../util/constants";
+import { ALITH_ADDRESS } from "../../util/accounts";
 
 describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
   it("should prevent dispatch precompile on pallet-ethereum", async function () {
@@ -45,6 +46,7 @@ describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
 
     // We first try with call, to see the error message
     let result = await web3EthCall(context.web3, {
+      from: ALITH_ADDRESS,
       to: PRECOMPILE_DISPATCH_ADDRESS,
       data: callBytes,
     })
@@ -92,6 +94,7 @@ describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
 
     // We first try with call, to see the error message
     let result = await web3EthCall(context.web3, {
+      from: ALITH_ADDRESS,
       to: PRECOMPILE_DISPATCH_ADDRESS,
       data: callBytes,
     })
@@ -125,6 +128,7 @@ describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
 
     // We first try with call, to see the error message
     let result = await web3EthCall(context.web3, {
+      from: ALITH_ADDRESS,
       to: PRECOMPILE_DISPATCH_ADDRESS,
       data: callBytes,
     })
