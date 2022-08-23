@@ -387,7 +387,9 @@ where
 				delegate: Runtime::Lookup::unlookup(spender),
 				amount,
 			},
-		)
+		)?;
+
+		Ok(())
 	}
 
 	fn transfer(

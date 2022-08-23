@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
+/// @author The Moonbeam Team
 /// @title Pallet Democracy Interface
-///
-/// The interface through which solidity contracts will interact with pallet-democracy
-///
-/// @dev This interface does not exhaustively wrap pallet democracy, rather it wraps the most
+/// @dev The interface through which solidity contracts will interact with pallet-democracy.
+/// This interface does not exhaustively wrap pallet democracy, rather it wraps the most
 /// important parts and the parts that are expected to be most useful to evm contracts.
 /// More exhaustive wrapping can be added later if it is desireable and the pallet interface
 /// is deemed sufficiently stable.

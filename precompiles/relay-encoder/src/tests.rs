@@ -375,3 +375,27 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"encode_bond(uint256,uint256,bytes)",
+		"encode_bond_extra(uint256)",
+		"encode_unbond(uint256)",
+		"encode_withdraw_unbonded(uint32)",
+		"encode_validate(uint256,bool)",
+		"encode_nominate(uint256[])",
+		"encode_chill()",
+		"encode_set_payee(bytes)",
+		"encode_set_controller(uint256)",
+		"encode_rebond(uint256)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
+}

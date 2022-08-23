@@ -166,7 +166,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
         .map((candidate) =>
           // Support the case of the migration in 1700
           specVersion < 1700 ||
-          !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`]
+          (specVersion < 1800 &&
+            !collatorStakingMigrationAccounts[`0x${candidate[0].toHex().slice(-40)}`])
             ? {
                 accountId: `0x${candidate[0].toHex().slice(-40)}`,
                 reserved: {
@@ -181,7 +182,8 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
         .map((delegator) =>
           // Support the case of the migration in 1700
           specVersion < 1700 ||
-          !delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`]
+          (specVersion < 1800 &&
+            !delegatorStakingMigrationAccounts[`0x${delegator[0].toHex().slice(-40)}`])
             ? {
                 accountId: `0x${delegator[0].toHex().slice(-40)}`,
                 reserved: {

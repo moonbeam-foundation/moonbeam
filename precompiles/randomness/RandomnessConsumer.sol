@@ -1,6 +1,6 @@
 // Inspired by: https://raw.githubusercontent.com/smartcontractkit/chainlink/8e8a996fd882c0861bdc9824c1ca27c857c87d03/contracts/src/v0.8/VRFConsumerBaseV2.sol
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.4;
+pragma solidity >=0.8.3;
 
 /** ****************************************************************************
  * @notice Interface for contracts using VRF randomness
