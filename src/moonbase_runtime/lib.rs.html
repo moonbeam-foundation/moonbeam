@@ -1603,6 +1603,20 @@
 <span id="1598">1598</span>
 <span id="1599">1599</span>
 <span id="1600">1600</span>
+<span id="1601">1601</span>
+<span id="1602">1602</span>
+<span id="1603">1603</span>
+<span id="1604">1604</span>
+<span id="1605">1605</span>
+<span id="1606">1606</span>
+<span id="1607">1607</span>
+<span id="1608">1608</span>
+<span id="1609">1609</span>
+<span id="1610">1610</span>
+<span id="1611">1611</span>
+<span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -2786,6 +2800,13 @@
 <span class="kw">impl</span> <span class="ident">pallet_randomness::GetBabeData</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BabeDataGetter</span> {
 	<span class="comment">// Tolerate panic here because only ever called in inherent (so can be omitted)</span>
 	<span class="kw">fn</span> <span class="ident">get_epoch_index</span>() -&gt; <span class="ident">u64</span> {
+		<span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>) {
+			<span class="comment">// storage reads as per actual reads</span>
+			<span class="kw">let</span> <span class="ident">_relay_storage_root</span> <span class="op">=</span> <span class="ident">ParachainSystem::validation_data</span>();
+			<span class="kw">let</span> <span class="ident">_relay_chain_state</span> <span class="op">=</span> <span class="ident">ParachainSystem::relay_state_proof</span>();
+			<span class="kw">const</span> <span class="ident">BENCHMARKING_NEW_EPOCH</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">10u64</span>;
+			<span class="kw">return</span> <span class="ident">BENCHMARKING_NEW_EPOCH</span>;
+		}
 		<span class="ident">relay_chain_state_proof</span>()
 			.<span class="ident">read_optional_entry</span>(<span class="ident">relay_chain::well_known_keys::EPOCH_INDEX</span>)
 			.<span class="ident">ok</span>()
@@ -2793,6 +2814,13 @@
 			.<span class="ident">expect</span>(<span class="string">&quot;expected to be able to read epoch index from relay chain state proof&quot;</span>)
 	}
 	<span class="kw">fn</span> <span class="ident">get_epoch_randomness</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Hash</span><span class="op">&gt;</span> {
+		<span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>) {
+			<span class="comment">// storage reads as per actual reads</span>
+			<span class="kw">let</span> <span class="ident">_relay_storage_root</span> <span class="op">=</span> <span class="ident">ParachainSystem::validation_data</span>();
+			<span class="kw">let</span> <span class="ident">_relay_chain_state</span> <span class="op">=</span> <span class="ident">ParachainSystem::relay_state_proof</span>();
+			<span class="kw">let</span> <span class="ident">benchmarking_babe_output</span> <span class="op">=</span> <span class="ident">Hash::default</span>();
+			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">benchmarking_babe_output</span>);
+		}
 		<span class="ident">relay_chain_state_proof</span>()
 			.<span class="ident">read_optional_entry</span>(<span class="ident">relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS</span>)
 			.<span class="ident">ok</span>()

@@ -400,6 +400,9 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -445,6 +448,7 @@
 <span class="attribute">#[<span class="ident">pallet</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
 	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::weights</span>::{<span class="ident">SubstrateWeight</span>, <span class="ident">WeightInfo</span>};
 	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">ExistenceRequirement::KeepAlive</span>};
 	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>, <span class="ident">PalletId</span>};
 	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
@@ -600,8 +604,10 @@
 		<span class="comment">// the relevant storage item to validate the VRF output in this pallet&#39;s `on_initialize`</span>
 		<span class="comment">// This should go into on_post_inherents when it is ready</span>
 		<span class="comment">// https://github.com/paritytech/substrate/pull/10128</span>
-		<span class="comment">// TODO: weight</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>((<span class="number">10_000</span>, <span class="ident">DispatchClass::Mandatory</span>))]</span>
+		<span class="attribute">#[<span class="ident">pallet::weight</span>((
+			<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_babe_randomness_results</span>(),
+			<span class="ident">DispatchClass::Mandatory</span>
+		))]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_babe_randomness_results</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_none</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
 
