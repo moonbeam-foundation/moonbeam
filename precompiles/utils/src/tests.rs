@@ -20,6 +20,7 @@ use {
 		prelude::*,
 		revert::Backtrace,
 	},
+	frame_support::traits::ConstU32,
 	hex_literal::hex,
 	pallet_evm::Context,
 	sp_core::{H160, H256, U256},
@@ -684,6 +685,10 @@ impl EvmData for MultiLocation {
 	fn has_static_size() -> bool {
 		<(u8, Vec<Bytes>)>::has_static_size()
 	}
+
+	fn solidity_type() -> String {
+		<(u8, Vec<Bytes>)>::solidity_type()
+	}
 }
 
 #[generate_function_selector]
@@ -1073,4 +1078,46 @@ fn error_formatting() {
 			.to_string(),
 		"fuz.bar[3][2].foo: Test"
 	);
+}
+
+#[test]
+fn evm_data_solidity_types() {
+	// Simple types
+	assert_eq!(bool::solidity_type(), "bool");
+	assert_eq!(u8::solidity_type(), "uint8");
+	assert_eq!(u16::solidity_type(), "uint16");
+	assert_eq!(u32::solidity_type(), "uint32");
+	assert_eq!(u64::solidity_type(), "uint64");
+	assert_eq!(u128::solidity_type(), "uint128");
+	assert_eq!(U256::solidity_type(), "uint256");
+	assert_eq!(H256::solidity_type(), "bytes32");
+	assert_eq!(Address::solidity_type(), "address");
+	assert_eq!(Bytes::solidity_type(), "bytes");
+	assert_eq!(BoundedBytes::<ConstU32<5>>::solidity_type(), "bytes");
+
+	// Arrays
+	assert_eq!(Vec::<bool>::solidity_type(), "bool[]");
+	assert_eq!(Vec::<u8>::solidity_type(), "uint8[]");
+	assert_eq!(Vec::<u16>::solidity_type(), "uint16[]");
+	assert_eq!(Vec::<u32>::solidity_type(), "uint32[]");
+	assert_eq!(Vec::<u64>::solidity_type(), "uint64[]");
+	assert_eq!(Vec::<u128>::solidity_type(), "uint128[]");
+	assert_eq!(Vec::<U256>::solidity_type(), "uint256[]");
+	assert_eq!(Vec::<H256>::solidity_type(), "bytes32[]");
+	assert_eq!(Vec::<Address>::solidity_type(), "address[]");
+	assert_eq!(Vec::<Bytes>::solidity_type(), "bytes[]");
+	assert_eq!(Vec::<BoundedBytes<ConstU32<5>>>::solidity_type(), "bytes[]");
+
+	// Few tuples mixed with arrays
+	assert_eq!(<(bool, Address)>::solidity_type(), "(bool,address)");
+	assert_eq!(<(Vec<bool>, Address)>::solidity_type(), "(bool[],address)");
+	assert_eq!(<(bool, Vec<Address>)>::solidity_type(), "(bool,address[])");
+	assert_eq!(Vec::<(bool, Address)>::solidity_type(), "(bool,address)[]");
+	assert_eq!(
+		Vec::<(bool, Vec<Address>)>::solidity_type(),
+		"(bool,address[])[]"
+	);
+
+	// Struct encode like tuples
+	assert_eq!(MultiLocation::solidity_type(), "(uint8,bytes[])");
 }

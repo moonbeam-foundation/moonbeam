@@ -21,6 +21,7 @@ use {
 		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
 		revert::{InjectBacktrace, MayRevert, RevertReason},
 	},
+	alloc::string::String,
 	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
@@ -224,6 +225,10 @@ impl EvmData for Junction {
 	fn has_static_size() -> bool {
 		false
 	}
+
+	fn solidity_type() -> String {
+		Bytes::solidity_type()
+	}
 }
 
 impl EvmData for Junctions {
@@ -247,6 +252,10 @@ impl EvmData for Junctions {
 	fn has_static_size() -> bool {
 		false
 	}
+
+	fn solidity_type() -> String {
+		Vec::<Junction>::solidity_type()
+	}
 }
 
 impl EvmData for MultiLocation {
@@ -261,5 +270,9 @@ impl EvmData for MultiLocation {
 
 	fn has_static_size() -> bool {
 		<(u8, Junctions)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(u8, Junctions)>::solidity_type()
 	}
 }

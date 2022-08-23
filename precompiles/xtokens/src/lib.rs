@@ -25,7 +25,7 @@ use frame_support::{
 	traits::Get,
 };
 use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
@@ -389,6 +389,10 @@ impl EvmData for Currency {
 	fn has_static_size() -> bool {
 		<(Address, U256)>::has_static_size()
 	}
+
+	fn solidity_type() -> String {
+		<(Address, U256)>::solidity_type()
+	}
 }
 
 impl From<(Address, U256)> for Currency {
@@ -418,6 +422,10 @@ impl EvmData for EvmMultiAsset {
 
 	fn has_static_size() -> bool {
 		<(MultiLocation, U256)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(MultiLocation, U256)>::solidity_type()
 	}
 }
 

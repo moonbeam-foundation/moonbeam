@@ -17,6 +17,7 @@
 pub mod xcm;
 pub use affix::paste;
 
+pub use alloc::string::String;
 use {
 	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
 	alloc::borrow::ToOwned,
@@ -339,6 +340,7 @@ pub trait EvmData: Sized {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self>;
 	fn write(writer: &mut EvmDataWriter, value: Self);
 	fn has_static_size() -> bool;
+	fn solidity_type() -> String;
 }
 
 #[impl_for_tuples(1, 18)]
@@ -375,6 +377,12 @@ impl EvmData for Tuple {
 			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
 		}
 	}
+
+	fn solidity_type() -> String {
+		let mut subtypes = Vec::new();
+		for_tuples!( #( subtypes.push(Tuple::solidity_type()); )* );
+		alloc::format!("({})", subtypes.join(","))
+	}
 }
 
 impl EvmData for H256 {
@@ -396,6 +404,10 @@ impl EvmData for H256 {
 	fn has_static_size() -> bool {
 		true
 	}
+
+	fn solidity_type() -> String {
+		String::from("bytes32")
+	}
 }
 
 impl EvmData for Address {
@@ -416,6 +428,10 @@ impl EvmData for Address {
 
 	fn has_static_size() -> bool {
 		true
+	}
+
+	fn solidity_type() -> String {
+		String::from("address")
 	}
 }
 
@@ -440,6 +456,10 @@ impl EvmData for U256 {
 	fn has_static_size() -> bool {
 		true
 	}
+
+	fn solidity_type() -> String {
+		String::from("uint256")
+	}
 }
 
 macro_rules! impl_evmdata_for_uints {
@@ -449,13 +469,13 @@ macro_rules! impl_evmdata_for_uints {
 				fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 					let value256: U256 = reader.read()
 					.map_err(|_| RevertReason::read_out_of_bounds(
-						alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
+						Self::solidity_type()
 					))?;
 
 					value256
 						.try_into()
 						.map_err(|_| RevertReason::value_is_too_large(
-							alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
+							Self::solidity_type()
 						).into())
 				}
 
@@ -465,6 +485,10 @@ macro_rules! impl_evmdata_for_uints {
 
 				fn has_static_size() -> bool {
 					true
+				}
+
+				fn solidity_type() -> String {
+					alloc::format!("uint{}", core::mem::size_of::<Self>() * 8)
 				}
 			}
 		)*
@@ -492,6 +516,10 @@ impl EvmData for bool {
 	fn has_static_size() -> bool {
 		true
 	}
+
+	fn solidity_type() -> String {
+		String::from("bool")
+	}
 }
 
 impl EvmData for Bytes {
@@ -511,6 +539,10 @@ impl EvmData for Bytes {
 
 	fn has_static_size() -> bool {
 		false
+	}
+
+	fn solidity_type() -> String {
+		String::from("bytes")
 	}
 }
 
@@ -572,6 +604,10 @@ impl<S: Get<u32>> EvmData for BoundedBytes<S> {
 	fn has_static_size() -> bool {
 		false
 	}
+
+	fn solidity_type() -> String {
+		String::from("bytes")
+	}
 }
 
 impl<T: EvmData> EvmData for Vec<T> {
@@ -591,6 +627,10 @@ impl<T: EvmData> EvmData for Vec<T> {
 
 	fn has_static_size() -> bool {
 		false
+	}
+
+	fn solidity_type() -> String {
+		alloc::format!("{}[]", T::solidity_type())
 	}
 }
 
@@ -666,6 +706,10 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 
 	fn has_static_size() -> bool {
 		false
+	}
+
+	fn solidity_type() -> String {
+		alloc::format!("{}[]", T::solidity_type())
 	}
 }
 

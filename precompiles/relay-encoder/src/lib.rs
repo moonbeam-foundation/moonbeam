@@ -27,7 +27,7 @@ use frame_support::{
 	traits::ConstU32,
 };
 use pallet_staking::RewardDestination;
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H256, U256};
 use sp_runtime::AccountId32;
 use sp_runtime::Perbill;
@@ -385,5 +385,9 @@ impl EvmData for RewardDestinationWrapper {
 
 	fn has_static_size() -> bool {
 		false
+	}
+
+	fn solidity_type() -> String {
+		Bytes::solidity_type()
 	}
 }
