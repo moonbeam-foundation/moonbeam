@@ -982,6 +982,8 @@ impl Contains<Call> for NormalFilter {
 				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
 				_ => true,
 			},
+			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
+			// lead to unexpected scenarios
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
