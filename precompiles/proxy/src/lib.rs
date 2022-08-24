@@ -104,7 +104,7 @@ where
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		// Disallow re-adding proxy via precompile to prevent re-entrancy issues.
+		// Disallow re-adding proxy via precompile to prevent re-entrancy.
 		// See: https://github.com/PureStake/sr-moonbeam/issues/30
 		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
 		// filtered via CallFilter
