@@ -986,7 +986,6 @@ impl Contains<Call> for NormalFilter {
 			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
 				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
 				_ => true,
 			},
@@ -1126,6 +1125,13 @@ pub struct BabeDataGetter;
 impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_epoch_index() -> u64 {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			const BENCHMARKING_NEW_EPOCH: u64 = 10u64;
+			return BENCHMARKING_NEW_EPOCH;
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
@@ -1133,6 +1139,13 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
 	fn get_epoch_randomness() -> Option<Hash> {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let benchmarking_babe_output = Hash::default();
+			return Some(benchmarking_babe_output);
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()

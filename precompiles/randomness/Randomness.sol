@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
@@ -10,6 +10,10 @@ uint32 constant MAX_VRF_BLOCKS_DELAY = 2000;
 /// @dev The deposit amount needed to request random words. There is 1 deposit per request
 uint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;
 
+/// @author The Moonbeam Team
+/// @title Pallet Randomness Interface
+/// @dev The interface through which solidity contracts will interact with Randomness
+/// @custom:address 0x0000000000000000000000000000000000000809
 interface Randomness {
     /// @notice Event emitted when the request has been successfully executed
     event FulFillmentSucceeded();

@@ -316,7 +316,7 @@ fn transfer_not_enough_funds() {
 				.execute_reverts(|output| {
 					from_utf8(&output)
 						.unwrap()
-						.contains("Dispatched call failed with error: DispatchErrorWithPostInfo")
+						.contains("Dispatched call failed with error: ")
 						&& from_utf8(&output).unwrap().contains("InsufficientBalance")
 				});
 		});

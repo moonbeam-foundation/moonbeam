@@ -1,0 +1,253 @@
+{
+  "byteCode": "0x",
+  "contract": {
+    "abi": [
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Closed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          }
+        ],
+        "name": "Executed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint32",
+            "name": "threshold",
+            "type": "uint32"
+          }
+        ],
+        "name": "Proposed",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "who",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "voted",
+            "type": "bool"
+          }
+        ],
+        "name": "Voted",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint64",
+            "name": "proposalWeightBound",
+            "type": "uint64"
+          },
+          { "internalType": "uint32", "name": "lengthBound", "type": "uint32" }
+        ],
+        "name": "close",
+        "outputs": [
+          { "internalType": "bool", "name": "executed", "type": "bool" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "execute",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "proposalHash",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          { "internalType": "uint32", "name": "threshold", "type": "uint32" },
+          { "internalType": "bytes", "name": "proposal", "type": "bytes" }
+        ],
+        "name": "propose",
+        "outputs": [
+          { "internalType": "uint32", "name": "index", "type": "uint32" }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "proposalHash",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint32",
+            "name": "proposalIndex",
+            "type": "uint32"
+          },
+          { "internalType": "bool", "name": "approve", "type": "bool" }
+        ],
+        "name": "vote",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
+    "devdoc": {
+      "kind": "dev",
+      "methods": {
+        "close(bytes32,uint32,uint64,uint32)": {
+          "custom:selector": "638d9d47",
+          "details": "Close a proposal. Can be called by anyone once there is enough votes. Reverts if called at a non appropriate time.",
+          "params": {
+            "lengthBound": "Must be a value higher or equal to the length of the SCALE-encoded proposal in bytes.",
+            "proposalHash": "Hash of the proposal to close.",
+            "proposalIndex": "Index of the proposal.",
+            "proposalWeightBound": "Maximum amount of Substrate weight the proposal can use. This call will revert if the proposal call would use more."
+          },
+          "returns": { "executed": "Was the proposal executed or removed?" }
+        },
+        "execute(bytes)": {
+          "custom:selector": "09c5eabe",
+          "details": "Execute a proposal as a single member of the collective. The sender must be a member of the collective. This will NOT revert if the Substrate proposal is dispatched but fails !",
+          "params": { "proposal": "SCALE-encoded Substrate call." }
+        },
+        "proposalHash(bytes)": {
+          "custom:selector": "fc379417",
+          "details": "Compute the hash of a proposal.",
+          "params": { "proposal": "SCALE-encoded Substrate call." },
+          "returns": { "proposalHash": "Hash of the proposal." }
+        },
+        "propose(uint32,bytes)": {
+          "custom:selector": "c57f3260",
+          "details": "Make a proposal for a call. The sender must be a member of the collective. If the threshold is less than 2 then the proposal will be dispatched directly from the group of one member of the collective.",
+          "params": {
+            "proposal": "SCALE-encoded Substrate call.",
+            "threshold": "Amount of members required to dispatch the proposal."
+          },
+          "returns": {
+            "index": "Index of the new proposal. Meaningless if threshold < 2"
+          }
+        },
+        "vote(bytes32,uint32,bool)": {
+          "custom:selector": "73e37688",
+          "details": "Vote for a proposal. The sender must be a member of the collective.",
+          "params": {
+            "approve": "The vote itself, is the caller approving or not the proposal.",
+            "proposalHash": "Hash of the proposal to vote for. Ensure the caller knows what they're voting in case of front-running or reorgs.",
+            "proposalIndex": "Index of the proposal (returned by propose)."
+          }
+        }
+      },
+      "title": "Collective precompile Allows to interact with Substrate pallet_collective from the EVM. Address: TODO",
+      "version": 1
+    },
+    "evm": {
+      "assembly": "",
+      "bytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "deployedBytecode": {
+        "functionDebugData": {},
+        "generatedSources": [],
+        "immutableReferences": {},
+        "linkReferences": {},
+        "object": "",
+        "opcodes": "",
+        "sourceMap": ""
+      },
+      "gasEstimates": null,
+      "legacyAssembly": null,
+      "methodIdentifiers": {
+        "close(bytes32,uint32,uint64,uint32)": "638d9d47",
+        "execute(bytes)": "09c5eabe",
+        "proposalHash(bytes)": "fc379417",
+        "propose(uint32,bytes)": "c57f3260",
+        "vote(bytes32,uint32,bool)": "73e37688"
+      }
+    },
+    "ewasm": { "wasm": "" },
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"}],\"name\":\"Closed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"}],\"name\":\"Executed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"}],\"name\":\"Proposed\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"who\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bool\",\"name\":\"voted\",\"type\":\"bool\"}],\"name\":\"Voted\",\"type\":\"event\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"internalType\":\"uint64\",\"name\":\"proposalWeightBound\",\"type\":\"uint64\"},{\"internalType\":\"uint32\",\"name\":\"lengthBound\",\"type\":\"uint32\"}],\"name\":\"close\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"executed\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"execute\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"proposalHash\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"threshold\",\"type\":\"uint32\"},{\"internalType\":\"bytes\",\"name\":\"proposal\",\"type\":\"bytes\"}],\"name\":\"propose\",\"outputs\":[{\"internalType\":\"uint32\",\"name\":\"index\",\"type\":\"uint32\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint32\",\"name\":\"proposalIndex\",\"type\":\"uint32\"},{\"internalType\":\"bool\",\"name\":\"approve\",\"type\":\"bool\"}],\"name\":\"vote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"close(bytes32,uint32,uint64,uint32)\":{\"custom:selector\":\"638d9d47\",\"details\":\"Close a proposal. Can be called by anyone once there is enough votes. Reverts if called at a non appropriate time.\",\"params\":{\"lengthBound\":\"Must be a value higher or equal to the length of the SCALE-encoded proposal in bytes.\",\"proposalHash\":\"Hash of the proposal to close.\",\"proposalIndex\":\"Index of the proposal.\",\"proposalWeightBound\":\"Maximum amount of Substrate weight the proposal can use. This call will revert if the proposal call would use more.\"},\"returns\":{\"executed\":\"Was the proposal executed or removed?\"}},\"execute(bytes)\":{\"custom:selector\":\"09c5eabe\",\"details\":\"Execute a proposal as a single member of the collective. The sender must be a member of the collective. This will NOT revert if the Substrate proposal is dispatched but fails !\",\"params\":{\"proposal\":\"SCALE-encoded Substrate call.\"}},\"proposalHash(bytes)\":{\"custom:selector\":\"fc379417\",\"details\":\"Compute the hash of a proposal.\",\"params\":{\"proposal\":\"SCALE-encoded Substrate call.\"},\"returns\":{\"proposalHash\":\"Hash of the proposal.\"}},\"propose(uint32,bytes)\":{\"custom:selector\":\"c57f3260\",\"details\":\"Make a proposal for a call. The sender must be a member of the collective. If the threshold is less than 2 then the proposal will be dispatched directly from the group of one member of the collective.\",\"params\":{\"proposal\":\"SCALE-encoded Substrate call.\",\"threshold\":\"Amount of members required to dispatch the proposal.\"},\"returns\":{\"index\":\"Index of the new proposal. Meaningless if threshold < 2\"}},\"vote(bytes32,uint32,bool)\":{\"custom:selector\":\"73e37688\",\"details\":\"Vote for a proposal. The sender must be a member of the collective.\",\"params\":{\"approve\":\"The vote itself, is the caller approving or not the proposal.\",\"proposalHash\":\"Hash of the proposal to vote for. Ensure the caller knows what they're voting in case of front-running or reorgs.\",\"proposalIndex\":\"Index of the proposal (returned by propose).\"}}},\"title\":\"Collective precompile Allows to interact with Substrate pallet_collective from the EVM. Address: TODO\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Collective\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xaf4783f2af39545581f763341f4cf0aefccbd3872966033075f9bdd2abe5666a\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://496caa333920220ce0bb9f95d2d36ac6be65cfac7670b7c7c5bd72f1856574ed\",\"dweb:/ipfs/QmWDTqEcujuHocshHeRbVoN6ViB1g3VqTv1iCjMm4NGkbc\"]}},\"version\":1}",
+    "storageLayout": { "storage": [], "types": null },
+    "userdoc": { "kind": "user", "methods": {}, "version": 1 }
+  },
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @title Collective precompile\n/// Allows to interact with Substrate pallet_collective from the EVM.\n/// Address: TODO\ninterface Collective {\n    /// @dev Execute a proposal as a single member of the collective.\n    /// The sender must be a member of the collective.\n    /// This will NOT revert if the Substrate proposal is dispatched but fails !\n    ///\n    /// @param proposal SCALE-encoded Substrate call.\n    ///\n    /// @custom:selector 09c5eabe\n    function execute(bytes memory proposal) external;\n\n    /// @dev Make a proposal for a call.\n    /// The sender must be a member of the collective.\n    /// If the threshold is less than 2 then the proposal will be dispatched\n    /// directly from the group of one member of the collective.\n    ///\n    /// @param threshold Amount of members required to dispatch the proposal.\n    /// @param proposal SCALE-encoded Substrate call.\n    /// @return index Index of the new proposal. Meaningless if threshold < 2\n    ///\n    /// @custom:selector c57f3260\n    function propose(uint32 threshold, bytes memory proposal)\n        external\n        returns (uint32 index);\n\n    /// @dev Vote for a proposal.\n    /// The sender must be a member of the collective.\n    ///\n    /// @param proposalHash Hash of the proposal to vote for. Ensure the caller knows what they're\n    /// voting in case of front-running or reorgs.\n    /// @param proposalIndex Index of the proposal (returned by propose).\n    /// @param approve The vote itself, is the caller approving or not the proposal.\n    ///\n    /// @custom:selector 73e37688\n    function vote(\n        bytes32 proposalHash,\n        uint32 proposalIndex,\n        bool approve\n    ) external;\n\n    /// @dev Close a proposal.\n    /// Can be called by anyone once there is enough votes.\n    /// Reverts if called at a non appropriate time.\n    ///\n    /// @param proposalHash Hash of the proposal to close.\n    /// @param proposalIndex Index of the proposal.\n    /// @param proposalWeightBound Maximum amount of Substrate weight the proposal can use.\n    /// This call will revert if the proposal call would use more.\n    /// @param lengthBound Must be a value higher or equal to the length of the SCALE-encoded\n    /// proposal in bytes.\n    /// @return executed Was the proposal executed or removed?\n    ///\n    /// @custom:selector 638d9d47\n    function close(\n        bytes32 proposalHash,\n        uint32 proposalIndex,\n        uint64 proposalWeightBound,\n        uint32 lengthBound\n    ) external returns (bool executed);\n\n    /// @dev Compute the hash of a proposal.\n    ///\n    /// @param proposal SCALE-encoded Substrate call.\n    /// @return proposalHash Hash of the proposal.\n    ///\n    /// @custom:selector fc379417\n    function proposalHash(bytes memory proposal)\n        external\n        view\n        returns (bytes32 proposalHash);\n\n    event Executed(bytes32 indexed proposalHash);\n    event Proposed(\n        address indexed who,\n        uint32 indexed proposalIndex,\n        bytes32 indexed proposalHash,\n        uint32 threshold\n    );\n    event Voted(address indexed who, bytes32 indexed proposalHash, bool voted);\n    event Closed(bytes32 indexed proposalHash);\n}\n"
+}

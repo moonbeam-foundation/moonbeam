@@ -43,6 +43,7 @@ pub trait GetBabeData<EpochIndex, Randomness> {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::weights::{SubstrateWeight, WeightInfo};
 	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
@@ -198,13 +199,15 @@ pub mod pallet {
 		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
 		// This should go into on_post_inherents when it is ready
 		// https://github.com/paritytech/substrate/pull/10128
-		// TODO: weight
-		#[pallet::weight((10_000, DispatchClass::Mandatory))]
+		#[pallet::weight((
+			SubstrateWeight::<T>::set_babe_randomness_results(),
+			DispatchClass::Mandatory
+		))]
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
-			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
+			// populate the `RandomnessResults` for BABE epoch randomness
 			let relay_epoch_index = T::BabeDataGetter::get_epoch_index();
 			if relay_epoch_index > last_relay_epoch_index {
 				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);
