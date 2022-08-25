@@ -341,7 +341,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   if (specVersion >= 1800) {
     expect(actualTotalRewardedWithLoss.toString()).to.equal(
       totalStakingReward.toString(),
-      `Total rewarded events did not match total expected issuance for collators + delegators, inflation was "${actualTotalRewardedWithLoss
+      `Total rewarded events did not match total expected issuance for collators + delegators, diff of "${actualTotalRewardedWithLoss
         .sub(totalStakingReward)
         .toString()}" for round ${originalRoundNumber}`
     );
