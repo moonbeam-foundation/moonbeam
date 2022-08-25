@@ -21,7 +21,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof", default-features = false }
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }

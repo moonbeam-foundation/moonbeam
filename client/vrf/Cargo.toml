@@ -21,7 +21,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 session-keys-primitives = { path = "../../primitives/session-keys" }
 
 # Nimbus
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.26" }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "amar-cumulus-relay-sproof-epoch-randomness" }
 
 # Polkadot
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }

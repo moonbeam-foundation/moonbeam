@@ -47,7 +47,7 @@ scale-info = { version = "2.0", default-features = false, features = [ "derive" 
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof" }
 
 # Polkadot
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
@@ -55,7 +55,7 @@ xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbea
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
 
 # ORML
-orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.26" }
+orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "amar-cumulus-relay-sproof-epoch-randomness" }
 
 [features]
 default = [ "std" ]

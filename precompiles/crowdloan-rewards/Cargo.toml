@@ -11,7 +11,7 @@ num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
-pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "amar-cumulus-relay-sproof-epoch-randomness", default-features = false }
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
@@ -42,10 +42,10 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 # Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof", default-features = false }
+cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof", default-features = false }
+cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulus", branch = "amar-mock-randomness-in-sproof", default-features = false }
 
 [features]
 default = [ "std" ]
