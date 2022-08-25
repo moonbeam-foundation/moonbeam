@@ -9489,6 +9489,7 @@ name = "precompile-utils-macro"
 version = "0.1.0"
 dependencies = [
  "num_enum",
+ "prettyplease",
  "proc-macro2",
  "quote",
  "sha3 0.8.2",
@@ -9519,6 +9520,16 @@ checksum = "4d86de6de25020a36c6d3643a86d9a6a9f552107c0559c60ea03551b5e16c032"
 dependencies = [
  "predicates-core",
  "termtree",
+]
+
+[[package]]
+name = "prettyplease"
+version = "0.1.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "697ae720ee02011f439e0701db107ffe2916d83f718342d65d7f8bf7b8a5fee9"
+dependencies = [
+ "proc-macro2",
+ "syn",
 ]
 
 [[package]]

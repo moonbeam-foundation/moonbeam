@@ -174,7 +174,6 @@ where
 		Ok(())
 	}
 
-	
 	#[precompile::public("propose(uint32,bytes)")]
 	fn propose(
 		handle: &mut impl PrecompileHandle,
@@ -269,7 +268,7 @@ where
 		proposal_hash: H256,
 		proposal_index: u32,
 		proposal_weight_bound: u64,
-		length_bound: u32
+		length_bound: u32,
 	) -> EvmResult<bool> {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
@@ -299,7 +298,7 @@ where
 	#[precompile::view]
 	fn proposal_hash(
 		handle: &mut impl PrecompileHandle,
-		proposal: BoundedBytes<GetProposalLimit>
+		proposal: BoundedBytes<GetProposalLimit>,
 	) -> EvmResult<H256> {
 		let hash = hash::<Runtime>(&proposal.into_vec());
 

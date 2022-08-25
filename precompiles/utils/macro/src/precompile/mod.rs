@@ -13,7 +13,7 @@
 
 use proc_macro::TokenStream;
 use proc_macro2::Span;
-use quote::{format_ident, quote, ToTokens};
+use quote::{format_ident, quote, quote_spanned, ToTokens};
 use sha3::{Digest, Keccak256};
 use std::collections::BTreeMap;
 use syn::{parse_macro_input, spanned::Spanned};
@@ -29,10 +29,14 @@ pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
 		Err(e) => return e.into_compile_error().into(),
 	};
 
-	(quote! {
+	let enum_ = precompile.generate_enum();
+
+	let output = quote! {
 		#impl_item
-	})
-	.into()
+		#enum_
+	};
+
+	output.into()
 }
 
 pub struct Precompile {
@@ -94,14 +98,7 @@ pub struct Argument {
 
 impl Precompile {
 	pub fn try_from(mut args: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
-		println!(
-			"Precompile: {}",
-			impl_.self_ty.to_token_stream().to_string()
-		);
-
 		let enum_ident = Self::extract_enum_ident(args, impl_)?;
-
-		println!("Enum: {}", enum_ident.to_token_stream().to_string());
 
 		let mut precompile = Precompile {
 			struct_type: impl_.self_ty.as_ref().clone(),
@@ -317,7 +314,41 @@ impl Precompile {
 		Ok(())
 	}
 
-	// pub fn generate_enum(&self) -> impl ToTokens {
+	pub fn generate_enum(&self) -> impl ToTokens {
+		let span = Span::call_site();
+		let enum_ident = &self.enum_ident;
+		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-	// }
+		let type_parameters = self.generics.type_params().map(|p| &p.ident);
+
+		println!("{}", ty_generics.to_token_stream());
+
+		let variants: Vec<_> = self.variants_content.keys().collect();
+		let idents: Vec<Vec<_>> = self
+			.variants_content
+			.values()
+			.map(|v| v.arguments.iter().map(|a| &a.ident).collect())
+			.collect();
+		let types: Vec<Vec<_>> = self
+			.variants_content
+			.values()
+			.map(|v| v.arguments.iter().map(|a| &a.ty).collect())
+			.collect();
+
+		quote_spanned!(span=>
+			#[allow(non_camel_case_types)]
+			pub enum #enum_ident #ty_generics #where_clause {
+				#(
+					#variants {
+						#(
+							#idents: #types
+						),*
+					},
+				)*
+
+				#[doc(hidden)]
+				__phantom(PhantomData<( #( #type_parameters ),* )>),
+			}
+		)
+	}
 }
