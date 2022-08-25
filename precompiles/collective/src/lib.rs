@@ -141,9 +141,9 @@ impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance> {
 	// Can have multiple names as long as they have the same arguments.
 	#[precompile::public("propose(bytes,uint32,bytes)")]
 	#[precompile::public("propose2(bytes,uint32,bytes)")]
-	fn test2<T>(
+	fn test2(
 		handle: &mut impl PrecompileHandle,
-		threshold: u32,
+		mut threshold: u32,
 		proposal: BoundedBytes<GetProposalLimit>,
 	) -> EvmResult {
 		todo!()
