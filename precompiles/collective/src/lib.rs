@@ -95,102 +95,38 @@ pub enum Action {
 	ProposalHash = "proposalHash(bytes)",
 }
 
-// // #[solidity_functions]
-// pub enum ActionV2 {
-// 	#[selector("execute(bytes)", "execute2(bytes)")]
-// 	Execute {
-// 		proposal: BoundedBytes<GetProposalLimit>,
-// 	},
-// 	Propose {
-// 		threshold: u32,
-// 		proposal: BoundedBytes<GetProposalLimit>,
-// 	},
-// 	Vote {
-// 		proposal_hash: H256,
-// 		proposal_index: u32,
-// 		approve: bool,
-// 	},
-// 	Close {
-// 		proposal_hash: H256,
-// 		proposal_index: u32,
-// 		proposal_weight_bound: u64,
-// 		length_bound: u32,
-// 	}
-// 	#[view]
-// 	#[selector("proposalHash(bytes)")]
-// 	ProposalHash {
-// 		proposal: BoundedBytes<GetProposalLimit>,
+pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
+
+// impl<Runtime, Instance> Precompile for CollectivePrecompile<Runtime, Instance>
+// where
+// 	Instance: 'static,
+// 	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
+// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
+// 	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
+// 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
+// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+// 	H256: From<<Runtime as frame_system::Config>::Hash>
+// 		+ Into<<Runtime as frame_system::Config>::Hash>,
+// {
+// 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+// 		let selector = handle.read_selector()?;
+
+// 		handle.check_function_modifier(match selector {
+// 			Action::ProposalHash => FunctionModifier::View,
+// 			_ => FunctionModifier::NonPayable,
+// 		})?;
+
+// 		match selector {
+// 			Action::Execute => Self::execute(handle),
+// 			Action::Propose => Self::propose(handle),
+// 			Action::Vote => Self::vote(handle),
+// 			Action::Close => Self::close(handle),
+// 			Action::ProposalHash => Self::proposal_hash(handle),
+// 		}
 // 	}
 // }
 
-// TODO: Temp experiments to design the proc macro.
-#[precompile_utils::precompile]
-impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance> {
-	// Specify the Solidity signature.
-	// Macro will generate a test that the arguments of the function indeed produce
-	// this signature.
-	#[precompile::payable]
-	#[precompile::public("execute(bytes)")]
-	fn test1(
-		handle: &mut impl PrecompileHandle,
-		proposal: BoundedBytes<GetProposalLimit>,
-	) -> EvmResult {
-		todo!()
-	}
-
-	// Can have multiple names as long as they have the same arguments.
-	#[precompile::public("propose(bytes,uint32,bytes)")]
-	#[precompile::public("propose2(bytes,uint32,bytes)")]
-	fn test2(
-		handle: &mut impl PrecompileHandle,
-		mut threshold: u32,
-		proposal: BoundedBytes<GetProposalLimit>,
-	) -> EvmResult {
-		todo!()
-	}
-
-	#[precompile::fallback]
-	fn fallback(handle: &mut impl PrecompileHandle) -> EvmResult {
-		todo!()
-	}
-
-	// Non exposed method
-	fn foo() {
-		todo!()
-	}
-}
-
-pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
-
-impl<Runtime, Instance> Precompile for CollectivePrecompile<Runtime, Instance>
-where
-	Instance: 'static,
-	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
-	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	H256: From<<Runtime as frame_system::Config>::Hash>
-		+ Into<<Runtime as frame_system::Config>::Hash>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::ProposalHash => FunctionModifier::View,
-			_ => FunctionModifier::NonPayable,
-		})?;
-
-		match selector {
-			Action::Execute => Self::contract_execute(handle),
-			Action::Propose => Self::propose(handle),
-			Action::Vote => Self::vote(handle),
-			Action::Close => Self::close(handle),
-			Action::ProposalHash => Self::proposal_hash(handle),
-		}
-	}
-}
-
+#[precompile_utils::precompile(PrecompileCall)]
 impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>
 where
 	Instance: 'static,
@@ -202,11 +138,11 @@ where
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
 {
-	fn contract_execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal: BoundedBytes<GetProposalLimit>
-		});
-
+	#[precompile::public("execute(bytes)")]
+	fn execute(
+		handle: &mut impl PrecompileHandle,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult {
 		let proposal: Vec<_> = proposal.into_vec();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
@@ -235,16 +171,17 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(())
 	}
 
-	fn propose(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	
+	#[precompile::public("propose(uint32,bytes)")]
+	fn propose(
+		handle: &mut impl PrecompileHandle,
+		threshold: u32,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult<u32> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, {
-			threshold: u32,
-			proposal: BoundedBytes<GetProposalLimit>
-		});
 
 		let proposal: Vec<_> = proposal.into_vec();
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
@@ -290,16 +227,16 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(EvmDataWriter::new().write(proposal_index).build()))
+		Ok(proposal_index)
 	}
 
-	fn vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal_hash: H256,
-			proposal_index: u32,
-			approve: bool
-		});
-
+	#[precompile::public("vote(bytes32,uint32,bool)")]
+	fn vote(
+		handle: &mut impl PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		approve: bool,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -323,17 +260,17 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(())
 	}
 
-	fn close(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal_hash: H256,
-			proposal_index: u32,
-			proposal_weight_bound: u64,
-			length_bound: u32
-		});
-
+	#[precompile::public("close(bytes32,uint32,uint64,uint32)")]
+	fn close(
+		handle: &mut impl PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		proposal_weight_bound: u64,
+		length_bound: u32
+	) -> EvmResult<bool> {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -355,17 +292,18 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(EvmDataWriter::new().write(executed).build()))
+		Ok(executed)
 	}
 
-	fn proposal_hash(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal: BoundedBytes<GetProposalLimit>
-		});
-
+	#[precompile::public("proposalHash(bytes)")]
+	#[precompile::view]
+	fn proposal_hash(
+		handle: &mut impl PrecompileHandle,
+		proposal: BoundedBytes<GetProposalLimit>
+	) -> EvmResult<H256> {
 		let hash = hash::<Runtime>(&proposal.into_vec());
 
-		Ok(succeed(EvmDataWriter::new().write(hash).build()))
+		Ok(hash)
 	}
 }
 

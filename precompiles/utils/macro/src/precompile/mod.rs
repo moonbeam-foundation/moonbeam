@@ -12,18 +12,19 @@
 // GNU General Public License for more details.
 
 use proc_macro::TokenStream;
-use quote::quote;
-use quote::ToTokens;
+use proc_macro2::Span;
+use quote::{format_ident, quote, ToTokens};
+use sha3::{Digest, Keccak256};
 use std::collections::BTreeMap;
-use syn::{parse_macro_input, spanned::Spanned, FnArg, ImplItem, ItemImpl};
-use sha3::{Keccak256, Digest};
+use syn::{parse_macro_input, spanned::Spanned};
 
 pub mod attr;
 
-pub fn main(_: TokenStream, input: TokenStream) -> TokenStream {
-	let mut impl_item = parse_macro_input!(input as ItemImpl);
+pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
+	let args = parse_macro_input!(args as syn::AttributeArgs);
+	let mut impl_item = parse_macro_input!(item as syn::ItemImpl);
 
-	let precompile = match Precompile::try_from(&mut impl_item) {
+	let precompile = match Precompile::try_from(args, &mut impl_item) {
 		Ok(p) => p,
 		Err(e) => return e.into_compile_error().into(),
 	};
@@ -35,6 +36,15 @@ pub fn main(_: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 pub struct Precompile {
+	/// Impl struct type.
+	struct_type: syn::Type,
+
+	/// New parsing enum ident.
+	enum_ident: syn::Ident,
+
+	/// Generic part that needs to also be used by the input enum.
+	generics: syn::Generics,
+
 	/// Which selector corresponds to which variant of the input enum.
 	selector_to_variant: BTreeMap<u32, syn::Ident>,
 
@@ -83,13 +93,20 @@ pub struct Argument {
 }
 
 impl Precompile {
-	pub fn try_from(impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
+	pub fn try_from(mut args: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
 		println!(
 			"Precompile: {}",
 			impl_.self_ty.to_token_stream().to_string()
 		);
 
+		let enum_ident = Self::extract_enum_ident(args, impl_)?;
+
+		println!("Enum: {}", enum_ident.to_token_stream().to_string());
+
 		let mut precompile = Precompile {
+			struct_type: impl_.self_ty.as_ref().clone(),
+			enum_ident,
+			generics: impl_.generics.clone(),
 			selector_to_variant: BTreeMap::new(),
 			variants_content: BTreeMap::new(),
 			fallback_to_variant: None,
@@ -103,6 +120,50 @@ impl Precompile {
 		}
 
 		Ok(precompile)
+	}
+
+	fn extract_enum_ident(
+		mut args: syn::AttributeArgs,
+		impl_: &mut syn::ItemImpl,
+	) -> syn::Result<syn::Ident> {
+		let msg = "Macro expects the name of the enum that will be generated to parse the\
+			call data. Please use `#[precompile(PrecompileInput)]`";
+
+		if args.len() != 1 {
+			return Err(syn::Error::new(Span::call_site(), msg));
+		}
+
+		let mut enum_path = match args.pop().expect("len checked above") {
+			syn::NestedMeta::Meta(syn::Meta::Path(p)) => p,
+			_ => return Err(syn::Error::new(Span::call_site(), msg)),
+		};
+
+		if let Some(colon) = enum_path.leading_colon {
+			let msg = "Enum name must not have leading colon";
+			return Err(syn::Error::new(colon.span(), msg));
+		}
+
+		if enum_path.segments.len() != 1 {
+			let msg = "Enum name must must be a simple name without `::`";
+			return Err(syn::Error::new(enum_path.segments.span(), msg));
+		}
+
+		let enum_path = enum_path
+			.segments
+			.pop()
+			.expect("len checked above")
+			.into_value();
+
+		if enum_path.arguments != syn::PathArguments::None {
+			let msg = format!(
+				"Enum name must not have any arguments. Generics will automatically be\
+			added to match those of {}",
+				impl_.self_ty.to_token_stream().to_string()
+			);
+			return Err(syn::Error::new(enum_path.arguments.span(), msg));
+		}
+
+		Ok(enum_path.ident)
 	}
 
 	fn process_method(&mut self, method: &mut syn::ImplItemMethod) -> syn::Result<()> {
@@ -135,7 +196,8 @@ impl Precompile {
 				}
 				attr::MethodAttr::Payable(span) => {
 					if modifier != Modifier::NonPayable {
-						let msg = "A precompile method can have at most one modifier (payable, view)";
+						let msg =
+							"A precompile method can have at most one modifier (payable, view)";
 						return Err(syn::Error::new(span, msg));
 					}
 
@@ -143,7 +205,8 @@ impl Precompile {
 				}
 				attr::MethodAttr::View(span) => {
 					if modifier != Modifier::NonPayable {
-						let msg = "A precompile method can have at most one modifier (payable, view)";
+						let msg =
+							"A precompile method can have at most one modifier (payable, view)";
 						return Err(syn::Error::new(span, msg));
 					}
 
@@ -178,16 +241,21 @@ impl Precompile {
 					let digest = Keccak256::digest(signature.as_ref());
 					let selector = u32::from_be_bytes([digest[0], digest[1], digest[2], digest[3]]);
 
-					if let Some(previous) = self.selector_to_variant.insert(selector, method_name.clone()) {
-						let msg = format!("Selector collision with method {}", previous.to_string());
-							return Err(syn::Error::new(signature_lit.span(), msg));
+					if let Some(previous) = self
+						.selector_to_variant
+						.insert(selector, method_name.clone())
+					{
+						let msg =
+							format!("Selector collision with method {}", previous.to_string());
+						return Err(syn::Error::new(signature_lit.span(), msg));
 					}
 				}
 			}
 		}
 
 		if !used {
-			let msg = "A precompile method cannot have modifiers without being a fallback or having\
+			let msg =
+				"A precompile method cannot have modifiers without being a fallback or having\
 			a selector";
 			return Err(syn::Error::new(method.span(), msg));
 		}
@@ -196,7 +264,7 @@ impl Precompile {
 		if let Some(param) = method.sig.generics.params.first() {
 			let msg = "Exposed precompile methods cannot have type parameters";
 			return Err(syn::Error::new(param.span(), msg));
-		}	
+		}
 
 		// We skip the first parameter which will be the PrecompileHandle.
 		// Not having it or having a self parameter will produce a compilation error when
@@ -224,7 +292,7 @@ impl Precompile {
 					}
 
 					pat.ident.clone()
-				},
+				}
 				_ => {
 					return Err(syn::Error::new(input.pat.span(), msg));
 				}
@@ -234,15 +302,22 @@ impl Precompile {
 			arguments.push(Argument { ident, ty })
 		}
 
-		if let Some(_) = self.variants_content.insert(method_name.clone(), Variant {
-			arguments,
-			solidity_arguments_type,
-			modifier,
-		}) {
+		if let Some(_) = self.variants_content.insert(
+			method_name.clone(),
+			Variant {
+				arguments,
+				solidity_arguments_type,
+				modifier,
+			},
+		) {
 			let msg = "Duplicate method name";
 			return Err(syn::Error::new(method_name.span(), msg));
 		}
 
 		Ok(())
 	}
+
+	// pub fn generate_enum(&self) -> impl ToTokens {
+
+	// }
 }

@@ -11,8 +11,8 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-use quote::ToTokens;
 use proc_macro2::Span;
+use quote::ToTokens;
 use syn::spanned::Spanned;
 
 pub fn take_attributes<A>(attributes: &mut Vec<syn::Attribute>) -> syn::Result<Vec<A>>
@@ -71,9 +71,13 @@ impl syn::parse::Parse for MethodAttr {
 
 			Ok(MethodAttr::Public(span, signature))
 		} else if lookahead.peek(keyword::fallback) {
-			Ok(MethodAttr::Fallback(content.parse::<keyword::fallback>()?.span()))
+			Ok(MethodAttr::Fallback(
+				content.parse::<keyword::fallback>()?.span(),
+			))
 		} else if lookahead.peek(keyword::payable) {
-			Ok(MethodAttr::Payable(content.parse::<keyword::payable>()?.span()))
+			Ok(MethodAttr::Payable(
+				content.parse::<keyword::payable>()?.span(),
+			))
 		} else if lookahead.peek(keyword::view) {
 			Ok(MethodAttr::View(content.parse::<keyword::view>()?.span()))
 		} else {
