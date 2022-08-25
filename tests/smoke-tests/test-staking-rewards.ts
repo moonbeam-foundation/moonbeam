@@ -315,7 +315,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   expect(
     estimatedCommissionRewardedLoss.sub(actualCommissionRewardedLoss).abs().toNumber(),
     `Percentage share loss was above ${maxDifference} parts per billion, \
-  estimated ${estimatedCommissionRewardedLoss.toString()}, actual ${actualCommissionRewardedLoss.toString()}`
+  estimated ${estimatedCommissionRewardedLoss.toString()}, \
+  actual ${actualCommissionRewardedLoss.toString()}`
   ).to.be.lessThanOrEqual(maxDifference);
 
   // we add the two estimated losses, since the totalBondReward is always split between N collators,
@@ -342,7 +343,8 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   if (specVersion >= 1800) {
     expect(actualTotalRewardedWithLoss.toString()).to.equal(
       totalStakingReward.toString(),
-      `Total rewarded events did not match total expected issuance for collators + delegators, diff of "${actualTotalRewardedWithLoss
+      `Total rewarded events did not match total expected issuance for collators & delegators, \
+      diff of "${actualTotalRewardedWithLoss
         .sub(totalStakingReward)
         .toString()}" for round ${originalRoundNumber}`
     );
