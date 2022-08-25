@@ -1,0 +1,365 @@
+// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+use proc_macro::TokenStream;
+use quote::quote;
+use quote::ToTokens;
+use std::collections::BTreeMap;
+use syn::{parse_macro_input, spanned::Spanned, FnArg, ImplItem, ItemImpl};
+use sha3::{Keccak256, Digest};
+
+pub mod attr;
+
+pub fn main(_: TokenStream, input: TokenStream) -> TokenStream {
+	let mut impl_item = parse_macro_input!(input as ItemImpl);
+
+	let precompile = match Precompile::try_from(&mut impl_item) {
+		Ok(p) => p,
+		Err(e) => return e.into_compile_error().into(),
+	};
+
+	(quote! {
+		#impl_item
+	})
+	.into()
+}
+
+pub struct Precompile {
+	/// Which selector corresponds to which variant of the input enum.
+	selector_to_variant: BTreeMap<u32, syn::Ident>,
+
+	/// Optional fallback function if no selector matches.
+	fallback_to_variant: Option<syn::Ident>,
+
+	/// Describes the content of each variant based on the precompile methods.
+	variants_content: BTreeMap<syn::Ident, Variant>,
+}
+
+#[derive(PartialEq, Eq)]
+pub enum Modifier {
+	NonPayable,
+	Payable,
+	View,
+}
+
+pub struct Variant {
+	/// Ident of the method in the impl block.
+	/// It will also be the ident of the enum variant (still in snake_case for
+	/// simplicity).
+	method_name: syn::Ident,
+
+	/// Description of the arguments of this method, which will also
+	/// be members of a struct variant.
+	arguments: Vec<Argument>,
+
+	/// String extracted from the selector attribute.
+	/// A unit test will be generated to check that this selector matches
+	/// the Rust arguments. None if no arguments.
+	///
+	/// > EvmData trait allows to generate this string at runtime only. Thus
+	/// > it is required to write it manually in the selector attribute, and
+	/// > a unit test is generated to check it matches.
+	solidity_arguments_type: Option<String>,
+
+	/// Modifier of the function. They are all exclusive and defaults to
+	/// `NonPayable`.
+	modifier: Modifier,
+}
+
+pub struct Argument {
+	/// Identifier of the argument, which will be used in the struct variant.
+	rust_name: syn::Ident,
+
+	/// Type of the argument, which will be used in the struct variant and
+	/// to parse the input.
+	rust_type: syn::Type,
+}
+
+impl Precompile {
+	pub fn try_from(impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
+		println!(
+			"Precompile: {}",
+			impl_.self_ty.to_token_stream().to_string()
+		);
+
+		let mut precompile = Precompile {
+			selector_to_variant: BTreeMap::new(),
+			variants_content: BTreeMap::new(),
+			fallback_to_variant: None,
+		};
+
+		for mut item in &mut impl_.items {
+			// We only interact with methods and leave the rest as-is.
+			if let syn::ImplItem::Method(ref mut method) = &mut item {
+				precompile.process_method(method)?;
+			}
+		}
+
+		Ok(precompile)
+	}
+
+	fn process_method(&mut self, method: &mut syn::ImplItemMethod) -> syn::Result<()> {
+		// Take (remove) all attributes related to this macro.
+		let attrs = attr::take_attributes::<attr::MethodAttr>(&mut method.attrs)?;
+
+		// If there are no attributes it is a private function and we ignore it.
+		if attrs.is_empty() {
+			return Ok(());
+		}
+
+		let method_name = method.sig.ident.clone();
+		let mut modifier = Modifier::NonPayable;
+		let mut solidity_arguments_type: Option<String> = None;
+
+		// A method cannot have modifiers if it isn't a fallback and/or doesn't have a selector.
+		let mut used = false;
+
+		for attr in attrs {
+			match attr {
+				attr::MethodAttr::Fallback(span) => {
+					if self.fallback_to_variant.is_some() {
+						let msg = "A precompile can only have 1 fallback function";
+						return Err(syn::Error::new(span, msg));
+					}
+
+					self.fallback_to_variant = Some(method_name.clone());
+					used = true;
+				}
+				attr::MethodAttr::Payable(span) => {
+					if modifier != Modifier::NonPayable {
+						let msg = "A precompile method can have at most one modifier (payable, view)";
+						return Err(syn::Error::new(span, msg));
+					}
+
+					modifier = Modifier::Payable;
+				}
+				attr::MethodAttr::View(span) => {
+					if modifier != Modifier::NonPayable {
+						let msg = "A precompile method can have at most one modifier (payable, view)";
+						return Err(syn::Error::new(span, msg));
+					}
+
+					modifier = Modifier::View;
+				}
+				attr::MethodAttr::Public(span, signature_lit) => {
+					used = true;
+
+					let signature = signature_lit.value();
+
+					// Split signature to get arguments type.
+					let split: Vec<_> = signature.splitn(2, "(").collect();
+					if split.len() != 2 {
+						let msg = "Selector must have form \"foo(arg1,arg2,...)\"";
+						return Err(syn::Error::new(signature_lit.span(), msg));
+					}
+
+					let local_args_type = format!("({}", split[1]); // add back initial parenthesis
+
+					if let Some(ref args_type) = &solidity_arguments_type {
+						// If there are multiple public attributes we check that they all have
+						// the same type.
+						if args_type != &local_args_type {
+							let msg = "Method cannot have multiple selectors with different types.";
+							return Err(syn::Error::new(signature_lit.span(), msg));
+						}
+					} else {
+						solidity_arguments_type = Some(local_args_type);
+					}
+
+					// Compute the 4-bytes selector.
+					let digest = Keccak256::digest(signature.as_ref());
+					let selector = u32::from_be_bytes([digest[0], digest[1], digest[2], digest[3]]);
+
+					if let Some(previous) = self.selector_to_variant.insert(selector, method_name.clone()) {
+						let msg = format!("Selector collision with method {}", previous.to_string());
+							return Err(syn::Error::new(signature_lit.span(), msg));
+					}
+				}
+			}
+		}
+
+		if !used {
+			let msg = "A precompile method cannot have modifiers without being a fallback or having\
+			a selector";
+			return Err(syn::Error::new(method.span(), msg));
+		}
+
+		// We forbid type parameters.
+		if let Some(param) = method.sig.generics.params.first() {
+			let msg = "Precompile methods cannot have type parameters";
+			return Err(syn::Error::new(param.span(), msg));
+		}	
+
+		// We now collect information about the method parameters.
+		let variant = Variant {
+			method_name,
+			arguments: vec![],
+			solidity_arguments_type,
+			modifier,
+		};
+
+			
+
+		Ok(())
+	}
+}
+
+// #[derive(Debug)]
+// struct Method {
+// 	args: Vec<Argument>,
+// 	// Solidity signature (everything without the function name)
+// 	// signature: Vec<,
+// }
+
+// #[derive(Debug)]
+// struct Argument {
+// 	rust_name: String,
+// 	rust_type: syn::Type,
+// }
+
+// #[derive(Debug)]
+// struct Precompile {
+// 	/// The original impl block.
+// 	/// It is kept as is minus attributes used by the macro.
+// 	/// The macro will generate additional code that uses data collected from it.
+// 	impl_: syn::ItemImpl,
+// 	/// Methods of the precompile.
+// 	methods: Vec<Method>,
+// }
+
+// impl Precompile {
+// 	pub fn try_from(mut impl_: syn::ItemImpl) -> syn::Result<Self> {
+// 		println!(
+// 			"Precompile: {}",
+// 			impl_.self_ty.to_token_stream().to_string()
+// 		);
+
+// 		let mut methods = vec![];
+
+// 		for mut item in &mut impl_.items {
+// 			// We only interact with methods and leave the rest as-is.
+// 			if let syn::ImplItem::Method(ref mut method) = &mut item {
+// 				if let Some(method) = process_method(method)? {
+// 					println!("{:?}", method);
+// 					methods.push(method);
+// 				}
+// 			}
+// 		}
+
+// 		Ok(Self { impl_, methods })
+// 	}
+// }
+
+// fn process_method(method: &mut syn::ImplItemMethod) -> syn::Result<MethodKind> {
+// 	// // let rust_args = vec![];
+
+// 	// let mut inputs_iter = method.sig.inputs.iter();
+
+// 	// // We skip the first parameter which is the PrecompileHandle
+// 	// for input in method.sig.inputs.iter().skip(1) {
+// 	// 	let input = match input {
+// 	// 		syn::FnArg::Typed(t) => t,
+// 	// 		_ => {
+// 	// 			let msg = "self is not supported in precompile methods";
+// 	// 			return Err(syn::Error::new(input.span(), msg));
+// 	// 		}
+// 	// 	};
+// 	// }
+
+// 	let attributes = attr::take_attributes::<attr::MethodAttr>(&mut method.attrs)?;
+
+// 	if attributes.is_empty() {
+// 		return Ok(MethodKind::Private);
+// 	}
+
+// 	let mut args_type: Option<String> = None;
+// 	let mut is_fallback = false;
+// 	let mut is_selector = false;
+
+// 	for a in attributes {
+// 		match a {
+// 			attr::MethodAttr::Fallback => {
+// 				let msg = "Method cannot both have a selector and be a fallback.";
+// 				return Err(syn::Error::new(a.span(), msg));
+// 			},
+
+// 			attr::MethodAttr::Selector(lit) => {
+// 				if is_fallback {
+
+// 				}
+
+// 				let lit_value = lit.value();
+
+// 				// Split selector to get arguments type.
+// 				let split: Vec<_> = lit_value.splitn(2, "(").collect();
+// 				if split.len() != 2 {
+// 					let msg = "Selector must have form \"foo(arg1,arg2,...)\"";
+// 					return Err(syn::Error::new(lit.span(), msg));
+// 				}
+
+// 				let local_args_type = format!("({}", split[1]); // add back initial parenthesis
+
+// 				if let Some(ref args_type) = &args_type {
+// 					// If there are multiple selector attributes we check that they all have
+// 					// the same type.
+// 					if args_type != &local_args_type {
+// 						let msg = "Method cannot have multiple selectors with different types.";
+// 						return Err(syn::Error::new(lit.span(), msg));
+// 					}
+// 				} else {
+// 					args_type = Some(local_args_type);
+// 				}
+
+// 				// Compute the 4-bytes selector.
+
+// 			},
+// 		}
+// 	}
+
+// 	// No signature for attribute = it is not meant to be an exposed method.
+// 	let args_type = match args_type {
+// 		None => return Ok(MethodKind::Private),
+// 		Some(s) => s,
+// 	};
+
+// 	Ok(Some(Method {
+// 		args: vec![],
+// 		names,
+// 		signature
+// 	}))
+// }
+
+// fn process_impl_item(item: &mut syn::ImplItem) -> syn::Result<()> {
+// 	let method = match item {
+// 		syn::ImplItem::Method(method) => method,
+// 		_ => return Ok(()),
+// 	};
+
+// 	println!("Method: {}", method.sig.ident);
+// 	println!("Arguments:");
+
+// 	for arg in method.sig.inputs.iter() {
+// 		let arg = match arg {
+// 			syn::FnArg::Typed(arg) => arg,
+// 			_ => {
+// 				return Err(syn::Error::new(
+// 					arg.span(),
+// 					"Precompile functions cannot take self",
+// 				))
+// 			}
+// 		};
+// 		println!("- {:?}", arg);
+// 	}
+
+// 	Ok(())
+// }

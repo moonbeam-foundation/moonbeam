@@ -95,6 +95,71 @@ pub enum Action {
 	ProposalHash = "proposalHash(bytes)",
 }
 
+// // #[solidity_functions]
+// pub enum ActionV2 {
+// 	#[selector("execute(bytes)", "execute2(bytes)")]
+// 	Execute {
+// 		proposal: BoundedBytes<GetProposalLimit>,
+// 	},
+// 	Propose {
+// 		threshold: u32,
+// 		proposal: BoundedBytes<GetProposalLimit>,
+// 	},
+// 	Vote {
+// 		proposal_hash: H256,
+// 		proposal_index: u32,
+// 		approve: bool,
+// 	},
+// 	Close {
+// 		proposal_hash: H256,
+// 		proposal_index: u32,
+// 		proposal_weight_bound: u64,
+// 		length_bound: u32,
+// 	}
+// 	#[view]
+// 	#[selector("proposalHash(bytes)")]
+// 	ProposalHash {
+// 		proposal: BoundedBytes<GetProposalLimit>,
+// 	}
+// }
+
+// TODO: Temp experiments to design the proc macro.
+#[precompile_utils::precompile]
+impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance> {
+	// Specify the Solidity signature.
+	// Macro will generate a test that the arguments of the function indeed produce
+	// this signature.
+	#[precompile::payable]
+	#[precompile::public("execute(bytes)")]
+	fn test1(
+		handle: &mut impl PrecompileHandle,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult {
+		todo!()
+	}
+
+	// Can have multiple names as long as they have the same arguments.
+	#[precompile::public("propose(bytes,uint32,bytes)")]
+	#[precompile::public("propose2(bytes,uint32,bytes)")]
+	fn test2<T>(
+		handle: &mut impl PrecompileHandle,
+		threshold: u32,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult {
+		todo!()
+	}
+
+	#[precompile::fallback]
+	fn fallback(handle: &mut impl PrecompileHandle) -> EvmResult {
+		todo!()
+	}
+
+	// Non exposed method
+	fn foo() {
+		todo!()
+	}
+}
+
 pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
 
 impl<Runtime, Instance> Precompile for CollectivePrecompile<Runtime, Instance>

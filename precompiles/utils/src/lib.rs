@@ -43,7 +43,7 @@ pub mod data;
 
 pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
-pub use precompile_utils_macro::{generate_function_selector, keccak256};
+pub use precompile_utils_macro::{generate_function_selector, keccak256, precompile};
 
 /// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
 /// If the revert needs improved formatting such as backtraces, `Revert` type should
