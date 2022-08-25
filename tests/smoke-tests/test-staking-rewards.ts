@@ -32,6 +32,10 @@ async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: numbe
 }
 
 async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
+  const latestBlock = await api.rpc.chain.getBlock();
+  const latestBlockHash = latestBlock.block.hash;
+  const latestBlockNumber = latestBlock.block.header.number.toNumber();
+  const latestRound = await (await api.at(latestBlock.block.hash)).query.parachainStaking.round();
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
   const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
   const nowRoundNumber = nowRound.current;
@@ -68,6 +72,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
+  latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
   now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
   round   ${originalRoundNumber.toString()} (prior round last block \
   ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
@@ -224,10 +229,6 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
-  // verify rewards
-  const latestBlock = await api.rpc.chain.getBlock();
-  const latestRoundNumber = latestBlock.block.header.number.toNumber();
-
   // get the collators to be awarded via `awardedPts` storage
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
@@ -235,7 +236,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const awardedCollatorCount = awardedCollators.length;
 
   // compute max rounds respecting the current block number and the number of awarded collators
-  const maxRoundChecks = Math.min(latestRoundNumber - nowBlockNumber + 1, awardedCollatorCount);
+  const maxRoundChecks = Math.min(latestBlockNumber - nowBlockNumber + 1, awardedCollatorCount);
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<HexString>();
