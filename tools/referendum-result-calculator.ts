@@ -1,16 +1,16 @@
 import yargs from "yargs";
 import { BN, bnSqrt } from "@polkadot/util";
-import { compareRationals, calcPassing } from "@polkadot/api-derive/democracy/util";
+import { calcPassing } from "@polkadot/api-derive/democracy/util";
 
 const args = yargs.options({
   yes: { type: "string", demandOption: true, alias: "y" },
   no: { type: "string", demandOption: true, alias: "n" },
   turnout: { type: "string", demandOption: true, alias: "t" },
   electorate: { type: "string", demandOption: true, alias: "e" },
-  approveType: {
+  voteThreshold: {
     choices: ["isSuperMajorityApprove", "isSuperMajorityAgainst", "isSimpleMajority"],
     demandOption: true,
-    alias: "at",
+    alias: "vt",
   },
 }).argv;
 
@@ -20,7 +20,7 @@ async function main() {
   const voters = new BN(args["turnout"]);
   const sqrtElectorate = bnSqrt(new BN(args["electorate"]));
 
-  let result = calcPassing(args["approveType"] as any, sqrtElectorate, {
+  let result = calcPassing(args["voteThreshold"] as any, sqrtElectorate, {
     votedAye: yes,
     votedNay: no,
     votedTotal: voters,
