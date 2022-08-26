@@ -28,11 +28,18 @@ use sp_core::H160;
 use sp_std::{fmt::Debug, marker::PhantomData};
 use xcm::latest::{MultiLocation, OriginKind};
 use xcm_executor::traits::ConvertOrigin;
-
+use frame_support::pallet_prelude::ConstU32;
+use frame_support::codec::{Decode, DecodeLimit as _};
+use frame_support::weights::{PostDispatchInfo, GetDispatchInfo};
+use pallet_evm::AddressMapping;
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
 pub type XcmAccountIdOf<XcmConfig> =
 	<<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin as OriginTrait>::AccountId;
+
+pub type SystemCallOf<Runtime> =
+	<Runtime as frame_system::Config>::Call;
+	
 
 #[cfg(test)]
 mod mock;
@@ -53,17 +60,20 @@ pub struct XcmUtilsWrapper<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>
 
 impl<Runtime, XcmConfig> pallet_evm::Precompile for XcmUtilsWrapper<Runtime, XcmConfig>
 where
-	Runtime: pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
+	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Call: From<pallet_xcm::Call<Runtime>>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		let selector = handle.read_selector()?;
 
 		handle.check_function_modifier(match selector {
 			Action::MultiLocationToAddress => FunctionModifier::View,
-			Action:XcmExecute => FunctionModifier::NonPayable,
+			Action::XcmExecute => FunctionModifier::NonPayable,
 		})?;
 
 		match selector {
@@ -77,11 +87,13 @@ where
 
 impl<Runtime, XcmConfig> XcmUtilsWrapper<Runtime, XcmConfig>
 where
-	Runtime: pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_evm::Config + frame_system::Config + pallet_xcm::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
-	T::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
+	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	<Runtime as frame_system::Config>::Call: From<pallet_xcm::Call<Runtime>>,
 {
 	fn multilocation_to_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// TODO: Change once precompiles are benchmarked
@@ -108,14 +120,26 @@ where
 		))
 	}
 	
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, { message: BoundedBytes<GetProposalLimit> });
-	
+	fn xcm_execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		read_args!(handle, { message: BoundedBytes<GetProposalLimit>, max_weight: u64 });
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
 		let message: Vec<_> = message.into_vec();
-		let xcm = xcm::VersionedXcm::<T::Call>::decode_all_with_depth_limit(
+		let xcm = xcm::VersionedXcm::<SystemCallOf<Runtime>>::decode_all_with_depth_limit(
 			xcm::MAX_XCM_DECODE_DEPTH,
 			&mut message.as_slice(),
-		);
+		).map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
 
+		let call = pallet_xcm::Call::<Runtime>::execute {
+			message: Box::new(xcm),
+			max_weight: max_weight,
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(succeed([]))
+
+	}
 }
 

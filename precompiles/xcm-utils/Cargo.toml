@@ -24,6 +24,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 # Polkadot
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -61,4 +62,5 @@ std = [
 	"sp-core/std",
 	"sp-std/std",
 	"xcm-executor/std",
+	"pallet-xcm/std"
 ]
