@@ -279,6 +279,8 @@ where
 	}
 }
 
+pub type PCall = CollectivePrecompileCall<Runtime, pallet_collective::Instance1>;
+
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
 }

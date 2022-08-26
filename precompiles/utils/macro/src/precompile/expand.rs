@@ -119,6 +119,8 @@ impl Precompile {
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
 		let match_selectors = self.selector_to_variant.keys();
+		let match_selectors2 = self.selector_to_variant.keys();
+
 		let match_variant_parse = self
 			.selector_to_variant
 			.values()
@@ -134,12 +136,31 @@ impl Precompile {
 
 		let variants_parsing = self.generate_parse_functions();
 
-		let variants_ident: Vec<_> = self.variants_content.keys().map(|ident| ident).collect();
+		let variants_ident: Vec<_> = self.variants_content.keys().collect();
+		let variants_ident2: Vec<_> = self.variants_content.keys().collect();
 
 		let variants_list: Vec<Vec<_>> = self
 			.variants_content
 			.values()
 			.map(|variant| variant.arguments.iter().map(|arg| &arg.ident).collect())
+			.collect();
+
+		let variants_encode: Vec<_> = self
+			.variants_content
+			.values()
+			.map(|variant| match variant.encode_selector {
+				Some(selector) => {
+					let arguments = variant.arguments.iter().map(|arg| &arg.ident);
+
+					quote!(
+						EvmDataWriter::new_with_selector(#selector)
+						#(.write(#arguments))*
+						.build()
+					)
+					.to_token_stream()
+				}
+				None => quote!(Vec::new()).to_token_stream(),
+			})
 			.collect();
 
 		quote_spanned!(span=>
@@ -185,6 +206,34 @@ impl Precompile {
 							output
 						}
 					)
+				}
+
+				pub fn supports_selector(selector: u32) -> bool {
+					match selector {
+						#(
+							#match_selectors2 => true,
+						)*
+						_ => false,
+					}
+				}
+
+				#[cfg(test)]
+				pub fn encode(self) -> Vec<u8> {
+					match self {
+						#(
+							Self::#variants_ident2 { #(#variants_list),* } => {
+								#variants_encode
+							},
+						)*
+						Self::__phantom(_) => panic!("__phantom variant should not be used"),
+					}
+				}
+			}
+
+			#[cfg(test)]
+			impl #impl_generics From<#enum_ident #ty_generics> for Vec<u8> #where_clause {
+				fn from(a: #enum_ident #ty_generics) -> Vec<u8> {
+					a.encode()
 				}
 			}
 		)

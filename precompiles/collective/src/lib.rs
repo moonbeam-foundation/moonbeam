@@ -85,46 +85,7 @@ pub fn log_closed(address: impl Into<H160>, hash: H256) -> Log {
 
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	Execute = "execute(bytes)",
-	Propose = "propose(uint32,bytes)",
-	Vote = "vote(bytes32,uint32,bool)",
-	Close = "close(bytes32,uint32,uint64,uint32)",
-	ProposalHash = "proposalHash(bytes)",
-}
-
 pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
-
-// impl<Runtime, Instance> Precompile for CollectivePrecompile<Runtime, Instance>
-// where
-// 	Instance: 'static,
-// 	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
-// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-// 	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
-// 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
-// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-// 	H256: From<<Runtime as frame_system::Config>::Hash>
-// 		+ Into<<Runtime as frame_system::Config>::Hash>,
-// {
-// 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-// 		let selector = handle.read_selector()?;
-
-// 		handle.check_function_modifier(match selector {
-// 			Action::ProposalHash => FunctionModifier::View,
-// 			_ => FunctionModifier::NonPayable,
-// 		})?;
-
-// 		match selector {
-// 			Action::Execute => Self::execute(handle),
-// 			Action::Propose => Self::propose(handle),
-// 			Action::Vote => Self::vote(handle),
-// 			Action::Close => Self::close(handle),
-// 			Action::ProposalHash => Self::proposal_hash(handle),
-// 		}
-// 	}
-// }
 
 #[precompile_utils::precompile]
 impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>

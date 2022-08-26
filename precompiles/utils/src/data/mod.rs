@@ -98,6 +98,15 @@ impl<S> BoundedBytes<S> {
 	}
 }
 
+impl<S> From<Bytes> for BoundedBytes<S> {
+	fn from(from: Bytes) -> Self {
+		Self {
+			inner: from.0,
+			_phantom: PhantomData,
+		}
+	}
+}
+
 /// Wrapper around an EVM input slice, helping to parse it.
 /// Provide functions to parse common types.
 #[derive(Clone, Copy, Debug)]

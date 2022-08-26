@@ -73,6 +73,7 @@ impl Precompile {
 		let mut solidity_arguments_type: Option<String> = None;
 		let mut arguments = vec![];
 		let mut is_fallback = false;
+		let mut encode_selector = None;
 
 		for attr in attrs {
 			match attr {
@@ -141,6 +142,10 @@ impl Precompile {
 							format!("Selector collision with method {}", previous.to_string());
 						return Err(syn::Error::new(signature_lit.span(), msg));
 					}
+
+					if encode_selector.is_none() {
+						encode_selector = Some(selector);
+					}
 				}
 			}
 		}
@@ -205,6 +210,7 @@ impl Precompile {
 				arguments,
 				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
 				modifier,
+				encode_selector,
 			},
 		) {
 			let msg = "Duplicate method name";

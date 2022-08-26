@@ -95,6 +95,10 @@ pub struct Variant {
 	/// Modifier of the function. They are all exclusive and defaults to
 	/// `NonPayable`.
 	modifier: Modifier,
+
+	/// One of the selectors to be able to encode back the data.
+	/// None if it only the fallback function.
+	encode_selector: Option<u32>,
 }
 
 #[derive(Debug)]
