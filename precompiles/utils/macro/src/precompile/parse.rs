@@ -14,8 +14,8 @@
 use super::*;
 
 impl Precompile {
-	pub fn try_from(args: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
-		let enum_ident = Self::extract_enum_ident(args, impl_)?;
+	pub fn try_from(_: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
+		let enum_ident = Self::extract_enum_ident(impl_)?;
 
 		let mut precompile = Precompile {
 			struct_type: impl_.self_ty.as_ref().clone(),
@@ -36,48 +36,22 @@ impl Precompile {
 		Ok(precompile)
 	}
 
-	fn extract_enum_ident(
-		mut args: syn::AttributeArgs,
-		impl_: &mut syn::ItemImpl,
-	) -> syn::Result<syn::Ident> {
-		let msg = "Macro expects the name of the enum that will be generated to parse the\
-			call data. Please use `#[precompile(PrecompileInput)]`";
-
-		if args.len() != 1 {
-			return Err(syn::Error::new(Span::call_site(), msg));
-		}
-
-		let mut enum_path = match args.pop().expect("len checked above") {
-			syn::NestedMeta::Meta(syn::Meta::Path(p)) => p,
-			_ => return Err(syn::Error::new(Span::call_site(), msg)),
+	fn extract_enum_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
+		let type_path = match impl_.self_ty.as_ref() {
+			syn::Type::Path(p) => p,
+			_ => {
+				let msg = "The type in the impl block must be a path, like `Precompile` or
+				`example::Precompile`";
+				return Err(syn::Error::new(impl_.self_ty.span(), msg));
+			}
 		};
 
-		if let Some(colon) = enum_path.leading_colon {
-			let msg = "Enum name must not have leading colon";
-			return Err(syn::Error::new(colon.span(), msg));
-		}
+		let final_path = type_path.path.segments.last().ok_or_else(|| {
+			let msg = "The type path must be non empty.";
+			syn::Error::new(impl_.self_ty.span(), msg)
+		})?;
 
-		if enum_path.segments.len() != 1 {
-			let msg = "Enum name must must be a simple name without `::`";
-			return Err(syn::Error::new(enum_path.segments.span(), msg));
-		}
-
-		let enum_path = enum_path
-			.segments
-			.pop()
-			.expect("len checked above")
-			.into_value();
-
-		if enum_path.arguments != syn::PathArguments::None {
-			let msg = format!(
-				"Enum name must not have any arguments. Generics will automatically be\
-			added to match those of {}",
-				impl_.self_ty.to_token_stream().to_string()
-			);
-			return Err(syn::Error::new(enum_path.arguments.span(), msg));
-		}
-
-		Ok(enum_path.ident)
+		Ok(format_ident!("{}Call", final_path.ident))
 	}
 
 	fn process_method(&mut self, method: &mut syn::ImplItemMethod) -> syn::Result<()> {

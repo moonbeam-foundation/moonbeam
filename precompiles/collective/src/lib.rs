@@ -126,7 +126,7 @@ pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime
 // 	}
 // }
 
-#[precompile_utils::precompile(PrecompileCall)]
+#[precompile_utils::precompile]
 impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>
 where
 	Instance: 'static,

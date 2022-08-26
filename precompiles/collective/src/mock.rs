@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU128, ConstU64, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
