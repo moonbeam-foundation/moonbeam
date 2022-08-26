@@ -256,6 +256,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
       api,
+      specVersion,
       blockNumber,
       delegators,
       collators,
@@ -301,43 +302,49 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     ).to.be.empty;
   }
 
-  // Perbill arithmetic can deviate at most ±1 per operation so we use the number of collators
-  // to compute the max deviation per billion
-  const maxDifference = awardedCollatorCount;
-
-  // assert rewarded amounts match (with loss due to Perbill arithmetic)
-  const estimatedCommissionRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare)).of(
-    totalCollatorCommissionReward
-  );
-  const actualCommissionRewardedLoss = totalCollatorCommissionReward.sub(
-    totalCollatorCommissionRewarded
-  );
-  expect(
-    estimatedCommissionRewardedLoss.sub(actualCommissionRewardedLoss).abs().toNumber(),
-    `Percentage share loss was above ${maxDifference} parts per billion, \
-  estimated ${estimatedCommissionRewardedLoss.toString()}, \
-  actual ${actualCommissionRewardedLoss.toString()}`
-  ).to.be.lessThanOrEqual(maxDifference);
-
-  // we add the two estimated losses, since the totalBondReward is always split between N collators,
-  // which then split the reward again between the all the delegators
-  const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare))
-    .of(totalBondReward)
-    .add(totalBondRewardedLoss);
-  const actualBondRewardedLoss = totalBondReward.sub(totalBondRewarded);
-  expect(
-    estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs().toNumber(),
-    `Percentage share loss was above ${maxDifference} parts per billion, \
-  estimated ${estimatedBondRewardedLoss.toString()}, actual ${actualBondRewardedLoss.toString()}`
-  ).to.be.lessThanOrEqual(maxDifference);
-
-  // calculate total rewarded amount including the amount lost to Perbill arithmetic
-  const actualTotalRewardedWithLoss = totalRewardedAmount
-    .add(actualCommissionRewardedLoss)
-    .add(actualBondRewardedLoss);
-
-  // check that sum of all reward transfers is equal to total expected staking reward
+  // check reward amount with losses due to Perbill arithmetic
   if (specVersion >= 1800) {
+    // Perbill arithmetic can deviate at most ±1 per operation so we use the number of collators
+    // to compute the max deviation per billion
+    const maxDifference = awardedCollatorCount;
+
+    // assert rewarded amounts match (with loss due to Perbill arithmetic)
+    const estimatedCommissionRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare)).of(
+      totalCollatorCommissionReward
+    );
+    const actualCommissionRewardedLoss = totalCollatorCommissionReward.sub(
+      totalCollatorCommissionRewarded
+    );
+    const commissionRewardLoss = estimatedCommissionRewardedLoss
+      .sub(actualCommissionRewardedLoss)
+      .abs();
+    expect(
+      commissionRewardLoss.lten(maxDifference),
+      `Total commission rewarded share loss was above ${maxDifference} parts per billion, \
+got "${commissionRewardLoss}", estimated loss ${estimatedCommissionRewardedLoss.toString()}, \
+actual loss ${actualCommissionRewardedLoss.toString()}`
+    ).to.be.true;
+
+    // we add the two estimated losses, since the totalBondReward is always split between N collators,
+    // which then split the reward again between the all the delegators
+    const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare))
+      .of(totalBondReward)
+      .add(totalBondRewardedLoss);
+    const actualBondRewardedLoss = totalBondReward.sub(totalBondRewarded);
+    const bondRewardedLoss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
+    expect(
+      bondRewardedLoss.lten(maxDifference),
+      `Total bond rewarded share loss was above ${maxDifference} parts per billion, \
+got "${bondRewardedLoss}", estimated loss ${estimatedBondRewardedLoss.toString()}, \
+actual loss ${actualBondRewardedLoss.toString()}`
+    ).to.be.true;
+
+    // calculate total rewarded amount including the amount lost to Perbill arithmetic
+    const actualTotalRewardedWithLoss = totalRewardedAmount
+      .add(actualCommissionRewardedLoss)
+      .add(actualBondRewardedLoss);
+
+    // check that sum of all reward transfers is equal to total expected staking reward
     expect(actualTotalRewardedWithLoss.toString()).to.equal(
       totalStakingReward.toString(),
       `Total rewarded events did not match total expected issuance for collators & delegators, \
@@ -369,6 +376,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
 async function assertRewardedEventsAtBlock(
   api: ApiPromise,
+  specVersion: number,
   rewardedBlockNumber: BN,
   delegators: Set<string>,
   collators: Set<string>,
@@ -463,22 +471,26 @@ async function assertRewardedEventsAtBlock(
     }
   }
 
-  // we calculate the share loss since adding all percentages will usually not yield a full 100%
-  const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
-    bondReward
-  );
-  const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
+  if (specVersion >= 1800) {
+    // we calculate the share loss since adding all percentages will usually not yield a full 100%
+    const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
+      bondReward
+    );
+    const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
 
-  // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
-  // and the collator itself to compute the max deviation per billion
-  const maxDifference = rewarded.delegators.size + 1;
-  expect(
-    estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs().toNumber(),
-    `Percentage share loss was above ${maxDifference} parts per billion, \
-  estimated ${estimatedBondRewardedLoss}, actual ${actualBondRewardedLoss}`
-  ).to.be.lessThanOrEqual(maxDifference);
+    // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
+    // and the collator itself to compute the max deviation per billion
+    const maxDifference = rewarded.delegators.size + 1;
+    const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
+    expect(
+      loss.lten(maxDifference),
+      `Total bond rewarded share loss for collator "${rewarded.collator}" was above ${maxDifference} \
+parts per billion, got diff "${loss}", estimated loss ${estimatedBondRewardedLoss}, \
+actual loss ${actualBondRewardedLoss}`
+    ).to.be.true;
 
-  rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
+    rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
+  }
 
   return rewarded;
 }
