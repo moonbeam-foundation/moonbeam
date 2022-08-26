@@ -343,6 +343,22 @@ pub trait EvmData: Sized {
 	fn solidity_type() -> String;
 }
 
+impl EvmData for () {
+	fn read(_reader: &mut EvmDataReader) -> MayRevert<Self> {
+		Ok(())
+	}
+
+	fn write(_writer: &mut EvmDataWriter, _value: Self) {}
+
+	fn has_static_size() -> bool {
+		true
+	}
+
+	fn solidity_type() -> String {
+		String::from("()")
+	}
+}
+
 #[impl_for_tuples(1, 18)]
 impl EvmData for Tuple {
 	fn has_static_size() -> bool {

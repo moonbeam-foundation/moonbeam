@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{Log, Precompile, PrecompileOutput};
+use fp_evm::{Log, PrecompileOutput};
 use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
@@ -297,7 +297,7 @@ where
 	#[precompile::public("proposalHash(bytes)")]
 	#[precompile::view]
 	fn proposal_hash(
-		handle: &mut impl PrecompileHandle,
+		_handle: &mut impl PrecompileHandle,
 		proposal: BoundedBytes<GetProposalLimit>,
 	) -> EvmResult<H256> {
 		let hash = hash::<Runtime>(&proposal.into_vec());
