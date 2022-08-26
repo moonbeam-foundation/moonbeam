@@ -70,6 +70,8 @@ jobs:
           node-version: 16.x
       - name: Generate release body
         id: generate-release-body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tools
           yarn
