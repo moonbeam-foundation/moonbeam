@@ -331,9 +331,6 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   estimated ${estimatedBondRewardedLoss.toString()}, actual ${actualBondRewardedLoss.toString()}`
   ).to.be.lessThanOrEqual(maxDifference);
 
-  //   debug(`commission loss : ${actualCommissionRewardedLoss.toString()}
-  // bond reward loss: ${actualBondRewardedLoss.toString()}`);
-
   // calculate total rewarded amount including the amount lost to Perbill arithmetic
   const actualTotalRewardedWithLoss = totalRewardedAmount
     .add(actualCommissionRewardedLoss)
@@ -471,7 +468,6 @@ async function assertRewardedEventsAtBlock(
     bondReward
   );
   const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
-  // debug(`bond reward loss: ${actualBondRewardedLoss.toString()}`);
 
   // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
   // and the collator itself to compute the max deviation per billion
