@@ -21,8 +21,6 @@ impl Precompile {
 
 		let type_parameters = self.generics.type_params().map(|p| &p.ident);
 
-		println!("{}", ty_generics.to_token_stream());
-
 		let variants: Vec<_> = self.variants_content.keys().collect();
 		let idents: Vec<Vec<_>> = self
 			.variants_content
@@ -52,6 +50,68 @@ impl Precompile {
 		)
 	}
 
+	pub fn generate_parse_functions(&self) -> impl ToTokens {
+		let span = Span::call_site();
+
+		let fn_parse: Vec<_> = self
+			.variants_content
+			.keys()
+			.map(|ident| format_ident!("_parse_{}", ident))
+			.collect();
+
+		let variants_modifier_check = self.variants_content.values().map(|variant| {
+			let modifier = match variant.modifier {
+				Modifier::NonPayable => "NonPayable",
+				Modifier::Payable => "Payable",
+				Modifier::View => "View",
+			};
+
+			let modifier = syn::Ident::new(modifier, span);
+
+			quote_spanned!(span=>
+				use ::precompile_utils::modifier::FunctionModifier;
+				handle.check_function_modifier(FunctionModifier::#modifier)?;
+			)
+		});
+
+		let variants_parsing = self
+			.variants_content
+			.iter()
+			.map(|(variant_ident, variant)| {
+				if variant.arguments.is_empty() {
+					quote!(Ok(Self::#variant_ident {})).to_token_stream()
+				} else {
+					use case::CaseExt;
+
+					let args_ident = variant.arguments.iter().map(|v| &v.ident);
+					let args_name = variant
+						.arguments
+						.iter()
+						.map(|v| v.ident.to_string().to_camel_lowercase());
+					let args_count = variant.arguments.len();
+
+					quote!(
+						let mut input = handle.read_after_selector()?;
+						input.expect_arguments(#args_count)?;
+
+						Ok(Self::#variant_ident {
+							#(#args_ident: input.read().in_field(#args_name)?,)*
+						})
+					)
+					.to_token_stream()
+				}
+			});
+
+		quote_spanned!(span=>
+			#(
+				fn #fn_parse(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
+					#variants_modifier_check
+					#variants_parsing
+				}
+			)*
+		)
+	}
+
 	pub fn generate_enum_impl(&self) -> impl ToTokens {
 		let span = Span::call_site();
 		let struct_type = &self.struct_type;
@@ -72,52 +132,9 @@ impl Precompile {
 			None => quote!(Err(RevertReason::UnknownSelector.into())).to_token_stream(),
 		};
 
-		let fn_parse: Vec<_> = self
-			.variants_content
-			.keys()
-			.map(|ident| format_ident!("_parse_{}", ident))
-			.collect();
+		let variants_parsing = self.generate_parse_functions();
 
 		let variants_ident: Vec<_> = self.variants_content.keys().map(|ident| ident).collect();
-
-		let variants_modifier_check = self.variants_content.values().map(|variant| {
-			let modifier = match variant.modifier {
-				Modifier::NonPayable => "NonPayable",
-				Modifier::Payable => "Payable",
-				Modifier::View => "View",
-			};
-
-			let modifier = syn::Ident::new(modifier, span);
-
-			quote_spanned!(span=>
-				use ::precompile_utils::modifier::FunctionModifier;
-				handle.check_function_modifier(FunctionModifier::#modifier)?;
-			)
-		});
-
-		let variants_count_check = self
-			.variants_content
-			.values()
-			.map(|variant| variant.arguments.len());
-
-		let variants_read: Vec<Vec<_>> = self
-			.variants_content
-			.values()
-			.map(|variant| {
-				variant
-					.arguments
-					.iter()
-					.map(|arg| {
-						use case::CaseExt;
-
-						let ident = &arg.ident;
-						let name = ident.to_string().to_camel_lowercase();
-
-						quote!(#ident: input.read().in_field(#name)?,)
-					})
-					.collect()
-			})
-			.collect();
 
 		let variants_list: Vec<Vec<_>> = self
 			.variants_content
@@ -146,18 +163,7 @@ impl Precompile {
 					}
 				}
 
-				#(
-					fn #fn_parse(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
-						#variants_modifier_check
-
-						let mut input = handle.read_after_selector()?;
-						input.expect_arguments(#variants_count_check)?;
-
-						Ok(Self::#variants_ident {
-							#(#variants_read)*
-						})
-					}
-				)*
+				#variants_parsing
 
 				pub fn execute(self, handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 					use ::precompile_utils::data::EvmDataWriter;

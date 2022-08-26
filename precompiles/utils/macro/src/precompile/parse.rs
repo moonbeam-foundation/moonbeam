@@ -70,6 +70,7 @@ impl Precompile {
 		let mut modifier = Modifier::NonPayable;
 		let mut solidity_arguments_type: Option<String> = None;
 		let mut arguments = vec![];
+		let mut is_fallback = false;
 
 		for attr in attrs {
 			match attr {
@@ -81,6 +82,7 @@ impl Precompile {
 
 					self.fallback_to_variant = Some(method_name.clone());
 					used = true;
+					is_fallback = true;
 				}
 				attr::MethodAttr::Payable(span) => {
 					if modifier != Modifier::NonPayable {
@@ -152,6 +154,11 @@ impl Precompile {
 		if let Some(param) = method.sig.generics.params.first() {
 			let msg = "Exposed precompile methods cannot have type parameters";
 			return Err(syn::Error::new(param.span(), msg));
+		}
+
+		if is_fallback && method.sig.inputs.len() != 1 {
+			let msg = "Fallback methods cannot take any parameter outside of the PrecompileHandle";
+			return Err(syn::Error::new(method.span(), msg));
 		}
 
 		// We skip the first parameter which will be the PrecompileHandle.
