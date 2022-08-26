@@ -1,4 +1,5 @@
 import yargs from "yargs";
+import chalk from "chalk";
 import { BN, bnSqrt } from "@polkadot/util";
 import { compareRationals, calcPassing } from "@polkadot/api-derive/democracy/util";
 
@@ -26,7 +27,10 @@ async function main() {
     votedTotal: voters,
   });
 
-  console.log("Result is", result);
+  console.log(`          Vote: ${chalk.green(yes.toString().padStart(26))}/${chalk.red(no.toString().padEnd(26))}`);
+  console.log(`Total issuance: ${new BN(args["electorate"]).toString().padStart(26)}`);
+  console.log(`        Voters: ${voters.toString().padStart(26)}`);
+  console.log("     Result is:", result);
 }
 
 main()
