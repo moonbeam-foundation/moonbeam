@@ -204,4 +204,42 @@ impl Precompile {
 			}
 		)
 	}
+
+	pub fn generate_test_solidity_signature(&self) -> impl ToTokens {
+		let span = Span::call_site();
+		let struct_ident = &self.struct_ident;
+
+		let test_name = format_ident!(
+			"__{}_ensure_solidity_signatures_matches_rust_parameters",
+			struct_ident
+		);
+
+		let variant_name = self.variants_content.keys().map(|ident| ident.to_string());
+		let variant_solidity = self
+			.variants_content
+			.values()
+			.map(|v| &v.solidity_arguments_type);
+		let variant_arguments_type: Vec<Vec<_>> = self
+			.variants_content
+			.values()
+			.map(|v| v.arguments.iter().map(|arg| &arg.ty).collect())
+			.collect();
+
+		quote_spanned!(span=>
+			#[test]
+			#[allow(non_snake_case)]
+			fn #test_name() {
+				use ::precompile_utils::data::EvmData;
+				#(
+					assert_eq!(
+						#variant_solidity,
+						<( #(#variant_arguments_type,)* )>::solidity_type(),
+						"{} function signature doesn't match (left: attribute, right: computed \
+						from Rust types)",
+						#variant_name
+					);
+				)*
+			}
+		)
+	}
 }

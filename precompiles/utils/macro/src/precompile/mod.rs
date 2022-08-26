@@ -34,12 +34,14 @@ pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
 	let enum_ = precompile.generate_enum();
 	let enum_impl = precompile.generate_enum_impl();
 	let precomp_impl = precompile.generate_precompile_impl();
+	let test_signature = precompile.generate_test_solidity_signature();
 
 	let output = quote! {
 		#impl_item
 		#enum_
 		#enum_impl
 		#precomp_impl
+		#test_signature
 	};
 
 	output.into()
@@ -48,6 +50,9 @@ pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
 pub struct Precompile {
 	/// Impl struct type.
 	struct_type: syn::Type,
+
+	/// Impl struct type.
+	struct_ident: syn::Ident,
 
 	/// New parsing enum ident.
 	enum_ident: syn::Ident,
@@ -80,12 +85,12 @@ pub struct Variant {
 
 	/// String extracted from the selector attribute.
 	/// A unit test will be generated to check that this selector matches
-	/// the Rust arguments. None if no arguments.
+	/// the Rust arguments.
 	///
 	/// > EvmData trait allows to generate this string at runtime only. Thus
 	/// > it is required to write it manually in the selector attribute, and
 	/// > a unit test is generated to check it matches.
-	solidity_arguments_type: Option<String>,
+	solidity_arguments_type: String,
 
 	/// Modifier of the function. They are all exclusive and defaults to
 	/// `NonPayable`.

@@ -15,10 +15,12 @@ use super::*;
 
 impl Precompile {
 	pub fn try_from(_: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
-		let enum_ident = Self::extract_enum_ident(impl_)?;
+		let struct_ident = Self::extract_struct_ident(impl_)?;
+		let enum_ident = format_ident!("{}Call", struct_ident);
 
 		let mut precompile = Precompile {
 			struct_type: impl_.self_ty.as_ref().clone(),
+			struct_ident,
 			enum_ident,
 			generics: impl_.generics.clone(),
 			selector_to_variant: BTreeMap::new(),
@@ -36,7 +38,7 @@ impl Precompile {
 		Ok(precompile)
 	}
 
-	fn extract_enum_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
+	fn extract_struct_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
 		let type_path = match impl_.self_ty.as_ref() {
 			syn::Type::Path(p) => p,
 			_ => {
@@ -51,7 +53,7 @@ impl Precompile {
 			syn::Error::new(impl_.self_ty.span(), msg)
 		})?;
 
-		Ok(format_ident!("{}Call", final_path.ident))
+		Ok(final_path.ident.clone())
 	}
 
 	fn process_method(&mut self, method: &mut syn::ImplItemMethod) -> syn::Result<()> {
@@ -201,7 +203,7 @@ impl Precompile {
 			method_name.clone(),
 			Variant {
 				arguments,
-				solidity_arguments_type,
+				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
 				modifier,
 			},
 		) {
