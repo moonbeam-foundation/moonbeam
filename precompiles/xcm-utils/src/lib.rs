@@ -39,10 +39,13 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
+type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
+
 #[generate_function_selector]
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	MultiLocationToAddress = "multilocationToAddress((uint8,bytes[]))",
+	XcmExecute = "execute(bytes)"
 }
 
 /// A precompile to wrap the functionality from xcm-utils
@@ -60,11 +63,14 @@ where
 
 		handle.check_function_modifier(match selector {
 			Action::MultiLocationToAddress => FunctionModifier::View,
+			Action:XcmExecute => FunctionModifier::NonPayable,
 		})?;
 
 		match selector {
 			// Check for accessor methods first. These return results immediately
 			Action::MultiLocationToAddress => Self::multilocation_to_address(handle),
+			Action::XcmExecute => Self::xcm_execute(handle),
+
 		}
 	}
 }
@@ -75,6 +81,7 @@ where
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
+	T::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
 {
 	fn multilocation_to_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		// TODO: Change once precompiles are benchmarked
@@ -100,4 +107,15 @@ where
 			EvmDataWriter::new().write(Address(account)).build(),
 		))
 	}
+	
+	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+		read_args!(handle, { message: BoundedBytes<GetProposalLimit> });
+	
+		let message: Vec<_> = message.into_vec();
+		let xcm = xcm::VersionedXcm::<T::Call>::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			&mut message.as_slice(),
+		);
+
 }
+
