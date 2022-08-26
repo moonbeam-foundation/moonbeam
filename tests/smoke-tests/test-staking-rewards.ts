@@ -325,8 +325,8 @@ got "${commissionRewardLoss}", estimated loss ${estimatedCommissionRewardedLoss.
 actual loss ${actualCommissionRewardedLoss.toString()}`
     ).to.be.true;
 
-    // we add the two estimated losses, since the totalBondReward is always split between N collators,
-    // which then split the reward again between the all the delegators
+    // we add the two estimated losses, since the totalBondReward is always split between N
+    // collators, which then split the reward again between the all the delegators
     const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare))
       .of(totalBondReward)
       .add(totalBondRewardedLoss);
@@ -484,9 +484,9 @@ async function assertRewardedEventsAtBlock(
     const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
     expect(
       loss.lten(maxDifference),
-      `Total bond rewarded share loss for collator "${rewarded.collator}" was above ${maxDifference} \
-parts per billion, got diff "${loss}", estimated loss ${estimatedBondRewardedLoss}, \
-actual loss ${actualBondRewardedLoss}`
+      `Total bond rewarded share loss for collator "${rewarded.collator}" was above \
+${maxDifference} parts per billion, got diff "${loss}", estimated loss \
+${estimatedBondRewardedLoss}, actual loss ${actualBondRewardedLoss}`
     ).to.be.true;
 
     rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
