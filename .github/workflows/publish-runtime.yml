@@ -54,7 +54,11 @@ jobs:
           fi
       - name: Build runtime using "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
         id: srtool_build
-        run: ./scripts/build-runtime-srtool.sh
+        run: |-
+          export GH_WORKFLOW_MATRIX_CHAIN=${{ matrix.chain }}
+          export GH_WORKFLOW_MATRIX_SRTOOL_IMAGE=${{ matrix.srtool_image }}
+          export GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }}
+          ./scripts/build-runtime-srtool.sh
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json

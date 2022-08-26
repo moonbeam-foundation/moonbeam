@@ -3,13 +3,13 @@ CMD="docker run \
   -i \
   --rm \
   -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
-  -e PACKAGE=${{ matrix.chain }}-runtime \
-  -e RUNTIME_DIR=runtime/${{ matrix.chain }} \
-  -v $PWD:/build \
-  -v /home/$USER/srtool/.ssh:/root/.ssh \
-  -v /home/$USER/srtool/entrypoint.sh:/srtool/entrypoint.sh \
+  -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
+  -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
+  -v ${PWD}:/build \
+  -v /home/${USER}/srtool/.ssh:/root/.ssh \
+  -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
   --entrypoint /srtool/entrypoint.sh \
-  ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }} \
+  ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
     build --app --json -cM"
 
 # Here we run the command and stream the output (JSON blob) to a variable
