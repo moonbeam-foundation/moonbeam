@@ -18,18 +18,34 @@
 //!
 //! This pallet provides access to 2 sources of randomness:
 //! 1. local VRF, produced by collators per block
-//! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per epoch
-//! These options are represented in `type::RequestType`.
+//! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per relay chain epoch
+//! These options are represented as `type::RequestType`.
+//!
+//! There are no substrate calls in this pallet. Instead, public functions for `Pallet<T>` expose
+//! user actions for the precompile i.e. `request_randomness`.
 //!
 //! ## Local VRF
 //!
-//! This pallet is default configured to get the `VrfOutput` from `frame_system::digests()` and
-//! verify it in `on_initialize`. This code lives in `vrf`.
+//! This pallet is by default configured to search for `VrfOutput` in `frame_system::digests()`. If
+//! it cannot find the `VrfOutput` in `frame_system::digests()`, then it will panic and the block
+//! will be invalid.
+//!
+//! Next, the `VrfOutput` is verified using the block author's `VrfId` and the VRF input, which is
+//! last block's `VrfOutput`. If verification fails, then it will panic and the block will be
+//! invalid. This verification happens in every `on_initialize`.
+//!
+//! Finally, the output is transformed into the randomness bytes stored on-chain and put in
+//! `LocalVrfOutput`. Any pending randomness results for this block are filled with the
+//! output randomness bytes.
+//!
+//! The function which contains this logic is `vrf::set_output`. It is called in every block's
+//! `on_initialize`
 //!
 //! ## Babe Epoch Randomness
 //!
 //! The `set_babe_randomness_results` mandatory inherent reads the Babe epoch randomness from the
-//! relay chain and fills any pending `RandomnessResults` for this epoch randomness with the value.
+//! relay chain and fills any pending `RandomnessResults` for this epoch randomness.
+//!
 //! `Config::BabeDataGetter` is responsible for reading the relay chain for the epoch index and
 //! randomness from the relay chain state proof. The moonbeam implementations of `GetBabeData`
 //! are in the runtime.
@@ -279,14 +295,20 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		/// Sets this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// Validate VRF output from digests and set it in storage
-			vrf::set_output::<T>()
+			// Do not set the output in the first block (genesis or runtime upgrade)
+			// because we do not have any input for author to sign
+			if NotFirstBlock::<T>::get().is_none() {
+				NotFirstBlock::<T>::put(());
+				LocalVrfOutput::<T>::put(Some(T::Hash::default()));
+				return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
+			}
+			// Verify VRF output included by block author and set it in storage
+			vrf::verify_and_set_output::<T>();
+			SubstrateWeight::<T>::on_initialize()
 		}
-		/// Ensures the mandatory inherent was included in the block or the block is invalid
 		fn on_finalize(_now: BlockNumberFor<T>) {
-			// Panic if set_babe_randomness_results inherent was not included
+			// Ensure the mandatory inherent was included in the block or the block is invalid
 			assert!(
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
@@ -296,23 +318,32 @@ pub mod pallet {
 
 	// Utility function
 	impl<T: Config> Pallet<T> {
+		/// Returns the pallet account
 		pub fn account_id() -> T::AccountId {
 			PALLET_ID.into_account_truncating()
 		}
+		/// Returns total free balance in the pallet account
 		pub fn total_locked() -> BalanceOf<T> {
-			// free balance is usable balance for the pallet account as it is not controlled
-			// by anyone so will never be locked
+			// expect free balance == usable balance for pallet account because it is not controlled
+			// by anyone so balance should never be locked
 			T::Currency::free_balance(&Self::account_id())
 		}
-		pub(crate) fn concat_and_hash(a: T::Hash, b: H256, index: u8) -> Vec<[u8; 32]> {
+		/// Returns vector of length `num_words`
+		/// Each element is the blake2_256 of the concatenation of `randomness + salt + i` such that
+		/// `0<=i<num_words`.
+		pub(crate) fn concat_and_hash(
+			randomness: T::Hash,
+			salt: H256,
+			num_words: u8,
+		) -> Vec<[u8; 32]> {
 			let mut output: Vec<[u8; 32]> = Vec::new();
-			let mut s = Vec::new();
-			for i in 0u8..index {
-				s.extend_from_slice(a.as_ref());
-				s.extend_from_slice(b.as_ref());
-				s.extend_from_slice(&[i]);
-				output.push(sp_io::hashing::blake2_256(&s));
-				s.clear();
+			let mut word = Vec::new();
+			for i in 0u8..num_words {
+				word.extend_from_slice(randomness.as_ref());
+				word.extend_from_slice(salt.as_ref());
+				word.extend_from_slice(&[i]);
+				output.push(sp_io::hashing::blake2_256(&word));
+				word.clear();
 			}
 			output
 		}

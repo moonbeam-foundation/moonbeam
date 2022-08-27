@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::weights::{SubstrateWeight, WeightInfo};
-use crate::{Config, LocalVrfOutput, NotFirstBlock, RandomnessResults, RequestType};
-use frame_support::{pallet_prelude::Weight, traits::Get};
+use crate::{Config, LocalVrfOutput, RandomnessResults, RequestType};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
@@ -31,19 +29,12 @@ type Randomness = schnorrkel::Randomness;
 /// Gets VRF output from system digests and verifies it using the block author's VrfId
 /// Transforms VRF output into randomness value and puts it into `LocalVrfOutput`
 /// Fills the `RandomnessResult` associated with the current block if any requests exist
-/// Returns weight consumed in `on_initialize`
-pub(crate) fn set_output<T: Config>() -> Weight {
-	// Do not set the output in the first block (genesis or runtime upgrade)
-	// because we do not have any input for author to sign (which would be set in last block)
-	if NotFirstBlock::<T>::get().is_none() {
-		NotFirstBlock::<T>::put(());
-		LocalVrfOutput::<T>::put(Some(T::Hash::default()));
-		return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
-	}
+pub(crate) fn verify_and_set_output<T: Config>() {
 	let mut block_author_vrf_id: Option<VrfId> = None;
 	// Get VrfOutput and VrfProof from system digests
-	// Expect client to insert digests by setting `BuildNimbusConsensusParams.additional_digests_provider`
-	// to `moonbeam_vrf::vrf_pre_digest` (see moonbeam/node/service/src/lib.rs)
+	// Expect client to insert VrfOutput, VrfProof into digests by setting
+	// `BuildNimbusConsensusParams.additional_digests_provider` to `moonbeam_vrf::vrf_pre_digest`
+	// (see moonbeam/node/service/src/lib.rs)
 	let PreDigest {
 		vrf_output,
 		vrf_proof,
@@ -105,5 +96,4 @@ pub(crate) fn set_output<T: Config>() -> Weight {
 		results.randomness = Some(randomness);
 		RandomnessResults::<T>::insert(local_vrf_this_block, results);
 	}
-	SubstrateWeight::<T>::on_initialize()
 }
