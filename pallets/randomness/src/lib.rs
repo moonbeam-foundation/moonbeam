@@ -25,30 +25,30 @@
 //! user actions for the precompile i.e. `request_randomness`.
 //!
 //! ## Local VRF
+//! The local VRF randomness is produced every block by the collator that authors the block.
 //!
-//! This pallet is by default configured to search for `VrfOutput` in `frame_system::digests()`. If
+//! This pallet is default configured to look for the `VrfOutput` in `frame_system::digests()`. If
 //! it cannot find the `VrfOutput` in `frame_system::digests()`, then it will panic and the block
 //! will be invalid.
 //!
 //! Next, the `VrfOutput` is verified using the block author's `VrfId` and the VRF input, which is
-//! last block's `VrfOutput`. If verification fails, then it will panic and the block will be
-//! invalid. This verification happens in every `on_initialize`.
+//! last block's `VrfOutput`. If verification fails, then it will panic (block is invalid).
 //!
 //! Finally, the output is transformed into the randomness bytes stored on-chain and put in
 //! `LocalVrfOutput`. Any pending randomness results for this block are filled with the
 //! output randomness bytes.
 //!
 //! The function which contains this logic is `vrf::set_output`. It is called in every block's
-//! `on_initialize`
+//! `on_initialize`.
 //!
 //! ## Babe Epoch Randomness
+//! Babe epoch randomness is retrieved once every relay chain epoch.
 //!
 //! The `set_babe_randomness_results` mandatory inherent reads the Babe epoch randomness from the
-//! relay chain and fills any pending `RandomnessResults` for this epoch randomness.
+//! relay chain state proof and fills any pending `RandomnessResults` for this epoch randomness.
 //!
-//! `Config::BabeDataGetter` is responsible for reading the relay chain for the epoch index and
-//! randomness from the relay chain state proof. The moonbeam implementations of `GetBabeData`
-//! are in the runtime.
+//! `Config::BabeDataGetter` is responsible for reading the epoch index and epoch randomness
+//! from the relay chain state proof. The moonbeam `GetBabeData` implementation is in the runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 

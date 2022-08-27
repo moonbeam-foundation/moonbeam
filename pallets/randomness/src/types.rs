@@ -328,21 +328,30 @@ impl<T: Config> RequestState<T> {
 		ensure!(self.request.is_expired(), Error::<T>::RequestHasNotExpired);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
-		// TODO: is it worth optimizing when caller == contract_address to do one transfer here
-		T::Currency::transfer(
-			&Pallet::<T>::account_id(),
-			&contract_address,
-			self.deposit,
-			KeepAlive,
-		)
-		.expect("expect transferrable deposit + fee, transferring deposit");
-		T::Currency::transfer(
-			&Pallet::<T>::account_id(),
-			caller,
-			self.request.fee,
-			KeepAlive,
-		)
-		.expect("expect transferrable deposit + fee, transferring fee");
+		if caller == &contract_address {
+			// If caller == contract_address, then transfer deposit + fee to contract_address
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				&contract_address,
+				self.deposit.saturating_add(self.request.fee),
+				KeepAlive,
+			)?;
+		} else {
+			// Return deposit to `contract_address`
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				&contract_address,
+				self.deposit,
+				KeepAlive,
+			)?;
+			// Return request.fee to `caller`
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				caller,
+				self.request.fee,
+				KeepAlive,
+			)?;
+		}
 		Ok(())
 	}
 }
