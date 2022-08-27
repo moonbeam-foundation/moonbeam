@@ -14,7 +14,25 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Randomness pallet
+//! # Randomness Pallet
+//!
+//! This pallet provides access to 2 sources of randomness:
+//! 1. local VRF, produced by collators per block
+//! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per epoch
+//! These options are represented in `type::RequestType`.
+//!
+//! ## Local VRF
+//!
+//! This pallet is default configured to get the `VrfOutput` from `frame_system::digests()` and
+//! verify it in `on_initialize`. This code lives in `vrf`.
+//!
+//! ## Babe Epoch Randomness
+//!
+//! The `set_babe_randomness_results` mandatory inherent reads the Babe epoch randomness from the
+//! relay chain and fills any pending `RandomnessResults` for this epoch randomness with the value.
+//! `Config::BabeDataGetter` is responsible for reading the relay chain for the epoch index and
+//! randomness from the relay chain state proof. The moonbeam implementations of `GetBabeData`
+//! are in the runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -261,14 +279,14 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// Set this block's randomness using the VRF output
+		/// Sets this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// Set and validate VRF output
+			// Validate VRF output from digests and set it in storage
 			vrf::set_output::<T>()
 		}
-		// Set next block's VRF input in storage
+		/// Ensures the mandatory inherent was included in the block or the block is invalid
 		fn on_finalize(_now: BlockNumberFor<T>) {
-			// Panics if set_babe_randomness_results inherent was not included
+			// Panic if set_babe_randomness_results inherent was not included
 			assert!(
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
