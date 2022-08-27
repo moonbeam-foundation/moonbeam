@@ -202,8 +202,23 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 			// hitting this error is a bug because a RandomnessResult should be updated if request
 			// can be fulfilled
 			.ok_or(Error::<T>::RandomnessResultNotFilled)?;
+		// Returns Vec<[u8; 32]> of length `num_words`
+		// Each element is the blake2_256 of the concatenation of `randomness + salt + i` such that
+		// `0<=i<num_words`.
+		let compute_random_words = |random: T::Hash, salt: H256, num_words| {
+			let mut output: Vec<[u8; 32]> = Vec::new();
+			let mut word = Vec::new();
+			for index in 0u8..num_words {
+				word.extend_from_slice(random.as_ref());
+				word.extend_from_slice(salt.as_ref());
+				word.extend_from_slice(&[index]);
+				output.push(sp_io::hashing::blake2_256(&word));
+				word.clear();
+			}
+			output
+		};
 		// compute random output(s) using salt
-		let random_words = Pallet::<T>::concat_and_hash(randomness, self.salt, self.num_words);
+		let random_words = compute_random_words(randomness, self.salt, self.num_words);
 		Ok(random_words)
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {

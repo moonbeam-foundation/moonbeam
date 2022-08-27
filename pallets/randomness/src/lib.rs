@@ -21,7 +21,7 @@
 //! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per relay chain epoch
 //! These options are represented as `type::RequestType`.
 //!
-//! There are no substrate calls in this pallet. Instead, public functions for `Pallet<T>` expose
+//! There are no extrinsics for this pallet. Instead, public functions on `Pallet<T: Config>` expose
 //! user actions for the precompile i.e. `request_randomness`.
 //!
 //! ## Local VRF
@@ -86,7 +86,7 @@ pub mod pallet {
 	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::{AccountIdConversion, Saturating};
-	use sp_std::{convert::TryInto, vec::Vec};
+	use sp_std::convert::TryInto;
 
 	/// The Randomness's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"moonrand");
@@ -316,7 +316,7 @@ pub mod pallet {
 		}
 	}
 
-	// Utility function
+	// Read-only functions
 	impl<T: Config> Pallet<T> {
 		/// Returns the pallet account
 		pub fn account_id() -> T::AccountId {
@@ -328,29 +328,11 @@ pub mod pallet {
 			// by anyone so balance should never be locked
 			T::Currency::free_balance(&Self::account_id())
 		}
-		/// Returns vector of length `num_words`
-		/// Each element is the blake2_256 of the concatenation of `randomness + salt + i` such that
-		/// `0<=i<num_words`.
-		pub(crate) fn concat_and_hash(
-			randomness: T::Hash,
-			salt: H256,
-			num_words: u8,
-		) -> Vec<[u8; 32]> {
-			let mut output: Vec<[u8; 32]> = Vec::new();
-			let mut word = Vec::new();
-			for i in 0u8..num_words {
-				word.extend_from_slice(randomness.as_ref());
-				word.extend_from_slice(salt.as_ref());
-				word.extend_from_slice(&[i]);
-				output.push(sp_io::hashing::blake2_256(&word));
-				word.clear();
-			}
-			output
-		}
 	}
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
+		/// Make request for future randomness
 		pub fn request_randomness(
 			request: Request<BalanceOf<T>, RequestType<T>>,
 		) -> Result<RequestId, sp_runtime::DispatchError> {
