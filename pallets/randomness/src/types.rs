@@ -217,9 +217,8 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 			}
 			output
 		};
-		// compute random output(s) using salt
-		let random_words = compute_random_words(randomness, self.salt, self.num_words);
-		Ok(random_words)
+		// return random words
+		Ok(compute_random_words(randomness, self.salt, self.num_words))
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
@@ -253,25 +252,39 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 		caller: &H160,
 		cost_of_execution: BalanceOf<T>,
 	) {
+		let try_transfer_or_log_error =
+			|from: &T::AccountId, to: &T::AccountId, amount: BalanceOf<T>| {
+				if let Err(error) = T::Currency::transfer(from, to, amount, KeepAlive) {
+					log::warn!(
+						"Failed to transfer in finish_fulfill with error {:?}",
+						error,
+					);
+				}
+			};
 		let refundable_amount = deposit.saturating_add(self.fee);
 		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
+			if &self.refund_address == caller {
+				// send excess + cost of execution to refund address iff refund address is caller
+				try_transfer_or_log_error(
+					&Pallet::<T>::account_id(),
+					&T::AddressMapping::into_account_id(self.refund_address),
+					excess.saturating_add(cost_of_execution),
+				);
+				return;
+			}
 			// send excess to refund address
-			T::Currency::transfer(
+			try_transfer_or_log_error(
 				&Pallet::<T>::account_id(),
 				&T::AddressMapping::into_account_id(self.refund_address),
 				excess,
-				KeepAlive,
-			)
-			.expect("excess should be transferrable");
+			);
 		}
 		// refund cost_of_execution to caller of `fulfill`
-		T::Currency::transfer(
+		try_transfer_or_log_error(
 			&Pallet::<T>::account_id(),
 			&T::AddressMapping::into_account_id(caller.clone()),
 			cost_of_execution,
-			KeepAlive,
-		)
-		.expect("cost_of_execution should be transferrable");
+		);
 	}
 }
 
