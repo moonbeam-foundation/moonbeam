@@ -13,8 +13,6 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-//! # Randomness Pallet Unit Tests
 use crate::mock::*;
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
@@ -624,6 +622,72 @@ fn execute_request_expiration_fails_if_request_dne() {
 	});
 }
 
-// execute request expiration fails before expired
+#[test]
+fn execute_request_expiration_fails_before_request_expiration() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			assert_noop!(
+				Randomness::execute_request_expiration(&ALICE, 0u64),
+				Error::<Test>::RequestHasNotExpired
+			);
+		});
+}
 
-// execute expiration refunds as expected
+#[test]
+fn execute_request_expiration_removes_request() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			// increase epoch to expiry
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert!(Randomness::requests(0u64).is_some());
+			// execute expiry
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			assert!(Randomness::requests(0u64).is_none());
+		});
+}
+
+#[test]
+fn execute_request_expiration_removes_result() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			// increase epoch to expiry
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_some());
+			// execute expiry
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_none());
+		});
+}
+
+#[test]
+fn execute_request_expiration_returns_deposit_to_contract_address_and_fees_to_caller() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			// fee returned to BOB (caller)
+			assert_eq!(Balances::free_balance(&BOB), 5);
+			// deposit returned to ALICE (contract_address)
+			assert_eq!(Balances::free_balance(&ALICE), 25);
+		});
+}
