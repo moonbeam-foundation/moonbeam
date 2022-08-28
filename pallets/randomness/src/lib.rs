@@ -38,8 +38,8 @@
 //! `LocalVrfOutput`. Any pending randomness results for this block are filled with the
 //! output randomness bytes.
 //!
-//! The function which contains this logic is `vrf::set_output`. It is called in every block's
-//! `on_initialize`.
+//! The function which contains this logic is `vrf::verify_and_set_output`. It is called in every
+//! block's `on_initialize`.
 //!
 //! ## Babe Epoch Randomness
 //! Babe epoch randomness is retrieved once every relay chain epoch.
