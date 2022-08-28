@@ -227,7 +227,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Populates the `RandomnessResults` that are due this block with the raw values
+		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		// This inherent is a workaround to run code in every block after
 		// `ParachainSystem::set_validation_data` but before all extrinsics.
 		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
@@ -239,12 +239,11 @@ pub mod pallet {
 		))]
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
-
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
-			// populate the `RandomnessResults` for BABE epoch randomness
 			let relay_epoch_index = T::BabeDataGetter::get_epoch_index();
 			if relay_epoch_index > last_relay_epoch_index {
 				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);
+				// populate `RandomnessResults` for BABE epoch randomness
 				if let Some(mut results) =
 					<RandomnessResults<T>>::get(&babe_one_epoch_ago_this_block)
 				{
@@ -262,7 +261,6 @@ pub mod pallet {
 			}
 			<RelayEpoch<T>>::put(relay_epoch_index);
 			<InherentIncluded<T>>::put(());
-
 			Ok(Pays::No.into())
 		}
 	}

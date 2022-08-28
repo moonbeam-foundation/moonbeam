@@ -88,7 +88,7 @@ pub(crate) fn verify_and_set_output<T: Config>() {
 		.expect("Transforming VrfOutput into randomness bytes failed");
 	let randomness = T::Hash::decode(&mut &randomness[..])
 		.ok()
-		.expect("VRF output bytes can be decode into T::Hash");
+		.expect("Bytes can be decoded into T::Hash");
 	LocalVrfOutput::<T>::put(Some(randomness));
 	// Supply randomness result if any requests exist for the VRF output this block
 	let local_vrf_this_block = RequestType::Local(frame_system::Pallet::<T>::block_number());
