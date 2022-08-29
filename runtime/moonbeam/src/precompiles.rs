@@ -120,7 +120,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				// PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
 				// PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
