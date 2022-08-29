@@ -177,3 +177,65 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     expect(testAccountBalance).to.eq(1n * GLMR);
   });
 });
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
+  it("allows to execute a custom xcm message evm and evvm", async function () {
+    let random = generateKeyringPair();
+
+    const ethTx =  {
+      V1: {
+        gas_limit: 21000,
+        fee_payment: {
+          Auto: {
+            Low: null,
+          },
+        },
+        action: {
+          Call: random.address,
+        },
+        value: 1n * GLMR,
+        input: [],
+        access_list: null,
+      }
+    };
+    const transferCall = context.polkadotApi.tx.ethereumXcm.transact(ethTx as any);
+    const transferCallEncoded = transferCall?.method.toHex();
+    
+    const xcmMessage = {
+      V2: [
+        {
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        }
+      ],
+    };
+
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_UTILS_ADDRESS,
+        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("execute", [
+          receivedMessage.toU8a(),
+          2_000_000_000
+        ]),
+      })
+    );
+
+     // Tokens transferred
+     const testAccountBalance = (
+      await context.polkadotApi.query.system.account(random.address)
+    ).data.free.toBigInt();
+
+    expect(testAccountBalance).to.eq(1n * GLMR);
+  });
+});
