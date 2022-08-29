@@ -1,16 +1,9 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { BN, hexToBigInt } from "@polkadot/util";
-import chalk from "chalk";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
-// TEMPLATE: Remove useless types at the end
-import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
-import { InferencePriority } from "typescript";
-
-// TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:randomness");
 
 const wssUrl = process.env.WSS_URL || null;
@@ -26,10 +19,20 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   let numRequests: number = 0; // our own count
   let requestCount: number = 0; // from pallet storage
 
+  let isRandomnessAvailable = true;
+
   before("Retrieve all requests", async function () {
-    // It takes time to load all the requests.
-    // TEMPLATE: Adapt the timeout to be an over-estimate
     this.timeout(30_000); // 30s
+
+    const runtimeVersion = context.polkadotApi.runtimeVersion.specVersion.toNumber();
+    const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
+    isRandomnessAvailable =
+      (runtimeVersion >= 1700 && runtimeName == "moonbase") || runtimeVersion >= 1900;
+
+    if (!isRandomnessAvailable) {
+      debug(`Skipping test [RT${runtimeVersion} ${runtimeName}]`);
+      return;
+    }
 
     const limit = 1000;
     let last_key = "";
@@ -42,7 +45,6 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
 
-    // TEMPLATE: query the data
     while (true) {
       let query = await apiAt.query.randomness.requests.entriesPaged({
         args: [],
@@ -55,7 +57,6 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
       }
       count += query.length;
 
-      // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const request of query) {
         const key = request[0].toHex();
         expect(key.length >= 18, "storage key should be at least 64 bits"); // assumes "0x"
@@ -68,8 +69,6 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
         last_key = key;
       }
 
-      // Debug logs to make sure it keeps progressing
-      // TEMPLATE: Adapt log line
       if (true || count % (10 * limit) == 0) {
         debug(`Retrieved ${count} requests`);
         debug(`Requests: ${requestStates}`);
@@ -78,12 +77,15 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 
     requestCount = ((await apiAt.query.randomness.requestCount()) as any).toNumber();
 
-    // TEMPLATE: Adapt proxies
     debug(`Retrieved ${count} total requests`);
   });
 
   it("should have fewer Requests than RequestCount", async function () {
     this.timeout(10000);
+
+    if (!isRandomnessAvailable) {
+      return;
+    }
 
     const numOutstandingRequests = numRequests;
     expect(numOutstandingRequests).to.be.lessThanOrEqual(requestCount);
@@ -92,12 +94,20 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("should not have requestId above RequestCount", async function () {
     this.timeout(1000);
 
+    if (!isRandomnessAvailable) {
+      return;
+    }
+
     const highestId = requestStates.reduce((prev, request) => Math.max(request.id, prev), 0);
     expect(highestId).to.be.lessThanOrEqual(requestCount);
   });
 
   it("should not have results without a matching request", async function () {
     this.timeout(10000);
+
+    if (!isRandomnessAvailable) {
+      return;
+    }
 
     let query = await apiAt.query.randomness.randomnessResults.entries();
     await query.forEach(([key, results]) => {
@@ -176,6 +186,10 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("all results should have correct request counters", async function () {
     this.timeout(10000);
 
+    if (!isRandomnessAvailable) {
+      return;
+    }
+
     // Local count for request types
     const requestCounts = {};
     requestStates.forEach((request) => {
@@ -239,6 +253,10 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("should have updated VRF output", async function () {
     this.timeout(10000);
 
+    if (!isRandomnessAvailable) {
+      return;
+    }
+
     // we skip on if we aren't past the first block yet
     const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
     if (notFirstBlock) {
@@ -276,6 +294,10 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("should have correct total deposits", async function () {
     this.timeout(10000);
 
+    if (!isRandomnessAvailable) {
+      return;
+    }
+
     let totalDeposits = 0n;
     for (const request of requestStates) {
       // TODO: copied from above -- this could use some DRY
@@ -302,6 +324,10 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
   it("available randomness outputs should be random", async function () {
     this.timeout(10000);
 
+    if (!isRandomnessAvailable) {
+      return;
+    }
+
     let query = await apiAt.query.randomness.randomnessResults.entries();
     await query.forEach(([key, results]) => {
       const result = context.polkadotApi.registry.createType(
@@ -317,6 +343,10 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 
   it("local VRF output should be random", async function () {
     this.timeout(10000);
+
+    if (!isRandomnessAvailable) {
+      return;
+    }
 
     const notFirstBlock = ((await apiAt.query.randomness.notFirstBlock()) as any).isSome;
     if (notFirstBlock) {
