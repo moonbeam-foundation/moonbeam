@@ -146,6 +146,7 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
+<span id="144">144</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -181,6 +182,7 @@
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_dispatch::Dispatch</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_modexp::Modexp</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_parachain_staking::ParachainStakingWrapper</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm_precompile_randomness::RandomnessWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_relay_encoder::RelayEncoderWrapper</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_sha3fips::Sha3FIPS256</span>;
 <span class="kw">use</span> <span class="ident">pallet_evm_precompile_simple</span>::{<span class="ident">ECRecover</span>, <span class="ident">ECRecoverPublicKey</span>, <span class="ident">Identity</span>, <span class="ident">Ripemd160</span>, <span class="ident">Sha256</span>};
@@ -268,7 +270,7 @@
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2054</span><span class="op">&gt;</span>, <span class="ident">XcmTransactorWrapperV1</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2055</span><span class="op">&gt;</span>, <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2056</span><span class="op">&gt;</span>, <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="number">2</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-				<span class="comment">// PrecompileAt&lt;AddressU64&lt;2057&gt;, RandomnessWrapper&lt;R&gt;&gt;, (Moonbase only)</span>
+				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2057</span><span class="op">&gt;</span>, <span class="ident">RandomnessWrapper</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2058</span><span class="op">&gt;</span>, <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 				<span class="comment">// PrecompileAt&lt;AddressU64&lt;2059&gt;, ProxyWrapper&lt;R&gt;&gt;, (Moonbase only)</span>
 				<span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">AddressU64</span><span class="op">&lt;</span><span class="number">2060</span><span class="op">&gt;</span>, <span class="ident">XcmUtilsWrapper</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">XcmExecutorConfig</span><span class="op">&gt;</span><span class="op">&gt;</span>,
