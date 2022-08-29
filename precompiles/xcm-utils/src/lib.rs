@@ -20,26 +20,24 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
+use frame_support::codec::{Decode, DecodeLimit as _};
 use frame_support::dispatch::Dispatchable;
+use frame_support::pallet_prelude::ConstU32;
 use frame_support::traits::OriginTrait;
+use frame_support::weights::{GetDispatchInfo, PostDispatchInfo};
+use pallet_evm::AddressMapping;
 use pallet_evm::PrecompileOutput;
 use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::{fmt::Debug, marker::PhantomData};
 use xcm::latest::{MultiLocation, OriginKind};
 use xcm_executor::traits::ConvertOrigin;
-use frame_support::pallet_prelude::ConstU32;
-use frame_support::codec::{Decode, DecodeLimit as _};
-use frame_support::weights::{PostDispatchInfo, GetDispatchInfo};
-use pallet_evm::AddressMapping;
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
 pub type XcmAccountIdOf<XcmConfig> =
 	<<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin as OriginTrait>::AccountId;
 
-pub type SystemCallOf<Runtime> =
-	<Runtime as frame_system::Config>::Call;
-	
+pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::Call;
 
 #[cfg(test)]
 mod mock;
@@ -52,7 +50,7 @@ type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	MultiLocationToAddress = "multilocationToAddress((uint8,bytes[]))",
-	XcmExecute = "execute(bytes)"
+	XcmExecute = "execute(bytes, uint64)",
 }
 
 /// A precompile to wrap the functionality from xcm-utils
@@ -65,7 +63,8 @@ where
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
 	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<pallet_xcm::Call<Runtime>>,
 {
 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -80,7 +79,6 @@ where
 			// Check for accessor methods first. These return results immediately
 			Action::MultiLocationToAddress => Self::multilocation_to_address(handle),
 			Action::XcmExecute => Self::xcm_execute(handle),
-
 		}
 	}
 }
@@ -92,7 +90,8 @@ where
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
 	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<pallet_xcm::Call<Runtime>>,
 {
 	fn multilocation_to_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
@@ -119,7 +118,7 @@ where
 			EvmDataWriter::new().write(Address(account)).build(),
 		))
 	}
-	
+
 	fn xcm_execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 		read_args!(handle, { message: BoundedBytes<GetProposalLimit>, max_weight: u64 });
 
@@ -129,7 +128,8 @@ where
 		let xcm = xcm::VersionedXcm::<SystemCallOf<Runtime>>::decode_all_with_depth_limit(
 			xcm::MAX_XCM_DECODE_DEPTH,
 			&mut message.as_slice(),
-		).map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
+		)
+		.map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
 
 		let call = pallet_xcm::Call::<Runtime>::execute {
 			message: Box::new(xcm),
@@ -139,7 +139,5 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(succeed([]))
-
 	}
 }
-
