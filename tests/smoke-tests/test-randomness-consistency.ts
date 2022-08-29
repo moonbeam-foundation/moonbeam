@@ -354,7 +354,7 @@ function chiSquareTest(bytes: Uint8Array) {
   // count occurences of ones
   const pValue = 286.882;
   bytes.forEach((a) => {
-    numOnes += [...a.toString(2)].filter(x => x === '1').length;
+    numOnes += [...a.toString(2)].filter((x) => x === "1").length;
   });
 
   chiSquared += (numOnes - expectedValue) ** 2.0 / expectedValue;
