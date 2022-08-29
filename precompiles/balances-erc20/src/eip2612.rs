@@ -43,7 +43,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
-	fn compute_domain_separator(address: H160) -> [u8; 32] {
+	pub fn compute_domain_separator(address: H160) -> [u8; 32] {
 		let name: H256 = keccak_256(Metadata::name().as_bytes()).into();
 
 		let version: H256 = keccak256!("1").into();
@@ -90,21 +90,18 @@ where
 
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
-	pub(crate) fn permit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn permit(
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(
-			handle,
-			{
-				owner: Address,
-				spender: Address,
-				value: U256,
-				deadline: U256,
-				v: u8,
-				r: H256,
-				s: H256
-			}
-		);
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
@@ -159,30 +156,20 @@ where
 		)
 		.record(handle)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	pub(crate) fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
-		let nonce = NoncesStorage::<Instance>::get(owner);
-
-		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
+		Ok(NoncesStorage::<Instance>::get(owner))
 	}
 
-	pub(crate) fn domain_separator(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let domain_separator: H256 =
-			Self::compute_domain_separator(handle.context().address).into();
-
-		Ok(succeed(
-			EvmDataWriter::new().write(domain_separator).build(),
-		))
+		Ok(Self::compute_domain_separator(handle.context().address).into())
 	}
 }

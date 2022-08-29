@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![cfg_attr(test, feature(assert_matches))]
 
-use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::{Bounded, CheckedSub, StaticLookup},
@@ -33,13 +33,14 @@ use pallet_balances::pallet::{
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 };
 
 mod eip2612;
+use eip2612::Eip2612;
 
 #[cfg(test)]
 mod mock;
@@ -197,54 +198,7 @@ pub struct Erc20BalancesPrecompile<Runtime, Metadata: Erc20Metadata, Instance: '
 	PhantomData<(Runtime, Metadata, Instance)>,
 );
 
-impl<Runtime, Metadata, Instance> Precompile
-	for Erc20BalancesPrecompile<Runtime, Metadata, Instance>
-where
-	Metadata: Erc20Metadata,
-	Instance: InstanceToPrefix + 'static,
-	Runtime: pallet_balances::Config<Instance> + pallet_evm::Config + pallet_timestamp::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<pallet_balances::Call<Runtime, Instance>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector().unwrap_or_else(|_| Action::Deposit);
-
-		handle.check_function_modifier(match selector {
-			Action::Approve | Action::Transfer | Action::TransferFrom | Action::Withdraw => {
-				FunctionModifier::NonPayable
-			}
-			Action::Deposit => FunctionModifier::Payable,
-			_ => FunctionModifier::View,
-		})?;
-
-		match selector {
-			Action::TotalSupply => Self::total_supply(handle),
-			Action::BalanceOf => Self::balance_of(handle),
-			Action::Allowance => Self::allowance(handle),
-			Action::Approve => Self::approve(handle),
-			Action::Transfer => Self::transfer(handle),
-			Action::TransferFrom => Self::transfer_from(handle),
-			Action::Name => Self::name(),
-			Action::Symbol => Self::symbol(),
-			Action::Decimals => Self::decimals(),
-			Action::Deposit => Self::deposit(handle),
-			Action::Withdraw => Self::withdraw(handle),
-			Action::Eip2612Permit => {
-				eip2612::Eip2612::<Runtime, Metadata, Instance>::permit(handle)
-			}
-			Action::Eip2612Nonces => {
-				eip2612::Eip2612::<Runtime, Metadata, Instance>::nonces(handle)
-			}
-			Action::Eip2612DomainSeparator => {
-				eip2612::Eip2612::<Runtime, Metadata, Instance>::domain_separator(handle)
-			}
-		}
-	}
-}
-
+#[precompile_utils::precompile]
 impl<Runtime, Metadata, Instance> Erc20BalancesPrecompile<Runtime, Metadata, Instance>
 where
 	Metadata: Erc20Metadata,
@@ -256,58 +210,54 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
-	fn total_supply(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("totalSupply()")]
+	#[precompile::view]
+	fn total_supply(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Fetch info.
-		let amount: U256 = pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into();
-
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(pallet_balances::Pallet::<Runtime, Instance>::total_issuance().into())
 	}
 
-	fn balance_of(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("balanceOf(address)")]
+	#[precompile::view]
+	fn balance_of(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
+		let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
 
-		// Fetch info.
-		let amount: U256 = {
-			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
-			pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into()
-		};
-
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(pallet_balances::Pallet::<Runtime, Instance>::usable_balance(&owner).into())
 	}
 
-	fn allowance(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("allowance(address,address)")]
+	#[precompile::view]
+	fn allowance(
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+		spender: Address,
+	) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {owner: Address, spender: Address});
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
-		// Fetch info.
-		let amount: U256 = {
-			let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
-			let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
+		let owner: Runtime::AccountId = Runtime::AddressMapping::into_account_id(owner);
+		let spender: Runtime::AccountId = Runtime::AddressMapping::into_account_id(spender);
 
-			ApprovesStorage::<Runtime, Instance>::get(owner, spender)
-				.unwrap_or_default()
-				.into()
-		};
-
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(ApprovesStorage::<Runtime, Instance>::get(owner, spender)
+			.unwrap_or_default()
+			.into())
 	}
 
-	fn approve(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("approve(address,uint256)")]
+	fn approve(
+		handle: &mut impl PrecompileHandle,
+		spender: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {spender: Address, value: U256});
 		let spender: H160 = spender.into();
 
 		// Write into storage.
@@ -331,13 +281,13 @@ where
 		.record(handle)?;
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
-	fn transfer(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("transfer(address,uint256)")]
+	fn transfer(handle: &mut impl PrecompileHandle, to: Address, value: U256) -> EvmResult<bool> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {to: Address, value: U256});
 		let to: H160 = to.into();
 
 		// Build call with origin.
@@ -366,16 +316,20 @@ where
 		)
 		.record(handle)?;
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
-	fn transfer_from(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("transferFrom(address,address,uint256)")]
+	fn transfer_from(
+		handle: &mut impl PrecompileHandle,
+		from: Address,
+		to: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_write_gas_cost())?;
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {from: Address, to: Address, value: U256});
 		let from: H160 = from.into();
 		let to: H160 = to.into();
 
@@ -425,36 +379,31 @@ where
 		)
 		.record(handle)?;
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
-	fn name() -> EvmResult<PrecompileOutput> {
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write::<Bytes>(Metadata::name().into())
-				.build(),
-		))
+	#[precompile::public("name()")]
+	#[precompile::view]
+	fn name(_handle: &mut impl PrecompileHandle) -> EvmResult<Bytes> {
+		Ok(Metadata::name().into())
 	}
 
-	fn symbol() -> EvmResult<PrecompileOutput> {
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write::<Bytes>(Metadata::symbol().into())
-				.build(),
-		))
+	#[precompile::public("symbol()")]
+	#[precompile::view]
+	fn symbol(_handle: &mut impl PrecompileHandle) -> EvmResult<Bytes> {
+		Ok(Metadata::symbol().into())
 	}
 
-	fn decimals() -> EvmResult<PrecompileOutput> {
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new().write(Metadata::decimals()).build(),
-		))
+	#[precompile::public("decimals()")]
+	#[precompile::view]
+	fn decimals(_handle: &mut impl PrecompileHandle) -> EvmResult<u8> {
+		Ok(Metadata::decimals())
 	}
 
-	fn deposit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("deposit()")]
+	#[precompile::fallback]
+	#[precompile::payable]
+	fn deposit(handle: &mut impl PrecompileHandle) -> EvmResult {
 		// Deposit only makes sense for the native currency.
 		if !Metadata::is_native_currency() {
 			return Err(RevertReason::UnknownSelector.into());
@@ -491,18 +440,17 @@ where
 		)
 		.record(handle)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn withdraw(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("withdraw(uint256)")]
+	fn withdraw(handle: &mut impl PrecompileHandle, value: U256) -> EvmResult {
 		// Withdraw only makes sense for the native currency.
 		if !Metadata::is_native_currency() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(2, 32)?;
-
-		read_args!(handle, { value: U256 });
 
 		let account_amount: U256 = {
 			let owner: Runtime::AccountId =
@@ -522,7 +470,35 @@ where
 		)
 		.record(handle)?;
 
-		Ok(succeed([]))
+		Ok(())
+	}
+
+	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
+	fn permit(
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult {
+		<Eip2612<Runtime, Metadata, Instance>>::permit(
+			handle, owner, spender, value, deadline, v, r, s,
+		)
+	}
+
+	#[precompile::public("nonces(address)")]
+	#[precompile::view]
+	fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
+		<Eip2612<Runtime, Metadata, Instance>>::nonces(handle, owner)
+	}
+
+	#[precompile::public("DOMAIN_SEPARATOR()")]
+	#[precompile::view]
+	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
+		<Eip2612<Runtime, Metadata, Instance>>::domain_separator(handle)
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime, Instance>> {

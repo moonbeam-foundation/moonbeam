@@ -19,6 +19,7 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use scale_info::TypeInfo;
