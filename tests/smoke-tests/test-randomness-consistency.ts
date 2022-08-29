@@ -350,7 +350,7 @@ function chiSquareTest(bytes: Uint8Array) {
   // chi.pdf(31, 0.05) = 44.985
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
   const pValue = 44.985;
-  bytes.forEach((a) => (chiSquared += ((a - expectedValue) ^ 2) / expectedValue));
+  bytes.forEach((a) => (chiSquared += ((a - expectedValue) ** 2) / expectedValue));
   expect(chiSquared < pValue).to.equal(
     true,
     `Chi square value greater than or equal to expected so bytes in output appear related` +
