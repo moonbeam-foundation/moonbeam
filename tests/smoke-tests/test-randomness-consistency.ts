@@ -345,9 +345,8 @@ function isRandom(bytes: Uint8Array) {
 function chiSquareTest(bytes: Uint8Array) {
   let chiSquared = 0.0;
   let numOnes = 0;
-  // expected value is expected average of [u8; 32]
+  // expected value of 256 coin flips:
   const expectedValue = 256 / 2;
-  console.log(`expectedValue: ${expectedValue}`);
   // degrees of freedom is 256 - 1 = 255, alpha is 0.05
   // chi.pdf(31, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
@@ -362,8 +361,7 @@ function chiSquareTest(bytes: Uint8Array) {
   let numZeroes = 256 - numOnes;
   chiSquared += (numZeroes - expectedValue) ** 2.0 / expectedValue;
 
-  console.log(`zeroes: ${numZeroes} ones: ${numOnes}`);
-  console.log(`final chiSquared: ${chiSquared}`);
+  expect(numOnes + numZeroes).to.equal(256, "Data should produce exactly 256 bits");
 
   expect(chiSquared < pValue).to.equal(
     true,
