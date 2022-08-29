@@ -26,8 +26,8 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
 
     const runtimeVersion = context.polkadotApi.runtimeVersion.specVersion.toNumber();
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
-    isRandomnessAvailable = runtimeVersion >= 1700 && runtimeName == "moonbase" ||
-      runtimeVersion >= 1900;
+    isRandomnessAvailable =
+      (runtimeVersion >= 1700 && runtimeName == "moonbase") || runtimeVersion >= 1900;
 
     if (!isRandomnessAvailable) {
       debug(`Skipping test [RT${runtimeVersion} ${runtimeName}]`);
