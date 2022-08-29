@@ -48,6 +48,7 @@ pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
 pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
 pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
@@ -197,6 +198,7 @@ std = [
 	"pallet-evm-precompile-call-permit/std",
 	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-evm-precompile-xcm-transactor/std",
 	"pallet-evm-precompile-xcm-utils/std",
