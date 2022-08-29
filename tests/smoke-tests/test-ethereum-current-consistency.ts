@@ -43,7 +43,7 @@ describeSmokeSuite(
   { wssUrl, relayWssUrl },
   (context) => {
     it("should have non default field values", async function () {
-      this.timeout(300_000); // 5 minutes
+      this.timeout(6_000_000); // 30 minutes
       const lastBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
       const firstBlockNumber = lastBlockNumber - BLOCK_WINDOW + 1;
 
