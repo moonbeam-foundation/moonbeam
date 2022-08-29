@@ -343,14 +343,33 @@ function isRandom(bytes: Uint8Array) {
 
 // Tests if byte output is independent
 function chiSquareTest(bytes: Uint8Array) {
-  let chiSquared = 0;
+  let chiSquared = 0.0;
+  let occurences: number[] = new Array(256);
+  occurences.fill(0, 0, 256);
   // expected value is expected average of [u8; 32]
-  const expectedValue = 128;
+  const expectedValue = 32 / 256;
+  console.log(`expectedValue: ${expectedValue}`);
   // degrees of freedom is 32 - 1 = 31, alpha is 0.05
   // chi.pdf(31, 0.05) = 44.985
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
+
+  // count occurences of each byte
   const pValue = 44.985;
-  bytes.forEach((a) => (chiSquared += ((a - expectedValue) ** 2) / expectedValue));
+  bytes.forEach((a) => {
+    occurences[a] += 1;
+  });
+
+  occurences.forEach((o) => {
+    // console.log(`o: ${o}`);
+    // const prev = chiSquared;
+    // const diff = (o - expectedValue);
+    const diffSquared = diff ** 2.0;
+    chiSquared += (o - expectedValue) ** 2.0;
+    // console.log(`chiSquared ${prev} -> ${chiSquared} (diff: ${diff}, diffSquared: ${diffSquared}`);
+  });
+
+  console.log(`final chiSquared: ${chiSquared}`);
+
   expect(chiSquared < pValue).to.equal(
     true,
     `Chi square value greater than or equal to expected so bytes in output appear related` +
