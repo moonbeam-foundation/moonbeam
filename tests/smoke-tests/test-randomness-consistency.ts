@@ -363,8 +363,8 @@ function chiSquareTest(bytes: Uint8Array) {
     // console.log(`o: ${o}`);
     // const prev = chiSquared;
     // const diff = (o - expectedValue);
-    const diffSquared = diff ** 2.0;
-    chiSquared += (o - expectedValue) ** 2.0;
+    // const diffSquared = diff ** 2.0;
+    chiSquared += (o - expectedValue) ** 2.0 / expectedValue;
     // console.log(`chiSquared ${prev} -> ${chiSquared} (diff: ${diff}, diffSquared: ${diffSquared}`);
   });
 
