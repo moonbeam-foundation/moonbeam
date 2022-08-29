@@ -163,6 +163,11 @@ impl Precompile {
 			return Err(syn::Error::new(param.span(), msg));
 		}
 
+		if method.sig.inputs.is_empty() {
+			let msg = "Methods must have at least 1 parameter (the PrecompileHandle)";
+			return Err(syn::Error::new(method.span(), msg));
+		}
+
 		if is_fallback && method.sig.inputs.len() != 1 {
 			let msg = "Fallback methods cannot take any parameter outside of the PrecompileHandle";
 			return Err(syn::Error::new(method.span(), msg));

@@ -129,9 +129,13 @@ impl Precompile {
 		let match_fallback = match &self.fallback_to_variant {
 			Some(variant) => {
 				let variant_parse = format_ident!("_parse_{}", variant);
-				quote!(Self::#variant_parse(handle)).to_token_stream()
+				quote!(_ => Self::#variant_parse(handle),).to_token_stream()
 			}
-			None => quote!(Err(RevertReason::UnknownSelector.into())).to_token_stream(),
+			None => quote!(
+				Some(_) => Err(RevertReason::UnknownSelector.into()),
+				None => Err(RevertReason::read_out_of_bounds("selector").into()),
+			)
+			.to_token_stream(),
 		};
 
 		let variants_parsing = self.generate_parse_functions();
@@ -168,19 +172,17 @@ impl Precompile {
 				pub fn parse_call_data(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
 					let input = handle.input();
 
-					if input.len() < 4 {
-						return Err(RevertReason::read_out_of_bounds("selector").into());
-					}
-
-					let mut buffer = [0u8; 4];
-					buffer.copy_from_slice(&input[0..4]);
-					let selector = u32::from_be_bytes(buffer);
+					let selector = input.get(0..4).map(|s| {
+						let mut buffer = [0u8; 4];
+						buffer.copy_from_slice(s);
+						u32::from_be_bytes(buffer)
+					});
 
 					match selector {
 						#(
-							#match_selectors => Self::#match_variant_parse(handle),
+							Some(#match_selectors) => Self::#match_variant_parse(handle),
 						)*
-						_ => #match_fallback,
+						#match_fallback
 					}
 				}
 
