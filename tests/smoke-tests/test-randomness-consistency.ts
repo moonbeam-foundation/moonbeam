@@ -344,30 +344,25 @@ function isRandom(bytes: Uint8Array) {
 // Tests if byte output is independent
 function chiSquareTest(bytes: Uint8Array) {
   let chiSquared = 0.0;
-  let occurences: number[] = new Array(256);
-  occurences.fill(0, 0, 256);
+  let numOnes = 0;
   // expected value is expected average of [u8; 32]
-  const expectedValue = 32 / 256;
+  const expectedValue = 256 / 2;
   console.log(`expectedValue: ${expectedValue}`);
-  // degrees of freedom is 32 - 1 = 31, alpha is 0.05
-  // chi.pdf(31, 0.05) = 44.985
+  // degrees of freedom is 256 - 1 = 255, alpha is 0.05
+  // chi.pdf(31, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
 
-  // count occurences of each byte
-  const pValue = 44.985;
+  // count occurences of ones
+  const pValue = 286.882;
   bytes.forEach((a) => {
-    occurences[a] += 1;
+    numOnes += [...a.toString(2)].filter(x => x === '1').length;
   });
 
-  occurences.forEach((o) => {
-    // console.log(`o: ${o}`);
-    // const prev = chiSquared;
-    // const diff = (o - expectedValue);
-    // const diffSquared = diff ** 2.0;
-    chiSquared += (o - expectedValue) ** 2.0 / expectedValue;
-    // console.log(`chiSquared ${prev} -> ${chiSquared} (diff: ${diff}, diffSquared: ${diffSquared}`);
-  });
+  chiSquared += (numOnes - expectedValue) ** 2.0 / expectedValue;
+  let numZeroes = 256 - numOnes;
+  chiSquared += (numZeroes - expectedValue) ** 2.0 / expectedValue;
 
+  console.log(`zeroes: ${numZeroes} ones: ${numOnes}`);
   console.log(`final chiSquared: ${chiSquared}`);
 
   expect(chiSquared < pValue).to.equal(
