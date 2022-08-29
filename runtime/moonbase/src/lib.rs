@@ -1009,6 +1009,7 @@ impl Contains<Call> for NormalFilter {
 			// is populated at genesis
 			Call::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
+				pallet_xcm::Call::execute { .. } => true,
 				_ => false,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
