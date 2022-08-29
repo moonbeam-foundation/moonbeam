@@ -3,7 +3,6 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import { StorageKey, Option } from "@polkadot/types";
 import type {
-  FrameSystemAccountInfo,
   ParachainStakingDelegator,
   ParachainStakingDelegations,
   ParachainStakingCandidateMetadata,
@@ -32,7 +31,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       delegation: ParachainStakingBond;
     }[];
   };
-  let minBlocksPerRound: number;
+  let blocksPerRound: number;
   let minSelectedCandidates: number;
   let totalSelectedCandidates: number;
   let allSelectedCandidates: AccountId20[];
@@ -75,7 +74,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       }
     );
 
-    minBlocksPerRound = apiAt.consts.parachainStaking.minBlocksPerRound.toNumber();
+    blocksPerRound = (await apiAt.query.parachainStaking.round()).length.toNumber();
     minSelectedCandidates = apiAt.consts.parachainStaking.minSelectedCandidates.toNumber();
     totalSelectedCandidates = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
     allSelectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
@@ -259,7 +258,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
   it("round length is more than minimum selected candidate count", async function () {
     expect(
-      minBlocksPerRound,
+      blocksPerRound,
       `blocks per round should be equal or more than the minimum selected candidate count`
     ).to.be.greaterThanOrEqual(minSelectedCandidates);
   });
@@ -287,7 +286,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
 
   it("round length is more than current selected candidates", async function () {
     expect(
-      minBlocksPerRound,
+      blocksPerRound,
       `blocks per round should be equal or more than the current selected candidates`
     ).to.be.greaterThanOrEqual(allSelectedCandidates.length);
   });

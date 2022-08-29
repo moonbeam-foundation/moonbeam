@@ -237,14 +237,14 @@ describeSmokeSuite(`Verify randomness consistency`, { wssUrl, relayWssUrl }, (co
         expect(requestCounts[epoch].toString()).to.equal(
           resultRequestCount.toString(),
           `Counted request count ${requestCounts[epoch]} != ${resultRequestCount} for result:\n` +
-          `${result}`
+            `${result}`
         );
       } else {
         let local = (requestType as any).asLocal;
         expect(requestCounts[local].toString()).to.equal(
           resultRequestCount.toString(),
           `Counted request count ${requestCounts[local]} != ${resultRequestCount} for result:\n` +
-          `${result}`
+            `${result}`
         );
       }
     });
@@ -384,7 +384,7 @@ function chiSquareTest(bytes: Uint8Array) {
   expect(chiSquared < pValue).to.equal(
     true,
     `Chi square value greater than or equal to expected so bytes in output appear related` +
-    `chiSquared is ${chiSquared} >= ${pValue}`
+      `chiSquared is ${chiSquared} >= ${pValue}`
   );
 }
 
