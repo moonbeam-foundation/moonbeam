@@ -20,4 +20,12 @@ interface XcmUtils {
         external
         view
         returns (address account);
+
+    /// Execute custom xcm message
+    /// @custom:selector 511d474e
+    /// @param message The multilocation that we want to know to which account maps to
+    /// @param maxWeight The account the multilocation maps to in this chain
+    function execute(bytes memory message, uint64 maxWeight)
+        external
+        view;
 }

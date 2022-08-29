@@ -32,6 +32,9 @@ use sp_core::H160;
 use sp_std::{fmt::Debug, marker::PhantomData};
 use xcm::latest::{MultiLocation, OriginKind};
 use xcm_executor::traits::ConvertOrigin;
+use sp_std::vec::Vec;
+use sp_std::boxed::Box;
+
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
 pub type XcmAccountIdOf<XcmConfig> =
@@ -50,7 +53,7 @@ type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 #[derive(Debug, PartialEq)]
 pub enum Action {
 	MultiLocationToAddress = "multilocationToAddress((uint8,bytes[]))",
-	XcmExecute = "execute(bytes, uint64)",
+	XcmExecute = "execute(bytes,uint64)",
 }
 
 /// A precompile to wrap the functionality from xcm-utils

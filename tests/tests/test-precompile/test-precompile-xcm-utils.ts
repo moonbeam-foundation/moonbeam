@@ -3,12 +3,18 @@ import "@moonbeam-network/api-augment";
 import { u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../../util/constants";
+import { GLMR, PRECOMPILE_XCM_UTILS_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
-
+import { generateKeyringPair } from "../../util/accounts";
+import { BN } from "@polkadot/util";
+import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { descendOriginFromAddress } from "../../util/xcm";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  createTransaction,
+} from "../../util/transactions";
 
 const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
@@ -120,5 +126,54 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
 
     const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     expect(result.result).to.equal(`0x${descendOriginAddress.slice(2).padStart(64, "0")}`);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
+  it("allows to execute a custom xcm message", async function () {
+    let random = generateKeyringPair();
+
+    const transferCall = context.polkadotApi.tx.balances.transfer(
+      random.address,
+      1n * GLMR
+    );
+    const transferCallEncoded = transferCall?.method.toHex();
+    
+    const xcmMessage = {
+      V2: [
+        {
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        }
+      ],
+    };
+
+    const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
+
+    await context.createBlock(
+      createTransaction(context, {
+        ...ALITH_TRANSACTION_TEMPLATE,
+        to: PRECOMPILE_XCM_UTILS_ADDRESS,
+        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("execute", [
+          receivedMessage.toU8a(),
+          2_000_000_000
+        ]),
+      })
+    );
+
+     // Tokens transferred
+     const testAccountBalance = (
+      await context.polkadotApi.query.system.account(random.address)
+    ).data.free.toBigInt();
+
+    expect(testAccountBalance).to.eq(1n * GLMR);
   });
 });
