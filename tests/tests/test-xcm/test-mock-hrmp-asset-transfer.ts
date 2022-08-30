@@ -408,8 +408,8 @@ describeDevMoonbeam(
       ).index;
       // We are charging 100_000_000 weight for every XCM instruction
       // We are executing 4 instructions
-      // 100_000_000 * 4 * 50000 = 20000000000000
-      // We are charging 20 micro DEV for this operation
+      // 200_000_000 * 4 * 50000 = 40000000000000
+      // We are charging 40 micro DEV for this operation
       // The rest should be going to the deposit account
       let xcmMessage = {
         V2: [
@@ -444,7 +444,7 @@ describeDevMoonbeam(
                 },
                 fun: { Fungible: transferredBalance },
               },
-              weightLimit: { Limited: new BN(4000000000) },
+              weightLimit: { Limited: new BN(8000000000) },
             },
           },
           {
@@ -478,7 +478,7 @@ describeDevMoonbeam(
       let randomBalance = (
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
-      let expectedRandomBalance = 80000000000000n;
+      let expectedRandomBalance = 60000000000000n;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
