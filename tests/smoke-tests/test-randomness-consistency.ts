@@ -354,6 +354,8 @@ function chiSquareTest(bytes: Uint8Array) {
   // count occurences of ones
   const pValue = 286.882;
   bytes.forEach((a) => {
+    // convert to a binary text string, e.g. "101101", then count the ones.
+    // note that this string excluded insignificant digits, which is why we count ones
     numOnes += [...a.toString(2)].filter((x) => x === "1").length;
   });
 
