@@ -24,7 +24,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
