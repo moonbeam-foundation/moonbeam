@@ -348,7 +348,7 @@ function chiSquareTest(bytes: Uint8Array) {
   // expected value of 256 coin flips:
   const expectedValue = 256 / 2;
   // degrees of freedom is 256 - 1 = 255, alpha is 0.05
-  // chi.pdf(31, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
+  // chi.pdf(250, 0.05) = 287.882 (TODO: use precise value; this is from 250 in following table)
   // https://en.wikibooks.org/wiki/Engineering_Tables/Chi-Squared_Distibution
 
   // count occurences of ones
