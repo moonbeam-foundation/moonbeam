@@ -488,7 +488,6 @@ impl Default for Transactors {
 	}
 }
 
-
 impl TryFrom<u8> for Transactors {
 	type Error = ();
 	fn try_from(value: u8) -> Result<Self, Self::Error> {

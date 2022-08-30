@@ -138,6 +138,51 @@ benchmarks! {
 		}
 	}
 
+	transact_through_sovereign {
+		let fee_per_second = 1;
+		let extra_weight = 300000000u64;
+		let max_weight = 20000000000u64;
+		let location = MultiLocation::parent();
+		let call = vec![1u8];
+		let dest_weight = 100u64;
+		let user: T::AccountId  = account("account id", 0u32, 0u32);
+		Pallet::<T>::set_transact_info(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			extra_weight,
+			max_weight,
+			Some(extra_weight)
+		).unwrap();
+		Pallet::<T>::set_fee_per_second(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			fee_per_second
+		).unwrap();
+	}: {
+
+		let result = Pallet::<T>::transact_through_sovereign(
+			RawOrigin::Root.into(),
+			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
+			user.clone(),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(location.clone()))),
+				fee_amount: None
+			},
+			call,
+			OriginKind::SovereignAccount,
+			TransactWeights { transact_required_weight_at_most: dest_weight, overall_weight: None }
+			);
+
+		// It's expected that the error comes from the fact that the asset is not known
+		// The weight coming withdraw asset + send is accounted by charging for the instruction per se
+		if result.is_ok() {
+			assert_eq!(result, Ok(()))
+		}
+		else {
+			assert_eq!(result, Err(crate::Error::<T>::UnableToWithdrawAsset.into()))
+		}
+	}
+
 	transact_through_signed {
 		let fee_per_second = 1;
 		let extra_weight = 300000000u64;
