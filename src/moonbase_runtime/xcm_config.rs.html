@@ -539,11 +539,6 @@
 <span id="534">534</span>
 <span id="535">535</span>
 <span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -757,12 +752,7 @@
 );
 
 <span class="macro">parameter_types!</span> {
-	<span class="doccomment">/// The amount of weight an XCM operation takes. This is safe overestimate.</span>
-	<span class="doccomment">/// We should increase this to a value close to what polkadot charges</span>
-	<span class="doccomment">/// We are charging less to make it work with current reserve_transfer_assets issue</span>
-	<span class="doccomment">/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000</span>
-	<span class="doccomment">/// https://github.com/paritytech/polkadot/pull/4144</span>
-	<span class="kw">pub</span> <span class="ident">UnitWeightCost</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">100_000_000</span>;
+	<span class="kw">pub</span> <span class="ident">UnitWeightCost</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">200_000_000</span>;
 	<span class="doccomment">/// Maximum number of instructions in a single XCM fragment. A sanity check against</span>
 	<span class="doccomment">/// weight caculations getting too crazy.</span>
 	<span class="kw">pub</span> <span class="ident">MaxInstructions</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">100</span>;
@@ -990,7 +980,7 @@
 }
 
 <span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BaseXcmWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">100_000_000</span>;
+	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BaseXcmWeight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">200_000_000</span>;
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MaxAssetsForTransfer</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
 	<span class="comment">// This is how we are going to detect whether the asset is a Reserve asset</span>
 	<span class="comment">// This however is the chain part only</span>
