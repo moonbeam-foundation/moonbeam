@@ -14,7 +14,7 @@
 use super::*;
 
 impl Precompile {
-	pub fn try_from(_: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
+	pub fn try_from(_args: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
 		let struct_ident = Self::extract_struct_ident(impl_)?;
 		let enum_ident = format_ident!("{}Call", struct_ident);
 
@@ -26,6 +26,7 @@ impl Precompile {
 			selector_to_variant: BTreeMap::new(),
 			variants_content: BTreeMap::new(),
 			fallback_to_variant: None,
+			precompile_set: None,
 		};
 
 		for mut item in &mut impl_.items {
@@ -153,7 +154,7 @@ impl Precompile {
 		if !used {
 			let msg =
 				"A precompile method cannot have modifiers without being a fallback or having\
-			a selector";
+			a `public` attribute";
 			return Err(syn::Error::new(method.span(), msg));
 		}
 
@@ -168,9 +169,12 @@ impl Precompile {
 			return Err(syn::Error::new(method.span(), msg));
 		}
 
-		if is_fallback && method.sig.inputs.len() != 1 {
-			let msg = "Fallback methods cannot take any parameter outside of the PrecompileHandle";
-			return Err(syn::Error::new(method.span(), msg));
+		if is_fallback {
+			if let Some(input) = method.sig.inputs.iter().skip(1).next() {
+				let msg =
+					"Fallback methods cannot take any parameter outside of the PrecompileHandle";
+				return Err(syn::Error::new(input.span(), msg));
+			}
 		}
 
 		// We skip the first parameter which will be the PrecompileHandle.

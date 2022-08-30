@@ -31,18 +31,11 @@ pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
 		Err(e) => return e.into_compile_error().into(),
 	};
 
-	let enum_ = precompile.generate_enum();
-	let enum_impl = precompile.generate_enum_impl();
-	let precomp_impl = precompile.generate_precompile_impl();
-	let test_signature = precompile.generate_test_solidity_signature();
-
-	let output = quote! {
+	let new_items = precompile.expand();
+	let output = quote!(
 		#impl_item
-		#enum_
-		#enum_impl
-		#precomp_impl
-		#test_signature
-	};
+		#new_items
+	);
 
 	output.into()
 }
@@ -68,6 +61,11 @@ pub struct Precompile {
 
 	/// Describes the content of each variant based on the precompile methods.
 	variants_content: BTreeMap<syn::Ident, Variant>,
+
+	/// Is it a precompile set? If yes the option contains the name of a method of the form
+	/// `fn(&mut impl PrecompileHandle) -> Option<Discriminant>`, where discriminant is can be any
+	/// type whose value will be provided to any precompile method.
+	precompile_set: Option<syn::Ident>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
