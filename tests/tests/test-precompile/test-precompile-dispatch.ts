@@ -9,7 +9,7 @@ import { web3EthCall } from "../../util/providers";
 import { GLMR, PRECOMPILE_DISPATCH_ADDRESS } from "../../util/constants";
 import { ALITH_ADDRESS } from "../../util/accounts";
 
-describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
+describeDevMoonbeam("Precompile - Dispatch - fails on pallet-ethereum", (context) => {
   it("should prevent dispatch precompile on pallet-ethereum", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
     // Signature is verified prior to the execution and not in the pallet
@@ -64,7 +64,7 @@ describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
+describeDevMoonbeam("Precompile - Dispatch - fails in pallet-ethereum-xcm", (context) => {
   it("should prevent dispatch precompile on pallet-ethereum-xcm", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
 
@@ -109,7 +109,7 @@ describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
   });
 });
 
-describeDevMoonbeam("Precompile - Dispatch - foo", (context) => {
+describeDevMoonbeam("Precompile - Dispatch - works in pallet-balances", (context) => {
   it("should allow dispatches for regular pallets (e.g., balances)", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
     let amountToTransfer = 1n * GLMR;
