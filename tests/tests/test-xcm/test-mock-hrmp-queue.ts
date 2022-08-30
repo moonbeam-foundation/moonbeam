@@ -113,7 +113,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -191,7 +191,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * weightPerXcmInst;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -253,7 +253,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -335,7 +335,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * weightPerXcmInst;
 
     // in this case, we have some that will execute on_initialize
     // some that will fail the execution

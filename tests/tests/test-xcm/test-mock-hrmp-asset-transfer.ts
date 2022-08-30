@@ -444,7 +444,7 @@ describeDevMoonbeam(
                 },
                 fun: { Fungible: transferredBalance },
               },
-              weightLimit: { Limited: new BN(4000000000) },
+              weightLimit: { Limited: new BN(8000000000) },
             },
           },
           {
