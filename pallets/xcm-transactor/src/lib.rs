@@ -459,7 +459,7 @@ pub mod pallet {
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
-			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			Pallet::<T>::weight_of_initiate_reserve_withdraw().saturating_add(T::WeightInfo::transact_through_signed())
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,

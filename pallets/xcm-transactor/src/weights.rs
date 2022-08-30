@@ -67,6 +67,8 @@ pub trait WeightInfo {
 	fn transact_through_signed_multilocation() -> Weight;
 	#[rustfmt::skip]
     fn transact_through_derivative() -> Weight;
+	#[rustfmt::skip]
+    fn transact_through_sovereign() -> Weight;
 }
 
 /// Weights for xcm_transactor using the Substrate node and recommended hardware.
@@ -125,6 +127,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
         (23_013_000 as Weight)
             .saturating_add(T::DbWeight::get().reads(4 as Weight))
     }
+
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: AssetManager AssetTypeId (r:1 w:0)
+        #[rustfmt::skip]
+	fn transact_through_sovereign() -> Weight {
+        (18_571_000 as Weight)
+            .saturating_add(T::DbWeight::get().reads(3 as Weight))
+    }
 }
 
 // For backwards compatibility and tests
@@ -177,9 +188,17 @@ impl WeightInfo for () {
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
 	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
 	// Storage: AssetManager AssetTypeId (r:1 w:0)
-        #[rustfmt::skip]
+    #[rustfmt::skip]
 	fn transact_through_derivative() -> Weight {
-                (23_013_000 as Weight)
-                        .saturating_add(RocksDbWeight::get().reads(4 as Weight))
-        }
+        (23_013_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(4 as Weight))
+    }
+	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
+	// Storage: XcmTransactor DestinationAssetFeePerSecond (r:1 w:0)
+	// Storage: AssetManager AssetTypeId (r:1 w:0)
+    #[rustfmt::skip]
+	fn transact_through_sovereign() -> Weight {
+        (18_571_000 as Weight)
+            .saturating_add(RocksDbWeight::get().reads(3 as Weight))
+    }
 }
