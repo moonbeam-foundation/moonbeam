@@ -22,6 +22,7 @@ use sp_std::vec;
 use xcm::latest::prelude::*;
 
 benchmarks! {
+	where_clause { where T::Transactor: Default }
 	register {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 

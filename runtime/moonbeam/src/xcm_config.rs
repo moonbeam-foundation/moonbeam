@@ -462,10 +462,17 @@ impl orml_xtokens::Config for Runtime {
 // For now we only allow to transact in the relay, although this might change in the future
 // Transactors just defines the chains in which we allow transactions to be issued through
 // xcm
-#[derive(Clone, Eq, Debug, Default, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum Transactors {
-	#[default]
 	Relay,
+}
+
+// Default for benchmarking
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
 }
 
 impl TryFrom<u8> for Transactors {

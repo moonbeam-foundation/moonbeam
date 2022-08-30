@@ -217,11 +217,17 @@ pub enum UtilityCall {
 
 // Transactors for the mock runtime. Only relay chain
 #[derive(
-	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo, Default,
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo,
 )]
 pub enum Transactors {
-	#[default]
 	Relay,
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
 }
 
 impl XcmTransact for Transactors {

@@ -124,7 +124,7 @@ pub mod pallet {
 
 		// XcmTransact needs to be implemented. This type needs to implement
 		// utility call encoding and multilocation gathering
-		type Transactor: Parameter + Member + Clone + XcmTransact + Default;
+		type Transactor: Parameter + Member + Clone + XcmTransact;
 
 		/// AssetTransactor allows us to withdraw asset without being trapped
 		/// This should change in xcm v3, which allows us to burn assets
