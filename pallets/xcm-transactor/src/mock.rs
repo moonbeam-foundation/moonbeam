@@ -216,8 +216,11 @@ pub enum UtilityCall {
 }
 
 // Transactors for the mock runtime. Only relay chain
-#[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
+#[derive(
+	Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo, Default,
+)]
 pub enum Transactors {
+	#[default]
 	Relay,
 }
 
