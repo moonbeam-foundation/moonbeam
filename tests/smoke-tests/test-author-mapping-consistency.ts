@@ -22,7 +22,7 @@ describeSmokeSuite(
 
     before("Retrieve all associated nimbus ids", async function () {
       // It takes time to load all the nimbus ids.
-      this.timeout(30_000); // 30s
+      this.timeout(300_000); // 5min
 
       // How many entries to query at a time
       const limit = 1000;
@@ -74,7 +74,7 @@ describeSmokeSuite(
     });
 
     it("should have a deposit for each associated nimbus id", async function () {
-      this.timeout(30_000); // 30s
+      this.timeout(60_000);
 
       // Instead of putting an expect in the loop. We track all failed entries instead
       const failedEntries: { accountId: string; nimbusId: string; problem: string }[] = [];

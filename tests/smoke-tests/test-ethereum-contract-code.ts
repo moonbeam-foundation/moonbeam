@@ -25,7 +25,7 @@ describeSmokeSuite(
     };
 
     before("Retrieve all contrcact bytecode", async function () {
-      this.timeout(300_000);
+      this.timeout(3_000_000);
 
       const limit = 1000;
       let last_key = "";
@@ -84,7 +84,7 @@ describeSmokeSuite(
     });
 
     it("should not have excessively long account codes", async function () {
-      this.timeout(300_000);
+      this.timeout(30_000);
 
       // taken from geth, e.g. search "MaxCodeSize":
       // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
