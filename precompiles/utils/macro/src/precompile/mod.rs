@@ -44,6 +44,9 @@ pub struct Precompile {
 	/// Impl struct type.
 	struct_type: syn::Type,
 
+	/// Impl struct ident.
+	struct_ident: syn::Ident,
+
 	/// New parsing enum ident.
 	enum_ident: syn::Ident,
 
@@ -65,6 +68,10 @@ pub struct Precompile {
 
 	/// Info about PrecompileSet discriminant.
 	precompile_set_discriminant: Option<PrecompileSetDiscriminant>,
+
+	/// When generating the selector test the data types might depend on type parameters.
+	/// The test thus need to be written using concrete types.
+	test_concrete_types: Option<Vec<syn::Type>>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

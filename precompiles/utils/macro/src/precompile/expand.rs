@@ -18,11 +18,13 @@ impl Precompile {
 		let enum_ = self.expand_enum_decl();
 		let enum_impl = self.expand_enum_impl();
 		let precomp_impl = self.expand_precompile_impl();
+		let test_signature = self.expand_test_solidity_signature();
 
 		quote! {
 			#enum_
 			#enum_impl
 			#precomp_impl
+			#test_signature
 		}
 	}
 
@@ -159,7 +161,6 @@ impl Precompile {
 
 		let parse_call_data_fn = self.expand_enum_parse_call_data();
 		let execute_fn = self.expand_enum_execute_fn();
-		let test_signature = self.expand_test_solidity_signature();
 
 		quote_spanned!(span=>
 			impl #impl_generics #enum_ident #ty_generics #where_clause {
@@ -169,7 +170,6 @@ impl Precompile {
 
 				#execute_fn
 
-				#test_signature
 
 				pub fn supports_selector(selector: u32) -> bool {
 					match selector {
@@ -390,19 +390,50 @@ impl Precompile {
 			.map(|v| v.arguments.iter().map(|arg| &arg.ty).collect())
 			.collect();
 
-		quote_spanned!(span=>
-			fn test_match_between_solidity_and_rust_types() {
-				use ::precompile_utils::data::EvmData;
-				#(
-					assert_eq!(
-						#variant_solidity,
-						<( #(#variant_arguments_type,)* ) as EvmData>::solidity_type(),
-						"{} function signature doesn't match (left: attribute, right: computed \
-						from Rust types)",
-						#variant_name
-					);
-				)*
-			}
-		)
+		let test_name = format_ident!("__{}_test_solidity_signatures", self.struct_ident);
+
+		if let Some(test_types) = &self.test_concrete_types {
+			let (impl_generics, _ty_generics, where_clause) = self.generics.split_for_impl();
+
+			quote_spanned!(span=>
+				#[test]
+				#[allow(non_snake_case)]
+				fn #test_name() {
+					fn _inner #impl_generics () #where_clause {
+						use ::precompile_utils::data::EvmData;
+						#(
+							assert_eq!(
+								#variant_solidity,
+								<( #(#variant_arguments_type,)* ) as EvmData>::solidity_type(),
+								"{} function signature doesn't match (left: attribute, right: computed \
+								from Rust types)",
+								#variant_name
+							);
+						)*
+					}
+
+					_inner::< #(#test_types),* >();
+				}
+			)
+			.to_token_stream()
+		} else {
+			quote_spanned!(span=>
+				#[test]
+				#[allow(non_snake_case)]
+				fn #test_name() {
+					use ::precompile_utils::data::EvmData;
+					#(
+						assert_eq!(
+							#variant_solidity,
+							<( #(#variant_arguments_type,)* ) as EvmData>::solidity_type(),
+							"{} function signature doesn't match (left: attribute, right: computed \
+							from Rust types)",
+							#variant_name
+						);
+					)*
+				}
+			)
+			.to_token_stream()
+		}
 	}
 }

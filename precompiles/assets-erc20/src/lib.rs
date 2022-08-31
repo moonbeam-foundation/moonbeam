@@ -113,6 +113,7 @@ impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Inst
 
 #[precompile_utils::precompile]
 #[precompile::precompile_set]
+#[precompile::test_concrete_types(mock::Runtime, IsForeign, pallet_assets::Instance1)]
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: eip2612::InstanceToPrefix + 'static,

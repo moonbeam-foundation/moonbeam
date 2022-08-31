@@ -20,6 +20,7 @@ impl Precompile {
 
 		let mut precompile = Precompile {
 			struct_type: impl_.self_ty.as_ref().clone(),
+			struct_ident,
 			enum_ident,
 			generics: impl_.generics.clone(),
 			selector_to_variant: BTreeMap::new(),
@@ -27,6 +28,7 @@ impl Precompile {
 			fallback_to_variant: None,
 			tagged_as_precompile_set: false,
 			precompile_set_discriminant: None,
+			test_concrete_types: None,
 		};
 
 		precompile.process_impl_attr(impl_)?;
@@ -54,6 +56,20 @@ impl Precompile {
 			match attr {
 				attr::ImplAttr::PrecompileSet(_) => {
 					self.tagged_as_precompile_set = true;
+				}
+				attr::ImplAttr::TestConcreteTypes(span, types) => {
+					if types.len() != self.generics.params.len() {
+						let msg = "The amount of types should match the amount of type parameters \
+						of the impl block";
+						return Err(syn::Error::new(span, msg));
+					}
+
+					if self.test_concrete_types.is_some() {
+						let msg = "Only one set of types can be provided to generate tests";
+						return Err(syn::Error::new(span, msg));
+					}
+
+					self.test_concrete_types = Some(types);
 				}
 			}
 		}

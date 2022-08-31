@@ -44,6 +44,7 @@ pub mod keyword {
 	syn::custom_keyword!(view);
 	syn::custom_keyword!(discriminant);
 	syn::custom_keyword!(precompile_set);
+	syn::custom_keyword!(test_concrete_types);
 }
 
 /// Attributes for methods.
@@ -96,6 +97,7 @@ impl syn::parse::Parse for MethodAttr {
 /// Attributes for the main impl Block.
 pub enum ImplAttr {
 	PrecompileSet(Span),
+	TestConcreteTypes(Span, Vec<syn::Type>),
 }
 
 impl syn::parse::Parse for ImplAttr {
@@ -111,6 +113,17 @@ impl syn::parse::Parse for ImplAttr {
 		if lookahead.peek(keyword::precompile_set) {
 			Ok(ImplAttr::PrecompileSet(
 				content.parse::<keyword::precompile_set>()?.span(),
+			))
+		} else if lookahead.peek(keyword::test_concrete_types) {
+			let span = content.parse::<keyword::test_concrete_types>()?.span();
+
+			let inner;
+			syn::parenthesized!(inner in content);
+			let types = inner.parse_terminated::<_, syn::Token![,]>(syn::Type::parse)?;
+
+			Ok(ImplAttr::TestConcreteTypes(
+				span,
+				types.into_iter().collect(),
 			))
 		} else {
 			Err(lookahead.error())
