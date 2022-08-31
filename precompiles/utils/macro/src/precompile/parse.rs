@@ -20,7 +20,6 @@ impl Precompile {
 
 		let mut precompile = Precompile {
 			struct_type: impl_.self_ty.as_ref().clone(),
-			struct_ident,
 			enum_ident,
 			generics: impl_.generics.clone(),
 			selector_to_variant: BTreeMap::new(),

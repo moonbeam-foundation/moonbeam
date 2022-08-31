@@ -27,7 +27,7 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	sp_runtime::traits::StaticLookup,
 };
-use pallet_evm::{AddressMapping, PrecompileSet};
+use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
@@ -64,42 +64,6 @@ pub type AssetIdOf<Runtime, Instance = ()> = <Runtime as pallet_assets::Config<I
 /// Public types to use with the PrecompileSet
 pub type IsLocal = ConstBool<true>;
 pub type IsForeign = ConstBool<false>;
-
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	TotalSupply = "totalSupply()",
-	BalanceOf = "balanceOf(address)",
-	Allowance = "allowance(address,address)",
-	Transfer = "transfer(address,uint256)",
-	Approve = "approve(address,uint256)",
-	TransferFrom = "transferFrom(address,address,uint256)",
-	Name = "name()",
-	Symbol = "symbol()",
-	Decimals = "decimals()",
-	Mint = "mint(address,uint256)",
-	Burn = "burn(address,uint256)",
-	Freeze = "freeze(address)",
-	Thaw = "thaw(address)",
-	FreezeAsset = "freezeAsset()",
-	ThawAsset = "thawAsset()",
-	TransferOwnership = "transferOwnership(address)",
-	SetTeam = "setTeam(address,address,address)",
-	SetMetadata = "setMetadata(string,string,uint8)",
-	ClearMetadata = "clearMetadata()",
-	// EIP 2612
-	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-	Eip2612Nonces = "nonces(address)",
-	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
-
-	// deprecated
-	DeprecatedFreezeAsset = "freeze_asset()",
-	DeprecatedThawAsset = "thaw_asset()",
-	DeprecatedTransferOwnership = "transfer_ownership(address)",
-	DeprecatedSetTeam = "set_team(address,address,address)",
-	DeprecatedSetMetadata = "set_metadata(string,string,uint8)",
-	DeprecatedClearMetadata = "clear_metadata()",
-}
 
 /// This trait ensure we can convert AccountIds to AssetIds
 /// We will require Runtime to have this trait implemented
@@ -140,112 +104,6 @@ impl<T, U, V> Default for Erc20AssetsPrecompileSet<T, U, V> {
 		Self(PhantomData)
 	}
 }
-
-// impl<Runtime, IsLocal, Instance> PrecompileSet
-// 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
-// where
-// 	Instance: eip2612::InstanceToPrefix + 'static,
-// 	Runtime: pallet_assets::Config<Instance>
-// 		+ pallet_evm::Config
-// 		+ frame_system::Config
-// 		+ pallet_timestamp::Config,
-// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-// 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
-// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-// 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-// 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
-// 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
-// 	IsLocal: Get<bool>,
-// 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
-// 	AssetIdOf<Runtime, Instance>: Display,
-// {
-// 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-// 		if let Some((_, asset_id)) = Runtime::account_to_asset_id(
-// 			Runtime::AddressMapping::into_account_id(handle.code_address()),
-// 		) {
-// 			// We check maybe_total_supply. This function returns Some if the asset exists,
-// 			// which is all we care about at this point
-// 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
-// 				let result = {
-// 					let selector = match handle.read_selector() {
-// 						Ok(selector) => selector,
-// 						Err(e) => return Some(Err(e.into())),
-// 					};
-
-// 					if let Err(err) = handle.check_function_modifier(match selector {
-// 						Action::Approve | Action::Transfer | Action::TransferFrom => {
-// 							FunctionModifier::NonPayable
-// 						}
-// 						_ => FunctionModifier::View,
-// 					}) {
-// 						return Some(Err(err.into()));
-// 					}
-
-// 					match selector {
-// 						// Local and Foreign common
-// 						Action::TotalSupply => Self::total_supply(asset_id, handle),
-// 						Action::BalanceOf => Self::balance_of(asset_id, handle),
-// 						Action::Allowance => Self::allowance(asset_id, handle),
-// 						Action::Approve => Self::approve(asset_id, handle),
-// 						Action::Transfer => Self::transfer(asset_id, handle),
-// 						Action::TransferFrom => Self::transfer_from(asset_id, handle),
-// 						Action::Name => Self::name(asset_id, handle),
-// 						Action::Symbol => Self::symbol(asset_id, handle),
-// 						Action::Decimals => Self::decimals(asset_id, handle),
-// 						// Only local
-// 						Action::Mint => Self::mint(asset_id, handle),
-// 						Action::Burn => Self::burn(asset_id, handle),
-// 						Action::Freeze => Self::freeze(asset_id, handle),
-// 						Action::Thaw => Self::thaw(asset_id, handle),
-// 						Action::FreezeAsset | Action::DeprecatedFreezeAsset => {
-// 							Self::freeze_asset(asset_id, handle)
-// 						}
-// 						Action::ThawAsset | Action::DeprecatedThawAsset => {
-// 							Self::thaw_asset(asset_id, handle)
-// 						}
-// 						Action::TransferOwnership | Action::DeprecatedTransferOwnership => {
-// 							Self::transfer_ownership(asset_id, handle)
-// 						}
-// 						Action::SetTeam | Action::DeprecatedSetTeam => {
-// 							Self::set_team(asset_id, handle)
-// 						}
-// 						Action::SetMetadata | Action::DeprecatedSetMetadata => {
-// 							Self::set_metadata(asset_id, handle)
-// 						}
-// 						Action::ClearMetadata | Action::DeprecatedClearMetadata => {
-// 							Self::clear_metadata(asset_id, handle)
-// 						}
-// 						Action::Eip2612Permit => {
-// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
-// 						}
-// 						Action::Eip2612Nonces => {
-// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(asset_id, handle)
-// 						}
-// 						Action::Eip2612DomainSeparator => {
-// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::domain_separator(
-// 								asset_id, handle,
-// 							)
-// 						}
-// 					}
-// 				};
-// 				return Some(result);
-// 			}
-// 		}
-// 		None
-// 	}
-
-// 	fn is_precompile(&self, address: H160) -> bool {
-// 		if let Some((_, asset_id)) =
-// 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
-// 		{
-// 			// We check maybe_total_supply. This function returns Some if the asset exists,
-// 			// which is all we care about at this point
-// 			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
-// 		} else {
-// 			false
-// 		}
-// 	}
-// }
 
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance> {
 	pub fn new() -> Self {
@@ -889,7 +747,7 @@ where
 	}
 
 	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
-	fn permit(
+	fn eip2612_permit(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
@@ -907,7 +765,7 @@ where
 
 	#[precompile::public("nonces(address)")]
 	#[precompile::view]
-	fn nonces(
+	fn eip2612_nonces(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
@@ -917,7 +775,7 @@ where
 
 	#[precompile::public("DOMAIN_SEPARATOR()")]
 	#[precompile::view]
-	fn domain_separator(
+	fn eip2612_domain_separator(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
 	) -> EvmResult<H256> {

@@ -44,9 +44,6 @@ pub struct Precompile {
 	/// Impl struct type.
 	struct_type: syn::Type,
 
-	/// Impl struct type.
-	struct_ident: syn::Ident,
-
 	/// New parsing enum ident.
 	enum_ident: syn::Ident,
 

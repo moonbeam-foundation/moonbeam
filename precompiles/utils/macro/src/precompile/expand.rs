@@ -138,6 +138,7 @@ impl Precompile {
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
+		let match_selectors = self.selector_to_variant.keys();
 		let match_selectors2 = self.selector_to_variant.keys();
 
 		let variants_parsing = self.expand_variants_parse_fn();
@@ -168,13 +169,21 @@ impl Precompile {
 
 				#execute_fn
 
+				#test_signature
+
 				pub fn supports_selector(selector: u32) -> bool {
 					match selector {
 						#(
-							#match_selectors2 => true,
+							#match_selectors => true,
 						)*
 						_ => false,
 					}
+				}
+
+				pub fn selectors() -> impl Iterator<Item = u32> {
+					vec![#(
+						#match_selectors2
+					),*].into_iter()
 				}
 
 				pub fn encode(self) -> Vec<u8> {
@@ -188,7 +197,7 @@ impl Precompile {
 					}
 				}
 
-				#test_signature
+
 			}
 
 			#[cfg(test)]
