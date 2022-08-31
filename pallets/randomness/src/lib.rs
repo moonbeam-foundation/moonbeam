@@ -117,22 +117,22 @@ pub mod pallet {
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
-		#[pallet::constant]
 		/// Maximum number of random words that can be requested per request
-		type MaxRandomWords: Get<u8>;
 		#[pallet::constant]
+		type MaxRandomWords: Get<u8>;
 		/// Local per-block VRF requests must be at least this many blocks after the block in which
 		/// they were requested
-		type MinBlockDelay: Get<Self::BlockNumber>;
 		#[pallet::constant]
+		type MinBlockDelay: Get<Self::BlockNumber>;
 		/// Local per-block VRF requests must be at most this many blocks after the block in which
 		/// they were requested
+		#[pallet::constant]
 		type MaxBlockDelay: Get<Self::BlockNumber>;
-		#[pallet::constant]
 		/// Local requests expire and can be purged from storage after this many blocks/epochs
-		type BlockExpirationDelay: Get<Self::BlockNumber>;
 		#[pallet::constant]
+		type BlockExpirationDelay: Get<Self::BlockNumber>;
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
+		#[pallet::constant]
 		type EpochExpirationDelay: Get<u64>;
 	}
 
@@ -187,51 +187,51 @@ pub mod pallet {
 		},
 	}
 
+	/// Randomness requests not yet fulfilled or purged
 	#[pallet::storage]
 	#[pallet::getter(fn requests)]
-	/// Randomness requests not yet fulfilled or purged
 	pub type Requests<T: Config> = StorageMap<_, Twox64Concat, RequestId, RequestState<T>>;
 
+	/// Number of randomness requests made so far, used to generate the next request's uid
 	#[pallet::storage]
 	#[pallet::getter(fn request_count)]
-	/// Number of randomness requests made so far, used to generate the next request's uid
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn local_vrf_output)]
 	/// Current local per-block VRF randomness
 	/// Set in `on_initialize`
+	#[pallet::storage]
+	#[pallet::getter(fn local_vrf_output)]
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
+	/// Relay epoch
 	#[pallet::storage]
 	#[pallet::getter(fn relay_epoch)]
-	/// Relay epoch
 	pub(crate) type RelayEpoch<T: Config> = StorageValue<_, u64, ValueQuery>;
 
+	/// Ensures the mandatory inherent was included in the block
 	#[pallet::storage]
 	#[pallet::getter(fn inherent_included)]
-	/// Ensures the mandatory inherent was included in the block
 	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
 
+	/// Records whether this is the first block (genesis or runtime upgrade)
 	#[pallet::storage]
 	#[pallet::getter(fn not_first_block)]
-	/// Records whether this is the first block (genesis or runtime upgrade)
 	pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
 
-	#[pallet::storage]
-	#[pallet::getter(fn randomness_results)]
 	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
 	/// Removed once $value.request_count == 0
+	#[pallet::storage]
+	#[pallet::getter(fn randomness_results)]
 	pub(crate) type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		#[pallet::weight((
 			SubstrateWeight::<T>::set_babe_randomness_results(),
 			DispatchClass::Mandatory
 		))]
-		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
