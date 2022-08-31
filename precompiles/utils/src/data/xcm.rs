@@ -18,7 +18,7 @@
 
 use {
 	crate::{
-		data::{BoundedBytes, Bytes, EvmData, EvmDataReader, EvmDataWriter},
+		data::{BoundedBytes, EvmData, EvmDataReader, EvmDataWriter, UnboundedBytes},
 		revert::{InjectBacktrace, MayRevert, RevertReason},
 	},
 	alloc::string::String,
@@ -92,7 +92,7 @@ pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<Network
 impl EvmData for Junction {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
-		let junction_bytes = junction.into_vec();
+		let junction_bytes: Vec<_> = junction.into();
 
 		ensure!(
 			junction_bytes.len() > 0,
@@ -172,7 +172,7 @@ impl EvmData for Junction {
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
-		let encoded_bytes: Bytes = match value {
+		let encoded_bytes: UnboundedBytes = match value {
 			Junction::Parachain(para_id) => {
 				encoded.push(0u8);
 				encoded.append(&mut para_id.to_be_bytes().to_vec());
@@ -227,7 +227,7 @@ impl EvmData for Junction {
 	}
 
 	fn solidity_type() -> String {
-		Bytes::solidity_type()
+		UnboundedBytes::solidity_type()
 	}
 }
 

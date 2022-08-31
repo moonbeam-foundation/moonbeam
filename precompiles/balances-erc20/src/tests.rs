@@ -497,7 +497,7 @@ fn get_metadata_name() {
 				.expect_no_logs()
 				.execute_returns(
 					EvmDataWriter::new()
-						.write::<Bytes>("Mock token".into())
+						.write::<UnboundedBytes>("Mock token".into())
 						.build(),
 				);
 		});
@@ -517,7 +517,11 @@ fn get_metadata_symbol() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write::<Bytes>("MOCK".into()).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write::<UnboundedBytes>("MOCK".into())
+						.build(),
+				);
 		});
 }
 

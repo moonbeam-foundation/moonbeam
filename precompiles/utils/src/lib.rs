@@ -41,7 +41,7 @@ use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, Preco
 
 pub mod data;
 
-pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use data::{EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{generate_function_selector, keccak256, precompile};
 
@@ -58,7 +58,7 @@ pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
 
 pub fn encoded_revert(output: impl AsRef<[u8]>) -> Vec<u8> {
 	EvmDataWriter::new_with_selector(revert::RevertSelector::Generic)
-		.write::<Bytes>(Bytes(output.as_ref().to_owned()))
+		.write::<data::UnboundedBytes>(output.as_ref().to_owned().into())
 		.build()
 }
 
@@ -89,7 +89,8 @@ pub mod prelude {
 	pub use {
 		crate::{
 			data::{
-				Address, BoundedBytes, BoundedVec, Bytes, EvmData, EvmDataReader, EvmDataWriter,
+				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
+				EvmDataWriter, UnboundedBytes, UnboundedString,
 			},
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},

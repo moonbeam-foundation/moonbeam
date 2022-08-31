@@ -384,13 +384,13 @@ where
 
 	#[precompile::public("name()")]
 	#[precompile::view]
-	fn name(_handle: &mut impl PrecompileHandle) -> EvmResult<Bytes> {
+	fn name(_handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		Ok(Metadata::name().into())
 	}
 
 	#[precompile::public("symbol()")]
 	#[precompile::view]
-	fn symbol(_handle: &mut impl PrecompileHandle) -> EvmResult<Bytes> {
+	fn symbol(_handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		Ok(Metadata::symbol().into())
 	}
 
