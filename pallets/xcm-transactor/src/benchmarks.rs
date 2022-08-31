@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+#![cfg(feature = "runtime-benchmarks")]
+
 use crate::{Call, Config, Currency, CurrencyPayment, Pallet, TransactWeights};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
 use frame_system::RawOrigin;
@@ -22,7 +24,7 @@ use sp_std::vec;
 use xcm::latest::prelude::*;
 
 benchmarks! {
-	where_clause { where T::Transactor: Default }
+	where_clause { where T::Transactor: Default, T::CurrencyId: From<MultiLocation>}
 	register {
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 
@@ -89,6 +91,8 @@ benchmarks! {
 		assert_eq!(Pallet::<T>::dest_asset_fee_per_second(&location), Some(fee_per_second));
 	}
 
+	// Worst Case: AsCurrencyId, as the translation could involve db reads
+	// Worst Case: transacInfo db reads
 	transact_through_derivative {
 		let fee_per_second = 1;
 		let extra_weight = 300000000u64;
@@ -96,6 +100,7 @@ benchmarks! {
 		let location = MultiLocation::parent();
 		let call = vec![1u8];
 		let dest_weight = 100u64;
+		let currency: T::CurrencyId = location.clone().into();
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
 		Pallet::<T>::set_transact_info(
 			RawOrigin::Root.into(),
@@ -121,12 +126,18 @@ benchmarks! {
 			T::Transactor::default(),
 			0,
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(location.clone()))),
+				// This might involve a db Read when translating, therefore worst case
+				currency: Currency::AsCurrencyId(currency),
+				// This involves a db Read, hence the None is worst case
 				fee_amount: None
 			},
 			call,
-			TransactWeights { transact_required_weight_at_most: dest_weight, overall_weight: None }
-			);
+			TransactWeights {
+				transact_required_weight_at_most: dest_weight,
+				// This involves a db Read, hence the None is worst case
+				overall_weight: None
+			}
+		);
 
 		// It's expected that the error comes from the fact that the asset is not known
 		// The weight coming withdraw asset + send is accounted by charging for the instruction per se
@@ -143,6 +154,7 @@ benchmarks! {
 		let extra_weight = 300000000u64;
 		let max_weight = 20000000000u64;
 		let location = MultiLocation::parent();
+		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
 		let dest_weight = 100u64;
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
@@ -165,13 +177,19 @@ benchmarks! {
 			Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 			user.clone(),
 			CurrencyPayment {
-				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(location.clone()))),
+				// This might involve a db Read when translating, therefore worst case
+				currency: Currency::AsCurrencyId(currency),
+				// This involves a db Read, hence the None is worst case
 				fee_amount: None
 			},
 			call,
 			OriginKind::SovereignAccount,
-			TransactWeights { transact_required_weight_at_most: dest_weight, overall_weight: None }
-			);
+			TransactWeights {
+				transact_required_weight_at_most: dest_weight,
+				// This involves a db Read, hence the None is worst case
+				overall_weight: None
+			}
+		);
 
 		// It's expected that the error comes from the fact that the asset is not known
 		// The weight coming withdraw asset + send is accounted by charging for the instruction per se
@@ -188,6 +206,7 @@ benchmarks! {
 		let extra_weight = 300000000u64;
 		let max_weight = 20000000000u64;
 		let location = MultiLocation::parent();
+		let currency: T::CurrencyId = location.clone().into();
 		let call = vec![1u8];
 		let dest_weight = 100u64;
 		let user: T::AccountId  = account("account id", 0u32, 0u32);
@@ -207,11 +226,17 @@ benchmarks! {
 		RawOrigin::Signed(user.clone()),
 		Box::new(xcm::VersionedMultiLocation::V1(location.clone())),
 		CurrencyPayment {
-			currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(location.clone()))),
+			// This might involve a db Read when translating, therefore worst case
+			currency: Currency::AsCurrencyId(currency),
+			// This involves a db Read, hence the None is worst case
 			fee_amount: None
 		},
 		call,
-		TransactWeights { transact_required_weight_at_most: dest_weight, overall_weight: None }
+		TransactWeights {
+			transact_required_weight_at_most: dest_weight,
+			// This involves a db Read, hence the None is worst case
+			overall_weight: None
+		}
 	)
 }
 
