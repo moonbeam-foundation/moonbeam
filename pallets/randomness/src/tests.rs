@@ -19,6 +19,14 @@ use frame_support::{assert_noop, assert_ok};
 use sp_core::H256;
 
 #[test]
+fn pallet_account_id() {
+	assert_eq!(
+		Randomness::account_id(),
+		core::str::FromStr::from_str("0x6d6f646c6d6f6f6e72616e640000000000000000").unwrap(),
+	);
+}
+
+#[test]
 fn set_babe_randomness_results_is_mandatory() {
 	use frame_support::weights::{DispatchClass, GetDispatchInfo};
 

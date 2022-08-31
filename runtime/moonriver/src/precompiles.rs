@@ -33,6 +33,7 @@ use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
+use pallet_evm_precompile_randomness::RandomnessWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -120,7 +121,7 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				// PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
 				// PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,

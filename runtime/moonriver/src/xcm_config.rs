@@ -432,7 +432,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const BaseXcmWeight: Weight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset

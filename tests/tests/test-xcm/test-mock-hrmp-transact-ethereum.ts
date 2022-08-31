@@ -87,7 +87,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
     let expectedTransferredAmount = 0n;
     let expectedTransferredAmountPlusFees = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -352,7 +352,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
   let random: KeyringPair;
   let contractDeployed;
 
-  const assetsToTransfer = 2_900_000_000n * 2n;
+  const assetsToTransfer = 3_300_000_000n * 2n;
 
   before("should Register an asset and set unit per sec", async function () {
     const { contract, rawTx } = await createContract(context, "Incrementor");
@@ -386,7 +386,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
               id: {
                 Concrete: ASSET_MULTILOCATION,
               },
-              fun: { Fungible: assetsToTransfer + 400_000_000n },
+              fun: { Fungible: assetsToTransfer + 800_000_000n },
             },
           ],
         },
@@ -397,9 +397,9 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
               id: {
                 Concrete: ASSET_MULTILOCATION,
               },
-              fun: { Fungible: assetsToTransfer + 400_000_000n },
+              fun: { Fungible: assetsToTransfer + 800_000_000n },
             },
-            weightLimit: { Limited: new BN(400_000_000) },
+            weightLimit: { Limited: new BN(800_000_000) },
           },
         },
         {
@@ -605,7 +605,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
     let feeAmount = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -770,7 +770,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
     let feeAmount = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -950,7 +950,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     let expectedTransferredAmount = 0n;
     let expectedTransferredAmountPlusFees = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
