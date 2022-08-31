@@ -3,13 +3,13 @@ CMD="docker run \
   -i \
   --rm \
   -e CARGO_NET_GIT_FETCH_WITH_CLI=true \
-  -e PACKAGE=${GH_WORKFLOW_MATRIX_CHAIN}-runtime \
-  -e RUNTIME_DIR=runtime/${GH_WORKFLOW_MATRIX_CHAIN} \
+  -e PACKAGE=moonbase-runtime \
+  -e RUNTIME_DIR=runtime/moonbase \
   -v ${PWD}:/build \
-  -v /home/${USER}/srtool/.ssh:/root/.ssh \
+  -v /home/${USER}/srtool/.ssh:/home/builder/.ssh \
   -v /home/${USER}/srtool/entrypoint.sh:/srtool/entrypoint.sh \
   --entrypoint /srtool/entrypoint.sh \
-  ${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE}:${GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG} \
+  purestake/srtool:1.62.0 \
     build --app --json -cM"
 
 # Here we run the command and stream the output (JSON blob) to a variable
