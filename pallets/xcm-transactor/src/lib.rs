@@ -398,7 +398,8 @@ pub mod pallet {
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
 		#[pallet::weight(
-			Pallet::<T>::weight_of_initiate_reserve_withdraw().saturating_add(T::WeightInfo::transact_through_derivative())
+			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			.saturating_add(T::WeightInfo::transact_through_derivative())
 		)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
@@ -459,7 +460,8 @@ pub mod pallet {
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
-			Pallet::<T>::weight_of_initiate_reserve_withdraw().saturating_add(T::WeightInfo::transact_through_sovereign())
+			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			.saturating_add(T::WeightInfo::transact_through_sovereign())
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
