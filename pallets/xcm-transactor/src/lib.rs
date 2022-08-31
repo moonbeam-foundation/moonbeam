@@ -552,7 +552,7 @@ pub mod pallet {
 		/// by any method implemented in the destination chains runtime
 		///
 		/// This time we are giving the currency as a currencyId instead of multilocation
-		#[pallet::weight(T::WeightInfo::transact_through_signed_multilocation())]
+		#[pallet::weight(T::WeightInfo::transact_through_signed())]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
