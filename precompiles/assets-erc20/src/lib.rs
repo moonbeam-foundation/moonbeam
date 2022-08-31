@@ -32,13 +32,14 @@ use precompile_utils::prelude::*;
 use sp_runtime::traits::Bounded;
 use sp_std::vec::Vec;
 
-use sp_core::{H160, U256};
+use sp_core::{H160, H256, U256};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
 };
 
 mod eip2612;
+use eip2612::Eip2612;
 
 #[cfg(test)]
 mod mock;
@@ -140,111 +141,111 @@ impl<T, U, V> Default for Erc20AssetsPrecompileSet<T, U, V> {
 	}
 }
 
-impl<Runtime, IsLocal, Instance> PrecompileSet
-	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
-where
-	Instance: eip2612::InstanceToPrefix + 'static,
-	Runtime: pallet_assets::Config<Instance>
-		+ pallet_evm::Config
-		+ frame_system::Config
-		+ pallet_timestamp::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
-	IsLocal: Get<bool>,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
-	AssetIdOf<Runtime, Instance>: Display,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		if let Some((_, asset_id)) = Runtime::account_to_asset_id(
-			Runtime::AddressMapping::into_account_id(handle.code_address()),
-		) {
-			// We check maybe_total_supply. This function returns Some if the asset exists,
-			// which is all we care about at this point
-			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
-				let result = {
-					let selector = match handle.read_selector() {
-						Ok(selector) => selector,
-						Err(e) => return Some(Err(e.into())),
-					};
+// impl<Runtime, IsLocal, Instance> PrecompileSet
+// 	for Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
+// where
+// 	Instance: eip2612::InstanceToPrefix + 'static,
+// 	Runtime: pallet_assets::Config<Instance>
+// 		+ pallet_evm::Config
+// 		+ frame_system::Config
+// 		+ pallet_timestamp::Config,
+// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+// 	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
+// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+// 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
+// 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
+// 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+// 	IsLocal: Get<bool>,
+// 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
+// 	AssetIdOf<Runtime, Instance>: Display,
+// {
+// 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+// 		if let Some((_, asset_id)) = Runtime::account_to_asset_id(
+// 			Runtime::AddressMapping::into_account_id(handle.code_address()),
+// 		) {
+// 			// We check maybe_total_supply. This function returns Some if the asset exists,
+// 			// which is all we care about at this point
+// 			if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
+// 				let result = {
+// 					let selector = match handle.read_selector() {
+// 						Ok(selector) => selector,
+// 						Err(e) => return Some(Err(e.into())),
+// 					};
 
-					if let Err(err) = handle.check_function_modifier(match selector {
-						Action::Approve | Action::Transfer | Action::TransferFrom => {
-							FunctionModifier::NonPayable
-						}
-						_ => FunctionModifier::View,
-					}) {
-						return Some(Err(err.into()));
-					}
+// 					if let Err(err) = handle.check_function_modifier(match selector {
+// 						Action::Approve | Action::Transfer | Action::TransferFrom => {
+// 							FunctionModifier::NonPayable
+// 						}
+// 						_ => FunctionModifier::View,
+// 					}) {
+// 						return Some(Err(err.into()));
+// 					}
 
-					match selector {
-						// Local and Foreign common
-						Action::TotalSupply => Self::total_supply(asset_id, handle),
-						Action::BalanceOf => Self::balance_of(asset_id, handle),
-						Action::Allowance => Self::allowance(asset_id, handle),
-						Action::Approve => Self::approve(asset_id, handle),
-						Action::Transfer => Self::transfer(asset_id, handle),
-						Action::TransferFrom => Self::transfer_from(asset_id, handle),
-						Action::Name => Self::name(asset_id, handle),
-						Action::Symbol => Self::symbol(asset_id, handle),
-						Action::Decimals => Self::decimals(asset_id, handle),
-						// Only local
-						Action::Mint => Self::mint(asset_id, handle),
-						Action::Burn => Self::burn(asset_id, handle),
-						Action::Freeze => Self::freeze(asset_id, handle),
-						Action::Thaw => Self::thaw(asset_id, handle),
-						Action::FreezeAsset | Action::DeprecatedFreezeAsset => {
-							Self::freeze_asset(asset_id, handle)
-						}
-						Action::ThawAsset | Action::DeprecatedThawAsset => {
-							Self::thaw_asset(asset_id, handle)
-						}
-						Action::TransferOwnership | Action::DeprecatedTransferOwnership => {
-							Self::transfer_ownership(asset_id, handle)
-						}
-						Action::SetTeam | Action::DeprecatedSetTeam => {
-							Self::set_team(asset_id, handle)
-						}
-						Action::SetMetadata | Action::DeprecatedSetMetadata => {
-							Self::set_metadata(asset_id, handle)
-						}
-						Action::ClearMetadata | Action::DeprecatedClearMetadata => {
-							Self::clear_metadata(asset_id, handle)
-						}
-						Action::Eip2612Permit => {
-							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
-						}
-						Action::Eip2612Nonces => {
-							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(asset_id, handle)
-						}
-						Action::Eip2612DomainSeparator => {
-							eip2612::Eip2612::<Runtime, IsLocal, Instance>::domain_separator(
-								asset_id, handle,
-							)
-						}
-					}
-				};
-				return Some(result);
-			}
-		}
-		None
-	}
+// 					match selector {
+// 						// Local and Foreign common
+// 						Action::TotalSupply => Self::total_supply(asset_id, handle),
+// 						Action::BalanceOf => Self::balance_of(asset_id, handle),
+// 						Action::Allowance => Self::allowance(asset_id, handle),
+// 						Action::Approve => Self::approve(asset_id, handle),
+// 						Action::Transfer => Self::transfer(asset_id, handle),
+// 						Action::TransferFrom => Self::transfer_from(asset_id, handle),
+// 						Action::Name => Self::name(asset_id, handle),
+// 						Action::Symbol => Self::symbol(asset_id, handle),
+// 						Action::Decimals => Self::decimals(asset_id, handle),
+// 						// Only local
+// 						Action::Mint => Self::mint(asset_id, handle),
+// 						Action::Burn => Self::burn(asset_id, handle),
+// 						Action::Freeze => Self::freeze(asset_id, handle),
+// 						Action::Thaw => Self::thaw(asset_id, handle),
+// 						Action::FreezeAsset | Action::DeprecatedFreezeAsset => {
+// 							Self::freeze_asset(asset_id, handle)
+// 						}
+// 						Action::ThawAsset | Action::DeprecatedThawAsset => {
+// 							Self::thaw_asset(asset_id, handle)
+// 						}
+// 						Action::TransferOwnership | Action::DeprecatedTransferOwnership => {
+// 							Self::transfer_ownership(asset_id, handle)
+// 						}
+// 						Action::SetTeam | Action::DeprecatedSetTeam => {
+// 							Self::set_team(asset_id, handle)
+// 						}
+// 						Action::SetMetadata | Action::DeprecatedSetMetadata => {
+// 							Self::set_metadata(asset_id, handle)
+// 						}
+// 						Action::ClearMetadata | Action::DeprecatedClearMetadata => {
+// 							Self::clear_metadata(asset_id, handle)
+// 						}
+// 						Action::Eip2612Permit => {
+// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::permit(asset_id, handle)
+// 						}
+// 						Action::Eip2612Nonces => {
+// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::nonces(asset_id, handle)
+// 						}
+// 						Action::Eip2612DomainSeparator => {
+// 							eip2612::Eip2612::<Runtime, IsLocal, Instance>::domain_separator(
+// 								asset_id, handle,
+// 							)
+// 						}
+// 					}
+// 				};
+// 				return Some(result);
+// 			}
+// 		}
+// 		None
+// 	}
 
-	fn is_precompile(&self, address: H160) -> bool {
-		if let Some((_, asset_id)) =
-			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
-		{
-			// We check maybe_total_supply. This function returns Some if the asset exists,
-			// which is all we care about at this point
-			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
-		} else {
-			false
-		}
-	}
-}
+// 	fn is_precompile(&self, address: H160) -> bool {
+// 		if let Some((_, asset_id)) =
+// 			Runtime::account_to_asset_id(Runtime::AddressMapping::into_account_id(address))
+// 		{
+// 			// We check maybe_total_supply. This function returns Some if the asset exists,
+// 			// which is all we care about at this point
+// 			pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some()
+// 		} else {
+// 			false
+// 		}
+// 	}
+// }
 
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance> {
 	pub fn new() -> Self {
@@ -252,6 +253,8 @@ impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Inst
 	}
 }
 
+#[precompile_utils::precompile]
+#[precompile::precompile_set]
 impl<Runtime, IsLocal, Instance> Erc20AssetsPrecompileSet<Runtime, IsLocal, Instance>
 where
 	Instance: eip2612::InstanceToPrefix + 'static,
@@ -269,27 +272,41 @@ where
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
 {
+	/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
+	/// and if this is the case which one.
+	#[precompile::discriminant]
+	fn discriminant(address: H160) -> Option<AssetIdOf<Runtime, Instance>> {
+		let account_id = Runtime::AddressMapping::into_account_id(address);
+		let asset_id = match Runtime::account_to_asset_id(account_id) {
+			Some((_, asset_id)) => asset_id,
+			None => return None,
+		};
+
+		if pallet_assets::Pallet::<Runtime, Instance>::maybe_total_supply(asset_id).is_some() {
+			Some(asset_id)
+		} else {
+			None
+		}
+	}
+
+	#[precompile::public("totalSupply()")]
 	fn total_supply(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Fetch info.
-		let amount: U256 =
-			pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into();
-
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(pallet_assets::Pallet::<Runtime, Instance>::total_issuance(asset_id).into())
 	}
 
+	#[precompile::public("balanceOf(address)")]
 	fn balance_of(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		who: Address,
+	) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { who: Address });
 		let who: H160 = who.into();
 
 		// Fetch info.
@@ -299,16 +316,18 @@ where
 		};
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(amount)
 	}
 
+	#[precompile::public("allowance(address,address)")]
 	fn allowance(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		owner: Address,
+		spender: Address,
+	) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {owner: Address, spender: Address});
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
@@ -322,16 +341,18 @@ where
 		};
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(amount).build()))
+		Ok(amount)
 	}
 
+	#[precompile::public("approve(address,uint256)")]
 	fn approve(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		spender: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {spender: Address, value: U256});
 		let spender: H160 = spender.into();
 
 		Self::approve_inner(asset_id, handle, handle.context().caller, spender, value)?;
@@ -346,7 +367,7 @@ where
 		.record(handle)?;
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
 	fn approve_inner(
@@ -392,14 +413,17 @@ where
 		Ok(())
 	}
 
+	#[precompile::public("transfer(address,uint256)")]
 	fn transfer(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		to: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
 		let to: H160 = to.into();
+		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		// Build call with origin.
 		{
@@ -427,26 +451,22 @@ where
 		)
 		.record(handle)?;
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("transferFrom(address,address,uint256)")]
 	fn transfer_from(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		from: Address,
+		to: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(
-			handle,
-			{
-				from: Address,
-				to: Address,
-				value: BalanceOf<Runtime, Instance>
-			}
-		);
 		let from: H160 = from.into();
 		let to: H160 = to.into();
+		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		{
 			let caller: Runtime::AccountId =
@@ -491,74 +511,65 @@ where
 		.record(handle)?;
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("name()")]
 	fn name(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write::<Bytes>(
-					pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
-						.as_slice()
-						.into(),
-				)
-				.build(),
-		))
+		let name = pallet_assets::Pallet::<Runtime, Instance>::name(asset_id)
+			.as_slice()
+			.into();
+
+		Ok(name)
 	}
 
+	#[precompile::public("symbol()")]
 	fn symbol(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write::<Bytes>(
-					pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
-						.as_slice()
-						.into(),
-				)
-				.build(),
-		))
+		let symbol = pallet_assets::Pallet::<Runtime, Instance>::symbol(asset_id)
+			.as_slice()
+			.into();
+
+		Ok(symbol)
 	}
 
+	#[precompile::public("decimals()")]
 	fn decimals(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<u8> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		// Build output.
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write::<u8>(pallet_assets::Pallet::<Runtime, Instance>::decimals(
-					asset_id,
-				))
-				.build(),
+		Ok(pallet_assets::Pallet::<Runtime, Instance>::decimals(
+			asset_id,
 		))
 	}
 
 	// From here: only for locals, we need to check whether we are in local assets otherwise fail
+	#[precompile::public("mint(address,uint256)")]
 	fn mint(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		to: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {to: Address, value: BalanceOf<Runtime, Instance>});
 		let to: H160 = to.into();
+		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		// Build call with origin.
 		{
@@ -586,22 +597,24 @@ where
 		)
 		.record(handle)?;
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("burn(address,uint256)")]
 	fn burn(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		from: Address,
+		value: U256,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
 		handle.record_log_costs_manual(3, 32)?;
 
-		read_args!(handle, {from: Address, value: BalanceOf<Runtime, Instance>});
 		let from: H160 = from.into();
+		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		// Build call with origin.
 		{
@@ -629,19 +642,19 @@ where
 		)
 		.record(handle)?;
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("freeze(address)")]
 	fn freeze(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		account: Address,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		read_args!(handle, { account: Address });
 		let account: H160 = account.into();
 
 		// Build call with origin.
@@ -660,19 +673,19 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("thaw(address)")]
 	fn thaw(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		account: Address,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		read_args!(handle, { account: Address });
 		let account: H160 = account.into();
 
 		// Build call with origin.
@@ -691,14 +704,15 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("freezeAsset()")]
+	#[precompile::public("freeze_asset()")]
 	fn freeze_asset(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
@@ -715,14 +729,15 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("thawAsset()")]
+	#[precompile::public("thaw_asset()")]
 	fn thaw_asset(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
@@ -740,18 +755,20 @@ where
 		}
 
 		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("transferOwnership(address)")]
+	#[precompile::public("transfer_ownership(address)")]
 	fn transfer_ownership(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		owner: Address,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
 		// Build call with origin.
@@ -770,19 +787,22 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("setTeam(address,address,address)")]
+	#[precompile::public("set_team(address,address,address)")]
 	fn set_team(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		issuer: Address,
+		admin: Address,
+		freezer: Address,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
 
-		read_args!(handle, {issuer: Address, admin: Address, freezer: Address});
 		let issuer: H160 = issuer.into();
 		let admin: H160 = admin.into();
 		let freezer: H160 = freezer.into();
@@ -807,23 +827,21 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("setMetadata(string,string,uint8)")]
+	#[precompile::public("set_metadata(string,string,uint8)")]
 	fn set_metadata(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		name: BoundedString<GetAssetsStringLimit<Runtime, Instance>>,
+		symbol: BoundedString<GetAssetsStringLimit<Runtime, Instance>>,
+		decimals: u8,
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
-
-		read_args!(handle, {
-			name: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
-			symbol: BoundedBytes<GetAssetsStringLimit<Runtime, Instance>>,
-			decimals: u8
-		});
 
 		// Build call with origin.
 		{
@@ -835,21 +853,22 @@ where
 				Some(origin).into(),
 				pallet_assets::Call::<Runtime, Instance>::set_metadata {
 					id: asset_id,
-					name: name.into_vec(),
-					symbol: symbol.into_vec(),
+					name: name.into(),
+					symbol: symbol.into(),
 					decimals,
 				},
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
 	}
 
+	#[precompile::public("clearMetadata()")]
+	#[precompile::public("clear_metadata()")]
 	fn clear_metadata(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<bool> {
 		if !IsLocal::get() {
 			return Err(RevertReason::UnknownSelector.into());
 		}
@@ -866,7 +885,48 @@ where
 			)?;
 		}
 
-		// Build output.
-		Ok(succeed(EvmDataWriter::new().write(true).build()))
+		Ok(true)
+	}
+
+	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
+	fn permit(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult {
+		<Eip2612<Runtime, IsLocal, Instance>>::permit(
+			asset_id, handle, owner, spender, value, deadline, v, r, s,
+		)
+	}
+
+	#[precompile::public("nonces(address)")]
+	#[precompile::view]
+	fn nonces(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+	) -> EvmResult<U256> {
+		<Eip2612<Runtime, IsLocal, Instance>>::nonces(asset_id, handle, owner)
+	}
+
+	#[precompile::public("DOMAIN_SEPARATOR()")]
+	#[precompile::view]
+	fn domain_separator(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<H256> {
+		<Eip2612<Runtime, IsLocal, Instance>>::domain_separator(asset_id, handle)
+	}
+
+	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime, Instance>> {
+		value
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
 	}
 }

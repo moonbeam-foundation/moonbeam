@@ -70,30 +70,36 @@ fn no_selector_exists_but_length_is_right() {
 }
 
 #[test]
-fn selectors() {
-	assert_eq!(Action::BalanceOf as u32, 0x70a08231);
-	assert_eq!(Action::TotalSupply as u32, 0x18160ddd);
-	assert_eq!(Action::Approve as u32, 0x095ea7b3);
-	assert_eq!(Action::Allowance as u32, 0xdd62ed3e);
-	assert_eq!(Action::Transfer as u32, 0xa9059cbb);
-	assert_eq!(Action::TransferFrom as u32, 0x23b872dd);
-	assert_eq!(Action::Name as u32, 0x06fdde03);
-	assert_eq!(Action::Symbol as u32, 0x95d89b41);
-	assert_eq!(Action::Decimals as u32, 0x313ce567);
-	assert_eq!(Action::Eip2612Nonces as u32, 0x7ecebe00);
-	assert_eq!(Action::Eip2612Permit as u32, 0xd505accf);
-	assert_eq!(Action::Eip2612DomainSeparator as u32, 0x3644e515);
-
-	assert_eq!(
-		crate::SELECTOR_LOG_TRANSFER,
-		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]
-	);
-
-	assert_eq!(
-		crate::SELECTOR_LOG_APPROVAL,
-		&Keccak256::digest(b"Approval(address,address,uint256)")[..]
-	);
+fn test_match_between_solidity_and_rust_types() {
+	LocalPCall::test_match_between_solidity_and_rust_types();
+	ForeignPCall::test_match_between_solidity_and_rust_types();
 }
+
+// #[test]
+// fn selectors() {
+// 	assert_eq!(Action::BalanceOf as u32, 0x70a08231);
+// 	assert_eq!(Action::TotalSupply as u32, 0x18160ddd);
+// 	assert_eq!(Action::Approve as u32, 0x095ea7b3);
+// 	assert_eq!(Action::Allowance as u32, 0xdd62ed3e);
+// 	assert_eq!(Action::Transfer as u32, 0xa9059cbb);
+// 	assert_eq!(Action::TransferFrom as u32, 0x23b872dd);
+// 	assert_eq!(Action::Name as u32, 0x06fdde03);
+// 	assert_eq!(Action::Symbol as u32, 0x95d89b41);
+// 	assert_eq!(Action::Decimals as u32, 0x313ce567);
+// 	assert_eq!(Action::Eip2612Nonces as u32, 0x7ecebe00);
+// 	assert_eq!(Action::Eip2612Permit as u32, 0xd505accf);
+// 	assert_eq!(Action::Eip2612DomainSeparator as u32, 0x3644e515);
+
+// 	assert_eq!(
+// 		crate::SELECTOR_LOG_TRANSFER,
+// 		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]
+// 	);
+
+// 	assert_eq!(
+// 		crate::SELECTOR_LOG_APPROVAL,
+// 		&Keccak256::digest(b"Approval(address,address,uint256)")[..]
+// 	);
+// }
 
 #[test]
 fn get_total_supply() {
@@ -791,7 +797,7 @@ fn get_metadata() {
 				.expect_no_logs()
 				.execute_returns(
 					EvmDataWriter::new()
-						.write::<Bytes>("TestToken".into())
+						.write::<UnboundedBytes>("TestToken".into())
 						.build(),
 				);
 
@@ -803,7 +809,11 @@ fn get_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write::<Bytes>("Test".into()).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write::<UnboundedBytes>("Test".into())
+						.build(),
+				);
 
 			precompiles()
 				.prepare_test(
@@ -1412,8 +1422,8 @@ fn set_metadata() {
 					Account::Alice,
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::SetMetadata)
-						.write::<Bytes>("TestToken".into())
-						.write::<Bytes>("Test".into())
+						.write::<UnboundedBytes>("TestToken".into())
+						.write::<UnboundedBytes>("Test".into())
 						.write::<u8>(12)
 						.build(),
 				)
@@ -1431,7 +1441,7 @@ fn set_metadata() {
 				.expect_no_logs()
 				.execute_returns(
 					EvmDataWriter::new()
-						.write::<Bytes>("TestToken".into())
+						.write::<UnboundedBytes>("TestToken".into())
 						.build(),
 				);
 
@@ -1443,7 +1453,11 @@ fn set_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write::<Bytes>("Test".into()).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write::<UnboundedBytes>("Test".into())
+						.build(),
+				);
 
 			precompiles()
 				.prepare_test(
@@ -1484,8 +1498,8 @@ fn clear_metadata() {
 					Account::Alice,
 					Account::LocalAssetId(0u128),
 					EvmDataWriter::new_with_selector(Action::SetMetadata)
-						.write::<Bytes>("TestToken".into())
-						.write::<Bytes>("Test".into())
+						.write::<UnboundedBytes>("TestToken".into())
+						.write::<UnboundedBytes>("Test".into())
 						.write::<u8>(12)
 						.build(),
 				)
@@ -1511,7 +1525,11 @@ fn clear_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write::<Bytes>("".into()).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write::<UnboundedBytes>("".into())
+						.build(),
+				);
 
 			precompiles()
 				.prepare_test(
@@ -1521,7 +1539,11 @@ fn clear_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write::<Bytes>("".into()).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write::<UnboundedBytes>("".into())
+						.build(),
+				);
 
 			precompiles()
 				.prepare_test(
@@ -2230,7 +2252,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for uint128");
+				.execute_reverts(|e| e == b"value: Value is too large for balance type");
 
 			precompiles()
 				.prepare_test(
@@ -2312,7 +2334,7 @@ fn transfer_from_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for uint128");
+				.execute_reverts(|e| e == b"value: Value is too large for balance type");
 		});
 }
 
@@ -2349,7 +2371,7 @@ fn mint_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for uint128");
+				.execute_reverts(|e| e == b"value: Value is too large for balance type");
 		});
 }
 
@@ -2392,7 +2414,7 @@ fn burn_overflow() {
 				)
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_reverts(|e| e == b"value: Value is too large for uint128");
+				.execute_reverts(|e| e == b"value: Value is too large for balance type");
 		});
 }
 

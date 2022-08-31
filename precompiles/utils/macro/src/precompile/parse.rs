@@ -26,8 +26,11 @@ impl Precompile {
 			selector_to_variant: BTreeMap::new(),
 			variants_content: BTreeMap::new(),
 			fallback_to_variant: None,
-			precompile_set: None,
+			tagged_as_precompile_set: false,
+			precompile_set_discriminant: None,
 		};
+
+		precompile.process_impl_attr(impl_)?;
 
 		for mut item in &mut impl_.items {
 			// We only interact with methods and leave the rest as-is.
@@ -36,7 +39,27 @@ impl Precompile {
 			}
 		}
 
+		if precompile.tagged_as_precompile_set && precompile.precompile_set_discriminant.is_none() {
+			let msg = "A PrecompileSet must have exactly one function tagged with \
+			`#[precompile::discriminant]`";
+			return Err(syn::Error::new(impl_.span(), msg));
+		}
+
 		Ok(precompile)
+	}
+
+	fn process_impl_attr(&mut self, impl_: &mut syn::ItemImpl) -> syn::Result<()> {
+		let attrs = attr::take_attributes::<attr::ImplAttr>(&mut impl_.attrs)?;
+
+		for attr in attrs {
+			match attr {
+				attr::ImplAttr::PrecompileSet(_) => {
+					self.tagged_as_precompile_set = true;
+				}
+			}
+		}
+
+		Ok(())
 	}
 
 	fn extract_struct_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
@@ -75,9 +98,92 @@ impl Precompile {
 		let mut arguments = vec![];
 		let mut is_fallback = false;
 		let mut encode_selector = None;
+		let initial_arguments = if self.tagged_as_precompile_set { 2 } else { 1 };
+
+		if let Some(attr::MethodAttr::Discriminant(span)) = attrs.first() {
+			let span = *span;
+			if !self.tagged_as_precompile_set {
+				let msg = "The impl block must be tagged with `#[precompile::precompile_set]` for
+				the discriminant attribute to be used";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			if self.precompile_set_discriminant.is_some() {
+				let msg = "A PrecompileSet can only have 1 discriminant function";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			if attrs.len() != 1 {
+				let msg = "The discriminant attribute must be the only precompile attribute of \
+				a function";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			let span = method.span();
+
+			if method.sig.inputs.len() != 1 {
+				let msg = "The discriminant function must only take the code address as parameter.";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			let msg = "The discriminant function must return an Option of the discriminant type";
+
+			let return_type = match &method.sig.output {
+				syn::ReturnType::Type(_, t) => t.as_ref(),
+				_ => return Err(syn::Error::new(span, msg)),
+			};
+
+			let return_path = match return_type {
+				syn::Type::Path(p) => p,
+				_ => return Err(syn::Error::new(span, msg)),
+			};
+
+			if return_path.qself.is_some() {
+				return Err(syn::Error::new(span, msg));
+			}
+
+			let return_path = &return_path.path;
+
+			if return_path.leading_colon.is_some() || return_path.segments.len() != 1 {
+				return Err(syn::Error::new(span, msg));
+			}
+
+			let return_segment = &return_path.segments[0];
+
+			if return_segment.ident.to_string() != "Option" {
+				return Err(syn::Error::new(return_segment.ident.span(), msg));
+			}
+
+			let option_arguments = match &return_segment.arguments {
+				syn::PathArguments::AngleBracketed(args) => args,
+				_ => return Err(syn::Error::new(return_segment.ident.span(), msg)),
+			};
+
+			if option_arguments.args.len() != 1 {
+				let msg = "Option type should only have 1 type argument";
+				return Err(syn::Error::new(option_arguments.args.span(), msg));
+			}
+
+			let discriminant_type = match &option_arguments.args[0] {
+				syn::GenericArgument::Type(t) => t,
+				_ => return Err(syn::Error::new(option_arguments.args.span(), msg)),
+			};
+
+			self.precompile_set_discriminant = Some(PrecompileSetDiscriminant {
+				fn_: method.sig.ident.clone(),
+				type_: discriminant_type.clone(),
+			});
+
+			return Ok(());
+		}
 
 		for attr in attrs {
 			match attr {
+				attr::MethodAttr::Discriminant(span) => {
+					let msg = "The discriminant attribute must be the only precompile \
+					attribute of the function";
+					return Err(syn::Error::new(span, msg));
+				}
 				attr::MethodAttr::Fallback(span) => {
 					if self.fallback_to_variant.is_some() {
 						let msg = "A precompile can only have 1 fallback function";
@@ -164,23 +270,34 @@ impl Precompile {
 			return Err(syn::Error::new(param.span(), msg));
 		}
 
-		if method.sig.inputs.is_empty() {
-			let msg = "Methods must have at least 1 parameter (the PrecompileHandle)";
+		if method.sig.inputs.len() < initial_arguments {
+			let msg = if self.tagged_as_precompile_set {
+				"PrecompileSet methods must have at least 2 parameter (the precompile instance \
+				discriminant and the PrecompileHandle)"
+			} else {
+				"Precompile methods must have at least 1 parameter (the PrecompileHandle)"
+			};
+
 			return Err(syn::Error::new(method.span(), msg));
 		}
 
 		if is_fallback {
-			if let Some(input) = method.sig.inputs.iter().skip(1).next() {
-				let msg =
-					"Fallback methods cannot take any parameter outside of the PrecompileHandle";
+			if let Some(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
+				let msg = if self.tagged_as_precompile_set {
+					"Fallback methods cannot take any parameter outside of the discriminant and \
+					PrecompileHandle"
+				} else {
+					"Fallback methods cannot take any parameter outside of the PrecompileHandle"
+				};
+
 				return Err(syn::Error::new(input.span(), msg));
 			}
 		}
 
-		// We skip the first parameter which will be the PrecompileHandle.
-		// Not having it or having a self parameter will produce a compilation error when
-		// trying to call the functions with such PrecompileHandle.
-		let method_inputs = method.sig.inputs.iter().skip(1);
+		// We skip the initial parameter(s).
+		// Not having it/them or having a self parameter will produce a compilation error when
+		// trying to call the functions.
+		let method_inputs = method.sig.inputs.iter().skip(initial_arguments);
 
 		// We go through each parameter to collect each name and type that will be used to
 		// generate the input enum and parse the call data.

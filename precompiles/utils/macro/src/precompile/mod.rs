@@ -62,10 +62,12 @@ pub struct Precompile {
 	/// Describes the content of each variant based on the precompile methods.
 	variants_content: BTreeMap<syn::Ident, Variant>,
 
-	/// Is it a precompile set? If yes the option contains the name of a method of the form
-	/// `fn(&mut impl PrecompileHandle) -> Option<Discriminant>`, where discriminant is can be any
-	/// type whose value will be provided to any precompile method.
-	precompile_set: Option<syn::Ident>,
+	/// Since being a precompile set implies lots of changes, we must know it early
+	/// in the form of an attribute on the impl block itself.
+	tagged_as_precompile_set: bool,
+
+	/// Info about PrecompileSet discriminant.
+	precompile_set_discriminant: Option<PrecompileSetDiscriminant>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -107,4 +109,13 @@ pub struct Argument {
 	/// Type of the argument, which will be used in the struct variant and
 	/// to parse the input.
 	ty: syn::Type,
+}
+
+#[derive(Debug)]
+pub struct PrecompileSetDiscriminant {
+	/// Function responsible to get the discriminant from the code address.
+	fn_: syn::Ident,
+
+	/// Type of the discriminant.
+	type_: syn::Type,
 }

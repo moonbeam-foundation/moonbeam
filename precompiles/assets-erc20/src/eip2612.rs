@@ -188,21 +188,16 @@ where
 	pub(crate) fn permit(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(
-			handle,
-			{
-				owner: Address,
-				spender: Address,
-				value: U256,
-				deadline: U256,
-				v: u8,
-				r: H256,
-				s: H256
-			}
-		);
 		let owner: H160 = owner.into();
 		let spender: H160 = spender.into();
 
@@ -247,34 +242,32 @@ where
 		)
 		.record(handle)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn nonces(
 		_asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		owner: Address,
+	) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
 		let nonce = NoncesStorage::<Instance>::get(handle.code_address(), owner);
 
-		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
+		Ok(nonce)
 	}
 
 	pub(crate) fn domain_separator(
 		asset_id: AssetIdOf<Runtime, Instance>,
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	) -> EvmResult<H256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.code_address(), asset_id).into();
 
-		Ok(succeed(
-			EvmDataWriter::new().write(domain_separator).build(),
-		))
+		Ok(domain_separator)
 	}
 }

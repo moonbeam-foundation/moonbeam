@@ -42,6 +42,8 @@ pub mod keyword {
 	syn::custom_keyword!(fallback);
 	syn::custom_keyword!(payable);
 	syn::custom_keyword!(view);
+	syn::custom_keyword!(discriminant);
+	syn::custom_keyword!(precompile_set);
 }
 
 /// Attributes for methods.
@@ -50,6 +52,7 @@ pub enum MethodAttr {
 	Fallback(Span),
 	Payable(Span),
 	View(Span),
+	Discriminant(Span),
 }
 
 impl syn::parse::Parse for MethodAttr {
@@ -65,9 +68,9 @@ impl syn::parse::Parse for MethodAttr {
 		if lookahead.peek(keyword::public) {
 			let span = content.parse::<keyword::public>()?.span();
 
-			let signature;
-			syn::parenthesized!(signature in content);
-			let signature = signature.parse::<syn::LitStr>()?;
+			let inner;
+			syn::parenthesized!(inner in content);
+			let signature = inner.parse::<syn::LitStr>()?;
 
 			Ok(MethodAttr::Public(span, signature))
 		} else if lookahead.peek(keyword::fallback) {
@@ -80,6 +83,35 @@ impl syn::parse::Parse for MethodAttr {
 			))
 		} else if lookahead.peek(keyword::view) {
 			Ok(MethodAttr::View(content.parse::<keyword::view>()?.span()))
+		} else if lookahead.peek(keyword::discriminant) {
+			Ok(MethodAttr::Discriminant(
+				content.parse::<keyword::discriminant>()?.span(),
+			))
+		} else {
+			Err(lookahead.error())
+		}
+	}
+}
+
+/// Attributes for the main impl Block.
+pub enum ImplAttr {
+	PrecompileSet(Span),
+}
+
+impl syn::parse::Parse for ImplAttr {
+	fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+		input.parse::<syn::Token![#]>()?;
+		let content;
+		syn::bracketed!(content in input);
+		content.parse::<keyword::precompile>()?;
+		content.parse::<syn::Token![::]>()?;
+
+		let lookahead = content.lookahead1();
+
+		if lookahead.peek(keyword::precompile_set) {
+			Ok(ImplAttr::PrecompileSet(
+				content.parse::<keyword::precompile_set>()?.span(),
+			))
 		} else {
 			Err(lookahead.error())
 		}
