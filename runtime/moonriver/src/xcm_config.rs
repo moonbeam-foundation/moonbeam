@@ -431,25 +431,43 @@ where
 	}
 }
 
+// For benchmarking purposes only
 #[cfg(feature = "runtime-benchmarks")]
 impl From<MultiLocation> for CurrencyId {
 	fn from(location: MultiLocation) -> CurrencyId {
 		use xcm_executor::traits::Convert as XConvert;
 		use xcm_primitives::AssetTypeGetter;
 
-		// If it does not exist, for benchmarking purposes, we create the association
-		let asset_id = if let Ok(asset_id) =
-			AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
-		{
-			asset_id
-		} else {
-			let asset_type = AssetType::Xcm(location);
-			let asset_id: AssetId = asset_type.clone().into();
-			AssetManager::set_asset_type_asset_id(asset_type, asset_id);
-			asset_id
-		};
+		match location {
+			location if location == SelfReserve::get() => CurrencyId::SelfReserve,
+			_ => {
+				// If it is a local asset, return local asset resrevce
+				if let MultiLocation {
+					parents: 0,
+					interior: X2(first_interior, GeneralIndex(asset)),
+				} = location
+				{
+					if first_interior.into() == LocalAssetsPalletLocation::get() {
+						return CurrencyId::LocalAssetReserve(asset);
+					}
+				}
+				// Else, regular path
 
-		CurrencyId::ForeignAsset(asset_id)
+				// If it does not exist, for benchmarking purposes, we create the association
+				let asset_id = if let Ok(asset_id) =
+					AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+				{
+					asset_id
+				} else {
+					let asset_type = AssetType::Xcm(location);
+					let asset_id: AssetId = asset_type.clone().into();
+					AssetManager::set_asset_type_asset_id(asset_type, asset_id);
+					asset_id
+				};
+
+				CurrencyId::ForeignAsset(asset_id)
+			}
+		}
 	}
 }
 
