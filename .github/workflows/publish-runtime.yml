@@ -15,7 +15,7 @@ jobs:
   ####### Build runtimes with srtool #######
 
   build-srtool-runtimes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
