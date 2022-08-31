@@ -403,6 +403,30 @@
 <span id="398">398</span>
 <span id="399">399</span>
 <span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -419,7 +443,41 @@
 <span class="comment">// You should have received a copy of the GNU General Public License</span>
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="doccomment">//! Randomness pallet</span>
+<span class="doccomment">//! # Randomness Pallet</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This pallet provides access to 2 sources of randomness:</span>
+<span class="doccomment">//! 1. local VRF, produced by collators per block</span>
+<span class="doccomment">//! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per relay chain epoch</span>
+<span class="doccomment">//! These options are represented as `type::RequestType`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! There are no extrinsics for this pallet. Instead, public functions on `Pallet&lt;T: Config&gt;` expose</span>
+<span class="doccomment">//! user actions for the precompile i.e. `request_randomness`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Local VRF</span>
+<span class="doccomment">//! The local VRF randomness is produced every block by the collator that authors the block.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This pallet is default configured to look for the `VrfOutput` in `frame_system::digests()`. If</span>
+<span class="doccomment">//! it cannot find the `VrfOutput` in `frame_system::digests()`, then it will panic and the block</span>
+<span class="doccomment">//! will be invalid.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Next, the `VrfOutput` is verified using the block author&#39;s `VrfId` and the VRF input, which is</span>
+<span class="doccomment">//! last block&#39;s `VrfOutput`. If verification fails, then it will panic (block is invalid).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Finally, the output is transformed into the randomness bytes stored on-chain and put in</span>
+<span class="doccomment">//! `LocalVrfOutput`. Any pending randomness results for this block are filled with the</span>
+<span class="doccomment">//! output randomness bytes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The function which contains this logic is `vrf::verify_and_set_output`. It is called in every</span>
+<span class="doccomment">//! block&#39;s `on_initialize`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Babe Epoch Randomness</span>
+<span class="doccomment">//! Babe epoch randomness is retrieved once every relay chain epoch.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The `set_babe_randomness_results` mandatory inherent reads the Babe epoch randomness from the</span>
+<span class="doccomment">//! relay chain state proof and fills any pending `RandomnessResults` for this epoch randomness.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `Config::BabeDataGetter` is responsible for reading the epoch index and epoch randomness</span>
+<span class="doccomment">//! from the relay chain state proof. The moonbeam `GetBabeData` implementation is in the runtime.</span>
 
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
@@ -457,7 +515,7 @@
 	<span class="kw">use</span> <span class="ident">session_keys_primitives</span>::{<span class="ident">InherentError</span>, <span class="ident">KeysLookup</span>, <span class="ident">VrfId</span>, <span class="ident">INHERENT_IDENTIFIER</span>};
 	<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>};
 	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">AccountIdConversion</span>, <span class="ident">Saturating</span>};
-	<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">vec::Vec</span>};
+	<span class="kw">use</span> <span class="ident">sp_std::convert::TryInto</span>;
 
 	<span class="doccomment">/// The Randomness&#39;s pallet id</span>
 	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PALLET_ID</span>: <span class="ident">PalletId</span> <span class="op">=</span> <span class="ident">PalletId</span>(<span class="kw-2">*</span><span class="string">b&quot;moonrand&quot;</span>);
@@ -488,22 +546,22 @@
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// The amount that should be taken as a security deposit when requesting randomness.</span>
 		<span class="kw">type</span> <span class="ident">Deposit</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// Maximum number of random words that can be requested per request</span>
-		<span class="kw">type</span> <span class="ident">MaxRandomWords</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
+		<span class="kw">type</span> <span class="ident">MaxRandomWords</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Local per-block VRF requests must be at least this many blocks after the block in which</span>
 		<span class="doccomment">/// they were requested</span>
-		<span class="kw">type</span> <span class="ident">MinBlockDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
+		<span class="kw">type</span> <span class="ident">MinBlockDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Local per-block VRF requests must be at most this many blocks after the block in which</span>
 		<span class="doccomment">/// they were requested</span>
+		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">MaxBlockDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="doccomment">/// Local requests expire and can be purged from storage after this many blocks/epochs</span>
-		<span class="kw">type</span> <span class="ident">BlockExpirationDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
 		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
+		<span class="kw">type</span> <span class="ident">BlockExpirationDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::BlockNumber</span><span class="op">&gt;</span>;
 		<span class="doccomment">/// Babe requests expire and can be purged from storage after this many blocks/epochs</span>
+		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
 		<span class="kw">type</span> <span class="ident">EpochExpirationDelay</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>;
 	}
 
@@ -558,14 +616,14 @@
 		},
 	}
 
+	<span class="doccomment">/// Randomness requests not yet fulfilled or purged</span>
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">requests</span>)]</span>
-	<span class="doccomment">/// Randomness requests not yet fulfilled or purged</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Requests</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">RequestId</span>, <span class="ident">RequestState</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
+	<span class="doccomment">/// Number of randomness requests made so far, used to generate the next request&#39;s uid</span>
 	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
 	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">request_count</span>)]</span>
-	<span class="doccomment">/// Number of randomness requests made so far, used to generate the next request&#39;s uid</span>
 	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RequestCount</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">RequestId</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
 
 	<span class="doccomment">/// Current local per-block VRF randomness</span>
@@ -598,24 +656,18 @@
 
 	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Populates the `RandomnessResults` that are due this block with the raw values</span>
-		<span class="comment">// This inherent is a workaround to run code in every block after</span>
-		<span class="comment">// `ParachainSystem::set_validation_data` but before all extrinsics.</span>
-		<span class="comment">// the relevant storage item to validate the VRF output in this pallet&#39;s `on_initialize`</span>
-		<span class="comment">// This should go into on_post_inherents when it is ready</span>
-		<span class="comment">// https://github.com/paritytech/substrate/pull/10128</span>
+		<span class="doccomment">/// Populates `RandomnessResults` due this epoch with BABE epoch randomness</span>
 		<span class="attribute">#[<span class="ident">pallet::weight</span>((
 			<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_babe_randomness_results</span>(),
 			<span class="ident">DispatchClass::Mandatory</span>
 		))]</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_babe_randomness_results</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
 			<span class="ident">ensure_none</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-
 			<span class="kw">let</span> <span class="ident">last_relay_epoch_index</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">RelayEpoch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>();
-			<span class="comment">// populate the `RandomnessResults` for BABE epoch randomness</span>
 			<span class="kw">let</span> <span class="ident">relay_epoch_index</span> <span class="op">=</span> <span class="ident">T::BabeDataGetter::get_epoch_index</span>();
 			<span class="kw">if</span> <span class="ident">relay_epoch_index</span> <span class="op">&gt;</span> <span class="ident">last_relay_epoch_index</span> {
 				<span class="kw">let</span> <span class="ident">babe_one_epoch_ago_this_block</span> <span class="op">=</span> <span class="ident">RequestType::BabeEpoch</span>(<span class="ident">relay_epoch_index</span>);
+				<span class="comment">// populate `RandomnessResults` for BABE epoch randomness</span>
 				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">results</span>) <span class="op">=</span>
 					<span class="op">&lt;</span><span class="ident">RandomnessResults</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">babe_one_epoch_ago_this_block</span>)
 				{
@@ -633,7 +685,6 @@
 			}
 			<span class="op">&lt;</span><span class="ident">RelayEpoch</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">relay_epoch_index</span>);
 			<span class="op">&lt;</span><span class="ident">InherentIncluded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(());
-
 			<span class="prelude-val">Ok</span>(<span class="ident">Pays::No</span>.<span class="ident">into</span>())
 		}
 	}
@@ -666,14 +717,20 @@
 
 	<span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="comment">// Set this block&#39;s randomness using the VRF output</span>
 		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">_now</span>: <span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Weight</span> {
-			<span class="comment">// Set and validate VRF output</span>
-			<span class="ident">vrf::set_output</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+			<span class="comment">// Do not set the output in the first block (genesis or runtime upgrade)</span>
+			<span class="comment">// because we do not have any input for author to sign</span>
+			<span class="kw">if</span> <span class="ident">NotFirstBlock</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">is_none</span>() {
+				<span class="ident">NotFirstBlock</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(());
+				<span class="ident">LocalVrfOutput</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="prelude-val">Some</span>(<span class="ident">T::Hash::default</span>()));
+				<span class="kw">return</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">read</span> <span class="op">+</span> (<span class="ident">T::DbWeight::get</span>().<span class="ident">write</span> <span class="op">*</span> <span class="number">2</span>);
+			}
+			<span class="comment">// Verify VRF output included by block author and set it in storage</span>
+			<span class="ident">vrf::verify_and_set_output</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+			<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_initialize</span>()
 		}
-		<span class="comment">// Set next block&#39;s VRF input in storage</span>
 		<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">_now</span>: <span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-			<span class="comment">// Panics if set_babe_randomness_results inherent was not included</span>
+			<span class="comment">// Ensure the mandatory inherent was included in the block or the block is invalid</span>
 			<span class="macro">assert!</span>(
 				<span class="op">&lt;</span><span class="ident">InherentIncluded</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::take</span>().<span class="ident">is_some</span>(),
 				<span class="string">&quot;Mandatory randomness inherent not included; InherentIncluded storage item is empty&quot;</span>
@@ -681,32 +738,23 @@
 		}
 	}
 
-	<span class="comment">// Utility function</span>
+	<span class="comment">// Read-only functions</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="doccomment">/// Returns the pallet account</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">account_id</span>() -&gt; <span class="ident">T::AccountId</span> {
 			<span class="ident">PALLET_ID</span>.<span class="ident">into_account_truncating</span>()
 		}
+		<span class="doccomment">/// Returns total balance in the pallet account</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">total_locked</span>() -&gt; <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-			<span class="comment">// free balance is usable balance for the pallet account as it is not controlled</span>
-			<span class="comment">// by anyone so will never be locked</span>
+			<span class="comment">// expect free balance == usable balance for pallet account because it is not controlled</span>
+			<span class="comment">// by anyone so balance should never be locked</span>
 			<span class="ident">T::Currency::free_balance</span>(<span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::account_id</span>())
-		}
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">concat_and_hash</span>(<span class="ident">a</span>: <span class="ident">T::Hash</span>, <span class="ident">b</span>: <span class="ident">H256</span>, <span class="ident">index</span>: <span class="ident">u8</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-			<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0u8</span>..<span class="ident">index</span> {
-				<span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="ident">a</span>.<span class="ident">as_ref</span>());
-				<span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="ident">b</span>.<span class="ident">as_ref</span>());
-				<span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">i</span>]);
-				<span class="ident">output</span>.<span class="ident">push</span>(<span class="ident">sp_io::hashing::blake2_256</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>));
-				<span class="ident">s</span>.<span class="ident">clear</span>();
-			}
-			<span class="ident">output</span>
 		}
 	}
 
 	<span class="comment">// Public functions for precompile usage only</span>
 	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+		<span class="doccomment">/// Make request for future randomness</span>
 		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">request_randomness</span>(
 			<span class="ident">request</span>: <span class="ident">Request</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">RequestType</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RequestId</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {

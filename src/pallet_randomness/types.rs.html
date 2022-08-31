@@ -351,6 +351,43 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -555,9 +592,23 @@
 			<span class="comment">// hitting this error is a bug because a RandomnessResult should be updated if request</span>
 			<span class="comment">// can be fulfilled</span>
 			.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::RandomnessResultNotFilled</span>)<span class="question-mark">?</span>;
-		<span class="comment">// compute random output(s) using salt</span>
-		<span class="kw">let</span> <span class="ident">random_words</span> <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::concat_and_hash</span>(<span class="ident">randomness</span>, <span class="self">self</span>.<span class="ident">salt</span>, <span class="self">self</span>.<span class="ident">num_words</span>);
-		<span class="prelude-val">Ok</span>(<span class="ident">random_words</span>)
+		<span class="comment">// Returns Vec&lt;[u8; 32]&gt; of length `num_words`</span>
+		<span class="comment">// Each element is the blake2_256 of the concatenation of `randomness + salt + i` such that</span>
+		<span class="comment">// `0&lt;=i&lt;num_words`.</span>
+		<span class="kw">let</span> <span class="ident">compute_random_words</span> <span class="op">=</span> <span class="op">|</span><span class="ident">random</span>: <span class="ident">T::Hash</span>, <span class="ident">salt</span>: <span class="ident">H256</span>, <span class="ident">num_words</span><span class="op">|</span> {
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="number">32</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">word</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+			<span class="kw">for</span> <span class="ident">index</span> <span class="kw">in</span> <span class="number">0u8</span>..<span class="ident">num_words</span> {
+				<span class="ident">word</span>.<span class="ident">extend_from_slice</span>(<span class="ident">random</span>.<span class="ident">as_ref</span>());
+				<span class="ident">word</span>.<span class="ident">extend_from_slice</span>(<span class="ident">salt</span>.<span class="ident">as_ref</span>());
+				<span class="ident">word</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+				<span class="ident">output</span>.<span class="ident">push</span>(<span class="ident">sp_io::hashing::blake2_256</span>(<span class="kw-2">&amp;</span><span class="ident">word</span>));
+				<span class="ident">word</span>.<span class="ident">clear</span>();
+			}
+			<span class="ident">output</span>
+		};
+		<span class="comment">// return random words</span>
+		<span class="prelude-val">Ok</span>(<span class="ident">compute_random_words</span>(<span class="ident">randomness</span>, <span class="self">self</span>.<span class="ident">salt</span>, <span class="self">self</span>.<span class="ident">num_words</span>))
 	}
 	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emit_randomness_requested_event</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="ident">RequestId</span>) {
 		<span class="kw">let</span> <span class="ident">event</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">info</span> {
@@ -591,25 +642,39 @@
 		<span class="ident">caller</span>: <span class="kw-2">&amp;</span><span class="ident">H160</span>,
 		<span class="ident">cost_of_execution</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 	) {
+		<span class="kw">let</span> <span class="ident">try_transfer_or_log_error</span> <span class="op">=</span>
+			<span class="op">|</span><span class="ident">from</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>, <span class="ident">to</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>, <span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">|</span> {
+				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>) <span class="op">=</span> <span class="ident">T::Currency::transfer</span>(<span class="ident">from</span>, <span class="ident">to</span>, <span class="ident">amount</span>, <span class="ident">KeepAlive</span>) {
+					<span class="macro">log::warn!</span>(
+						<span class="string">&quot;Failed to transfer in finish_fulfill with error {:?}&quot;</span>,
+						<span class="ident">error</span>,
+					);
+				}
+			};
 		<span class="kw">let</span> <span class="ident">refundable_amount</span> <span class="op">=</span> <span class="ident">deposit</span>.<span class="ident">saturating_add</span>(<span class="self">self</span>.<span class="ident">fee</span>);
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">excess</span>) <span class="op">=</span> <span class="ident">refundable_amount</span>.<span class="ident">checked_sub</span>(<span class="kw-2">&amp;</span><span class="ident">cost_of_execution</span>) {
+			<span class="kw">if</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">refund_address</span> <span class="op">==</span> <span class="ident">caller</span> {
+				<span class="comment">// send excess + cost of execution to refund address iff refund address is caller</span>
+				<span class="ident">try_transfer_or_log_error</span>(
+					<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
+					<span class="kw-2">&amp;</span><span class="ident">T::AddressMapping::into_account_id</span>(<span class="self">self</span>.<span class="ident">refund_address</span>),
+					<span class="ident">excess</span>.<span class="ident">saturating_add</span>(<span class="ident">cost_of_execution</span>),
+				);
+				<span class="kw">return</span>;
+			}
 			<span class="comment">// send excess to refund address</span>
-			<span class="ident">T::Currency::transfer</span>(
+			<span class="ident">try_transfer_or_log_error</span>(
 				<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
 				<span class="kw-2">&amp;</span><span class="ident">T::AddressMapping::into_account_id</span>(<span class="self">self</span>.<span class="ident">refund_address</span>),
 				<span class="ident">excess</span>,
-				<span class="ident">KeepAlive</span>,
-			)
-			.<span class="ident">expect</span>(<span class="string">&quot;excess should be transferrable&quot;</span>);
+			);
 		}
 		<span class="comment">// refund cost_of_execution to caller of `fulfill`</span>
-		<span class="ident">T::Currency::transfer</span>(
+		<span class="ident">try_transfer_or_log_error</span>(
 			<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
 			<span class="kw-2">&amp;</span><span class="ident">T::AddressMapping::into_account_id</span>(<span class="ident">caller</span>.<span class="ident">clone</span>()),
 			<span class="ident">cost_of_execution</span>,
-			<span class="ident">KeepAlive</span>,
-		)
-		.<span class="ident">expect</span>(<span class="string">&quot;cost_of_execution should be transferrable&quot;</span>);
+		);
 	}
 }
 
@@ -681,21 +746,30 @@
 		<span class="macro">ensure!</span>(<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">is_expired</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::RequestHasNotExpired</span>);
 		<span class="kw">let</span> <span class="ident">contract_address</span> <span class="op">=</span>
 			<span class="ident">T::AddressMapping::into_account_id</span>(<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">contract_address</span>.<span class="ident">clone</span>());
-		<span class="comment">// TODO: is it worth optimizing when caller == contract_address to do one transfer here</span>
-		<span class="ident">T::Currency::transfer</span>(
-			<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
-			<span class="kw-2">&amp;</span><span class="ident">contract_address</span>,
-			<span class="self">self</span>.<span class="ident">deposit</span>,
-			<span class="ident">KeepAlive</span>,
-		)
-		.<span class="ident">expect</span>(<span class="string">&quot;expect transferrable deposit + fee, transferring deposit&quot;</span>);
-		<span class="ident">T::Currency::transfer</span>(
-			<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
-			<span class="ident">caller</span>,
-			<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">fee</span>,
-			<span class="ident">KeepAlive</span>,
-		)
-		.<span class="ident">expect</span>(<span class="string">&quot;expect transferrable deposit + fee, transferring fee&quot;</span>);
+		<span class="kw">if</span> <span class="ident">caller</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">contract_address</span> {
+			<span class="comment">// If caller == contract_address, then transfer deposit + fee to contract_address</span>
+			<span class="ident">T::Currency::transfer</span>(
+				<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
+				<span class="kw-2">&amp;</span><span class="ident">contract_address</span>,
+				<span class="self">self</span>.<span class="ident">deposit</span>.<span class="ident">saturating_add</span>(<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">fee</span>),
+				<span class="ident">KeepAlive</span>,
+			)<span class="question-mark">?</span>;
+		} <span class="kw">else</span> {
+			<span class="comment">// Return deposit to `contract_address`</span>
+			<span class="ident">T::Currency::transfer</span>(
+				<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
+				<span class="kw-2">&amp;</span><span class="ident">contract_address</span>,
+				<span class="self">self</span>.<span class="ident">deposit</span>,
+				<span class="ident">KeepAlive</span>,
+			)<span class="question-mark">?</span>;
+			<span class="comment">// Return request.fee to `caller`</span>
+			<span class="ident">T::Currency::transfer</span>(
+				<span class="kw-2">&amp;</span><span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::account_id</span>(),
+				<span class="ident">caller</span>,
+				<span class="self">self</span>.<span class="ident">request</span>.<span class="ident">fee</span>,
+				<span class="ident">KeepAlive</span>,
+			)<span class="question-mark">?</span>;
+		}
 		<span class="prelude-val">Ok</span>(())
 	}
 }
