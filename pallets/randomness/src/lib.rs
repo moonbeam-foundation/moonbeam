@@ -197,46 +197,41 @@ pub mod pallet {
 	/// Number of randomness requests made so far, used to generate the next request's uid
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
-	/// Current local per-block VRF randomness
-	/// Set in `on_initialize`
 	#[pallet::storage]
 	#[pallet::getter(fn local_vrf_output)]
+	/// Current local per-block VRF randomness
+	/// Set in `on_initialize`
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
 
-	/// Relay epoch
 	#[pallet::storage]
 	#[pallet::getter(fn relay_epoch)]
+	/// Relay epoch
 	pub(crate) type RelayEpoch<T: Config> = StorageValue<_, u64, ValueQuery>;
 
-	/// Ensures the mandatory inherent was included in the block
 	#[pallet::storage]
 	#[pallet::getter(fn inherent_included)]
+	/// Ensures the mandatory inherent was included in the block
 	pub(crate) type InherentIncluded<T: Config> = StorageValue<_, ()>;
 
-	/// Records whether this is the first block (genesis or runtime upgrade)
 	#[pallet::storage]
 	#[pallet::getter(fn not_first_block)]
+	/// Records whether this is the first block (genesis or runtime upgrade)
 	pub type NotFirstBlock<T: Config> = StorageValue<_, ()>;
 
-	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
-	/// Removed once $value.request_count == 0
 	#[pallet::storage]
 	#[pallet::getter(fn randomness_results)]
+	/// Snapshot of randomness to fulfill all requests that are for the same raw randomness
+	/// Removed once $value.request_count == 0
 	pub(crate) type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
-		// This inherent is a workaround to run code in every block after
-		// `ParachainSystem::set_validation_data` but before all extrinsics.
-		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
-		// This should go into on_post_inherents when it is ready
-		// https://github.com/paritytech/substrate/pull/10128
 		#[pallet::weight((
 			SubstrateWeight::<T>::set_babe_randomness_results(),
 			DispatchClass::Mandatory
 		))]
+		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
@@ -320,7 +315,7 @@ pub mod pallet {
 		pub fn account_id() -> T::AccountId {
 			PALLET_ID.into_account_truncating()
 		}
-		/// Returns total free balance in the pallet account
+		/// Returns total balance in the pallet account
 		pub fn total_locked() -> BalanceOf<T> {
 			// expect free balance == usable balance for pallet account because it is not controlled
 			// by anyone so balance should never be locked
