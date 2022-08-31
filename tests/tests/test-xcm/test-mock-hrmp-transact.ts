@@ -5,7 +5,12 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 
 import { generateKeyringPair } from "../../util/accounts";
-import { descendOriginFromAddress, injectHrmpMessageAndSeal, RawXcmMessage } from "../../util/xcm";
+import {
+  descendOriginFromAddress,
+  injectHrmpMessageAndSeal,
+  RawXcmMessage,
+  XcmFragment,
+} from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -47,62 +52,37 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
       transferredBalance / 10n
     );
     const transferCallEncoded = transferCall?.method.toHex();
+
     // We are going to test that we can receive a transact operation from parachain 1
     // using descendOrigin first
-    const xcmMessage = {
-      V2: [
-        {
-          DescendOrigin: {
-            X1: {
-              AccountKey20: {
-                network: "Any",
-                key: sendingAddress,
-              },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        },
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance / 2n },
-            },
-          ],
-        },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance / 2n },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
+        ],
+        fungible: transferredBalance / 2n,
+      },
+      weight_limit: new BN(4000000000),
+      descend_origin: sendingAddress,
+    })
+      .descend_origin()
+      .withdraw_asset()
+      .buy_execution()
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(1000000000),
+          call: {
+            encoded: transferCallEncoded,
           },
         },
-        {
-          Transact: {
-            originType: "SovereignAccount",
-            requireWeightAtMost: new BN(1000000000),
-            call: {
-              encoded: transferCallEncoded,
-            },
-          },
-        },
-      ],
-    };
+      })
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, 1, {
