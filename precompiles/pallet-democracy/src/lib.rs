@@ -46,106 +46,12 @@ type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-enum Action {
-	PublicPropCount = "publicPropCount()",
-	DepositOf = "depositOf(uint256)",
-	LowestUnbaked = "lowestUnbaked()",
-	OngoingReferendumInfo = "ongoingReferendumInfo(uint256)",
-	FinishedReferendumInfo = "finishedReferendumInfo(uint256)",
-	Propose = "propose(bytes32,uint256)",
-	Second = "second(uint256,uint256)",
-	StandardVote = "standardVote(uint256,bool,uint256,uint256)",
-	RemoveVote = "removeVote(uint256)",
-	Delegate = "delegate(address,uint256,uint256)",
-	UnDelegate = "unDelegate()",
-	Unlock = "unlock(address)",
-	NotePreimage = "notePreimage(bytes)",
-	NoteImminentPreimage = "noteImminentPreimage(bytes)",
-
-	// deprecated
-	DeprecatedPublicPropCount = "public_prop_count()",
-	DeprecatedDepositOf = "deposit_of(uint256)",
-	DeprecatedLowestUnbaked = "lowest_unbaked()",
-	DeprecatedOngoingReferendumInfo = "ongoing_referendum_info(uint256)",
-	DeprecatedFinishedReferendumInfo = "finished_referendum_info(uint256)",
-	DeprecatedStandardVote = "standard_vote(uint256,bool,uint256,uint256)",
-	DeprecatedRemoveVote = "remove_vote(uint256)",
-	DeprecatedUnDelegate = "un_delegate()",
-	DeprecatedNotePreimage = "note_preimage(bytes)",
-	DeprecatedNoteImminentPreimage = "note_imminent_preimage(bytes)",
-}
-
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
 ///
 /// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol
 pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
-
-// // TODO: Migrate to precompile_utils::Precompile.
-// impl<Runtime> Precompile for DemocracyWrapper<Runtime>
-// where
-// 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
-// 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug + EvmData,
-// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-// 	Runtime::Call: From<DemocracyCall<Runtime>>,
-// 	Runtime::Hash: From<H256>,
-// {
-// 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-// 		log::trace!(target: "democracy-precompile", "In democracy wrapper");
-
-// 		let selector = handle.read_selector()?;
-
-// 		handle.check_function_modifier(match selector {
-// 			Action::Propose
-// 			| Action::Second
-// 			| Action::StandardVote
-// 			| Action::RemoveVote
-// 			| Action::Delegate
-// 			| Action::UnDelegate
-// 			| Action::Unlock
-// 			| Action::NotePreimage
-// 			| Action::NoteImminentPreimage
-// 			| Action::DeprecatedStandardVote
-// 			| Action::DeprecatedRemoveVote
-// 			| Action::DeprecatedUnDelegate
-// 			| Action::DeprecatedNotePreimage
-// 			| Action::DeprecatedNoteImminentPreimage => FunctionModifier::NonPayable,
-// 			_ => FunctionModifier::View,
-// 		})?;
-
-// 		match selector {
-// 			// Storage Accessors
-// 			Action::PublicPropCount | Action::DeprecatedPublicPropCount => {
-// 				Self::public_prop_count(handle)
-// 			}
-// 			Action::DepositOf | Action::DeprecatedDepositOf => Self::deposit_of(handle),
-// 			Action::LowestUnbaked | Action::DeprecatedLowestUnbaked => Self::lowest_unbaked(handle),
-// 			Action::OngoingReferendumInfo | Action::DeprecatedOngoingReferendumInfo => {
-// 				Self::ongoing_referendum_info(handle)
-// 			}
-// 			Action::FinishedReferendumInfo | Action::DeprecatedFinishedReferendumInfo => {
-// 				Self::finished_referendum_info(handle)
-// 			}
-
-// 			// Dispatchables
-// 			Action::Propose => Self::propose(handle),
-// 			Action::Second => Self::second(handle),
-// 			Action::StandardVote | Action::DeprecatedStandardVote => Self::standard_vote(handle),
-// 			Action::RemoveVote | Action::DeprecatedRemoveVote => Self::remove_vote(handle),
-// 			Action::Delegate => Self::delegate(handle),
-// 			Action::UnDelegate | Action::DeprecatedUnDelegate => Self::un_delegate(handle),
-// 			Action::Unlock => Self::unlock(handle),
-// 			Action::NotePreimage | Action::DeprecatedNotePreimage => Self::note_preimage(handle),
-// 			Action::NoteImminentPreimage | Action::DeprecatedNoteImminentPreimage => {
-// 				Self::note_imminent_preimage(handle)
-// 			}
-// 		}
-// 	}
-// }
 
 #[precompile_utils::precompile]
 #[precompile::test_concrete_types(mock::Runtime)]
