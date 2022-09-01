@@ -431,34 +431,6 @@ where
 	}
 }
 
-#[cfg(feature = "runtime-benchmarks")]
-mod testing {
-	use super::*;
-
-	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
-	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
-	impl From<MultiLocation> for CurrencyId {
-		fn from(location: MultiLocation) -> CurrencyId {
-			use xcm_executor::traits::Convert as XConvert;
-			use xcm_primitives::AssetTypeGetter;
-
-			// If it does not exist, for benchmarking purposes, we create the association
-			let asset_id = if let Ok(asset_id) =
-				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
-			{
-				asset_id
-			} else {
-				let asset_type = AssetType::Xcm(location);
-				let asset_id: AssetId = asset_type.clone().into();
-				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
-				asset_id
-			};
-
-			CurrencyId::ForeignAsset(asset_id)
-		}
-	}
-}
-
 parameter_types! {
 	pub const BaseXcmWeight: Weight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
@@ -562,4 +534,33 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+}
+
+
+#[cfg(feature = "runtime-benchmarks")]
+mod testing {
+	use super::*;
+
+	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
+	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
+	impl From<MultiLocation> for CurrencyId {
+		fn from(location: MultiLocation) -> CurrencyId {
+			use xcm_executor::traits::Convert as XConvert;
+			use xcm_primitives::AssetTypeGetter;
+
+			// If it does not exist, for benchmarking purposes, we create the association
+			let asset_id = if let Ok(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			{
+				asset_id
+			} else {
+				let asset_type = AssetType::Xcm(location);
+				let asset_id: AssetId = asset_type.clone().into();
+				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
+				asset_id
+			};
+
+			CurrencyId::ForeignAsset(asset_id)
+		}
+	}
 }
