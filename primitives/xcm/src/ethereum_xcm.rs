@@ -254,7 +254,7 @@ mod tests {
 		let xcm_transaction = EthereumXcmTransactionV1 {
 			gas_limit: U256::one(),
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-				gas_price: Some(U256::one()),
+				gas_price: Some(U256::zero()),
 				max_fee_per_gas: None,
 			}),
 			action: TransactionAction::Call(H160::default()),
@@ -290,7 +290,7 @@ mod tests {
 		let xcm_transaction = EthereumXcmTransactionV1 {
 			gas_limit: U256::one(),
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-				gas_price: Some(U256::one()),
+				gas_price: Some(U256::zero()),
 				max_fee_per_gas: None,
 			}),
 			action: TransactionAction::Call(H160::default()),
