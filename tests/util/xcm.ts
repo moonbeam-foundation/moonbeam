@@ -348,7 +348,7 @@ export class XcmFragment {
     return this;
   }
 
-  // Add a `Trap` instruction, appending all the nested instructions
+  // Add a `Trap` instruction
   trap(): this {
     this.instructions.push({
       Trap: 0,
