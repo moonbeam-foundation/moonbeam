@@ -90,7 +90,7 @@ pub mod prelude {
 		crate::{
 			data::{
 				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
-				EvmDataWriter, UnboundedBytes, UnboundedString,
+				EvmDataWriter, SolidityConvert, UnboundedBytes, UnboundedString,
 			},
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},

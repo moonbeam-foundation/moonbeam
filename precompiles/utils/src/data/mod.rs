@@ -278,6 +278,58 @@ impl Default for EvmDataWriter {
 	}
 }
 
+/// Adapter to parse data as a first type then convert it to another one.
+/// Useful for old precompiles in which Solidity arguments where set larger than
+/// the needed Rust type.
+pub struct SolidityConvert<P, C> {
+	inner: C,
+	_phantom: PhantomData<P>,
+}
+
+impl<P, C> From<C> for SolidityConvert<P, C> {
+	fn from(value: C) -> Self {
+		Self {
+			inner: value,
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<P, C> SolidityConvert<P, C> {
+	pub fn converted(self) -> C {
+		self.inner
+	}
+}
+
+impl<P, C> EvmData for SolidityConvert<P, C>
+where
+	P: EvmData + TryInto<C>,
+	C: EvmData + Into<P>,
+{
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let c = P::read(reader)?
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large(C::solidity_type()))?;
+
+		Ok(Self {
+			inner: c,
+			_phantom: PhantomData,
+		})
+	}
+
+	fn write(writer: &mut EvmDataWriter, value: Self) {
+		P::write(writer, value.inner.into())
+	}
+
+	fn has_static_size() -> bool {
+		P::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		P::solidity_type()
+	}
+}
+
 /// Helper to write `EvmData` impl for Solidity structs.
 /// Identifiers used should match Solidity ones.
 /// Types are infered from context, which should always be
