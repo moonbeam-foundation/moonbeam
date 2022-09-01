@@ -535,7 +535,7 @@ fn test_transact_signed_multilocation_v2() {
 						.write(total_weight)
 						.build(),
 				)
-				.expect_cost(428130000)
+				.expect_cost(465476000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
