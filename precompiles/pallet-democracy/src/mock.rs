@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
@@ -273,6 +274,8 @@ where
 		address == hash(PRECOMPILE_ADDRESS)
 	}
 }
+
+pub type PCall = DemocracyWrapperCall<Runtime>;
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
