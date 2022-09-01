@@ -19,8 +19,7 @@
 use core::marker::PhantomData;
 use evm::ExitReason;
 use fp_evm::{
-	Context, ExitRevert, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput,
-	Transfer,
+	Context, ExitRevert, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
 };
 use frame_support::{
 	ensure,
@@ -86,27 +85,7 @@ pub enum Action {
 /// smart contract.
 pub struct CallPermitPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for CallPermitPrecompile<Runtime>
-where
-	Runtime: pallet_evm::Config + pallet_timestamp::Config,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::Dispatch => FunctionModifier::NonPayable,
-			_ => FunctionModifier::View,
-		})?;
-
-		match selector {
-			Action::Dispatch => Self::dispatch(handle),
-			Action::Nonces => Self::nonces(handle),
-			Action::DomainSeparator => Self::domain_separator(handle),
-		}
-	}
-}
-
+#[precompile_utils::precompile]
 impl<Runtime> CallPermitPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config + pallet_timestamp::Config,
@@ -165,27 +144,26 @@ where
 			+ RuntimeHelper::<Runtime>::db_write_gas_cost() // we write nonce
 	}
 
-	fn dispatch(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public(
+		"dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)"
+	)]
+	fn dispatch(
+		handle: &mut impl PrecompileHandle,
+		from: Address,
+		to: Address,
+		value: U256,
+		data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
+		gas_limit: u64,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(Self::dispatch_inherent_cost())?;
 
-		// PARSE INPUT
-		read_args!(
-			handle,
-			{
-				from: Address,
-				to: Address,
-				value: U256,
-				data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
-				gas_limit: u64,
-				deadline: U256,
-				v: u8,
-				r: H256,
-				s: H256
-			}
-		);
 		let from: H160 = from.into();
 		let to: H160 = to.into();
-		let data: Vec<u8> = data.into_vec();
+		let data: Vec<u8> = data.into();
 
 		// ENSURE GASLIMIT IS SUFFICIENT
 		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
@@ -259,31 +237,30 @@ where
 				exit_status: ExitRevert::Reverted,
 				output,
 			}),
-			ExitReason::Succeed(_) => {
-				Ok(succeed(EvmDataWriter::new().write(Bytes(output)).build()))
-			}
+			ExitReason::Succeed(_) => Ok(output.into()),
 		}
 	}
 
-	fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("nonces(address)")]
+	#[precompile::view]
+	fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { owner: Address });
 		let owner: H160 = owner.into();
 
 		let nonce = NoncesStorage::get(owner);
 
-		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
+		Ok(nonce)
 	}
 
-	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("DOMAIN_SEPARATOR()")]
+	#[precompile::view]
+	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.context().address).into();
 
-		Ok(succeed(
-			EvmDataWriter::new().write(domain_separator).build(),
-		))
+		Ok(domain_separator)
 	}
 }

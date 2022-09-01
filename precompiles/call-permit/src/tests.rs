@@ -17,7 +17,7 @@
 use crate::{
 	mock::{
 		Account::{Alice, Bob, Charlie, Precompile},
-		ExtBuilder, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
+		ExtBuilder, PCall, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
 	},
 	Action, CallPermitPrecompile,
 };
@@ -89,17 +89,17 @@ fn valid_permit_returns() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
 				)
 				.with_subcall_handle(move |subcall| {
 					let Subcall {
@@ -137,7 +137,11 @@ fn valid_permit_returns() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(UnboundedBytes::from(b"TEST"))
+						.build(),
+				);
 		})
 }
 
@@ -188,17 +192,17 @@ fn valid_permit_reverts() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
 				)
 				.with_subcall_handle(move |subcall| {
 					let Subcall {
@@ -287,17 +291,17 @@ fn invalid_permit_nonce() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
@@ -353,17 +357,17 @@ fn invalid_permit_gas_limit_too_low() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(call_cost + 99_999 + dispatch_cost()))
@@ -419,17 +423,17 @@ fn invalid_permit_gas_limit_overflow() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.into(),
+						gas_limit,
+						deadline,
+						v: v.serialize(),
+						r: H256::from(rs.r.b32()),
+						s: H256::from(rs.s.b32()),
+					},
 				)
 				.with_subcall_handle(move |_| panic!("should not perform subcall"))
 				.with_target_gas(Some(100_000 + dispatch_cost()))
@@ -609,17 +613,17 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.prepare_test(
 					Charlie, // can be anyone
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Dispatch)
-						.write(Address(from))
-						.write(Address(to))
-						.write(value)
-						.write(Bytes(data.clone()))
-						.write(gas_limit)
-						.write(deadline)
-						.write(v_real)
-						.write(H256::from(r_real))
-						.write(H256::from(s_real))
-						.build(),
+					PCall::dispatch {
+						from: Address(from),
+						to: Address(to),
+						value,
+						data: data.clone().into(),
+						gas_limit,
+						deadline,
+						v: v_real,
+						r: r_real.into(),
+						s: s_real.into(),
+					},
 				)
 				.with_subcall_handle(move |subcall| {
 					let Subcall {
@@ -657,7 +661,11 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.with_target_gas(Some(call_cost + 100_000 + dispatch_cost()))
 				.expect_cost(call_cost + 13 + dispatch_cost())
 				.expect_log(log1(Bob, H256::repeat_byte(0x11), vec![]))
-				.execute_returns(EvmDataWriter::new().write(Bytes(b"TEST".to_vec())).build());
+				.execute_returns(
+					EvmDataWriter::new()
+						.write(UnboundedBytes::from(b"TEST"))
+						.build(),
+				);
 		})
 }
 

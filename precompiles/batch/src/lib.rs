@@ -65,7 +65,6 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 #[derive(Debug, Clone)]
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
-
 // No funds are transfered to the precompile address.
 // Transfers will directly be made on the behalf of the user by the precompile.
 #[precompile_utils::precompile]
