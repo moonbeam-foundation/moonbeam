@@ -17,9 +17,8 @@
 use crate::mock::{
 	events, roll_to,
 	Account::{Alice, Bob, Charlie, Precompile},
-	Call, Crowdloan, ExtBuilder, Origin, PrecompilesValue, Runtime, TestPrecompiles,
+	Call, Crowdloan, ExtBuilder, Origin, PCall, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::Action;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
@@ -43,14 +42,6 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 		nonce: None, // Use the next nonce
 		access_list: Vec::new(),
 	}
-}
-
-#[test]
-fn test_selector_enum() {
-	assert_eq!(Action::IsContributor as u32, 0x1d0d35f5);
-	assert_eq!(Action::RewardInfo as u32, 0xcbecf6b5);
-	assert_eq!(Action::Claim as u32, 0x4e71d92d);
-	assert_eq!(Action::UpdateRewardAddress as u32, 0x944dd5a2);
 }
 
 #[test]
@@ -82,9 +73,9 @@ fn is_contributor_returns_false() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsContributor)
-						.write(Address(H160::from(Alice)))
-						.build(),
+					PCall::is_contributor {
+						contributor: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -122,9 +113,9 @@ fn is_contributor_returns_true() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsContributor)
-						.write(Address(H160::from(Alice)))
-						.build(),
+					PCall::is_contributor {
+						contributor: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -159,7 +150,7 @@ fn claim_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new_with_selector(Action::Claim).build();
+			let input = PCall::claim {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -202,9 +193,9 @@ fn reward_info_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::RewardInfo)
-						.write(Address(H160::from(Alice)))
-						.build(),
+					PCall::reward_info {
+						contributor: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -244,9 +235,10 @@ fn update_reward_address_works() {
 
 			roll_to(5);
 
-			let input = EvmDataWriter::new_with_selector(Action::UpdateRewardAddress)
-				.write(Address(H160::from(Charlie)))
-				.build();
+			let input = PCall::update_reward_address {
+				new_address: Address(Charlie.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -290,7 +282,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -310,7 +302,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"update_reward_address(address)",
 	] {
 		let selector = solidity::compute_selector(deprecated_function);
-		if Action::try_from(selector).is_err() {
+		if !PCall::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
 				selector, deprecated_function,

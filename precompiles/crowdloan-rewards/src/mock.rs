@@ -22,6 +22,7 @@ use cumulus_primitives_core::{
 };
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime,
 	dispatch::UnfilteredDispatchable,
@@ -199,6 +200,8 @@ where
 		address == Account::Precompile.into()
 	}
 }
+
+pub type PCall = CrowdloanRewardsWrapperCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
