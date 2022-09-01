@@ -233,7 +233,7 @@ type ConstU32Max = ConstU32<{ u32::MAX }>;
 
 impl<T: EvmData> EvmData for Vec<T> {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
-		BoundedVec::<T, ConstU32Max>::read(reader).map(|x| x.into_vec())
+		BoundedVec::<T, ConstU32Max>::read(reader).map(|x| x.into())
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
@@ -260,12 +260,6 @@ impl<T: EvmData> EvmData for Vec<T> {
 pub struct BoundedVec<T, S> {
 	inner: Vec<T>,
 	_phantom: PhantomData<S>,
-}
-
-impl<T, S: Get<u32>> BoundedVec<T, S> {
-	pub fn into_vec(self) -> Vec<T> {
-		self.inner
-	}
 }
 
 impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
@@ -303,7 +297,7 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let value = value.into_vec();
+		let value: Vec<_> = value.into();
 		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
 
 		for inner in value {
@@ -331,5 +325,38 @@ impl<T: EvmData, S: Get<u32>> EvmData for BoundedVec<T, S> {
 
 	fn solidity_type() -> String {
 		alloc::format!("{}[]", T::solidity_type())
+	}
+}
+
+impl<T, S> From<Vec<T>> for BoundedVec<T, S> {
+	fn from(value: Vec<T>) -> Self {
+		BoundedVec {
+			inner: value,
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<T: Clone, S> From<&[T]> for BoundedVec<T, S> {
+	fn from(value: &[T]) -> Self {
+		BoundedVec {
+			inner: value.to_vec(),
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<T: Clone, S, const N: usize> From<[T; N]> for BoundedVec<T, S> {
+	fn from(value: [T; N]) -> Self {
+		BoundedVec {
+			inner: value.to_vec(),
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<T, S> From<BoundedVec<T, S>> for Vec<T> {
+	fn from(value: BoundedVec<T, S>) -> Self {
+		value.inner
 	}
 }

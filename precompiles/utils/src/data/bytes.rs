@@ -137,7 +137,25 @@ impl<K, S> From<Vec<u8>> for BoundedBytesString<K, S> {
 impl<K, S> From<&[u8]> for BoundedBytesString<K, S> {
 	fn from(value: &[u8]) -> Self {
 		Self {
-			data: value.to_owned(),
+			data: value.to_vec(),
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<K, S, const N: usize> From<[u8; N]> for BoundedBytesString<K, S> {
+	fn from(value: [u8; N]) -> Self {
+		Self {
+			data: value.to_vec(),
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<K, S, const N: usize> From<&[u8; N]> for BoundedBytesString<K, S> {
+	fn from(value: &[u8; N]) -> Self {
+		Self {
+			data: value.to_vec(),
 			_phantom: PhantomData,
 		}
 	}
