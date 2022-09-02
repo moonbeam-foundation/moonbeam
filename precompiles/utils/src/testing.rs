@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
+	crate::{EvmData, EvmDataWriter},
 	fp_evm::{
 		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
 		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
@@ -346,6 +347,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		}
 
 		self.assert_optionals();
+	}
+
+	/// Execute the precompile set and check it returns provided Solidity encoded output.
+	pub fn execute_returns_encoded(self, output: impl EvmData) {
+		self.execute_returns(EvmDataWriter::new().write(output).build())
 	}
 
 	/// Execute the precompile set and check if it reverts.

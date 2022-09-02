@@ -81,7 +81,7 @@ fn valid_permit_returns() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -184,7 +184,7 @@ fn valid_permit_reverts() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -283,7 +283,7 @@ fn invalid_permit_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -349,7 +349,7 @@ fn invalid_permit_gas_limit_too_low() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
@@ -417,7 +417,7 @@ fn invalid_permit_gas_limit_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -605,7 +605,7 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 

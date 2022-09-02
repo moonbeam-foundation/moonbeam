@@ -110,7 +110,7 @@ fn get_total_supply() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000u64)).build());
+				.execute_returns_encoded(U256::from(1000u64));
 		});
 }
 
@@ -144,7 +144,7 @@ fn get_balances_known_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000u64)).build());
+				.execute_returns_encoded(U256::from(1000u64));
 		});
 }
 
@@ -172,7 +172,7 @@ fn get_balances_unknown_user() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
+				.execute_returns_encoded(U256::from(0u64));
 		});
 }
 
@@ -213,7 +213,7 @@ fn approve() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(500)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -254,7 +254,7 @@ fn approve_saturating() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::MAX).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -267,7 +267,7 @@ fn approve_saturating() {
 				)
 				.expect_cost(0u64)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(u128::MAX)).build());
+				.execute_returns_encoded(U256::from(u128::MAX));
 		});
 }
 
@@ -313,7 +313,7 @@ fn check_allowance_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(500u64)).build());
+				.execute_returns_encoded(U256::from(500u64));
 		});
 }
 
@@ -342,7 +342,7 @@ fn check_allowance_not_existing() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u64)).build());
+				.execute_returns_encoded(U256::from(0u64));
 		});
 }
 
@@ -383,7 +383,7 @@ fn transfer() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -395,7 +395,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns_encoded(U256::from(400));
 
 			precompiles()
 				.prepare_test(
@@ -407,7 +407,7 @@ fn transfer() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns_encoded(U256::from(600));
 		});
 }
 
@@ -510,7 +510,7 @@ fn transfer_from() {
 					Account::Charlie,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -522,7 +522,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns_encoded(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -534,7 +534,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns_encoded(U256::from(0));
 
 			precompiles()
 				.prepare_test(
@@ -546,7 +546,7 @@ fn transfer_from() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns_encoded(U256::from(400));
 		});
 }
 
@@ -588,7 +588,7 @@ fn transfer_from_non_incremental_approval() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(500)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// We then approve 300. Non-incremental, so this is
 			// the approved new value
@@ -611,7 +611,7 @@ fn transfer_from_non_incremental_approval() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(300)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// This should fail, as now the new approved quantity is 300
 			precompiles()
@@ -719,7 +719,7 @@ fn transfer_from_self() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -731,7 +731,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns_encoded(U256::from(600));
 
 			precompiles()
 				.prepare_test(
@@ -743,7 +743,7 @@ fn transfer_from_self() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns_encoded(U256::from(400));
 		});
 }
 
@@ -805,7 +805,7 @@ fn get_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(12u8).build());
+				.execute_returns_encoded(12u8);
 		});
 }
 
@@ -894,7 +894,7 @@ fn mint_local_assets() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -906,7 +906,7 @@ fn mint_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns_encoded(U256::from(400));
 		});
 }
 
@@ -955,7 +955,7 @@ fn burn_local_assets() {
 					Account::Zero,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -967,7 +967,7 @@ fn burn_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(600)).build());
+				.execute_returns_encoded(U256::from(600));
 		});
 }
 
@@ -1009,7 +1009,7 @@ fn freeze_local_assets() {
 				)
 				.expect_cost(21670000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1067,7 +1067,7 @@ fn thaw_local_assets() {
 				)
 				.expect_cost(21670000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1079,7 +1079,7 @@ fn thaw_local_assets() {
 				)
 				.expect_cost(21503000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1098,7 +1098,7 @@ fn thaw_local_assets() {
 					Account::Alice,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -1138,7 +1138,7 @@ fn freeze_asset_local_asset() {
 				)
 				.expect_cost(18158000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1194,7 +1194,7 @@ fn thaw_asset_local_assets() {
 				)
 				.expect_cost(18158000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1204,7 +1204,7 @@ fn thaw_asset_local_assets() {
 				)
 				.expect_cost(18525000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1223,7 +1223,7 @@ fn thaw_asset_local_assets() {
 					Account::Alice,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -1259,7 +1259,7 @@ fn transfer_ownership_local_assets() {
 				)
 				.expect_cost(19858000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Now Bob should be able to change ownership, and not Alice
 			precompiles()
@@ -1287,7 +1287,7 @@ fn transfer_ownership_local_assets() {
 				)
 				.expect_cost(19858000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -1325,7 +1325,7 @@ fn set_team_local_assets() {
 				)
 				.expect_cost(18045000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Now Bob should be able to mint, and not Alice
 			precompiles()
@@ -1361,7 +1361,7 @@ fn set_team_local_assets() {
 					Account::Bob,
 					EvmDataWriter::new().write(U256::from(400)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1373,7 +1373,7 @@ fn set_team_local_assets() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400)).build());
+				.execute_returns_encoded(U256::from(400));
 		});
 }
 
@@ -1411,7 +1411,7 @@ fn set_metadata() {
 				)
 				.expect_cost(32448000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1449,7 +1449,7 @@ fn set_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(12u8).build());
+				.execute_returns_encoded(12u8);
 		});
 }
 
@@ -1487,7 +1487,7 @@ fn clear_metadata() {
 				)
 				.expect_cost(32448000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1497,7 +1497,7 @@ fn clear_metadata() {
 				)
 				.expect_cost(32893000u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			precompiles()
 				.prepare_test(
@@ -1535,7 +1535,7 @@ fn clear_metadata() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(0u8).build());
+				.execute_returns_encoded(0u8);
 		});
 }
 
@@ -1588,7 +1588,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1625,7 +1625,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(500u16)).build());
+				.execute_returns_encoded(U256::from(500u16));
 
 			precompiles()
 				.prepare_test(
@@ -1637,7 +1637,7 @@ fn permit_valid() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1u8)).build());
+				.execute_returns_encoded(U256::from(1u8));
 		});
 }
 
@@ -1697,7 +1697,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1734,7 +1734,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(500u16)).build());
+				.execute_returns_encoded(U256::from(500u16));
 
 			precompiles()
 				.prepare_test(
@@ -1746,7 +1746,7 @@ fn permit_valid_named_asset() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1u8)).build());
+				.execute_returns_encoded(U256::from(1u8));
 		});
 }
 
@@ -1799,7 +1799,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1828,7 +1828,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns_encoded(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1840,7 +1840,7 @@ fn permit_invalid_nonce() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 		});
 }
 
@@ -1879,7 +1879,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -1908,7 +1908,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns_encoded(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -1920,7 +1920,7 @@ fn permit_invalid_signature() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 		});
 }
 
@@ -1975,7 +1975,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 
 			precompiles()
 				.prepare_test(
@@ -2004,7 +2004,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u16)).build());
+				.execute_returns_encoded(U256::from(0u16));
 
 			precompiles()
 				.prepare_test(
@@ -2016,7 +2016,7 @@ fn permit_invalid_deadline() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0u8)).build());
+				.execute_returns_encoded(U256::from(0u8));
 		});
 }
 
@@ -2246,7 +2246,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(0)).build());
+				.execute_returns_encoded(U256::from(0));
 
 			precompiles()
 				.prepare_test(
@@ -2258,7 +2258,7 @@ fn transfer_amount_overflow() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000)).build());
+				.execute_returns_encoded(U256::from(1000));
 		});
 }
 

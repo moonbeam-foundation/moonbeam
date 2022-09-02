@@ -96,7 +96,7 @@ fn prop_count_non_zero() {
 				.prepare_test(Alice, Precompile, PCall::public_prop_count {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns_encoded(1u32);
 		});
 }
 
@@ -125,7 +125,7 @@ fn deposit_of_non_zero() {
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1000u32).build());
+				.execute_returns_encoded(1000u32);
 		});
 }
 
@@ -151,7 +151,7 @@ fn lowest_unbaked_zero() {
 			.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 	});
 }
 
@@ -211,7 +211,7 @@ fn lowest_unbaked_non_zero() {
 				.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns_encoded(1u32);
 		});
 }
 

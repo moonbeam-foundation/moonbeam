@@ -941,7 +941,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 
 			// Assert precompile reports Charlie is a nominator
 			Precompiles::new()
@@ -954,7 +954,7 @@ fn is_contributor_via_precompile() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 
@@ -1189,7 +1189,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000 * UNIT)).build());
+				.execute_returns_encoded(U256::from(1000 * UNIT));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -1202,7 +1202,7 @@ fn asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000 * UNIT)).build());
+				.execute_returns_encoded(U256::from(1000 * UNIT));
 		});
 }
 
@@ -1241,7 +1241,7 @@ fn asset_erc20_precompiles_transfer() {
 					H160::from(BOB),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Make sure BOB has 400 UNIT
 			Precompiles::new()
@@ -1254,7 +1254,7 @@ fn asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400 * UNIT)).build());
+				.execute_returns_encoded(U256::from(400 * UNIT));
 		});
 }
 
@@ -1293,7 +1293,7 @@ fn asset_erc20_precompiles_approve() {
 					H160::from(BOB),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -1314,7 +1314,7 @@ fn asset_erc20_precompiles_approve() {
 					H160::from(CHARLIE),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Make sure CHARLIE has 400 UNIT
 			Precompiles::new()
@@ -1327,7 +1327,7 @@ fn asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400 * UNIT)).build());
+				.execute_returns_encoded(U256::from(400 * UNIT));
 		});
 }
 
@@ -1366,7 +1366,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					H160::from(BOB),
 					EvmDataWriter::new().write(U256::from(1000 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Assert the asset has been minted
 			assert_eq!(LocalAssets::total_supply(0u128), 2_000 * UNIT);
@@ -1393,7 +1393,7 @@ fn asset_erc20_precompiles_mint_burn() {
 					H160::default(),
 					EvmDataWriter::new().write(U256::from(500 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Assert the asset has been burnt
 			assert_eq!(LocalAssets::total_supply(0u128), 1_500 * UNIT);
@@ -1432,7 +1432,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 				)
 				.expect_cost(6866)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1451,7 +1451,7 @@ fn asset_erc20_precompiles_freeze_thaw_account() {
 				)
 				.expect_cost(6860)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Assert account is not frozen
 			assert!(LocalAssets::can_withdraw(0u128, &AccountId::from(ALICE), 1)
@@ -1486,7 +1486,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 				)
 				.expect_cost(5726)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Assert account is frozen
 			assert_eq!(
@@ -1503,7 +1503,7 @@ fn asset_erc20_precompiles_freeze_thaw_asset() {
 				)
 				.expect_cost(5741)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -1535,7 +1535,7 @@ fn asset_erc20_precompiles_freeze_transfer_ownership() {
 				)
 				.expect_cost(6794)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -1569,7 +1569,7 @@ fn asset_erc20_precompiles_freeze_set_team() {
 				)
 				.expect_cost(5721)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Bob should be able to mint, freeze, and thaw
 			assert_ok!(LocalAssets::mint(
@@ -1632,7 +1632,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000 * UNIT)).build());
+				.execute_returns_encoded(U256::from(1000 * UNIT));
 
 			// Access balanceOf through precompile
 			Precompiles::new()
@@ -1645,7 +1645,7 @@ fn xcm_asset_erc20_precompiles_supply_and_balance() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(1000 * UNIT)).build());
+				.execute_returns_encoded(U256::from(1000 * UNIT));
 		});
 }
 
@@ -1696,7 +1696,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 					H160::from(BOB),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Make sure BOB has 400 UNIT
 			Precompiles::new()
@@ -1709,7 +1709,7 @@ fn xcm_asset_erc20_precompiles_transfer() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400 * UNIT)).build());
+				.execute_returns_encoded(U256::from(400 * UNIT));
 		});
 }
 
@@ -1760,7 +1760,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					H160::from(BOB),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Transfer tokens from Alice to Charlie by using BOB as origin
 			Precompiles::new()
@@ -1781,7 +1781,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 					H160::from(CHARLIE),
 					EvmDataWriter::new().write(U256::from(400 * UNIT)).build(),
 				))
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 
 			// Make sure CHARLIE has 400 UNIT
 			Precompiles::new()
@@ -1794,7 +1794,7 @@ fn xcm_asset_erc20_precompiles_approve() {
 				)
 				.expect_cost(1000)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(U256::from(400 * UNIT)).build());
+				.execute_returns_encoded(U256::from(400 * UNIT));
 		});
 }
 

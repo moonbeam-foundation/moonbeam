@@ -199,7 +199,7 @@ fn member_can_make_instant_proposal() {
 				},
 			)
 			.expect_log(log_executed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Executed {
 			proposal_hash,
@@ -230,7 +230,7 @@ fn member_can_make_delayed_proposal() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Proposed {
 			account: Bob,
@@ -263,7 +263,7 @@ fn member_can_vote_on_proposal() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -311,7 +311,7 @@ fn cannot_close_if_not_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -351,7 +351,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -391,7 +391,7 @@ fn can_close_execute_if_enough_votes() {
 				},
 			)
 			.expect_log(log_executed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(true).build());
+			.execute_returns_encoded(true);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -439,7 +439,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
@@ -479,7 +479,7 @@ fn can_close_refuse_if_enough_votes() {
 				},
 			)
 			.expect_log(log_closed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -513,7 +513,7 @@ fn multiple_propose_increase_index() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 2,
@@ -533,6 +533,6 @@ fn multiple_propose_increase_index() {
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(1u32).build());
+			.execute_returns_encoded(1u32);
 	});
 }

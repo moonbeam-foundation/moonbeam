@@ -355,7 +355,7 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -385,7 +385,7 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -415,7 +415,7 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 						.write::<u32>(0)
 						.build(),
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -445,7 +445,7 @@ fn test_is_proxy_returns_true_if_proxy() {
 						.write::<u32>(1)
 						.build(),
 				)
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 

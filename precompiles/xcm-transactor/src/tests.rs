@@ -204,7 +204,7 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, Precompile, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u64).build());
+				.execute_returns_encoded(1u64);
 		});
 }
 
