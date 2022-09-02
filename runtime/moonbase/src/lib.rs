@@ -411,13 +411,18 @@ impl FeeCalculator for FixedGasPrice {
 		//       scaled by the multiplier, which means its multiplier will be overstated when
 		//       applied to an ethereum transaction
 		// note: transaction-payment uses both a congestion modifier (next_fee_multiplier, which is
-		//       updated once per block in on_initialize) and a 'WeightToFee' implementation. Our
+		//       updated once per block in on_finalize) and a 'WeightToFee' implementation. Our
 		//       runtime implements this as a 'ConstantModifier', so we can get away with a simple
 		//       multiplication here.
-		let total_weight_multiplier =
-			TransactionPayment::next_fee_multiplier().saturating_mul_int(currency::WEIGHT_FEE);
-		let gas_price = total_weight_multiplier * WEIGHT_PER_GAS as u128;
-		(gas_price.into(), 0u64.into())
+		// It is imperative that `saturating_mul_int` be performed as late as possible in the
+		// expression since it involves fixed point arithmetic with division, and will lead to
+		// precision loss if performed too early. This can lead to min_gas_price being same across
+		// blocks even if the multiplier changes. There will be still some precision loss when the
+		// final `gas_price` (used_gas * min_gas_price) will be computed in frontier, but that's
+		// currently unavoidable.
+		let min_gas_price = TransactionPayment::next_fee_multiplier()
+			.saturating_mul_int(currency::WEIGHT_FEE * WEIGHT_PER_GAS as u128);
+		(min_gas_price.into(), 0u64.into())
 	}
 }
 
@@ -1586,5 +1591,27 @@ mod tests {
 				input
 			);
 		}
+	}
+
+	#[test]
+	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		let t = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.expect("Frame system builds valid default genesis config");
+		let mut ext = sp_io::TestExternalities::new(t);
+		ext.execute_with(|| {
+			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
+			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
+
+			<NextFeeMultiplier<Runtime>>::set(multiplier_1);
+			let a = FixedGasPrice::min_gas_price();
+			<NextFeeMultiplier<Runtime>>::set(multiplier_2);
+			let b = FixedGasPrice::min_gas_price();
+
+			assert_ne!(
+				a, b,
+				"both gas prices were equal, unexpected precision loss incurred"
+			);
+		});
 	}
 }
