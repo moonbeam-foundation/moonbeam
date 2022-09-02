@@ -536,7 +536,6 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
 }
 
-
 #[cfg(feature = "runtime-benchmarks")]
 mod testing {
 	use super::*;
