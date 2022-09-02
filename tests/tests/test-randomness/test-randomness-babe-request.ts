@@ -202,8 +202,6 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
         ]),
       })
     );
-    // run to beginning of 2nd epoch after epoch in which request was made
-    //await context.createBlock();
 
     expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
       CONTRACT_RANDOMNESS_STATUS_PENDING.toString()
@@ -232,9 +230,7 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
       })
     );
     // run to beginning of 2nd epoch after epoch in which request was made
-    for (let i = 0; i < 3; i++) {
-      await context.createBlock();
-    }
+    await context.createBlock();
 
     expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
       CONTRACT_RANDOMNESS_STATUS_READY.toString()
