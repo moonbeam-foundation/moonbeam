@@ -520,6 +520,42 @@
 <span id="515">515</span>
 <span id="516">516</span>
 <span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -989,6 +1025,14 @@
 	<span class="ident">Relay</span>,
 }
 
+<span class="comment">// Default for benchmarking</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
+	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+		<span class="ident">Transactors::Relay</span>
+	}
+}
+
 <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Transactors</span> {
 	<span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
 	<span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
@@ -1036,6 +1080,34 @@
 	<span class="kw">type</span> <span class="ident">AssetTransactor</span> <span class="op">=</span> <span class="ident">AssetTransactors</span>;
 	<span class="kw">type</span> <span class="ident">ReserveProvider</span> <span class="op">=</span> <span class="ident">AbsoluteAndRelativeReserve</span><span class="op">&lt;</span><span class="ident">SelfLocationAbsolute</span><span class="op">&gt;</span>;
 	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_xcm_transactor::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">testing</span> {
+	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+
+	<span class="doccomment">/// This From exists for benchmarking purposes. It has the potential side-effect of calling</span>
+	<span class="doccomment">/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.</span>
+	<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">CurrencyId</span> {
+		<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">location</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="ident">CurrencyId</span> {
+			<span class="kw">use</span> <span class="ident">xcm_executor::traits::Convert</span> <span class="kw">as</span> <span class="ident">XConvert</span>;
+			<span class="kw">use</span> <span class="ident">xcm_primitives::AssetTypeGetter</span>;
+
+			<span class="comment">// If it does not exist, for benchmarking purposes, we create the association</span>
+			<span class="kw">let</span> <span class="ident">asset_id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">asset_id</span>) <span class="op">=</span>
+				<span class="ident">AsAssetType</span>::<span class="op">&lt;</span><span class="ident">AssetId</span>, <span class="ident">AssetType</span>, <span class="ident">AssetManager</span><span class="op">&gt;</span><span class="ident">::convert_ref</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>)
+			{
+				<span class="ident">asset_id</span>
+			} <span class="kw">else</span> {
+				<span class="kw">let</span> <span class="ident">asset_type</span> <span class="op">=</span> <span class="ident">AssetType::Xcm</span>(<span class="ident">location</span>);
+				<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">asset_type</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
+				<span class="ident">AssetManager::set_asset_type_asset_id</span>(<span class="ident">asset_type</span>, <span class="ident">asset_id</span>);
+				<span class="ident">asset_id</span>
+			};
+
+			<span class="ident">CurrencyId::ForeignAsset</span>(<span class="ident">asset_id</span>)
+		}
+	}
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
