@@ -1595,6 +1595,8 @@ mod tests {
 
 	#[test]
 	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		use pallet_transaction_payment::NextFeeMultiplier;
+
 		let t = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
