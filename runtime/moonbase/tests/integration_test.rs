@@ -87,7 +87,11 @@ fn verify_randomness_precompile_gas_constants() {
 		REQUEST_RANDOMNESS_ESTIMATED_COST
 	);
 	assert_eq!(
-		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
+		weight_to_gas(
+			Weight::prepare_fulfillment(
+				<moonbase_runtime as pallet_randomness::Config>::MaxRandomWords::get().into()
+			) + Weight::finish_fulfillment()
+		),
 		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
