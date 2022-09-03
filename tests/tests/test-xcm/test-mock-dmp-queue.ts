@@ -6,6 +6,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
+import { XcmFragment } from "../../util/xcm";
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test DMP on_initialization and on_idle", async function () {
@@ -24,7 +25,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -39,46 +40,24 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // for that reason, we multiply times 2
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
-    const instructions = [
-      {
-        WithdrawAsset: [
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
           {
-            id: {
-              Concrete: {
-                parents: 0,
-                interior: {
-                  X1: { PalletInstance: balancesPalletIndex },
-                },
-              },
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-            fun: { Fungible: 1 },
           },
         ],
+        fungible: 1n,
       },
-      ...Array(Number(clearOriginsPerMessage)).fill({
-        ClearOrigin: null,
-      }),
-      {
-        BuyExecution: {
-          fees: {
-            id: {
-              Concrete: {
-                parents: 0,
-                interior: {
-                  X1: { PalletInstance: balancesPalletIndex },
-                },
-              },
-            },
-            fun: { Fungible: 1 },
-          },
-          weightLimit: { Limited: new BN(20000000000) },
-        },
-      },
-    ];
-
-    const xcmMessage = {
-      V2: instructions,
-    };
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .clear_origin(clearOriginsPerMessage)
+      .buy_execution()
+      .as_v2();
 
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",

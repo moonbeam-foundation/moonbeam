@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
+
 use super::*;
 use crate as pallet_xcm_transactor;
 use frame_support::{construct_runtime, parameter_types};
@@ -221,6 +222,13 @@ pub enum Transactors {
 	Relay,
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
+}
+
 impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
@@ -268,6 +276,19 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 					Some(MultiLocation::new(1, Junctions::X1(Parachain(2))))
 				}
 			}
+		}
+	}
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl From<MultiLocation> for CurrencyId {
+	fn from(location: MultiLocation) -> CurrencyId {
+		if location == SelfReserve::get() {
+			CurrencyId::SelfReserve
+		} else if location == MultiLocation::parent() {
+			CurrencyId::OtherReserve(0)
+		} else {
+			CurrencyId::OtherReserve(1)
 		}
 	}
 }

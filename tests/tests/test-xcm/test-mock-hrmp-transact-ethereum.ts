@@ -10,6 +10,7 @@ import {
   registerForeignAsset,
   injectHrmpMessageAndSeal,
   RawXcmMessage,
+  XcmFragment,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -87,7 +88,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
     let expectedTransferredAmount = 0n;
     let expectedTransferredAmountPlusFees = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -99,60 +100,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
 
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-              weightLimit: { Limited: targetXcmWeight },
+          ],
+          fungible: targetXcmFee,
+        },
+        weight_limit: new BN(targetXcmWeight.toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -254,60 +229,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (call)", (c
       const transferCallEncoded = transferCall?.method.toHex();
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: transferredBalance / 2n },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: transferredBalance / 2n },
-              },
-              weightLimit: { Limited: new BN(4000000000) },
+          ],
+          fungible: transferredBalance / 2n,
+        },
+        weight_limit: new BN(4000000000),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(3000000000),
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(3000000000),
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -352,7 +301,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
   let random: KeyringPair;
   let contractDeployed;
 
-  const assetsToTransfer = 2_900_000_000n * 2n;
+  const assetsToTransfer = 3_300_000_000n * 2n;
 
   before("should Register an asset and set unit per sec", async function () {
     const { contract, rawTx } = await createContract(context, "Incrementor");
@@ -378,42 +327,19 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
     // Deposit asset
-    let xcmMessage = {
-      V2: [
-        {
-          ReserveAssetDeposited: [
-            {
-              id: {
-                Concrete: ASSET_MULTILOCATION,
-              },
-              fun: { Fungible: assetsToTransfer + 400_000_000n },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: ASSET_MULTILOCATION,
-              },
-              fun: { Fungible: assetsToTransfer + 400_000_000n },
-            },
-            weightLimit: { Limited: new BN(400_000_000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(1),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: descendOriginAddress } } },
-            },
-          },
-        },
-      ],
-    };
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [ASSET_MULTILOCATION],
+        fungible: assetsToTransfer + 800_000_000n,
+      },
+      weight_limit: new BN(800_000_000),
+      beneficiary: descendOriginAddress,
+    })
+      .reserve_asset_deposited()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -468,52 +394,30 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
       // TODO need to update lookup types for xcm ethereum transaction V2
       const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
       const transferCallEncoded = transferCall?.method.toHex();
+
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
-              },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [ASSET_MULTILOCATION],
+          fungible: assetsToTransfer / 2n,
+        },
+        weight_limit: new BN((assetsToTransfer / 2n).toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(2_500_000_000), // 100_000 gas
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: ASSET_MULTILOCATION,
-                },
-                fun: { Fungible: assetsToTransfer / 2n },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: ASSET_MULTILOCATION,
-                },
-                fun: { Fungible: assetsToTransfer / 2n },
-              },
-              weightLimit: { Limited: assetsToTransfer / 2n },
-            },
-          },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(2_500_000_000), // 100_000 gas
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -605,7 +509,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
     let feeAmount = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -619,60 +523,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-              weightLimit: { Limited: targetXcmWeight },
+          ],
+          fungible: targetXcmFee,
+        },
+        weight_limit: new BN(targetXcmWeight.toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 100_000 gas
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -770,7 +648,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
     let feeAmount = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -784,60 +662,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-              weightLimit: { Limited: targetXcmWeight },
+          ],
+          fungible: targetXcmFee,
+        },
+        weight_limit: new BN(targetXcmWeight.toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 100_000 gas
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {
@@ -950,7 +802,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
     let expectedTransferredAmount = 0n;
     let expectedTransferredAmountPlusFees = 0n;
 
-    const targetXcmWeight = 925_000_000n;
+    const targetXcmWeight = 1_325_000_000n;
     const targetXcmFee = targetXcmWeight * 50_000n;
 
     for (const xcmTransaction of xcmTransactions) {
@@ -965,60 +817,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
 
       // We are going to test that we can receive a transact operation from parachain 1
       // using descendOrigin first
-      const xcmMessage = {
-        V2: [
-          {
-            DescendOrigin: {
-              X1: {
-                AccountKey20: {
-                  network: "Any",
-                  key: sendingAddress,
-                },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-          {
-            WithdrawAsset: [
-              {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-            ],
-          },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: targetXcmFee },
-              },
-              weightLimit: { Limited: targetXcmWeight },
+          ],
+          fungible: targetXcmFee,
+        },
+        weight_limit: new BN(targetXcmWeight.toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(525_000_000), // 100_000 gas
+            call: {
+              encoded: transferCallEncoded,
             },
           },
-          {
-            Transact: {
-              originType: "SovereignAccount",
-              requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
-              call: {
-                encoded: transferCallEncoded,
-              },
-            },
-          },
-        ],
-      };
+        })
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, 1, {

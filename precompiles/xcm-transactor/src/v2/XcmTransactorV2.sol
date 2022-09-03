@@ -95,14 +95,14 @@ interface XcmTransactorV2 {
     /// @param dest The destination chain (as multilocation) where to send the message
     /// @param feeLocation The asset multilocation that indentifies the fee payment currency
     /// It has to be a reserve of the destination chain
-    /// @param weight The weight we want to buy in the destination chain for the call to be made
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
     function transactThroughSignedMultilocation(
         Multilocation memory dest,
         Multilocation memory feeLocation,
-        uint64 weight,
+        uint64 transactRequiredWeightAtMost,
         bytes memory call,
         uint256 feeAmount,
         uint64 overallWeight
@@ -116,14 +116,14 @@ interface XcmTransactorV2 {
     /// @param dest The destination chain (as multilocation) where to send the message
     /// @param feeLocationAddress The ERC20 address of the token we want to use to pay for fees
     /// only callable if such an asset has been BRIDGED to our chain
-    /// @param weight The weight we want to buy in the destination chain for the call to be made
+    /// @param transactRequiredWeightAtMost The weight we want to buy in the destination chain for the call to be made
     /// @param call The call to be executed in the destination chain
     /// @param feeAmount Amount to be used as fee.
     /// @param overallWeight Overall weight to be used for the xcm message.
     function transactThroughSigned(
         Multilocation memory dest,
         address feeLocationAddress,
-        uint64 weight,
+        uint64 transactRequiredWeightAtMost,
         bytes memory call,
         uint256 feeAmount,
         uint64 overallWeight

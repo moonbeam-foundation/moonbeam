@@ -1851,7 +1851,7 @@ fn xtokens_precompiles_transfer() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1903,7 +1903,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1945,7 +1945,7 @@ fn xtokens_precompiles_transfer_native() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1993,7 +1993,7 @@ fn xtokens_precompile_transfer_local_asset() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2497,7 +2497,7 @@ fn transact_through_signed_precompile_works_v1() {
 					.write(bytes)
 					.build(),
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2539,7 +2539,7 @@ fn transact_through_signed_precompile_works_v2() {
 					.write(total_weight)
 					.build(),
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
