@@ -25,6 +25,7 @@ use fp_evm::{
 	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
 };
 use frame_support::traits::Get;
+use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
 	weights::{SubstrateWeight, WeightInfo},
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
@@ -62,9 +63,13 @@ pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
 pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
 
 /// Fulfillment overhead cost cannot be constant because weight hint is passed at runtime
-pub fn fulfillment_overhead_cost<T: frame_system::Config>(num_words: u8) -> u64 {
-	SubstrateWeight::<T>::prepare_fulfillment(num_words.into())
-		.saturating_add(SubstrateWeight::<T>::finish_fulfillment())
+pub fn fulfillment_overhead_cost<T: pallet_evm::Config + frame_system::Config>(
+	num_words: u8,
+) -> u64 {
+	<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+		SubstrateWeight::<T>::prepare_fulfillment(num_words.into())
+			.saturating_add(SubstrateWeight::<T>::finish_fulfillment()),
+	)
 }
 
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
