@@ -124,14 +124,14 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
     const request = (
       (await context.polkadotApi.query.randomness.requests.entries()) as any
     )[0][1].unwrap().request;
-    expect(request.info.asBabeEpoch[0].toBigInt()).to.be.equal(1002n);
+    expect(request.info.asBabeEpoch[0].toBigInt()).to.be.equal(2n);
   });
 
   it("should have an expiration delay of 10001 epochs", async function () {
     const request = (
       (await context.polkadotApi.query.randomness.requests.entries()) as any
     )[0][1].unwrap().request;
-    expect(request.info.asBabeEpoch[1].toBigInt()).to.be.equal(11000n);
+    expect(request.info.asBabeEpoch[1].toBigInt()).to.be.equal(10000n);
   });
 });
 
@@ -202,6 +202,8 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
         ]),
       })
     );
+    // run to next epoch and expect request status is pending
+    await context.createBlock();
 
     expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
       CONTRACT_RANDOMNESS_STATUS_PENDING.toString()
@@ -230,7 +232,9 @@ describeDevMoonbeam("Randomness Babe - Requesting a random number", (context) =>
       })
     );
     // run to beginning of 2nd epoch after epoch in which request was made
-    await context.createBlock();
+    for (let i = 0; i < 2; i++) {
+      await context.createBlock();
+    }
 
     expect(await randomnessContract.methods.getRequestStatus(0).call()).to.equal(
       CONTRACT_RANDOMNESS_STATUS_READY.toString()
