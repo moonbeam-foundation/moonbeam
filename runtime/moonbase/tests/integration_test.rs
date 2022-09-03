@@ -53,8 +53,8 @@ use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
 use pallet_evm_precompile_randomness::{
-	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
-	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+	EXECUTE_EXPIRATION_ESTIMATED_COST, INCREASE_REQUEST_FEE_ESTIMATED_COST,
+	REQUEST_RANDOMNESS_ESTIMATED_COST,
 };
 use pallet_evm_precompile_xcm_transactor::{
 	v1::Action as XcmTransactorActionV1, v2::Action as XcmTransactorActionV2,
@@ -85,14 +85,6 @@ fn verify_randomness_precompile_gas_constants() {
 	assert_eq!(
 		weight_to_gas(Weight::request_randomness()),
 		REQUEST_RANDOMNESS_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(
-			Weight::prepare_fulfillment(
-				<moonbase_runtime as pallet_randomness::Config>::MaxRandomWords::get().into()
-			) + Weight::finish_fulfillment()
-		),
-		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
 		weight_to_gas(Weight::increase_fee()),
