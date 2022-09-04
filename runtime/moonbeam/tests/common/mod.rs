@@ -34,7 +34,7 @@ pub use moonbeam_runtime::{
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill};
+use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
