@@ -183,6 +183,9 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
+const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
+const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
+const BLOCKS_PER_ROUND: u32 = 6 * HOURS;
 pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::{
@@ -191,7 +194,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		perbill_annual_to_perbill_round(
 			annual,
 			// rounds per year
-			BLOCKS_PER_YEAR / get!(pallet_parachain_staking, DefaultBlocksPerRound, u32),
+			BLOCKS_PER_YEAR / BLOCKS_PER_ROUND,
 		)
 	}
 	let annual = Range {
@@ -277,6 +280,9 @@ pub fn testnet_genesis(
 				.collect(),
 			delegations,
 			inflation_config: moonbeam_inflation_config(),
+			collator_commission: COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: BLOCKS_PER_ROUND,
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
