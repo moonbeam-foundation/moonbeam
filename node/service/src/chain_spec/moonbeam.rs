@@ -26,12 +26,12 @@ use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::EligibilityValue;
 use moonbeam_runtime::{
-	currency::GLMR, currency::SUPPLY_FACTOR, get, AccountId, AuthorFilterConfig,
-	AuthorMappingConfig, Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig,
-	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount,
-	GenesisConfig, InflationInfo, MaintenanceModeConfig, ParachainInfoConfig,
-	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
-	TechCommitteeCollectiveConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
+	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
+	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig,
+	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
