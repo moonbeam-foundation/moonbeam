@@ -31,13 +31,13 @@ use moonbeam_runtime::{
 	DemocracyConfig, EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount,
 	GenesisConfig, InflationInfo, MaintenanceModeConfig, ParachainInfoConfig,
 	ParachainStakingConfig, PolkadotXcmConfig, Precompiles, Range, SystemConfig,
-	TechCommitteeCollectiveConfig, TreasuryCouncilCollectiveConfig, WASM_BINARY,
+	TechCommitteeCollectiveConfig, TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
