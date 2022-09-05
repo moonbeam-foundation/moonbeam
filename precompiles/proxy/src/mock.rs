@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate::ProxyWrapper;
+use crate::{ProxyWrapper, ProxyWrapperCall};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, InstanceFilter},
@@ -167,6 +167,8 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyWrapper<R>, LimitRecursionTo<1>>,),
 >;
+
+pub type PCall = ProxyWrapperCall<Runtime>;
 
 pub struct EnsureAddressAlways;
 impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {
