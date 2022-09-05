@@ -29,16 +29,16 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", version = "4.0.0", default-features = false }
 
 # Frontier
-fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0", default-features = false }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0", default-features = false }
+fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0", default-features = false }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 [dev-dependencies]
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0" }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "tgm-estimate-invalid-ocpode-0.26.0" }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 hex = "0.4.3"
