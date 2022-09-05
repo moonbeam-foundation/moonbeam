@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 
+use fp_evm::Precompile;
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
@@ -196,6 +197,8 @@ where
 		address == H160::from_low_u64_be(1)
 	}
 }
+
+pub type PCall = RelayEncoderWrapperCall<Runtime, test_relay_runtime::TestEncoder>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

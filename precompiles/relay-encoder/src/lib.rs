@@ -20,7 +20,7 @@
 #![cfg_attr(test, feature(assert_matches))]
 
 use cumulus_primitives_core::relay_chain;
-use fp_evm::{Precompile, PrecompileHandle, PrecompileOutput};
+use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	ensure,
@@ -40,6 +40,7 @@ mod mock;
 mod test_relay_runtime;
 #[cfg(test)]
 mod tests;
+
 pub enum AvailableStakeCalls {
 	Bond(
 		relay_chain::AccountId,
@@ -67,99 +68,32 @@ pub const ARRAY_LIMIT: u32 = 512;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 type GetRewardDestinationSizeLimit = ConstU32<REWARD_DESTINATION_SIZE_LIMIT>;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-enum Action {
-	EncodeBond = "encodeBond(uint256,uint256,bytes)",
-	EncodeBondExtra = "encodeBondExtra(uint256)",
-	EncodeUnbond = "encodeUnbond(uint256)",
-	EncodeWithdrawUnbonded = "encodeWithdrawUnbonded(uint32)",
-	EncodeValidate = "encodeValidate(uint256,bool)",
-	EncodeNominate = "encodeNominate(uint256[])",
-	EncodeChill = "encodeChill()",
-	EncodeSetPayee = "encodeSetPayee(bytes)",
-	EncodeSetController = "encodeSetController(uint256)",
-	EncodeRebond = "encodeRebond(uint256)",
-
-	// deprecated
-	DeprecatedEncodeBond = "encode_bond(uint256,uint256,bytes)",
-	DeprecatedEncodeBondExtra = "encode_bond_extra(uint256)",
-	DeprecatedEncodeUnbond = "encode_unbond(uint256)",
-	DeprecatedEncodeWithdrawUnbonded = "encode_withdraw_unbonded(uint32)",
-	DeprecatedEncodeValidate = "encode_validate(uint256,bool)",
-	DeprecatedEncodeNominate = "encode_nominate(uint256[])",
-	DeprecatedEncodeChill = "encode_chill()",
-	DeprecatedEncodeSetPayee = "encode_set_payee(bytes)",
-	DeprecatedEncodeSetController = "encode_set_controller(uint256)",
-	DeprecatedEncodeRebond = "encode_rebond(uint256)",
-}
-
 /// A precompile to provide relay stake calls encoding through evm
 pub struct RelayEncoderWrapper<Runtime, RelayRuntime>(PhantomData<(Runtime, RelayRuntime)>);
 
-// TODO: Migrate to precompile_utils::Precompile.
-impl<Runtime, RelayRuntime> Precompile for RelayEncoderWrapper<Runtime, RelayRuntime>
-where
-	RelayRuntime: StakeEncodeCall,
-	Runtime: pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(FunctionModifier::View)?;
-
-		// Parse the function selector
-		// These are the four-byte function selectors calculated from the RelayEncoder.sol
-		// according to the solidity specification
-		// https://docs.soliditylang.org/en/v0.8.0/abi-spec.html#function-selector
-		match selector {
-			// Storage Accessors
-			Action::EncodeBond | Action::DeprecatedEncodeBond => Self::encode_bond(handle),
-			Action::EncodeBondExtra | Action::DeprecatedEncodeBondExtra => {
-				Self::encode_bond_extra(handle)
-			}
-			Action::EncodeUnbond | Action::DeprecatedEncodeUnbond => Self::encode_unbond(handle),
-			Action::EncodeWithdrawUnbonded | Action::DeprecatedEncodeWithdrawUnbonded => {
-				Self::encode_withdraw_unbonded(handle)
-			}
-			Action::EncodeValidate | Action::DeprecatedEncodeValidate => {
-				Self::encode_validate(handle)
-			}
-			Action::EncodeNominate | Action::DeprecatedEncodeNominate => {
-				Self::encode_nominate(handle)
-			}
-			Action::EncodeChill | Action::DeprecatedEncodeChill => Self::encode_chill(handle),
-			Action::EncodeSetPayee | Action::DeprecatedEncodeSetPayee => {
-				Self::encode_set_payee(handle)
-			}
-			Action::EncodeSetController | Action::DeprecatedEncodeSetController => {
-				Self::encode_set_controller(handle)
-			}
-			Action::EncodeRebond | Action::DeprecatedEncodeRebond => Self::encode_rebond(handle),
-		}
-	}
-}
-
+#[precompile_utils::precompile]
 impl<Runtime, RelayRuntime> RelayEncoderWrapper<Runtime, RelayRuntime>
 where
 	RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
-	fn encode_bond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeBond(uint256,uint256,bytes)")]
+	#[precompile::public("encode_bond(uint256,uint256,bytes)")]
+	#[precompile::view]
+	fn encode_bond(
+		handle: &mut impl PrecompileHandle,
+		controller_address: U256,
+		amount: U256,
+		reward_destination: RewardDestinationWrapper,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {
-			controller_address: H256,
-			amount: U256,
-			reward_destination: RewardDestinationWrapper
-		});
 		let address: [u8; 32] = controller_address.into();
 		let relay_amount = u256_to_relay_amount(amount)?;
 		let reward_destination = reward_destination.into();
 
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
 			address.into(),
 			relay_amount,
 			reward_destination,
@@ -167,57 +101,72 @@ where
 		.as_slice()
 		.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_bond_extra(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeBondExtra(uint256)")]
+	#[precompile::public("encode_bond_extra(uint256)")]
+	#[precompile::view]
+	fn encode_bond_extra(
+		handle: &mut impl PrecompileHandle,
+		amount: U256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { amount: U256 });
-
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
-				.as_slice()
-				.into();
-
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
-	}
-
-	fn encode_unbond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { amount: U256 });
-
-		let relay_amount = u256_to_relay_amount(amount)?;
-
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
 			.as_slice()
 			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_withdraw_unbonded(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeUnbond(uint256)")]
+	#[precompile::public("encode_unbond(uint256)")]
+	#[precompile::view]
+	fn encode_unbond(
+		handle: &mut impl PrecompileHandle,
+		amount: U256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { slashes: u32 });
+		let relay_amount = u256_to_relay_amount(amount)?;
 
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
-				.as_slice()
-				.into();
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
+			.as_slice()
+			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_validate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeWithdrawUnbonded(uint32)")]
+	#[precompile::public("encode_withdraw_unbonded(uint32)")]
+	#[precompile::view]
+	fn encode_withdraw_unbonded(
+		handle: &mut impl PrecompileHandle,
+		slashes: u32,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {comission: u32, blocked: bool});
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
+			.as_slice()
+			.into();
 
-		let fraction = Perbill::from_parts(comission);
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
+		Ok(encoded)
+	}
+
+	#[precompile::public("encodeValidate(uint256,bool)")]
+	#[precompile::public("encode_validate(uint256,bool)")]
+	#[precompile::view]
+	fn encode_validate(
+		handle: &mut impl PrecompileHandle,
+		comission: SolidityConvert<U256, u32>,
+		blocked: bool,
+	) -> EvmResult<UnboundedBytes> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let fraction = Perbill::from_parts(comission.converted());
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
 			pallet_staking::ValidatorPrefs {
 				commission: fraction,
 				blocked: blocked,
@@ -226,80 +175,98 @@ where
 		.as_slice()
 		.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_nominate(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeNominate(uint256[])")]
+	#[precompile::public("encode_nominate(uint256[])")]
+	#[precompile::view]
+	fn encode_nominate(
+		handle: &mut impl PrecompileHandle,
+		nominees: BoundedVec<U256, GetArrayLimit>,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { nominees: BoundedVec<H256, GetArrayLimit> });
-
+		let nominees: Vec<_> = nominees.into();
 		let nominated: Vec<AccountId32> = nominees
-			.into_vec()
 			.iter()
 			.map(|&add| {
 				let as_bytes: [u8; 32] = add.into();
 				as_bytes.into()
 			})
 			.collect();
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
 			.as_slice()
 			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeChill()")]
+	#[precompile::public("encode_chill()")]
+	#[precompile::view]
+	fn encode_chill(handle: &mut impl PrecompileHandle) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {});
-
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
 			.as_slice()
 			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_set_payee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeSetPayee(bytes)")]
+	#[precompile::public("encode_set_payee(bytes)")]
+	#[precompile::view]
+	fn encode_set_payee(
+		handle: &mut impl PrecompileHandle,
+		reward_destination: RewardDestinationWrapper,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { reward_destination: RewardDestinationWrapper });
 		let reward_destination = reward_destination.into();
 
-		let encoded: Bytes =
-			RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
-				.as_slice()
-				.into();
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
+			.as_slice()
+			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_set_controller(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeSetController(uint256)")]
+	#[precompile::public("encode_set_controller(uint256)")]
+	#[precompile::view]
+	fn encode_set_controller(
+		handle: &mut impl PrecompileHandle,
+		controller: U256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { controller: H256 });
 		let controller: [u8; 32] = controller.into();
 
-		let encoded: Bytes =
+		let encoded =
 			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
 				.as_slice()
 				.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 
-	fn encode_rebond(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("encodeRebond(uint256)")]
+	#[precompile::public("encode_rebond(uint256)")]
+	#[precompile::view]
+	fn encode_rebond(
+		handle: &mut impl PrecompileHandle,
+		amount: U256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, { amount: U256 });
-
 		let relay_amount = u256_to_relay_amount(amount)?;
-		let encoded: Bytes = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
+		let encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
 			.as_slice()
 			.into();
 
-		Ok(succeed(EvmDataWriter::new().write(encoded).build()))
+		Ok(encoded)
 	}
 }
 
@@ -328,7 +295,7 @@ impl Into<RewardDestination<AccountId32>> for RewardDestinationWrapper {
 impl EvmData for RewardDestinationWrapper {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let reward_destination = reader.read::<BoundedBytes<GetRewardDestinationSizeLimit>>()?;
-		let reward_destination_bytes = reward_destination.into_vec();
+		let reward_destination_bytes: Vec<_> = reward_destination.into();
 		ensure!(
 			reward_destination_bytes.len() > 0,
 			RevertReason::custom("Reward destinations cannot be empty")
@@ -356,7 +323,7 @@ impl EvmData for RewardDestinationWrapper {
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
-		let encoded_bytes: Bytes = match value.0 {
+		let encoded_bytes: UnboundedBytes = match value.0 {
 			RewardDestination::Staked => {
 				encoded.push(0);
 				encoded.as_slice().into()
@@ -388,6 +355,6 @@ impl EvmData for RewardDestinationWrapper {
 	}
 
 	fn solidity_type() -> String {
-		Bytes::solidity_type()
+		UnboundedBytes::solidity_type()
 	}
 }
