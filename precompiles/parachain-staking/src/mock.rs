@@ -188,6 +188,8 @@ where
 	}
 }
 
+pub type PCall = ParachainStakingWrapperCall<Runtime>;
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());

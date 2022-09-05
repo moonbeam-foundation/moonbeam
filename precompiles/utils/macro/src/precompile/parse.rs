@@ -241,11 +241,11 @@ impl Precompile {
 
 					let local_args_type = format!("({}", split[1]); // add back initial parenthesis
 
+					// If there are multiple public attributes we check that they all have
+					// the same type.
 					if let Some(ref args_type) = &solidity_arguments_type {
-						// If there are multiple public attributes we check that they all have
-						// the same type.
 						if args_type != &local_args_type {
-							let msg = "Method cannot have multiple selectors with different types.";
+							let msg = "Method cannot have selectors with different types.";
 							return Err(syn::Error::new(signature_lit.span(), msg));
 						}
 					} else {
