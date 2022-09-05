@@ -123,8 +123,8 @@ fn test_transact_xcm_evm_call_works() {
 	ext.execute_with(|| {
 		let t = EIP1559UnsignedTransaction {
 			nonce: U256::zero(),
-			max_priority_fee_per_gas: U256::from(1),
-			max_fee_per_gas: U256::from(1),
+			max_priority_fee_per_gas: U256::one(),
+			max_fee_per_gas: U256::one(),
 			gas_limit: U256::from(0x100000),
 			action: ethereum::TransactionAction::Create,
 			value: U256::zero(),
@@ -189,7 +189,7 @@ fn test_transact_xcm_validation_works() {
 				EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
 					gas_limit: U256::from(0x5207),
 					action: ethereum::TransactionAction::Call(bob.address),
-					value: U256::from(1),
+					value: U256::one(),
 					input: vec![],
 					access_list: None,
 				}),
@@ -296,4 +296,94 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 				Proxy::remove_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
 		});
 	}
+}
+
+#[test]
+fn test_global_nonce_incr() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	ext.execute_with(|| {
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Alice to Charlie");
+
+		assert_eq!(EthereumXcm::nonce(), U256::one());
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(bob.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Bob to Charlie");
+
+		assert_eq!(EthereumXcm::nonce(), U256::from(2));
+	});
+}
+
+#[test]
+fn test_global_nonce_not_incr() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+
+		let invalid_transaction_cost = EthereumXcmTransaction::V2(EthereumXcmTransactionV2 {
+			gas_limit: U256::one(),
+			action: ethereum::TransactionAction::Call(bob.address),
+			value: U256::one(),
+			input: vec![],
+			access_list: None,
+		});
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			invalid_transaction_cost,
+		)
+		.expect_err("Failed to execute transaction from Alice to Bob");
+
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+	});
+}
+
+#[test]
+fn test_transaction_hash_collision() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	ext.execute_with(|| {
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Alice to Charlie");
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(bob.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Bob to Charlie");
+
+		let mut hashes = Ethereum::pending()
+			.iter()
+			.map(|(tx, _, _)| tx.hash())
+			.collect::<Vec<ethereum_types::H256>>();
+
+		// Holds two transactions hashes
+		assert_eq!(hashes.len(), 2);
+
+		hashes.dedup();
+
+		// Still holds two transactions hashes after removing potential consecutive repeated values.
+		assert_eq!(hashes.len(), 2);
+	});
 }
