@@ -78,46 +78,6 @@ const setupLotteryWithParticipants = async (context: DevTestContext) => {
   return contract;
 };
 
-// Uses sudo (alith) to set relayEpoch to +2 and randomnessResult to the desired value
-const fakeBabeResultTransaction = async (
-  context: DevTestContext,
-  value?: PalletRandomnessRandomnessResult
-) => {
-  const fakeRandomResult = context.polkadotApi.registry.createType(
-    "Option<PalletRandomnessRandomnessResult>",
-    value || {
-      requestCount: 1,
-      randomness: "0xb1ffdd4a26e0f2a2fd1e0862a1c9be422c66dddd68257306ed55dc7bd9dce647",
-    }
-  );
-  // console.log(
-  //   context.polkadotApi.query.randomness.randomnessResults.key({ BabeEpoch: 2 }).toString()
-  // );
-  // console.log(await context.polkadotApi.query.randomness.randomnessResults.entries());
-  // console.log(
-  //   (await context.polkadotApi.query.randomness.randomnessResults({ BabeEpoch: 2 })).toHex()
-  // );
-  // console.log(fakeRandomResult.toHex());
-
-  return context.polkadotApi.tx.sudo
-    .sudo(
-      context.polkadotApi.tx.system.setStorage([
-        [
-          context.polkadotApi.query.randomness.relayEpoch.key().toString(),
-          bnToHex(((await context.polkadotApi.query.randomness.relayEpoch()) as any).addn(2), {
-            bitLength: 64,
-            isLe: true,
-          }),
-        ],
-        [
-          context.polkadotApi.query.randomness.randomnessResults.key({ BabeEpoch: 2 }).toString(),
-          fakeRandomResult.toHex(),
-        ],
-      ])
-    )
-    .signAsync(alith);
-};
-
 describeDevMoonbeam("Randomness Babe - Preparing Lottery Demo", (context) => {
   let lotteryContract: Contract;
   before("setup lottery contract", async function () {
@@ -209,8 +169,6 @@ describeDevMoonbeam("Randomness Babe - Lottery Demo", (context) => {
     await context.createBlock();
 
     const { result } = await context.createBlock([
-      // Faking relay epoch + 2 in randomness storage
-      fakeBabeResultTransaction(context),
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
@@ -218,7 +176,7 @@ describeDevMoonbeam("Randomness Babe - Lottery Demo", (context) => {
       }),
     ]);
 
-    expectEVMResult(result[1].events, "Succeed");
+    expectEVMResult(result[0].events, "Succeed");
   });
 });
 
@@ -240,17 +198,16 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
         value: Web3.utils.toWei("1", "ether"),
       })
     );
+    await context.createBlock();
 
     const { result } = await context.createBlock([
-      // Faking relay epoch + 2 in randomness storage
-      fakeBabeResultTransaction(context),
       createTransaction(context, {
         ...BALTATHAR_TRANSACTION_TEMPLATE, // mus use baltathar or put correct nonce for alith
         to: PRECOMPILE_RANDOMNESS_ADDRESS,
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       }),
     ]);
-    fulFillReceipt = await context.web3.eth.getTransactionReceipt(result[1].hash);
+    fulFillReceipt = await context.web3.eth.getTransactionReceipt(result[0].hash);
   });
   it("should have 4 events", async function () {
     expect(fulFillReceipt.logs.length).to.equal(4);
