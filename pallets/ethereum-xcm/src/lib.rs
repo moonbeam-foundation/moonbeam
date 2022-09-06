@@ -41,7 +41,7 @@ use frame_support::{
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
-use sp_runtime::{traits::UniqueSaturatedInto, RuntimeDebug};
+use sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
 pub use ethereum::{
@@ -102,6 +102,8 @@ pub mod pallet {
 		type ReservedXcmpWeight: Get<Weight>;
 		/// Ensure proxy
 		type EnsureProxy: EnsureProxy<Self::AccountId>;
+		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
+		type ControllerOrigin: EnsureOrigin<Self::Origin>;
 	}
 
 	#[pallet::pallet]
@@ -113,8 +115,18 @@ pub mod pallet {
 	#[pallet::getter(fn nonce)]
 	pub(crate) type Nonce<T: Config> = StorageValue<_, U256, ValueQuery>;
 
+	/// Whether or not Ethereum-XCM is suspended from executing
+	#[pallet::storage]
+	pub(super) type EthereumXcmSuspended<T: Config> = StorageValue<_, bool, ValueQuery>;
+
 	#[pallet::origin]
 	pub type Origin = RawOrigin;
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// Xcm to Ethereum execution is suspended
+		EthereumXcmExecutionSuspended,
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T>
@@ -127,12 +139,22 @@ pub mod pallet {
 				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
 				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
 			}
-		}))]
+		}).saturating_add(T::DbWeight::get().reads(1)))]
 		pub fn transact(
 			origin: OriginFor<T>,
 			xcm_transaction: EthereumXcmTransaction,
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
+			ensure!(
+				!EthereumXcmSuspended::<T>::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::<T>::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: Some(T::DbWeight::get().reads(1)),
+						pays_fee: Pays::Yes
+					}
+				}
+			);
 			Self::validate_and_apply(source, xcm_transaction)
 		}
 
@@ -142,26 +164,60 @@ pub mod pallet {
 				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
 				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
 			}
-		}))]
+		}).saturating_add(T::DbWeight::get().reads(2)))]
 		pub fn transact_through_proxy(
 			origin: OriginFor<T>,
 			transact_as: H160,
 			xcm_transaction: EthereumXcmTransaction,
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
+			ensure!(
+				!EthereumXcmSuspended::<T>::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::<T>::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: Some(T::DbWeight::get().reads(1)),
+						pays_fee: Pays::Yes
+					}
+				}
+			);
 			let _ = T::EnsureProxy::ensure_ok(
 				T::AddressMapping::into_account_id(transact_as),
 				T::AddressMapping::into_account_id(source),
 			)
 			.map_err(|e| sp_runtime::DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
-					actual_weight: Some(T::DbWeight::get().reads(1)),
+					actual_weight: Some(T::DbWeight::get().reads(2)),
 					pays_fee: Pays::Yes,
 				},
 				error: sp_runtime::DispatchError::Other(e),
 			})?;
 
 			Self::validate_and_apply(transact_as, xcm_transaction)
+		}
+
+		/// Suspends all Ethereum executions from XCM.
+		///
+		/// - `origin`: Must pass `ControllerOrigin`.
+		#[pallet::weight((T::DbWeight::get().writes(1), DispatchClass::Operational,))]
+		pub fn suspend_ethereum_xcm_execution(origin: OriginFor<T>) -> DispatchResult {
+			T::ControllerOrigin::ensure_origin(origin)?;
+
+			EthereumXcmSuspended::<T>::put(true);
+
+			Ok(())
+		}
+
+		/// Resumes all Ethereum executions from XCM.
+		///
+		/// - `origin`: Must pass `ControllerOrigin`.
+		#[pallet::weight((T::DbWeight::get().writes(1), DispatchClass::Operational,))]
+		pub fn resume_ethereum_xcm_execution(origin: OriginFor<T>) -> DispatchResult {
+			T::ControllerOrigin::ensure_origin(origin)?;
+
+			EthereumXcmSuspended::<T>::put(false);
+
+			Ok(())
 		}
 	}
 }
