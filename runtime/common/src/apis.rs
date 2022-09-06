@@ -98,6 +98,15 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use xcm_primitives::EthereumXcmTracingStatus;
+						
+						// Store the target transaction in a storage helper to identify EthereumXcm
+						// in the runtime CallDispatcher.
+						frame_support::storage::unhashed::put::<EthereumXcmTracingStatus>(
+							xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							&EthereumXcmTracingStatus::Transaction(traced_transaction.clone()),
+						);
+
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
@@ -112,6 +121,7 @@ macro_rules! impl_runtime_apis_plus_common {
 								}
 								_ => Executive::apply_extrinsic(ext),
 							};
+							// TODO check if EthereumXcmTracingStatus is exited, then panic to exit
 						}
 
 						Err(sp_runtime::DispatchError::Other(
