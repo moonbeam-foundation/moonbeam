@@ -35,7 +35,6 @@ use serde::{Deserialize, Serialize};
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
@@ -135,7 +134,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -149,7 +148,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = H160;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -308,14 +307,14 @@ impl ExtBuilder {
 }
 
 //TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: u32) {
 	while System::block_number() < n {
 		// Relay chain Stuff. I might actually set this to a number different than N
 		let sproof_builder = RelayStateSproofBuilder::default();
 		let (relay_parent_storage_root, relay_chain_state) =
 			sproof_builder.into_state_root_and_proof();
 		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
+			relay_parent_number: (System::block_number() + 1) as RelayChainBlockNumber,
 			relay_parent_storage_root,
 			..Default::default()
 		};

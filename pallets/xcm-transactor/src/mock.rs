@@ -25,10 +25,7 @@ use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	opaque, Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
@@ -59,14 +56,14 @@ construct_runtime!(
 );
 
 pub type Balance = u128;
-
+pub type BlockNumber = u32;
 pub type AccountId = u64;
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
 		frame_system::limits::BlockWeights::simple_max(1024);
 }
@@ -78,12 +75,12 @@ impl frame_system::Config for Test {
 	type Origin = Origin;
 	type Index = u64;
 	type Call = Call;
-	type BlockNumber = u32;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();

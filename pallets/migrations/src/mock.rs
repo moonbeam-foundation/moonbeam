@@ -27,7 +27,6 @@ use frame_support::{
 };
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
@@ -51,7 +50,7 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
@@ -68,7 +67,7 @@ impl frame_system::Config for Test {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -317,7 +316,7 @@ pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
 	weight
 }
 
-pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
+pub(crate) fn roll_to(block_number: u32, invoke_on_runtime_upgrade_first: bool) {
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}

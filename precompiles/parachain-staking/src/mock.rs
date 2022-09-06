@@ -30,7 +30,6 @@ use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
@@ -117,7 +116,7 @@ impl From<H160> for Account {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
@@ -134,7 +133,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -364,7 +363,7 @@ pub(crate) fn set_points(round: u32, acc: Account, pts: u32) {
 	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
 
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: u32) {
 	while System::block_number() < n {
 		ParachainStaking::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
@@ -378,8 +377,8 @@ pub(crate) fn roll_to(n: u64) {
 
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
-pub(crate) fn roll_to_round_begin(round: u64) {
-	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+pub(crate) fn roll_to_round_begin(round: u32) {
+	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }
 

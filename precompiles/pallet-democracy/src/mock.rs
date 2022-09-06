@@ -30,10 +30,7 @@ use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H256, U256};
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
 pub type AccountId = Account;
 pub type Balance = u128;
@@ -120,7 +117,7 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -134,7 +131,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -337,7 +334,7 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: u32) {
 	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
 	// We may be able to simulate this by poking its storage directly, but I don't see any value
 	// added from doing that.

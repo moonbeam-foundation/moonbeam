@@ -87,7 +87,7 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -115,7 +115,7 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -143,7 +143,7 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -208,7 +208,7 @@ fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -257,7 +257,7 @@ fn test_remove_proxy_succeeds() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -294,13 +294,13 @@ fn test_remove_proxies_succeeds() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Charlie,
 				proxy_type: ProxyType::Any,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -368,7 +368,7 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -398,7 +398,7 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 1u64,
+				delay: 1,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -428,7 +428,7 @@ fn test_is_proxy_returns_true_if_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 1u64,
+				delay: 1,
 			})
 			.dispatch(Origin::signed(Alice)));
 
@@ -486,7 +486,7 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 

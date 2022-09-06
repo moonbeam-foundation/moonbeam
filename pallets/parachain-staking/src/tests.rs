@@ -7121,7 +7121,7 @@ fn deferred_payment_steady_state_event_flow() {
 		.build()
 		.execute_with(|| {
 			// convenience to set the round points consistently
-			let set_round_points = |round: u64| {
+			let set_round_points = |round: u32| {
 				set_author(round as u32, 1, 1);
 				set_author(round as u32, 2, 1);
 				set_author(round as u32, 3, 1);
@@ -7145,8 +7145,8 @@ fn deferred_payment_steady_state_event_flow() {
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
-			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
+			let roll_through_initial_rounds = |mut round: u32| -> u32 {
+				while round < crate::mock::RewardPaymentDelay::get() + 1 {
 					set_round_points(round);
 
 					roll_to_round_end(round);
@@ -7160,7 +7160,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
-			let roll_through_steady_state_round = |round: u64| -> u64 {
+			let roll_through_steady_state_round = |round: u32| -> u32 {
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(
 					num_rounds_rolled, 1,

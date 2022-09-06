@@ -177,8 +177,8 @@ fn round_works() {
 			.execute_returns(EvmDataWriter::new().write(1u32).build());
 
 		// test next `ROUNDS_TO_TEST` rounds
-		const ROUNDS_TO_TEST: u64 = 10;
-		let mut current_round: u64 = 1;
+		const ROUNDS_TO_TEST: u32 = 10;
+		let mut current_round: u32 = 1;
 		while current_round < ROUNDS_TO_TEST {
 			current_round += 1;
 			roll_to_round_begin(current_round);

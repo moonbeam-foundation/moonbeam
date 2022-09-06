@@ -27,7 +27,6 @@ use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	AccountId32,
 };
@@ -40,6 +39,7 @@ use sp_runtime::{
 };
 
 pub type SignedExtra = (frame_system::CheckSpecVersion<Test>,);
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test, (), SignedExtra>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -61,7 +61,7 @@ frame_support::construct_runtime! {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
 		frame_system::limits::BlockWeights::simple_max(1024);
 }
@@ -73,13 +73,13 @@ impl frame_system::Config for Test {
 	type DbWeight = ();
 	type Origin = Origin;
 	type Index = u64;
-	type BlockNumber = u32;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Call = Call;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId32;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -232,7 +232,7 @@ impl pallet_proxy::Config for Test {
 pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId32, delegatee: AccountId32) -> Result<(), &'static str> {
-		let f = |x: &pallet_proxy::ProxyDefinition<AccountId32, ProxyType, u64>| -> bool {
+		let f = |x: &pallet_proxy::ProxyDefinition<AccountId32, ProxyType, u32>| -> bool {
 			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
 		};
 		Proxy::proxies(delegator)
