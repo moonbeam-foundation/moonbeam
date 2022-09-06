@@ -702,6 +702,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
@@ -973,6 +974,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::PolkadotXcm(_) => false,
 			Call::Treasury(_) => false,
 			Call::XcmTransactor(_) => false,
+			Call::EthereumXcm(_) => false,
 			_ => true,
 		}
 	}
