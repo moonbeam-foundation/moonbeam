@@ -63,7 +63,7 @@ pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
 pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
 
 /// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
-pub fn fulfillment_overhead_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
+pub fn fulfillment_overhead_gas_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
 	<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 		SubstrateWeight::<T>::prepare_fulfillment(num_words.into())
 			.saturating_add(SubstrateWeight::<T>::finish_fulfillment()),
@@ -413,7 +413,7 @@ where
 			handle.code_address(),
 			request.gas_limit,
 			request.fee,
-			fulfillment_overhead_cost::<Runtime>(request.num_words),
+			fulfillment_overhead_gas_cost::<Runtime>(request.num_words),
 		)?;
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
