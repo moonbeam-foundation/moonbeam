@@ -233,7 +233,7 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(log1.name).to.equal("Awarded");
     expect(log1.args.winner).to.equal(baltathar.address);
     expect(log1.args.randomWord.toHexString()).to.equal(
-      "0xa96841c4c6b068b96f08273ca66e24b79fa79d87b5a7d592bd1c5fb166d3e9c9"
+      "0x16ded6b78b1f87f393a3a041cb545a0fd460ae968afb44dadcaa4db37979a9fc"
     );
     expect(log1.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
 
@@ -242,7 +242,7 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(log2.name).to.equal("Awarded");
     expect(log2.args.winner).to.equal(alith.address);
     expect(log2.args.randomWord.toHexString()).to.equal(
-      "0x781edacacf631e06fa8b4157b0071737754aff4e3db59dbb5391c36f76653bc9"
+      "0xef0e7af53cf47bc7309efe730a9a1d5c1e510c1bfbdb6cb80473211e3dc3a2e1"
     );
     expect(log2.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
   });
