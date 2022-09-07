@@ -18,7 +18,8 @@
 macro_rules! impl_moonbeam_xcm_call_tracing {
 	{} => {
 
-		type CallResult = Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>>;
+		type CallResult =
+			Result<PostDispatchInfoOf<Call>, DispatchErrorWithPostInfo<PostDispatchInfoOf<Call>>>;
 
 		pub struct MoonbeamCall;
 		impl CallDispatcher<Call> for MoonbeamCall {
@@ -37,7 +38,11 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 						) => {
 							use crate::EthereumXcm;
 							use moonbeam_evm_tracer::tracer::EvmTracer;
-							use xcm_primitives::{XcmToEthereum, EthereumXcmTracingStatus, ETHEREUM_XCM_TRACING_STORAGE_KEY};
+							use xcm_primitives::{
+								XcmToEthereum,
+								EthereumXcmTracingStatus,
+								ETHEREUM_XCM_TRACING_STORAGE_KEY
+							};
 							use frame_support::storage::unhashed;
 
 							let dispatch_call = || {
