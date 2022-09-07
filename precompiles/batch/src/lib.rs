@@ -82,6 +82,14 @@ where
 	Runtime: pallet_evm::Config,
 {
 	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
+		// Check that caller is not a smart contract s.t. no code is inserted into
+		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let caller_code = pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
+		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
+			return Err(revert("Batch not callable by smart contracts"));
+		}
+
 		let mut input = handle.read_input()?;
 		let addresses: Vec<Address> = input.read()?;
 		let values: Vec<U256> = input.read()?;
