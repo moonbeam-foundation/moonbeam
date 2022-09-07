@@ -88,6 +88,7 @@ pub use self::pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
@@ -104,9 +105,13 @@ pub mod pallet {
 	}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// Global nonce used for building Ethereum transaction payload.
+	#[pallet::storage]
+	#[pallet::getter(fn nonce)]
+	pub(crate) type Nonce<T: Config> = StorageValue<_, U256, ValueQuery>;
 
 	#[pallet::origin]
 	pub type Origin = RawOrigin;
@@ -166,10 +171,15 @@ impl<T: Config> Pallet<T> {
 		source: H160,
 		xcm_transaction: EthereumXcmTransaction,
 	) -> DispatchResultWithPostInfo {
-		let (who, account_weight) = pallet_evm::Pallet::<T>::account_basic(&source);
+		// The lack of a real signature where different callers with the
+		// same nonce are providing identical transaction payloads results in a collision and
+		// the same ethereum tx hash.
+		// We use a global nonce instead the user nonce for all Xcm->Ethereum transactions to avoid
+		// this.
+		let current_nonce = Self::nonce();
+		let error_weight = T::DbWeight::get().reads(1 as Weight);
 
-		let transaction: Option<Transaction> =
-			xcm_transaction.into_transaction_v2(U256::zero(), who.nonce);
+		let transaction: Option<Transaction> = xcm_transaction.into_transaction_v2(current_nonce);
 		if let Some(transaction) = transaction {
 			let transaction_data: TransactionData = (&transaction).into();
 
@@ -189,20 +199,24 @@ impl<T: Config> Pallet<T> {
 			)
 			// We only validate the gas limit against the evm transaction cost.
 			// No need to validate fee payment, as it is handled by the xcm executor.
-			.validate_in_block_for(&who)
+			.validate_common()
 			.map_err(|_| sp_runtime::DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
-					actual_weight: Some(account_weight),
+					actual_weight: Some(error_weight),
 					pays_fee: Pays::Yes,
 				},
 				error: sp_runtime::DispatchError::Other("Failed to validate ethereum transaction"),
 			})?;
 
+			// Once we know a new transaction hash exists - the user can afford storing the
+			// transaction on chain - we increase the global nonce.
+			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
+
 			T::ValidatedTransaction::apply(source, transaction)
 		} else {
 			Err(sp_runtime::DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
-					actual_weight: Some(account_weight),
+					actual_weight: Some(error_weight),
 					pays_fee: Pays::Yes,
 				},
 				error: sp_runtime::DispatchError::Other("Cannot convert xcm payload to known type"),
