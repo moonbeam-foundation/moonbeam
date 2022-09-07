@@ -30,7 +30,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 					match (call.clone(), raw_origin) {
 						(
 							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact { xcm_transaction }) |
-							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy { 
+							Call::EthereumXcm(pallet_ethereum_xcm::Call::transact_through_proxy {
 								xcm_transaction, ..
 							 }),
 							RawOrigin::Signed(account_id)
@@ -38,21 +38,23 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 							use crate::EthereumXcm;
 							use moonbeam_evm_tracer::tracer::EvmTracer;
 							use xcm_primitives::{XcmToEthereum, EthereumXcmTracingStatus, ETHEREUM_XCM_TRACING_STORAGE_KEY};
-							// In the evm-tracing context, we always expect to hold some value for the
-							// EthereumXcm well known key.
-							if let Some(transaction) = frame_support::storage::unhashed::get(
+							use frame_support::storage::unhashed;
+
+							let dispatch_call = || {
+								Call::dispatch(
+									call,
+									pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
+										account_id.into()
+									).into()
+								)
+							};
+
+							return match unhashed::get(
 								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							) {
-								let dispatch_call = || {
-									Call::dispatch(
-										call,
-										pallet_ethereum_xcm::Origin::XcmEthereumTransaction(
-											account_id.into()
-										).into()
-									)
-								};
-								return match transaction {
-									// When tracing a block, all calls are done using environmental.
+								// This runtime instance is used for tracing.
+								Some(transaction) => match transaction {
+									// Tracing a block, all calls are done using environmental.
 									EthereumXcmTracingStatus::Block => {
 										let mut res: Option<CallResult> = None;
 										EvmTracer::new().trace(|| {
@@ -60,35 +62,33 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 										});
 										res.expect("Invalid dispatch result")
 									},
-									// When tracing a transaction, the one matching the trace request
-									// is done using environmental, the rest simply dispatched.
-									EthereumXcmTracingStatus::Transaction(traced_transaction) => {
+									// Tracing a transaction, the one matching the trace request
+									// is done using environmental, the rest dispatched normally.
+									EthereumXcmTracingStatus::Transaction(traced_transaction_hash) => {
 										let transaction_hash = xcm_transaction.into_transaction_v2(
 											EthereumXcm::nonce()
 										)
 										.expect("Invalid transaction conversion")
 										.hash();
-										if transaction_hash == traced_transaction.hash() {
-											// Exit after a single matching trace.
-											frame_support::storage::unhashed::put::<EthereumXcmTracingStatus>(
-												ETHEREUM_XCM_TRACING_STORAGE_KEY,
-												&EthereumXcmTracingStatus::TransactionExited,
-											);
+										if transaction_hash == traced_transaction_hash {
 											let mut res: Option<CallResult> = None;
 											EvmTracer::new().trace(|| {
 												res = Some(dispatch_call());
 											});
-											res.expect("Invalid dispatch result")
-										} else {
-											dispatch_call()
+											// Tracing runtime work is done, just signal instance exit.
+											unhashed::put::<EthereumXcmTracingStatus>(
+												xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
+												&EthereumXcmTracingStatus::TransactionExited,
+											);
+											return res.expect("Invalid dispatch result");
 										}
+										dispatch_call()
 									},
-									// Tracing runtime work is done, just exit.
-									// We can panic here because all the tracing data was already
-									// collected by the host.
-									EthereumXcmTracingStatus::TransactionExited => panic!()
-								};
-							}
+									_ => unreachable!()
+								},
+								// This runtime instance is importing a block.
+								None => dispatch_call()
+							};
 						},
 						_ => {}
 					}

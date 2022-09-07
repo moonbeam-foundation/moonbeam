@@ -225,12 +225,11 @@ pub const ETHEREUM_XCM_TRACING_STORAGE_KEY: &[u8] = b":ethereum_xcm_tracing";
 pub enum EthereumXcmTracingStatus {
 	/// A full block trace.
 	Block,
-	/// A specific transaction trace over an intermediate state.
-	Transaction(TransactionV2),
-	/// A status indicating it is safe to stop runtime work, as all data has been collected.
+	/// A single transaction.
+	Transaction(H256),
+	/// Exit signal.
 	TransactionExited,
 }
-
 
 #[cfg(test)]
 mod tests {

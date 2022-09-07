@@ -98,13 +98,16 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
-						use xcm_primitives::EthereumXcmTracingStatus;
-						
-						// Store the target transaction in a storage helper to identify EthereumXcm
-						// in the runtime CallDispatcher.
-						frame_support::storage::unhashed::put::<EthereumXcmTracingStatus>(
-							xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
-							&EthereumXcmTracingStatus::Transaction(traced_transaction.clone()),
+						use xcm_primitives::{
+							ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							EthereumXcmTracingStatus
+						};
+						use frame_support::storage::unhashed;
+
+						// Tell the CallDispatcher we are tracing a specific Transaction.
+						unhashed::put::<EthereumXcmTracingStatus>(
+							ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							&EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
 
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
@@ -121,9 +124,12 @@ macro_rules! impl_runtime_apis_plus_common {
 								}
 								_ => Executive::apply_extrinsic(ext),
 							};
-							// TODO check if EthereumXcmTracingStatus is exited, then panic to exit
+							if let Some(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
+								ETHEREUM_XCM_TRACING_STORAGE_KEY
+							) {
+								return Ok(());
+							}
 						}
-
 						Err(sp_runtime::DispatchError::Other(
 							"Failed to find Ethereum transaction among the extrinsics.",
 						))
@@ -144,6 +150,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					#[cfg(feature = "evm-tracing")]
 					{
 						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use xcm_primitives::EthereumXcmTracingStatus;
+
+						// Tell the CallDispatcher we are tracing a full Block.
+						frame_support::storage::unhashed::put::<EthereumXcmTracingStatus>(
+							xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							&EthereumXcmTracingStatus::Block,
+						);
 
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
