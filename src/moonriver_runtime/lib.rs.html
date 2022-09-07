@@ -1542,18 +1542,6 @@
 <span id="1537">1537</span>
 <span id="1538">1538</span>
 <span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -1637,8 +1625,7 @@
 	<span class="ident">transaction_validity</span>::{
 		<span class="ident">InvalidTransaction</span>, <span class="ident">TransactionSource</span>, <span class="ident">TransactionValidity</span>, <span class="ident">TransactionValidityError</span>,
 	},
-	<span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Percent</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>,
-	<span class="ident">SaturatedConversion</span>,
+	<span class="ident">ApplyExtrinsicResult</span>, <span class="ident">FixedPointNumber</span>, <span class="ident">Perbill</span>, <span class="ident">Permill</span>, <span class="ident">Perquintill</span>, <span class="ident">SaturatedConversion</span>,
 };
 <span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 
@@ -2249,13 +2236,6 @@
 
 <span class="kw">impl</span> <span class="ident">parachain_info::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
 
-<span class="macro">parameter_types!</span> {
-	<span class="doccomment">/// Default fixed percent a collator takes off the top of due rewards</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultCollatorCommission</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">20</span>);
-	<span class="doccomment">/// Default percent of inflation set aside for parachain bond every round</span>
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DefaultParachainBondReservePercent</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
-}
-
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OnCollatorPayout</span>;
 <span class="kw">impl</span> <span class="ident">pallet_parachain_staking::OnCollatorPayout</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OnCollatorPayout</span> {
 	<span class="kw">fn</span> <span class="ident">on_collator_payout</span>(
@@ -2279,8 +2259,6 @@
 	<span class="kw">type</span> <span class="ident">MonetaryGovernanceOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)</span>
 	<span class="kw">type</span> <span class="ident">MinBlocksPerRound</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">10</span><span class="op">&gt;</span>;
-	<span class="doccomment">/// Blocks per round</span>
-	<span class="kw">type</span> <span class="ident">DefaultBlocksPerRound</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">2</span> <span class="op">*</span> <span class="ident">HOURS</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// Rounds before the collator leaving the candidates request can be executed</span>
 	<span class="kw">type</span> <span class="ident">LeaveCandidatesDelay</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">24</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// Rounds before the candidate bond increase/decrease can be executed</span>
@@ -2301,8 +2279,6 @@
 	<span class="kw">type</span> <span class="ident">MaxBottomDelegationsPerCandidate</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">50</span><span class="op">&gt;</span>;
 	<span class="doccomment">/// Maximum delegations per delegator</span>
 	<span class="kw">type</span> <span class="ident">MaxDelegationsPerDelegator</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="number">100</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">DefaultCollatorCommission</span> <span class="op">=</span> <span class="ident">DefaultCollatorCommission</span>;
-	<span class="kw">type</span> <span class="ident">DefaultParachainBondReservePercent</span> <span class="op">=</span> <span class="ident">DefaultParachainBondReservePercent</span>;
 	<span class="doccomment">/// Minimum stake required to become a collator</span>
 	<span class="kw">type</span> <span class="ident">MinCollatorStk</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="number">1000</span> <span class="op">*</span> <span class="ident">currency::MOVR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span> }<span class="op">&gt;</span>;
 	<span class="doccomment">/// Minimum stake required to be reserved to be a candidate</span>
