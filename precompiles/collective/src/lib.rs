@@ -104,7 +104,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		proposal: BoundedBytes<GetProposalLimit>,
 	) -> EvmResult {
-		let proposal: Vec<_> = proposal.into_vec();
+		let proposal: Vec<_> = proposal.into();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
@@ -143,7 +143,7 @@ where
 	) -> EvmResult<u32> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let proposal: Vec<_> = proposal.into_vec();
+		let proposal: Vec<_> = proposal.into();
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
 				.in_field("length")
@@ -261,7 +261,8 @@ where
 		_handle: &mut impl PrecompileHandle,
 		proposal: BoundedBytes<GetProposalLimit>,
 	) -> EvmResult<H256> {
-		let hash = hash::<Runtime>(&proposal.into_vec());
+		let proposal: Vec<_> = proposal.into();
+		let hash = hash::<Runtime>(&proposal);
 
 		Ok(hash)
 	}

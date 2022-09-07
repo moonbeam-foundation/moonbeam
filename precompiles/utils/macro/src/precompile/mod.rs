@@ -100,9 +100,9 @@ pub struct Variant {
 	/// `NonPayable`.
 	modifier: Modifier,
 
-	/// One of the selectors to be able to encode back the data.
+	/// Selectors of this function to be able to encode back the data.
 	/// None if it only the fallback function.
-	encode_selector: Option<u32>,
+	selectors: Vec<u32>,
 }
 
 #[derive(Debug)]

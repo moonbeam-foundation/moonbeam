@@ -68,6 +68,24 @@ fn no_selector_exists_but_length_is_right() {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::delegate_selectors().contains(&0x0185921e));
+	assert!(PCall::deposit_of_selectors().contains(&0x4767142d));
+	assert!(PCall::finished_referendum_info_selectors().contains(&0x07df495b));
+	assert!(PCall::lowest_unbaked_selectors().contains(&0xd49dccf0));
+	assert!(PCall::ongoing_referendum_info_selectors().contains(&0xe5a18359));
+	assert!(PCall::propose_selectors().contains(&0x7824e7d1));
+	assert!(PCall::public_prop_count_selectors().contains(&0x31305462));
+	assert!(PCall::remove_vote_selectors().contains(&0x3f68fde4));
+	assert!(PCall::second_selectors().contains(&0xc7a76601));
+	assert!(PCall::standard_vote_selectors().contains(&0x6cd18b0d));
+	assert!(PCall::un_delegate_selectors().contains(&0x1eef225c));
+	assert!(PCall::unlock_selectors().contains(&0x2f6c493c));
+
+	// TODO also test logs once we have them
+}
+
+#[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.

@@ -32,6 +32,20 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::encode_bond_selectors().contains(&0xa82948d4));
+	assert!(PCall::encode_bond_extra_selectors().contains(&0x813667a0));
+	assert!(PCall::encode_unbond_selectors().contains(&0x51b14e57));
+	assert!(PCall::encode_withdraw_unbonded_selectors().contains(&0xd5ad108e));
+	assert!(PCall::encode_validate_selectors().contains(&0xbb64ca0c));
+	assert!(PCall::encode_nominate_selectors().contains(&0xd2ea7b08));
+	assert!(PCall::encode_chill_selectors().contains(&0xb5eaac43));
+	assert!(PCall::encode_set_payee_selectors().contains(&0x414be337));
+	assert!(PCall::encode_set_controller_selectors().contains(&0x07f7c6dc));
+	assert!(PCall::encode_rebond_selectors().contains(&0x0922ee17));
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()

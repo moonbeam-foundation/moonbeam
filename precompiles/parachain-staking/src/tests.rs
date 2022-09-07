@@ -44,6 +44,42 @@ fn evm_call(source: Account, input: Vec<u8>) -> EvmCall<Runtime> {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::is_delegator_selectors().contains(&0xfd8ab482));
+	assert!(PCall::is_candidate_selectors().contains(&0xd51b9e93));
+	assert!(PCall::is_selected_candidate_selectors().contains(&0x740d7d2a));
+	assert!(PCall::points_selectors().contains(&0x9799b4e7));
+	assert!(PCall::min_delegation_selectors().contains(&0x02985992));
+	assert!(PCall::candidate_count_selectors().contains(&0xa9a981a3));
+	assert!(PCall::round_selectors().contains(&0x146ca531));
+	assert!(PCall::candidate_delegation_count_selectors().contains(&0x2ec087eb));
+	assert!(PCall::delegator_delegation_count_selectors().contains(&0x067ec822));
+	assert!(PCall::selected_candidates_selectors().contains(&0xbcf868a6));
+	assert!(PCall::delegation_request_is_pending_selectors().contains(&0x3b16def8));
+	assert!(PCall::candidate_exit_is_pending_selectors().contains(&0x43443682));
+	assert!(PCall::candidate_request_is_pending_selectors().contains(&0xd0deec11));
+	assert!(PCall::join_candidates_selectors().contains(&0x1f2f83ad));
+	assert!(PCall::schedule_leave_candidates_selectors().contains(&0xb1a3c1b7));
+	assert!(PCall::execute_leave_candidates_selectors().contains(&0x3867f308));
+	assert!(PCall::cancel_leave_candidates_selectors().contains(&0x9c76ebb4));
+	assert!(PCall::go_offline_selectors().contains(&0xa6485ccd));
+	assert!(PCall::go_online_selectors().contains(&0x6e5b676b));
+	assert!(PCall::candidate_bond_more_selectors().contains(&0xa52c8643));
+	assert!(PCall::schedule_candidate_bond_less_selectors().contains(&0x60744ae0));
+	assert!(PCall::execute_candidate_bond_less_selectors().contains(&0x2e290290));
+	assert!(PCall::cancel_candidate_bond_less_selectors().contains(&0xb5ad5f07));
+	assert!(PCall::delegate_selectors().contains(&0x829f5ee3));
+	assert!(PCall::schedule_leave_delegators_selectors().contains(&0xf939dadb));
+	assert!(PCall::execute_leave_delegators_selectors().contains(&0xfb1e2bf9));
+	assert!(PCall::cancel_leave_delegators_selectors().contains(&0xf7421284));
+	assert!(PCall::schedule_revoke_delegation_selectors().contains(&0x1a1c740c));
+	assert!(PCall::delegator_bond_more_selectors().contains(&0x0465135b));
+	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
+	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
+	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()

@@ -66,6 +66,15 @@ fn no_selector_exists_but_length_is_right() {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::add_association_selectors().contains(&0xef8b6cd8));
+	assert!(PCall::update_association_selectors().contains(&0x25a39da5));
+	assert!(PCall::clear_association_selectors().contains(&0x448b54d6));
+	assert!(PCall::remove_keys_selectors().contains(&0xa36fee17));
+	assert!(PCall::set_keys_selectors().contains(&0xf1ec919c));
+}
+
+#[test]
 fn add_association_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])

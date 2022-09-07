@@ -71,6 +71,19 @@ fn no_selector_exists_but_length_is_right() {
 
 #[test]
 fn selectors() {
+	assert!(ForeignPCall::balance_of_selectors().contains(&0x70a08231));
+	assert!(ForeignPCall::total_supply_selectors().contains(&0x18160ddd));
+	assert!(ForeignPCall::approve_selectors().contains(&0x095ea7b3));
+	assert!(ForeignPCall::allowance_selectors().contains(&0xdd62ed3e));
+	assert!(ForeignPCall::transfer_selectors().contains(&0xa9059cbb));
+	assert!(ForeignPCall::transfer_from_selectors().contains(&0x23b872dd));
+	assert!(ForeignPCall::name_selectors().contains(&0x06fdde03));
+	assert!(ForeignPCall::symbol_selectors().contains(&0x95d89b41));
+	assert!(ForeignPCall::decimals_selectors().contains(&0x313ce567));
+	assert!(ForeignPCall::eip2612_nonces_selectors().contains(&0x7ecebe00));
+	assert!(ForeignPCall::eip2612_permit_selectors().contains(&0xd505accf));
+	assert!(ForeignPCall::eip2612_domain_separator_selectors().contains(&0x3644e515));
+
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
 		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]

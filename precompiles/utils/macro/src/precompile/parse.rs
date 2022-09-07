@@ -112,7 +112,7 @@ impl Precompile {
 		let mut solidity_arguments_type: Option<String> = None;
 		let mut arguments = vec![];
 		let mut is_fallback = false;
-		let mut encode_selector = None;
+		let mut selectors = vec![];
 		let initial_arguments = if self.tagged_as_precompile_set { 2 } else { 1 };
 
 		if let Some(attr::MethodAttr::Discriminant(span)) = attrs.first() {
@@ -265,9 +265,7 @@ impl Precompile {
 						return Err(syn::Error::new(signature_lit.span(), msg));
 					}
 
-					if encode_selector.is_none() {
-						encode_selector = Some(selector);
-					}
+					selectors.push(selector);
 				}
 			}
 		}
@@ -351,7 +349,7 @@ impl Precompile {
 				arguments,
 				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
 				modifier,
-				encode_selector,
+				selectors,
 			},
 		) {
 			let msg = "Duplicate method name";

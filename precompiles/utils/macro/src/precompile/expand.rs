@@ -146,6 +146,16 @@ impl Precompile {
 		let variants_parsing = self.expand_variants_parse_fn();
 
 		let variants_ident2: Vec<_> = self.variants_content.keys().collect();
+		let variants_selectors_fn: Vec<_> = self
+			.variants_content
+			.keys()
+			.map(|name| format_ident!("{}_selectors", name))
+			.collect();
+		let variants_selectors: Vec<_> = self
+			.variants_content
+			.values()
+			.map(|variant| &variant.selectors)
+			.collect();
 
 		let variants_list: Vec<Vec<_>> = self
 			.variants_content
@@ -170,7 +180,6 @@ impl Precompile {
 
 				#execute_fn
 
-
 				pub fn supports_selector(selector: u32) -> bool {
 					match selector {
 						#(
@@ -180,11 +189,19 @@ impl Precompile {
 					}
 				}
 
-				pub fn selectors() -> impl Iterator<Item = u32> {
-					vec![#(
+				pub fn selectors() -> &'static [u32] {
+					&[#(
 						#match_selectors2
-					),*].into_iter()
+					),*]
 				}
+
+				#(
+					pub fn #variants_selectors_fn() -> &'static [u32] {
+						&[#(
+							#variants_selectors
+						),*]
+					}
+				)*
 
 				pub fn encode(self) -> Vec<u8> {
 					match self {
@@ -196,8 +213,6 @@ impl Precompile {
 						Self::__phantom(_) => panic!("__phantom variant should not be used"),
 					}
 				}
-
-
 			}
 
 			#[cfg(test)]
@@ -271,7 +286,7 @@ impl Precompile {
 	/// Expand how a variant can be Solidity encoded.
 	fn expand_variant_encoding(variant: &Variant) -> impl ToTokens {
 		let span = Span::call_site();
-		match variant.encode_selector {
+		match variant.selectors.first() {
 			Some(selector) => {
 				let arguments = variant.arguments.iter().map(|arg| &arg.ident);
 

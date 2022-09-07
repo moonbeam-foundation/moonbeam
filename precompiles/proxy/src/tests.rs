@@ -47,6 +47,13 @@ fn test_unimplemented_selector_reverts() {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::add_proxy_selectors().contains(&0x74a34dd3));
+	assert!(PCall::remove_proxy_selectors().contains(&0xfef3f708));
+	assert!(PCall::remove_proxies_selectors().contains(&0x14a5b5fa));
+}
+
+#[test]
 fn test_add_proxy_fails_if_invalid_value_for_proxy_type() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])

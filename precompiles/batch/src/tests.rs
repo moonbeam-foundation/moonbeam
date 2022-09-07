@@ -58,9 +58,9 @@ fn costs() -> (u64, u64) {
 
 #[test]
 fn selectors() {
-	// assert_eq!(Action::BatchSome as u32, 0x79df4b9c);
-	// assert_eq!(Action::BatchSomeUntilFailure as u32, 0xcf0491c7);
-	// assert_eq!(Action::BatchAll as u32, 0x96e292b8);
+	assert!(PCall::batch_some_selectors().contains(&0x79df4b9c));
+	assert!(PCall::batch_some_until_failure_selectors().contains(&0xcf0491c7));
+	assert!(PCall::batch_all_selectors().contains(&0x96e292b8));
 	assert_eq!(
 		LOG_SUBCALL_FAILED,
 		hex_literal::hex!("dbc5d06f4f877f959b1ff12d2161cdd693fa8e442ee53f1790b2804b24881f05")

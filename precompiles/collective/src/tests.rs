@@ -75,6 +75,15 @@ fn no_selector_exists_but_length_is_right() {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::execute_selectors().contains(&0x09c5eabe));
+	assert!(PCall::propose_selectors().contains(&0xc57f3260));
+	assert!(PCall::vote_selectors().contains(&0x73e37688));
+	assert!(PCall::close_selectors().contains(&0x638d9d47));
+	assert!(PCall::proposal_hash_selectors().contains(&0xfc379417));
+}
+
+#[test]
 fn non_member_cannot_propose() {
 	ExtBuilder::default().build().execute_with(|| {
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
@@ -90,7 +99,7 @@ fn non_member_cannot_propose() {
 				Precompile,
 				PCall::propose {
 					threshold: 1,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_no_logs()
@@ -131,7 +140,7 @@ fn non_member_cannot_execute() {
 				Alice,
 				Precompile,
 				PCall::execute {
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_no_logs()
@@ -195,7 +204,7 @@ fn member_can_make_instant_proposal() {
 				Precompile,
 				PCall::propose {
 					threshold: 1,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_executed(Precompile, proposal_hash))
@@ -226,7 +235,7 @@ fn member_can_make_delayed_proposal() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -259,7 +268,7 @@ fn member_can_vote_on_proposal() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -307,7 +316,7 @@ fn cannot_close_if_not_enough_votes() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -347,7 +356,7 @@ fn can_close_execute_if_enough_votes() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -435,7 +444,7 @@ fn can_close_refuse_if_enough_votes() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -509,7 +518,7 @@ fn multiple_propose_increase_index() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
@@ -529,7 +538,7 @@ fn multiple_propose_increase_index() {
 				Precompile,
 				PCall::propose {
 					threshold: 2,
-					proposal: Bytes(proposal).into(),
+					proposal: proposal.into(),
 				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))

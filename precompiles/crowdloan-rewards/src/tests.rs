@@ -45,6 +45,14 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 }
 
 #[test]
+fn selectors() {
+	assert!(PCall::is_contributor_selectors().contains(&0x1d0d35f5));
+	assert!(PCall::reward_info_selectors().contains(&0xcbecf6b5));
+	assert!(PCall::claim_selectors().contains(&0x4e71d92d));
+	assert!(PCall::update_reward_address_selectors().contains(&0x944dd5a2));
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
