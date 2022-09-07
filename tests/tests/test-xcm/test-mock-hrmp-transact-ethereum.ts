@@ -1186,8 +1186,7 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
       ).data.free.toBigInt();
       expect(testAccountBalance).to.eq(0n);
 
-      // Make sure descend address has been deducted fees once (in xcm-executor) and balance has been
-      // transfered through evm.
+      // Make sure descend address has been deducted fees once (in xcm-executor)
       const descendAddressBalance = await context.web3.eth.getBalance(descendAddress);
       expect(BigInt(descendAddressBalance)).to.eq(
         transferredBalance - expectedTransferredAmountPlusFees
