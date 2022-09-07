@@ -166,7 +166,10 @@ describeDevMoonbeam("Randomness Babe - Lottery Demo", (context) => {
   });
 
   it("should succeed to fulfill after the delay", async function () {
-    await context.createBlock();
+    // run to beginning of 2nd epoch after epoch in which request was made
+    for (let i = 0; i < 15; i++) {
+      await context.createBlock();
+    }
 
     const { result } = await context.createBlock([
       createTransaction(context, {
@@ -198,7 +201,10 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
         value: Web3.utils.toWei("1", "ether"),
       })
     );
-    await context.createBlock();
+    // run to beginning of 2nd epoch after epoch in which request was made
+    for (let i = 0; i < 15; i++) {
+      await context.createBlock();
+    }
 
     const { result } = await context.createBlock([
       createTransaction(context, {

@@ -44,7 +44,7 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::ParaId;
 use cumulus_primitives_parachain_inherent::{
-	MockValidationDataInherentDataProvider, MockXcmConfig,
+	MockRandomnessConfig, MockValidationDataInherentDataProvider, MockXcmConfig,
 };
 use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
@@ -975,6 +975,10 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							randomness_config: MockRandomnessConfig {
+								para_blocks_per_epoch: 10,
+								generator: (),
+							},
 							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
