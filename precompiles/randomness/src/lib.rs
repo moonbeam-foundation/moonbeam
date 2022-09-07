@@ -62,10 +62,8 @@ pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26325;
 pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
 pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
 
-/// Fulfillment overhead cost cannot be constant because weight hint is passed at runtime
-pub fn fulfillment_overhead_cost<T: pallet_evm::Config + frame_system::Config>(
-	num_words: u8,
-) -> u64 {
+/// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
+pub fn fulfillment_overhead_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
 	<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 		SubstrateWeight::<T>::prepare_fulfillment(num_words.into())
 			.saturating_add(SubstrateWeight::<T>::finish_fulfillment()),
