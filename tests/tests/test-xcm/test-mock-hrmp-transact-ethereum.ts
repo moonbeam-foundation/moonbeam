@@ -121,7 +121,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)), // 21_000 gas limit + db read
+            // 21_000 gas limit + db read
+            requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -412,7 +413,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(2_500_000_000).add(new BN(25_000_000)), // 100_000 gas + 1 db read
+            // 100_000 gas + 1 db read
+            requireWeightAtMost: new BN(2_500_000_000).add(new BN(25_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -546,7 +548,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)), // 100_000 gas + 2 db read
+            // 100_000 gas + 2 db read
+            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -685,7 +688,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)), // 100_000 gas + 2 reads
+            // 100_000 gas + 2 reads
+            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -840,7 +844,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (proxy)", (
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)), // 100_000 gas + 2db reads
+            // 100_000 gas + 2db reads
+            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -1017,7 +1022,8 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)), // 100_000 gas + 2db reads
+            // 100_000 gas + 2db reads
+            requireWeightAtMost: new BN(525_000_000).add(new BN(50_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
@@ -1166,7 +1172,8 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
         .push_any({
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)), // 21_000 gas limit + db read
+            // 21_000 gas limit + db read
+            requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)),
             call: {
               encoded: transferCallEncoded,
             },
