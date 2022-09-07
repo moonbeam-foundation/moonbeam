@@ -93,7 +93,6 @@ pub mod pallet {
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
 	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
-	use sp_std::borrow::ToOwned;
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
@@ -399,12 +398,8 @@ pub mod pallet {
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
 		#[pallet::weight(
-			Pallet::<T>::weight_of_transact_through_derivative(
-				index,
-				&dest,
-				&weight_info.transact_required_weight_at_most,
-				inner_call
-			)
+			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			.saturating_add(T::WeightInfo::transact_through_derivative())
 		)]
 		pub fn transact_through_derivative(
 			origin: OriginFor<T>,
@@ -465,11 +460,8 @@ pub mod pallet {
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
-			Pallet::<T>::weight_of_transact_through_sovereign(
-				&weight_info.transact_required_weight_at_most,
-				call,
-				*origin_kind
-			)
+			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			.saturating_add(T::WeightInfo::transact_through_sovereign())
 		)]
 		pub fn transact_through_sovereign(
 			origin: OriginFor<T>,
@@ -562,7 +554,7 @@ pub mod pallet {
 		/// by any method implemented in the destination chains runtime
 		///
 		/// This time we are giving the currency as a currencyId instead of multilocation
-		#[pallet::weight(T::WeightInfo::transact_through_signed_multilocation())]
+		#[pallet::weight(T::WeightInfo::transact_through_signed())]
 		pub fn transact_through_signed(
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
@@ -862,71 +854,30 @@ pub mod pallet {
 			Ok(dest)
 		}
 
-		/// Returns weight of `transact_through_derivative` call.
-		fn weight_of_transact_through_derivative(
-			index: &u16,
-			dest: &T::Transactor,
-			weight: &u64,
-			call: &[u8],
-		) -> Weight {
+		/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
+		fn weight_of_initiate_reserve_withdraw() -> Weight {
+			let dest = MultiLocation::parent();
+
 			// We can use whatever asset here
 			let asset = MultiLocation::parent();
 
-			let call_bytes: Vec<u8> =
-				dest.clone()
-					.encode_call(UtilityAvailableCalls::AsDerivative(
-						index.to_owned(),
-						call.to_owned(),
-					));
-
-			Self::weight_of_transact(
-				&asset,
-				&dest.clone().destination(),
-				weight,
-				call_bytes,
-				OriginKind::SovereignAccount,
-			)
-		}
-
-		/// Returns weight of `transact_through_sovereign call.
-		fn weight_of_transact_through_sovereign(
-			weight: &u64,
-			call: &Vec<u8>,
-			origin_kind: OriginKind,
-		) -> Weight {
-			let asset = MultiLocation::parent();
-			let dest = MultiLocation::parent();
-			Self::weight_of_transact(&asset, &dest, weight, call.clone(), origin_kind)
-		}
-
-		/// Returns weight of transact message.
-		fn weight_of_transact(
-			asset: &MultiLocation,
-			dest: &MultiLocation,
-			weight: &u64,
-			call: Vec<u8>,
-			origin_kind: OriginKind,
-		) -> Weight {
 			// Construct MultiAsset
 			let fee = MultiAsset {
 				id: Concrete(asset.clone()),
 				fun: Fungible(0),
 			};
 
-			if let Ok(msg) = Self::transact_message(
-				dest.clone(),
-				fee.clone(),
-				weight.clone(),
-				call.clone(),
-				weight.clone(),
-				origin_kind,
-			) {
-				T::Weigher::weight(&mut msg.into()).map_or(Weight::max_value(), |w| {
-					T::BaseXcmWeight::get().saturating_add(w)
-				})
-			} else {
-				0
-			}
+			let xcm: Xcm<()> = Xcm(vec![
+				WithdrawAsset(fee.into()),
+				InitiateReserveWithdraw {
+					assets: MultiAssetFilter::Wild(All),
+					reserve: dest.clone(),
+					xcm: Xcm(vec![]),
+				},
+			]);
+			T::Weigher::weight(&mut xcm.into()).map_or(Weight::max_value(), |w| {
+				T::BaseXcmWeight::get().saturating_add(w)
+			})
 		}
 
 		/// Returns the fee for a given set of parameters

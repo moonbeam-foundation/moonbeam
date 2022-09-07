@@ -2493,7 +2493,7 @@ fn transact_through_signed_precompile_works_v1() {
 					.write(bytes)
 					.build(),
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2535,7 +2535,7 @@ fn transact_through_signed_precompile_works_v2() {
 					.write(total_weight)
 					.build(),
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
