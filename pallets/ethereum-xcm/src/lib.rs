@@ -117,6 +117,7 @@ pub mod pallet {
 
 	/// Whether or not Ethereum-XCM is suspended from executing
 	#[pallet::storage]
+	#[pallet::getter(fn ethereum_xcm_suspended)]
 	pub(super) type EthereumXcmSuspended<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::origin]
