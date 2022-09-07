@@ -613,7 +613,7 @@ pub mod pallet {
 				inflation_config: Default::default(),
 				collator_commission: Default::default(),
 				parachain_bond_reserve_percent: Default::default(),
-				blocks_per_round: Default::default(),
+				blocks_per_round: 1u32,
 			}
 		}
 	}
@@ -621,6 +621,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
+			assert!(self.blocks_per_round > 0, "Blocks per round must be > 0");
 			<InflationConfig<T>>::put(self.inflation_config.clone());
 			let mut candidate_count = 0u32;
 			// Initialize the candidates
