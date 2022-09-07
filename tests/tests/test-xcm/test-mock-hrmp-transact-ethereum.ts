@@ -141,7 +141,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       ).data.free.toBigInt();
       expect(testAccountBalance).to.eq(expectedTransferredAmount);
 
-      // Make sure descend addres has been deducted fees once (in xcm-executor) and balance 
+      // Make sure descend addres has been deducted fees once (in xcm-executor) and balance
       // has been transfered through evm.
       const descendAccountBalance = await context.web3.eth.getBalance(descendAddress);
       expect(BigInt(descendAccountBalance)).to.eq(
@@ -932,8 +932,8 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (proxy) disabled switch", (con
     // We activate the suspension switch
     await context.createBlock(
       context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution())
-      .signAsync(alith)
+        .sudo(context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution())
+        .signAsync(alith)
     );
   });
 
@@ -1082,12 +1082,12 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
       (await context.polkadotApi.query.system.account(descendOriginAddress)) as any
     ).data.free.toBigInt();
     expect(balance).to.eq(transferredBalance);
-     
+
     // We activate the suspension switch
     await context.createBlock(
       context.polkadotApi.tx.sudo
-      .sudo(context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution())
-      .signAsync(alith)
+        .sudo(context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution())
+        .signAsync(alith)
     );
   });
 
