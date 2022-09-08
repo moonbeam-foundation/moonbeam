@@ -18,6 +18,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
 
 import { expectOk } from "../../util/expect";
+import { expectEVMResult } from "../../util/eth-transactions";
 
 describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)", (context) => {
   let transferredBalance;
@@ -142,7 +143,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       ).data.free.toBigInt();
       expect(testAccountBalance).to.eq(expectedTransferredAmount);
 
-      // Make sure descend addres has been deducted fees once (in xcm-executor) and balance
+      // Make sure descend address has been deducted fees once (in xcm-executor) and balance
       // has been transfered through evm.
       const descendAccountBalance = await context.web3.eth.getBalance(descendAddress);
       expect(BigInt(descendAccountBalance)).to.eq(
@@ -1199,5 +1200,32 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM (non-proxy) disabled switch", 
         transferredBalance - expectedTransferredAmountPlusFees
       );
     }
+  });
+});
+
+describeDevMoonbeam("Mock XCM - EthereumXcm only disable by root", (context) => {
+  it("should check suspend ethereum xcm only callable by root", async function () {
+    let suspended = await context.polkadotApi.query.ethereumXcm.ethereumXcmSuspended();
+    // should be not suspended by default
+    expect(suspended.toHuman()).to.be.false;
+
+    // We try to activate without sudo
+    await context.createBlock(
+      context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution().signAsync(alith)
+    );
+    suspended = await context.polkadotApi.query.ethereumXcm.ethereumXcmSuspended();
+    // should not have worked, and should still not be suspended
+    expect(suspended.toHuman()).to.be.false;
+
+    // Now with sudo
+    await context.createBlock(
+      context.polkadotApi.tx.sudo
+        .sudo(context.polkadotApi.tx.ethereumXcm.suspendEthereumXcmExecution())
+        .signAsync(alith)
+    );
+
+    suspended = await context.polkadotApi.query.ethereumXcm.ethereumXcmSuspended();
+    // should have worked, and should now be suspended
+    expect(suspended.toHuman()).to.be.true;
   });
 });

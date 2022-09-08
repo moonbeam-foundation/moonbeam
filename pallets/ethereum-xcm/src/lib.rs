@@ -135,6 +135,7 @@ pub mod pallet {
 		OriginFor<T>: Into<Result<RawOrigin, OriginFor<T>>>,
 	{
 		/// Xcm Transact an Ethereum transaction.
+		/// Weight: Gas limit plus the db read involving the suspension check
 		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 			match xcm_transaction {
 				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
@@ -160,6 +161,7 @@ pub mod pallet {
 		}
 
 		/// Xcm Transact an Ethereum transaction through proxy.
+		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
 		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
 			match xcm_transaction {
 				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
