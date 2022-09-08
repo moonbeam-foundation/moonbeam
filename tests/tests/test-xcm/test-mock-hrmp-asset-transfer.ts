@@ -7,7 +7,12 @@ import { expect } from "chai";
 
 import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { PARA_2000_SOURCE_LOCATION } from "../../util/assets";
-import { registerForeignAsset, injectHrmpMessageAndSeal, RawXcmMessage } from "../../util/xcm";
+import {
+  registerForeignAsset,
+  injectHrmpMessageAndSeal,
+  RawXcmMessage,
+  XcmFragment,
+} from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -111,48 +116,24 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // Old prefix:
     // Parachain(Statemint parachain)
     // GeneralIndex(assetId being transferred)
-    let xcmMessage = {
-      V2: [
-        {
-          ReserveAssetDeposited: [
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: new BN(1),
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
           },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(1),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
-            },
-          },
-        },
-      ],
-    };
+        ],
+        fungible: 10000000000000n,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: alith.address,
+    })
+      .reserve_asset_deposited()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -196,60 +177,30 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // Parachain(Statemint parachain)
     // PalletInstance(Statemint assets pallet instance)
     // GeneralIndex(assetId being transferred)
-    let xcmMessage = {
-      V2: [
-        {
-          ReserveAssetDeposited: [
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X3: [
-                      { Parachain: statemint_para_id },
-                      { PalletInstance: statemint_assets_pallet_instance },
-                      { GeneralIndex: 0 },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: new BN(1),
-                  interior: {
-                    X3: [
-                      { Parachain: statemint_para_id },
-                      { PalletInstance: statemint_assets_pallet_instance },
-                      { GeneralIndex: 0 },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(1),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: {
+              X3: [
+                { Parachain: statemint_para_id },
+                { PalletInstance: statemint_assets_pallet_instance },
+                { GeneralIndex: 0 },
+              ],
             },
           },
-        },
-      ],
-    };
+        ],
+        fungible: 10000000000000n,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: alith.address,
+    })
+      .reserve_asset_deposited()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -298,57 +249,32 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer of DEV", (context) =
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
       (pallet) => pallet.name === "Balances"
     ).index;
+
     // We are charging 100_000_000 weight for every XCM instruction
     // We are executing 4 instructions
     // 100_000_000 * 4 * 50000 = 20000000000000
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
-    let xcmMessage = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(1),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: random.address } } },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: {
+              X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
             },
           },
-        },
-      ],
-    };
+        ],
+        fungible: transferredBalance,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: random.address,
+    })
+      .withdraw_asset()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset()
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
@@ -408,57 +334,29 @@ describeDevMoonbeam(
       ).index;
       // We are charging 100_000_000 weight for every XCM instruction
       // We are executing 4 instructions
-      // 100_000_000 * 4 * 50000 = 20000000000000
-      // We are charging 20 micro DEV for this operation
+      // 200_000_000 * 4 * 50000 = 40000000000000
+      // We are charging 40 micro DEV for this operation
       // The rest should be going to the deposit account
-      let xcmMessage = {
-        V2: [
-          {
-            WithdrawAsset: [
-              {
-                // This is the new reanchored logic
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: transferredBalance },
-              },
-            ],
-          },
-          { ClearOrigin: null as any },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  // This is the new reanchored logic
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: transferredBalance },
-              },
-              weightLimit: { Limited: new BN(4000000000) },
-            },
-          },
-          {
-            DepositAsset: {
-              assets: { Wild: "All" },
-              maxAssets: new BN(1),
-              beneficiary: {
-                parents: 0,
-                interior: { X1: { AccountKey20: { network: "Any", key: random.address } } },
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
               },
             },
-          },
-        ],
-      };
+          ],
+          fungible: transferredBalance,
+        },
+        weight_limit: new BN(8000000000),
+        beneficiary: random.address,
+      })
+        .withdraw_asset()
+        .clear_origin()
+        .buy_execution()
+        .deposit_asset()
+        .as_v2();
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, foreign_para_id, {
@@ -478,7 +376,7 @@ describeDevMoonbeam(
       let randomBalance = (
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
-      let expectedRandomBalance = 80000000000000n;
+      let expectedRandomBalance = 60000000000000n;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
@@ -557,66 +455,32 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // 100_000_000 * 4 * 50000 = 20000000000000
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
-    let xcmMessage = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              // This is the new reanchored logic
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-            {
-              // This is the new reanchored logic
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: assetId }],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                // This is the new reanchored logic
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(2),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
           },
-        },
-      ],
-    };
+          {
+            parents: 0,
+            interior: {
+              X2: [{ PalletInstance: localAssetsPalletIndex }, { GeneralIndex: assetId }],
+            },
+          },
+        ],
+        fungible: transferredBalance,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: alith.address,
+    })
+      .withdraw_asset()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset(2n)
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
@@ -664,75 +528,40 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   it("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
-    let xcmMessage = {
-      V2: [
-        {
-          ReserveAssetDeposited: [
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X3: [
-                      { Parachain: statemint_para_id },
-                      { PalletInstance: statemint_assets_pallet_instance },
-                      { GeneralIndex: 0 },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X3: [
-                      { Parachain: statemint_para_id },
-                      { PalletInstance: statemint_assets_pallet_instance },
-                      { GeneralIndex: 1 },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: new BN(1),
-                  interior: {
-                    X3: [
-                      { Parachain: statemint_para_id },
-                      { PalletInstance: statemint_assets_pallet_instance },
-                      { GeneralIndex: 1 },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(2),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: {
+              X3: [
+                { Parachain: statemint_para_id },
+                { PalletInstance: statemint_assets_pallet_instance },
+                { GeneralIndex: 0 },
+              ],
             },
           },
-        },
-      ],
-    };
+          {
+            parents: 1,
+            interior: {
+              X3: [
+                { Parachain: statemint_para_id },
+                { PalletInstance: statemint_assets_pallet_instance },
+                { GeneralIndex: 1 },
+              ],
+            },
+          },
+        ],
+        fungible: 10000000000000n,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: alith.address,
+    })
+      .reserve_asset_deposited()
+      .clear_origin()
+      .buy_execution(1) // buy execution with asset at index 1
+      .deposit_asset(2n)
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {
@@ -827,70 +656,36 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     // 100_000_000 * 4 * 50000 = 20000000000000
     // We are charging 20 micro DEV for this operation
     // The rest should be going to the deposit account
-    let xcmMessage = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              // This is the new reanchored logic
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-            {
-              // This is the new reanchored logic
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X3: [
-                      { Parachain: ownParaId },
-                      { PalletInstance: localAssetsPalletIndex },
-                      { GeneralIndex: assetId },
-                    ],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                // This is the new reanchored logic
-                Concrete: {
-                  parents: 1,
-                  interior: {
-                    X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
-                  },
-                },
-              },
-              fun: { Fungible: transferredBalance },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
-          },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(2),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: baltathar.address } } },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: {
+              X2: [{ Parachain: ownParaId }, { PalletInstance: balancesPalletIndex }],
             },
           },
-        },
-      ],
-    };
+          {
+            parents: 1,
+            interior: {
+              X3: [
+                { Parachain: ownParaId },
+                { PalletInstance: localAssetsPalletIndex },
+                { GeneralIndex: assetId },
+              ],
+            },
+          },
+        ],
+        fungible: transferredBalance,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: baltathar.address,
+    })
+      .withdraw_asset()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset(2n)
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, foreign_para_id, {
@@ -925,48 +720,24 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
   it("Should not receive 10 asset 0 tokens because fee not supported ", async function () {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
-    let xcmMessage = {
-      V2: [
-        {
-          ReserveAssetDeposited: [
-            {
-              id: {
-                Concrete: {
-                  parents: 1,
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-          ],
-        },
-        { ClearOrigin: null as any },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: new BN(1),
-                  interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
-                },
-              },
-              fun: { Fungible: new BN(10000000000000) },
-            },
-            weightLimit: { Limited: new BN(4000000000) },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 1,
+            interior: { X2: [{ Parachain: statemint_para_id }, { GeneralIndex: 0 }] },
           },
-        },
-        {
-          DepositAsset: {
-            assets: { Wild: "All" },
-            maxAssets: new BN(2),
-            beneficiary: {
-              parents: 0,
-              interior: { X1: { AccountKey20: { network: "Any", key: alith.address } } },
-            },
-          },
-        },
-      ],
-    };
+        ],
+        fungible: 10000000000000n,
+      },
+      weight_limit: new BN(4000000000),
+      beneficiary: alith.address,
+    })
+      .reserve_asset_deposited()
+      .clear_origin()
+      .buy_execution()
+      .deposit_asset(2n)
+      .as_v2();
 
     // Send an XCM and create block to execute it
     await injectHrmpMessageAndSeal(context, statemint_para_id, {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
@@ -10,6 +10,10 @@ uint32 constant MAX_VRF_BLOCKS_DELAY = 2000;
 /// @dev The deposit amount needed to request random words. There is 1 deposit per request
 uint256 constant REQUEST_DEPOSIT_AMOUNT = 1000000000000000000;
 
+/// @author The Moonbeam Team
+/// @title Pallet Randomness Interface
+/// @dev The interface through which solidity contracts will interact with Randomness
+/// @custom:address 0x0000000000000000000000000000000000000809
 interface Randomness {
     /// @notice Event emitted when the request has been successfully executed
     event FulFillmentSucceeded();
@@ -71,18 +75,18 @@ interface Randomness {
     /// @dev Currently, time between epoch changes cannot be longer than:
     /// @dev  - Kusama/Westend/Rococo: 600 relay blocks (1 hour)
     /// @dev  - Polkadot: 2400 relay blocks (4 hours)
-    /// Selector: 81797566
+    /// @custom:selector 81797566
     function relayEpochIndex() external view returns (uint64);
 
     /// Return the deposit required to perform a request
     /// @dev Each request will need a deposit.
-    /// Selector: fb7cfdd7
+    /// @custom:selector fb7cfdd7
     function requiredDeposit() external view returns (uint256);
 
     /// @notice Returns the request status
     /// @param requestId The id of the request to check (must be < 2**64)
     /// @return status Status of the request
-    /// Selector: d8a4676f
+    /// @custom:selector d8a4676f
     function getRequestStatus(uint256 requestId)
         external
         view
@@ -91,7 +95,7 @@ interface Randomness {
     /// @notice Returns the request or revert
     /// @param requestId The id of the request to check (must be < 2**64)
     /// @return request The request
-    /// Selector: c58343ef
+    /// @custom:selector c58343ef
     function getRequest(uint256 requestId)
         external
         view
@@ -117,7 +121,7 @@ interface Randomness {
     /// @param numWords The number of random words requested (from 1 to MAX_RANDOM_WORDS)
     /// @param delay The number of blocks until the request can be fulfilled (between MIN_DELAY_BLOCKS and MAX_DELAY_BLOCKS)
     /// @return requestId The id of the request requestLocalVRFRandomWords
-    /// Selector: 4c9c81a8
+    /// @custom:selector 9478430c
     function requestLocalVRFRandomWords(
         address refundAddress,
         uint256 fee,
@@ -147,7 +151,7 @@ interface Randomness {
     /// @param salt Salt to be mixed with raw randomness to get output
     /// @param numWords Number of random words to be returned (limited to MAX_RANDOM_WORDS)
     /// @return requestId The id of the request
-    /// Selector: bd063318
+    /// @custom:selector 33c14a63
     function requestRelayBabeEpochRandomWords(
         address refundAddress,
         uint256 fee,
@@ -159,16 +163,16 @@ interface Randomness {
     /// @dev fulFill the request which will call the contract method "fulfillRandomWords"
     /// @dev Fees of the caller are refunded if the request is fulfillable
     /// @param requestId Request to be fulfilled (must be < 2**64)
-    /// Selector: 9a91eb0d
+    /// @custom:selector 9a91eb0d
     function fulfillRequest(uint256 requestId) external;
 
     /// @param requestId Request receiving the additional fees (must be < 2**64)
     /// @param feeIncrease Amount to increase
-    /// Selector: d0408a7f
+    /// @custom:selector d0408a7f
     function increaseRequestFee(uint256 requestId, uint256 feeIncrease)
         external;
 
     /// @param requestId Request to be purged (must be < 2**64)
-    /// Selector: 1d26cbab
+    /// @custom:selector 1d26cbab
     function purgeExpiredRequest(uint256 requestId) external;
 }

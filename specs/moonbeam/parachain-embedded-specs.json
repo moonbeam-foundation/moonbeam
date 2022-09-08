@@ -10,7 +10,8 @@
     "/dns4/mtla-moonbeam-boot-0.a.moonbeam.network/tcp/30333/p2p/12D3KooWRJfEWQBYSEDhadUQRmtQxNGwVNe4EJxWZJokWwc5EWBh",
     "/dns4/mtla-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWCAYdGegd18orL1HVPYuAzGi68bs2F5ueyZm2DFiS8gZw",
     "/dns4/para-moonbeam-boot-0.a.moonbeam.network/tcp/30333/p2p/12D3KooWPNMc5CgbramsajfngvmVpmkrnDw86NcnAiexqaXRgZXB",
-    "/dns4/para-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWDFNoNDWKmCpYyyCKHbVFmYF7jBYAKwK1idPqHocSnhvU"
+    "/dns4/para-moonbeam-boot-1.a.moonbeam.network/tcp/30333/p2p/12D3KooWDFNoNDWKmCpYyyCKHbVFmYF7jBYAKwK1idPqHocSnhvU",
+    "/dns4/node-6957220406166982656-0.p2p.onfinality.io/tcp/12137/ws/p2p/12D3KooWBrL3oDXn82sWQboiZy8q3dA5aHSwg9zG2xCykV16t92m"
   ],
   "telemetryEndpoints": [
     ["/dns/telemetry.polkadot.io/tcp/443/x-parity-wss/%2Fsubmit%2F", 0]

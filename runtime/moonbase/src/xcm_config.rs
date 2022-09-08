@@ -211,12 +211,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	/// We should increase this to a value close to what polkadot charges
-	/// We are charging less to make it work with current reserve_transfer_assets issue
-	/// TODO: Once fixed in polkadot v0.9.12, we should go back to 1_000_000_000
-	/// https://github.com/paritytech/polkadot/pull/4144
-	pub UnitWeightCost: Weight = 100_000_000;
+	pub UnitWeightCost: Weight = 200_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -228,7 +223,7 @@ pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 // Allow paid executions
 pub type XcmBarrier = (
 	TakeWeightCredit,
-	xcm_primitives::AllowDescendOriginFromLocal<Everything>,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	AllowKnownQueryResponses<PolkadotXcm>,
 	// Subscriptions for version tracking are OK.
@@ -401,6 +396,7 @@ pub enum CurrencyId {
 	// Our local assets
 	LocalAssetReserve(AssetId),
 }
+
 impl AccountIdToCurrencyId<AccountId, CurrencyId> for Runtime {
 	fn account_to_currency_id(account: AccountId) -> Option<CurrencyId> {
 		match account {
@@ -444,7 +440,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const BaseXcmWeight: Weight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
@@ -490,6 +486,14 @@ impl orml_xtokens::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum Transactors {
 	Relay,
+}
+
+// Default for benchmarking
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
 }
 
 impl TryFrom<u8> for Transactors {
@@ -538,4 +542,32 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod testing {
+	use super::*;
+
+	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
+	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
+	impl From<MultiLocation> for CurrencyId {
+		fn from(location: MultiLocation) -> CurrencyId {
+			use xcm_executor::traits::Convert as XConvert;
+			use xcm_primitives::AssetTypeGetter;
+
+			// If it does not exist, for benchmarking purposes, we create the association
+			let asset_id = if let Ok(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			{
+				asset_id
+			} else {
+				let asset_type = AssetType::Xcm(location);
+				let asset_id: AssetId = asset_type.clone().into();
+				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
+				asset_id
+			};
+
+			CurrencyId::ForeignAsset(asset_id)
+		}
+	}
 }

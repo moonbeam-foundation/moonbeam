@@ -202,9 +202,23 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 			// hitting this error is a bug because a RandomnessResult should be updated if request
 			// can be fulfilled
 			.ok_or(Error::<T>::RandomnessResultNotFilled)?;
-		// compute random output(s) using salt
-		let random_words = Pallet::<T>::concat_and_hash(randomness, self.salt, self.num_words);
-		Ok(random_words)
+		// Returns Vec<[u8; 32]> of length `num_words`
+		// Each element is the blake2_256 of the concatenation of `randomness + salt + i` such that
+		// `0<=i<num_words`.
+		let compute_random_words = |random: T::Hash, salt: H256, num_words| {
+			let mut output: Vec<[u8; 32]> = Vec::new();
+			let mut word = Vec::new();
+			for index in 0u8..num_words {
+				word.extend_from_slice(random.as_ref());
+				word.extend_from_slice(salt.as_ref());
+				word.extend_from_slice(&[index]);
+				output.push(sp_io::hashing::blake2_256(&word));
+				word.clear();
+			}
+			output
+		};
+		// return random words
+		Ok(compute_random_words(randomness, self.salt, self.num_words))
 	}
 	pub(crate) fn emit_randomness_requested_event(&self, id: RequestId) {
 		let event = match self.info {
@@ -238,25 +252,39 @@ impl<T: Config> Request<BalanceOf<T>, RequestInfo<T>> {
 		caller: &H160,
 		cost_of_execution: BalanceOf<T>,
 	) {
+		let try_transfer_or_log_error =
+			|from: &T::AccountId, to: &T::AccountId, amount: BalanceOf<T>| {
+				if let Err(error) = T::Currency::transfer(from, to, amount, KeepAlive) {
+					log::warn!(
+						"Failed to transfer in finish_fulfill with error {:?}",
+						error,
+					);
+				}
+			};
 		let refundable_amount = deposit.saturating_add(self.fee);
 		if let Some(excess) = refundable_amount.checked_sub(&cost_of_execution) {
+			if &self.refund_address == caller {
+				// send excess + cost of execution to refund address iff refund address is caller
+				try_transfer_or_log_error(
+					&Pallet::<T>::account_id(),
+					&T::AddressMapping::into_account_id(self.refund_address),
+					excess.saturating_add(cost_of_execution),
+				);
+				return;
+			}
 			// send excess to refund address
-			T::Currency::transfer(
+			try_transfer_or_log_error(
 				&Pallet::<T>::account_id(),
 				&T::AddressMapping::into_account_id(self.refund_address),
 				excess,
-				KeepAlive,
-			)
-			.expect("excess should be transferrable");
+			);
 		}
 		// refund cost_of_execution to caller of `fulfill`
-		T::Currency::transfer(
+		try_transfer_or_log_error(
 			&Pallet::<T>::account_id(),
 			&T::AddressMapping::into_account_id(caller.clone()),
 			cost_of_execution,
-			KeepAlive,
-		)
-		.expect("cost_of_execution should be transferrable");
+		);
 	}
 }
 
@@ -328,21 +356,30 @@ impl<T: Config> RequestState<T> {
 		ensure!(self.request.is_expired(), Error::<T>::RequestHasNotExpired);
 		let contract_address =
 			T::AddressMapping::into_account_id(self.request.contract_address.clone());
-		// TODO: is it worth optimizing when caller == contract_address to do one transfer here
-		T::Currency::transfer(
-			&Pallet::<T>::account_id(),
-			&contract_address,
-			self.deposit,
-			KeepAlive,
-		)
-		.expect("expect transferrable deposit + fee, transferring deposit");
-		T::Currency::transfer(
-			&Pallet::<T>::account_id(),
-			caller,
-			self.request.fee,
-			KeepAlive,
-		)
-		.expect("expect transferrable deposit + fee, transferring fee");
+		if caller == &contract_address {
+			// If caller == contract_address, then transfer deposit + fee to contract_address
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				&contract_address,
+				self.deposit.saturating_add(self.request.fee),
+				KeepAlive,
+			)?;
+		} else {
+			// Return deposit to `contract_address`
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				&contract_address,
+				self.deposit,
+				KeepAlive,
+			)?;
+			// Return request.fee to `caller`
+			T::Currency::transfer(
+				&Pallet::<T>::account_id(),
+				caller,
+				self.request.fee,
+				KeepAlive,
+			)?;
+		}
 		Ok(())
 	}
 }

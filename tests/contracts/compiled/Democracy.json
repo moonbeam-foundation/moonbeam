@@ -23,9 +23,9 @@
       },
       {
         "inputs": [
-          { "internalType": "uint256", "name": "prop_index", "type": "uint256" }
+          { "internalType": "uint256", "name": "propIndex", "type": "uint256" }
         ],
-        "name": "deposit_of",
+        "name": "depositOf",
         "outputs": [
           { "internalType": "uint256", "name": "", "type": "uint256" }
         ],
@@ -34,9 +34,9 @@
       },
       {
         "inputs": [
-          { "internalType": "uint256", "name": "ref_index", "type": "uint256" }
+          { "internalType": "uint256", "name": "refIndex", "type": "uint256" }
         ],
-        "name": "finished_referendum_info",
+        "name": "finishedReferendumInfo",
         "outputs": [
           { "internalType": "bool", "name": "", "type": "bool" },
           { "internalType": "uint256", "name": "", "type": "uint256" }
@@ -46,7 +46,7 @@
       },
       {
         "inputs": [],
-        "name": "lowest_unbaked",
+        "name": "lowestUnbaked",
         "outputs": [
           { "internalType": "uint256", "name": "", "type": "uint256" }
         ],
@@ -57,11 +57,11 @@
         "inputs": [
           {
             "internalType": "bytes",
-            "name": "encoded_proposal",
+            "name": "encodedProposal",
             "type": "bytes"
           }
         ],
-        "name": "note_imminent_preimage",
+        "name": "noteImminentPreimage",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -70,20 +70,20 @@
         "inputs": [
           {
             "internalType": "bytes",
-            "name": "encoded_proposal",
+            "name": "encodedProposal",
             "type": "bytes"
           }
         ],
-        "name": "note_preimage",
+        "name": "notePreimage",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
         "inputs": [
-          { "internalType": "uint256", "name": "ref_index", "type": "uint256" }
+          { "internalType": "uint256", "name": "refIndex", "type": "uint256" }
         ],
-        "name": "ongoing_referendum_info",
+        "name": "ongoingReferendumInfo",
         "outputs": [
           { "internalType": "uint256", "name": "", "type": "uint256" },
           { "internalType": "bytes32", "name": "", "type": "bytes32" },
@@ -100,7 +100,7 @@
         "inputs": [
           {
             "internalType": "bytes32",
-            "name": "proposal_hash",
+            "name": "proposalHash",
             "type": "bytes32"
           },
           { "internalType": "uint256", "name": "value", "type": "uint256" }
@@ -112,7 +112,7 @@
       },
       {
         "inputs": [],
-        "name": "public_prop_count",
+        "name": "publicPropCount",
         "outputs": [
           { "internalType": "uint256", "name": "", "type": "uint256" }
         ],
@@ -121,23 +121,19 @@
       },
       {
         "inputs": [
-          { "internalType": "uint256", "name": "ref_index", "type": "uint256" }
+          { "internalType": "uint256", "name": "refIndex", "type": "uint256" }
         ],
-        "name": "remove_vote",
+        "name": "removeVote",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
         "inputs": [
+          { "internalType": "uint256", "name": "propIndex", "type": "uint256" },
           {
             "internalType": "uint256",
-            "name": "prop_index",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "seconds_upper_bound",
+            "name": "secondsUpperBound",
             "type": "uint256"
           }
         ],
@@ -148,23 +144,23 @@
       },
       {
         "inputs": [
-          { "internalType": "uint256", "name": "ref_index", "type": "uint256" },
+          { "internalType": "uint256", "name": "refIndex", "type": "uint256" },
           { "internalType": "bool", "name": "aye", "type": "bool" },
           {
             "internalType": "uint256",
-            "name": "vote_amount",
+            "name": "voteAmount",
             "type": "uint256"
           },
           { "internalType": "uint256", "name": "conviction", "type": "uint256" }
         ],
-        "name": "standard_vote",
+        "name": "standardVote",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
       },
       {
         "inputs": [],
-        "name": "un_delegate",
+        "name": "unDelegate",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -180,100 +176,116 @@
       }
     ],
     "devdoc": {
-      "details": "This interface does not exhaustively wrap pallet democracy, rather it wraps the most important parts and the parts that are expected to be most useful to evm contracts. More exhaustive wrapping can be added later if it is desireable and the pallet interface is deemed sufficiently stable. Address :    0x0000000000000000000000000000000000000803",
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000803",
+      "details": "The interface through which solidity contracts will interact with pallet-democracy. This interface does not exhaustively wrap pallet democracy, rather it wraps the most important parts and the parts that are expected to be most useful to evm contracts. More exhaustive wrapping can be added later if it is desireable and the pallet interface is deemed sufficiently stable.",
       "kind": "dev",
       "methods": {
         "delegate(address,uint256,uint256)": {
+          "custom:selector": "0185921e",
           "details": "The balance delegated is locked for as long as it is delegated, and thereafter for the time appropriate for the conviction's lock period.",
           "params": {
             "amount": "The number of tokens whose voting power shall be delegated.",
-            "conviction": "The conviction with which you are delegating. This conviction is used for _all_ delegated votes.",
+            "conviction": "The conviction with which you are delegating. This conviction is used for All_ delegated votes.",
             "representative": "The account to whom the vote shall be delegated."
           }
         },
-        "deposit_of(uint256)": {
+        "depositOf(uint256)": {
+          "custom:selector": "4767142d",
           "details": "Unlike the similarly-named Rust function this one only returns the value, not the complete list of backers.",
           "params": {
-            "prop_index": "The index of the proposal you are interested in"
+            "propIndex": "The index of the proposal you are interested in"
           },
           "returns": { "_0": "The amount of tokens locked behind the proposal" }
         },
-        "finished_referendum_info(uint256)": {
-          "details": "This, along with `ongoing_referendum_info`, wraps the pallet's `referendum_info` function. It is necessary to split it into two here because Solidity only has c-style enums.",
+        "finishedReferendumInfo(uint256)": {
+          "custom:selector": "07df495b",
+          "details": "This, along with `ongoingReferendumInfo`, wraps the pallet's `referendumInfo` function. It is necessary to split it into two here because Solidity only has c-style enums.",
           "params": {
-            "ref_index": "The index of the referendum you are interested in"
+            "refIndex": "The index of the referendum you are interested in"
           },
           "returns": {
             "_0": "A tuple including whether the referendum passed, and the block at which it finished."
           }
         },
-        "lowest_unbaked()": {
+        "lowestUnbaked()": {
+          "custom:selector": "d49dccf0",
           "returns": {
             "_0": "The lowest referendum index representing an unbaked referendum."
           }
         },
-        "note_imminent_preimage(bytes)": {
+        "noteImminentPreimage(bytes)": {
+          "custom:selector": "974791e3",
           "params": {
-            "encoded_proposal": "The scale-encoded proposal whose hash has been submitted on-chain."
+            "encodedProposal": "The scale-encoded proposal whose hash has been submitted on-chain."
           }
         },
-        "note_preimage(bytes)": {
+        "notePreimage(bytes)": {
+          "custom:selector": "cb00f603",
           "params": {
-            "encoded_proposal": "The scale-encoded proposal whose hash has been submitted on-chain."
+            "encodedProposal": "The scale-encoded proposal whose hash has been submitted on-chain."
           }
         },
-        "ongoing_referendum_info(uint256)": {
-          "details": "This, along with `finished_referendum_info`, wraps the pallet's `referendum_info` function. It is necessary to split it into two here because Solidity only has c-style enums.",
+        "ongoingReferendumInfo(uint256)": {
+          "custom:selector": "e5a18359",
+          "details": "This, along with `finishedReferendumInfo`, wraps the pallet's `referendumInfo` function. It is necessary to split it into two here because Solidity only has c-style enums.",
           "params": {
-            "ref_index": "The index of the referendum you are interested in"
+            "refIndex": "The index of the referendum you are interested in"
           },
           "returns": {
-            "_0": "A tuple including: * The block in which the referendum ended * The proposal hash * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority * The delay between passing and launching * The total aye vote (including conviction) * The total nay vote (including conviction) * The total turnout (not including conviction)"
+            "_0": "A tuple including:  * The block in which the referendum ended  * The proposal hash  * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority  * The delay between passing and launching  * The total aye vote (including conviction)  * The total nay vote (including conviction)  * The total turnout (not including conviction)"
           }
         },
         "propose(bytes32,uint256)": {
+          "custom:selector": "7824e7d1",
           "params": {
-            "proposal_hash": "The hash of the proposal you are making",
+            "proposalHash": "The hash of the proposal you are making",
             "value": "The number of tokens to be locked behind this proposal."
           }
         },
-        "public_prop_count()": {
+        "publicPropCount()": {
+          "custom:selector": "31305462",
           "returns": {
             "_0": "The total number of public proposals past and present"
           }
         },
-        "remove_vote(uint256)": {
+        "removeVote(uint256)": {
+          "custom:selector": "3f68fde4",
           "details": "Locks get complex when votes are removed. See pallet-democracy's docs for details.",
           "params": {
-            "ref_index": "The index of the referendum you are interested in"
+            "refIndex": "The index of the referendum you are interested in"
           }
         },
         "second(uint256,uint256)": {
+          "custom:selector": "c7a76601",
           "details": "No amount is necessary here. Seconds are always for the same amount that the original proposer locked. You may second multiple times.",
           "params": {
-            "prop_index": "index of the proposal you want to second",
-            "seconds_upper_bound": "A number greater than or equal to the current number of seconds. This is necessary for calculating the weight of the call."
+            "propIndex": "index of the proposal you want to second",
+            "secondsUpperBound": "A number greater than or equal to the current number of seconds. This is necessary for calculating the weight of the call."
           }
         },
-        "standard_vote(uint256,bool,uint256,uint256)": {
-          "details": "This function only supposrts `Standard` votes where you either vote aye xor nay. It does not support `Split` votes where you vote on both sides. If such a need arises, we should add an additional function to this interface called `split_vote`.",
+        "standardVote(uint256,bool,uint256,uint256)": {
+          "custom:selector": "6cd18b0d",
+          "details": "This function only supposrts `Standard` votes where you either vote aye xor nay. It does not support `Split` votes where you vote on both sides. If such a need arises, we should add an additional function to this interface called `splitVote`.",
           "params": {
             "aye": "`true` is a vote to enact the proposal; `false` is a vote to keep the status quo.",
             "conviction": "How strongly you want to vote. Higher conviction means longer lock time. This must be an interget in the range 0 to 6",
-            "ref_index": "index of the referendum you want to vote in",
-            "vote_amount": "The number of tokens you are willing to lock if you get your way"
+            "refIndex": "index of the referendum you want to vote in",
+            "voteAmount": "The number of tokens you are willing to lock if you get your way"
           }
         },
-        "un_delegate()": {
+        "unDelegate()": {
+          "custom:selector": "1eef225c",
           "details": "Tokens may be unlocked once the lock period corresponding to the conviction with which the delegation was issued has elapsed."
         },
         "unlock(address)": {
+          "custom:selector": "2f6c493c",
           "params": {
             "target": "The account whose tokens should be unlocked. This may be any account."
           }
         }
       },
-      "title": "Pallet Democracy Interface The interface through which solidity contracts will interact with pallet-democracy",
+      "title": "Pallet Democracy Interface",
       "version": 1
     },
     "evm": {
@@ -299,72 +311,66 @@
       "legacyAssembly": null,
       "methodIdentifiers": {
         "delegate(address,uint256,uint256)": "0185921e",
-        "deposit_of(uint256)": "a30305e9",
-        "finished_referendum_info(uint256)": "b1fd383f",
-        "lowest_unbaked()": "0388f282",
-        "note_imminent_preimage(bytes)": "cf205f96",
-        "note_preimage(bytes)": "200881f5",
-        "ongoing_referendum_info(uint256)": "8b93d11a",
+        "depositOf(uint256)": "4767142d",
+        "finishedReferendumInfo(uint256)": "07df495b",
+        "lowestUnbaked()": "d49dccf0",
+        "noteImminentPreimage(bytes)": "974791e3",
+        "notePreimage(bytes)": "cb00f603",
+        "ongoingReferendumInfo(uint256)": "e5a18359",
         "propose(bytes32,uint256)": "7824e7d1",
-        "public_prop_count()": "56fdf547",
-        "remove_vote(uint256)": "2042f50b",
+        "publicPropCount()": "31305462",
+        "removeVote(uint256)": "3f68fde4",
         "second(uint256,uint256)": "c7a76601",
-        "standard_vote(uint256,bool,uint256,uint256)": "3f3c21cc",
-        "un_delegate()": "cb37b8ea",
+        "standardVote(uint256,bool,uint256,uint256)": "6cd18b0d",
+        "unDelegate()": "1eef225c",
         "unlock(address)": "2f6c493c"
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"representative\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"conviction\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"delegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prop_index\",\"type\":\"uint256\"}],\"name\":\"deposit_of\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ref_index\",\"type\":\"uint256\"}],\"name\":\"finished_referendum_info\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lowest_unbaked\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encoded_proposal\",\"type\":\"bytes\"}],\"name\":\"note_imminent_preimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encoded_proposal\",\"type\":\"bytes\"}],\"name\":\"note_preimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ref_index\",\"type\":\"uint256\"}],\"name\":\"ongoing_referendum_info\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposal_hash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"propose\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"public_prop_count\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ref_index\",\"type\":\"uint256\"}],\"name\":\"remove_vote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"prop_index\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"seconds_upper_bound\",\"type\":\"uint256\"}],\"name\":\"second\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"ref_index\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"aye\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"vote_amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"conviction\",\"type\":\"uint256\"}],\"name\":\"standard_vote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"un_delegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"unlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"details\":\"This interface does not exhaustively wrap pallet democracy, rather it wraps the most important parts and the parts that are expected to be most useful to evm contracts. More exhaustive wrapping can be added later if it is desireable and the pallet interface is deemed sufficiently stable. Address :    0x0000000000000000000000000000000000000803\",\"kind\":\"dev\",\"methods\":{\"delegate(address,uint256,uint256)\":{\"details\":\"The balance delegated is locked for as long as it is delegated, and thereafter for the time appropriate for the conviction's lock period.\",\"params\":{\"amount\":\"The number of tokens whose voting power shall be delegated.\",\"conviction\":\"The conviction with which you are delegating. This conviction is used for _all_ delegated votes.\",\"representative\":\"The account to whom the vote shall be delegated.\"}},\"deposit_of(uint256)\":{\"details\":\"Unlike the similarly-named Rust function this one only returns the value, not the complete list of backers.\",\"params\":{\"prop_index\":\"The index of the proposal you are interested in\"},\"returns\":{\"_0\":\"The amount of tokens locked behind the proposal\"}},\"finished_referendum_info(uint256)\":{\"details\":\"This, along with `ongoing_referendum_info`, wraps the pallet's `referendum_info` function. It is necessary to split it into two here because Solidity only has c-style enums.\",\"params\":{\"ref_index\":\"The index of the referendum you are interested in\"},\"returns\":{\"_0\":\"A tuple including whether the referendum passed, and the block at which it finished.\"}},\"lowest_unbaked()\":{\"returns\":{\"_0\":\"The lowest referendum index representing an unbaked referendum.\"}},\"note_imminent_preimage(bytes)\":{\"params\":{\"encoded_proposal\":\"The scale-encoded proposal whose hash has been submitted on-chain.\"}},\"note_preimage(bytes)\":{\"params\":{\"encoded_proposal\":\"The scale-encoded proposal whose hash has been submitted on-chain.\"}},\"ongoing_referendum_info(uint256)\":{\"details\":\"This, along with `finished_referendum_info`, wraps the pallet's `referendum_info` function. It is necessary to split it into two here because Solidity only has c-style enums.\",\"params\":{\"ref_index\":\"The index of the referendum you are interested in\"},\"returns\":{\"_0\":\"A tuple including: * The block in which the referendum ended * The proposal hash * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority * The delay between passing and launching * The total aye vote (including conviction) * The total nay vote (including conviction) * The total turnout (not including conviction)\"}},\"propose(bytes32,uint256)\":{\"params\":{\"proposal_hash\":\"The hash of the proposal you are making\",\"value\":\"The number of tokens to be locked behind this proposal.\"}},\"public_prop_count()\":{\"returns\":{\"_0\":\"The total number of public proposals past and present\"}},\"remove_vote(uint256)\":{\"details\":\"Locks get complex when votes are removed. See pallet-democracy's docs for details.\",\"params\":{\"ref_index\":\"The index of the referendum you are interested in\"}},\"second(uint256,uint256)\":{\"details\":\"No amount is necessary here. Seconds are always for the same amount that the original proposer locked. You may second multiple times.\",\"params\":{\"prop_index\":\"index of the proposal you want to second\",\"seconds_upper_bound\":\"A number greater than or equal to the current number of seconds. This is necessary for calculating the weight of the call.\"}},\"standard_vote(uint256,bool,uint256,uint256)\":{\"details\":\"This function only supposrts `Standard` votes where you either vote aye xor nay. It does not support `Split` votes where you vote on both sides. If such a need arises, we should add an additional function to this interface called `split_vote`.\",\"params\":{\"aye\":\"`true` is a vote to enact the proposal; `false` is a vote to keep the status quo.\",\"conviction\":\"How strongly you want to vote. Higher conviction means longer lock time. This must be an interget in the range 0 to 6\",\"ref_index\":\"index of the referendum you want to vote in\",\"vote_amount\":\"The number of tokens you are willing to lock if you get your way\"}},\"un_delegate()\":{\"details\":\"Tokens may be unlocked once the lock period corresponding to the conviction with which the delegation was issued has elapsed.\"},\"unlock(address)\":{\"params\":{\"target\":\"The account whose tokens should be unlocked. This may be any account.\"}}},\"title\":\"Pallet Democracy Interface The interface through which solidity contracts will interact with pallet-democracy\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"delegate(address,uint256,uint256)\":{\"notice\":\"Delegate voting power to another account. Selector: 0185921e\"},\"deposit_of(uint256)\":{\"notice\":\"Get the total amount locked behind a proposal. Selector: a30305e9\"},\"finished_referendum_info(uint256)\":{\"notice\":\"Get the details about a finished referendum. Selector: b1fd383f\"},\"lowest_unbaked()\":{\"notice\":\"Get the index of the lowest unbaked referendum Selector: 0388f282\"},\"note_imminent_preimage(bytes)\":{\"notice\":\"Register the preimage for an upcoming proposal. This requires the proposal to be in the dispatch queue. No deposit is needed. When this call is successful, i.e. the preimage has not been uploaded before and matches some imminent proposal, no fee is paid. Selector: cf205f96\"},\"note_preimage(bytes)\":{\"notice\":\"Register the preimage for an upcoming proposal. This doesn't require the proposal to be in the dispatch queue but does require a deposit, returned once enacted. Selector: 200881f5\"},\"ongoing_referendum_info(uint256)\":{\"notice\":\"Get the details about an ongoing referendum. Selector: 8b93d11a\"},\"propose(bytes32,uint256)\":{\"notice\":\"Make a new proposal Selector: 7824e7d1\"},\"public_prop_count()\":{\"notice\":\"Get The total number of public proposals past and present Selector: 56fdf547\"},\"remove_vote(uint256)\":{\"notice\":\"Remove a vote for a referendum. Selector: 2042f50b\"},\"second(uint256,uint256)\":{\"notice\":\"Signal agreement with a proposal Selector: c7a76601\"},\"standard_vote(uint256,bool,uint256,uint256)\":{\"notice\":\"Vote in a referendum. Selector: 3f3c21cc\"},\"un_delegate()\":{\"notice\":\"Undelegatehe voting power Selector: cb37b8ea\"},\"unlock(address)\":{\"notice\":\"Unlock tokens that have an expired lock. Selector: 2f6c493c\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Democracy\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x2c640709ee2136c390e500687168a29921303e68c72385e95d224868e243d1c8\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://b56ef6792eca5b275bfb12b828499538de54de1b78e137814dbcf32e47f9cc34\",\"dweb:/ipfs/QmVEQfFStVxh8vDtXSnmdDZ9CiA7CJgotuNbSrKZW53cUU\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"representative\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"conviction\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"delegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"propIndex\",\"type\":\"uint256\"}],\"name\":\"depositOf\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"refIndex\",\"type\":\"uint256\"}],\"name\":\"finishedReferendumInfo\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"lowestUnbaked\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedProposal\",\"type\":\"bytes\"}],\"name\":\"noteImminentPreimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"encodedProposal\",\"type\":\"bytes\"}],\"name\":\"notePreimage\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"refIndex\",\"type\":\"uint256\"}],\"name\":\"ongoingReferendumInfo\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"proposalHash\",\"type\":\"bytes32\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"propose\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"publicPropCount\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"refIndex\",\"type\":\"uint256\"}],\"name\":\"removeVote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"propIndex\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsUpperBound\",\"type\":\"uint256\"}],\"name\":\"second\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"refIndex\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"aye\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"voteAmount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"conviction\",\"type\":\"uint256\"}],\"name\":\"standardVote\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"unDelegate\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"target\",\"type\":\"address\"}],\"name\":\"unlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000803\",\"details\":\"The interface through which solidity contracts will interact with pallet-democracy. This interface does not exhaustively wrap pallet democracy, rather it wraps the most important parts and the parts that are expected to be most useful to evm contracts. More exhaustive wrapping can be added later if it is desireable and the pallet interface is deemed sufficiently stable.\",\"kind\":\"dev\",\"methods\":{\"delegate(address,uint256,uint256)\":{\"custom:selector\":\"0185921e\",\"details\":\"The balance delegated is locked for as long as it is delegated, and thereafter for the time appropriate for the conviction's lock period.\",\"params\":{\"amount\":\"The number of tokens whose voting power shall be delegated.\",\"conviction\":\"The conviction with which you are delegating. This conviction is used for All_ delegated votes.\",\"representative\":\"The account to whom the vote shall be delegated.\"}},\"depositOf(uint256)\":{\"custom:selector\":\"4767142d\",\"details\":\"Unlike the similarly-named Rust function this one only returns the value, not the complete list of backers.\",\"params\":{\"propIndex\":\"The index of the proposal you are interested in\"},\"returns\":{\"_0\":\"The amount of tokens locked behind the proposal\"}},\"finishedReferendumInfo(uint256)\":{\"custom:selector\":\"07df495b\",\"details\":\"This, along with `ongoingReferendumInfo`, wraps the pallet's `referendumInfo` function. It is necessary to split it into two here because Solidity only has c-style enums.\",\"params\":{\"refIndex\":\"The index of the referendum you are interested in\"},\"returns\":{\"_0\":\"A tuple including whether the referendum passed, and the block at which it finished.\"}},\"lowestUnbaked()\":{\"custom:selector\":\"d49dccf0\",\"returns\":{\"_0\":\"The lowest referendum index representing an unbaked referendum.\"}},\"noteImminentPreimage(bytes)\":{\"custom:selector\":\"974791e3\",\"params\":{\"encodedProposal\":\"The scale-encoded proposal whose hash has been submitted on-chain.\"}},\"notePreimage(bytes)\":{\"custom:selector\":\"cb00f603\",\"params\":{\"encodedProposal\":\"The scale-encoded proposal whose hash has been submitted on-chain.\"}},\"ongoingReferendumInfo(uint256)\":{\"custom:selector\":\"e5a18359\",\"details\":\"This, along with `finishedReferendumInfo`, wraps the pallet's `referendumInfo` function. It is necessary to split it into two here because Solidity only has c-style enums.\",\"params\":{\"refIndex\":\"The index of the referendum you are interested in\"},\"returns\":{\"_0\":\"A tuple including:  * The block in which the referendum ended  * The proposal hash  * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority  * The delay between passing and launching  * The total aye vote (including conviction)  * The total nay vote (including conviction)  * The total turnout (not including conviction)\"}},\"propose(bytes32,uint256)\":{\"custom:selector\":\"7824e7d1\",\"params\":{\"proposalHash\":\"The hash of the proposal you are making\",\"value\":\"The number of tokens to be locked behind this proposal.\"}},\"publicPropCount()\":{\"custom:selector\":\"31305462\",\"returns\":{\"_0\":\"The total number of public proposals past and present\"}},\"removeVote(uint256)\":{\"custom:selector\":\"3f68fde4\",\"details\":\"Locks get complex when votes are removed. See pallet-democracy's docs for details.\",\"params\":{\"refIndex\":\"The index of the referendum you are interested in\"}},\"second(uint256,uint256)\":{\"custom:selector\":\"c7a76601\",\"details\":\"No amount is necessary here. Seconds are always for the same amount that the original proposer locked. You may second multiple times.\",\"params\":{\"propIndex\":\"index of the proposal you want to second\",\"secondsUpperBound\":\"A number greater than or equal to the current number of seconds. This is necessary for calculating the weight of the call.\"}},\"standardVote(uint256,bool,uint256,uint256)\":{\"custom:selector\":\"6cd18b0d\",\"details\":\"This function only supposrts `Standard` votes where you either vote aye xor nay. It does not support `Split` votes where you vote on both sides. If such a need arises, we should add an additional function to this interface called `splitVote`.\",\"params\":{\"aye\":\"`true` is a vote to enact the proposal; `false` is a vote to keep the status quo.\",\"conviction\":\"How strongly you want to vote. Higher conviction means longer lock time. This must be an interget in the range 0 to 6\",\"refIndex\":\"index of the referendum you want to vote in\",\"voteAmount\":\"The number of tokens you are willing to lock if you get your way\"}},\"unDelegate()\":{\"custom:selector\":\"1eef225c\",\"details\":\"Tokens may be unlocked once the lock period corresponding to the conviction with which the delegation was issued has elapsed.\"},\"unlock(address)\":{\"custom:selector\":\"2f6c493c\",\"params\":{\"target\":\"The account whose tokens should be unlocked. This may be any account.\"}}},\"title\":\"Pallet Democracy Interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"delegate(address,uint256,uint256)\":{\"notice\":\"Delegate voting power to another account.\"},\"depositOf(uint256)\":{\"notice\":\"Get the total amount locked behind a proposal.\"},\"finishedReferendumInfo(uint256)\":{\"notice\":\"Get the details about a finished referendum.\"},\"lowestUnbaked()\":{\"notice\":\"Get the index of the lowest unbaked referendum\"},\"noteImminentPreimage(bytes)\":{\"notice\":\"Register the preimage for an upcoming proposal. This requires the proposal to be in the dispatch queue. No deposit is needed. When this call is successful, i.e. the preimage has not been uploaded before and matches some imminent proposal, no fee is paid.\"},\"notePreimage(bytes)\":{\"notice\":\"Register the preimage for an upcoming proposal. This doesn't require the proposal to be in the dispatch queue but does require a deposit, returned once enacted.\"},\"ongoingReferendumInfo(uint256)\":{\"notice\":\"Get the details about an ongoing referendum.\"},\"propose(bytes32,uint256)\":{\"notice\":\"Make a new proposal\"},\"publicPropCount()\":{\"notice\":\"Get The total number of public proposals past and present\"},\"removeVote(uint256)\":{\"notice\":\"Remove a vote for a referendum.\"},\"second(uint256,uint256)\":{\"notice\":\"Signal agreement with a proposal\"},\"standardVote(uint256,bool,uint256,uint256)\":{\"notice\":\"Vote in a referendum.\"},\"unDelegate()\":{\"notice\":\"Undelegatehe voting power\"},\"unlock(address)\":{\"notice\":\"Unlock tokens that have an expired lock.\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Democracy\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xd123bead31cea0fc5a1b4995964f46f4fbe22767d16ee790285168998bdc229b\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://8020cd3a256c2ab12ebd29a933b55d12b2d7378d0433cd276d5ec3bb64650695\",\"dweb:/ipfs/QmVT9eaCGDDPnKJDbUB81sBSENxbu2Kbukerf3vAGCQKtP\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": {
       "kind": "user",
       "methods": {
         "delegate(address,uint256,uint256)": {
-          "notice": "Delegate voting power to another account. Selector: 0185921e"
+          "notice": "Delegate voting power to another account."
         },
-        "deposit_of(uint256)": {
-          "notice": "Get the total amount locked behind a proposal. Selector: a30305e9"
+        "depositOf(uint256)": {
+          "notice": "Get the total amount locked behind a proposal."
         },
-        "finished_referendum_info(uint256)": {
-          "notice": "Get the details about a finished referendum. Selector: b1fd383f"
+        "finishedReferendumInfo(uint256)": {
+          "notice": "Get the details about a finished referendum."
         },
-        "lowest_unbaked()": {
-          "notice": "Get the index of the lowest unbaked referendum Selector: 0388f282"
+        "lowestUnbaked()": {
+          "notice": "Get the index of the lowest unbaked referendum"
         },
-        "note_imminent_preimage(bytes)": {
-          "notice": "Register the preimage for an upcoming proposal. This requires the proposal to be in the dispatch queue. No deposit is needed. When this call is successful, i.e. the preimage has not been uploaded before and matches some imminent proposal, no fee is paid. Selector: cf205f96"
+        "noteImminentPreimage(bytes)": {
+          "notice": "Register the preimage for an upcoming proposal. This requires the proposal to be in the dispatch queue. No deposit is needed. When this call is successful, i.e. the preimage has not been uploaded before and matches some imminent proposal, no fee is paid."
         },
-        "note_preimage(bytes)": {
-          "notice": "Register the preimage for an upcoming proposal. This doesn't require the proposal to be in the dispatch queue but does require a deposit, returned once enacted. Selector: 200881f5"
+        "notePreimage(bytes)": {
+          "notice": "Register the preimage for an upcoming proposal. This doesn't require the proposal to be in the dispatch queue but does require a deposit, returned once enacted."
         },
-        "ongoing_referendum_info(uint256)": {
-          "notice": "Get the details about an ongoing referendum. Selector: 8b93d11a"
+        "ongoingReferendumInfo(uint256)": {
+          "notice": "Get the details about an ongoing referendum."
         },
-        "propose(bytes32,uint256)": {
-          "notice": "Make a new proposal Selector: 7824e7d1"
+        "propose(bytes32,uint256)": { "notice": "Make a new proposal" },
+        "publicPropCount()": {
+          "notice": "Get The total number of public proposals past and present"
         },
-        "public_prop_count()": {
-          "notice": "Get The total number of public proposals past and present Selector: 56fdf547"
-        },
-        "remove_vote(uint256)": {
-          "notice": "Remove a vote for a referendum. Selector: 2042f50b"
-        },
+        "removeVote(uint256)": { "notice": "Remove a vote for a referendum." },
         "second(uint256,uint256)": {
-          "notice": "Signal agreement with a proposal Selector: c7a76601"
+          "notice": "Signal agreement with a proposal"
         },
-        "standard_vote(uint256,bool,uint256,uint256)": {
-          "notice": "Vote in a referendum. Selector: 3f3c21cc"
+        "standardVote(uint256,bool,uint256,uint256)": {
+          "notice": "Vote in a referendum."
         },
-        "un_delegate()": {
-          "notice": "Undelegatehe voting power Selector: cb37b8ea"
-        },
+        "unDelegate()": { "notice": "Undelegatehe voting power" },
         "unlock(address)": {
-          "notice": "Unlock tokens that have an expired lock. Selector: 2f6c493c"
+          "notice": "Unlock tokens that have an expired lock."
         }
       },
       "version": 1
     }
   },
-  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/**\n * @title Pallet Democracy Interface\n *\n * The interface through which solidity contracts will interact with pallet-democracy\n *\n * @dev This interface does not exhaustively wrap pallet democracy, rather it wraps the most\n * important parts and the parts that are expected to be most useful to evm contracts.\n * More exhaustive wrapping can be added later if it is desireable and the pallet interface\n * is deemed sufficiently stable.\n * Address :    0x0000000000000000000000000000000000000803\n */\n \ninterface Democracy {\n    // First some simple accessors\n\n    /**\n     * Get The total number of public proposals past and present\n     * Selector: 56fdf547\n     *\n     * @return The total number of public proposals past and present\n     */\n    function public_prop_count() external view returns (uint256);\n\n    /**\n     * Get details about all public porposals.\n     * Selector:\n     * @return (prop index, proposal hash, proposer)\n     * TODO This is supposed to be a vec. Let's save this one for later.\n     */\n    // function public_props()\n    //     external\n    //     view\n    //     returns (\n    //         uint256,\n    //         bytes32,\n    //         address\n    //     );\n\n    /**\n     * Get the total amount locked behind a proposal.\n     * Selector: a30305e9\n     *\n     * @dev Unlike the similarly-named Rust function this one only returns the value, not the\n     * complete list of backers.\n     * @param prop_index The index of the proposal you are interested in\n     * @return The amount of tokens locked behind the proposal\n     */\n    function deposit_of(uint256 prop_index) external view returns (uint256);\n\n    /**\n     * Get the index of the lowest unbaked referendum\n     * Selector: 0388f282\n     *\n     * @return The lowest referendum index representing an unbaked referendum.\n     */\n    function lowest_unbaked() external view returns (uint256);\n\n    /**\n     * Get the details about an ongoing referendum.\n     * Selector: 8b93d11a\n     *\n     * @dev This, along with `finished_referendum_info`, wraps the pallet's `referendum_info`\n     * function. It is necessary to split it into two here because Solidity only has c-style enums.\n     * @param ref_index The index of the referendum you are interested in\n     * @return A tuple including:\n     * * The block in which the referendum ended\n     * * The proposal hash\n     * * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority\n     * * The delay between passing and launching\n     * * The total aye vote (including conviction)\n     * * The total nay vote (including conviction)\n     * * The total turnout (not including conviction)\n     */\n    function ongoing_referendum_info(uint256 ref_index)\n        external\n        view\n        returns (\n            uint256,\n            bytes32,\n            uint256,\n            uint256,\n            uint256,\n            uint256,\n            uint256\n        );\n\n    /**\n     * Get the details about a finished referendum.\n     * Selector: b1fd383f\n     *\n     * @dev This, along with `ongoing_referendum_info`, wraps the pallet's `referendum_info`\n     * function. It is necessary to split it into two here because Solidity only has c-style enums.\n     * @param ref_index The index of the referendum you are interested in\n     * @return A tuple including whether the referendum passed, and the block at which it finished.\n     */\n    function finished_referendum_info(uint256 ref_index)\n        external\n        view\n        returns (bool, uint256);\n\n    // Now the dispatchables\n\n    /**\n     * Make a new proposal\n     * Selector: 7824e7d1\n     *\n     * @param proposal_hash The hash of the proposal you are making\n     * @param value The number of tokens to be locked behind this proposal.\n     */\n    function propose(bytes32 proposal_hash, uint256 value) external;\n\n    /**\n     * Signal agreement with a proposal\n     * Selector: c7a76601\n     *\n     * @dev No amount is necessary here. Seconds are always for the same amount that the original\n     * proposer locked. You may second multiple times.\n     *\n     * @param prop_index index of the proposal you want to second\n     * @param seconds_upper_bound A number greater than or equal to the current number of seconds.\n     * This is necessary for calculating the weight of the call.\n     */\n    function second(uint256 prop_index, uint256 seconds_upper_bound) external;\n\n    //TODO should we have an alternative `simple_second` where the upper bound is read from storage?\n\n    /**\n     * Vote in a referendum.\n     * Selector: 3f3c21cc\n     *\n     * @param ref_index index of the referendum you want to vote in\n     * @param aye `true` is a vote to enact the proposal; `false` is a vote to keep the status quo.\n     * @param vote_amount The number of tokens you are willing to lock if you get your way\n     * @param conviction How strongly you want to vote. Higher conviction means longer lock time.\n     * This must be an interget in the range 0 to 6\n     *\n     * @dev This function only supposrts `Standard` votes where you either vote aye xor nay.\n     * It does not support `Split` votes where you vote on both sides. If such a need\n     * arises, we should add an additional function to this interface called `split_vote`.\n     */\n    function standard_vote(\n        uint256 ref_index,\n        bool aye,\n        uint256 vote_amount,\n        uint256 conviction\n    ) external;\n\n    /** Remove a vote for a referendum.\n     * Selector: 2042f50b\n     *\n     * @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.\n     * @param ref_index The index of the referendum you are interested in\n     */\n    function remove_vote(uint256 ref_index) external;\n\n    /**\n     * Delegate voting power to another account.\n     * Selector: 0185921e\n     *\n     * @dev The balance delegated is locked for as long as it is delegated, and thereafter for the\n     * time appropriate for the conviction's lock period.\n     * @param representative The account to whom the vote shall be delegated.\n     * @param conviction The conviction with which you are delegating. This conviction is used for\n     * _all_ delegated votes.\n     * @param amount The number of tokens whose voting power shall be delegated.\n     */\n    function delegate(\n        address representative,\n        uint256 conviction,\n        uint256 amount\n    ) external;\n\n    /**\n     * Undelegatehe voting power\n     * Selector: cb37b8ea\n     *\n     * @dev Tokens may be unlocked once the lock period corresponding to the conviction with which\n     * the delegation was issued has elapsed.\n     */\n    function un_delegate() external;\n\n    /**\n     * Unlock tokens that have an expired lock.\n     * Selector: 2f6c493c\n     *\n     * @param target The account whose tokens should be unlocked. This may be any account.\n     */\n    function unlock(address target) external;\n\n    /**\n     * Register the preimage for an upcoming proposal. This doesn't require the proposal to be\n     * in the dispatch queue but does require a deposit, returned once enacted.\n     * Selector: 200881f5\n     *\n     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.\n     */\n    function note_preimage(bytes memory encoded_proposal) external;\n\n    /**\n     * Register the preimage for an upcoming proposal. This requires the proposal to be\n     * in the dispatch queue. No deposit is needed. When this call is successful, i.e.\n     * the preimage has not been uploaded before and matches some imminent proposal,\n     * no fee is paid.\n     * Selector: cf205f96\n     *\n     * @param encoded_proposal The scale-encoded proposal whose hash has been submitted on-chain.\n     */\n    function note_imminent_preimage(bytes memory encoded_proposal) external;\n}\n"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title Pallet Democracy Interface\n/// @dev The interface through which solidity contracts will interact with pallet-democracy.\n/// This interface does not exhaustively wrap pallet democracy, rather it wraps the most\n/// important parts and the parts that are expected to be most useful to evm contracts.\n/// More exhaustive wrapping can be added later if it is desireable and the pallet interface\n/// is deemed sufficiently stable.\n/// @custom:address 0x0000000000000000000000000000000000000803\ninterface Democracy {\n    // First some simple accessors\n\n    /// Get The total number of public proposals past and present\n    /// @custom:selector 31305462\n    ///\n    /// @return The total number of public proposals past and present\n    function publicPropCount() external view returns (uint256);\n\n    /// Get details about all public porposals.\n    /// @custom:selector\n    /// @return (prop index, proposal hash, proposer)\n    /// TODO This is supposed to be a vec. Let's save this one for later.\n    // function publicProps()\n    //     external\n    //     view\n    //     returns (\n    //         uint256,\n    //         bytes32,\n    //         address\n    //     );\n\n    /// Get the total amount locked behind a proposal.\n    /// @custom:selector 4767142d\n    ///\n    /// @dev Unlike the similarly-named Rust function this one only returns the value, not the\n    /// complete list of backers.\n    /// @param propIndex The index of the proposal you are interested in\n    /// @return The amount of tokens locked behind the proposal\n    function depositOf(uint256 propIndex) external view returns (uint256);\n\n    /// Get the index of the lowest unbaked referendum\n    /// @custom:selector d49dccf0\n    ///\n    /// @return The lowest referendum index representing an unbaked referendum.\n    function lowestUnbaked() external view returns (uint256);\n\n    /// Get the details about an ongoing referendum.\n    /// @custom:selector e5a18359\n    ///\n    /// @dev This, along with `finishedReferendumInfo`, wraps the pallet's `referendumInfo`\n    /// function. It is necessary to split it into two here because Solidity only has c-style enums.\n    /// @param refIndex The index of the referendum you are interested in\n    /// @return A tuple including:\n    ///  * The block in which the referendum ended\n    ///  * The proposal hash\n    ///  * The baising mechanism 0-SuperMajorityApprove, 1-SuperMajorityAgainst, 2-SimpleMajority\n    ///  * The delay between passing and launching\n    ///  * The total aye vote (including conviction)\n    ///  * The total nay vote (including conviction)\n    ///  * The total turnout (not including conviction)\n    function ongoingReferendumInfo(uint256 refIndex)\n        external\n        view\n        returns (\n            uint256,\n            bytes32,\n            uint256,\n            uint256,\n            uint256,\n            uint256,\n            uint256\n        );\n\n    /// Get the details about a finished referendum.\n    /// @custom:selector 07df495b\n    ///\n    /// @dev This, along with `ongoingReferendumInfo`, wraps the pallet's `referendumInfo`\n    /// function. It is necessary to split it into two here because Solidity only has c-style enums.\n    /// @param refIndex The index of the referendum you are interested in\n    /// @return A tuple including whether the referendum passed, and the block at which it finished.\n    function finishedReferendumInfo(uint256 refIndex)\n        external\n        view\n        returns (bool, uint256);\n\n    // Now the dispatchables\n\n    /// Make a new proposal\n    /// @custom:selector 7824e7d1\n    ///\n    /// @param proposalHash The hash of the proposal you are making\n    /// @param value The number of tokens to be locked behind this proposal.\n    function propose(bytes32 proposalHash, uint256 value) external;\n\n    /// Signal agreement with a proposal\n    /// @custom:selector c7a76601\n    ///\n    /// @dev No amount is necessary here. Seconds are always for the same amount that the original\n    /// proposer locked. You may second multiple times.\n    ///\n    /// @param propIndex index of the proposal you want to second\n    /// @param secondsUpperBound A number greater than or equal to the current number of seconds.\n    /// This is necessary for calculating the weight of the call.\n    function second(uint256 propIndex, uint256 secondsUpperBound) external;\n\n    //TODO should we have an alternative `simpleSecond` where the upper bound is read from storage?\n\n    /// Vote in a referendum.\n    /// @custom:selector 6cd18b0d\n    ///\n    /// @param refIndex index of the referendum you want to vote in\n    /// @param aye `true` is a vote to enact the proposal; `false` is a vote to keep the status quo.\n    /// @param voteAmount The number of tokens you are willing to lock if you get your way\n    /// @param conviction How strongly you want to vote. Higher conviction means longer lock time.\n    /// This must be an interget in the range 0 to 6\n    ///\n    /// @dev This function only supposrts `Standard` votes where you either vote aye xor nay.\n    /// It does not support `Split` votes where you vote on both sides. If such a need\n    /// arises, we should add an additional function to this interface called `splitVote`.\n    function standardVote(\n        uint256 refIndex,\n        bool aye,\n        uint256 voteAmount,\n        uint256 conviction\n    ) external;\n\n    /// Remove a vote for a referendum.\n    /// @custom:selector 3f68fde4\n    ///\n    /// @dev Locks get complex when votes are removed. See pallet-democracy's docs for details.\n    /// @param refIndex The index of the referendum you are interested in\n    function removeVote(uint256 refIndex) external;\n\n    /// Delegate voting power to another account.\n    /// @custom:selector 0185921e\n    ///\n    /// @dev The balance delegated is locked for as long as it is delegated, and thereafter for the\n    /// time appropriate for the conviction's lock period.\n    /// @param representative The account to whom the vote shall be delegated.\n    /// @param conviction The conviction with which you are delegating. This conviction is used for\n    /// All_ delegated votes.\n    /// @param amount The number of tokens whose voting power shall be delegated.\n    function delegate(\n        address representative,\n        uint256 conviction,\n        uint256 amount\n    ) external;\n\n    /// Undelegatehe voting power\n    /// @custom:selector 1eef225c\n    ///\n    /// @dev Tokens may be unlocked once the lock period corresponding to the conviction with which\n    /// the delegation was issued has elapsed.\n    function unDelegate() external;\n\n    /// Unlock tokens that have an expired lock.\n    /// @custom:selector 2f6c493c\n    ///\n    /// @param target The account whose tokens should be unlocked. This may be any account.\n    function unlock(address target) external;\n\n    /// Register the preimage for an upcoming proposal. This doesn't require the proposal to be\n    /// in the dispatch queue but does require a deposit, returned once enacted.\n    /// @custom:selector cb00f603\n    ///\n    /// @param encodedProposal The scale-encoded proposal whose hash has been submitted on-chain.\n    function notePreimage(bytes memory encodedProposal) external;\n\n    /// Register the preimage for an upcoming proposal. This requires the proposal to be\n    /// in the dispatch queue. No deposit is needed. When this call is successful, i.e.\n    /// the preimage has not been uploaded before and matches some imminent proposal,\n    /// no fee is paid.\n    /// @custom:selector 974791e3\n    ///\n    /// @param encodedProposal The scale-encoded proposal whose hash has been submitted on-chain.\n    function noteImminentPreimage(bytes memory encodedProposal) external;\n}\n"
 }

@@ -14,7 +14,7 @@
       },
       {
         "inputs": [],
-        "name": "clear_metadata",
+        "name": "clearMetadata",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -30,7 +30,7 @@
       },
       {
         "inputs": [],
-        "name": "freeze_asset",
+        "name": "freezeAsset",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -51,7 +51,7 @@
           { "internalType": "string", "name": "symbol", "type": "string" },
           { "internalType": "uint8", "name": "decimals", "type": "uint8" }
         ],
-        "name": "set_metadata",
+        "name": "setMetadata",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -62,7 +62,7 @@
           { "internalType": "address", "name": "admin", "type": "address" },
           { "internalType": "address", "name": "freezer", "type": "address" }
         ],
-        "name": "set_team",
+        "name": "setTeam",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -78,7 +78,7 @@
       },
       {
         "inputs": [],
-        "name": "thaw_asset",
+        "name": "thawAsset",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -87,49 +87,58 @@
         "inputs": [
           { "internalType": "address", "name": "owner", "type": "address" }
         ],
-        "name": "transfer_ownership",
+        "name": "transferOwnership",
         "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
         "stateMutability": "nonpayable",
         "type": "function"
       }
     ],
     "devdoc": {
+      "author": "The Moonbeam Team",
+      "details": "Contract to pilot the ERC20 contract.",
       "kind": "dev",
       "methods": {
         "burn(address,uint256)": {
-          "details": "Burn tokens from an address Selector: 9dc29fac",
+          "custom:selector": "9dc29fac",
+          "details": "Burn tokens from an address",
           "params": {
             "from": "address The address from which you want to burn tokens",
             "value": "uint256 the amount of tokens to be burnt"
           }
         },
-        "clear_metadata()": {
-          "details": "Clear the name, symbol and decimals of your asset Selector: d3ba4b9e"
+        "clearMetadata()": {
+          "custom:selector": "efb6d432",
+          "details": "Clear the name, symbol and decimals of your asset"
         },
         "freeze(address)": {
-          "details": "Freeze an account, preventing it from operating with the asset Selector: 8d1fdf2f",
+          "custom:selector": "8d1fdf2f",
+          "details": "Freeze an account, preventing it from operating with the asset",
           "params": { "account": "address The address that you want to freeze" }
         },
-        "freeze_asset()": {
-          "details": "Freeze the entire asset operations Selector: 6b8751c1"
+        "freezeAsset()": {
+          "custom:selector": "d4937f51",
+          "details": "Freeze the entire asset operations"
         },
         "mint(address,uint256)": {
-          "details": "Mint tokens to an address Selector: 40c10f19",
+          "custom:selector": "40c10f19",
+          "details": "Mint tokens to an address",
           "params": {
             "to": "address The address to which you want to mint tokens",
             "value": "uint256 the amount of tokens to be minted"
           }
         },
-        "set_metadata(string,string,uint8)": {
-          "details": "Specify the name, symbol and decimals of your asset Selector: ee5dc1e4",
+        "setMetadata(string,string,uint8)": {
+          "custom:selector": "37d2c2f4",
+          "details": "Specify the name, symbol and decimals of your asset",
           "params": {
             "decimals": "uint8 The number of decimals of your asset",
             "name": "string The name of the asset",
             "symbol": "string The symbol of the asset"
           }
         },
-        "set_team(address,address,address)": {
-          "details": "Specify the issuer, admin and freezer of an asset Selector: f8bf8e95",
+        "setTeam(address,address,address)": {
+          "custom:selector": "c7d93c59",
+          "details": "Specify the issuer, admin and freezer of an asset",
           "params": {
             "admin": "address The address capable of burning tokens and unfreezing accounts/assets",
             "freezer": "address The address capable of freezing accounts/asset",
@@ -137,20 +146,23 @@
           }
         },
         "thaw(address)": {
-          "details": "Unfreeze an account, letting it from operating againt with the asset Selector: 5ea20216",
+          "custom:selector": "5ea20216",
+          "details": "Unfreeze an account, letting it from operating againt with the asset",
           "params": {
             "account": "address The address that you want to unfreeze"
           }
         },
-        "thaw_asset()": {
-          "details": "Unfreeze the entire asset operations Selector: 1cddec19"
+        "thawAsset()": {
+          "custom:selector": "51ec2ad7",
+          "details": "Unfreeze the entire asset operations"
         },
-        "transfer_ownership(address)": {
-          "details": "Transfer the ownership of an asset to a new account Selector: f0350c04",
+        "transferOwnership(address)": {
+          "custom:selector": "f2fde38b",
+          "details": "Transfer the ownership of an asset to a new account",
           "params": { "owner": "address The address of the new owner" }
         }
       },
-      "title": "Extension of the ERC20 interface that allows an owner contract to pilot the ERC20 contract.",
+      "title": "Extension of the ERC20 interface that allows an owner",
       "version": 1
     },
     "evm": {
@@ -176,21 +188,21 @@
       "legacyAssembly": null,
       "methodIdentifiers": {
         "burn(address,uint256)": "9dc29fac",
-        "clear_metadata()": "d3ba4b9e",
+        "clearMetadata()": "efb6d432",
         "freeze(address)": "8d1fdf2f",
-        "freeze_asset()": "6b8751c1",
+        "freezeAsset()": "d4937f51",
         "mint(address,uint256)": "40c10f19",
-        "set_metadata(string,string,uint8)": "ee5dc1e4",
-        "set_team(address,address,address)": "f8bf8e95",
+        "setMetadata(string,string,uint8)": "37d2c2f4",
+        "setTeam(address,address,address)": "c7d93c59",
         "thaw(address)": "5ea20216",
-        "thaw_asset()": "1cddec19",
-        "transfer_ownership(address)": "f0350c04"
+        "thawAsset()": "51ec2ad7",
+        "transferOwnership(address)": "f2fde38b"
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"clear_metadata\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"freeze\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"freeze_asset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\"}],\"name\":\"set_metadata\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"issuer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"freezer\",\"type\":\"address\"}],\"name\":\"set_team\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"thaw\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"thaw_asset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"transfer_ownership\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"burn(address,uint256)\":{\"details\":\"Burn tokens from an address Selector: 9dc29fac\",\"params\":{\"from\":\"address The address from which you want to burn tokens\",\"value\":\"uint256 the amount of tokens to be burnt\"}},\"clear_metadata()\":{\"details\":\"Clear the name, symbol and decimals of your asset Selector: d3ba4b9e\"},\"freeze(address)\":{\"details\":\"Freeze an account, preventing it from operating with the asset Selector: 8d1fdf2f\",\"params\":{\"account\":\"address The address that you want to freeze\"}},\"freeze_asset()\":{\"details\":\"Freeze the entire asset operations Selector: 6b8751c1\"},\"mint(address,uint256)\":{\"details\":\"Mint tokens to an address Selector: 40c10f19\",\"params\":{\"to\":\"address The address to which you want to mint tokens\",\"value\":\"uint256 the amount of tokens to be minted\"}},\"set_metadata(string,string,uint8)\":{\"details\":\"Specify the name, symbol and decimals of your asset Selector: ee5dc1e4\",\"params\":{\"decimals\":\"uint8 The number of decimals of your asset\",\"name\":\"string The name of the asset\",\"symbol\":\"string The symbol of the asset\"}},\"set_team(address,address,address)\":{\"details\":\"Specify the issuer, admin and freezer of an asset Selector: f8bf8e95\",\"params\":{\"admin\":\"address The address capable of burning tokens and unfreezing accounts/assets\",\"freezer\":\"address The address capable of freezing accounts/asset\",\"issuer\":\"address The address capable of issuing tokens\"}},\"thaw(address)\":{\"details\":\"Unfreeze an account, letting it from operating againt with the asset Selector: 5ea20216\",\"params\":{\"account\":\"address The address that you want to unfreeze\"}},\"thaw_asset()\":{\"details\":\"Unfreeze the entire asset operations Selector: 1cddec19\"},\"transfer_ownership(address)\":{\"details\":\"Transfer the ownership of an asset to a new account Selector: f0350c04\",\"params\":{\"owner\":\"address The address of the new owner\"}}},\"title\":\"Extension of the ERC20 interface that allows an owner contract to pilot the ERC20 contract.\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"LocalAsset\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x8435428eb21ff88d9e7a74193b0f5c42a7784f60a834df2f2b682807d8d69fd2\",\"urls\":[\"bzz-raw://c8c7db89444cb90ba09c10fb9ea3522d7239ba9cdec96ef7014c0d38914e8a95\",\"dweb:/ipfs/QmYQ2xertV76LXRib1vthhdUQqoiyhM1GfXaShnJn13bWm\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"from\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"clearMetadata\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"freeze\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"freezeAsset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"to\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"string\",\"name\":\"name\",\"type\":\"string\"},{\"internalType\":\"string\",\"name\":\"symbol\",\"type\":\"string\"},{\"internalType\":\"uint8\",\"name\":\"decimals\",\"type\":\"uint8\"}],\"name\":\"setMetadata\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"issuer\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"admin\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"freezer\",\"type\":\"address\"}],\"name\":\"setTeam\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"account\",\"type\":\"address\"}],\"name\":\"thaw\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"thawAsset\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"owner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"details\":\"Contract to pilot the ERC20 contract.\",\"kind\":\"dev\",\"methods\":{\"burn(address,uint256)\":{\"custom:selector\":\"9dc29fac\",\"details\":\"Burn tokens from an address\",\"params\":{\"from\":\"address The address from which you want to burn tokens\",\"value\":\"uint256 the amount of tokens to be burnt\"}},\"clearMetadata()\":{\"custom:selector\":\"efb6d432\",\"details\":\"Clear the name, symbol and decimals of your asset\"},\"freeze(address)\":{\"custom:selector\":\"8d1fdf2f\",\"details\":\"Freeze an account, preventing it from operating with the asset\",\"params\":{\"account\":\"address The address that you want to freeze\"}},\"freezeAsset()\":{\"custom:selector\":\"d4937f51\",\"details\":\"Freeze the entire asset operations\"},\"mint(address,uint256)\":{\"custom:selector\":\"40c10f19\",\"details\":\"Mint tokens to an address\",\"params\":{\"to\":\"address The address to which you want to mint tokens\",\"value\":\"uint256 the amount of tokens to be minted\"}},\"setMetadata(string,string,uint8)\":{\"custom:selector\":\"37d2c2f4\",\"details\":\"Specify the name, symbol and decimals of your asset\",\"params\":{\"decimals\":\"uint8 The number of decimals of your asset\",\"name\":\"string The name of the asset\",\"symbol\":\"string The symbol of the asset\"}},\"setTeam(address,address,address)\":{\"custom:selector\":\"c7d93c59\",\"details\":\"Specify the issuer, admin and freezer of an asset\",\"params\":{\"admin\":\"address The address capable of burning tokens and unfreezing accounts/assets\",\"freezer\":\"address The address capable of freezing accounts/asset\",\"issuer\":\"address The address capable of issuing tokens\"}},\"thaw(address)\":{\"custom:selector\":\"5ea20216\",\"details\":\"Unfreeze an account, letting it from operating againt with the asset\",\"params\":{\"account\":\"address The address that you want to unfreeze\"}},\"thawAsset()\":{\"custom:selector\":\"51ec2ad7\",\"details\":\"Unfreeze the entire asset operations\"},\"transferOwnership(address)\":{\"custom:selector\":\"f2fde38b\",\"details\":\"Transfer the ownership of an asset to a new account\",\"params\":{\"owner\":\"address The address of the new owner\"}}},\"title\":\"Extension of the ERC20 interface that allows an owner\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"LocalAsset\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xee92e1101acdb918e632a36f0870926668ef2e1b2e02eb0caad6ec88ccb7eaf0\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://3cea4dd6151836075818e4fc72f24bff02cea7d6f6c8160f73c12a3cd34240d4\",\"dweb:/ipfs/QmSaNnDhbNrUAvWcgujYbyHAFQ2GS9GYBVLXnNfYxE5m7U\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": { "kind": "user", "methods": {}, "version": 1 }
   },
-  "sourceCode": "pragma solidity ^0.8.0;\n\n/**\n * @title Extension of the ERC20 interface that allows an owner\n * contract to pilot the ERC20 contract.\n */\ninterface LocalAsset {\n    /**\n     * @dev Mint tokens to an address\n     * Selector: 40c10f19\n     * @param to address The address to which you want to mint tokens\n     * @param value uint256 the amount of tokens to be minted\n     */\n    function mint(address to, uint256 value)\n        external returns (bool);\n\n    /**\n     * @dev Burn tokens from an address\n     * Selector: 9dc29fac\n     * @param from address The address from which you want to burn tokens\n     * @param value uint256 the amount of tokens to be burnt\n     */\n    function burn(address from, uint256 value)\n        external returns (bool);\n\n    /**\n     * @dev Freeze an account, preventing it from operating with the asset\n     * Selector: 8d1fdf2f\n     * @param account address The address that you want to freeze\n     */\n    function freeze(address account)\n        external returns (bool);\n\n    /**\n     * @dev Unfreeze an account, letting it from operating againt with the asset\n     * Selector: 5ea20216\n     * @param account address The address that you want to unfreeze\n     */\n    function thaw(address account)\n        external returns (bool);\n\n    /**\n     * @dev Freeze the entire asset operations\n     * Selector: 6b8751c1\n     */\n    function freeze_asset()\n        external returns (bool);\n\n    /**\n     * @dev Unfreeze the entire asset operations\n     * Selector: 1cddec19\n     */\n    function thaw_asset()\n        external returns (bool);\n\n    /**\n     * @dev Transfer the ownership of an asset to a new account\n     * Selector: f0350c04\n     * @param owner address The address of the new owner\n     */\n    function transfer_ownership(address owner)\n        external returns (bool);\n    \n    /**\n     * @dev Specify the issuer, admin and freezer of an asset\n     * Selector: f8bf8e95\n     * @param issuer address The address capable of issuing tokens\n     * @param admin address The address capable of burning tokens and unfreezing accounts/assets\n     * @param freezer address The address capable of freezing accounts/asset\n     */\n    function set_team(address issuer, address admin, address freezer)\n        external returns (bool);\n\n    /**\n     * @dev Specify the name, symbol and decimals of your asset\n     * Selector: ee5dc1e4\n     * @param name string The name of the asset\n     * @param symbol string The symbol of the asset\n     * @param decimals uint8 The number of decimals of your asset\n     */\n    function set_metadata(string calldata name, string calldata symbol, uint8 decimals)\n        external returns (bool);\n\n    /**\n     * @dev Clear the name, symbol and decimals of your asset\n     * Selector: d3ba4b9e\n     */\n    function clear_metadata()\n        external returns (bool);\n}"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title Extension of the ERC20 interface that allows an owner\n/// @dev Contract to pilot the ERC20 contract.\ninterface LocalAsset {\n    /// @dev Mint tokens to an address\n    /// @custom:selector 40c10f19\n    /// @param to address The address to which you want to mint tokens\n    /// @param value uint256 the amount of tokens to be minted\n    function mint(address to, uint256 value) external returns (bool);\n\n    /// @dev Burn tokens from an address\n    /// @custom:selector 9dc29fac\n    /// @param from address The address from which you want to burn tokens\n    /// @param value uint256 the amount of tokens to be burnt\n    function burn(address from, uint256 value) external returns (bool);\n\n    /// @dev Freeze an account, preventing it from operating with the asset\n    /// @custom:selector 8d1fdf2f\n    /// @param account address The address that you want to freeze\n    function freeze(address account) external returns (bool);\n\n    /// @dev Unfreeze an account, letting it from operating againt with the asset\n    /// @custom:selector 5ea20216\n    /// @param account address The address that you want to unfreeze\n    function thaw(address account) external returns (bool);\n\n    /// @dev Freeze the entire asset operations\n    /// @custom:selector d4937f51\n    function freezeAsset() external returns (bool);\n\n    /// @dev Unfreeze the entire asset operations\n    /// @custom:selector 51ec2ad7\n    function thawAsset() external returns (bool);\n\n    /// @dev Transfer the ownership of an asset to a new account\n    /// @custom:selector f2fde38b\n    /// @param owner address The address of the new owner\n    function transferOwnership(address owner) external returns (bool);\n\n    /// @dev Specify the issuer, admin and freezer of an asset\n    /// @custom:selector c7d93c59\n    /// @param issuer address The address capable of issuing tokens\n    /// @param admin address The address capable of burning tokens and unfreezing accounts/assets\n    /// @param freezer address The address capable of freezing accounts/asset\n    function setTeam(\n        address issuer,\n        address admin,\n        address freezer\n    ) external returns (bool);\n\n    /// @dev Specify the name, symbol and decimals of your asset\n    /// @custom:selector 37d2c2f4\n    /// @param name string The name of the asset\n    /// @param symbol string The symbol of the asset\n    /// @param decimals uint8 The number of decimals of your asset\n    function setMetadata(\n        string calldata name,\n        string calldata symbol,\n        uint8 decimals\n    ) external returns (bool);\n\n    /// @dev Clear the name, symbol and decimals of your asset\n    /// @custom:selector efb6d432\n    function clearMetadata() external returns (bool);\n}\n"
 }

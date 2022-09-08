@@ -140,7 +140,7 @@ describeDevMoonbeam("Randomness VRF - Lottery Demo", (context) => {
         data: RANDOMNESS_INTERFACE.encodeFunctionData("fulfillRequest", [0]),
       })
     );
-    expectEVMResult(result.events, "Error");
+    expectEVMResult(result.events, "Revert");
   });
 
   it("should be rolling the numbers", async function () {

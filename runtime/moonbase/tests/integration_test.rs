@@ -34,12 +34,17 @@ use frame_support::{
 };
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
-	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee,
-	BlockWeights, Call, CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
+	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
+use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
+use std::str::from_utf8;
+use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
+use xcm_executor::traits::Convert as XcmConvert;
+use xcm_primitives::Account20Hash;
 
 use nimbus_primitives::NimbusId;
 use pallet_evm::GasWeightMapping;
@@ -48,15 +53,21 @@ use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
 use pallet_evm_precompile_randomness::{
-	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
-	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+	EXECUTE_EXPIRATION_ESTIMATED_COST, INCREASE_REQUEST_FEE_ESTIMATED_COST,
+	REQUEST_RANDOMNESS_ESTIMATED_COST,
 };
+use pallet_evm_precompile_xcm_transactor::{
+	v1::Action as XcmTransactorActionV1, v2::Action as XcmTransactorActionV2,
+};
+use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
+
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, Action as AssetAction, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
 };
 use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
+use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
@@ -65,7 +76,6 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
-
 #[test]
 fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {
@@ -75,10 +85,6 @@ fn verify_randomness_precompile_gas_constants() {
 	assert_eq!(
 		weight_to_gas(Weight::request_randomness()),
 		REQUEST_RANDOMNESS_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
-		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
 		weight_to_gas(Weight::increase_fee()),
@@ -140,6 +146,24 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
 	is_pallet_prefix::<moonbase_runtime::AuthorMapping>("AuthorMapping");
 	is_pallet_prefix::<moonbase_runtime::MaintenanceMode>("MaintenanceMode");
+	is_pallet_prefix::<moonbase_runtime::Identity>("Identity");
+	is_pallet_prefix::<moonbase_runtime::XcmpQueue>("XcmpQueue");
+	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
+	is_pallet_prefix::<moonbase_runtime::DmpQueue>("DmpQueue");
+	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
+	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
+	is_pallet_prefix::<moonbase_runtime::XTokens>("XTokens");
+	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
+	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
+	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
+	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
+	is_pallet_prefix::<moonbase_runtime::BaseFee>("BaseFee");
+	is_pallet_prefix::<moonbase_runtime::LocalAssets>("LocalAssets");
+	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
+	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
+	is_pallet_prefix::<moonbase_runtime::Randomness>("Randomness");
+	is_pallet_prefix::<moonbase_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
 		res[0..16].copy_from_slice(&Twox128::hash(pallet_name));
@@ -259,6 +283,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TechCommitteeCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::TreasuryCouncilCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
+	}
 }
 
 #[test]
@@ -293,6 +323,23 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::AuthorMapping>(21);
 	is_pallet_index::<moonbase_runtime::Proxy>(22);
 	is_pallet_index::<moonbase_runtime::MaintenanceMode>(23);
+	is_pallet_index::<moonbase_runtime::Identity>(24);
+	is_pallet_index::<moonbase_runtime::XcmpQueue>(25);
+	is_pallet_index::<moonbase_runtime::CumulusXcm>(26);
+	is_pallet_index::<moonbase_runtime::DmpQueue>(27);
+	is_pallet_index::<moonbase_runtime::PolkadotXcm>(28);
+	is_pallet_index::<moonbase_runtime::Assets>(29);
+	is_pallet_index::<moonbase_runtime::XTokens>(30);
+	is_pallet_index::<moonbase_runtime::AssetManager>(31);
+	is_pallet_index::<moonbase_runtime::Migrations>(32);
+	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
+	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
+	is_pallet_index::<moonbase_runtime::BaseFee>(35);
+	is_pallet_index::<moonbase_runtime::LocalAssets>(36);
+	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
+	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
+	is_pallet_index::<moonbase_runtime::Randomness>(39);
+	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
 }
 
 #[test]
@@ -1800,7 +1847,7 @@ fn xtokens_precompiles_transfer() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1852,7 +1899,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1894,7 +1941,7 @@ fn xtokens_precompiles_transfer_native() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1942,7 +1989,7 @@ fn xtokens_precompile_transfer_local_asset() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1999,9 +2046,11 @@ fn length_fee_is_sensible() {
 
 #[test]
 fn multiplier_can_grow_from_zero() {
+	use frame_support::traits::Get;
+
 	let minimum_multiplier = moonbase_runtime::MinimumMultiplier::get();
 	let target = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap();
@@ -2021,11 +2070,13 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 #[ignore] // test runs for a very long time
 fn multiplier_growth_simulator() {
+	use frame_support::traits::Get;
+
 	// assume the multiplier is initially set to its minimum. We update it with values twice the
 	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 	let mut multiplier = moonbase_runtime::MinimumMultiplier::get();
 	let block_weight = moonbase_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap()
@@ -2352,14 +2403,22 @@ fn transactor_cannot_use_more_than_max_weight() {
 			));
 
 			assert_noop!(
-				XcmTransactor::transact_through_derivative_multilocation(
+				XcmTransactor::transact_through_derivative(
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-					// 20000the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: None
+					},
 					vec![],
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
@@ -2368,14 +2427,163 @@ fn transactor_cannot_use_more_than_max_weight() {
 					origin_of(AccountId::from(ALICE)),
 					moonbase_runtime::xcm_config::Transactors::Relay,
 					0,
-					moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id),
-					// 20000 is the max
-					17000,
+					CurrencyPayment {
+						currency: Currency::AsCurrencyId(
+							moonbase_runtime::xcm_config::CurrencyId::ForeignAsset(source_id)
+						),
+						fee_amount: None
+					},
 					vec![],
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: None
+					}
 				),
 				pallet_xcm_transactor::Error::<Runtime>::MaxWeightTransactReached
 			);
 		})
+}
+
+#[test]
+fn transact_through_signed_precompile_works_v1() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let xcm_transactor_v1_precompile_address = H160::from_low_u64_be(2054);
+
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				// Relay charges 1000 for every instruction, and we have 3, so 3000
+				3000,
+				20000,
+				Some(4000)
+			));
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_fee_per_second(
+				root_origin(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				1,
+			));
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v1_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV1::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(15000))
+					.write(bytes)
+					.build(),
+				)
+				.expect_cost(18619)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_precompile_works_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.expect_cost(18619)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn transact_through_signed_cannot_send_to_local_chain() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(AccountId::from(ALICE), 2_000 * UNIT),
+			(AccountId::from(BOB), 1_000 * UNIT),
+		])
+		.with_safe_xcm_version(2)
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::here();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error:")
+						&& from_utf8(&output).unwrap().contains("ErrorSending")
+				});
+		});
 }
 
 // Test to ensure we can use either in crowdloan rewards without worrying for migrations
@@ -2490,8 +2698,12 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([1u8; 32]))
-						.write(sp_core::H256::from([3u8; 32]))
+						.write(Bytes(
+							EvmDataWriter::new()
+								.write(sp_core::H256::from([1u8; 32]))
+								.write(sp_core::H256::from([3u8; 32]))
+								.build(),
+						))
 						.build(),
 				)
 				.expect_cost(16280)
@@ -2512,8 +2724,12 @@ fn author_mapping_register_and_set_keys() {
 					ALICE,
 					author_mapping_precompile_address,
 					EvmDataWriter::new_with_selector(AuthorMappingAction::SetKeys)
-						.write(sp_core::H256::from([2u8; 32]))
-						.write(sp_core::H256::from([4u8; 32]))
+						.write(Bytes(
+							EvmDataWriter::new()
+								.write(sp_core::H256::from([2u8; 32]))
+								.write(sp_core::H256::from([4u8; 32]))
+								.build(),
+						))
 						.build(),
 				)
 				.expect_cost(16280)
@@ -2531,12 +2747,94 @@ fn author_mapping_register_and_set_keys() {
 }
 
 #[test]
+fn test_xcm_utils_ml_tp_account() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let expected_address_parent: H160 =
+			ParentIsPreset::<AccountId>::convert_ref(MultiLocation::parent())
+				.unwrap()
+				.into();
+
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(MultiLocation::parent())
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_parent))
+					.build(),
+			);
+
+		let parachain_2000_multilocation = MultiLocation::new(1, X1(Parachain(2000)));
+		let expected_address_parachain: H160 =
+			SiblingParachainConvertsVia::<Sibling, AccountId>::convert_ref(
+				parachain_2000_multilocation.clone(),
+			)
+			.unwrap()
+			.into();
+
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(parachain_2000_multilocation)
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_parachain))
+					.build(),
+			);
+
+		let alice_in_parachain_2000_multilocation = MultiLocation::new(
+			1,
+			X2(
+				Parachain(2000),
+				AccountKey20 {
+					network: Any,
+					key: ALICE,
+				},
+			),
+		);
+		let expected_address_alice_in_parachain_2000: H160 =
+			Account20Hash::<AccountId>::convert_ref(alice_in_parachain_2000_multilocation.clone())
+				.unwrap()
+				.into();
+
+		Precompiles::new()
+			.prepare_test(
+				ALICE,
+				xcm_utils_precompile_address,
+				EvmDataWriter::new_with_selector(XcmUtilsAction::MultiLocationToAddress)
+					.write(alice_in_parachain_2000_multilocation)
+					.build(),
+			)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_alice_in_parachain_2000))
+					.build(),
+			);
+	});
+}
+
+#[test]
 fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058,
+			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
@@ -2598,6 +2896,27 @@ fn base_fee_should_default_to_associate_type_value() {
 		assert_eq!(
 			BaseFee::base_fee_per_gas(),
 			(1 * GIGAWEI * SUPPLY_FACTOR).into()
+		);
+	});
+}
+
+#[test]
+fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
+	use frame_support::weights::{DispatchInfo, Pays};
+	use moonbase_runtime::{currency, EXTRINSIC_BASE_WEIGHT};
+
+	ExtBuilder::default().build().execute_with(|| {
+		let size_bytes = 0;
+		let tip = 0;
+		let dispatch_info = DispatchInfo {
+			weight: 0,
+			class: DispatchClass::Normal,
+			pays_fee: Pays::Yes,
+		};
+
+		assert_eq!(
+			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
+			EXTRINSIC_BASE_WEIGHT as u128 * currency::WEIGHT_FEE,
 		);
 	});
 }

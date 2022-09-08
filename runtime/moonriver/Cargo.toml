@@ -42,11 +42,16 @@ pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-feature
 pallet-evm-precompile-author-mapping = { path = "../../precompiles/author-mapping", default-features = false }
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
+pallet-evm-precompile-call-permit = { path = "../../precompiles/call-permit", default-features = false }
+pallet-evm-precompile-collective = { path = "../../precompiles/collective", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
+pallet-evm-precompile-proxy = { path = "../../precompiles/proxy", default-features = false }
+pallet-evm-precompile-randomness = { path = "../../precompiles/randomness", default-features = false }
 pallet-evm-precompile-relay-encoder = { path = "../../precompiles/relay-encoder", default-features = false }
 pallet-evm-precompile-xcm-transactor = { path = "../../precompiles/xcm-transactor", default-features = false }
+pallet-evm-precompile-xcm-utils = { path = "../../precompiles/xcm-utils", default-features = false }
 pallet-evm-precompile-xtokens = { path = "../../precompiles/xtokens", default-features = false }
 pallet-evm-precompileset-assets-erc20 = { path = "../../precompiles/assets-erc20", default-features = false }
 
@@ -190,9 +195,13 @@ std = [
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-batch/std",
+	"pallet-evm-precompile-call-permit/std",
+	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
+	"pallet-evm-precompile-randomness/std",
 	"pallet-evm-precompile-xcm-transactor/std",
+	"pallet-evm-precompile-xcm-utils/std",
 	"pallet-evm-precompile-xtokens/std",
 	"pallet-evm/std",
 	"pallet-identity/std",
@@ -272,6 +281,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]

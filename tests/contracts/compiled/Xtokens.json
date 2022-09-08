@@ -6,7 +6,7 @@
         "inputs": [
           {
             "internalType": "address",
-            "name": "currency_address",
+            "name": "currencyAddress",
             "type": "address"
           },
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
@@ -57,7 +57,7 @@
             "name": "assets",
             "type": "tuple[]"
           },
-          { "internalType": "uint32", "name": "fee_item", "type": "uint32" },
+          { "internalType": "uint32", "name": "feeItem", "type": "uint32" },
           {
             "components": [
               { "internalType": "uint8", "name": "parents", "type": "uint8" },
@@ -73,7 +73,7 @@
           },
           { "internalType": "uint64", "name": "weight", "type": "uint64" }
         ],
-        "name": "transfer_multi_assets",
+        "name": "transferMultiAssets",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -84,7 +84,7 @@
             "components": [
               {
                 "internalType": "address",
-                "name": "currency_address",
+                "name": "currencyAddress",
                 "type": "address"
               },
               { "internalType": "uint256", "name": "amount", "type": "uint256" }
@@ -93,7 +93,7 @@
             "name": "currencies",
             "type": "tuple[]"
           },
-          { "internalType": "uint32", "name": "fee_item", "type": "uint32" },
+          { "internalType": "uint32", "name": "feeItem", "type": "uint32" },
           {
             "components": [
               { "internalType": "uint8", "name": "parents", "type": "uint8" },
@@ -109,7 +109,7 @@
           },
           { "internalType": "uint64", "name": "weight", "type": "uint64" }
         ],
-        "name": "transfer_multi_currencies",
+        "name": "transferMultiCurrencies",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -145,7 +145,7 @@
           },
           { "internalType": "uint64", "name": "weight", "type": "uint64" }
         ],
-        "name": "transfer_multiasset",
+        "name": "transferMultiasset",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -182,7 +182,7 @@
           },
           { "internalType": "uint64", "name": "weight", "type": "uint64" }
         ],
-        "name": "transfer_multiasset_with_fee",
+        "name": "transferMultiassetWithFee",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -191,7 +191,7 @@
         "inputs": [
           {
             "internalType": "address",
-            "name": "currency_address",
+            "name": "currencyAddress",
             "type": "address"
           },
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
@@ -211,67 +211,76 @@
           },
           { "internalType": "uint64", "name": "weight", "type": "uint64" }
         ],
-        "name": "transfer_with_fee",
+        "name": "transferWithFee",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
       }
     ],
     "devdoc": {
+      "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000804",
+      "details": "The interface through which solidity contracts will interact with xtokens pallet",
       "kind": "dev",
       "methods": {
         "transfer(address,uint256,(uint8,bytes[]),uint64)": {
+          "custom:selector": "b9f813ff",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "amount": "The amount of tokens we want to transfer",
-            "currency_address": "The ERC20 address of the currency we want to transfer",
-            "destination": "The weight we want to buy in the destination chain Selector: b9f813ff"
+            "currencyAddress": "The ERC20 address of the currency we want to transfer",
+            "destination": "The weight we want to buy in the destination chain"
           }
         },
-        "transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": {
+        "transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": {
+          "custom:selector": "797b45fd",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "assets": "The assets we want to transfer, defined by their location and amount.",
             "destination": "The Multilocation to which we want to send the tokens",
-            "fee_item": "Which of the currencies to be used as fee",
-            "weight": "The weight we want to buy in the destination chain Selector: b38c60fa"
+            "feeItem": "Which of the currencies to be used as fee",
+            "weight": "The weight we want to buy in the destination chain"
           }
         },
-        "transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": {
+        "transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": {
+          "custom:selector": "ab946323",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "currencies": "The currencies we want to transfer, defined by their address and amount.",
             "destination": "The Multilocation to which we want to send the tokens",
-            "fee_item": "Which of the currencies to be used as fee",
-            "weight": "The weight we want to buy in the destination chain Selector: 8a362d5c"
+            "feeItem": "Which of the currencies to be used as fee",
+            "weight": "The weight we want to buy in the destination chain"
           }
         },
-        "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": {
+        "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": {
+          "custom:selector": "b4f76f96",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "amount": "The amount of tokens we want to transfer",
             "asset": "The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets",
-            "destination": "The weight we want to buy in the destination chain Selector: b38c60fa"
+            "destination": "The weight we want to buy in the destination chain"
           }
         },
-        "transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": {
+        "transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": {
+          "custom:selector": "150c016a",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "amount": "The amount of tokens we want to transfer",
             "asset": "The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets",
-            "destination": "The weight we want to buy in the destination chain Selector: 89a570fc"
+            "destination": "The weight we want to buy in the destination chain"
           }
         },
-        "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)": {
+        "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)": {
+          "custom:selector": "3e506ef0",
           "details": "The token transfer burns/transfers the corresponding amount before sending",
           "params": {
             "amount": "The amount of tokens we want to transfer",
-            "currency_address": "The ERC20 address of the currency we want to transfer",
+            "currencyAddress": "The ERC20 address of the currency we want to transfer",
             "destination": "The weight we want to buy in the destination chain"
           }
         }
       },
-      "title": "Xtokens Interface The interface through which solidity contracts will interact with xtokens pallet Address :    0x0000000000000000000000000000000000000804",
+      "title": "Xtokens Interface",
       "version": 1
     },
     "evm": {
@@ -297,15 +306,15 @@
       "legacyAssembly": null,
       "methodIdentifiers": {
         "transfer(address,uint256,(uint8,bytes[]),uint64)": "b9f813ff",
-        "transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": "dab20fdc",
-        "transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": "8a362d5c",
-        "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": "b38c60fa",
-        "transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": "89a570fc",
-        "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)": "94f69115"
+        "transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": "797b45fd",
+        "transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": "ab946323",
+        "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": "b4f76f96",
+        "transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": "150c016a",
+        "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)": "3e506ef0"
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"currency_address\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"location\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"struct Xtokens.MultiAsset[]\",\"name\":\"assets\",\"type\":\"tuple[]\"},{\"internalType\":\"uint32\",\"name\":\"fee_item\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer_multi_assets\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"currency_address\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"struct Xtokens.Currency[]\",\"name\":\"currencies\",\"type\":\"tuple[]\"},{\"internalType\":\"uint32\",\"name\":\"fee_item\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer_multi_currencies\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer_multiasset\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer_multiasset_with_fee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"currency_address\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer_with_fee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"transfer(address,uint256,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"currency_address\":\"The ERC20 address of the currency we want to transfer\",\"destination\":\"The weight we want to buy in the destination chain Selector: b9f813ff\"}},\"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"assets\":\"The assets we want to transfer, defined by their location and amount.\",\"destination\":\"The Multilocation to which we want to send the tokens\",\"fee_item\":\"Which of the currencies to be used as fee\",\"weight\":\"The weight we want to buy in the destination chain Selector: b38c60fa\"}},\"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"currencies\":\"The currencies we want to transfer, defined by their address and amount.\",\"destination\":\"The Multilocation to which we want to send the tokens\",\"fee_item\":\"Which of the currencies to be used as fee\",\"weight\":\"The weight we want to buy in the destination chain Selector: 8a362d5c\"}},\"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"asset\":\"The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets\",\"destination\":\"The weight we want to buy in the destination chain Selector: b38c60fa\"}},\"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"asset\":\"The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets\",\"destination\":\"The weight we want to buy in the destination chain Selector: 89a570fc\"}},\"transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)\":{\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"currency_address\":\"The ERC20 address of the currency we want to transfer\",\"destination\":\"The weight we want to buy in the destination chain\"}}},\"title\":\"Xtokens Interface The interface through which solidity contracts will interact with xtokens pallet Address :    0x0000000000000000000000000000000000000804\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"transfer(address,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its currencyId\"},\"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer several tokens at once through XCM based on its location specifying fee\"},\"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer several tokens at once through XCM based on its address specifying fee\"},\"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its MultiLocation\"},\"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its MultiLocation specifying fee\"},\"transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its currencyId specifying fee\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Xtokens\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x99336cb8e07e1e5341b96f9cd0e54c532e6b9e293a845ee2390e9feaad2f67de\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://1689443a4ccefae92b268afdcafe018c54a189efee91532f8a0ad10aa9a57d95\",\"dweb:/ipfs/QmTD3WjviaJgaa765GxwcS3yMhVN3C2ccJQJdNTKn8Piv5\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"address\",\"name\":\"currencyAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transfer\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"location\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"struct Xtokens.MultiAsset[]\",\"name\":\"assets\",\"type\":\"tuple[]\"},{\"internalType\":\"uint32\",\"name\":\"feeItem\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transferMultiAssets\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"address\",\"name\":\"currencyAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"internalType\":\"struct Xtokens.Currency[]\",\"name\":\"currencies\",\"type\":\"tuple[]\"},{\"internalType\":\"uint32\",\"name\":\"feeItem\",\"type\":\"uint32\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transferMultiCurrencies\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transferMultiasset\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"asset\",\"type\":\"tuple\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transferMultiassetWithFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"currencyAddress\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"fee\",\"type\":\"uint256\"},{\"components\":[{\"internalType\":\"uint8\",\"name\":\"parents\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"interior\",\"type\":\"bytes[]\"}],\"internalType\":\"struct Xtokens.Multilocation\",\"name\":\"destination\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"weight\",\"type\":\"uint64\"}],\"name\":\"transferWithFee\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000804\",\"details\":\"The interface through which solidity contracts will interact with xtokens pallet\",\"kind\":\"dev\",\"methods\":{\"transfer(address,uint256,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"b9f813ff\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"currencyAddress\":\"The ERC20 address of the currency we want to transfer\",\"destination\":\"The weight we want to buy in the destination chain\"}},\"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"797b45fd\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"assets\":\"The assets we want to transfer, defined by their location and amount.\",\"destination\":\"The Multilocation to which we want to send the tokens\",\"feeItem\":\"Which of the currencies to be used as fee\",\"weight\":\"The weight we want to buy in the destination chain\"}},\"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"ab946323\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"currencies\":\"The currencies we want to transfer, defined by their address and amount.\",\"destination\":\"The Multilocation to which we want to send the tokens\",\"feeItem\":\"Which of the currencies to be used as fee\",\"weight\":\"The weight we want to buy in the destination chain\"}},\"transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"b4f76f96\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"asset\":\"The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets\",\"destination\":\"The weight we want to buy in the destination chain\"}},\"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"150c016a\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"asset\":\"The asset we want to transfer, defined by its multilocation. Currently only Concrete Fungible assets\",\"destination\":\"The weight we want to buy in the destination chain\"}},\"transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)\":{\"custom:selector\":\"3e506ef0\",\"details\":\"The token transfer burns/transfers the corresponding amount before sending\",\"params\":{\"amount\":\"The amount of tokens we want to transfer\",\"currencyAddress\":\"The ERC20 address of the currency we want to transfer\",\"destination\":\"The weight we want to buy in the destination chain\"}}},\"title\":\"Xtokens Interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{\"transfer(address,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its currencyId\"},\"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer several tokens at once through XCM based on its location specifying fee\"},\"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer several tokens at once through XCM based on its address specifying fee\"},\"transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its MultiLocation\"},\"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its MultiLocation specifying fee\"},\"transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)\":{\"notice\":\"Transfer a token through XCM based on its currencyId specifying fee\"}},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"Xtokens\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x1014ca7dc6789f2511ef86dc622500d6883949700c1b40f81b5ec9a620a80b04\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://a1422810829a398fa0b5846777dd0acfb0d3e4da5819a4b64fcc6a7b942544f2\",\"dweb:/ipfs/QmPxkR16QYWRkU96kFM1AQEmwaRk77pgThMvrVaXMTcBuy\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": {
       "kind": "user",
@@ -313,24 +322,24 @@
         "transfer(address,uint256,(uint8,bytes[]),uint64)": {
           "notice": "Transfer a token through XCM based on its currencyId"
         },
-        "transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": {
+        "transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)": {
           "notice": "Transfer several tokens at once through XCM based on its location specifying fee"
         },
-        "transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": {
+        "transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)": {
           "notice": "Transfer several tokens at once through XCM based on its address specifying fee"
         },
-        "transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": {
+        "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)": {
           "notice": "Transfer a token through XCM based on its MultiLocation"
         },
-        "transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": {
+        "transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)": {
           "notice": "Transfer a token through XCM based on its MultiLocation specifying fee"
         },
-        "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)": {
+        "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)": {
           "notice": "Transfer a token through XCM based on its currencyId specifying fee"
         }
       },
       "version": 1
     }
   },
-  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/**\n * @title Xtokens Interface\n * The interface through which solidity contracts will interact with xtokens pallet\n * Address :    0x0000000000000000000000000000000000000804\n */\n\ninterface Xtokens {\n    // A multilocation is defined by its number of parents and the encoded junctions (interior)\n    struct Multilocation {\n        uint8 parents;\n        bytes[] interior;\n    }\n\n    // A MultiAsset is defined by a multilocation and an amount\n    struct MultiAsset {\n        Multilocation location;\n        uint256 amount;\n    }\n\n    // A Currency is defined by address and the amount to be transferred\n    struct Currency {\n        address currency_address;\n        uint256 amount;\n    }\n\n    /** Transfer a token through XCM based on its currencyId\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param currency_address The ERC20 address of the currency we want to transfer\n     * @param amount The amount of tokens we want to transfer\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param destination The weight we want to buy in the destination chain\n     * Selector: b9f813ff\n     */\n    function transfer(\n        address currency_address,\n        uint256 amount,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /** Transfer a token through XCM based on its currencyId specifying fee\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param currency_address The ERC20 address of the currency we want to transfer\n     * @param amount The amount of tokens we want to transfer\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param destination The weight we want to buy in the destination chain\n     */\n    function transfer_with_fee(\n        address currency_address,\n        uint256 amount,\n        uint256 fee,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /** Transfer a token through XCM based on its MultiLocation\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param asset The asset we want to transfer, defined by its multilocation.\n     * Currently only Concrete Fungible assets\n     * @param amount The amount of tokens we want to transfer\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param destination The weight we want to buy in the destination chain\n     * Selector: b38c60fa\n     */\n    function transfer_multiasset(\n        Multilocation memory asset,\n        uint256 amount,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /** Transfer a token through XCM based on its MultiLocation specifying fee\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param asset The asset we want to transfer, defined by its multilocation.\n     * Currently only Concrete Fungible assets\n     * @param amount The amount of tokens we want to transfer\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param destination The weight we want to buy in the destination chain\n     * Selector: 89a570fc\n     */\n    function transfer_multiasset_with_fee(\n        Multilocation memory asset,\n        uint256 amount,\n        uint256 fee,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /** Transfer several tokens at once through XCM based on its address specifying fee\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param currencies The currencies we want to transfer, defined by their address and amount.\n     * @param fee_item Which of the currencies to be used as fee\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param weight The weight we want to buy in the destination chain\n     * Selector: 8a362d5c\n     */\n    function transfer_multi_currencies(\n        Currency[] memory currencies,\n        uint32 fee_item,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /** Transfer several tokens at once through XCM based on its location specifying fee\n     *\n     * @dev The token transfer burns/transfers the corresponding amount before sending\n     * @param assets The assets we want to transfer, defined by their location and amount.\n     * @param fee_item Which of the currencies to be used as fee\n     * @param destination The Multilocation to which we want to send the tokens\n     * @param weight The weight we want to buy in the destination chain\n     * Selector: b38c60fa\n     */\n    function transfer_multi_assets(\n        MultiAsset[] memory assets,\n        uint32 fee_item,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n}\n"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title Xtokens Interface\n/// @dev The interface through which solidity contracts will interact with xtokens pallet\n/// @custom:address 0x0000000000000000000000000000000000000804\ninterface Xtokens {\n    // A multilocation is defined by its number of parents and the encoded junctions (interior)\n    struct Multilocation {\n        uint8 parents;\n        bytes[] interior;\n    }\n\n    // A MultiAsset is defined by a multilocation and an amount\n    struct MultiAsset {\n        Multilocation location;\n        uint256 amount;\n    }\n\n    // A Currency is defined by address and the amount to be transferred\n    struct Currency {\n        address currencyAddress;\n        uint256 amount;\n    }\n\n    /// Transfer a token through XCM based on its currencyId\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param currencyAddress The ERC20 address of the currency we want to transfer\n    /// @param amount The amount of tokens we want to transfer\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param destination The weight we want to buy in the destination chain\n    /// @custom:selector b9f813ff\n    function transfer(\n        address currencyAddress,\n        uint256 amount,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /// Transfer a token through XCM based on its currencyId specifying fee\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param currencyAddress The ERC20 address of the currency we want to transfer\n    /// @param amount The amount of tokens we want to transfer\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param destination The weight we want to buy in the destination chain\n    /// @custom:selector 3e506ef0\n    function transferWithFee(\n        address currencyAddress,\n        uint256 amount,\n        uint256 fee,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /// Transfer a token through XCM based on its MultiLocation\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param asset The asset we want to transfer, defined by its multilocation.\n    /// Currently only Concrete Fungible assets\n    /// @param amount The amount of tokens we want to transfer\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param destination The weight we want to buy in the destination chain\n    /// @custom:selector b4f76f96\n    function transferMultiasset(\n        Multilocation memory asset,\n        uint256 amount,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /// Transfer a token through XCM based on its MultiLocation specifying fee\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param asset The asset we want to transfer, defined by its multilocation.\n    /// Currently only Concrete Fungible assets\n    /// @param amount The amount of tokens we want to transfer\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param destination The weight we want to buy in the destination chain\n    /// @custom:selector 150c016a\n    function transferMultiassetWithFee(\n        Multilocation memory asset,\n        uint256 amount,\n        uint256 fee,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /// Transfer several tokens at once through XCM based on its address specifying fee\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param currencies The currencies we want to transfer, defined by their address and amount.\n    /// @param feeItem Which of the currencies to be used as fee\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param weight The weight we want to buy in the destination chain\n    /// @custom:selector ab946323\n    function transferMultiCurrencies(\n        Currency[] memory currencies,\n        uint32 feeItem,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n\n    /// Transfer several tokens at once through XCM based on its location specifying fee\n    ///\n    /// @dev The token transfer burns/transfers the corresponding amount before sending\n    /// @param assets The assets we want to transfer, defined by their location and amount.\n    /// @param feeItem Which of the currencies to be used as fee\n    /// @param destination The Multilocation to which we want to send the tokens\n    /// @param weight The weight we want to buy in the destination chain\n    /// @custom:selector 797b45fd\n    function transferMultiAssets(\n        MultiAsset[] memory assets,\n        uint32 feeItem,\n        Multilocation memory destination,\n        uint64 weight\n    ) external;\n}\n"
 }

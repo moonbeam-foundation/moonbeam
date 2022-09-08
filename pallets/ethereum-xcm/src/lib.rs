@@ -40,7 +40,7 @@ use frame_support::{
 	weights::{Pays, PostDispatchInfo, Weight},
 };
 use frame_system::pallet_prelude::OriginFor;
-use pallet_evm::GasWeightMapping;
+use pallet_evm::{AddressMapping, GasWeightMapping};
 use sp_runtime::{traits::UniqueSaturatedInto, RuntimeDebug};
 use sp_std::{marker::PhantomData, prelude::*};
 
@@ -49,7 +49,7 @@ pub use ethereum::{
 	TransactionAction, TransactionV2 as Transaction,
 };
 pub use fp_rpc::TransactionStatus;
-pub use xcm_primitives::{EthereumXcmTransaction, XcmToEthereum};
+pub use xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
 
 #[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
 pub enum RawOrigin {
@@ -88,6 +88,7 @@ pub use self::pallet::*;
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
+	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
@@ -99,12 +100,18 @@ pub mod pallet {
 		type XcmEthereumOrigin: EnsureOrigin<Self::Origin, Success = H160>;
 		/// Maximum Weight reserved for xcm in a block
 		type ReservedXcmpWeight: Get<Weight>;
+		/// Ensure proxy
+		type EnsureProxy: EnsureProxy<Self::AccountId>;
 	}
 
 	#[pallet::pallet]
-	#[pallet::generate_store(pub(super) trait Store)]
 	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
+
+	/// Global nonce used for building Ethereum transaction payload.
+	#[pallet::storage]
+	#[pallet::getter(fn nonce)]
+	pub(crate) type Nonce<T: Config> = StorageValue<_, U256, ValueQuery>;
 
 	#[pallet::origin]
 	pub type Origin = RawOrigin;
@@ -126,53 +133,94 @@ pub mod pallet {
 			xcm_transaction: EthereumXcmTransaction,
 		) -> DispatchResultWithPostInfo {
 			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
+			Self::validate_and_apply(source, xcm_transaction)
+		}
 
-			let (who, account_weight) = pallet_evm::Pallet::<T>::account_basic(&source);
-
-			let transaction: Option<Transaction> =
-				xcm_transaction.into_transaction_v2(U256::zero(), who.nonce);
-			if let Some(transaction) = transaction {
-				let transaction_data: TransactionData = (&transaction).into();
-
-				let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
-					CheckEvmTransactionConfig {
-						evm_config: T::config(),
-						block_gas_limit: U256::from(
-							<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-								T::ReservedXcmpWeight::get(),
-							),
-						),
-						base_fee: U256::zero(),
-						chain_id: 0u64,
-						is_transactional: true,
-					},
-					transaction_data.into(),
-				)
-				// We only validate the gas limit against the evm transaction cost.
-				// No need to validate fee payment, as it is handled by the xcm executor.
-				.validate_in_block_for(&who)
-				.map_err(|_| sp_runtime::DispatchErrorWithPostInfo {
-					post_info: PostDispatchInfo {
-						actual_weight: Some(account_weight),
-						pays_fee: Pays::Yes,
-					},
-					error: sp_runtime::DispatchError::Other(
-						"Failed to validate ethereum transaction",
-					),
-				})?;
-
-				T::ValidatedTransaction::apply(source, transaction)
-			} else {
-				Err(sp_runtime::DispatchErrorWithPostInfo {
-					post_info: PostDispatchInfo {
-						actual_weight: Some(account_weight),
-						pays_fee: Pays::Yes,
-					},
-					error: sp_runtime::DispatchError::Other(
-						"Cannot convert xcm payload to known type",
-					),
-				})
+		/// Xcm Transact an Ethereum transaction through proxy.
+		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+			match xcm_transaction {
+				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
 			}
+		}))]
+		pub fn transact_through_proxy(
+			origin: OriginFor<T>,
+			transact_as: H160,
+			xcm_transaction: EthereumXcmTransaction,
+		) -> DispatchResultWithPostInfo {
+			let source = T::XcmEthereumOrigin::ensure_origin(origin)?;
+			let _ = T::EnsureProxy::ensure_ok(
+				T::AddressMapping::into_account_id(transact_as),
+				T::AddressMapping::into_account_id(source),
+			)
+			.map_err(|e| sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: Some(T::DbWeight::get().reads(1)),
+					pays_fee: Pays::Yes,
+				},
+				error: sp_runtime::DispatchError::Other(e),
+			})?;
+
+			Self::validate_and_apply(transact_as, xcm_transaction)
+		}
+	}
+}
+
+impl<T: Config> Pallet<T> {
+	fn validate_and_apply(
+		source: H160,
+		xcm_transaction: EthereumXcmTransaction,
+	) -> DispatchResultWithPostInfo {
+		// The lack of a real signature where different callers with the
+		// same nonce are providing identical transaction payloads results in a collision and
+		// the same ethereum tx hash.
+		// We use a global nonce instead the user nonce for all Xcm->Ethereum transactions to avoid
+		// this.
+		let current_nonce = Self::nonce();
+		let error_weight = T::DbWeight::get().reads(1 as Weight);
+
+		let transaction: Option<Transaction> = xcm_transaction.into_transaction_v2(current_nonce);
+		if let Some(transaction) = transaction {
+			let transaction_data: TransactionData = (&transaction).into();
+
+			let _ = CheckEvmTransaction::<T::InvalidEvmTransactionError>::new(
+				CheckEvmTransactionConfig {
+					evm_config: T::config(),
+					block_gas_limit: U256::from(
+						<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+							T::ReservedXcmpWeight::get(),
+						),
+					),
+					base_fee: U256::zero(),
+					chain_id: 0u64,
+					is_transactional: true,
+				},
+				transaction_data.into(),
+			)
+			// We only validate the gas limit against the evm transaction cost.
+			// No need to validate fee payment, as it is handled by the xcm executor.
+			.validate_common()
+			.map_err(|_| sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: Some(error_weight),
+					pays_fee: Pays::Yes,
+				},
+				error: sp_runtime::DispatchError::Other("Failed to validate ethereum transaction"),
+			})?;
+
+			// Once we know a new transaction hash exists - the user can afford storing the
+			// transaction on chain - we increase the global nonce.
+			<Nonce<T>>::put(current_nonce.saturating_add(U256::one()));
+
+			T::ValidatedTransaction::apply(source, transaction)
+		} else {
+			Err(sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: Some(error_weight),
+					pays_fee: Pays::Yes,
+				},
+				error: sp_runtime::DispatchError::Other("Cannot convert xcm payload to known type"),
+			})
 		}
 	}
 }

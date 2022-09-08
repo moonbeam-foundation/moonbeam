@@ -4,9 +4,23 @@
     "abi": [
       {
         "inputs": [
+          { "internalType": "string", "name": "arg0", "type": "string" },
+          { "internalType": "bytes[]", "name": "arg1", "type": "bytes[]" }
+        ],
+        "name": "fnCalldataArgs",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
           {
             "components": [
-              { "internalType": "uint8", "name": "p0", "type": "uint8" },
+              {
+                "internalType": "enum SolidityTest.CustomEnum0",
+                "name": "p0",
+                "type": "uint8"
+              },
               { "internalType": "bytes[]", "name": "p1", "type": "bytes[]" }
             ],
             "internalType": "struct SolidityTest.CustomArg0",
@@ -25,7 +39,11 @@
         "inputs": [
           {
             "components": [
-              { "internalType": "uint8", "name": "p0", "type": "uint8" },
+              {
+                "internalType": "enum SolidityTest.CustomEnum0",
+                "name": "p0",
+                "type": "uint8"
+              },
               { "internalType": "bytes[]", "name": "p1", "type": "bytes[]" }
             ],
             "internalType": "struct SolidityTest.CustomArg0",
@@ -54,6 +72,136 @@
           { "internalType": "uint64", "name": "arg3", "type": "uint64" }
         ],
         "name": "fnCustomArgsMultiple",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              {
+                "internalType": "enum SolidityTest.CustomEnum0",
+                "name": "p0",
+                "type": "uint8"
+              },
+              { "internalType": "bytes[]", "name": "p1", "type": "bytes[]" }
+            ],
+            "internalType": "struct SolidityTest.CustomArg0[]",
+            "name": "arg0",
+            "type": "tuple[]"
+          },
+          { "internalType": "bytes[]", "name": "arg1", "type": "bytes[]" }
+        ],
+        "name": "fnCustomArrayArgs",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              {
+                "components": [
+                  {
+                    "internalType": "enum SolidityTest.CustomEnum0",
+                    "name": "p0",
+                    "type": "uint8"
+                  },
+                  { "internalType": "bytes[]", "name": "p1", "type": "bytes[]" }
+                ],
+                "internalType": "struct SolidityTest.CustomArg0",
+                "name": "p0",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address[]",
+                    "name": "p0",
+                    "type": "address[]"
+                  },
+                  {
+                    "internalType": "uint256[]",
+                    "name": "p1",
+                    "type": "uint256[]"
+                  },
+                  { "internalType": "bytes[]", "name": "p2", "type": "bytes[]" }
+                ],
+                "internalType": "struct SolidityTest.CustomArg1[]",
+                "name": "p1",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct SolidityTest.CustomArg2",
+            "name": "arg0",
+            "type": "tuple"
+          },
+          { "internalType": "uint64", "name": "arg1", "type": "uint64" }
+        ],
+        "name": "fnCustomComposedArg",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "components": [
+              {
+                "components": [
+                  {
+                    "internalType": "enum SolidityTest.CustomEnum0",
+                    "name": "p0",
+                    "type": "uint8"
+                  },
+                  { "internalType": "bytes[]", "name": "p1", "type": "bytes[]" }
+                ],
+                "internalType": "struct SolidityTest.CustomArg0",
+                "name": "p0",
+                "type": "tuple"
+              },
+              {
+                "components": [
+                  {
+                    "internalType": "address[]",
+                    "name": "p0",
+                    "type": "address[]"
+                  },
+                  {
+                    "internalType": "uint256[]",
+                    "name": "p1",
+                    "type": "uint256[]"
+                  },
+                  { "internalType": "bytes[]", "name": "p2", "type": "bytes[]" }
+                ],
+                "internalType": "struct SolidityTest.CustomArg1[]",
+                "name": "p1",
+                "type": "tuple[]"
+              }
+            ],
+            "internalType": "struct SolidityTest.CustomArg2[]",
+            "name": "arg0",
+            "type": "tuple[]"
+          },
+          { "internalType": "uint64", "name": "arg1", "type": "uint64" }
+        ],
+        "name": "fnCustomComposedArrayArg",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "enum SolidityTest.CustomEnum0",
+            "name": "arg0",
+            "type": "uint8"
+          },
+          { "internalType": "uint64", "name": "arg1", "type": "uint64" }
+        ],
+        "name": "fnEnumArgs",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -138,59 +286,76 @@
     "devdoc": {
       "kind": "dev",
       "methods": {
+        "fnCalldataArgs(string,bytes[])": {
+          "custom:selector": "1ea61a4e",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
+        },
         "fnCustomArgs((uint8,bytes[]),bytes[],uint64)": {
+          "custom:selector": "d8af1a4e",
           "params": {
             "arg0": "Arg0 Description",
             "arg1": "Arg1 Description",
-            "arg2": "Arg2 Description Selector: d8af1a4e"
+            "arg2": "Arg2 Description"
           }
         },
         "fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)": {
+          "custom:selector": "550c1a4e",
           "params": {
             "arg0": "Arg0 Description",
             "arg1": "Arg1 Description",
             "arg2": "Arg2 Description",
-            "arg3": "Arg3 Description Selector: 550c1a4e"
+            "arg3": "Arg3 Description"
           }
         },
+        "fnCustomArrayArgs((uint8,bytes[])[],bytes[])": {
+          "custom:selector": "77af1a40",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
+        },
+        "fnCustomComposedArg(((uint8,bytes[]),(address[],uint256[],bytes[])[]),uint64)": {
+          "custom:selector": "80af0a40",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
+        },
+        "fnCustomComposedArrayArg(((uint8,bytes[]),(address[],uint256[],bytes[])[])[],uint64)": {
+          "custom:selector": "97baa040",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
+        },
+        "fnEnumArgs(uint8,uint64)": {
+          "custom:selector": "e8af1642",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
+        },
         "fnMemoryArrayArgs(address[],uint256[],bytes[])": {
+          "custom:selector": "18001a4e",
           "params": {
             "arg0": "Arg0 Description",
             "arg1": "Arg1 Description",
-            "arg2": "Arg2 Description Selector: 18001a4e"
+            "arg2": "Arg2 Description"
           }
         },
         "fnNoArgs()": { "details": "Function without params and no selector" },
         "fnOneArg(address)": {
+          "custom:selector": "c4921133",
           "details": "Function info",
-          "params": { "arg0": "Arg0 Description Selector: c4921133" }
+          "params": { "arg0": "Arg0 Description" }
         },
         "fnOneArgSameLine(uint64)": {
-          "params": { "arg0": "Arg0 Description Selector: b9904a86" }
+          "custom:selector": "b9904a86",
+          "params": { "arg0": "Arg0 Description" }
         },
         "fnSameArgs(uint64,uint64)": {
-          "params": {
-            "arg0": "Arg0 Description",
-            "arg1": "Arg1 Description Selector: d6b423d9"
-          }
+          "custom:selector": "d6b423d9",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
         },
         "fnTwoArgs(address,uint256)": {
-          "params": {
-            "arg0": "Arg0 Description",
-            "arg1": "Arg1 Description Selector: 67ea837e"
-          }
+          "custom:selector": "67ea837e",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
         },
         "fnTwoArgsSameLine(uint64,bytes32)": {
-          "params": {
-            "arg0": "Arg0 Description",
-            "arg1": "Arg1 Description Selector: 28f0c44e"
-          }
+          "custom:selector": "28f0c44e",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
         },
         "fnTwoArgsSameLineExternalSplit(uint64,bytes32)": {
-          "params": {
-            "arg0": "Arg0 Description",
-            "arg1": "Arg1 Description Selector: 06f0c1ce"
-          }
+          "custom:selector": "06f0c1ce",
+          "params": { "arg0": "Arg0 Description", "arg1": "Arg1 Description" }
         }
       },
       "title": "Solidity test file with incorrectly defined selectors",
@@ -218,8 +383,13 @@
       "gasEstimates": null,
       "legacyAssembly": null,
       "methodIdentifiers": {
+        "fnCalldataArgs(string,bytes[])": "ec26cf1c",
         "fnCustomArgs((uint8,bytes[]),bytes[],uint64)": "f29f96de",
         "fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)": "b2c9f1a3",
+        "fnCustomArrayArgs((uint8,bytes[])[],bytes[])": "d5363eee",
+        "fnCustomComposedArg(((uint8,bytes[]),(address[],uint256[],bytes[])[]),uint64)": "b82da727",
+        "fnCustomComposedArrayArg(((uint8,bytes[]),(address[],uint256[],bytes[])[])[],uint64)": "586a2193",
+        "fnEnumArgs(uint8,uint64)": "d751d651",
         "fnMemoryArrayArgs(address[],uint256[],bytes[])": "a19a07e1",
         "fnNoArgs()": "f7af8d91",
         "fnOneArg(address)": "d43a9a43",
@@ -231,9 +401,9 @@
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"arg0\",\"type\":\"tuple\"},{\"internalType\":\"bytes[]\",\"name\":\"arg1\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64\",\"name\":\"arg2\",\"type\":\"uint64\"}],\"name\":\"fnCustomArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"uint8\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"arg0\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address[]\",\"name\":\"p0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"p1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"p2\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg1\",\"name\":\"arg1\",\"type\":\"tuple\"},{\"internalType\":\"bytes[]\",\"name\":\"arg2\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64\",\"name\":\"arg3\",\"type\":\"uint64\"}],\"name\":\"fnCustomArgsMultiple\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"arg0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"arg1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"arg2\",\"type\":\"bytes[]\"}],\"name\":\"fnMemoryArrayArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fnNoArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arg0\",\"type\":\"address\"}],\"name\":\"fnOneArg\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"}],\"name\":\"fnOneArgSameLine\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"arg1\",\"type\":\"uint64\"}],\"name\":\"fnSameArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arg0\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"arg1\",\"type\":\"uint256\"}],\"name\":\"fnTwoArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"arg1\",\"type\":\"bytes32\"}],\"name\":\"fnTwoArgsSameLine\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"arg1\",\"type\":\"bytes32\"}],\"name\":\"fnTwoArgsSameLineExternalSplit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"fnCustomArgs((uint8,bytes[]),bytes[],uint64)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description Selector: d8af1a4e\"}},\"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description\",\"arg3\":\"Arg3 Description Selector: 550c1a4e\"}},\"fnMemoryArrayArgs(address[],uint256[],bytes[])\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description Selector: 18001a4e\"}},\"fnNoArgs()\":{\"details\":\"Function without params and no selector\"},\"fnOneArg(address)\":{\"details\":\"Function info\",\"params\":{\"arg0\":\"Arg0 Description Selector: c4921133\"}},\"fnOneArgSameLine(uint64)\":{\"params\":{\"arg0\":\"Arg0 Description Selector: b9904a86\"}},\"fnSameArgs(uint64,uint64)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description Selector: d6b423d9\"}},\"fnTwoArgs(address,uint256)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description Selector: 67ea837e\"}},\"fnTwoArgsSameLine(uint64,bytes32)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description Selector: 28f0c44e\"}},\"fnTwoArgsSameLineExternalSplit(uint64,bytes32)\":{\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description Selector: 06f0c1ce\"}}},\"title\":\"Solidity test file with incorrectly defined selectors\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"SolidityTest\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0xa324f6a00c0cdfc929fb9388322c34ed45da9044c1676f2f9cec535325190c50\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ef238ac8bee9ebecb42e03e1c4f2be0a14dd8c8f55a8daeb0a17f338b3216fb6\",\"dweb:/ipfs/QmcMkxDeMMiB69SiYATADFq8Z8bGg26C1yoRQ1xFhAEbcz\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"string\",\"name\":\"arg0\",\"type\":\"string\"},{\"internalType\":\"bytes[]\",\"name\":\"arg1\",\"type\":\"bytes[]\"}],\"name\":\"fnCalldataArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"arg0\",\"type\":\"tuple\"},{\"internalType\":\"bytes[]\",\"name\":\"arg1\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64\",\"name\":\"arg2\",\"type\":\"uint64\"}],\"name\":\"fnCustomArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"arg0\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address[]\",\"name\":\"p0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"p1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"p2\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg1\",\"name\":\"arg1\",\"type\":\"tuple\"},{\"internalType\":\"bytes[]\",\"name\":\"arg2\",\"type\":\"bytes[]\"},{\"internalType\":\"uint64\",\"name\":\"arg3\",\"type\":\"uint64\"}],\"name\":\"fnCustomArgsMultiple\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0[]\",\"name\":\"arg0\",\"type\":\"tuple[]\"},{\"internalType\":\"bytes[]\",\"name\":\"arg1\",\"type\":\"bytes[]\"}],\"name\":\"fnCustomArrayArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"p0\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address[]\",\"name\":\"p0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"p1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"p2\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg1[]\",\"name\":\"p1\",\"type\":\"tuple[]\"}],\"internalType\":\"struct SolidityTest.CustomArg2\",\"name\":\"arg0\",\"type\":\"tuple\"},{\"internalType\":\"uint64\",\"name\":\"arg1\",\"type\":\"uint64\"}],\"name\":\"fnCustomComposedArg\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"components\":[{\"components\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"p0\",\"type\":\"uint8\"},{\"internalType\":\"bytes[]\",\"name\":\"p1\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg0\",\"name\":\"p0\",\"type\":\"tuple\"},{\"components\":[{\"internalType\":\"address[]\",\"name\":\"p0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"p1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"p2\",\"type\":\"bytes[]\"}],\"internalType\":\"struct SolidityTest.CustomArg1[]\",\"name\":\"p1\",\"type\":\"tuple[]\"}],\"internalType\":\"struct SolidityTest.CustomArg2[]\",\"name\":\"arg0\",\"type\":\"tuple[]\"},{\"internalType\":\"uint64\",\"name\":\"arg1\",\"type\":\"uint64\"}],\"name\":\"fnCustomComposedArrayArg\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"enum SolidityTest.CustomEnum0\",\"name\":\"arg0\",\"type\":\"uint8\"},{\"internalType\":\"uint64\",\"name\":\"arg1\",\"type\":\"uint64\"}],\"name\":\"fnEnumArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address[]\",\"name\":\"arg0\",\"type\":\"address[]\"},{\"internalType\":\"uint256[]\",\"name\":\"arg1\",\"type\":\"uint256[]\"},{\"internalType\":\"bytes[]\",\"name\":\"arg2\",\"type\":\"bytes[]\"}],\"name\":\"fnMemoryArrayArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"fnNoArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arg0\",\"type\":\"address\"}],\"name\":\"fnOneArg\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"}],\"name\":\"fnOneArgSameLine\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"arg1\",\"type\":\"uint64\"}],\"name\":\"fnSameArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"arg0\",\"type\":\"address\"},{\"internalType\":\"uint256\",\"name\":\"arg1\",\"type\":\"uint256\"}],\"name\":\"fnTwoArgs\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"arg1\",\"type\":\"bytes32\"}],\"name\":\"fnTwoArgsSameLine\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"arg0\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"arg1\",\"type\":\"bytes32\"}],\"name\":\"fnTwoArgsSameLineExternalSplit\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{\"fnCalldataArgs(string,bytes[])\":{\"custom:selector\":\"1ea61a4e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnCustomArgs((uint8,bytes[]),bytes[],uint64)\":{\"custom:selector\":\"d8af1a4e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description\"}},\"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],uint64)\":{\"custom:selector\":\"550c1a4e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description\",\"arg3\":\"Arg3 Description\"}},\"fnCustomArrayArgs((uint8,bytes[])[],bytes[])\":{\"custom:selector\":\"77af1a40\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnCustomComposedArg(((uint8,bytes[]),(address[],uint256[],bytes[])[]),uint64)\":{\"custom:selector\":\"80af0a40\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnCustomComposedArrayArg(((uint8,bytes[]),(address[],uint256[],bytes[])[])[],uint64)\":{\"custom:selector\":\"97baa040\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnEnumArgs(uint8,uint64)\":{\"custom:selector\":\"e8af1642\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnMemoryArrayArgs(address[],uint256[],bytes[])\":{\"custom:selector\":\"18001a4e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\",\"arg2\":\"Arg2 Description\"}},\"fnNoArgs()\":{\"details\":\"Function without params and no selector\"},\"fnOneArg(address)\":{\"custom:selector\":\"c4921133\",\"details\":\"Function info\",\"params\":{\"arg0\":\"Arg0 Description\"}},\"fnOneArgSameLine(uint64)\":{\"custom:selector\":\"b9904a86\",\"params\":{\"arg0\":\"Arg0 Description\"}},\"fnSameArgs(uint64,uint64)\":{\"custom:selector\":\"d6b423d9\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnTwoArgs(address,uint256)\":{\"custom:selector\":\"67ea837e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnTwoArgsSameLine(uint64,bytes32)\":{\"custom:selector\":\"28f0c44e\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}},\"fnTwoArgsSameLineExternalSplit(uint64,bytes32)\":{\"custom:selector\":\"06f0c1ce\",\"params\":{\"arg0\":\"Arg0 Description\",\"arg1\":\"Arg1 Description\"}}},\"title\":\"Solidity test file with incorrectly defined selectors\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"SolidityTest\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x0cb4e933c411c1937bd9ab21b3cf36ea98940f199364104e20d068d43ddcaf94\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://ab8490b4a54e439878b041fbea81a84505e6af87f811ffe7d0430bc549491190\",\"dweb:/ipfs/QmR6Hj2Spb9bw6KHEKcp4AbmshYxjsvkn3GEJHfTDXy4c7\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": { "kind": "user", "methods": {}, "version": 1 }
   },
-  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/// @title Solidity test file with incorrectly defined selectors\ninterface SolidityTest {\n    /// A custom type\n    struct CustomArg0 {\n        uint8 p0;\n        bytes[] p1;\n    }\n\n    /// A custom type\n    struct CustomArg1 {\n        address[] p0;\n        uint256[] p1;\n        bytes[] p2;\n    }\n\n    /// @dev Function without params and no selector\n    function fnNoArgs() external;\n\n    /// @dev Function info\n    ///\n    /// @param arg0 Arg0 Description\n    /// Selector: c4921133\n    function fnOneArg(address arg0) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// Selector: 67ea837e\n    function fnTwoArgs(address arg0, uint256 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// Selector: d6b423d9\n    function fnSameArgs(uint64 arg0, uint64 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// Selector: b9904a86\n    function fnOneArgSameLine(uint64 arg0) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// Selector: 28f0c44e\n    function fnTwoArgsSameLine(uint64 arg0, bytes32 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// Selector: 06f0c1ce\n    function fnTwoArgsSameLineExternalSplit(uint64 arg0, bytes32 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// Selector: 18001a4e\n    function fnMemoryArrayArgs(\n        address[] memory arg0,\n        uint256[] memory arg1,\n        bytes[] memory arg2\n    ) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// Selector: d8af1a4e\n    function fnCustomArgs(\n        CustomArg0 memory arg0,\n        bytes[] memory arg1,\n        uint64 arg2\n    ) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// @param arg3 Arg3 Description\n    /// Selector: 550c1a4e\n    function fnCustomArgsMultiple(\n        CustomArg0 memory arg0,\n        CustomArg1 memory arg1,\n        bytes[] memory arg2,\n        uint64 arg3\n    ) external;\n}\n"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @title Solidity test file with incorrectly defined selectors\ninterface SolidityTest {\n    /// A custom enum\n    enum CustomEnum0 {\n        A,\n        B,\n        C\n    }\n\n    /// A custom type\n    struct CustomArg0 {\n        CustomEnum0 p0;\n        bytes[] p1;\n    }\n\n    /// A custom type\n    struct CustomArg1 {\n        address[] p0;\n        uint256[] p1;\n        bytes[] p2;\n    }\n\n    /// A composed custom type\n    struct CustomArg2 {\n        CustomArg0 p0;\n        CustomArg1[] p1;\n    }\n\n    /// @dev Function without params and no selector\n    function fnNoArgs() external;\n\n    /// @dev Function info\n    ///\n    /// @param arg0 Arg0 Description\n    /// @custom:selector c4921133\n    function fnOneArg(address arg0) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 67ea837e\n    function fnTwoArgs(address arg0, uint256 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector d6b423d9\n    function fnSameArgs(uint64 arg0, uint64 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @custom:selector b9904a86\n    function fnOneArgSameLine(uint64 arg0) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 28f0c44e\n    function fnTwoArgsSameLine(uint64 arg0, bytes32 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 06f0c1ce\n    function fnTwoArgsSameLineExternalSplit(uint64 arg0, bytes32 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// @custom:selector 18001a4e\n    function fnMemoryArrayArgs(\n        address[] memory arg0,\n        uint256[] memory arg1,\n        bytes[] memory arg2\n    ) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 1ea61a4e\n    function fnCalldataArgs(string calldata arg0, bytes[] memory arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// @custom:selector d8af1a4e\n    function fnCustomArgs(\n        CustomArg0 memory arg0,\n        bytes[] memory arg1,\n        uint64 arg2\n    ) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector e8af1642\n    function fnEnumArgs(CustomEnum0 arg0, uint64 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @param arg2 Arg2 Description\n    /// @param arg3 Arg3 Description\n    /// @custom:selector 550c1a4e\n    function fnCustomArgsMultiple(\n        CustomArg0 memory arg0,\n        CustomArg1 memory arg1,\n        bytes[] memory arg2,\n        uint64 arg3\n    ) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 77af1a40\n    function fnCustomArrayArgs(CustomArg0[] memory arg0, bytes[] memory arg1)\n        external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 80af0a40\n    function fnCustomComposedArg(CustomArg2 memory arg0, uint64 arg1) external;\n\n    /// @param arg0 Arg0 Description\n    /// @param arg1 Arg1 Description\n    /// @custom:selector 97baa040\n    function fnCustomComposedArrayArg(CustomArg2[] memory arg0, uint64 arg1)\n        external;\n}\n"
 }

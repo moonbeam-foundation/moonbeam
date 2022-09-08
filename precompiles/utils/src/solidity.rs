@@ -24,18 +24,24 @@ use std::{
 };
 
 /// Represents a declared custom type struct within a solidity file
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Debug)]
 pub struct SolidityStruct {
 	/// Struct name
 	pub name: String,
 	/// List of parameter types
 	pub params: Vec<String>,
+	/// Is struct an enum
+	pub is_enum: bool,
 }
 
 impl SolidityStruct {
 	/// Returns the representative signature for the solidity struct
 	pub fn signature(&self) -> String {
-		format!("({})", self.params.join(","))
+		if self.is_enum {
+			"uint8".to_string()
+		} else {
+			format!("({})", self.params.join(","))
+		}
 	}
 }
 
@@ -58,10 +64,7 @@ impl SolidityFunction {
 
 	/// Computes the selector code for the solidity function
 	pub fn compute_selector(&self) -> u32 {
-		let output = keccak_256(self.signature().as_bytes());
-		let mut buf = [0u8; 4];
-		buf.clone_from_slice(&output[..4]);
-		u32::from_be_bytes(buf)
+		compute_selector(&self.signature())
 	}
 
 	/// Computes the selector code as a hex string for the solidity function
@@ -70,16 +73,44 @@ impl SolidityFunction {
 	}
 }
 
+/// Computes a solidity selector from a given string
+pub fn compute_selector(v: &str) -> u32 {
+	let output = keccak_256(v.as_bytes());
+	let mut buf = [0u8; 4];
+	buf.clone_from_slice(&output[..4]);
+	u32::from_be_bytes(buf)
+}
+
 /// Returns a list of [SolidityFunction] defined in a solidity file
 pub fn get_selectors(filename: &str) -> Vec<SolidityFunction> {
-	let file = File::open(filename).expect("failed opening file");
+	let file = File::open(filename)
+		.unwrap_or_else(|e| panic!("failed opening file '{}': {}", filename, e));
 	get_selectors_from_reader(file)
+}
+
+/// Attempts to lookup a custom struct and returns its primitive signature
+fn try_lookup_custom_type(word: &str, custom_types: &HashMap<String, SolidityStruct>) -> String {
+	match word.strip_suffix("[]") {
+		Some(word) => {
+			if let Some(t) = custom_types.get(word) {
+				return format!("{}[]", t.signature());
+			}
+		}
+		None => {
+			if let Some(t) = custom_types.get(word) {
+				return t.signature();
+			}
+		}
+	};
+
+	word.to_string()
 }
 
 fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 	#[derive(Clone, Copy)]
 	enum Stage {
 		Start,
+		Enum,
 		Struct,
 		StructParams,
 		FnName,
@@ -110,8 +141,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 	for line in reader.lines() {
 		let line = line.expect("failed unwrapping line").trim().to_string();
 		// identify declared selector
-		if line.starts_with("/// Selector: ") && matches!(stage, Stage::Start) {
-			solidity_fn.docs_selector = line.replace("/// Selector: ", "").to_string();
+		if line.starts_with("/// @custom:selector ") && matches!(stage, Stage::Start) {
+			solidity_fn.docs_selector = line.replace("/// @custom:selector ", "").to_string();
 		}
 
 		// skip comments
@@ -125,6 +156,24 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 				continue;
 			}
 			match (stage, pair, word) {
+				// parse custom type enums
+				(Stage::Start, Pair::First, "enum") => {
+					stage = Stage::Enum;
+					pair.next();
+				}
+				(Stage::Enum, Pair::Second, _) => {
+					custom_types.insert(
+						word.to_string(),
+						SolidityStruct {
+							name: word.to_string(),
+							is_enum: true,
+							params: vec![],
+						},
+					);
+					stage = Stage::Start;
+					pair = Pair::First;
+				}
+
 				// parse custom type structs
 				(Stage::Start, Pair::First, "struct") => {
 					stage = Stage::Struct;
@@ -142,7 +191,8 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 					solidity_struct = SolidityStruct::default();
 				}
 				(Stage::StructParams, Pair::First, _) => {
-					solidity_struct.params.push(word.to_string());
+					let param = try_lookup_custom_type(&word, &custom_types);
+					solidity_struct.params.push(param);
 					pair.next();
 				}
 				(Stage::StructParams, Pair::Second, _) => {
@@ -167,13 +217,12 @@ fn get_selectors_from_reader<R: Read>(reader: R) -> Vec<SolidityFunction> {
 				}
 				(Stage::Args, Pair::First, _) => {
 					let mut arg = word.to_string();
-					if let Some(t) = custom_types.get(&arg) {
-						arg = t.signature()
-					}
+					arg = try_lookup_custom_type(&arg, &custom_types);
+
 					solidity_fn.args.push(arg);
 					pair.next();
 				}
-				(Stage::Args, Pair::Second, "memory") => (),
+				(Stage::Args, Pair::Second, "memory" | "calldata" | "storage") => (),
 				(Stage::Args, Pair::Second, _) => pair.next(),
 				_ => {
 					stage = Stage::Start;
@@ -245,19 +294,51 @@ mod tests {
 				String::from("fnMemoryArrayArgs(address[],uint256[],bytes[])"),
 			),
 			(
+				String::from("ec26cf1c"),
+				String::from("1ea61a4e"),
+				String::from("fnCalldataArgs(string,bytes[])"),
+			),
+			(
 				String::from("f29f96de"),
 				String::from("d8af1a4e"),
 				String::from("fnCustomArgs((uint8,bytes[]),bytes[],uint64)"),
 			),
 			(
+				String::from("d751d651"),
+				String::from("e8af1642"),
+				String::from("fnEnumArgs(uint8,uint64)"),
+			),
+			(
 				String::from("b2c9f1a3"),
 				String::from("550c1a4e"),
 				String::from(
-					"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[])".to_owned()
-						+ ",bytes[],uint64)",
+					"fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
+					uint64)",
+				),
+			),
+			(
+				String::from("d5363eee"),
+				String::from("77af1a40"),
+				String::from("fnCustomArrayArgs((uint8,bytes[])[],bytes[])"),
+			),
+			(
+				String::from("b82da727"),
+				String::from("80af0a40"),
+				String::from(
+					"fnCustomComposedArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[]),uint64)",
+				),
+			),
+			(
+				String::from("586a2193"),
+				String::from("97baa040"),
+				String::from(
+					"fnCustomComposedArrayArg(((uint8,bytes[]),\
+				(address[],uint256[],bytes[])[])[],uint64)",
 				),
 			),
 		];
+
 		assert_eq!(expected, actual);
 	}
 }

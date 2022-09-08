@@ -17,16 +17,11 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, CandidateInfo, CollatorReserveToLockMigrations, Config,
-	DelegatorReserveToLockMigrations, DelegatorState, InflationInfo, Points, Range,
-	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{
-		Everything, GenesisBuild, LockIdentifier, LockableCurrency, OnFinalize, OnInitialize,
-		ReservableCurrency,
-	},
+	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
 	weights::Weight,
 };
 use sp_core::H256;
@@ -130,7 +125,6 @@ impl Config for Test {
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
-	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
 	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
@@ -141,8 +135,6 @@ impl Config for Test {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
@@ -232,6 +224,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: DefaultCollatorCommission::get(),
+			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
+			blocks_per_round: DefaultBlocksPerRound::get(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -422,28 +417,6 @@ pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<B
 		}
 	}
 	None
-}
-
-/// fn to reverse-migrate a delegator account from locks back to reserve.
-/// This is used to test the reserve -> lock migration.
-pub(crate) fn unmigrate_delegator_from_lock_to_reserve(account_id: u64) {
-	<DelegatorReserveToLockMigrations<Test>>::remove(&account_id);
-	Balances::remove_lock(DELEGATOR_LOCK_ID, &account_id);
-
-	if let Some(delegator_state) = <DelegatorState<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, delegator_state.total()).expect("reserve() failed");
-	}
-}
-
-/// fn to reverse-migrate a collator account from locks back to reserve.
-/// This is used to test the reserve -> lock migration.
-pub(crate) fn unmigrate_collator_from_lock_to_reserve(account_id: u64) {
-	<CollatorReserveToLockMigrations<Test>>::remove(&account_id);
-	Balances::remove_lock(COLLATOR_LOCK_ID, &account_id);
-
-	if let Some(collator_state) = <CandidateInfo<Test>>::get(&account_id) {
-		Balances::reserve(&account_id, collator_state.bond).expect("reserve() failed");
-	}
 }
 
 #[test]

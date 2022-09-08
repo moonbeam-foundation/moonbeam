@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::asset_config::{ForeignAssetInstance, LocalAssetInstance};
+use crate::{
+	asset_config::{ForeignAssetInstance, LocalAssetInstance},
+	xcm_config::XcmExecutorConfig,
+	CouncilInstance, TechCommitteeInstance, TreasuryCouncilInstance,
+};
 use frame_support::parameter_types;
 use moonbeam_relay_encoder::kusama::KusamaEncoder;
 use pallet_evm_precompile_author_mapping::AuthorMappingWrapper;
@@ -22,15 +26,19 @@ use pallet_evm_precompile_balances_erc20::{Erc20BalancesPrecompile, Erc20Metadat
 use pallet_evm_precompile_batch::BatchPrecompile;
 use pallet_evm_precompile_blake2::Blake2F;
 use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
+use pallet_evm_precompile_call_permit::CallPermitPrecompile;
+use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsWrapper;
 use pallet_evm_precompile_democracy::DemocracyWrapper;
 use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingWrapper;
+use pallet_evm_precompile_randomness::RandomnessWrapper;
 use pallet_evm_precompile_relay_encoder::RelayEncoderWrapper;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use pallet_evm_precompile_xcm_transactor::XcmTransactorWrapper;
+use pallet_evm_precompile_xcm_transactor::v1::XcmTransactorWrapperV1;
+use pallet_evm_precompile_xcm_utils::XcmUtilsWrapper;
 use pallet_evm_precompile_xtokens::XtokensWrapper;
 use pallet_evm_precompileset_assets_erc20::{Erc20AssetsPrecompileSet, IsForeign, IsLocal};
 use precompile_utils::precompile_set::*;
@@ -110,9 +118,17 @@ pub type MoonriverPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2051>, DemocracyWrapper<R>>,
 				PrecompileAt<AddressU64<2052>, XtokensWrapper<R>>,
 				PrecompileAt<AddressU64<2053>, RelayEncoderWrapper<R, KusamaEncoder>>,
-				PrecompileAt<AddressU64<2054>, XcmTransactorWrapper<R>>,
+				PrecompileAt<AddressU64<2054>, XcmTransactorWrapperV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingWrapper<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
+				PrecompileAt<AddressU64<2057>, RandomnessWrapper<R>>,
+				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
+				// PrecompileAt<AddressU64<2059>, ProxyWrapper<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2060>, XcmUtilsWrapper<R, XcmExecutorConfig>>,
+				// PrecompileAt<AddressU64<2061>, XcmTransactorWrapperV2<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2062>, CollectivePrecompile<R, CouncilInstance>>,
+				PrecompileAt<AddressU64<2063>, CollectivePrecompile<R, TechCommitteeInstance>>,
+				PrecompileAt<AddressU64<2064>, CollectivePrecompile<R, TreasuryCouncilInstance>>,
 			),
 		>,
 		// Prefixed precompile sets (XC20)

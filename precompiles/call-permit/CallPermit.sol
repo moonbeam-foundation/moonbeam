@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
+/// @author The Moonbeam Team
+/// @title Call Permit Interface
+/// @dev The interface aims to be a general-purpose tool to perform gas-less transactions. It uses the EIP-712 standard,
+/// and signed messages can be dispatched by another network participant with a transaction
+/// @custom:address 0x000000000000000000000000000000000000080a
 interface CallPermit {
     /// @dev Dispatch a call on the behalf of an other user with a EIP712 permit.
     /// Will revert if the permit is not valid or if the dispatched call reverts or errors (such as
@@ -17,7 +22,7 @@ interface CallPermit {
     /// @param r R part of the signature.
     /// @param s S part of the signature.
     /// @return output Output of the call.
-    /// Selector: b5ea0966
+    /// @custom:selector b5ea0966
     function dispatch(
         address from,
         address to,
@@ -30,18 +35,14 @@ interface CallPermit {
         bytes32 s
     ) external returns (bytes memory output);
 
-    /**
-     * @dev Returns the current nonce for given owner.
-     * A permit must have this nonce to be consumed, which will
-     * increase the nonce by one.
-     * Selector: 0x7ecebe00
-     */
+    /// @dev Returns the current nonce for given owner.
+    /// A permit must have this nonce to be consumed, which will
+    /// increase the nonce by one.
+    /// @custom:selector 7ecebe00
     function nonces(address owner) external view returns (uint256);
 
-    /**
-     * @dev Returns the EIP712 domain separator. It is used to avoid replay
-     * attacks accross assets or other similar EIP712 message structures.
-     * Selector: 0x3644e515
-     */
+    /// @dev Returns the EIP712 domain separator. It is used to avoid replay
+    /// attacks accross assets or other similar EIP712 message structures.
+    /// @custom:selector 3644e515
     function DOMAIN_SEPARATOR() external view returns (bytes32);
 }

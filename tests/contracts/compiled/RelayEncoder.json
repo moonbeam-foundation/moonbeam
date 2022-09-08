@@ -6,17 +6,17 @@
         "inputs": [
           {
             "internalType": "uint256",
-            "name": "controller_address",
+            "name": "controllerAddress",
             "type": "uint256"
           },
           { "internalType": "uint256", "name": "amount", "type": "uint256" },
           {
             "internalType": "bytes",
-            "name": "reward_destination",
+            "name": "rewardDestination",
             "type": "bytes"
           }
         ],
-        "name": "encode_bond",
+        "name": "encodeBond",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -27,7 +27,7 @@
         "inputs": [
           { "internalType": "uint256", "name": "amount", "type": "uint256" }
         ],
-        "name": "encode_bond_extra",
+        "name": "encodeBondExtra",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -36,7 +36,7 @@
       },
       {
         "inputs": [],
-        "name": "encode_chill",
+        "name": "encodeChill",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -51,7 +51,7 @@
             "type": "uint256[]"
           }
         ],
-        "name": "encode_nominate",
+        "name": "encodeNominate",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -62,7 +62,7 @@
         "inputs": [
           { "internalType": "uint256", "name": "amount", "type": "uint256" }
         ],
-        "name": "encode_rebond",
+        "name": "encodeRebond",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -73,7 +73,7 @@
         "inputs": [
           { "internalType": "uint256", "name": "controller", "type": "uint256" }
         ],
-        "name": "encode_set_controller",
+        "name": "encodeSetController",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -84,11 +84,11 @@
         "inputs": [
           {
             "internalType": "bytes",
-            "name": "reward_destination",
+            "name": "rewardDestination",
             "type": "bytes"
           }
         ],
-        "name": "encode_set_payee",
+        "name": "encodeSetPayee",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -99,7 +99,7 @@
         "inputs": [
           { "internalType": "uint256", "name": "amount", "type": "uint256" }
         ],
-        "name": "encode_unbond",
+        "name": "encodeUnbond",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -111,7 +111,7 @@
           { "internalType": "uint256", "name": "comission", "type": "uint256" },
           { "internalType": "bool", "name": "blocked", "type": "bool" }
         ],
-        "name": "encode_validate",
+        "name": "encodeValidate",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -122,7 +122,7 @@
         "inputs": [
           { "internalType": "uint32", "name": "slashes", "type": "uint32" }
         ],
-        "name": "encode_withdraw_unbonded",
+        "name": "encodeWithdrawUnbonded",
         "outputs": [
           { "internalType": "bytes", "name": "result", "type": "bytes" }
         ],
@@ -132,9 +132,82 @@
     ],
     "devdoc": {
       "author": "The Moonbeam Team",
+      "custom:address": "0x0000000000000000000000000000000000000805",
+      "details": "The interface through which solidity contracts will interact with Relay Encoder We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet",
       "kind": "dev",
-      "methods": {},
-      "title": "The interface through which solidity contracts will interact with Relay Encoder We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet Address :    0x0000000000000000000000000000000000000805",
+      "methods": {
+        "encodeBond(uint256,uint256,bytes)": {
+          "custom:selector": "a82948d4",
+          "details": "Encode 'bond' relay call",
+          "params": {
+            "amount": ": The amount to bond",
+            "controllerAddress": ": Address of the controller",
+            "rewardDestination": ": the account that should receive the reward"
+          },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeBondExtra(uint256)": {
+          "custom:selector": "813667a0",
+          "details": "Encode 'bondExtra' relay call",
+          "params": { "amount": ": The extra amount to bond" },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeChill()": {
+          "custom:selector": "b5eaac43",
+          "details": "Encode 'chill' relay call",
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeNominate(uint256[])": {
+          "custom:selector": "d2ea7b08",
+          "details": "Encode 'nominate' relay call",
+          "params": {
+            "nominees": ": An array of AccountIds corresponding to the accounts we will nominate"
+          },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeRebond(uint256)": {
+          "custom:selector": "0922ee17",
+          "details": "Encode 'rebond' relay call",
+          "params": { "amount": ": The amount to rebond" },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeSetController(uint256)": {
+          "custom:selector": "07f7c6dc",
+          "details": "Encode 'setController' relay call",
+          "params": { "controller": ": The controller address" },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeSetPayee(bytes)": {
+          "custom:selector": "414be337",
+          "details": "Encode 'setPayee' relay call",
+          "params": {
+            "rewardDestination": ": the account that should receive the reward"
+          },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeUnbond(uint256)": {
+          "custom:selector": "51b14e57",
+          "details": "Encode 'unbond' relay call",
+          "params": { "amount": "The amount to unbond" },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeValidate(uint256,bool)": {
+          "custom:selector": "bb64ca0c",
+          "details": "Encode 'validate' relay call",
+          "params": {
+            "blocked": ": Whether or not the validator is accepting more nominations",
+            "comission": ": Comission of the validator as partsPerBillion"
+          },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        },
+        "encodeWithdrawUnbonded(uint32)": {
+          "custom:selector": "d5ad108e",
+          "details": "Encode 'withdrawUnbonded' relay call",
+          "params": { "slashes": "Weight hint, number of slashing spans" },
+          "returns": { "result": "The bytes associated with the encoded call" }
+        }
+      },
+      "title": "Pallet Relay Encoder Interface",
       "version": 1
     },
     "evm": {
@@ -159,22 +232,22 @@
       "gasEstimates": null,
       "legacyAssembly": null,
       "methodIdentifiers": {
-        "encode_bond(uint256,uint256,bytes)": "31627376",
-        "encode_bond_extra(uint256)": "49def326",
-        "encode_chill()": "bc4b2187",
-        "encode_nominate(uint256[])": "a7cb124b",
-        "encode_rebond(uint256)": "add6b3bf",
-        "encode_set_controller(uint256)": "7a8f48c2",
-        "encode_set_payee(bytes)": "9801b147",
-        "encode_unbond(uint256)": "2cd61217",
-        "encode_validate(uint256,bool)": "3a0d803a",
-        "encode_withdraw_unbonded(uint32)": "2d220331"
+        "encodeBond(uint256,uint256,bytes)": "a82948d4",
+        "encodeBondExtra(uint256)": "813667a0",
+        "encodeChill()": "b5eaac43",
+        "encodeNominate(uint256[])": "d2ea7b08",
+        "encodeRebond(uint256)": "0922ee17",
+        "encodeSetController(uint256)": "07f7c6dc",
+        "encodeSetPayee(bytes)": "414be337",
+        "encodeUnbond(uint256)": "51b14e57",
+        "encodeValidate(uint256,bool)": "bb64ca0c",
+        "encodeWithdrawUnbonded(uint32)": "d5ad108e"
       }
     },
     "ewasm": { "wasm": "" },
-    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"controller_address\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"reward_destination\",\"type\":\"bytes\"}],\"name\":\"encode_bond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encode_bond_extra\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"encode_chill\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nominees\",\"type\":\"uint256[]\"}],\"name\":\"encode_nominate\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encode_rebond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"controller\",\"type\":\"uint256\"}],\"name\":\"encode_set_controller\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"reward_destination\",\"type\":\"bytes\"}],\"name\":\"encode_set_payee\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encode_unbond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"comission\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"blocked\",\"type\":\"bool\"}],\"name\":\"encode_validate\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"slashes\",\"type\":\"uint32\"}],\"name\":\"encode_withdraw_unbonded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"kind\":\"dev\",\"methods\":{},\"title\":\"The interface through which solidity contracts will interact with Relay Encoder We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet Address :    0x0000000000000000000000000000000000000805\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"RelayEncoder\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x6a4cd850ce045c7d29680c38381f85c194416069b697df6ada6e0168c84c7f00\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://913b557786b7dc204b87f85570f2a885a5c61f2b41b7360ec9cc651a7ebe84a3\",\"dweb:/ipfs/QmUZ7LXi9KD2qNvaPoefRrNt4fgMEoJevKRQWwkGd83XXH\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.11+commit.d7f03943\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"controllerAddress\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"},{\"internalType\":\"bytes\",\"name\":\"rewardDestination\",\"type\":\"bytes\"}],\"name\":\"encodeBond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encodeBondExtra\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"encodeChill\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256[]\",\"name\":\"nominees\",\"type\":\"uint256[]\"}],\"name\":\"encodeNominate\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encodeRebond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"controller\",\"type\":\"uint256\"}],\"name\":\"encodeSetController\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes\",\"name\":\"rewardDestination\",\"type\":\"bytes\"}],\"name\":\"encodeSetPayee\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"amount\",\"type\":\"uint256\"}],\"name\":\"encodeUnbond\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"comission\",\"type\":\"uint256\"},{\"internalType\":\"bool\",\"name\":\"blocked\",\"type\":\"bool\"}],\"name\":\"encodeValidate\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint32\",\"name\":\"slashes\",\"type\":\"uint32\"}],\"name\":\"encodeWithdrawUnbonded\",\"outputs\":[{\"internalType\":\"bytes\",\"name\":\"result\",\"type\":\"bytes\"}],\"stateMutability\":\"pure\",\"type\":\"function\"}],\"devdoc\":{\"author\":\"The Moonbeam Team\",\"custom:address\":\"0x0000000000000000000000000000000000000805\",\"details\":\"The interface through which solidity contracts will interact with Relay Encoder We follow this same interface including four-byte function selectors, in the precompile that wraps the pallet\",\"kind\":\"dev\",\"methods\":{\"encodeBond(uint256,uint256,bytes)\":{\"custom:selector\":\"a82948d4\",\"details\":\"Encode 'bond' relay call\",\"params\":{\"amount\":\": The amount to bond\",\"controllerAddress\":\": Address of the controller\",\"rewardDestination\":\": the account that should receive the reward\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeBondExtra(uint256)\":{\"custom:selector\":\"813667a0\",\"details\":\"Encode 'bondExtra' relay call\",\"params\":{\"amount\":\": The extra amount to bond\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeChill()\":{\"custom:selector\":\"b5eaac43\",\"details\":\"Encode 'chill' relay call\",\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeNominate(uint256[])\":{\"custom:selector\":\"d2ea7b08\",\"details\":\"Encode 'nominate' relay call\",\"params\":{\"nominees\":\": An array of AccountIds corresponding to the accounts we will nominate\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeRebond(uint256)\":{\"custom:selector\":\"0922ee17\",\"details\":\"Encode 'rebond' relay call\",\"params\":{\"amount\":\": The amount to rebond\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeSetController(uint256)\":{\"custom:selector\":\"07f7c6dc\",\"details\":\"Encode 'setController' relay call\",\"params\":{\"controller\":\": The controller address\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeSetPayee(bytes)\":{\"custom:selector\":\"414be337\",\"details\":\"Encode 'setPayee' relay call\",\"params\":{\"rewardDestination\":\": the account that should receive the reward\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeUnbond(uint256)\":{\"custom:selector\":\"51b14e57\",\"details\":\"Encode 'unbond' relay call\",\"params\":{\"amount\":\"The amount to unbond\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeValidate(uint256,bool)\":{\"custom:selector\":\"bb64ca0c\",\"details\":\"Encode 'validate' relay call\",\"params\":{\"blocked\":\": Whether or not the validator is accepting more nominations\",\"comission\":\": Comission of the validator as partsPerBillion\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}},\"encodeWithdrawUnbonded(uint32)\":{\"custom:selector\":\"d5ad108e\",\"details\":\"Encode 'withdrawUnbonded' relay call\",\"params\":{\"slashes\":\"Weight hint, number of slashing spans\"},\"returns\":{\"result\":\"The bytes associated with the encoded call\"}}},\"title\":\"Pallet Relay Encoder Interface\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"main.sol\":\"RelayEncoder\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"main.sol\":{\"keccak256\":\"0x2844d6e435b818e26509c25a238390d30454271513e99416aedaf6e42af8a18d\",\"license\":\"GPL-3.0-only\",\"urls\":[\"bzz-raw://34a32e843eeacae15704643a76e7df6883d9f2dc385972af43a3a810ff172c57\",\"dweb:/ipfs/QmZMFaeQY2JECTMF6Pv455nc7PXsoBZH3QKzvjzyZH4i52\"]}},\"version\":1}",
     "storageLayout": { "storage": [], "types": null },
     "userdoc": { "kind": "user", "methods": {}, "version": 1 }
   },
-  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.0;\n\n/**\n * @author The Moonbeam Team\n * @title The interface through which solidity contracts will interact with Relay Encoder\n * We follow this same interface including four-byte function selectors, in the precompile that\n * wraps the pallet\n * Address :    0x0000000000000000000000000000000000000805\n */\n\ninterface RelayEncoder {\n    // dev Encode 'bond' relay call\n    // Selector: 31627376\n    // @param controller_address: Address of the controller\n    // @param amount: The amount to bond\n    // @param reward_destination: the account that should receive the reward\n    // @returns The bytes associated with the encoded call\n    function encode_bond(\n        uint256 controller_address,\n        uint256 amount,\n        bytes memory reward_destination\n    ) external pure returns (bytes memory result);\n\n    // dev Encode 'bond_extra' relay call\n    // Selector: 49def326\n    // @param amount: The extra amount to bond\n    // @returns The bytes associated with the encoded call\n    function encode_bond_extra(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'unbond' relay call\n    // Selector: 2cd61217\n    // @param amount: The amount to unbond\n    // @returns The bytes associated with the encoded call\n    function encode_unbond(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'withdraw_unbonded' relay call\n    // Selector: 2d220331\n    // @param slashes: Weight hint, number of slashing spans\n    // @returns The bytes associated with the encoded call\n    function encode_withdraw_unbonded(uint32 slashes)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'validate' relay call\n    // Selector: 3a0d803a\n    // @param comission: Comission of the validator as parts_per_billion\n    // @param blocked: Whether or not the validator is accepting more nominations\n    // @returns The bytes associated with the encoded call\n    // selector: 3a0d803a\n    function encode_validate(uint256 comission, bool blocked)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'nominate' relay call\n    // Selector: a7cb124b\n    // @param nominees: An array of AccountIds corresponding to the accounts we will nominate\n    // @param blocked: Whether or not the validator is accepting more nominations\n    // @returns The bytes associated with the encoded call\n    function encode_nominate(uint256[] memory nominees)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'chill' relay call\n    // Selector: bc4b2187\n    // @returns The bytes associated with the encoded call\n    function encode_chill() external pure returns (bytes memory result);\n\n    // dev Encode 'set_payee' relay call\n    // Selector: 9801b147\n    // @param reward_destination: the account that should receive the reward\n    // @returns The bytes associated with the encoded call\n    function encode_set_payee(bytes memory reward_destination)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'set_controller' relay call\n    // Selector: 7a8f48c2\n    // @param controller: The controller address\n    // @returns The bytes associated with the encoded call\n    function encode_set_controller(uint256 controller)\n        external\n        pure\n        returns (bytes memory result);\n\n    // dev Encode 'rebond' relay call\n    // Selector: add6b3bf\n    // @param amount: The amount to rebond\n    // @returns The bytes associated with the encoded call\n    function encode_rebond(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n}\n"
+  "sourceCode": "// SPDX-License-Identifier: GPL-3.0-only\npragma solidity >=0.8.3;\n\n/// @author The Moonbeam Team\n/// @title Pallet Relay Encoder Interface\n/// @dev The interface through which solidity contracts will interact with Relay Encoder\n/// We follow this same interface including four-byte function selectors, in the precompile that\n/// wraps the pallet\n/// @custom:address 0x0000000000000000000000000000000000000805\ninterface RelayEncoder {\n    /// @dev Encode 'bond' relay call\n    /// @custom:selector a82948d4\n    /// @param controllerAddress: Address of the controller\n    /// @param amount: The amount to bond\n    /// @param rewardDestination: the account that should receive the reward\n    /// @return result The bytes associated with the encoded call\n    function encodeBond(\n        uint256 controllerAddress,\n        uint256 amount,\n        bytes memory rewardDestination\n    ) external pure returns (bytes memory result);\n\n    /// @dev Encode 'bondExtra' relay call\n    /// @custom:selector 813667a0\n    /// @param amount: The extra amount to bond\n    /// @return result The bytes associated with the encoded call\n    function encodeBondExtra(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'unbond' relay call\n    /// @custom:selector 51b14e57\n    /// @param amount The amount to unbond\n    /// @return result The bytes associated with the encoded call\n    function encodeUnbond(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'withdrawUnbonded' relay call\n    /// @custom:selector d5ad108e\n    /// @param slashes Weight hint, number of slashing spans\n    /// @return result The bytes associated with the encoded call\n    function encodeWithdrawUnbonded(uint32 slashes)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'validate' relay call\n    /// @custom:selector bb64ca0c\n    /// @param comission: Comission of the validator as partsPerBillion\n    /// @param blocked: Whether or not the validator is accepting more nominations\n    /// @return result The bytes associated with the encoded call\n    function encodeValidate(uint256 comission, bool blocked)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'nominate' relay call\n    /// @custom:selector d2ea7b08\n    /// @param nominees: An array of AccountIds corresponding to the accounts we will nominate\n    /// @return result The bytes associated with the encoded call\n    function encodeNominate(uint256[] memory nominees)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'chill' relay call\n    /// @custom:selector b5eaac43\n    /// @return result The bytes associated with the encoded call\n    function encodeChill() external pure returns (bytes memory result);\n\n    /// @dev Encode 'setPayee' relay call\n    /// @custom:selector 414be337\n    /// @param rewardDestination: the account that should receive the reward\n    /// @return result The bytes associated with the encoded call\n    function encodeSetPayee(bytes memory rewardDestination)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'setController' relay call\n    /// @custom:selector 07f7c6dc\n    /// @param controller: The controller address\n    /// @return result The bytes associated with the encoded call\n    function encodeSetController(uint256 controller)\n        external\n        pure\n        returns (bytes memory result);\n\n    /// @dev Encode 'rebond' relay call\n    /// @custom:selector 0922ee17\n    /// @param amount: The amount to rebond\n    /// @return result The bytes associated with the encoded call\n    function encodeRebond(uint256 amount)\n        external\n        pure\n        returns (bytes memory result);\n}\n"
 }

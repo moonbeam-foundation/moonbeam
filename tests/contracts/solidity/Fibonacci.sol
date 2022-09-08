@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 contract Fibonacci {
     function fib2(uint256 n) public pure returns (uint256 b) {

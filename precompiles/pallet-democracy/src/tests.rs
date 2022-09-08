@@ -29,7 +29,7 @@ use pallet_democracy::{
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{prelude::*, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, U256};
 use std::{convert::TryInto, str::from_utf8};
 
@@ -57,7 +57,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -66,23 +66,23 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
 #[test]
 fn selectors() {
 	assert_eq!(Action::Delegate as u32, 0x0185921e);
-	assert_eq!(Action::DepositOf as u32, 0xa30305e9);
-	assert_eq!(Action::FinishedReferendumInfo as u32, 0xb1fd383f);
-	assert_eq!(Action::LowestUnbaked as u32, 0x0388f282);
-	assert_eq!(Action::OngoingReferendumInfo as u32, 0x8b93d11a);
+	assert_eq!(Action::DepositOf as u32, 0x4767142d);
+	assert_eq!(Action::FinishedReferendumInfo as u32, 0x07df495b);
+	assert_eq!(Action::LowestUnbaked as u32, 0xd49dccf0);
+	assert_eq!(Action::OngoingReferendumInfo as u32, 0xe5a18359);
 	assert_eq!(Action::Propose as u32, 0x7824e7d1);
-	assert_eq!(Action::PublicPropCount as u32, 0x56fdf547);
-	assert_eq!(Action::RemoveVote as u32, 0x2042f50b);
+	assert_eq!(Action::PublicPropCount as u32, 0x31305462);
+	assert_eq!(Action::RemoveVote as u32, 0x3f68fde4);
 	assert_eq!(Action::Second as u32, 0xc7a76601);
-	assert_eq!(Action::StandardVote as u32, 0x3f3c21cc);
-	assert_eq!(Action::UnDelegate as u32, 0xcb37b8ea);
+	assert_eq!(Action::StandardVote as u32, 0x6cd18b0d);
+	assert_eq!(Action::UnDelegate as u32, 0x1eef225c);
 	assert_eq!(Action::Unlock as u32, 0x2f6c493c);
 
 	//TODO also test logs once we have them
@@ -1144,4 +1144,53 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 				.into()]
 			);
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["DemocracyInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if Action::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"public_prop_count()",
+		"deposit_of(uint256)",
+		"lowest_unbaked()",
+		"ongoing_referendum_info(uint256)",
+		"finished_referendum_info(uint256)",
+		"standard_vote(uint256,bool,uint256,uint256)",
+		"remove_vote(uint256)",
+		"un_delegate()",
+		"note_preimage(bytes)",
+		"note_imminent_preimage(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
 }

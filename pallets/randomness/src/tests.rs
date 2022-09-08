@@ -13,27 +13,25 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-
-//! # Randomness Pallet Unit Tests
 use crate::mock::*;
 use crate::*;
 use frame_support::{assert_noop, assert_ok};
-use sp_core::{H160, H256};
+use sp_core::H256;
 
-pub const ALICE: H160 = H160::repeat_byte(0xAA);
-pub const BOB: H160 = H160::repeat_byte(0xBB);
+#[test]
+fn pallet_account_id() {
+	assert_eq!(
+		Randomness::account_id(),
+		core::str::FromStr::from_str("0x6d6f646c6d6f6f6e72616e640000000000000000").unwrap(),
+	);
+}
 
-/// Helps test same effects for all 4 variants of RequestType
-fn build_default_request(info: RequestType<Test>) -> Request<BalanceOf<Test>, RequestType<Test>> {
-	Request {
-		refund_address: BOB,
-		contract_address: ALICE,
-		fee: 5,
-		gas_limit: 100u64,
-		num_words: 1u8,
-		salt: H256::default(),
-		info,
-	}
+#[test]
+fn set_babe_randomness_results_is_mandatory() {
+	use frame_support::weights::{DispatchClass, GetDispatchInfo};
+
+	let info = crate::Call::<Test>::set_babe_randomness_results {}.get_dispatch_info();
+	assert_eq!(info.class, DispatchClass::Mandatory);
 }
 
 // REQUEST RANDOMNESS
@@ -378,27 +376,326 @@ fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
 		});
 }
 
-#[test]
-fn set_babe_randomness_results_is_mandatory() {
-	use frame_support::weights::{DispatchClass, GetDispatchInfo};
-
-	let info = crate::Call::<Test>::set_babe_randomness_results {}.get_dispatch_info();
-	assert_eq!(info.class, DispatchClass::Mandatory);
-}
-
 // FINISH FULFILLMENT
 
-// finish fulfillment decrements randomness result and will remove it if last
-// test both cases separately
+#[test]
+fn finish_fulfillment_removes_request_from_storage() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut pre_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			pre_result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
+			Randomness::finish_fulfillment(
+				1u64,
+				fulfill_args.request,
+				fulfill_args.deposit,
+				&ALICE,
+				5,
+			);
+			assert!(Randomness::requests(1u64).is_none());
+		});
+}
+
+#[test]
+fn finish_fulfillment_refunds_refund_address_with_excess_and_caller_with_cost_of_execution() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut pre_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			pre_result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
+			Randomness::finish_fulfillment(
+				1u64,
+				fulfill_args.request,
+				fulfill_args.deposit,
+				&ALICE,
+				3,
+			);
+			// 30 - ( deposit = 10 + fee = 5) + cost_of_execution_refund_for_caller = 3 == 18
+			assert_eq!(Balances::free_balance(&ALICE), 18);
+			// 0 + deposit = 10 + fee = 5 - cost_of_execution = 3 == 12
+			assert_eq!(Balances::free_balance(&BOB), 12);
+		});
+}
+
+#[test]
+fn finish_fulfillment_decrements_randomness_result_and_keeps_in_storage_if_not_last() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request.clone()));
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut pre_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			pre_result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
+			assert_eq!(
+				Randomness::randomness_results(RequestType::Local(16u64))
+					.unwrap()
+					.request_count,
+				2
+			);
+			Randomness::finish_fulfillment(
+				1u64,
+				fulfill_args.request,
+				fulfill_args.deposit,
+				&ALICE,
+				5,
+			);
+			assert_eq!(
+				Randomness::randomness_results(RequestType::Local(16u64))
+					.unwrap()
+					.request_count,
+				1
+			);
+		});
+}
+
+#[test]
+fn finish_fulfillment_decrements_randomness_result_and_removes_from_storage_if_last() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			System::set_block_number(16u64);
+			let mut pre_result =
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+			pre_result.randomness = Some(H256::default());
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
+			assert_eq!(
+				Randomness::randomness_results(RequestType::Local(16u64))
+					.unwrap()
+					.request_count,
+				1
+			);
+			Randomness::finish_fulfillment(
+				1u64,
+				fulfill_args.request,
+				fulfill_args.deposit,
+				&ALICE,
+				5,
+			);
+			assert!(Randomness::randomness_results(RequestType::Local(16u64)).is_none());
+		});
+}
 
 // INCREASE REQUEST FEE
 
-// increase request fee updates the request fee
+#[test]
+fn increase_request_fee_fails_if_request_dne() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Randomness::increase_request_fee(&ALICE, 1u64, 10),
+			Error::<Test>::RequestDNE
+		);
+	});
+}
+
+#[test]
+fn non_requester_cannot_increase_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_noop!(
+				Randomness::increase_request_fee(&BOB, 0u64, 6),
+				Error::<Test>::OnlyRequesterCanIncreaseFee
+			);
+		});
+}
+
+#[test]
+fn increase_request_fee_transfers_from_caller_and_updates_request_state_fee() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_ok!(Randomness::increase_request_fee(&ALICE, 0u64, 6));
+			// initial_fee = 5 + fee_increase = 6 == 11
+			assert_eq!(Randomness::requests(0u64).unwrap().request.fee, 11);
+			// initial_balance = 30 - deposit = 10 - initial_fee = 5 - fee_increase = 6 == 9
+			assert_eq!(Balances::free_balance(&ALICE), 9);
+		});
+}
+
+#[test]
+fn increase_request_fee_fails_if_insufficient_balance() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 20)])
+		.build()
+		.execute_with(|| {
+			let request = Request {
+				refund_address: BOB.into(),
+				contract_address: ALICE.into(),
+				fee: 5,
+				gas_limit: 100u64,
+				num_words: 1u8,
+				salt: H256::default(),
+				info: RequestType::Local(16u64),
+			};
+			assert_ok!(Randomness::request_randomness(request));
+			assert_noop!(
+				Randomness::increase_request_fee(&ALICE, 0u64, 6),
+				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
+					index: 1,
+					error: [2, 0, 0, 0],
+					message: Some("InsufficientBalance")
+				})
+			);
+		});
+}
 
 // EXECUTE REQUEST EXPIRATION
 
-// execute request expiration fails before expired
+#[test]
+fn execute_request_expiration_fails_if_request_dne() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			Randomness::execute_request_expiration(&ALICE, 1u64),
+			Error::<Test>::RequestDNE
+		);
+	});
+}
 
-// execute request expiration succeeds
+#[test]
+fn execute_request_expiration_fails_before_request_expiration() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			assert_noop!(
+				Randomness::execute_request_expiration(&ALICE, 0u64),
+				Error::<Test>::RequestHasNotExpired
+			);
+		});
+}
 
-// ON INITIALIZE LOGIC AND HOOKS
+#[test]
+fn execute_request_expiration_removes_request() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			// increase epoch to expiry
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert!(Randomness::requests(0u64).is_some());
+			// execute expiry
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			assert!(Randomness::requests(0u64).is_none());
+		});
+}
+
+#[test]
+fn execute_request_expiration_removes_result() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			// increase epoch to expiry
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_some());
+			// execute expiry
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_none());
+		});
+}
+
+#[test]
+fn execute_request_expiration_returns_deposit_to_contract_address_and_fees_to_caller() {
+	ExtBuilder::default()
+		.with_balances(vec![(ALICE, 30)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Randomness::request_randomness(build_default_request(
+				RequestType::BabeEpoch(16u64)
+			)));
+			crate::pallet::RelayEpoch::<Test>::put(20u64);
+			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
+			// fee returned to BOB (caller)
+			assert_eq!(Balances::free_balance(&BOB), 5);
+			// deposit returned to ALICE (contract_address)
+			assert_eq!(Balances::free_balance(&ALICE), 25);
+		});
+}
