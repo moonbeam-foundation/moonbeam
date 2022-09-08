@@ -556,7 +556,7 @@ fn succeed_if_called_by_precompile() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			// Set dummy code to Alice address as it if was a smart contract.
+			// Set dummy code to Alice address as it if was a precompile.
 			pallet_evm::AccountCodes::<Runtime>::insert(
 				H160::from(Alice),
 				vec![0x60, 0x00, 0x60, 0x00, 0xfd],
