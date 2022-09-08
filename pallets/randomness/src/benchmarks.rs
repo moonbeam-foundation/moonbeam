@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::vrf::*;
 use crate::{
-	BalanceOf, Call, Config, InherentIncluded, LocalVrfOutput, NotFirstBlock, Pallet,
-	RandomnessResult, RandomnessResults, RelayEpoch, Request, RequestType,
+	BalanceOf, Call, Config, InherentIncluded, LocalVrfOutput, Pallet, RandomnessResult,
+	RandomnessResults, RelayEpoch, Request, RequestType,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
@@ -116,7 +116,6 @@ benchmarks! {
 		let last_vrf_output: T::Hash = Decode::decode(&mut vrf_input.as_slice()).ok()
 			.expect("decode into same type");
 		LocalVrfOutput::<T>::put(Some(last_vrf_output));
-		NotFirstBlock::<T>::put(());
 		let block_num: T::BlockNumber = frame_system::Pallet::<T>::block_number() + 100u32.into();
 		RandomnessResults::<T>::insert(
 			RequestType::Local(block_num),
