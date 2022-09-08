@@ -233,16 +233,16 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(log1.name).to.equal("Awarded");
     expect(log1.args.winner).to.equal(baltathar.address);
     expect(log1.args.randomWord.toHexString()).to.equal(
-      "0x16ded6b78b1f87f393a3a041cb545a0fd460ae968afb44dadcaa4db37979a9fc"
+      "0x4a77dde0744624a08f9c67b9a950ca8ebc49cdb829b6af35f2692dd13298b848"
     );
     expect(log1.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
 
     // Second Awarded event is for Alith
     const log2 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[2]);
     expect(log2.name).to.equal("Awarded");
-    expect(log2.args.winner).to.equal(alith.address);
+    expect(log2.args.winner).to.equal(charleth.address);
     expect(log2.args.randomWord.toHexString()).to.equal(
-      "0xef0e7af53cf47bc7309efe730a9a1d5c1e510c1bfbdb6cb80473211e3dc3a2e1"
+      "0xa202c56f314f7ff57952465ac3777deef704f287a3b893f04b134bdcc432e56f"
     );
     expect(log2.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
   });
@@ -265,7 +265,7 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
   });
 
-  it("should reward balthazar and alith", async function () {
+  it("should reward balthazar and charleth", async function () {
     expect(
       (
         await context.polkadotApi.query.system.account(baltathar.address.toString())
@@ -275,12 +275,12 @@ describeDevMoonbeam("Randomness Babe - Fulfilling Lottery Demo", (context) => {
       (
         await context.polkadotApi.query.system.account(charleth.address.toString())
       ).data.free.toBigInt() > DEFAULT_GENESIS_BALANCE
-    ).to.be.false;
+    ).to.be.true;
     expect(
       (
         await context.polkadotApi.query.system.account(alith.address.toString())
       ).data.free.toBigInt() > ALITH_GENESIS_FREE_BALANCE
-    ).to.be.true;
+    ).to.be.false;
   });
 
   it("should be back to open for registrations", async function () {
