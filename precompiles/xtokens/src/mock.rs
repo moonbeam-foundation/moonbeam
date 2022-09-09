@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types};
 use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
@@ -229,6 +230,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = XtokensWrapperCall<Runtime>;
 
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
