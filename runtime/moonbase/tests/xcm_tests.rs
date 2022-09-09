@@ -19,7 +19,7 @@
 mod xcm_mock;
 use frame_support::{
 	assert_ok,
-	traits::{PalletInfo, PalletInfoAccess, ConstU32},
+	traits::{ConstU32, PalletInfo, PalletInfoAccess},
 	weights::constants::WEIGHT_PER_SECOND,
 	BoundedVec,
 };
@@ -2870,7 +2870,8 @@ fn transact_through_signed_multilocation_para_to_para_ethereum() {
 			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
 			action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
 			value: U256::from(100),
-			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![])
+				.unwrap(),
 			access_list: None,
 		});
 
@@ -2993,7 +2994,8 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_no_proxy_fails() 
 			fee_payment: xcm_primitives::EthereumXcmFee::Auto,
 			action: pallet_ethereum::TransactionAction::Call(PARAALICE.into()),
 			value: U256::from(100),
-			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![])
+				.unwrap(),
 			access_list: None,
 		});
 
@@ -3120,7 +3122,8 @@ fn transact_through_signed_multilocation_para_to_para_ethereum_proxy_succeeds() 
 			gas_limit: U256::from(21000),
 			action: pallet_ethereum::TransactionAction::Call(transfer_recipient.into()),
 			value: U256::from(100),
-			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![])
+				.unwrap(),
 			access_list: None,
 		});
 

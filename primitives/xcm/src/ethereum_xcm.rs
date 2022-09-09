@@ -19,10 +19,10 @@ use ethereum::{
 	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
+use frame_support::{traits::ConstU32, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
-use frame_support::{BoundedVec, traits::ConstU32};
 
 /// Max. allowed size of 65_536 bytes.
 pub const MAX_INPUT_SIZE: u32 = 2u32.pow(16);
@@ -74,7 +74,7 @@ pub struct EthereumXcmTransactionV1 {
 	pub action: TransactionAction,
 	/// Value to be transfered.
 	pub value: U256,
-	/// Input data for a contract call. 
+	/// Input data for a contract call.
 	pub input: BoundedVec<u8, ConstU32<MAX_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
