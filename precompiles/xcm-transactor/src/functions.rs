@@ -21,12 +21,12 @@ use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::ConstU32,
 };
-use pallet_evm::{AddressMapping, PrecompileOutput};
+use pallet_evm::AddressMapping;
 use pallet_xcm_transactor::{
 	Currency, CurrencyPayment, RemoteTransactInfoWithMaxWeight, TransactWeights,
 };
 use precompile_utils::prelude::*;
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
@@ -42,7 +42,7 @@ pub type TransactorOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::Tra
 pub type CurrencyIdOf<Runtime> = <Runtime as pallet_xcm_transactor::Config>::CurrencyId;
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
-type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
+pub type GetDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
 impl<Runtime> XcmTransactorWrapper<Runtime>
 where
@@ -54,25 +54,25 @@ where
 	Runtime::AccountId: Into<H160>,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	pub(crate) fn account_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn account_index(
+		handle: &mut impl PrecompileHandle,
+		index: u16,
+	) -> EvmResult<Address> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { index: u16 });
 
 		// fetch data from pallet
 		let account: H160 = pallet_xcm_transactor::Pallet::<Runtime>::index_to_account(index)
 			.ok_or(revert("No index assigned"))?
 			.into();
 
-		Ok(succeed(
-			EvmDataWriter::new().write(Address(account)).build(),
-		))
+		Ok(account.into())
 	}
 
-	pub(crate) fn transact_info(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn transact_info(
+		handle: &mut impl PrecompileHandle,
+		multilocation: MultiLocation,
+	) -> EvmResult<(u64, U256, u64)> {
 		handle.record_cost(2 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { multilocation: MultiLocation });
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
@@ -84,21 +84,18 @@ where
 			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(&multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
 
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write(remote_transact_info.transact_extra_weight)
-				.write(fee_per_second)
-				.write(remote_transact_info.max_weight)
-				.build(),
+		Ok((
+			remote_transact_info.transact_extra_weight,
+			fee_per_second.into(),
+			remote_transact_info.max_weight,
 		))
 	}
 
 	pub(crate) fn transact_info_with_signed(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		multilocation: MultiLocation,
+	) -> EvmResult<(u64, u64, u64)> {
 		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { multilocation: MultiLocation });
 
 		// fetch data from pallet
 		let remote_transact_info: RemoteTransactInfoWithMaxWeight =
@@ -108,45 +105,40 @@ where
 		let transact_extra_weight_signed = remote_transact_info
 			.transact_extra_weight_signed
 			.unwrap_or(0);
-		Ok(succeed(
-			EvmDataWriter::new()
-				.write(remote_transact_info.transact_extra_weight)
-				.write(transact_extra_weight_signed)
-				.write(remote_transact_info.max_weight)
-				.build(),
+
+		Ok((
+			remote_transact_info.transact_extra_weight,
+			transact_extra_weight_signed,
+			remote_transact_info.max_weight,
 		))
 	}
 
 	pub(crate) fn fee_per_second(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+		multilocation: MultiLocation,
+	) -> EvmResult<U256> {
 		handle.record_cost(1 * RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { multilocation: MultiLocation });
 
 		// fetch data from pallet
 		let fee_per_second: u128 =
 			pallet_xcm_transactor::Pallet::<Runtime>::dest_asset_fee_per_second(multilocation)
 				.ok_or(revert("Fee Per Second not set"))?;
 
-		Ok(succeed(EvmDataWriter::new().write(fee_per_second).build()))
+		Ok(fee_per_second.into())
 	}
 
 	pub(crate) fn transact_through_derivative_multilocation(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			transactor: u8,
-			index: u16,
-			fee_asset: MultiLocation,
-			weight: u64,
-			inner_call: BoundedBytes<GetDataLimit>
-		});
-
+		transactor: u8,
+		index: u16,
+		fee_asset: MultiLocation,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
-		let inner_call = inner_call.into_vec();
+		let inner_call: Vec<_> = inner_call.into();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -169,27 +161,24 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_derivative_multilocation_fee_weight(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			transactor: u8,
-			index: u16,
-			fee_asset: MultiLocation,
-			weight: u64,
-			inner_call: BoundedBytes<GetDataLimit>,
-			fee_amount: u128,
-			overall_weight: u64
-		});
-
+		transactor: u8,
+		index: u16,
+		fee_asset: MultiLocation,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: u64,
+	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
 
-		let inner_call = inner_call.into_vec();
+		let inner_call: Vec<_> = inner_call.into();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -212,24 +201,21 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_derivative(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			transactor: u8,
-			index: u16,
-			currency_id: Address,
-			weight: u64,
-			inner_call: BoundedBytes<GetDataLimit>
-		});
-
+		transactor: u8,
+		index: u16,
+		currency_id: Address,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
-		let inner_call = inner_call.into_vec();
+		let inner_call: Vec<_> = inner_call.into();
 
 		let to_account = Runtime::AddressMapping::into_account_id(currency_id.0);
 
@@ -259,26 +245,23 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_derivative_fee_weight(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			transactor: u8,
-			index: u16,
-			fee_asset: Address,
-			weight: u64,
-			inner_call: BoundedBytes<GetDataLimit>,
-			fee_amount: u128,
-			overall_weight: u64
-		});
-
+		transactor: u8,
+		index: u16,
+		fee_asset: Address,
+		weight: u64,
+		inner_call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: u64,
+	) -> EvmResult {
 		let transactor = transactor
 			.try_into()
 			.map_err(|_| RevertReason::custom("Non-existent transactor").in_field("transactor"))?;
-		let inner_call = inner_call.into_vec();
+		let inner_call: Vec<_> = inner_call.into();
 
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
@@ -309,19 +292,17 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_signed_multilocation(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			dest: MultiLocation,
-			fee_asset: MultiLocation,
-			weight: u64,
-			call: BoundedBytes<GetDataLimit>
-		});
-		let call = call.into_vec();
+		dest: MultiLocation,
+		fee_asset: MultiLocation,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult {
+		let call: Vec<_> = call.into();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -343,21 +324,19 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_signed_multilocation_fee_weight(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			dest: MultiLocation,
-			fee_asset: MultiLocation,
-			weight: u64,
-			call: BoundedBytes<GetDataLimit>,
-			fee_amount: u128,
-			overall_weight: u64
-		});
-		let call = call.into_vec();
+		dest: MultiLocation,
+		fee_asset: MultiLocation,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: u64,
+	) -> EvmResult {
+		let call: Vec<_> = call.into();
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
 		// moonbeam, as we are using IdentityMapping
@@ -379,23 +358,20 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_signed(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			dest: MultiLocation,
-			fee_asset: Address,
-			weight: u64,
-			call: BoundedBytes<GetDataLimit>
-		});
-
+		dest: MultiLocation,
+		fee_asset: Address,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+	) -> EvmResult {
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
-		let call = call.into_vec();
+		let call: Vec<_> = call.into();
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
@@ -422,25 +398,22 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
 	pub(crate) fn transact_through_signed_fee_weight(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			dest: MultiLocation,
-			fee_asset: Address,
-			weight: u64,
-			call: BoundedBytes<GetDataLimit>,
-			fee_amount: u128,
-			overall_weight: u64
-		});
-
+		dest: MultiLocation,
+		fee_asset: Address,
+		weight: u64,
+		call: BoundedBytes<GetDataLimit>,
+		fee_amount: u128,
+		overall_weight: u64,
+	) -> EvmResult {
 		let to_address: H160 = fee_asset.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
-		let call = call.into_vec();
+		let call: Vec<_> = call.into();
 
 		// We convert the address into a currency
 		// This involves a DB read in moonbeam, hence the db Read
@@ -467,6 +440,6 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 }

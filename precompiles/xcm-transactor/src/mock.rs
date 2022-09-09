@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate::v1::XcmTransactorWrapperV1;
-use crate::v2::XcmTransactorWrapperV2;
+use crate::v1::{XcmTransactorWrapperV1, XcmTransactorWrapperV1Call};
+use crate::v2::{XcmTransactorWrapperV2, XcmTransactorWrapperV2Call};
 use codec::{Decode, Encode, MaxEncodedLen};
 use fp_evm::{PrecompileHandle, PrecompileOutput};
 use frame_support::{
@@ -255,6 +255,9 @@ pub fn precompile_address_v1() -> H160 {
 pub fn precompile_address_v2() -> H160 {
 	H160::from_low_u64_be(2)
 }
+
+pub type PCallV1 = XcmTransactorWrapperV1Call<Runtime>;
+pub type PCallV2 = XcmTransactorWrapperV2Call<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
