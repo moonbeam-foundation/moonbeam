@@ -301,6 +301,8 @@ where
 	}
 }
 
+pub type PCall = XcmUtilsWrapperCall<Runtime, XcmConfig>;
+
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
 }
