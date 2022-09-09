@@ -1773,11 +1773,11 @@ mod fee_tests {
 
 	#[test]
 	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
-		let t = frame_system::GenesisConfig::default()
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()
-			.expect("Frame system builds valid default genesis config");
-		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| {
+			.unwrap()
+			.into();
+		t.execute_with(|| {
 			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
 			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
 
