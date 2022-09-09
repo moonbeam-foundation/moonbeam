@@ -1470,7 +1470,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROUNIT));
-		assert_eq!(FixedGasPrice::min_gas_price().0, (1 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(
@@ -1768,6 +1767,24 @@ mod fee_tests {
 				"The actual fee did not match the expected fee, diff {}",
 				actual_fee - expected_fee
 			);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_is_deterministic() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier = sp_runtime::FixedU128::from_u32(1);
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual = FixedGasPrice::min_gas_price().0;
+			let expected: U256 = multiplier
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.into();
+
+			assert_eq!(expected, actual);
 		});
 	}
 

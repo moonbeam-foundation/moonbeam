@@ -1420,7 +1420,6 @@ mod tests {
 			5_u8
 		);
 		assert_eq!(STORAGE_BYTE_FEE, Balance::from(100 * MICROMOVR));
-		assert_eq!(FixedGasPrice::min_gas_price().0, (1 * GIGAWEI).into());
 
 		// democracy minimums
 		assert_eq!(
@@ -1516,5 +1515,223 @@ mod tests {
 			),
 			50
 		);
+	}
+}
+
+#[cfg(test)]
+mod fee_tests {
+	use super::*;
+	use frame_support::weights::WeightToFee;
+	use frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize, weights::DispatchInfo};
+	use sp_runtime::traits::Convert;
+
+	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
+	where
+		F: FnMut() -> (),
+	{
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			System::set_block_consumed_resources(w, 0);
+			assertions()
+		});
+	}
+
+	#[test]
+	fn test_multiplier_can_grow_from_zero() {
+		let minimum_multiplier = MinimumMultiplier::get();
+		let target = TargetBlockFullness::get()
+			* BlockWeights::get()
+				.get(DispatchClass::Normal)
+				.max_total
+				.unwrap();
+		// if the min is too small, then this will not change, and we are doomed forever.
+		// the weight is 1/100th bigger than target.
+		run_with_system_weight(target * 101 / 100, || {
+			let next = SlowAdjustingFeeUpdate::<Runtime>::convert(minimum_multiplier);
+			assert!(
+				next > minimum_multiplier,
+				"{:?} !>= {:?}",
+				next,
+				minimum_multiplier
+			);
+		})
+	}
+
+	#[test]
+	#[ignore]
+	fn test_multiplier_growth_simulator() {
+		// assume the multiplier is initially set to its minimum. We update it with values twice the
+		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
+		let mut multiplier = MinimumMultiplier::get();
+		let block_weight = BlockWeights::get()
+			.get(DispatchClass::Normal)
+			.max_total
+			.unwrap();
+		let mut blocks = 0;
+		let mut fees_paid = 0;
+
+		let call = frame_system::Call::<Runtime>::fill_block {
+			ratio: Perbill::from_rational(
+				block_weight,
+				BlockWeights::get()
+					.get(DispatchClass::Normal)
+					.max_total
+					.unwrap(),
+			),
+		};
+		println!("calling {:?}", call);
+		let info = call.get_dispatch_info();
+		// convert to outer call.
+		let call = Call::System(call);
+		let len = call.using_encoded(|e| e.len()) as u32;
+
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		// set the minimum
+		t.execute_with(|| {
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(MinimumMultiplier::get());
+		});
+
+		while multiplier <= Multiplier::from_u32(1) {
+			t.execute_with(|| {
+				// imagine this tx was called.
+				let fee = TransactionPayment::compute_fee(len, &info, 0);
+				fees_paid += fee;
+
+				// this will update the multiplier.
+				System::set_block_consumed_resources(block_weight, 0);
+				TransactionPayment::on_finalize(1);
+				let next = TransactionPayment::next_fee_multiplier();
+
+				assert!(next > multiplier, "{:?} !>= {:?}", next, multiplier);
+				multiplier = next;
+
+				println!(
+					"block = {} / multiplier {:?} / fee = {:?} / fess so far {:?}",
+					blocks, multiplier, fee, fees_paid
+				);
+			});
+			blocks += 1;
+		}
+	}
+
+	#[test]
+	#[ignore]
+	fn test_multiplier_cool_down_simulator() {
+		// assume the multiplier is initially set to its minimum. We update it with values twice the
+		// target (target is 25%, thus 50%) and we see at which point it reaches 1.
+		let mut multiplier = Multiplier::from_u32(2);
+		let mut blocks = 0;
+
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		// set the minimum
+		t.execute_with(|| {
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+		});
+
+		while multiplier > MinimumMultiplier::get() {
+			t.execute_with(|| {
+				// this will update the multiplier.
+				TransactionPayment::on_finalize(1);
+				let next = TransactionPayment::next_fee_multiplier();
+
+				assert!(next < multiplier, "{:?} !>= {:?}", next, multiplier);
+				multiplier = next;
+
+				println!("block = {} / multiplier {:?}", blocks, multiplier);
+			});
+			blocks += 1;
+		}
+	}
+
+	#[test]
+	fn test_fee_calculation() {
+		let base_extrinsic = RuntimeBlockWeights::get()
+			.get(DispatchClass::Normal)
+			.base_extrinsic;
+		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
+		let extrinsic_len = 100u32;
+		let extrinsic_weight = 5_000u64;
+		let tip = 42u128;
+		type WeightToFeeImpl = ConstantMultiplier<u128, ConstU128<{ currency::WEIGHT_FEE }>>;
+		type LengthToFeeImpl = LengthToFee;
+
+		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
+		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
+			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&extrinsic_weight))
+			+ LengthToFeeImpl::weight_to_fee(&(extrinsic_len as u64))
+			+ tip;
+
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual_fee = TransactionPayment::compute_fee(
+				extrinsic_len,
+				&DispatchInfo {
+					class: DispatchClass::Normal,
+					pays_fee: frame_support::weights::Pays::Yes,
+					weight: extrinsic_weight,
+				},
+				tip,
+			);
+
+			assert_eq!(
+				expected_fee,
+				actual_fee,
+				"The actual fee did not match the expected fee, diff {}",
+				actual_fee - expected_fee
+			);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_is_deterministic() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier = sp_runtime::FixedU128::from_u32(1);
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
+			let actual = FixedGasPrice::min_gas_price().0;
+			let expected: U256 = multiplier
+				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
+				.into();
+
+			assert_eq!(expected, actual);
+		});
+	}
+
+	#[test]
+	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
+		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
+			.build_storage::<Runtime>()
+			.unwrap()
+			.into();
+		t.execute_with(|| {
+			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
+			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
+
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
+			let a = FixedGasPrice::min_gas_price();
+			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
+			let b = FixedGasPrice::min_gas_price();
+
+			assert_ne!(
+				a, b,
+				"both gas prices were equal, unexpected precision loss incurred"
+			);
+		});
 	}
 }
