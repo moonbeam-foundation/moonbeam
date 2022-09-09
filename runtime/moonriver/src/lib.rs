@@ -1654,7 +1654,7 @@ mod fee_tests {
 
 	#[test]
 	fn test_fee_calculation() {
-		let base_extrinsic = RuntimeBlockWeights::get()
+		let base_extrinsic = BlockWeights::get()
 			.get(DispatchClass::Normal)
 			.base_extrinsic;
 		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
