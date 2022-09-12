@@ -205,6 +205,7 @@ describeDevMoonbeam("Proxy Leader Demo - Winners", (context) => {
   let leaderContract: Contract;
 
   before("setup contract and voting results", async function () {
+    this.skip();
     leaderContract = await setupPoolWithParticipants(context);
 
     // start voting
