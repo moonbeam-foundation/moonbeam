@@ -3,8 +3,10 @@ import "@moonbeam-network/api-augment";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
+import { ethers } from "ethers";
 
 import { alith, charleth, generateKeyringPair } from "../../util/accounts";
+import { getCompiled } from "../../util/contracts";
 import {
   descendOriginFromAddress,
   registerForeignAsset,
@@ -1227,5 +1229,253 @@ describeDevMoonbeam("Mock XCM - EthereumXcm only disable by root", (context) => 
     suspended = await context.polkadotApi.query.ethereumXcm.ethereumXcmSuspended();
     // should have worked, and should now be suspended
     expect(suspended.toHuman()).to.be.true;
+  });
+});
+
+describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check succeeds", (context) => {
+  let transferredBalance;
+  let sendingAddress;
+  let contractDeployed;
+
+  before("should deploy CallForwarder contract and fund", async function () {
+    const { contract, rawTx } = await createContract(context, "CallForwarder");
+    await expectOk(context.createBlock(rawTx));
+
+    contractDeployed = contract;
+
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    sendingAddress = originAddress;
+    transferredBalance = 10_000_000_000_000_000_000n;
+
+    // We first fund parachain 2000 sovreign account
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance)
+      )
+    );
+    const balance = (
+      (await context.polkadotApi.query.system.account(descendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+  });
+
+  it("should succeed to call the contract", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+    // Matches the BoundedVec limit in the runtime.
+    const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
+
+    const xcmTransactions = [
+      {
+        V1: {
+          gas_limit: 1000000,
+          fee_payment: {
+            Auto: {
+              Low: null,
+            },
+          },
+          action: {
+            Call: contractDeployed.options.address,
+          },
+          value: 0n,
+          input: proxyInterface.encodeFunctionData("call", [
+            "0x0000000000000000000000000000000000000001",
+            context.web3.utils.bytesToHex(new Array(CALL_INPUT_SIZE_LIMIT - 128).fill(0)),
+          ]),
+          access_list: null,
+        },
+      },
+      {
+        V2: {
+          gas_limit: 1000000,
+          action: {
+            Call: contractDeployed.options.address,
+          },
+          value: 0n,
+          input: proxyInterface.encodeFunctionData("call", [
+            "0x0000000000000000000000000000000000000001",
+            context.web3.utils.bytesToHex(new Array(CALL_INPUT_SIZE_LIMIT - 128).fill(0)),
+          ]),
+          access_list: null,
+        },
+      },
+    ];
+
+    for (const xcmTransaction of xcmTransactions) {
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
+      const transferCallEncoded = transferCall?.method.toHex();
+      // We are going to test that we can receive a transact operation from parachain 1
+      // using descendOrigin first
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+          ],
+          fungible: transferredBalance / 2n,
+        },
+        weight_limit: new BN(40000000000),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(30000000000),
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        })
+        .as_v2();
+
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+
+      const block = await context.web3.eth.getBlock("latest");
+      // Input size is valid - on the limit -, expect block to include a transaction.
+      // That means the pallet-ethereum-xcm decoded the provided input to a BoundedVec.
+      expect(block.transactions.length).to.be.eq(1);
+    }
+  });
+});
+
+describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (context) => {
+  let transferredBalance;
+  let sendingAddress;
+  let contractDeployed;
+
+  before("should deploy CallForwarder contract and fund", async function () {
+    const { contract, rawTx } = await createContract(context, "CallForwarder");
+    await expectOk(context.createBlock(rawTx));
+
+    contractDeployed = contract;
+
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    sendingAddress = originAddress;
+    transferredBalance = 10_000_000_000_000_000_000n;
+
+    // We first fund parachain 2000 sovreign account
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance)
+      )
+    );
+    const balance = (
+      (await context.polkadotApi.query.system.account(descendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+  });
+
+  it("should fail to call the contract due to BoundedVec restriction", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+    // Matches the BoundedVec limit in the runtime.
+    const CALL_INPUT_SIZE_LIMIT = Math.pow(2, 16);
+
+    const xcmTransactions = [
+      {
+        V1: {
+          gas_limit: 1000000,
+          fee_payment: {
+            Auto: {
+              Low: null,
+            },
+          },
+          action: {
+            Call: contractDeployed.options.address,
+          },
+          value: 0n,
+          input: proxyInterface.encodeFunctionData("call", [
+            "0x0000000000000000000000000000000000000001",
+            context.web3.utils.bytesToHex(new Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
+          ]),
+          access_list: null,
+        },
+      },
+      {
+        V2: {
+          gas_limit: 1000000,
+          action: {
+            Call: contractDeployed.options.address,
+          },
+          value: 0n,
+          input: proxyInterface.encodeFunctionData("call", [
+            "0x0000000000000000000000000000000000000001",
+            context.web3.utils.bytesToHex(new Array(CALL_INPUT_SIZE_LIMIT - 127).fill(0)),
+          ]),
+          access_list: null,
+        },
+      },
+    ];
+
+    for (const xcmTransaction of xcmTransactions) {
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
+      const transferCallEncoded = transferCall?.method.toHex();
+      // We are going to test that we can receive a transact operation from parachain 1
+      // using descendOrigin first
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+          ],
+          fungible: transferredBalance / 2n,
+        },
+        weight_limit: new BN(40000000000),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            requireWeightAtMost: new BN(30000000000),
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        })
+        .as_v2();
+
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+
+      const block = await context.web3.eth.getBlock("latest");
+      // Input size is invalid by 1 byte, expect block to not include a transaction.
+      // That means the pallet-ethereum-xcm couldn't decode the provided input to a BoundedVec.
+      expect(block.transactions.length).to.be.eq(0);
+    }
   });
 });
