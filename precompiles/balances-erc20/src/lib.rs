@@ -155,26 +155,6 @@ pub type NoncesStorage<Instance> = StorageMap<
 	ValueQuery,
 >;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	TotalSupply = "totalSupply()",
-	BalanceOf = "balanceOf(address)",
-	Allowance = "allowance(address,address)",
-	Transfer = "transfer(address,uint256)",
-	Approve = "approve(address,uint256)",
-	TransferFrom = "transferFrom(address,address,uint256)",
-	Name = "name()",
-	Symbol = "symbol()",
-	Decimals = "decimals()",
-	Deposit = "deposit()",
-	Withdraw = "withdraw(uint256)",
-	// EIP 2612
-	Eip2612Permit = "permit(address,address,uint256,uint256,uint8,bytes32,bytes32)",
-	Eip2612Nonces = "nonces(address)",
-	Eip2612DomainSeparator = "DOMAIN_SEPARATOR()",
-}
-
 /// Metadata of an ERC20 token.
 pub trait Erc20Metadata {
 	/// Returns the name of the token.
@@ -474,7 +454,7 @@ where
 	}
 
 	#[precompile::public("permit(address,address,uint256,uint256,uint8,bytes32,bytes32)")]
-	fn permit(
+	fn eip2612_permit(
 		handle: &mut impl PrecompileHandle,
 		owner: Address,
 		spender: Address,
@@ -491,13 +471,13 @@ where
 
 	#[precompile::public("nonces(address)")]
 	#[precompile::view]
-	fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
+	fn eip2612_nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		<Eip2612<Runtime, Metadata, Instance>>::nonces(handle, owner)
 	}
 
 	#[precompile::public("DOMAIN_SEPARATOR()")]
 	#[precompile::view]
-	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
+	fn eip2612_domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
 		<Eip2612<Runtime, Metadata, Instance>>::domain_separator(handle)
 	}
 

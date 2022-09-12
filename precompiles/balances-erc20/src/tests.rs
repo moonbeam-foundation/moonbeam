@@ -34,19 +34,19 @@ fn precompiles() -> Precompiles<Runtime> {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::BalanceOf as u32, 0x70a08231);
-	assert_eq!(Action::TotalSupply as u32, 0x18160ddd);
-	assert_eq!(Action::Approve as u32, 0x095ea7b3);
-	assert_eq!(Action::Allowance as u32, 0xdd62ed3e);
-	assert_eq!(Action::Transfer as u32, 0xa9059cbb);
-	assert_eq!(Action::TransferFrom as u32, 0x23b872dd);
-	assert_eq!(Action::Name as u32, 0x06fdde03);
-	assert_eq!(Action::Symbol as u32, 0x95d89b41);
-	assert_eq!(Action::Deposit as u32, 0xd0e30db0);
-	assert_eq!(Action::Withdraw as u32, 0x2e1a7d4d);
-	assert_eq!(Action::Eip2612Nonces as u32, 0x7ecebe00);
-	assert_eq!(Action::Eip2612Permit as u32, 0xd505accf);
-	assert_eq!(Action::Eip2612DomainSeparator as u32, 0x3644e515);
+	assert!(PCall::balance_of_selectors().contains(&0x70a08231));
+	assert!(PCall::total_supply_selectors().contains(&0x18160ddd));
+	assert!(PCall::approve_selectors().contains(&0x095ea7b3));
+	assert!(PCall::allowance_selectors().contains(&0xdd62ed3e));
+	assert!(PCall::transfer_selectors().contains(&0xa9059cbb));
+	assert!(PCall::transfer_from_selectors().contains(&0x23b872dd));
+	assert!(PCall::name_selectors().contains(&0x06fdde03));
+	assert!(PCall::symbol_selectors().contains(&0x95d89b41));
+	assert!(PCall::deposit_selectors().contains(&0xd0e30db0));
+	assert!(PCall::withdraw_selectors().contains(&0x2e1a7d4d));
+	assert!(PCall::eip2612_nonces_selectors().contains(&0x7ecebe00));
+	assert!(PCall::eip2612_permit_selectors().contains(&0xd505accf));
+	assert!(PCall::eip2612_domain_separator_selectors().contains(&0x3644e515));
 
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
@@ -76,11 +76,7 @@ fn get_total_supply() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Account::Alice,
-					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::TotalSupply).build(),
-				)
+				.prepare_test(Account::Alice, Account::Precompile, PCall::total_supply {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns_encoded(U256::from(3500u64));
@@ -97,9 +93,9 @@ fn get_balances_known_user() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -117,9 +113,9 @@ fn get_balances_unknown_user() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -137,10 +133,10 @@ fn approve() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Approve)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(500))
-						.build(),
+					PCall::approve {
+						spender: Address(Account::Bob.into()),
+						value: 500.into(),
+					},
 				)
 				.expect_cost(1756)
 				.expect_log(log3(
@@ -164,10 +160,10 @@ fn approve_saturating() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Approve)
-						.write(Address(Account::Bob.into()))
-						.write(U256::MAX)
-						.build(),
+					PCall::approve {
+						spender: Address(Account::Bob.into()),
+						value: U256::MAX,
+					},
 				)
 				.expect_cost(1756u64)
 				.expect_log(log3(
@@ -183,10 +179,10 @@ fn approve_saturating() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0)
 				.expect_no_logs()
@@ -204,10 +200,10 @@ fn check_allowance_existing() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Approve)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(500))
-						.build(),
+					PCall::approve {
+						spender: Address(Account::Bob.into()),
+						value: 500.into(),
+					},
 				)
 				.execute_some();
 
@@ -215,10 +211,10 @@ fn check_allowance_existing() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -236,10 +232,10 @@ fn check_allowance_not_existing() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -257,10 +253,10 @@ fn transfer() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Transfer)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(400))
-						.build(),
+					PCall::transfer {
+						to: Address(Account::Bob.into()),
+						value: 400.into(),
+					},
 				)
 				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
@@ -276,9 +272,9 @@ fn transfer() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -288,9 +284,9 @@ fn transfer() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -308,10 +304,10 @@ fn transfer_not_enough_funds() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Transfer)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(1400))
-						.build(),
+					PCall::transfer {
+						to: Address(Account::Bob.into()),
+						value: 1400.into(),
+					},
 				)
 				.execute_reverts(|output| {
 					from_utf8(&output)
@@ -332,10 +328,10 @@ fn transfer_from() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Approve)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(500))
-						.build(),
+					PCall::approve {
+						spender: Address(Account::Bob.into()),
+						value: 500.into(),
+					},
 				)
 				.execute_some();
 
@@ -343,11 +339,11 @@ fn transfer_from() {
 				.prepare_test(
 					Account::Bob,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::TransferFrom)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(400))
-						.build(),
+					PCall::transfer_from {
+						from: Address(Account::Alice.into()),
+						to: Address(Account::Bob.into()),
+						value: 400.into(),
+					},
 				)
 				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
@@ -363,9 +359,9 @@ fn transfer_from() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -375,9 +371,9 @@ fn transfer_from() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -387,10 +383,10 @@ fn transfer_from() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -408,10 +404,10 @@ fn transfer_from_above_allowance() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Approve)
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(300))
-						.build(),
+					PCall::approve {
+						spender: Address(Account::Bob.into()),
+						value: 300.into(),
+					},
 				)
 				.execute_some();
 
@@ -419,11 +415,11 @@ fn transfer_from_above_allowance() {
 				.prepare_test(
 					Account::Bob, // Bob is the one sending transferFrom!
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::TransferFrom)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(400))
-						.build(),
+					PCall::transfer_from {
+						from: Address(Account::Alice.into()),
+						to: Address(Account::Bob.into()),
+						value: 400.into(),
+					},
 				)
 				.execute_reverts(|output| output == b"trying to spend more than allowed");
 		});
@@ -439,11 +435,11 @@ fn transfer_from_self() {
 				.prepare_test(
 					Account::Alice, // Alice sending transferFrom herself, no need for allowance.
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::TransferFrom)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.write(U256::from(400))
-						.build(),
+					PCall::transfer_from {
+						from: Address(Account::Alice.into()),
+						to: Address(Account::Bob.into()),
+						value: 400.into(),
+					},
 				)
 				.expect_cost(166861756u64) // 1 weight => 1 gas in mock
 				.expect_log(log3(
@@ -459,9 +455,9 @@ fn transfer_from_self() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -471,9 +467,9 @@ fn transfer_from_self() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -488,11 +484,7 @@ fn get_metadata_name() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Account::Alice,
-					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Name).build(),
-				)
+				.prepare_test(Account::Alice, Account::Precompile, PCall::name {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
@@ -510,11 +502,7 @@ fn get_metadata_symbol() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Account::Alice,
-					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Symbol).build(),
-				)
+				.prepare_test(Account::Alice, Account::Precompile, PCall::symbol {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
@@ -532,11 +520,7 @@ fn get_metadata_decimals() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Account::Alice,
-					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Decimals).build(),
-				)
+				.prepare_test(Account::Alice, Account::Precompile, PCall::decimals {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns_encoded(18u8);
@@ -553,9 +537,9 @@ fn deposit(data: Vec<u8>) {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -620,9 +604,9 @@ fn deposit(data: Vec<u8>) {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -633,9 +617,9 @@ fn deposit(data: Vec<u8>) {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -645,7 +629,7 @@ fn deposit(data: Vec<u8>) {
 
 #[test]
 fn deposit_function() {
-	deposit(EvmDataWriter::new_with_selector(Action::Deposit).build())
+	deposit(PCall::deposit {}.into())
 }
 
 #[test]
@@ -669,9 +653,9 @@ fn deposit_zero() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -684,7 +668,7 @@ fn deposit_zero() {
 				Origin::root(),
 				Account::Alice.into(),
 				Account::Precompile.into(),
-				EvmDataWriter::new_with_selector(Action::Deposit).build(),
+				PCall::deposit {}.into(),
 				From::from(0), // amount sent
 				u64::MAX,      // gas limit
 				0u32.into(),   // gas price
@@ -706,9 +690,9 @@ fn deposit_zero() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -719,9 +703,9 @@ fn deposit_zero() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -740,9 +724,9 @@ fn withdraw() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -753,9 +737,7 @@ fn withdraw() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Withdraw)
-						.write(U256::from(500))
-						.build(),
+					PCall::withdraw { value: 500.into() },
 				)
 				.expect_cost(1381)
 				.expect_log(log2(
@@ -771,9 +753,9 @@ fn withdraw() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -792,9 +774,9 @@ fn withdraw_more_than_owned() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Precompile.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Precompile.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -805,9 +787,7 @@ fn withdraw_more_than_owned() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Withdraw)
-						.write(U256::from(1001))
-						.build(),
+					PCall::withdraw { value: 1001.into() },
 				)
 				.execute_reverts(|output| output == b"Trying to withdraw more than owned");
 
@@ -816,9 +796,9 @@ fn withdraw_more_than_owned() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::BalanceOf)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::balance_of {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -854,9 +834,9 @@ fn permit_valid() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -866,15 +846,15 @@ fn permit_valid() {
 				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
-						.write(Address(owner))
-						.write(Address(spender))
-						.write(value)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: v.serialize(),
+						r: rs.r.b32().into(),
+						s: rs.s.b32().into(),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_log(log3(
@@ -890,10 +870,10 @@ fn permit_valid() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -903,9 +883,9 @@ fn permit_valid() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -941,9 +921,9 @@ fn permit_invalid_nonce() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -953,15 +933,15 @@ fn permit_invalid_nonce() {
 				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
-						.write(Address(owner))
-						.write(Address(spender))
-						.write(value)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: v.serialize(),
+						r: rs.r.b32().into(),
+						s: rs.s.b32().into(),
+					},
 				)
 				.execute_reverts(|output| output == b"Invalid permit");
 
@@ -969,10 +949,10 @@ fn permit_invalid_nonce() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -982,9 +962,9 @@ fn permit_invalid_nonce() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1007,9 +987,9 @@ fn permit_invalid_signature() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1019,15 +999,15 @@ fn permit_invalid_signature() {
 				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
-						.write(Address(owner))
-						.write(Address(spender))
-						.write(value)
-						.write(deadline)
-						.write(0u8)
-						.write(H256::repeat_byte(0x11))
-						.write(H256::repeat_byte(0x11))
-						.build(),
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: 0,
+						r: H256::repeat_byte(0x11),
+						s: H256::repeat_byte(0x11),
+					},
 				)
 				.execute_reverts(|output| output == b"Invalid permit");
 
@@ -1035,10 +1015,10 @@ fn permit_invalid_signature() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1048,9 +1028,9 @@ fn permit_invalid_signature() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1088,9 +1068,9 @@ fn permit_invalid_deadline() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1100,15 +1080,15 @@ fn permit_invalid_deadline() {
 				.prepare_test(
 					Account::Charlie, // can be anyone
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
-						.write(Address(owner))
-						.write(Address(spender))
-						.write(value)
-						.write(deadline)
-						.write(v.serialize())
-						.write(H256::from(rs.r.b32()))
-						.write(H256::from(rs.s.b32()))
-						.build(),
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: v.serialize(),
+						r: rs.r.b32().into(),
+						s: rs.s.b32().into(),
+					},
 				)
 				.execute_reverts(|output| output == b"Permit expired");
 
@@ -1116,10 +1096,10 @@ fn permit_invalid_deadline() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Allowance)
-						.write(Address(Account::Alice.into()))
-						.write(Address(Account::Bob.into()))
-						.build(),
+					PCall::allowance {
+						owner: Address(Account::Alice.into()),
+						spender: Address(Account::Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1129,9 +1109,9 @@ fn permit_invalid_deadline() {
 				.prepare_test(
 					Account::Alice,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Nonces)
-						.write(Address(Account::Alice.into()))
-						.build(),
+					PCall::eip2612_nonces {
+						owner: Address(Account::Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -1285,15 +1265,15 @@ fn permit_valid_with_metamask_signed_data() {
 				.prepare_test(
 					Account::Charlie, // can be anyone,
 					Account::Precompile,
-					EvmDataWriter::new_with_selector(Action::Eip2612Permit)
-						.write(Address(owner))
-						.write(Address(spender))
-						.write(value)
-						.write(deadline)
-						.write(v_real)
-						.write(H256::from(r_real))
-						.write(H256::from(s_real))
-						.build(),
+					PCall::eip2612_permit {
+						owner: Address(owner),
+						spender: Address(spender),
+						value,
+						deadline,
+						v: v_real,
+						r: r_real.into(),
+						s: s_real.into(),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_log(log3(
@@ -1320,7 +1300,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
