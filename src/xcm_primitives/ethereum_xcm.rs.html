@@ -350,6 +350,14 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -371,9 +379,13 @@
 	<span class="ident">TransactionAction</span>, <span class="ident">TransactionSignature</span>, <span class="ident">TransactionV2</span>,
 };
 <span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">traits::ConstU32</span>, <span class="ident">BoundedVec</span>};
 <span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
 <span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+
+<span class="doccomment">/// Max. allowed size of 65_536 bytes.</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
 
 <span class="doccomment">/// Ensure that a proxy between `delegator` and `delegatee` exists in order to deny or grant</span>
 <span class="doccomment">/// permission to do xcm-transact to `transact_through_proxy`.</span>
@@ -423,7 +435,7 @@
 	<span class="doccomment">/// Value to be transfered.</span>
 	<span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">U256</span>,
 	<span class="doccomment">/// Input data for a contract call.</span>
-	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Map of addresses to be pre-paid to warm storage.</span>
 	<span class="kw">pub</span> <span class="ident">access_list</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">H160</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -436,8 +448,8 @@
 	<span class="kw">pub</span> <span class="ident">action</span>: <span class="ident">TransactionAction</span>,
 	<span class="doccomment">/// Value to be transfered.</span>
 	<span class="kw">pub</span> <span class="ident">value</span>: <span class="ident">U256</span>,
-	<span class="doccomment">/// Input data for a contract call.</span>
-	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Input data for a contract call. Max. size 65_536 bytes.</span>
+	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="doccomment">/// Map of addresses to be pre-paid to warm storage.</span>
 	<span class="kw">pub</span> <span class="ident">access_list</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">H160</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -488,7 +500,7 @@
 						<span class="ident">gas_limit</span>: <span class="self">self</span>.<span class="ident">gas_limit</span>,
 						<span class="ident">action</span>: <span class="self">self</span>.<span class="ident">action</span>,
 						<span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
-						<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+						<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">to_vec</span>(),
 						<span class="ident">access_list</span>: <span class="ident">from_tuple_to_access_list</span>(<span class="ident">access_list</span>),
 						<span class="ident">odd_y_parity</span>: <span class="bool-val">true</span>,
 						<span class="ident">r</span>: <span class="ident">rs_id</span>(),
@@ -502,7 +514,7 @@
 						<span class="ident">gas_limit</span>: <span class="self">self</span>.<span class="ident">gas_limit</span>,
 						<span class="ident">action</span>: <span class="self">self</span>.<span class="ident">action</span>,
 						<span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
-						<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+						<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">to_vec</span>(),
 						<span class="ident">signature</span>: <span class="ident">TransactionSignature::new</span>(<span class="number">42</span>, <span class="ident">rs_id</span>(), <span class="ident">rs_id</span>())<span class="question-mark">?</span>,
 					}))
 				}
@@ -517,7 +529,7 @@
 					<span class="ident">gas_limit</span>: <span class="self">self</span>.<span class="ident">gas_limit</span>,
 					<span class="ident">action</span>: <span class="self">self</span>.<span class="ident">action</span>,
 					<span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
-					<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+					<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">to_vec</span>(),
 					<span class="ident">access_list</span>: <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">access_list</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">access_list</span> {
 						<span class="ident">from_tuple_to_access_list</span>(<span class="ident">access_list</span>)
 					} <span class="kw">else</span> {
@@ -556,7 +568,7 @@
 			<span class="ident">gas_limit</span>: <span class="self">self</span>.<span class="ident">gas_limit</span>,
 			<span class="ident">action</span>: <span class="self">self</span>.<span class="ident">action</span>,
 			<span class="ident">value</span>: <span class="self">self</span>.<span class="ident">value</span>,
-			<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">clone</span>(),
+			<span class="ident">input</span>: <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">to_vec</span>(),
 			<span class="ident">access_list</span>: <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">access_list</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">access_list</span> {
 				<span class="ident">from_tuple_to_access_list</span>(<span class="ident">access_list</span>)
 			} <span class="kw">else</span> {
@@ -579,7 +591,8 @@
 			<span class="ident">fee_payment</span>: <span class="ident">EthereumXcmFee::Auto</span>,
 			<span class="ident">action</span>: <span class="ident">TransactionAction::Call</span>(<span class="ident">H160::default</span>()),
 			<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-			<span class="ident">input</span>: <span class="macro">vec!</span>[<span class="number">1u8</span>],
+			<span class="ident">input</span>: <span class="ident">BoundedVec</span>::<span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="macro">vec!</span>[<span class="number">1u8</span>])
+				.<span class="ident">unwrap</span>(),
 			<span class="ident">access_list</span>: <span class="prelude-val">None</span>,
 		};
 		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">U256::zero</span>();
@@ -611,7 +624,8 @@
 			}),
 			<span class="ident">action</span>: <span class="ident">TransactionAction::Call</span>(<span class="ident">H160::default</span>()),
 			<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-			<span class="ident">input</span>: <span class="macro">vec!</span>[<span class="number">1u8</span>],
+			<span class="ident">input</span>: <span class="ident">BoundedVec</span>::<span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="macro">vec!</span>[<span class="number">1u8</span>])
+				.<span class="ident">unwrap</span>(),
 			<span class="ident">access_list</span>: <span class="prelude-val">None</span>,
 		};
 		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">U256::zero</span>();
@@ -647,7 +661,8 @@
 			}),
 			<span class="ident">action</span>: <span class="ident">TransactionAction::Call</span>(<span class="ident">H160::default</span>()),
 			<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-			<span class="ident">input</span>: <span class="macro">vec!</span>[<span class="number">1u8</span>],
+			<span class="ident">input</span>: <span class="ident">BoundedVec</span>::<span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="macro">vec!</span>[<span class="number">1u8</span>])
+				.<span class="ident">unwrap</span>(),
 			<span class="ident">access_list</span>: <span class="ident">access_list</span>.<span class="ident">clone</span>(),
 		};
 
@@ -675,7 +690,8 @@
 			<span class="ident">gas_limit</span>: <span class="ident">U256::one</span>(),
 			<span class="ident">action</span>: <span class="ident">TransactionAction::Call</span>(<span class="ident">H160::default</span>()),
 			<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-			<span class="ident">input</span>: <span class="macro">vec!</span>[<span class="number">1u8</span>],
+			<span class="ident">input</span>: <span class="ident">BoundedVec</span>::<span class="op">&lt;</span><span class="ident">u8</span>, <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">MAX_ETHEREUM_XCM_INPUT_SIZE</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="macro">vec!</span>[<span class="number">1u8</span>])
+				.<span class="ident">unwrap</span>(),
 			<span class="ident">access_list</span>: <span class="prelude-val">None</span>,
 		};
 		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">U256::zero</span>();
