@@ -287,7 +287,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without buy executio
     expect(balance).to.eq(transferredBalance);
   });
 
-  it("Should fail to transact because barrier does not pass without buy execution", async function () {
+  it("Should fail to transact because barrier blocks without buy execution", async function () {
     // Get Pallet balances index
     const metadata = await context.polkadotApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
