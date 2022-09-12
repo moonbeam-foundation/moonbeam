@@ -25,7 +25,7 @@ use scale_info::TypeInfo;
 use sp_std::vec::Vec;
 
 /// Max. allowed size of 65_536 bytes.
-pub const MAX_INPUT_SIZE: u32 = 2u32.pow(16);
+pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
 
 /// Ensure that a proxy between `delegator` and `delegatee` exists in order to deny or grant
 /// permission to do xcm-transact to `transact_through_proxy`.
@@ -75,7 +75,7 @@ pub struct EthereumXcmTransactionV1 {
 	/// Value to be transfered.
 	pub value: U256,
 	/// Input data for a contract call.
-	pub input: BoundedVec<u8, ConstU32<MAX_INPUT_SIZE>>,
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
@@ -89,7 +89,7 @@ pub struct EthereumXcmTransactionV2 {
 	/// Value to be transfered.
 	pub value: U256,
 	/// Input data for a contract call. Max. size 65_536 bytes.
-	pub input: BoundedVec<u8, ConstU32<MAX_INPUT_SIZE>>,
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
@@ -231,7 +231,7 @@ mod tests {
 			fee_payment: EthereumXcmFee::Auto,
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -263,7 +263,7 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -299,7 +299,7 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
 			access_list: access_list.clone(),
 		};
 
@@ -327,7 +327,7 @@ mod tests {
 			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();

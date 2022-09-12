@@ -51,7 +51,7 @@ fn xcm_evm_transfer_legacy_transaction(destination: H160, value: U256) -> Ethere
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
-		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![])
+		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(vec![])
 			.unwrap(),
 		access_list: None,
 	})
@@ -69,7 +69,7 @@ fn xcm_evm_call_eip_legacy_transaction(
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value: U256::zero(),
-		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(input)
+		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(input)
 			.unwrap(),
 		access_list: None,
 	})
@@ -84,7 +84,7 @@ fn xcm_erc20_creation_legacy_transaction() -> EthereumXcmTransaction {
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
 		value: U256::zero(),
-		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(
+		input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(
 			hex::decode(CONTRACT).unwrap(),
 		)
 		.unwrap(),
@@ -215,7 +215,7 @@ fn test_transact_xcm_validation_works() {
 					action: ethereum::TransactionAction::Call(bob.address),
 					value: U256::from(1),
 					input:
-						BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(
+						BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(
 							vec![]
 						)
 						.unwrap(),
@@ -368,7 +368,7 @@ fn test_global_nonce_not_incr() {
 			gas_limit: U256::one(),
 			action: ethereum::TransactionAction::Call(bob.address),
 			value: U256::one(),
-			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_INPUT_SIZE }>>::try_from(vec![])
+			input: BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(vec![])
 				.unwrap(),
 			access_list: None,
 		});
