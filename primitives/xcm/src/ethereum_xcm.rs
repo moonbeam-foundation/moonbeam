@@ -231,7 +231,8 @@ mod tests {
 			fee_payment: EthereumXcmFee::Auto,
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -263,7 +264,8 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -299,7 +301,8 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: access_list.clone(),
 		};
 
@@ -327,7 +330,8 @@ mod tests {
 			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8]).unwrap(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
