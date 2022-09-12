@@ -29,8 +29,8 @@ describeDevMoonbeamAllEthTxTypes("Ethereum Weight Accounting", (context) => {
       nonce: await context.web3.eth.getTransactionCount(alith.address),
     });
 
-    // TODO: tweak, also derive from gas used * gas_to_weight
-    const expected_weight = 525_000_000;
+    // TODO: tweak: this includes some priority fee. it would be more clear without this.
+    const expected_weight = 1_575_000_000;
 
     const { block } = await context.createBlock(tx);
 
