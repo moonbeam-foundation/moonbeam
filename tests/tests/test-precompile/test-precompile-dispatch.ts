@@ -10,7 +10,8 @@ import { GLMR, PRECOMPILE_DISPATCH_ADDRESS } from "../../util/constants";
 import { ALITH_ADDRESS } from "../../util/accounts";
 
 describeDevMoonbeam("Precompile - Dispatch - fails on pallet-ethereum", (context) => {
-  it("should prevent dispatch precompile on pallet-ethereum", async function () {
+  // TODO: rework this test, dispatch precompile disabled
+  it.skip("should prevent dispatch precompile on pallet-ethereum", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
     // Signature is verified prior to the execution and not in the pallet
     // Hence even mock signature should be accepted if the execution was
@@ -65,7 +66,8 @@ describeDevMoonbeam("Precompile - Dispatch - fails on pallet-ethereum", (context
 });
 
 describeDevMoonbeam("Precompile - Dispatch - fails in pallet-ethereum-xcm", (context) => {
-  it("should prevent dispatch precompile on pallet-ethereum-xcm", async function () {
+  // TODO: rework this test, dispatch precompile disabled
+  it.skip("should prevent dispatch precompile on pallet-ethereum-xcm", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
 
     let transaction = {
@@ -110,7 +112,8 @@ describeDevMoonbeam("Precompile - Dispatch - fails in pallet-ethereum-xcm", (con
 });
 
 describeDevMoonbeam("Precompile - Dispatch - works in pallet-balances", (context) => {
-  it("should allow dispatches for regular pallets (e.g., balances)", async function () {
+  // TODO: rework this test, dispatch precompile disabled
+  it.skip("should allow dispatches for regular pallets (e.g., balances)", async function () {
     let randomAddress = "0x1111111111111111111111111111111111111111";
     let amountToTransfer = 1n * GLMR;
     let balancesCall = context.polkadotApi.tx.balances.transfer(randomAddress, amountToTransfer);
