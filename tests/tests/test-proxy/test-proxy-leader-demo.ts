@@ -292,7 +292,7 @@ describeDevMoonbeam("Proxy Leader Demo - Winners", (context) => {
     ]);
   });
 
-  it("should not allow baltathar to stake via proxy", async function () {
+  it.skip("should not allow baltathar to stake via proxy", async function () {
     const { result } = await context.createBlock(
       context.polkadotApi.tx.proxy
         .proxy(
@@ -336,7 +336,7 @@ describeDevMoonbeam("Proxy Leader Demo - Winners", (context) => {
     ]);
   });
 
-  it("should not allow dorothy to vote via proxy", async function () {
+  it.skip("should not allow dorothy to vote via proxy", async function () {
     const { result } = await context.createBlock(
       context.polkadotApi.tx.proxy
         .proxy(
@@ -352,7 +352,7 @@ describeDevMoonbeam("Proxy Leader Demo - Winners", (context) => {
     expect(result.error.name).to.equal("NotProxy");
   });
 
-  it("should allow charleth to vote via proxy", async function () {
+  it.skip("should allow charleth to vote via proxy", async function () {
     const { result } = await context.createBlock(
       context.polkadotApi.tx.proxy
         .proxy(
