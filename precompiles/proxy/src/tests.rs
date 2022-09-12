@@ -29,7 +29,7 @@ use pallet_proxy::{
 use precompile_utils::{
 	assert_event_emitted, assert_event_not_emitted, prelude::*, solidity, testing::*,
 };
-use sp_core::H160;
+use sp_core::{H160, U256};
 use std::str::from_utf8;
 
 #[test]
@@ -474,8 +474,6 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 	}
 }
 
-use sp_core::U256;
-
 #[test]
 fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 	ExtBuilder::default()
@@ -525,5 +523,56 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 				proxy_type: ProxyType::Any,
 				delay: 0,
 			}));
+		})
+}
+
+#[test]
+fn fails_if_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			let bob: H160 = Bob.into();
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::AddProxy)
+						.write::<Address>(bob.into())
+						.write::<u8>(ProxyType::Something as u8)
+						.write::<u32>(1)
+						.build(),
+				)
+				.execute_reverts(|output| output == b"Batch not callable by smart contracts");
+		})
+}
+
+#[test]
+fn succeed_if_called_by_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			// Set dummy code to Alice address as it if was a precompile.
+			pallet_evm::AccountCodes::<Runtime>::insert(
+				H160::from(Alice),
+				vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+			);
+
+			let bob: H160 = Bob.into();
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					EvmDataWriter::new_with_selector(Action::AddProxy)
+						.write::<Address>(bob.into())
+						.write::<u8>(ProxyType::Something as u8)
+						.write::<u32>(1)
+						.build(),
+				)
+				.execute_returns(vec![]);
 		})
 }
