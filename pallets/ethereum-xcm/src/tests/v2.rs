@@ -13,10 +13,11 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::{mock::*, RawOrigin};
+use crate::{mock::*, Error, RawOrigin};
 use ethereum_types::{H160, U256};
 use frame_support::{
 	assert_noop, assert_ok,
+	traits::Get,
 	weights::{Pays, PostDispatchInfo},
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
@@ -385,5 +386,111 @@ fn test_transaction_hash_collision() {
 
 		// Still holds two transactions hashes after removing potential consecutive repeated values.
 		assert_eq!(hashes.len(), 2);
+	});
+}
+
+#[test]
+fn check_suspend_ethereum_to_xcm_works() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	let db_weights: frame_support::weights::RuntimeDbWeight =
+		<Test as frame_system::Config>::DbWeight::get();
+
+	ext.execute_with(|| {
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root(),));
+		assert_noop!(
+			EthereumXcm::transact(
+				RawOrigin::XcmEthereumTransaction(alice.address).into(),
+				xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+			),
+			DispatchErrorWithPostInfo {
+				error: Error::<Test>::EthereumXcmExecutionSuspended.into(),
+				post_info: PostDispatchInfo {
+					actual_weight: Some(db_weights.reads(1)),
+					pays_fee: Pays::Yes
+				}
+			}
+		);
+
+		assert_noop!(
+			EthereumXcm::transact_through_proxy(
+				RawOrigin::XcmEthereumTransaction(alice.address).into(),
+				bob.address,
+				xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+			),
+			DispatchErrorWithPostInfo {
+				error: Error::<Test>::EthereumXcmExecutionSuspended.into(),
+				post_info: PostDispatchInfo {
+					actual_weight: Some(db_weights.reads(1)),
+					pays_fee: Pays::Yes
+				}
+			}
+		);
+	});
+}
+
+#[test]
+fn transact_after_resume_ethereum_to_xcm_works() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		let bob_before = System::account(&bob.account_id);
+
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root()));
+
+		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
+		));
+		let bob_after = System::account(&bob.account_id);
+
+		// Bob sent some funds without paying any fees
+		assert_eq!(bob_after.data.free, bob_before.data.free + 100);
+	});
+}
+
+#[test]
+fn transact_through_proxy_after_resume_ethereum_to_xcm_works() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	ext.execute_with(|| {
+		let _ =
+			Proxy::add_proxy_delegate(&bob.account_id, alice.account_id.clone(), ProxyType::Any, 0);
+		let alice_before = System::account(&alice.account_id);
+		let bob_before = System::account(&bob.account_id);
+		let charlie_before = System::account(&charlie.account_id);
+
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root()));
+
+		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::transact_through_proxy(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			bob.address,
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::from(100)),
+		));
+
+		let alice_after = System::account(&alice.account_id);
+		let bob_after = System::account(&bob.account_id);
+		let charlie_after = System::account(&charlie.account_id);
+
+		// Alice remains unchanged
+		assert_eq!(alice_before, alice_after);
+
+		// Bob nonce was increased
+		assert_eq!(bob_after.nonce, bob_before.nonce + 1);
+
+		// Bob sent some funds without paying any fees
+		assert_eq!(bob_after.data.free, bob_before.data.free - 100);
+
+		// Charlie receive some funds
+		assert_eq!(charlie_after.data.free, charlie_before.data.free + 100);
 	});
 }

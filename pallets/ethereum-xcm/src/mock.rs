@@ -23,6 +23,7 @@ use frame_support::{
 	weights::Weight,
 	ConsensusEngineId, PalletId,
 };
+use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressTruncated, FeeCalculator};
 use rlp::RlpStream;
 use sp_core::{hashing::keccak_256, H160, H256, U256};
@@ -250,6 +251,7 @@ impl crate::Config for Test {
 	type XcmEthereumOrigin = crate::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId32>;
 }
 
 impl fp_self_contained::SelfContainedCall for Call {
