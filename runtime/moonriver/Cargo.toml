@@ -30,6 +30,7 @@ pallet-asset-manager = { path = "../../pallets/asset-manager", default-features 
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
+pallet-ethereum-xcm = { path = "../../pallets/ethereum-xcm", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
 pallet-moonbeam-orbiters = { path = "../../pallets/moonbeam-orbiters", default-features = false }
@@ -191,6 +192,7 @@ std = [
 	"pallet-crowdloan-rewards/std",
 	"pallet-democracy/std",
 	"pallet-ethereum-chain-id/std",
+	"pallet-ethereum-xcm/std",
 	"pallet-ethereum/std",
 	"pallet-evm-precompile-author-mapping/std",
 	"pallet-evm-precompile-balances-erc20/std",
@@ -273,6 +275,7 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collective/runtime-benchmarks",
 	"pallet-crowdloan-rewards/runtime-benchmarks",
+	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",

@@ -24,7 +24,10 @@ use super::{
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
-use sp_runtime::traits::Hash as THash;
+use sp_runtime::{
+	traits::{Hash as THash, PostDispatchInfoOf},
+	DispatchErrorWithPostInfo,
+};
 
 use frame_support::{
 	parameter_types,
@@ -32,7 +35,7 @@ use frame_support::{
 	weights::Weight,
 };
 
-use frame_system::EnsureRoot;
+use frame_system::{EnsureRoot, RawOrigin};
 use sp_core::{H160, H256};
 
 use xcm_builder::{
@@ -45,7 +48,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::JustTry;
+use xcm_executor::traits::{CallDispatcher, JustTry};
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -102,6 +105,8 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<polkadot_parachain::primitives::Sibling, AccountId>,
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// The rest of multilocations convert via hashing it
+	xcm_primitives::Account20Hash<AccountId>,
 );
 
 // The non-reserve fungible transactor type
@@ -210,6 +215,7 @@ pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 // Allow paid executions
 pub type XcmBarrier = (
 	TakeWeightCredit,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -238,6 +244,10 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	AccountId,
 	XcmFeesAccount,
 >;
+
+// Our implementation of the Moonbeam Call
+// Attachs the right origin in case the call is made to pallet-ethereum-xcm
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
@@ -273,7 +283,7 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
+	type CallDispatcher = MoonbeamCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
