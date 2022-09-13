@@ -40,10 +40,10 @@ mod mock;
 mod tests;
 
 /// A precompile to wrap the functionality from xcm-utils
-pub struct XcmUtilsWrapper<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
+pub struct XcmUtilsPrecompile<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
 
 #[precompile_utils::precompile]
-impl<Runtime, XcmConfig> XcmUtilsWrapper<Runtime, XcmConfig>
+impl<Runtime, XcmConfig> XcmUtilsPrecompile<Runtime, XcmConfig>
 where
 	Runtime: pallet_evm::Config + frame_system::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,

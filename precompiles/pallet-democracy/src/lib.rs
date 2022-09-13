@@ -51,11 +51,11 @@ type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
 ///
 /// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol
-pub struct DemocracyWrapper<Runtime>(PhantomData<Runtime>);
+pub struct DemocracyPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
 #[precompile::test_concrete_types(mock::Runtime)]
-impl<Runtime> DemocracyWrapper<Runtime>
+impl<Runtime> DemocracyPrecompile<Runtime>
 where
 	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + EvmData,

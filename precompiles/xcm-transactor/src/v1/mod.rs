@@ -30,10 +30,10 @@ use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;
 
 /// A precompile to wrap the functionality from xcm transactor
-pub struct XcmTransactorWrapperV1<Runtime>(PhantomData<Runtime>);
+pub struct XcmTransactorPrecompileV1<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> XcmTransactorWrapperV1<Runtime>
+impl<Runtime> XcmTransactorPrecompileV1<Runtime>
 where
 	Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

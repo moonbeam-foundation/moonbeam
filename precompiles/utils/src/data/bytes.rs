@@ -28,6 +28,7 @@ trait Kind {
 	fn solidity_type() -> String;
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BytesKind;
 
 impl Kind for BytesKind {
@@ -36,6 +37,7 @@ impl Kind for BytesKind {
 	}
 }
 
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct StringKind;
 
 impl Kind for StringKind {
@@ -47,10 +49,37 @@ impl Kind for StringKind {
 /// The `bytes/string` type of Solidity.
 /// It is different from `Vec<u8>` which will be serialized with padding for each `u8` element
 /// of the array, while `Bytes` is tightly packed.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct BoundedBytesString<K, S> {
 	data: Vec<u8>,
 	_phantom: PhantomData<(K, S)>,
+}
+
+impl<K: Kind, S: Get<u32>> Clone for BoundedBytesString<K, S> {
+	fn clone(&self) -> Self {
+		Self {
+			data: self.data.clone(),
+			_phantom: PhantomData,
+		}
+	}
+}
+
+impl<K1, S1, K2, S2> PartialEq<BoundedBytesString<K2, S2>> for BoundedBytesString<K1, S1> {
+	fn eq(&self, other: &BoundedBytesString<K2, S2>) -> bool {
+		self.data.eq(&other.data)
+	}
+}
+
+impl<K, S> Eq for BoundedBytesString<K, S> {}
+
+impl<K, S: Get<u32>> BoundedBytesString<K, S> {
+	pub fn as_bytes(&self) -> &[u8] {
+		&self.data
+	}
+
+	pub fn as_str(&self) -> Result<&str, sp_std::str::Utf8Error> {
+		sp_std::str::from_utf8(&self.data)
+	}
 }
 
 impl<K: Kind, S: Get<u32>> EvmData for BoundedBytesString<K, S> {

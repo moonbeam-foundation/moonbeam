@@ -203,7 +203,7 @@ impl Precompile {
 					}
 				)*
 
-				pub fn encode(self) -> Vec<u8> {
+				pub fn encode(self) -> ::sp_std::vec::Vec<u8> {
 					match self {
 						#(
 							Self::#variants_ident2 { #(#variants_list),* } => {
@@ -215,9 +215,8 @@ impl Precompile {
 				}
 			}
 
-			#[cfg(test)]
-			impl #impl_generics From<#enum_ident #ty_generics> for Vec<u8> #where_clause {
-				fn from(a: #enum_ident #ty_generics) -> Vec<u8> {
+			impl #impl_generics From<#enum_ident #ty_generics> for ::sp_std::vec::Vec<u8> #where_clause {
+				fn from(a: #enum_ident #ty_generics) -> ::sp_std::vec::Vec<u8> {
 					a.encode()
 				}
 			}
@@ -297,7 +296,7 @@ impl Precompile {
 				)
 				.to_token_stream()
 			}
-			None => quote!(Vec::new()).to_token_stream(),
+			None => quote!(Default::default()).to_token_stream(),
 		}
 	}
 

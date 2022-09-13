@@ -228,11 +228,13 @@ pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	AuthorMappingWrapper<R>: Precompile,
+	AuthorMappingPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(AuthorMappingWrapper::<R>::execute(handle)),
+			a if a == hash(PRECOMPILE_ADDRESS) => {
+				Some(AuthorMappingPrecompile::<R>::execute(handle))
+			}
 			_ => None,
 		}
 	}
@@ -242,7 +244,7 @@ where
 	}
 }
 
-pub type PCall = AuthorMappingWrapperCall<Runtime>;
+pub type PCall = AuthorMappingPrecompileCall<Runtime>;
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)

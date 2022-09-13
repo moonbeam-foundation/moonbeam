@@ -185,12 +185,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	CrowdloanRewardsWrapper<R>: Precompile,
+	CrowdloanRewardsPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == Account::Precompile.into() => {
-				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
+				Some(CrowdloanRewardsPrecompile::<R>::execute(handle))
 			}
 			_ => None,
 		}
@@ -201,7 +201,7 @@ where
 	}
 }
 
-pub type PCall = CrowdloanRewardsWrapperCall<Runtime>;
+pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

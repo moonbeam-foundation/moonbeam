@@ -72,14 +72,6 @@ const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	Dispatch = "dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)",
-	Nonces = "nonces(address)",
-	DomainSeparator = "DOMAIN_SEPARATOR()",
-}
-
 /// Precompile allowing to issue and dispatch call permits for gasless transactions.
 /// A user can sign a permit for a call that can be dispatched and paid by another user or
 /// smart contract.

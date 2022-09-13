@@ -217,11 +217,11 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	XtokensWrapper<R>: Precompile,
+	XtokensPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(handle)),
+			a if a == precompile_address() => Some(XtokensPrecompile::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -231,7 +231,7 @@ where
 	}
 }
 
-pub type PCall = XtokensWrapperCall<Runtime>;
+pub type PCall = XtokensPrecompileCall<Runtime>;
 
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)

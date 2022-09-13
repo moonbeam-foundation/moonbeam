@@ -43,10 +43,10 @@ type BalanceOf<Runtime> = <<Runtime as pallet_parachain_staking::Config>::Curren
 /// toward one fixed address chosen by the deployer.
 /// Such a contract could be deployed by a collator candidate, and the deploy address distributed to
 /// supporters who want to donate toward a perpetual nomination fund.
-pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
+pub struct ParachainStakingPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> ParachainStakingWrapper<Runtime>
+impl<Runtime> ParachainStakingPrecompile<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: Into<H160>,

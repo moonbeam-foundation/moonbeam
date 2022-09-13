@@ -60,73 +60,12 @@ where
 	}
 }
 
-// #[generate_function_selector]
-// #[derive(Debug, PartialEq)]
-// pub enum Action {
-// 	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-// 	TransferWithFee = "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-// 	TransferMultiAsset = "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-// 	TransferMultiAssetWithFee =
-// 		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
-// 	TransferMultiCurrencies =
-// 		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
-// 	TransferMultiAssets =
-// 		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
-
-// 	// deprecated
-// 	DeprecatedTransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-// 	DeprecatedTransferMultiAsset =
-// 		"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-// 	DeprecatedTransferMultiAssetWithFee =
-// 		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
-// 	DeprecatedTransferMultiCurrencies =
-// 		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
-// 	DeprecatedTransferMultiAssets =
-// 		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
-// }
-
 /// A precompile to wrap the functionality from xtokens
-pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
-
-// impl<Runtime> Precompile for XtokensWrapper<Runtime>
-// where
-// 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-// 	Runtime::AccountId: From<H160>,
-// 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-// 	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-// 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-// 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-// 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
-// {
-// 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-// 		let selector = handle.read_selector()?;
-
-// 		handle.check_function_modifier(FunctionModifier::NonPayable)?;
-
-// 		match selector {
-// 			Action::Transfer => Self::transfer(handle),
-// 			Action::TransferWithFee | Action::DeprecatedTransferWithFee => {
-// 				Self::transfer_with_fee(handle)
-// 			}
-// 			Action::TransferMultiAsset | Action::DeprecatedTransferMultiAsset => {
-// 				Self::transfer_multiasset(handle)
-// 			}
-// 			Action::TransferMultiAssetWithFee | Action::DeprecatedTransferMultiAssetWithFee => {
-// 				Self::transfer_multiasset_with_fee(handle)
-// 			}
-// 			Action::TransferMultiCurrencies | Action::DeprecatedTransferMultiCurrencies => {
-// 				Self::transfer_multi_currencies(handle)
-// 			}
-// 			Action::TransferMultiAssets | Action::DeprecatedTransferMultiAssets => {
-// 				Self::transfer_multi_assets(handle)
-// 			}
-// 		}
-// 	}
-// }
+pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
 #[precompile::test_concrete_types(mock::Runtime)]
-impl<Runtime> XtokensWrapper<Runtime>
+impl<Runtime> XtokensPrecompile<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

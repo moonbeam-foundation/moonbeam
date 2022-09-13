@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
-use crate::{ProxyWrapper, ProxyWrapperCall};
+use crate::{ProxyPrecompile, ProxyPrecompileCall};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, InstanceFilter},
@@ -165,10 +165,10 @@ impl pallet_balances::Config for Runtime {
 
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
-	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyWrapper<R>, LimitRecursionTo<1>>,),
+	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyPrecompile<R>, LimitRecursionTo<1>>,),
 >;
 
-pub type PCall = ProxyWrapperCall<Runtime>;
+pub type PCall = ProxyPrecompileCall<Runtime>;
 
 pub struct EnsureAddressAlways;
 impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {

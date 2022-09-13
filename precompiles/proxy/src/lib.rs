@@ -25,27 +25,18 @@ use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
 use sp_runtime::codec::Decode;
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::marker::PhantomData;
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	AddProxy = "addProxy(address,uint8,uint32)",
-	RemoveProxy = "removeProxy(address,uint8,uint32)",
-	RemoveProxies = "removeProxies()",
-	IsProxy = "isProxy(address,address,uint8,uint32)",
-}
-
 /// A precompile to wrap the functionality from pallet-proxy.
-pub struct ProxyWrapper<Runtime>(PhantomData<Runtime>);
+pub struct ProxyPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> ProxyWrapper<Runtime>
+impl<Runtime> ProxyPrecompile<Runtime>
 where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:

@@ -37,7 +37,7 @@ mod mock;
 mod tests;
 
 /// A precompile to wrap the functionality from pallet author mapping.
-pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
+pub struct AuthorMappingPrecompile<Runtime>(PhantomData<Runtime>);
 
 /// Bound for the keys size.
 /// Pallet will check that the size exactly matches, but we want to bound the parser to
@@ -54,7 +54,7 @@ impl<R: pallet_author_mapping::Config> Get<u32> for GetKeysSize<R> {
 
 #[precompile_utils::precompile]
 #[precompile::test_concrete_types(mock::Runtime)]
-impl<Runtime> AuthorMappingWrapper<Runtime>
+impl<Runtime> AuthorMappingPrecompile<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,

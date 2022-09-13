@@ -26,7 +26,7 @@ use pallet_democracy::{
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{solidity, testing::*};
 use sp_core::{H160, H256, U256};
 use std::{convert::TryInto, str::from_utf8};
 

@@ -19,7 +19,7 @@ use crate::{
 		Account::{Alice, Bob, Charlie, Precompile},
 		ExtBuilder, PCall, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
 	},
-	Action, CallPermitPrecompile,
+	CallPermitPrecompile,
 };
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
@@ -37,9 +37,9 @@ fn dispatch_cost() -> u64 {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::Dispatch as u32, 0xb5ea0966);
-	assert_eq!(Action::Nonces as u32, 0x7ecebe00);
-	assert_eq!(Action::DomainSeparator as u32, 0x3644e515);
+	assert!(PCall::dispatch_selectors().contains(&0xb5ea0966));
+	assert!(PCall::nonces_selectors().contains(&0x7ecebe00));
+	assert!(PCall::domain_separator_selectors().contains(&0x3644e515));
 }
 
 #[test]
@@ -55,7 +55,6 @@ fn valid_permit_returns() {
 			let gas_limit = 100_000u64;
 			let nonce: U256 = 0u8.into();
 			let deadline: U256 = 1_000u32.into();
-
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
 				Precompile.into(),
 				from,
@@ -75,9 +74,9 @@ fn valid_permit_returns() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -178,9 +177,9 @@ fn valid_permit_reverts() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -277,9 +276,9 @@ fn invalid_permit_nonce() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -343,9 +342,9 @@ fn invalid_permit_gas_limit_too_low() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -411,9 +410,9 @@ fn invalid_permit_gas_limit_overflow() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -599,9 +598,9 @@ fn valid_permit_returns_with_metamask_signed_data() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::Nonces)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::nonces {
+						owner: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
@@ -682,7 +681,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,

@@ -45,10 +45,10 @@ pub type BalanceOf<Runtime> =
 	>>::Balance;
 
 /// A precompile to wrap the functionality from pallet_crowdloan_rewards.
-pub struct CrowdloanRewardsWrapper<Runtime>(PhantomData<Runtime>);
+pub struct CrowdloanRewardsPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> CrowdloanRewardsWrapper<Runtime>
+impl<Runtime> CrowdloanRewardsPrecompile<Runtime>
 where
 	Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Debug,

@@ -31,6 +31,7 @@ use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
 	marker::PhantomData,
+	vec::Vec,
 };
 use xcm::latest::MultiLocation;
 use xcm_primitives::AccountIdToCurrencyId;

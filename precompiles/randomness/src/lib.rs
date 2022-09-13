@@ -28,7 +28,7 @@ use pallet_randomness::{
 };
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
-use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
@@ -36,22 +36,6 @@ mod solidity_types;
 #[cfg(test)]
 mod tests;
 use solidity_types::*;
-
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	RelayEpochIndex = "relayEpochIndex()",
-	RequiredDeposit = "requiredDeposit()",
-	GetRequestStatus = "getRequestStatus(uint256)",
-	GetRequest = "getRequest(uint256)",
-	RequestRelayBabeEpochRandomWords =
-		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
-	RequestLocalVRFRandomWords =
-		"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)",
-	FulfillRequest = "fulfillRequest(uint256)",
-	IncreaseRequestFee = "increaseRequestFee(uint256,uint256)",
-	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
-}
 
 // Tests to verify equal to weight_to_gas(weight) in runtime integration tests
 pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26325;
@@ -150,43 +134,10 @@ fn provide_randomness(
 }
 
 /// A precompile to wrap the functionality from pallet-randomness
-pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
-
-// impl<Runtime> Precompile for RandomnessWrapper<Runtime>
-// where
-// 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-// 	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
-// 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
-// {
-// 	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-// 		log::trace!(target: "randomness-precompile", "In randomness wrapper");
-
-// 		let selector = handle.read_selector()?;
-
-// 		handle.check_function_modifier(match selector {
-// 			Action::RelayEpochIndex
-// 			| Action::GetRequestStatus
-// 			| Action::GetRequest
-// 			| Action::RequiredDeposit => FunctionModifier::View,
-// 			_ => FunctionModifier::NonPayable,
-// 		})?;
-
-// 		match selector {
-// 			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
-// 			Action::RequiredDeposit => Self::required_deposit(handle),
-// 			Action::GetRequestStatus => Self::get_request_status(handle),
-// 			Action::GetRequest => Self::get_request(handle),
-// 			Action::RequestRelayBabeEpochRandomWords => Self::request_babe_randomness(handle),
-// 			Action::RequestLocalVRFRandomWords => Self::request_local_randomness(handle),
-// 			Action::FulfillRequest => Self::fulfill_request(handle),
-// 			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
-// 			Action::PurgeExpiredRequest => Self::purge_expired_request(handle),
-// 		}
-// 	}
-// }
+pub struct RandomnessPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> RandomnessWrapper<Runtime>
+impl<Runtime> RandomnessPrecompile<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
 	<Runtime as frame_system::Config>::BlockNumber: TryInto<u32> + TryFrom<u32>,

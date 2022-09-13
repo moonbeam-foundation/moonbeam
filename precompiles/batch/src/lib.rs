@@ -23,7 +23,7 @@ use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, PrecompileOutput
 use frame_support::traits::ConstU32;
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
-use sp_std::{iter::repeat, marker::PhantomData, vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
