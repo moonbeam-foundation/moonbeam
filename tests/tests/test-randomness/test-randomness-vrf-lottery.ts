@@ -1,6 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
+import { createBlock } from "typescript";
 import Web3 from "web3";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
@@ -220,24 +221,15 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
     expect(log.args.winnerCount.toBigInt()).to.equal(2n);
   });
 
-  it("should emit 2 Awarded events. One for each winner", async function () {
+  it("should emit 1 Awarded event. One for each winner", async function () {
     // First Awarded event is for Charleth
     const log1 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[1]);
     expect(log1.name).to.equal("Awarded");
     expect(log1.args.winner).to.equal(charleth.address);
     expect(log1.args.randomWord.toHexString()).to.equal(
-      "0xefb5d3fd7f0afcbebf6c983d4e480100c71395f721e2f3bfdf1c281938947d28"
+      "0x67983496efea344169efb12f0fa2482e1b14d89c54310756115d8829750c202c"
     );
     expect(log1.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
-
-    // Second Awarded event is for Alith
-    const log2 = LOTTERY_INTERFACE.parseLog(fulFillReceipt.logs[2]);
-    expect(log2.name).to.equal("Awarded");
-    expect(log2.args.winner).to.equal(alith.address);
-    expect(log2.args.randomWord.toHexString()).to.equal(
-      "0xe89db6687fdfcd8523439fa5384e889e028e8fcc1de0ead9f1ba50d5a5aecff8"
-    );
-    expect(log2.args.amount.toBigInt()).to.equal(1500n * MILLIGLMR);
   });
 
   it("should emit the FulFillmentSucceeded event last", async function () {
@@ -258,7 +250,7 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
     expect(await lotteryContract.methods.jackpot().call()).to.equal("0");
   });
 
-  it("should reward alith and charleth", async function () {
+  it("should reward charleth", async function () {
     expect(
       (
         await context.polkadotApi.query.system.account(baltathar.address.toString())
@@ -273,7 +265,7 @@ describeDevMoonbeam("Randomness VRF - Fulfilling Lottery Demo", (context) => {
       (
         await context.polkadotApi.query.system.account(alith.address.toString())
       ).data.free.toBigInt() > ALITH_GENESIS_FREE_BALANCE
-    ).to.be.true;
+    ).to.be.false;
   });
 
   it("should be back to open for registrations", async function () {

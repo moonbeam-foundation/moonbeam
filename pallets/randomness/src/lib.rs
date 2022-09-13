@@ -86,7 +86,7 @@ pub mod pallet {
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
-	use sp_runtime::traits::{AccountIdConversion, Saturating};
+	use sp_runtime::traits::{AccountIdConversion, Saturating, Zero};
 	use sp_std::convert::TryInto;
 
 	/// The Randomness's pallet id
@@ -320,6 +320,11 @@ pub mod pallet {
 			// 	LocalVrfOutput::<T>::put(Some(T::Hash::default()));
 			// 	return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
 			// }
+			// Do not verify default VrfOutput set in first block
+			if frame_system::Pallet::<T>::block_number().is_zero() {
+				// block number is whitelisted
+				return 0;
+			}
 			// Verify VRF output included by block author and set it in storage
 			vrf::verify_and_set_output::<T>();
 			SubstrateWeight::<T>::on_initialize()

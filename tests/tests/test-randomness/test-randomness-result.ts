@@ -184,7 +184,7 @@ describeDevMoonbeam("Randomness Result - Passing targetted block", (context) => 
     const randomessResult = randomessResults[0][1] as Option<PalletRandomnessRandomnessResult>;
     expect(randomessResult.unwrap().randomness.isSome).to.be.true;
     expect(randomessResult.unwrap().randomness.unwrap().toHex()).to.equal(
-      "0xb1ffdd4a26e0f2a2fd1e0862a1c9be422c66dddd68257306ed55dc7bd9dce647"
+      "0xe8f1dd32ffa973680af581fe28641f801f61913493e840c30a14b1944c6282cb"
     );
   });
 });
