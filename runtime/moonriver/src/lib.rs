@@ -1225,7 +1225,7 @@ construct_runtime! {
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 108,
 
 		// Randomness
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 120,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 120,
 	}
 }
 
