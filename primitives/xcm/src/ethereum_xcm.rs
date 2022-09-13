@@ -19,9 +19,13 @@ use ethereum::{
 	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
+use frame_support::{traits::ConstU32, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
+
+/// Max. allowed size of 65_536 bytes.
+pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
 
 /// Ensure that a proxy between `delegator` and `delegatee` exists in order to deny or grant
 /// permission to do xcm-transact to `transact_through_proxy`.
@@ -71,7 +75,7 @@ pub struct EthereumXcmTransactionV1 {
 	/// Value to be transfered.
 	pub value: U256,
 	/// Input data for a contract call.
-	pub input: Vec<u8>,
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
@@ -84,8 +88,8 @@ pub struct EthereumXcmTransactionV2 {
 	pub action: TransactionAction,
 	/// Value to be transfered.
 	pub value: U256,
-	/// Input data for a contract call.
-	pub input: Vec<u8>,
+	/// Input data for a contract call. Max. size 65_536 bytes.
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
@@ -136,7 +140,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						gas_limit: self.gas_limit,
 						action: self.action,
 						value: self.value,
-						input: self.input.clone(),
+						input: self.input.to_vec(),
 						access_list: from_tuple_to_access_list(access_list),
 						odd_y_parity: true,
 						r: rs_id(),
@@ -150,7 +154,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						gas_limit: self.gas_limit,
 						action: self.action,
 						value: self.value,
-						input: self.input.clone(),
+						input: self.input.to_vec(),
 						signature: TransactionSignature::new(42, rs_id(), rs_id())?,
 					}))
 				}
@@ -165,7 +169,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 					gas_limit: self.gas_limit,
 					action: self.action,
 					value: self.value,
-					input: self.input.clone(),
+					input: self.input.to_vec(),
 					access_list: if let Some(ref access_list) = self.access_list {
 						from_tuple_to_access_list(access_list)
 					} else {
@@ -204,7 +208,7 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 			gas_limit: self.gas_limit,
 			action: self.action,
 			value: self.value,
-			input: self.input.clone(),
+			input: self.input.to_vec(),
 			access_list: if let Some(ref access_list) = self.access_list {
 				from_tuple_to_access_list(access_list)
 			} else {
@@ -227,7 +231,8 @@ mod tests {
 			fee_payment: EthereumXcmFee::Auto,
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: vec![1u8],
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -259,7 +264,8 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: vec![1u8],
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
@@ -295,7 +301,8 @@ mod tests {
 			}),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: vec![1u8],
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: access_list.clone(),
 		};
 
@@ -323,7 +330,8 @@ mod tests {
 			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
 			value: U256::zero(),
-			input: vec![1u8],
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
 		let nonce = U256::zero();
