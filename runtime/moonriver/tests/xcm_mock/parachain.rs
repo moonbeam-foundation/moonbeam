@@ -17,8 +17,9 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfoAccess},
+	codec::MaxEncodedLen,
+	construct_runtime, ensure, parameter_types,
+	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
 	weights::{GetDispatchInfo, Weight},
 	PalletId,
 };
@@ -28,7 +29,7 @@ use parity_scale_codec::{Decode, Encode};
 use sp_core::H256;
 use sp_runtime::{
 	testing::Header,
-	traits::{Hash, IdentityLookup},
+	traits::{BlakeTwo256, Hash, IdentityLookup, Zero},
 	Permill,
 };
 use sp_std::{convert::TryFrom, prelude::*};
@@ -86,7 +87,7 @@ impl frame_system::Config for Runtime {
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type DbWeight = ();
-	type BaseCallFilter = Nothing;
+	type BaseCallFilter = Everything;
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
@@ -167,6 +168,8 @@ pub type LocationToAccountId = (
 	// Sibling parachain origins convert to AccountId via the `ParaId::into`.
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
+	// The rest of multilocations convert via hashing it
+	xcm_primitives::Account20Hash<AccountId>,
 );
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
@@ -267,6 +270,7 @@ pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 pub type Barrier = (
 	TakeWeightCredit,
+	xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<PolkadotXcm>,
@@ -325,6 +329,12 @@ parameter_types! {
 	};
 }
 
+use frame_system::RawOrigin;
+use sp_runtime::traits::PostDispatchInfoOf;
+use sp_runtime::DispatchErrorWithPostInfo;
+use xcm_executor::traits::CallDispatcher;
+moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+
 pub struct XcmConfig;
 impl Config for XcmConfig {
 	type Call = Call;
@@ -351,7 +361,7 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
+	type CallDispatcher = MoonbeamCall;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
@@ -941,6 +951,81 @@ impl pallet_ethereum::Config for Runtime {
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 
+parameter_types! {
+	pub ReservedXcmpWeight: Weight = u64::max_value();
+}
+
+#[derive(
+	Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Encode, Decode, Debug, MaxEncodedLen, TypeInfo,
+)]
+pub enum ProxyType {
+	NotAllowed = 0,
+	Any = 1,
+}
+
+impl InstanceFilter<Call> for ProxyType {
+	fn filter(&self, _c: &Call) -> bool {
+		match self {
+			ProxyType::NotAllowed => false,
+			ProxyType::Any => true,
+		}
+	}
+	fn is_superset(&self, _o: &Self) -> bool {
+		false
+	}
+}
+
+impl Default for ProxyType {
+	fn default() -> Self {
+		Self::NotAllowed
+	}
+}
+
+parameter_types! {
+	pub const ProxyCost: u64 = 1;
+}
+
+impl pallet_proxy::Config for Runtime {
+	type Event = Event;
+	type Call = Call;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyCost;
+	type ProxyDepositFactor = ProxyCost;
+	type MaxProxies = ConstU32<32>;
+	type WeightInfo = pallet_proxy::weights::SubstrateWeight<Runtime>;
+	type MaxPending = ConstU32<32>;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = ProxyCost;
+	type AnnouncementDepositFactor = ProxyCost;
+}
+
+pub struct EthereumXcmEnsureProxy;
+impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
+	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
+		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
+		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64> =
+			pallet_proxy::Pallet::<Runtime>::find_proxy(
+				&delegator,
+				&delegatee,
+				Some(ProxyType::Any),
+			)
+			.map_err(|_| "proxy error: expected `ProxyType::Any`")?;
+		// We only allow to use it for delay zero proxies, as the call will iMmediatly be executed
+		ensure!(def.delay.is_zero(), "proxy delay is Non-zero`");
+		Ok(())
+	}
+}
+
+impl pallet_ethereum_xcm::Config for Runtime {
+	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
+	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;
+	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
+	type ReservedXcmpWeight = ReservedXcmpWeight;
+	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId>;
+}
+
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
 
@@ -963,10 +1048,12 @@ construct_runtime!(
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event<T>},
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call},
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
+		Proxy: pallet_proxy::{Pallet, Call, Storage, Event<T>},
 
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage},
 		EVM: pallet_evm::{Pallet, Call, Storage, Config, Event<T>},
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config},
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin},
 	}
 );
 

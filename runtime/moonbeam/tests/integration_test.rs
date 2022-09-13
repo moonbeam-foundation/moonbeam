@@ -32,8 +32,6 @@ use frame_support::{
 	weights::{DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
-use pallet_evm_precompile_xcm_transactor::v1::Action as XcmTransactorActionV1;
-
 use moonbeam_runtime::{
 	asset_config::LocalAssetInstance, currency::GLMR, xcm_config::CurrencyId, AccountId, Balances,
 	BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
@@ -44,6 +42,9 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
+use pallet_evm_precompile_xcm_transactor::{
+	v1::Action as XcmTransactorActionV1, v2::Action as XcmTransactorActionV2,
+};
 use pallet_evm_precompile_xcm_utils::Action as XcmUtilsAction;
 use pallet_evm_precompile_xtokens::Action as XtokensAction;
 use pallet_evm_precompileset_assets_erc20::{
@@ -65,6 +66,7 @@ use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
+use xcm_primitives::Account20Hash;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -1682,7 +1684,7 @@ fn asset_erc20_precompiles_mint_burn() {
 			let asset_precompile_address =
 				Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, 0u128);
 
-			// Mint 1000 MOVRS to BOB
+			// Mint 1000 GLMRS to BOB
 			Precompiles::new()
 				.prepare_test(
 					ALICE,
@@ -2369,7 +2371,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 }
 
 #[test]
-fn transact_through_signed_precompile_not_enabled() {
+fn transact_through_signed_precompile_works_v1() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
@@ -2416,139 +2418,97 @@ fn transact_through_signed_precompile_not_enabled() {
 					.write(bytes)
 					.build(),
 				)
-				.execute_reverts(|output| {
-					from_utf8(&output)
-						.unwrap()
-						.contains("Dispatched call failed with error:")
-						&& from_utf8(&output).unwrap().contains("CallFiltered")
-				});
+				.expect_cost(18619)
+				.expect_no_logs()
+				.execute_returns(vec![]);
 		});
 }
 
 #[test]
-fn transact_through_signed_mult_not_enabled() {
+fn transact_through_signed_precompile_works_v2() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
+			// Destination
+			let dest = MultiLocation::parent();
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
+			let fee_payer_asset = MultiLocation::parent();
 
-			assert_noop!(
-				Call::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
 				)
-				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
+				.expect_cost(18619)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
 }
 
 #[test]
-fn transact_through_signed_not_enabled() {
+fn transact_through_signed_cannot_send_to_local_chain() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * GLMR),
 			(AccountId::from(BOB), 1_000 * GLMR),
 		])
-		.with_xcm_assets(vec![XcmAssetInitialization {
-			asset_type: AssetType::Xcm(MultiLocation::parent()),
-			metadata: AssetRegistrarMetadata {
-				name: b"RelayToken".to_vec(),
-				symbol: b"Relay".to_vec(),
-				decimals: 12,
-				is_frozen: false,
-			},
-			balances: vec![(AccountId::from(ALICE), 1_000_000_000_000_000)],
-			is_sufficient: true,
-		}])
+		.with_safe_xcm_version(2)
 		.build()
 		.execute_with(|| {
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_transact_info(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				// Relay charges 1000 for every instruction, and we have 3, so 3000
-				3000,
-				20000,
-				// lets say 1000 per instruction
-				Some(4000)
-			));
+			// Destination
+			let dest = MultiLocation::here();
 
-			// Root can set transact info
-			assert_ok!(XcmTransactor::set_fee_per_second(
-				root_origin(),
-				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-				1
-			));
+			let fee_payer_asset = MultiLocation::parent();
 
-			assert_noop!(
-				Call::XcmTransactor(
-					pallet_xcm_transactor::Call::<Runtime>::transact_through_signed {
-						dest: Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-						fee: CurrencyPayment {
-							currency: Currency::AsMultiLocation(Box::new(
-								xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-							)),
-							fee_amount: None
-						},
-						call: vec![],
-						weight_info: TransactWeights {
-							transact_required_weight_at_most: 11000,
-							overall_weight: None
-						}
-					}
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			let xcm_transactor_v2_precompile_address = H160::from_low_u64_be(2061);
+
+			Precompiles::new()
+				.prepare_test(
+					ALICE,
+					xcm_transactor_v2_precompile_address,
+					EvmDataWriter::new_with_selector(
+						XcmTransactorActionV2::TransactThroughSignedMultiLocation,
+					)
+					.write(dest)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
 				)
-				.dispatch(<Runtime as frame_system::Config>::Origin::signed(
-					AccountId::from(ALICE)
-				)),
-				frame_system::Error::<Runtime>::CallFiltered
-			);
-		})
+				.execute_reverts(|output| {
+					from_utf8(&output)
+						.unwrap()
+						.contains("Dispatched call failed with error:")
+						&& from_utf8(&output).unwrap().contains("ErrorSending")
+				});
+		});
 }
 
 #[test]
@@ -2745,8 +2705,11 @@ fn test_xcm_utils_ml_to_account() {
 				},
 			),
 		);
+		let expected_address_alice_in_parachain_2000: H160 =
+			Account20Hash::<AccountId>::convert_ref(alice_in_parachain_2000_multilocation.clone())
+				.unwrap()
+				.into();
 
-		// this should fail, this convertor is not allowed in moonriver
 		Precompiles::new()
 			.prepare_test(
 				ALICE,
@@ -2757,7 +2720,11 @@ fn test_xcm_utils_ml_to_account() {
 			)
 			.expect_cost(1000)
 			.expect_no_logs()
-			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
+			.execute_returns(
+				EvmDataWriter::new()
+					.write(Address(expected_address_alice_in_parachain_2000))
+					.build(),
+			);
 	});
 }
 
@@ -2767,7 +2734,7 @@ fn precompile_existence() {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
 			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
-			2056, 2057, 2058, 2060, 2062, 2063, 2064,
+			2056, 2057, 2058, 2060, 2061, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
