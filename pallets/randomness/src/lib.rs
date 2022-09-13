@@ -226,6 +226,29 @@ pub mod pallet {
 	pub(crate) type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
+	#[pallet::genesis_config]
+	pub struct GenesisConfig<T: Config> {
+		/// Edge case for local VRF is genesis or initial block after runtime upgrade. In both cases
+		/// the first block's `LocalVrfOutput` must be set
+		pub local_vrf_output: T::Hash,
+	}
+
+	#[cfg(feature = "std")]
+	impl<T: Config> Default for GenesisConfig<T> {
+		fn default() -> Self {
+			Self {
+				local_vrf_output: T::Hash::default(),
+			}
+		}
+	}
+
+	#[pallet::genesis_build]
+	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+		fn build(&self) {
+			LocalVrfOutput::<T>::put(Some(self.local_vrf_output));
+		}
+	}
+
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness

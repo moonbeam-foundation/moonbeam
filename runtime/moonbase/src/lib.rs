@@ -1258,7 +1258,7 @@ construct_runtime! {
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
-		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
+		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 	}
