@@ -59,7 +59,7 @@ impl Precompile {
 				)*
 
 				#[doc(hidden)]
-				__phantom(PhantomData<( #( #type_parameters ),* )>),
+				__phantom(PhantomData<( #( #type_parameters ),* )>, ::core::convert::Infallible),
 			}
 		)
 	}
@@ -210,7 +210,7 @@ impl Precompile {
 								#variants_encode
 							},
 						)*
-						Self::__phantom(_) => panic!("__phantom variant should not be used"),
+						Self::__phantom(_, _) => panic!("__phantom variant should not be used"),
 					}
 				}
 			}
@@ -271,7 +271,7 @@ impl Precompile {
 							#variants_call
 						},
 					)*
-					Self::__phantom(_) => panic!("__phantom variant should not be used"),
+					Self::__phantom(_, _) => panic!("__phantom variant should not be used"),
 				};
 
 				Ok(PrecompileOutput {
