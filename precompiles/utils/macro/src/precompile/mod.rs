@@ -72,6 +72,10 @@ pub struct Precompile {
 	/// When generating the selector test the data types might depend on type parameters.
 	/// The test thus need to be written using concrete types.
 	test_concrete_types: Option<Vec<syn::Type>>,
+
+	/// Ident of a function that performs a check before the call is dispatched to the proper
+	/// function.
+	pre_dispatch_check: Option<syn::Ident>,
 }
 
 #[derive(Debug, PartialEq, Eq)]

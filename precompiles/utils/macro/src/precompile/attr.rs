@@ -45,6 +45,7 @@ pub mod keyword {
 	syn::custom_keyword!(discriminant);
 	syn::custom_keyword!(precompile_set);
 	syn::custom_keyword!(test_concrete_types);
+	syn::custom_keyword!(pre_dispatch_check);
 }
 
 /// Attributes for methods.
@@ -54,6 +55,7 @@ pub enum MethodAttr {
 	Payable(Span),
 	View(Span),
 	Discriminant(Span),
+	PreDispatchCheck(Span),
 }
 
 impl syn::parse::Parse for MethodAttr {
@@ -87,6 +89,10 @@ impl syn::parse::Parse for MethodAttr {
 		} else if lookahead.peek(keyword::discriminant) {
 			Ok(MethodAttr::Discriminant(
 				content.parse::<keyword::discriminant>()?.span(),
+			))
+		} else if lookahead.peek(keyword::pre_dispatch_check) {
+			Ok(MethodAttr::PreDispatchCheck(
+				content.parse::<keyword::pre_dispatch_check>()?.span(),
 			))
 		} else {
 			Err(lookahead.error())

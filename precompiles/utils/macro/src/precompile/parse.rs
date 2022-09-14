@@ -29,6 +29,7 @@ impl Precompile {
 			tagged_as_precompile_set: false,
 			precompile_set_discriminant: None,
 			test_concrete_types: None,
+			pre_dispatch_check: None,
 		};
 
 		precompile.process_impl_attr(impl_)?;
@@ -192,10 +193,48 @@ impl Precompile {
 			return Ok(());
 		}
 
+		if let Some(attr::MethodAttr::PreDispatchCheck(span)) = attrs.first() {
+			let span = *span;
+
+			if self.pre_dispatch_check.is_some() {
+				let msg = "A Precompile can only have 1 pre_dispatch_check function";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			if attrs.len() != 1 {
+				let msg =
+					"The pre_dispatch_check attribute must be the only precompile attribute of \
+				a function";
+				return Err(syn::Error::new(span, msg));
+			}
+
+			let span = method.span();
+
+			if method.sig.inputs.len() != initial_arguments {
+				let msg = if self.tagged_as_precompile_set {
+					"PrecompileSet pre_dispatch_check method must have exactly 2 parameters (the precompile instance \
+					discriminant and the PrecompileHandle)"
+				} else {
+					"Precompile pre_dispatch_check method must have exactly 1 parameter (the PrecompileHandle)"
+				};
+
+				return Err(syn::Error::new(span, msg));
+			}
+
+			self.pre_dispatch_check = Some(method.sig.ident.clone());
+
+			return Ok(());
+		}
+
 		for attr in attrs {
 			match attr {
 				attr::MethodAttr::Discriminant(span) => {
 					let msg = "The discriminant attribute must be the only precompile \
+					attribute of the function";
+					return Err(syn::Error::new(span, msg));
+				}
+				attr::MethodAttr::PreDispatchCheck(span) => {
+					let msg = "The pre_dispatch_check attribute must be the only precompile \
 					attribute of the function";
 					return Err(syn::Error::new(span, msg));
 				}
@@ -285,7 +324,7 @@ impl Precompile {
 
 		if method.sig.inputs.len() < initial_arguments {
 			let msg = if self.tagged_as_precompile_set {
-				"PrecompileSet methods must have at least 2 parameter (the precompile instance \
+				"PrecompileSet methods must have at least 2 parameters (the precompile instance \
 				discriminant and the PrecompileHandle)"
 			} else {
 				"Precompile methods must have at least 1 parameter (the PrecompileHandle)"

@@ -988,32 +988,84 @@ fn evm_batch_recursion_over_limit() {
 				vec![],
 			)
 			.into();
-			// let input = PCall::batch_all {
-			// 	to: vec![Address(Precompile.into())].into(),
-			// 	value: vec![].into(),
-			// 	gas_limit: vec![].into(),
-			// 	call_data: PCall::batch_all {
-			// 		to: vec![Address(Precompile.into())].into(),
-			// 		value: vec![].into(),
-			// 		gas_limit: vec![].into(),
-			// 		call_data: PCall::batch_all {
-			// 			to: vec![Address(Bob.into())].into(),
-			// 			value: vec![1000_u32.into()].into(),
-			// 			call_data: vec![].into(),
-			// 			gas_limit: vec![].into(),
-			// 		}
-			// 		.encode()
-			// 		.into(),
-			// 	}
-			// 	.encode()
-			// 	.into(),
-			// }
-			// .into();
 
 			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
 
 			assert_eq!(balance(Alice), 10_000); // gasprice = 0
 			assert_eq!(balance(Bob), 0);
+		})
+}
+
+#[test]
+fn batch_not_callable_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// "deploy" SC to alice address
+			let alice_h160: H160 = Alice.into();
+			pallet_evm::AccountCodes::<Runtime>::insert(alice_h160, vec![10u8]);
+
+			// succeeds if not called by SC, see `evm_batch_recursion_under_limit`
+			let input = PCall::batch_all {
+				to: vec![Address(Precompile.into())].into(),
+				value: vec![].into(),
+				gas_limit: vec![].into(),
+				call_data: vec![PCall::batch_all {
+					to: vec![Address(Bob.into())].into(),
+					value: vec![1000_u32.into()].into(),
+					gas_limit: vec![].into(),
+					call_data: vec![].into(),
+				}
+				.encode()
+				.into()]
+				.into(),
+			}
+			.into();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			// batch failed so state is same
+			assert_eq!(balance(Alice), 10_000);
+			assert_eq!(balance(Bob), 0);
+		})
+}
+
+#[test]
+fn batch_is_callable_by_dummy_code() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// "deploy" dummy code to alice address
+			let alice_h160: H160 = Alice.into();
+			pallet_evm::AccountCodes::<Runtime>::insert(
+				alice_h160,
+				[0x60, 0x00, 0x60, 0x00, 0xfd].to_vec(),
+			);
+
+			// succeeds if called by dummy code, see `evm_batch_recursion_under_limit`
+			let input = PCall::batch_all {
+				to: vec![Address(Precompile.into())].into(),
+				value: vec![].into(),
+				gas_limit: vec![].into(),
+				call_data: vec![PCall::batch_all {
+					to: vec![Address(Bob.into())].into(),
+					value: vec![1000_u32.into()].into(),
+					gas_limit: vec![].into(),
+					call_data: vec![].into(),
+				}
+				.encode()
+				.into()]
+				.into(),
+			}
+			.into();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			// batch succeeds
+			assert_eq!(balance(Alice), 9_000);
+			assert_eq!(balance(Bob), 1_000);
 		})
 }
 

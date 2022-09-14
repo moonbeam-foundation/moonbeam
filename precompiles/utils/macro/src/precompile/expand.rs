@@ -224,7 +224,6 @@ impl Precompile {
 	}
 
 	/// Generate the execute fn of the enum.
-	/// TODO: Support PrecompileSet which will require an additional argument.
 	fn expand_enum_execute_fn(&self) -> impl ToTokens {
 		let span = Span::call_site();
 
@@ -348,7 +347,6 @@ impl Precompile {
 	}
 
 	pub fn expand_precompile_impl(&self) -> impl ToTokens {
-		let span = Span::call_site();
 		let struct_type = &self.struct_type;
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -358,13 +356,23 @@ impl Precompile {
 			..
 		}) = &self.precompile_set_discriminant
 		{
-			quote_spanned!(span=>
+			let opt_pre_dispatch_check = self
+				.pre_dispatch_check
+				.as_ref()
+				.map(|ident| {
+					let span = ident.span();
+					quote_spanned!(span=>let _: () = <#struct_type>::#ident(discriminant, handle).map_err(|err| Some(err))?;)
+				});
+
+			quote!(
 				impl #impl_generics ::fp_evm::PrecompileSet for #struct_type #where_clause {
 					fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 						let discriminant = match <#struct_type>::#discriminant_fn(handle.code_address()) {
 							Some(d) => d,
 							None => return None,
 						};
+
+						#opt_pre_dispatch_check
 
 						Some(
 							<#enum_ident #ty_generics>::parse_call_data(handle)
@@ -379,9 +387,16 @@ impl Precompile {
 			)
 			.to_token_stream()
 		} else {
-			quote_spanned!(span=>
+			let opt_pre_dispatch_check = self.pre_dispatch_check.as_ref().map(|ident| {
+				let span = ident.span();
+				quote_spanned!(span=>let _: () = <#struct_type>::#ident(handle)?;)
+			});
+
+			quote!(
 				impl #impl_generics ::fp_evm::Precompile for #struct_type #where_clause {
 					fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+						#opt_pre_dispatch_check
+
 						<#enum_ident #ty_generics>::parse_call_data(handle)?.execute(handle)
 					}
 				}
