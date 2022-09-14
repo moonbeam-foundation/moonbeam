@@ -299,9 +299,14 @@ fn set_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
+			// Create input with keys inside a Solidity bytes.
 			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([2u8; 32]))
-				.write(sp_core::H256::from([4u8; 32]))
+				.write(Bytes(
+					EvmDataWriter::new()
+						.write(sp_core::H256::from([2u8; 32]))
+						.write(sp_core::H256::from([4u8; 32]))
+						.build(),
+				))
 				.build();
 
 			// Make sure the call goes through successfully
@@ -358,6 +363,25 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 					file,
 				)
 			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"add_association(bytes32)",
+		"update_association(bytes32,bytes32)",
+		"clear_association(bytes32)",
+		"remove_keys()",
+		"set_keys(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if Action::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
 		}
 	}
 }

@@ -83,8 +83,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 
@@ -169,7 +168,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1800,
+	spec_version: 1900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -479,6 +478,7 @@ impl pallet_scheduler::Config for Runtime {
 
 type CouncilInstance = pallet_collective::Instance1;
 type TechCommitteeInstance = pallet_collective::Instance2;
+type TreasuryCouncilInstance = pallet_collective::Instance3;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Origin = Origin;
@@ -487,7 +487,7 @@ impl pallet_collective::Config<CouncilInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the council at once.
+	/// The maximum number of proposals that can be open in the council at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of council members.
 	type MaxMembers = ConstU32<100>;
@@ -502,10 +502,25 @@ impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
 	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of Proposlas that can be open in the technical committee at once.
+	/// The maximum number of proposals that can be open in the technical committee at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of technical committee members.
 	type MaxMembers = ConstU32<100>;
+	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
+	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
+	type Origin = Origin;
+	type Event = Event;
+	type Proposal = Call;
+	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
+	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
+	type MotionDuration = ConstU32<{ 3 * DAYS }>;
+	/// The maximum number of proposals that can be open in the treasury council at once.
+	type MaxProposals = ConstU32<20>;
+	/// The maximum number of treasury council members.
+	type MaxMembers = ConstU32<9>;
 	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
@@ -572,12 +587,12 @@ parameter_types! {
 
 type TreasuryApproveOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
+	pallet_collective::EnsureProportionAtLeast<AccountId, TreasuryCouncilInstance, 3, 5>,
 >;
 
 type TreasuryRejectOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
-	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
+	pallet_collective::EnsureProportionMoreThan<AccountId, TreasuryCouncilInstance, 1, 2>,
 >;
 
 impl pallet_treasury::Config for Runtime {
@@ -671,13 +686,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 impl parachain_info::Config for Runtime {}
 
-parameter_types! {
-	/// Default fixed percent a collator takes off the top of due rewards
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// Default percent of inflation set aside for parachain bond every round
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-}
-
 pub struct OnCollatorPayout;
 impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
 	fn on_collator_payout(
@@ -701,8 +709,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
-	/// Blocks per round
-	type DefaultBlocksPerRound = ConstU32<{ 6 * HOURS }>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<{ 4 * 7 }>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -723,8 +729,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	/// Minimum stake required to become a collator
 	type MinCollatorStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
@@ -963,7 +967,6 @@ impl Contains<Call> for NormalFilter {
 			},
 			// We filter for now transact through signed
 			Call::XcmTransactor(method) => match method {
-				pallet_xcm_transactor::Call::transact_through_signed_multilocation { .. } => false,
 				pallet_xcm_transactor::Call::transact_through_signed { .. } => false,
 				_ => true,
 			},
@@ -1103,6 +1106,13 @@ pub struct BabeDataGetter;
 impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_epoch_index() -> u64 {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			const BENCHMARKING_NEW_EPOCH: u64 = 10u64;
+			return BENCHMARKING_NEW_EPOCH;
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
@@ -1110,6 +1120,13 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
 	fn get_epoch_randomness() -> Option<Hash> {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let benchmarking_babe_output = Hash::default();
+			return Some(benchmarking_babe_output);
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
@@ -1181,6 +1198,8 @@ construct_runtime! {
 			pallet_collective::<Instance1>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 70,
 		TechCommitteeCollective:
 			pallet_collective::<Instance2>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 71,
+		TreasuryCouncilCollective:
+			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 72,
 
 		// Treasury stuff.
 		Treasury: pallet_treasury::{Pallet, Storage, Config, Event<T>, Call} = 80,

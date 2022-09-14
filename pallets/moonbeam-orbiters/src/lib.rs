@@ -27,6 +27,7 @@
 //! currently selected orbiter.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![feature(step_trait)]
 
 pub mod types;
 pub mod weights;
@@ -51,7 +52,7 @@ pub mod pallet {
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
-	use sp_runtime::traits::{CheckedSub, One, StaticLookup, Zero};
+	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -82,16 +83,21 @@ pub mod pallet {
 		/// Origin that is allowed to remove a collator from orbiters program.
 		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
 
+		#[pallet::constant]
 		/// Maximum number of orbiters per collator.
 		type MaxPoolSize: Get<u32>;
 
+		#[pallet::constant]
 		/// Maximum number of round to keep on storage.
 		type MaxRoundArchive: Get<Self::RoundIndex>;
 
 		/// Reserve identifier for this pallet instance.
 		type OrbiterReserveIdentifier: Get<ReserveIdentifierOf<Self>>;
 
+		#[pallet::constant]
 		/// Number of rounds before changing the selected orbiter.
+		/// WARNING: when changing `RotatePeriod`, you need a migration code that sets
+		/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
 		type RotatePeriod: Get<Self::RoundIndex>;
 
 		/// Round index type.
@@ -102,7 +108,8 @@ pub mod pallet {
 			+ Default
 			+ sp_runtime::traits::MaybeDisplay
 			+ sp_runtime::traits::AtLeast32Bit
-			+ Copy;
+			+ Copy
+			+ core::iter::Step;
 
 		/// Weight information for extrinsics in this pallet.
 		type WeightInfo: WeightInfo;
@@ -123,6 +130,12 @@ pub mod pallet {
 	#[pallet::storage]
 	/// Current round index
 	pub(crate) type CurrentRound<T: Config> = StorageValue<_, T::RoundIndex, ValueQuery>;
+
+	#[pallet::storage]
+	/// If true, it forces the rotation at the next round.
+	/// A use case: when changing RotatePeriod, you need a migration code that sets this value to
+	/// true to avoid holes in OrbiterPerRound.
+	pub(crate) type ForceRotation<T: Config> = StorageValue<_, bool, ValueQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn min_orbiter_deposit)]
@@ -461,22 +474,26 @@ pub mod pallet {
 							collator.clone(),
 							Option::<T::AccountId>::None,
 						);
+						writes += 1;
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),
 							Some(collator.clone()),
 						);
-						OrbiterPerRound::<T>::insert(
-							round_index,
-							collator.clone(),
-							next_orbiter.clone(),
-						);
+						writes += 1;
+						for i in Zero::zero()..T::RotatePeriod::get() {
+							OrbiterPerRound::<T>::insert(
+								round_index.saturating_add(i),
+								collator.clone(),
+								next_orbiter.clone(),
+							);
+							writes += 1;
+						}
 						Self::deposit_event(Event::OrbiterRotation {
 							collator,
 							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
 							new_orbiter: Some(next_orbiter),
 						});
-						writes += 3;
 					} else {
 						// If there is no more active orbiter, you have to remove the collator override.
 						AccountLookupOverride::<T>::remove(collator.clone());
@@ -497,7 +514,10 @@ pub mod pallet {
 		pub fn on_new_round(round_index: T::RoundIndex) -> Weight {
 			CurrentRound::<T>::put(round_index);
 
-			if round_index % T::RotatePeriod::get() == Zero::zero() {
+			if ForceRotation::<T>::get() {
+				ForceRotation::<T>::put(false);
+				Self::on_rotate(round_index) + T::DbWeight::get().writes(2)
+			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
 				Self::on_rotate(round_index) + T::DbWeight::get().write
 			} else {
 				T::DbWeight::get().write

@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
+
 use super::*;
 use crate as pallet_xcm_transactor;
 use frame_support::{construct_runtime, parameter_types};
@@ -29,17 +30,17 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 };
 use xcm::latest::{
-	Error as XcmError, Instruction,
+	opaque, Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
+use sp_std::cell::RefCell;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightBounds, WeightTrader},
 	Assets,
 };
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -221,6 +222,13 @@ pub enum Transactors {
 	Relay,
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
+}
+
 impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
@@ -272,6 +280,34 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 	}
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl From<MultiLocation> for CurrencyId {
+	fn from(location: MultiLocation) -> CurrencyId {
+		if location == SelfReserve::get() {
+			CurrencyId::SelfReserve
+		} else if location == MultiLocation::parent() {
+			CurrencyId::OtherReserve(0)
+		} else {
+			CurrencyId::OtherReserve(1)
+		}
+	}
+}
+
+// Simulates sending a XCM message
+thread_local! {
+	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
+}
+pub fn sent_xcm() -> Vec<(MultiLocation, opaque::Xcm)> {
+	SENT_XCM.with(|q| (*q.borrow()).clone())
+}
+pub struct TestSendXcm;
+impl SendXcm for TestSendXcm {
+	fn send_xcm(dest: impl Into<MultiLocation>, msg: opaque::Xcm) -> SendResult {
+		SENT_XCM.with(|q| q.borrow_mut().push((dest.into(), msg)));
+		Ok(())
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type Balance = Balance;
@@ -286,7 +322,7 @@ impl Config for Test {
 	type Weigher = DummyWeigher<Call>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
-	type XcmSender = DoNothingRouter;
+	type XcmSender = TestSendXcm;
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 }

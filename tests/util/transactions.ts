@@ -9,6 +9,10 @@ import {
   ALITH_PRIVATE_KEY,
   baltathar,
   BALTATHAR_PRIVATE_KEY,
+  charleth,
+  CHARLETH_PRIVATE_KEY,
+  dorothy,
+  DOROTHY_PRIVATE_KEY,
   ethan,
   ETHAN_PRIVATE_KEY,
 } from "./accounts";
@@ -52,6 +56,18 @@ export const BALTATHAR_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
   from: baltathar.address,
   privateKey: BALTATHAR_PRIVATE_KEY,
+};
+
+export const CHARLETH_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: charleth.address,
+  privateKey: CHARLETH_PRIVATE_KEY,
+};
+
+export const DOROTHY_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: dorothy.address,
+  privateKey: DOROTHY_PRIVATE_KEY,
 };
 
 export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
