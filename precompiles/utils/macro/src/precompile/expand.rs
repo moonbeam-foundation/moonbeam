@@ -29,7 +29,6 @@ impl Precompile {
 	}
 
 	pub fn expand_enum_decl(&self) -> impl ToTokens {
-		let span = Span::call_site();
 		let enum_ident = &self.enum_ident;
 		let (_impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
@@ -47,7 +46,7 @@ impl Precompile {
 			.map(|v| v.arguments.iter().map(|a| &a.ty).collect())
 			.collect();
 
-		quote_spanned!(span=>
+		quote!(
 			#[allow(non_camel_case_types)]
 			pub enum #enum_ident #ty_generics #where_clause {
 				#(
@@ -81,8 +80,9 @@ impl Precompile {
 
 			let modifier = syn::Ident::new(modifier, span);
 
-			quote_spanned!(span=>
+			quote!(
 				use ::precompile_utils::modifier::FunctionModifier;
+				use ::precompile_utils::handle::PrecompileHandleExt;
 				handle.check_function_modifier(FunctionModifier::#modifier)?;
 			)
 		});
@@ -94,7 +94,7 @@ impl Precompile {
 				Self::expand_variant_parsing_from_handle(variant_ident, variant)
 			});
 
-		quote_spanned!(span=>
+		quote!(
 			#(
 				fn #fn_parse(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
 					#modifier_check
@@ -110,9 +110,8 @@ impl Precompile {
 		variant_ident: &syn::Ident,
 		variant: &Variant,
 	) -> impl ToTokens {
-		let span = Span::call_site();
 		if variant.arguments.is_empty() {
-			quote_spanned!(span=> Ok(Self::#variant_ident {})).to_token_stream()
+			quote!( Ok(Self::#variant_ident {})).to_token_stream()
 		} else {
 			use case::CaseExt;
 
@@ -123,7 +122,7 @@ impl Precompile {
 				.map(|v| v.ident.to_string().to_camel_lowercase());
 			let args_count = variant.arguments.len();
 
-			quote_spanned!(span=>
+			quote!(
 				let mut input = handle.read_after_selector()?;
 				input.expect_arguments(#args_count)?;
 
@@ -136,7 +135,6 @@ impl Precompile {
 	}
 
 	pub fn expand_enum_impl(&self) -> impl ToTokens {
-		let span = Span::call_site();
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
@@ -172,7 +170,7 @@ impl Precompile {
 		let parse_call_data_fn = self.expand_enum_parse_call_data();
 		let execute_fn = self.expand_enum_execute_fn();
 
-		quote_spanned!(span=>
+		quote!(
 			impl #impl_generics #enum_ident #ty_generics #where_clause {
 				#parse_call_data_fn
 
@@ -204,6 +202,7 @@ impl Precompile {
 				)*
 
 				pub fn encode(self) -> ::sp_std::vec::Vec<u8> {
+					use ::precompile_utils::EvmDataWriter;
 					match self {
 						#(
 							Self::#variants_ident2 { #(#variants_list),* } => {
@@ -225,8 +224,6 @@ impl Precompile {
 
 	/// Generate the execute fn of the enum.
 	fn expand_enum_execute_fn(&self) -> impl ToTokens {
-		let span = Span::call_site();
-
 		let struct_type = &self.struct_type;
 
 		let variants_ident: Vec<_> = self.variants_content.keys().collect();
@@ -238,9 +235,10 @@ impl Precompile {
 			.collect();
 
 		// If there is no precompile set there is no discriminant.
-		let opt_discriminant_arg = self.precompile_set_discriminant.as_ref().map(
-			|PrecompileSetDiscriminant { type_, .. }| quote_spanned!(span=> discriminant: #type_,),
-		);
+		let opt_discriminant_arg = self
+			.precompile_set_discriminant_type
+			.as_ref()
+			.map(|ty| quote!( discriminant: #ty,));
 
 		let variants_call = self
 			.variants_content
@@ -248,18 +246,20 @@ impl Precompile {
 			.map(|(variant_ident, variant)| {
 				let arguments = variant.arguments.iter().map(|arg| &arg.ident);
 
+				let span = variant_ident.span();
 				let opt_discriminant_arg = self
-					.precompile_set_discriminant
+					.precompile_set_discriminant_fn
 					.as_ref()
 					.map(|_| quote_spanned!(span=> discriminant,));
 
-				quote_spanned!(span=>
+				quote!(
+					use ::precompile_utils::EvmDataWriter;
 					let output = <#struct_type>::#variant_ident(#opt_discriminant_arg handle, #(#arguments),*)?;
 						EvmDataWriter::new().write(output).build()
 				)
 			});
 
-		quote_spanned!(span=>
+		quote!(
 			pub fn execute(self, #opt_discriminant_arg handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
 				use ::precompile_utils::data::EvmDataWriter;
 				use ::fp_evm::{PrecompileOutput, ExitSucceed};
@@ -283,12 +283,11 @@ impl Precompile {
 
 	/// Expand how a variant can be Solidity encoded.
 	fn expand_variant_encoding(variant: &Variant) -> impl ToTokens {
-		let span = Span::call_site();
 		match variant.selectors.first() {
 			Some(selector) => {
 				let arguments = variant.arguments.iter().map(|arg| &arg.ident);
 
-				quote_spanned!(span=>
+				quote!(
 					EvmDataWriter::new_with_selector(#selector)
 					#(.write(#arguments))*
 					.build()
@@ -302,8 +301,6 @@ impl Precompile {
 	/// Expand the main parsing function that, based on the selector in the
 	/// input, dispatch the decoding to one of the variants parsing function.
 	fn expand_enum_parse_call_data(&self) -> impl ToTokens {
-		let span = Span::call_site();
-
 		let selectors = self.selector_to_variant.keys();
 		let parse_fn = self
 			.selector_to_variant
@@ -313,17 +310,19 @@ impl Precompile {
 		let match_fallback = match &self.fallback_to_variant {
 			Some(variant) => {
 				let parse_fn = Self::variant_ident_to_parse_fn(variant);
-				quote_spanned!(span=> _ => Self::#parse_fn(handle),).to_token_stream()
+				quote!(_ => Self::#parse_fn(handle),).to_token_stream()
 			}
-			None => quote_spanned!(span=>
+			None => quote!(
 				Some(_) => Err(RevertReason::UnknownSelector.into()),
 				None => Err(RevertReason::read_out_of_bounds("selector").into()),
 			)
 			.to_token_stream(),
 		};
 
-		quote_spanned!(span=>
+		quote!(
 			pub fn parse_call_data(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
+				use precompile_utils::revert::RevertReason;
+
 				let input = handle.input();
 
 				let selector = input.get(0..4).map(|s| {
@@ -351,11 +350,7 @@ impl Precompile {
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
-		if let Some(PrecompileSetDiscriminant {
-			fn_: discriminant_fn,
-			..
-		}) = &self.precompile_set_discriminant
-		{
+		if let Some(discriminant_fn) = &self.precompile_set_discriminant_fn {
 			let opt_pre_dispatch_check = self
 				.pre_dispatch_check
 				.as_ref()
@@ -406,8 +401,6 @@ impl Precompile {
 	}
 
 	pub fn expand_test_solidity_signature(&self) -> impl ToTokens {
-		let span = Span::call_site();
-
 		let variant_name = self.variants_content.keys().map(|ident| ident.to_string());
 		let variant_solidity = self
 			.variants_content
@@ -424,7 +417,7 @@ impl Precompile {
 		if let Some(test_types) = &self.test_concrete_types {
 			let (impl_generics, _ty_generics, where_clause) = self.generics.split_for_impl();
 
-			quote_spanned!(span=>
+			quote!(
 				#[test]
 				#[allow(non_snake_case)]
 				fn #test_name() {
@@ -446,7 +439,7 @@ impl Precompile {
 			)
 			.to_token_stream()
 		} else {
-			quote_spanned!(span=>
+			quote!(
 				#[test]
 				#[allow(non_snake_case)]
 				fn #test_name() {

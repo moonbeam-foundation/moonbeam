@@ -68,8 +68,11 @@ pub struct Precompile {
 	/// in the form of an attribute on the impl block itself.
 	tagged_as_precompile_set: bool,
 
-	/// Info about PrecompileSet discriminant.
-	precompile_set_discriminant: Option<PrecompileSetDiscriminant>,
+	/// Ident of the function returning the PrecompileSet discriminant.
+	precompile_set_discriminant_fn: Option<syn::Ident>,
+
+	/// Type of the PrecompileSet discriminant.
+	precompile_set_discriminant_type: Option<syn::Type>,
 
 	/// When generating the selector test the data types might depend on type parameters.
 	/// The test thus need to be written using concrete types.
@@ -119,13 +122,4 @@ pub struct Argument {
 	/// Type of the argument, which will be used in the struct variant and
 	/// to parse the input.
 	ty: syn::Type,
-}
-
-#[derive(Debug)]
-pub struct PrecompileSetDiscriminant {
-	/// Function responsible to get the discriminant from the code address.
-	fn_: syn::Ident,
-
-	/// Type of the discriminant.
-	type_: syn::Type,
 }

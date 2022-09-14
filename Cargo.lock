@@ -9489,12 +9489,17 @@ name = "precompile-utils-macro"
 version = "0.1.0"
 dependencies = [
  "case",
+ "fp-evm",
  "num_enum",
+ "precompile-utils",
  "prettyplease",
  "proc-macro2",
  "quote",
  "sha3 0.8.2",
+ "sp-core",
+ "sp-std",
  "syn",
+ "trybuild",
 ]
 
 [[package]]
@@ -13532,6 +13537,21 @@ dependencies = [
  "sp-state-machine",
  "sp-version",
  "zstd",
+]
+
+[[package]]
+name = "trybuild"
+version = "1.0.64"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7f408301c7480f9e6294eb779cfc907f54bd901a9660ef24d7f233ed5376485"
+dependencies = [
+ "glob",
+ "once_cell",
+ "serde",
+ "serde_derive",
+ "serde_json",
+ "termcolor",
+ "toml",
 ]
 
 [[package]]

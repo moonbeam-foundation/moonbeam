@@ -27,7 +27,8 @@ impl Precompile {
 			variants_content: BTreeMap::new(),
 			fallback_to_variant: None,
 			tagged_as_precompile_set: false,
-			precompile_set_discriminant: None,
+			precompile_set_discriminant_fn: None,
+			precompile_set_discriminant_type: None,
 			test_concrete_types: None,
 			pre_dispatch_check: None,
 		};
@@ -41,10 +42,12 @@ impl Precompile {
 			}
 		}
 
-		if precompile.tagged_as_precompile_set && precompile.precompile_set_discriminant.is_none() {
+		if precompile.tagged_as_precompile_set
+			&& precompile.precompile_set_discriminant_fn.is_none()
+		{
 			let msg = "A PrecompileSet must have exactly one function tagged with \
 			`#[precompile::discriminant]`";
-			return Err(syn::Error::new(impl_.span(), msg));
+			return Err(syn::Error::new(Span::call_site(), msg));
 		}
 
 		Ok(precompile)
@@ -124,7 +127,7 @@ impl Precompile {
 				return Err(syn::Error::new(span, msg));
 			}
 
-			if self.precompile_set_discriminant.is_some() {
+			if self.precompile_set_discriminant_fn.is_some() {
 				let msg = "A PrecompileSet can only have 1 discriminant function";
 				return Err(syn::Error::new(span, msg));
 			}
@@ -135,14 +138,14 @@ impl Precompile {
 				return Err(syn::Error::new(span, msg));
 			}
 
-			let span = method.span();
+			let span = method.sig.span();
 
 			if method.sig.inputs.len() != 1 {
-				let msg = "The discriminant function must only take the code address as parameter.";
+				let msg = "The discriminant function must only take the code address (H160) as parameter.";
 				return Err(syn::Error::new(span, msg));
 			}
 
-			let msg = "The discriminant function must return an Option of the discriminant type";
+			let msg = "The discriminant function must return an Option<_> (no type alias)";
 
 			let return_type = match &method.sig.output {
 				syn::ReturnType::Type(_, t) => t.as_ref(),
@@ -180,15 +183,14 @@ impl Precompile {
 				return Err(syn::Error::new(option_arguments.args.span(), msg));
 			}
 
-			let discriminant_type = match &option_arguments.args[0] {
+			let discriminant_type: &syn::Type = match &option_arguments.args[0] {
 				syn::GenericArgument::Type(t) => t,
 				_ => return Err(syn::Error::new(option_arguments.args.span(), msg)),
 			};
 
-			self.precompile_set_discriminant = Some(PrecompileSetDiscriminant {
-				fn_: method.sig.ident.clone(),
-				type_: discriminant_type.clone(),
-			});
+			self.try_register_discriminant_type(&discriminant_type)?;
+
+			self.precompile_set_discriminant_fn = Some(method.sig.ident.clone());
 
 			return Ok(());
 		}
@@ -210,7 +212,11 @@ impl Precompile {
 
 			let span = method.span();
 
-			if method.sig.inputs.len() != initial_arguments {
+			let mut method_inputs = method.sig.inputs.iter();
+
+			self.check_initial_parameters(&mut method_inputs, method.sig.span())?;
+
+			if method_inputs.next().is_some() {
 				let msg = if self.tagged_as_precompile_set {
 					"PrecompileSet pre_dispatch_check method must have exactly 2 parameters (the precompile instance \
 					discriminant and the PrecompileHandle)"
@@ -322,17 +328,6 @@ impl Precompile {
 			return Err(syn::Error::new(param.span(), msg));
 		}
 
-		if method.sig.inputs.len() < initial_arguments {
-			let msg = if self.tagged_as_precompile_set {
-				"PrecompileSet methods must have at least 2 parameters (the precompile instance \
-				discriminant and the PrecompileHandle)"
-			} else {
-				"Precompile methods must have at least 1 parameter (the PrecompileHandle)"
-			};
-
-			return Err(syn::Error::new(method.span(), msg));
-		}
-
 		if is_fallback {
 			if let Some(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
 				let msg = if self.tagged_as_precompile_set {
@@ -346,14 +341,13 @@ impl Precompile {
 			}
 		}
 
-		// We skip the initial parameter(s).
-		// Not having it/them or having a self parameter will produce a compilation error when
-		// trying to call the functions.
-		let method_inputs = method.sig.inputs.iter().skip(initial_arguments);
+		let mut method_inputs = method.sig.inputs.iter();
+
+		self.check_initial_parameters(&mut method_inputs, method.sig.span())?;
 
 		// We go through each parameter to collect each name and type that will be used to
 		// generate the input enum and parse the call data.
-		for input in method_inputs {
+		for input in &mut method_inputs {
 			let input = match input {
 				syn::FnArg::Typed(t) => t,
 				_ => {
@@ -397,4 +391,84 @@ impl Precompile {
 
 		Ok(())
 	}
+
+	fn check_initial_parameters<'a>(&mut self, method_inputs: &mut impl Iterator<Item = &'a syn::FnArg>, method_span: Span) -> syn::Result<()> {
+		// Discriminant input
+		if self.tagged_as_precompile_set {
+			let input = match method_inputs.next() {
+				Some(a) => a,
+				None => {
+					let msg = "PrecompileSet methods must have at least 2 parameters (the precompile instance \
+						discriminant and the PrecompileHandle)";
+					return Err(syn::Error::new(method_span, msg));
+				}
+			};
+
+			let input = match input {
+				syn::FnArg::Typed(a) => a,
+				_ => {
+					let msg = "self is not allowed in precompile methods";
+					return Err(syn::Error::new(input.span(), msg));
+				}
+			};
+
+			let input_type = input.ty.as_ref();
+
+			self.try_register_discriminant_type(&input_type)?;
+		}
+
+		// Precompile handle input
+		{
+			let input = match method_inputs.next() {
+				Some(a) => a,
+				None => {
+					let msg = if self.tagged_as_precompile_set {
+						"PrecompileSet methods must have at least 2 parameters (the precompile instance \
+						discriminant and the PrecompileHandle)"
+					} else {
+						"Precompile methods must have at least 1 parameter (the PrecompileHandle)"
+					};
+
+					return Err(syn::Error::new(method_span, msg));
+				}
+			};
+
+			let input = match input {
+				syn::FnArg::Typed(a) => a,
+				_ => {
+					let msg = "self is not allowed in precompile methods";
+					return Err(syn::Error::new(input.span(), msg));
+				}
+			};
+
+			let input_type = input.ty.as_ref();
+
+			if !is_same_type(&input_type, &syn::parse_quote! {&mut impl PrecompileHandle}) {
+				let msg = "This parameter must have type `&mut impl PrecompileHandle`";
+				return Err(syn::Error::new(input_type.span(), msg));
+			}
+		}
+
+		Ok(())
+	}
+
+	fn try_register_discriminant_type(&mut self, ty: &syn::Type) -> syn::Result<()> {
+		if let Some(known_type) = &self.precompile_set_discriminant_type {
+			if !is_same_type(&known_type, &ty) {
+				let msg = format!(
+					"All discriminants must have the same type (found {} before)",
+					known_type.to_token_stream()
+				);
+				return Err(syn::Error::new(ty.span(), msg));
+			}
+		} else {
+			self.precompile_set_discriminant_type = Some(ty.clone());
+		}
+
+		Ok(())
+	}
+}
+
+fn is_same_type(a: &syn::Type, b: &syn::Type) -> bool {
+	a == b
 }

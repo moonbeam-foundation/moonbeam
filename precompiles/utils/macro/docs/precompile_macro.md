@@ -15,7 +15,7 @@ implementation. This `impl` block can have type parameters and a `where` clause,
 reused to generate the `Precompile`/`PrecompileSet` trait implementation and the enum representing
 each public function of precompile with its parsed arguments.
 
-```rust
+```rust,ignore
 pub struct ExemplePrecompile<R, I>(PhantomData<(R,I)>);
 
 #[precomile_utils::precompile]
@@ -32,7 +32,7 @@ where
 
 The exemple code above will automatically generate an enum like
 
-```rust
+```rust,ignore
 #[allow(non_camel_case_types)]
 pub enum ExemplePrecompileCall<R, I>
 where
@@ -77,7 +77,7 @@ This function cannot have any parameter outside of the `PrecompileHandle`. A fun
 In case some check must be performed before parsing the input, such as forbidding being called from
 some address, a function can be annotated with `#[precompile::pre_dispatch_check]`:
 
-```rust
+```rust,ignore
 #[precompile::pre_dispatch_check]
 fn pre_dispatch_check(handle: &mut impl PrecompileHandle) -> EvmResult {
     todo!("Perform your check here")
@@ -102,7 +102,7 @@ corresponding to this address if it exists.
 Finally, every other function annotated with a `precompile::_` attribute must now take this
 discriminant as first parameter, before the `PrecompileHandle`.
 
-```rust
+```rust,ignore
 pub struct ExemplePrecompileSet<R>(PhantomData<R>);
 
 #[precompile_utils::precompile]
@@ -141,7 +141,7 @@ block with the `#[precompile::test_concrete_types(...)]` attributes. The `...` s
 with concrete types for each type parameter, like a mock runtime. Those types are only used to
 generate the test and only one set of types can be used.
 
-```rust
+```rust,ignore
 pub struct ExamplePrecompile<R, I>(PhantomData<(R, I)>);
 
 pub struct GetMaxSize<R, I>(PhantomData<(R, I)>);
