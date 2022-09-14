@@ -57,7 +57,7 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn request_randomness() -> Weight;
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight;
+	fn prepare_fulfillment(x: u32, ) -> Weight;
 	#[rustfmt::skip]
 	fn finish_fulfillment() -> Weight;
 	#[rustfmt::skip]
@@ -86,8 +86,10 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness Requests (r:1 w:0)
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight {
-		(42_051_000 as Weight)
+	fn prepare_fulfillment(x: u32, ) -> Weight {
+		(13_914_000 as Weight)
+			// Standard Error: 0
+			.saturating_add((296_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)
@@ -155,8 +157,10 @@ impl WeightInfo for () {
 	// Storage: Randomness Requests (r:1 w:0)
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight {
-		(42_051_000 as Weight)
+	fn prepare_fulfillment(x: u32, ) -> Weight {
+		(13_914_000 as Weight)
+			// Standard Error: 0
+			.saturating_add((296_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)

@@ -83,8 +83,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 
@@ -687,13 +686,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 impl parachain_info::Config for Runtime {}
 
-parameter_types! {
-	/// Default fixed percent a collator takes off the top of due rewards
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// Default percent of inflation set aside for parachain bond every round
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-}
-
 pub struct OnCollatorPayout;
 impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
 	fn on_collator_payout(
@@ -717,8 +709,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
-	/// Blocks per round
-	type DefaultBlocksPerRound = ConstU32<{ 6 * HOURS }>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<{ 4 * 7 }>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -739,8 +729,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	/// Minimum stake required to become a collator
 	type MinCollatorStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
