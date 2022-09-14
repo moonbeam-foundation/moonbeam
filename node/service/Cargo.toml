@@ -92,15 +92,15 @@ substrate-frame-rpc-system = { git = "https://github.com/purestake/substrate", b
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 
 # Frontier
-fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fc-mapping-sync = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", features = [ "rpc_binary_search_estimate" ] }
-fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
+fc-consensus = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fc-db = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fc-mapping-sync = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fc-rpc = { git = "https://github.com/purestake/frontier-private", branch = "tmp2", features = [ "rpc_binary_search_estimate" ] }
+fc-rpc-core = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fp-consensus = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fp-rpc = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+fp-storage = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier-private", branch = "tmp2" }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26" }
