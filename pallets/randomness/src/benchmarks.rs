@@ -19,14 +19,15 @@
 //! Benchmarking
 use crate::vrf::*;
 use crate::{
-	BalanceOf, Config, LocalVrfOutput, NotFirstBlock, Pallet, RandomnessResult, RandomnessResults,
-	Request, RequestType,
+	BalanceOf, Call, Config, InherentIncluded, LocalVrfOutput, NotFirstBlock, Pallet,
+	RandomnessResult, RandomnessResults, RelayEpoch, Request, RequestType,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, Zero};
 use frame_support::{
 	dispatch::DispatchResult,
 	traits::{Currency, Get, OnInitialize},
 };
+use frame_system::RawOrigin;
 use nimbus_primitives::{digests::CompatibleDigestItem as NimbusDigest, NimbusId};
 use pallet_evm::AddressMapping;
 use parity_scale_codec::alloc::string::ToString;
@@ -53,11 +54,32 @@ benchmarks! {
 	where_clause {
 		where <T::VrfKeyLookup as KeysLookup<NimbusId, VrfId>>::Account: From<T::AccountId>
 	}
-	// TODO: causes panic:
-	// Thread 'main' panicked at 'set in `set_validation_data`inherent => available before
-	// on_initialize', runtime/moonbase/src/lib.rs:1111
-	// set_babe_randomness_results {}: _(RawOrigin::None)
-	// verify {}
+	// Benchmark for inherent included in every block
+	set_babe_randomness_results {
+		// set the current relay epoch as 9, `get_epoch_index` configured to return 10
+		const BENCHMARKING_OLD_EPOCH: u64 = 9u64;
+		RelayEpoch::<T>::put(BENCHMARKING_OLD_EPOCH);
+		let benchmarking_babe_output = T::Hash::default();
+		let benchmarking_new_epoch = BENCHMARKING_OLD_EPOCH.saturating_add(1u64);
+		RandomnessResults::<T>::insert(
+			RequestType::BabeEpoch(benchmarking_new_epoch),
+			RandomnessResult::new()
+		);
+	}: _(RawOrigin::None)
+	verify {
+		// verify randomness result
+		assert_eq!(
+			RandomnessResults::<T>::get(
+				RequestType::BabeEpoch(benchmarking_new_epoch)
+			).unwrap().randomness,
+			Some(benchmarking_babe_output)
+		);
+		assert!(InherentIncluded::<T>::get().is_some());
+		assert_eq!(
+			RelayEpoch::<T>::get(),
+			benchmarking_new_epoch
+		);
+	}
 
 	// Benchmark for VRF verification and everything else in `set_output`, in `on_initialize`
 	on_initialize {
@@ -159,6 +181,7 @@ benchmarks! {
 	}
 
 	prepare_fulfillment {
+		let x in 1..T::MaxRandomWords::get().into();
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
 		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
@@ -166,7 +189,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 100u8,
+			num_words: x as u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -175,10 +198,11 @@ benchmarks! {
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
 	}: {
-		let result = Pallet::<T>::prepare_fulfillment(0u64);
-		assert!(result.is_ok(), "Prepare Fulfillment Failed");
+		let fulfillment_args = Pallet::<T>::prepare_fulfillment(0u64);
+		assert!(fulfillment_args.is_ok(), "Prepare Fulfillment Failed");
+		assert_eq!(fulfillment_args.unwrap().randomness.len(), x as usize);
 	}
-	verify { }
+	verify {}
 
 	finish_fulfillment {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();

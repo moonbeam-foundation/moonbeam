@@ -30,9 +30,9 @@ use pallet_evm_precompile_call_permit::CallPermitPrecompile;
 use pallet_evm_precompile_collective::CollectivePrecompile;
 use pallet_evm_precompile_crowdloan_rewards::CrowdloanRewardsPrecompile;
 use pallet_evm_precompile_democracy::DemocracyPrecompile;
-use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_parachain_staking::ParachainStakingPrecompile;
+use pallet_evm_precompile_randomness::RandomnessPrecompile;
 use pallet_evm_precompile_relay_encoder::RelayEncoderPrecompile;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
@@ -108,7 +108,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<9>, Blake2F, ForbidRecursion, AllowDelegateCall>,
 				// Non-Moonbeam specific nor Ethereum precompiles :
 				PrecompileAt<AddressU64<1024>, Sha3FIPS256>,
-				PrecompileAt<AddressU64<1025>, Dispatch<R>>,
+				// PrecompileAt<AddressU64<1025>, Dispatch<R>>,
 				PrecompileAt<AddressU64<1026>, ECRecoverPublicKey>,
 				// Moonbeam specific precompiles:
 				PrecompileAt<AddressU64<2048>, ParachainStakingPrecompile<R>>,
@@ -120,7 +120,7 @@ pub type MoonbeamPrecompiles<R> = PrecompileSetBuilder<
 				PrecompileAt<AddressU64<2054>, XcmTransactorPrecompileV1<R>>,
 				PrecompileAt<AddressU64<2055>, AuthorMappingPrecompile<R>>,
 				PrecompileAt<AddressU64<2056>, BatchPrecompile<R>, LimitRecursionTo<2>>,
-				// PrecompileAt<AddressU64<2057>, RandomnessPrecompile<R>>, (Moonbase only)
+				PrecompileAt<AddressU64<2057>, RandomnessPrecompile<R>>,
 				PrecompileAt<AddressU64<2058>, CallPermitPrecompile<R>>,
 				// PrecompileAt<AddressU64<2059>, ProxyPrecompile<R>>, (Moonbase only)
 				PrecompileAt<AddressU64<2060>, XcmUtilsPrecompile<R, XcmExecutorConfig>>,

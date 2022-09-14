@@ -23,7 +23,9 @@ extern crate alloc;
 
 use fp_evm::{Context, ExitReason, Log, PrecompileHandle, PrecompileOutput};
 use frame_support::traits::Get;
+use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
+	weights::{SubstrateWeight, WeightInfo},
 	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
 };
 use precompile_utils::{costs::call_cost, prelude::*};
@@ -39,9 +41,17 @@ use solidity_types::*;
 
 // Tests to verify equal to weight_to_gas(weight) in runtime integration tests
 pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26325;
-pub const FULFILLMENT_OVERHEAD_ESTIMATED_COST: u64 = 24545;
 pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
 pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
+
+/// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
+pub fn fulfillment_overhead_gas_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
+	<T as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
+		SubstrateWeight::<T>::prepare_fulfillment(num_words.into())
+			.saturating_add(SubstrateWeight::<T>::finish_fulfillment()),
+	)
+}
+
 pub const LOG_FULFILLMENT_SUCCEEDED: [u8; 32] = keccak256!("FulFillmentSucceeded()");
 pub const LOG_FULFILLMENT_FAILED: [u8; 32] = keccak256!("FulFillmentFailed()");
 
@@ -387,7 +397,7 @@ where
 			handle.code_address(),
 			request.gas_limit,
 			request.fee,
-			FULFILLMENT_OVERHEAD_ESTIMATED_COST,
+			fulfillment_overhead_gas_cost::<Runtime>(request.num_words),
 		)?;
 
 		// get gas before subcall

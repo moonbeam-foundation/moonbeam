@@ -2213,7 +2213,7 @@ fn xtokens_precompile_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(20000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -2265,7 +2265,7 @@ fn xtokens_precompile_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(20000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2775,8 +2775,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2058, 2060, 2062, 2063, 2064,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
+			2056, 2057, 2058, 2060, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

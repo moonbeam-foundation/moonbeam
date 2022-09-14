@@ -16,8 +16,6 @@
 
 //! Precompile to xcm transactor runtime methods via the EVM
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::PrecompileOutput;

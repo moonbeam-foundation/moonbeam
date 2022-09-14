@@ -50,8 +50,8 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompile_randomness::{
-	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
-	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+	EXECUTE_EXPIRATION_ESTIMATED_COST, INCREASE_REQUEST_FEE_ESTIMATED_COST,
+	REQUEST_RANDOMNESS_ESTIMATED_COST,
 };
 use pallet_evm_precompileset_assets_erc20::{
 	AccountIdAssetIdConversion, IsLocal, SELECTOR_LOG_APPROVAL, SELECTOR_LOG_TRANSFER,
@@ -97,10 +97,6 @@ fn verify_randomness_precompile_gas_constants() {
 	assert_eq!(
 		weight_to_gas(Weight::request_randomness()),
 		REQUEST_RANDOMNESS_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
-		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
 		weight_to_gas(Weight::increase_fee()),
@@ -1863,7 +1859,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1915,7 +1911,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(12000)
+				.expect_cost(24000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -1957,7 +1953,7 @@ fn xtokens_precompiles_transfer_native() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2005,7 +2001,7 @@ fn xtokens_precompile_transfer_local_asset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(8000)
+				.expect_cost(16000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2507,7 +2503,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2547,7 +2543,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(17125)
+				.expect_cost(18619)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2841,8 +2837,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
+			2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)

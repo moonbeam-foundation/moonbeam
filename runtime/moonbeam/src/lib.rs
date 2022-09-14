@@ -83,8 +83,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{convert::TryFrom, prelude::*};
 
@@ -169,7 +168,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbeam"),
 	impl_name: create_runtime_str!("moonbeam"),
 	authoring_version: 3,
-	spec_version: 1800,
+	spec_version: 1900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -687,13 +686,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 impl parachain_info::Config for Runtime {}
 
-parameter_types! {
-	/// Default fixed percent a collator takes off the top of due rewards
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// Default percent of inflation set aside for parachain bond every round
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-}
-
 pub struct OnCollatorPayout;
 impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
 	fn on_collator_payout(
@@ -717,8 +709,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
-	/// Blocks per round
-	type DefaultBlocksPerRound = ConstU32<{ 6 * HOURS }>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<{ 4 * 7 }>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -739,8 +729,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	/// Minimum stake required to become a collator
 	type MinCollatorStk = ConstU128<{ 1000 * currency::GLMR * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
@@ -1118,6 +1106,13 @@ pub struct BabeDataGetter;
 impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 	// Tolerate panic here because only ever called in inherent (so can be omitted)
 	fn get_epoch_index() -> u64 {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			const BENCHMARKING_NEW_EPOCH: u64 = 10u64;
+			return BENCHMARKING_NEW_EPOCH;
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::EPOCH_INDEX)
 			.ok()
@@ -1125,6 +1120,13 @@ impl pallet_randomness::GetBabeData<u64, Option<Hash>> for BabeDataGetter {
 			.expect("expected to be able to read epoch index from relay chain state proof")
 	}
 	fn get_epoch_randomness() -> Option<Hash> {
+		if cfg!(feature = "runtime-benchmarks") {
+			// storage reads as per actual reads
+			let _relay_storage_root = ParachainSystem::validation_data();
+			let _relay_chain_state = ParachainSystem::relay_state_proof();
+			let benchmarking_babe_output = Hash::default();
+			return Some(benchmarking_babe_output);
+		}
 		relay_chain_state_proof()
 			.read_optional_entry(relay_chain::well_known_keys::ONE_EPOCH_AGO_RANDOMNESS)
 			.ok()
