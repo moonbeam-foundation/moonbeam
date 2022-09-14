@@ -23,6 +23,7 @@ import { DevTestContext } from "./setup-dev-tests";
 // Ethers is used to handle post-london transactions
 import type { ApiPromise } from "@polkadot/api";
 import type { SubmittableExtrinsic } from "@polkadot/api/promise/types";
+import { MOONBEAM_SUPPLY_FACTOR } from "./constants";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -84,7 +85,7 @@ export const createTransaction = async (
   const isEip2930 = context.ethTransactionType === "EIP2930";
   const isEip1559 = context.ethTransactionType === "EIP1559";
 
-  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : 1_000_000_000;
+  const gasPrice = options.gasPrice !== undefined ? options.gasPrice : await getSupplyFactor(context) * 1_000_000_000;
   const maxPriorityFeePerGas =
     options.maxPriorityFeePerGas !== undefined ? options.maxPriorityFeePerGas : 0;
   const value = options.value !== undefined ? options.value : "0x00";
@@ -100,7 +101,7 @@ export const createTransaction = async (
       data: options.data,
     }));
 
-  const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
+  const maxFeePerGas = options.maxFeePerGas || await getSupplyFactor(context) * 1_000_000_000;
   const accessList = options.accessList || [];
   const nonce =
     options.nonce != null
@@ -387,3 +388,16 @@ export const sendAllStreamAndWaitLast = async (
   }
   await Promise.all(promises);
 };
+
+// get supply factor
+export async function getSupplyFactor(
+  context: DevTestContext,
+) {
+  const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
+  if (runtimeName.startsWith("moonbeam")) {
+    return MOONBEAM_SUPPLY_FACTOR
+  }
+  else {
+    return 1
+  }
+}
