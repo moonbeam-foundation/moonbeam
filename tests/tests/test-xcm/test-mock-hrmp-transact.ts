@@ -12,11 +12,11 @@ import {
   XcmFragment,
 } from "../../util/xcm";
 
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { describeDevMoonbeam, describeDevMoonbeamAllRuntimes } from "../../util/setup-dev-tests";
 
 import { expectOk } from "../../util/expect";
 
-describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - receive horizontal transact", (context) => {
   let transferredBalance;
   let sendingAddress;
   let random: KeyringPair;
@@ -99,7 +99,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact", (context) => {
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horizontal transact with two Descends", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - receive horizontal transact with two Descends", (context) => {
   let transferredBalance;
   let sendingAddress;
   let random: KeyringPair;
@@ -183,7 +183,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact with two Descends", 
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horizontal transact without withdraw", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - receive horizontal transact without withdraw", (context) => {
   let transferredBalance;
   let sendingAddress;
   let random: KeyringPair;
@@ -265,7 +265,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact without withdraw", (
   });
 });
 
-describeDevMoonbeam("Mock XCM - receive horizontal transact without buy execution", (context) => {
+describeDevMoonbeamAllRuntimes("Mock XCM - receive horizontal transact without buy execution", (context) => {
   let transferredBalance;
   let sendingAddress;
   let random: KeyringPair;
