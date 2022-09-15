@@ -123,7 +123,7 @@ describeDevMoonbeamAllRuntimes(
       expect(balance).to.eq(transferredBalance);
     });
 
-    it("Should fail to transact because barrier only allows one descend origin ", async function () {
+    it("Should fail to transact: barrier only allows one descend origin ", async function () {
       // Get Pallet balances index
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -210,7 +210,7 @@ describeDevMoonbeamAllRuntimes(
       expect(balance).to.eq(transferredBalance);
     });
 
-    it("Should fail to transact because barrier does not pass without withdraw ", async function () {
+    it("Should fail to transact: barrier does not pass without withdraw ", async function () {
       // Get Pallet balances index
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
