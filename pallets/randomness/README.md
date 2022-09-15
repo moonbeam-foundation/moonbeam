@@ -2,13 +2,9 @@
 
 This pallet provides access to 2 sources of randomness:
 
-1. **local parachain VRF**
+1. The **local parachain VRF** is produced by collators per block. It signs the last block's VrfOutput as input to the VRF for this block.
 
-The local parachain VRF is produced by collators per block. It signs the last block's VrfOutput as input to the VRF for this block.
-
-2. **BABE epoch randomness**
-
-The Babe epoch randomness is produced by the relay chain per relay chain epoch. It is based on **all the VRF produced** by the relay chain validators **during** a complete **epoch**.(~600 blocks on Kusama, ~2400 blocks on Polkadot). At the beginning of a new Epoch, those VRFs are **mixed together** and **hashed** in order to produce a **pseudo-random word**.
+2. The **BABE epoch randomness** is produced by the relay chain per relay chain epoch. It is based on **all the VRF produced** by the relay chain validators **during** a complete **epoch**.(~600 blocks on Kusama, ~2400 blocks on Polkadot). At the beginning of a new Epoch, those VRFs are **mixed together** and **hashed** in order to produce a **pseudo-random word**.
 
 ## CAP Theorem
 
@@ -71,7 +67,7 @@ While those solutions are part of the same category, they have different trade-o
 
 The solutions in this category provide a pseudo-random that cannot be tampered and that is unique but cannot provide the guarantee it will be always be possible to retrieve it.
 
-This is the case of the [Mixed Delayed Secret] (not yet described), which will require collators to provide a VRF proof of locally generated secret, and to reveal it later once all the VRF proofs have been published. Such a solution will guarantee that, once the VRF proofs are published, it is impossible to provide a different pseudo-random word. It also guarantees that if at least 1 collator is a good actor, it will be impossible to know the pseudo-random word until all the secrets are revealed. However such solution cannot guarantee that a node will always be able to provide its secret (it can be lost, it can be attacked, or the node can be malicious and refuses to publish it)
+This is the case of the [Mixed Delayed Secret] (not yet described), which will require collators to provide a VRF proof of locally generated secret, and to reveal it later once all the VRF proofs have been published. Such a solution will guarantee that, once the VRF proofs are published, it is impossible to provide a different pseudo-random word. It also guarantees that if at least 1 collator is a good actor, it will be impossible to know the pseudo-random word until all the secrets are revealed. However such solution cannot guarantee that a node will always be able to provide its secret (it can be lost, it can be attacked, or the node can be malicious and refuses to publish it).
 
 ## Local Parachain VRF
 
@@ -96,13 +92,13 @@ This solution is **not impacted** by asynchronous backing as all the material us
 
 The Babe epoch randomness is based on **all the VRF produced** by the validators **during** a complete **epoch**.(~600 blocks on Kusama, ~2400 blocks on Polkadot)
 At the beginning of a new Epoch, those VRFs are **mixed together** and **hashed** in order to produce a **pseudo-random word**.
-To ensure each pseudo-random word generated during an epoch is different, the Smart Contract must provide a unique salt each time
+To ensure each pseudo-random word generated during an epoch is different, the Smart Contract must provide a unique salt each time.
 
 ### Properties
 
 - This randomness is totally **independent of the parachain**, preventing a malicious actor on the parachain to influence the randomness value.
-- This randomness is **constant during a full epoch range** (~250 blocks on Kusama, ~2300 blocks on Polkadot) making it **resilient enough against censorship**. If a collator prevents fulfillment at a given block, another collator can fulfill it at the next block with the same random value
-- This randomness **requires** at last 1 epoch after the current epoch (**~1h30** on Kusama, **~6h** on Polkadot) to ensure the pseudo-random word cannot be predicted at the time of the request
+- This randomness is **constant during a full epoch range** (~250 blocks on Kusama, ~2300 blocks on Polkadot) making it **resilient enough against censorship**. If a collator prevents fulfillment at a given block, another collator can fulfill it at the next block with the same random value.
+- This randomness **requires** at last 1 epoch after the current epoch (**~1h30** on Kusama, **~6h** on Polkadot) to ensure the pseudo-random word cannot be predicted at the time of the request.
 
 ### Risks
 
@@ -134,7 +130,7 @@ Relay->Para: (Relay Block #4800)
 note over Para: Block #222\nFulFill Randomness using\n0xBBBBBB...or 0xCCCCCC...
 ```
 
-_(In this schema, we can see that validator Y can decide the epoch 2 randomness by producing or skipping its block)_
+_In this schema, we can see that validator Y can decide the epoch 2 randomness by producing or skipping its block._
 
 ### Multiple slot leaders
 
@@ -143,4 +139,4 @@ Additionally, the Babe consensus can sometime allow multiple validator to produc
 ### Asynchronous Backing
 
 This solution is **safe** even after the asynchronous backing is supported as the pseudo-random is not dependant on which relay block the parachain block is referencing.
-A collator being able to choose the relay block on top of which it builds the parachain block will not influence the pseudo-random word
+A collator being able to choose the relay block on top of which it builds the parachain block will not influence the pseudo-random word.
