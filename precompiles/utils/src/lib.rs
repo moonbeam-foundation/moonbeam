@@ -100,7 +100,7 @@ pub mod prelude {
 			substrate::{RuntimeHelper, TryDispatchError},
 			succeed, EvmResult, StatefulPrecompile,
 		},
-		pallet_evm::PrecompileHandle,
-		precompile_utils_macro::{generate_function_selector, keccak256},
+		pallet_evm::{PrecompileHandle, PrecompileOutput},
+		precompile_utils_macro::{generate_function_selector, keccak256, precompile},
 	};
 }

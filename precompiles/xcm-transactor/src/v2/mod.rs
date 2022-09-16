@@ -19,7 +19,6 @@
 use crate::functions::{CurrencyIdOf, GetDataLimit, TransactorOf, XcmTransactorWrapper};
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use pallet_evm::PrecompileOutput;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::{convert::TryFrom, marker::PhantomData};

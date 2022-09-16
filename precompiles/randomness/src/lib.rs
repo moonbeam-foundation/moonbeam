@@ -21,7 +21,7 @@
 
 extern crate alloc;
 
-use fp_evm::{Context, ExitReason, Log, PrecompileHandle, PrecompileOutput};
+use fp_evm::{Context, ExitReason, Log, PrecompileHandle};
 use frame_support::traits::Get;
 use pallet_evm::GasWeightMapping;
 use pallet_randomness::{

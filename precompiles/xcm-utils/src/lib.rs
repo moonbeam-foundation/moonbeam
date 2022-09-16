@@ -20,9 +20,7 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::Dispatchable;
-use frame_support::traits::OriginTrait;
-use pallet_evm::PrecompileOutput;
+use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::marker::PhantomData;

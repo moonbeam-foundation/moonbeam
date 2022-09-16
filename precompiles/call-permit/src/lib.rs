@@ -18,9 +18,7 @@
 
 use core::marker::PhantomData;
 use evm::ExitReason;
-use fp_evm::{
-	Context, ExitRevert, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
-};
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},

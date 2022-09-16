@@ -19,7 +19,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{Log, PrecompileOutput};
+use fp_evm::Log;
 use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,

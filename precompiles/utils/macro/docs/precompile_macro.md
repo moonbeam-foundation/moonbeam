@@ -136,10 +136,22 @@ attribute matches the Rust parameters of the function, thanks to the `EvmData` t
 `solidity_type() -> String` function.
 
 If any **parsed** argument (discriminant is not concerned) depends on the type parameters of the
-`impl` block, the macro will not be able to produce code that builds unless you annotate with `impl`
-block with the `#[precompile::test_concrete_types(...)]` attributes. The `...` should be replaced
-with concrete types for each type parameter, like a mock runtime. Those types are only used to
-generate the test and only one set of types can be used.
+`impl` block, the macro will not be able to produce valid code and output an error like:
+
+```ignore
+error[E0412]: cannot find type `R` in this scope
+  --> tests/precompile/compile-fail/test/generic-arg.rs:25:63
+   |
+23 | impl<R: Get<u32>> Precompile<R> {
+   |                             - help: you might be missing a type parameter: `<R>`
+24 |     #[precompile::public("foo(bytes)")]
+25 |     fn foo(handle: &mut impl PrecompileHandle, arg: BoundedBytes<R>) -> EvmResult {
+   |                                                                  ^ not found in this scope
+```
+
+In this can you need to annotate the `impl` block with the `#[precompile::test_concrete_types(...)]`
+attributes. The `...` should be replaced with concrete types for each type parameter, like a mock
+runtime. Those types are only used to generate the test and only one set of types can be used.
 
 ```rust,ignore
 pub struct ExamplePrecompile<R, I>(PhantomData<(R, I)>);
@@ -178,9 +190,9 @@ The generated enums exposes the following public functions:
   precompile(set) as a `bool`. Note that the presence of a fallback function is not taken into
   account.
 - `selectors`: returns a static array (`&'static [u32]`) of all the supported selectors.
-- For each variant/public function `foo`, there is a function `foo_selectors` which returns a
-  static array of all the supported selectors **for that function**. That can be used to ensure in
-  tests that some function have a selector that was computed by hand.
+- For each variant/public function `foo`, there is a function `foo_selectors` which returns a static
+  array of all the supported selectors **for that function**. That can be used to ensure in tests
+  that some function have a selector that was computed by hand.
 - `encode`: take `self` and encodes it in Solidity format. Additionnaly, `Vec<u8>` implements
-  `From<CallEnum>` which simply call encodes. This is useful to write tests as you can construct
-  the variant you want and it will be encoded to Solidity format for you.
+  `From<CallEnum>` which simply call encodes. This is useful to write tests as you can construct the
+  variant you want and it will be encoded to Solidity format for you.

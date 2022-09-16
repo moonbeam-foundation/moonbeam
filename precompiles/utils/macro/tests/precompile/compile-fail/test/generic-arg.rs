@@ -11,15 +11,18 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-use core::marker::PhantomData;
+use {
+	core::marker::PhantomData,
+	frame_support::pallet_prelude::Get,
+	precompile_utils::prelude::*,
+};
 
 pub struct Precompile<R>(PhantomData<R>);
 
 #[precompile_utils_macro::precompile]
-impl<R> Precompile<R> {
-	#[precompile::pre_check]
-	#[precompile::view]
-	fn foo(handle: &mut impl PrecompileHandle) -> EvmResult {
+impl<R: Get<u32>> Precompile<R> {
+	#[precompile::public("foo(bytes)")]
+	fn foo(handle: &mut impl PrecompileHandle, arg: BoundedBytes<R>) -> EvmResult {
 		Ok(())
 	}
 }

@@ -96,7 +96,9 @@ impl Precompile {
 
 		quote!(
 			#(
-				fn #fn_parse(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<Self> {
+				fn #fn_parse(
+					handle: &mut impl PrecompileHandle
+				) -> ::precompile_utils::EvmResult<Self> {
 					use ::precompile_utils::revert::InjectBacktrace;
 
 					#modifier_check
@@ -218,7 +220,9 @@ impl Precompile {
 				}
 			}
 
-			impl #impl_generics From<#enum_ident #ty_generics> for ::sp_std::vec::Vec<u8> #where_clause {
+			impl #impl_generics From<#enum_ident #ty_generics> for ::sp_std::vec::Vec<u8>
+			#where_clause
+			{
 				fn from(a: #enum_ident #ty_generics) -> ::sp_std::vec::Vec<u8> {
 					a.encode()
 				}
@@ -261,13 +265,21 @@ impl Precompile {
 
 				quote!(
 					use ::precompile_utils::EvmDataWriter;
-					let output = <#struct_type>::#variant_ident(#opt_discriminant_arg handle, #(#arguments),*);
+					let output = <#struct_type>::#variant_ident(
+						#opt_discriminant_arg
+						handle,
+						#(#arguments),*
+					);
 					#write_output
 				)
 			});
 
 		quote!(
-			pub fn execute(self, #opt_discriminant_arg handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
+			pub fn execute(
+				self,
+				#opt_discriminant_arg
+				handle: &mut impl PrecompileHandle
+			) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
 				use ::precompile_utils::data::EvmDataWriter;
 				use ::fp_evm::{PrecompileOutput, ExitSucceed};
 
@@ -331,7 +343,9 @@ impl Precompile {
 		};
 
 		quote!(
-			pub fn parse_call_data(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<Self> {
+			pub fn parse_call_data(
+				handle: &mut impl PrecompileHandle
+			) -> ::precompile_utils::EvmResult<Self> {
 				use ::precompile_utils::revert::RevertReason;
 
 				let input = handle.input();
@@ -362,18 +376,23 @@ impl Precompile {
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
 		if let Some(discriminant_fn) = &self.precompile_set_discriminant_fn {
-			let opt_pre_check = self
-				.pre_check
-				.as_ref()
-				.map(|ident| {
-					let span = ident.span();
-					quote_spanned!(span=>let _: () = <#struct_type>::#ident(discriminant, handle).map_err(|err| Some(err))?;)
-				});
+			let opt_pre_check = self.pre_check.as_ref().map(|ident| {
+				let span = ident.span();
+				quote_spanned!(span=>
+					let _: () = <#struct_type>::#ident(discriminant, handle)
+						.map_err(|err| Some(err))?;
+				)
+			});
 
 			quote!(
 				impl #impl_generics ::fp_evm::PrecompileSet for #struct_type #where_clause {
-					fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<::precompile_utils::EvmResult<::fp_evm::PrecompileOutput>> {
-						let discriminant = match <#struct_type>::#discriminant_fn(handle.code_address()) {
+					fn execute(
+						&self,
+						handle: &mut impl PrecompileHandle
+					) -> Option<::precompile_utils::EvmResult<::fp_evm::PrecompileOutput>> {
+						let discriminant = match <#struct_type>::#discriminant_fn(
+							handle.code_address()
+						) {
 							Some(d) => d,
 							None => return None,
 						};
@@ -400,7 +419,9 @@ impl Precompile {
 
 			quote!(
 				impl #impl_generics ::fp_evm::Precompile for #struct_type #where_clause {
-					fn execute(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
+					fn execute(
+						handle: &mut impl PrecompileHandle
+					) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
 						#opt_pre_check
 
 						<#enum_ident #ty_generics>::parse_call_data(handle)?.execute(handle)
@@ -412,58 +433,60 @@ impl Precompile {
 	}
 
 	pub fn expand_test_solidity_signature(&self) -> impl ToTokens {
-		let variant_name = self.variants_content.keys().map(|ident| ident.to_string());
-		let variant_solidity = self
+		let variant_test: Vec<_> = self
 			.variants_content
-			.values()
-			.map(|v| &v.solidity_arguments_type);
-		let variant_arguments_type: Vec<Vec<_>> = self
-			.variants_content
-			.values()
-			.map(|v| v.arguments.iter().map(|arg| &arg.ty).collect())
+			.iter()
+			.map(|(ident, variant)| {
+				let span = ident.span();
+
+				let solidity = &variant.solidity_arguments_type;
+				let name = ident.to_string();
+				let types: Vec<_> = variant.arguments.iter().map(|arg| &arg.ty).collect();
+
+				quote_spanned!(span=>
+					assert_eq!(
+						#solidity,
+						<(#(#types,)*) as EvmData>::solidity_type(),
+						"{} function signature doesn't match (left: attribute, right: computed \
+						from Rust types)",
+						#name
+					);
+				)
+			})
 			.collect();
 
 		let test_name = format_ident!("__{}_test_solidity_signatures", self.struct_ident);
+		let inner_name = format_ident!("__{}_test_solidity_signatures_inner", self.struct_ident);
 
 		if let Some(test_types) = &self.test_concrete_types {
 			let (impl_generics, _ty_generics, where_clause) = self.generics.split_for_impl();
 
 			quote!(
+				#[allow(non_snake_case)]
+				pub(crate) fn #inner_name #impl_generics () #where_clause {
+					use ::precompile_utils::data::EvmData;
+					#(#variant_test)*
+				}
+
 				#[test]
 				#[allow(non_snake_case)]
 				fn #test_name() {
-					fn _inner #impl_generics () #where_clause {
-						use ::precompile_utils::data::EvmData;
-						#(
-							assert_eq!(
-								#variant_solidity,
-								<( #(#variant_arguments_type,)* ) as EvmData>::solidity_type(),
-								"{} function signature doesn't match (left: attribute, right: computed \
-								from Rust types)",
-								#variant_name
-							);
-						)*
-					}
-
-					_inner::< #(#test_types),* >();
+					#inner_name::< #(#test_types),* >();
 				}
 			)
 			.to_token_stream()
 		} else {
 			quote!(
+				#[allow(non_snake_case)]
+				pub(crate) fn #inner_name() {
+					use ::precompile_utils::data::EvmData;
+					#(#variant_test)*
+				}
+
 				#[test]
 				#[allow(non_snake_case)]
 				fn #test_name() {
-					use ::precompile_utils::data::EvmData;
-					#(
-						assert_eq!(
-							#variant_solidity,
-							<( #(#variant_arguments_type,)* ) as EvmData>::solidity_type(),
-							"{} function signature doesn't match (left: attribute, right: computed \
-							from Rust types)",
-							#variant_name
-						);
-					)*
+					#inner_name();
 				}
 			)
 			.to_token_stream()

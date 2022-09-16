@@ -9490,6 +9490,7 @@ version = "0.1.0"
 dependencies = [
  "case",
  "fp-evm",
+ "frame-support",
  "num_enum",
  "precompile-utils",
  "prettyplease",

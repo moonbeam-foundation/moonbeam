@@ -24,7 +24,7 @@ use frame_support::{
 };
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
-	PrecompileSet,
+	PrecompileOutput, PrecompileSet,
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};

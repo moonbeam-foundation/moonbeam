@@ -141,7 +141,8 @@ impl Precompile {
 			let span = method.sig.span();
 
 			if method.sig.inputs.len() != 1 {
-				let msg = "The discriminant function must only take the code address (H160) as parameter.";
+				let msg = "The discriminant function must only take the code address (H160) as \
+				parameter.";
 				return Err(syn::Error::new(span, msg));
 			}
 
@@ -217,10 +218,11 @@ impl Precompile {
 
 			if method_inputs.next().is_some() {
 				let msg = if self.tagged_as_precompile_set {
-					"PrecompileSet pre_check method must have exactly 2 parameters (the precompile instance \
-					discriminant and the PrecompileHandle)"
+					"PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
+					instance discriminant and the PrecompileHandle)"
 				} else {
-					"Precompile pre_check method must have exactly 1 parameter (the PrecompileHandle)"
+					"Precompile pre_check method must have exactly 1 parameter (the \
+					PrecompileHandle)"
 				};
 
 				return Err(syn::Error::new(span, msg));
@@ -379,9 +381,8 @@ impl Precompile {
 		let output_type = match &method.sig.output {
 			syn::ReturnType::Type(_, t) => t,
 			_ => {
-				let msg =
-					"A precompile method must have a return type of `EvmResult<_>` (exposed by \
-						`precompile_utils`)";
+				let msg = "A precompile method must have a return type of `EvmResult<_>` (exposed \
+				by `precompile_utils`)";
 				return Err(syn::Error::new(method.sig.span(), msg));
 			}
 		};
@@ -413,8 +414,8 @@ impl Precompile {
 			let input = match method_inputs.next() {
 				Some(a) => a,
 				None => {
-					let msg = "PrecompileSet methods must have at least 2 parameters (the precompile instance \
-						discriminant and the PrecompileHandle)";
+					let msg = "PrecompileSet methods must have at least 2 parameters (the \
+					precompile instance discriminant and the PrecompileHandle)";
 					return Err(syn::Error::new(method_span, msg));
 				}
 			};
@@ -438,8 +439,8 @@ impl Precompile {
 				Some(a) => a,
 				None => {
 					let msg = if self.tagged_as_precompile_set {
-						"PrecompileSet methods must have at least 2 parameters (the precompile instance \
-						discriminant and the PrecompileHandle)"
+						"PrecompileSet methods must have at least 2 parameters (the precompile \
+						instance discriminant and the PrecompileHandle)"
 					} else {
 						"Precompile methods must have at least 1 parameter (the PrecompileHandle)"
 					};
