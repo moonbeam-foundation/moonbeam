@@ -11,9 +11,21 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-#[test]
-fn ui() {
-	let t = trybuild::TestCases::new();
-	t.compile_fail("tests/precompile/compile-fail/**/*.rs");
-	t.pass("tests/precompile/pass/**/*.rs");
+use core::marker::PhantomData;
+
+pub struct Precompile<R>(PhantomData<R>);
+
+#[precompile_utils_macro::precompile]
+impl<R> Precompile<R> {
+	#[precompile::pre_dispatch_check]
+	fn pre_check() {
+		todo!()
+	}
+
+	#[precompile::public("foo()")]
+	fn foo(_handle: &mut impl PrecompileHandle) {
+		todo!()
+	}
 }
+
+fn main() { }

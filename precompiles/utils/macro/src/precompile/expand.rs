@@ -96,7 +96,7 @@ impl Precompile {
 
 		quote!(
 			#(
-				fn #fn_parse(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
+				fn #fn_parse(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<Self> {
 					#modifier_check
 					#variant_parsing
 				}
@@ -260,7 +260,7 @@ impl Precompile {
 			});
 
 		quote!(
-			pub fn execute(self, #opt_discriminant_arg handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+			pub fn execute(self, #opt_discriminant_arg handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
 				use ::precompile_utils::data::EvmDataWriter;
 				use ::fp_evm::{PrecompileOutput, ExitSucceed};
 
@@ -320,8 +320,8 @@ impl Precompile {
 		};
 
 		quote!(
-			pub fn parse_call_data(handle: &mut impl PrecompileHandle) -> EvmResult<Self> {
-				use precompile_utils::revert::RevertReason;
+			pub fn parse_call_data(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<Self> {
+				use ::precompile_utils::revert::RevertReason;
 
 				let input = handle.input();
 
@@ -361,7 +361,7 @@ impl Precompile {
 
 			quote!(
 				impl #impl_generics ::fp_evm::PrecompileSet for #struct_type #where_clause {
-					fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
+					fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<::precompile_utils::EvmResult<::fp_evm::PrecompileOutput>> {
 						let discriminant = match <#struct_type>::#discriminant_fn(handle.code_address()) {
 							Some(d) => d,
 							None => return None,
@@ -389,7 +389,7 @@ impl Precompile {
 
 			quote!(
 				impl #impl_generics ::fp_evm::Precompile for #struct_type #where_clause {
-					fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+					fn execute(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
 						#opt_pre_dispatch_check
 
 						<#enum_ident #ty_generics>::parse_call_data(handle)?.execute(handle)

@@ -1,5 +1,5 @@
 error: All discriminants must have the same type (found u64 before)
-  --> tests/precompile/discriminant/type-mismatch-1.rs:27:24
+  --> tests/precompile/compile-fail/discriminant/type-mismatch-1.rs:27:24
    |
 27 |     fn foo(_discriminant: u32, test: &mut impl PrecompileHandle) -> EvmResult {
    |                           ^^^

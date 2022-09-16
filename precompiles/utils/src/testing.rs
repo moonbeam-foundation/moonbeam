@@ -184,6 +184,7 @@ pub struct PrecompilesTester<'p, P> {
 
 	expected_cost: Option<u64>,
 	expected_logs: Option<Vec<PrettyLog>>,
+	static_call: bool,
 }
 
 impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
@@ -214,6 +215,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 			expected_cost: None,
 			expected_logs: None,
+			static_call: false,
 		}
 	}
 
@@ -229,6 +231,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	pub fn with_target_gas(mut self, target_gas: Option<u64>) -> Self {
 		self.target_gas = target_gas;
+		self
+	}
+
+	pub fn with_static_call(mut self, static_call: bool) -> Self {
+		self.static_call = static_call;
 		self
 	}
 
@@ -264,19 +271,13 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	fn execute(&mut self) -> Option<PrecompileResult> {
 		let handle = &mut self.handle;
 		handle.subcall_handle = self.subcall_handle.take();
+		handle.is_static = self.static_call;
 
 		if let Some(gas_limit) = self.target_gas {
 			handle.gas_limit = gas_limit;
 		}
 
-		let res = self.precompiles.execute(
-			handle,
-			// self.to,
-			// &self.data,
-			// self.target_gas,
-			// &self.context,
-			// self.is_static,
-		);
+		let res = self.precompiles.execute(handle);
 
 		self.subcall_handle = handle.subcall_handle.take();
 

@@ -11,12 +11,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
-use {
-	core::marker::PhantomData,
-	sp_core::H160,
-	fp_evm::{PrecompileHandle, PrecompileOutput},
-	precompile_utils::EvmResult,
-};
+use core::marker::PhantomData;
 
 pub struct Precompile<R>(PhantomData<R>);
 

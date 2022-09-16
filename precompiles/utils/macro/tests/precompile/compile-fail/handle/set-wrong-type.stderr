@@ -1,5 +1,5 @@
 error: This parameter must have type `&mut impl PrecompileHandle`
-  --> tests/precompile/handle/set-wrong-type.rs:22:38
+  --> tests/precompile/compile-fail/handle/set-wrong-type.rs:22:38
    |
 22 |     fn foo(_discriminant: u32, _handle: u32) {
    |                                         ^^^

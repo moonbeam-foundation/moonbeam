@@ -210,11 +210,11 @@ impl Precompile {
 				return Err(syn::Error::new(span, msg));
 			}
 
-			let span = method.span();
+			let span = method.sig.span();
 
 			let mut method_inputs = method.sig.inputs.iter();
 
-			self.check_initial_parameters(&mut method_inputs, method.sig.span())?;
+			self.check_initial_parameters(&mut method_inputs, span)?;
 
 			if method_inputs.next().is_some() {
 				let msg = if self.tagged_as_precompile_set {
@@ -392,7 +392,11 @@ impl Precompile {
 		Ok(())
 	}
 
-	fn check_initial_parameters<'a>(&mut self, method_inputs: &mut impl Iterator<Item = &'a syn::FnArg>, method_span: Span) -> syn::Result<()> {
+	fn check_initial_parameters<'a>(
+		&mut self,
+		method_inputs: &mut impl Iterator<Item = &'a syn::FnArg>,
+		method_span: Span,
+	) -> syn::Result<()> {
 		// Discriminant input
 		if self.tagged_as_precompile_set {
 			let input = match method_inputs.next() {
