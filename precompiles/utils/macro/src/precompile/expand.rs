@@ -97,6 +97,8 @@ impl Precompile {
 		quote!(
 			#(
 				fn #fn_parse(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<Self> {
+					use ::precompile_utils::revert::InjectBacktrace;
+
 					#modifier_check
 					#variant_parsing
 				}
@@ -115,11 +117,13 @@ impl Precompile {
 		} else {
 			use case::CaseExt;
 
-			let args_ident = variant.arguments.iter().map(|v| &v.ident);
-			let args_name = variant
-				.arguments
-				.iter()
-				.map(|v| v.ident.to_string().to_camel_lowercase());
+			let args_parse = variant.arguments.iter().map(|arg| {
+				let ident = &arg.ident;
+				let span = ident.span();
+				let name = ident.to_string().to_camel_lowercase();
+
+				quote_spanned!(span=> #ident: input.read().in_field(#name)?,)
+			});
 			let args_count = variant.arguments.len();
 
 			quote!(
@@ -127,7 +131,7 @@ impl Precompile {
 				input.expect_arguments(#args_count)?;
 
 				Ok(Self::#variant_ident {
-					#(#args_ident: input.read().in_field(#args_name)?,)*
+					#(#args_parse)*
 				})
 			)
 			.to_token_stream()
@@ -246,16 +250,19 @@ impl Precompile {
 			.map(|(variant_ident, variant)| {
 				let arguments = variant.arguments.iter().map(|arg| &arg.ident);
 
-				let span = variant_ident.span();
+				let output_span = variant.fn_output.span();
 				let opt_discriminant_arg = self
 					.precompile_set_discriminant_fn
 					.as_ref()
-					.map(|_| quote_spanned!(span=> discriminant,));
+					.map(|_| quote!(discriminant,));
+
+				let write_output =
+					quote_spanned!(output_span=> EvmDataWriter::new().write(output?).build());
 
 				quote!(
 					use ::precompile_utils::EvmDataWriter;
-					let output = <#struct_type>::#variant_ident(#opt_discriminant_arg handle, #(#arguments),*)?;
-						EvmDataWriter::new().write(output).build()
+					let output = <#struct_type>::#variant_ident(#opt_discriminant_arg handle, #(#arguments),*);
+					#write_output
 				)
 			});
 
@@ -285,11 +292,15 @@ impl Precompile {
 	fn expand_variant_encoding(variant: &Variant) -> impl ToTokens {
 		match variant.selectors.first() {
 			Some(selector) => {
-				let arguments = variant.arguments.iter().map(|arg| &arg.ident);
+				let write_arguments = variant.arguments.iter().map(|arg| {
+					let ident = &arg.ident;
+					let span = ident.span();
+					quote_spanned!(span=> .write(#ident))
+				});
 
 				quote!(
 					EvmDataWriter::new_with_selector(#selector)
-					#(.write(#arguments))*
+					#(#write_arguments)*
 					.build()
 				)
 				.to_token_stream()
@@ -351,8 +362,8 @@ impl Precompile {
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
 		if let Some(discriminant_fn) = &self.precompile_set_discriminant_fn {
-			let opt_pre_dispatch_check = self
-				.pre_dispatch_check
+			let opt_pre_check = self
+				.pre_check
 				.as_ref()
 				.map(|ident| {
 					let span = ident.span();
@@ -367,7 +378,7 @@ impl Precompile {
 							None => return None,
 						};
 
-						#opt_pre_dispatch_check
+						#opt_pre_check
 
 						Some(
 							<#enum_ident #ty_generics>::parse_call_data(handle)
@@ -382,7 +393,7 @@ impl Precompile {
 			)
 			.to_token_stream()
 		} else {
-			let opt_pre_dispatch_check = self.pre_dispatch_check.as_ref().map(|ident| {
+			let opt_pre_check = self.pre_check.as_ref().map(|ident| {
 				let span = ident.span();
 				quote_spanned!(span=>let _: () = <#struct_type>::#ident(handle)?;)
 			});
@@ -390,7 +401,7 @@ impl Precompile {
 			quote!(
 				impl #impl_generics ::fp_evm::Precompile for #struct_type #where_clause {
 					fn execute(handle: &mut impl PrecompileHandle) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
-						#opt_pre_dispatch_check
+						#opt_pre_check
 
 						<#enum_ident #ty_generics>::parse_call_data(handle)?.execute(handle)
 					}

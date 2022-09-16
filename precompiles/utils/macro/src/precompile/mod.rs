@@ -80,7 +80,7 @@ pub struct Precompile {
 
 	/// Ident of a function that performs a check before the call is dispatched to the proper
 	/// function.
-	pre_dispatch_check: Option<syn::Ident>,
+	pre_check: Option<syn::Ident>,
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -112,6 +112,9 @@ pub struct Variant {
 	/// Selectors of this function to be able to encode back the data.
 	/// None if it only the fallback function.
 	selectors: Vec<u32>,
+
+	/// Output of the variant fn (for better error messages).
+	fn_output: syn::Type,
 }
 
 #[derive(Debug)]

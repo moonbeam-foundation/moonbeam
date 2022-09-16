@@ -75,11 +75,11 @@ This function cannot have any parameter outside of the `PrecompileHandle`. A fun
 `public` and `fallback`.
 
 In case some check must be performed before parsing the input, such as forbidding being called from
-some address, a function can be annotated with `#[precompile::pre_dispatch_check]`:
+some address, a function can be annotated with `#[precompile::pre_check]`:
 
 ```rust,ignore
-#[precompile::pre_dispatch_check]
-fn pre_dispatch_check(handle: &mut impl PrecompileHandle) -> EvmResult {
+#[precompile::pre_check]
+fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
     todo!("Perform your check here")
 }
 ```

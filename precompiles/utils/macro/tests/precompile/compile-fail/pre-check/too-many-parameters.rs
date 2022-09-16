@@ -17,7 +17,7 @@ pub struct Precompile<R>(PhantomData<R>);
 
 #[precompile_utils_macro::precompile]
 impl<R> Precompile<R> {
-	#[precompile::pre_dispatch_check]
+	#[precompile::pre_check]
 	fn pre_check(_: &mut impl PrecompileHandle, _: u32) {
 		todo!()
 	}

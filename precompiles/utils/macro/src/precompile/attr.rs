@@ -45,7 +45,7 @@ pub mod keyword {
 	syn::custom_keyword!(discriminant);
 	syn::custom_keyword!(precompile_set);
 	syn::custom_keyword!(test_concrete_types);
-	syn::custom_keyword!(pre_dispatch_check);
+	syn::custom_keyword!(pre_check);
 }
 
 /// Attributes for methods.
@@ -90,9 +90,9 @@ impl syn::parse::Parse for MethodAttr {
 			Ok(MethodAttr::Discriminant(
 				content.parse::<keyword::discriminant>()?.span(),
 			))
-		} else if lookahead.peek(keyword::pre_dispatch_check) {
+		} else if lookahead.peek(keyword::pre_check) {
 			Ok(MethodAttr::PreDispatchCheck(
-				content.parse::<keyword::pre_dispatch_check>()?.span(),
+				content.parse::<keyword::pre_check>()?.span(),
 			))
 		} else {
 			Err(lookahead.error())

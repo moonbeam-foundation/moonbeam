@@ -30,7 +30,7 @@ impl Precompile {
 			precompile_set_discriminant_fn: None,
 			precompile_set_discriminant_type: None,
 			test_concrete_types: None,
-			pre_dispatch_check: None,
+			pre_check: None,
 		};
 
 		precompile.process_impl_attr(impl_)?;
@@ -198,14 +198,13 @@ impl Precompile {
 		if let Some(attr::MethodAttr::PreDispatchCheck(span)) = attrs.first() {
 			let span = *span;
 
-			if self.pre_dispatch_check.is_some() {
-				let msg = "A Precompile can only have 1 pre_dispatch_check function";
+			if self.pre_check.is_some() {
+				let msg = "A Precompile can only have 1 pre_check function";
 				return Err(syn::Error::new(span, msg));
 			}
 
 			if attrs.len() != 1 {
-				let msg =
-					"The pre_dispatch_check attribute must be the only precompile attribute of \
+				let msg = "The pre_check attribute must be the only precompile attribute of \
 				a function";
 				return Err(syn::Error::new(span, msg));
 			}
@@ -218,16 +217,16 @@ impl Precompile {
 
 			if method_inputs.next().is_some() {
 				let msg = if self.tagged_as_precompile_set {
-					"PrecompileSet pre_dispatch_check method must have exactly 2 parameters (the precompile instance \
+					"PrecompileSet pre_check method must have exactly 2 parameters (the precompile instance \
 					discriminant and the PrecompileHandle)"
 				} else {
-					"Precompile pre_dispatch_check method must have exactly 1 parameter (the PrecompileHandle)"
+					"Precompile pre_check method must have exactly 1 parameter (the PrecompileHandle)"
 				};
 
 				return Err(syn::Error::new(span, msg));
 			}
 
-			self.pre_dispatch_check = Some(method.sig.ident.clone());
+			self.pre_check = Some(method.sig.ident.clone());
 
 			return Ok(());
 		}
@@ -240,7 +239,7 @@ impl Precompile {
 					return Err(syn::Error::new(span, msg));
 				}
 				attr::MethodAttr::PreDispatchCheck(span) => {
-					let msg = "The pre_dispatch_check attribute must be the only precompile \
+					let msg = "The pre_check attribute must be the only precompile \
 					attribute of the function";
 					return Err(syn::Error::new(span, msg));
 				}
@@ -376,6 +375,17 @@ impl Precompile {
 			arguments.push(Argument { ident, ty })
 		}
 
+		// Function output.
+		let output_type = match &method.sig.output {
+			syn::ReturnType::Type(_, t) => t,
+			_ => {
+				let msg =
+					"A precompile method must have a return type of `EvmResult<_>` (exposed by \
+						`precompile_utils`)";
+				return Err(syn::Error::new(method.sig.span(), msg));
+			}
+		};
+
 		if let Some(_) = self.variants_content.insert(
 			method_name.clone(),
 			Variant {
@@ -383,6 +393,7 @@ impl Precompile {
 				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from("()")),
 				modifier,
 				selectors,
+				fn_output: output_type.as_ref().clone(),
 			},
 		) {
 			let msg = "Duplicate method name";

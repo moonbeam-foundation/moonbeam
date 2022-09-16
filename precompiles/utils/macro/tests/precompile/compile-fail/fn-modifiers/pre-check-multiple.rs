@@ -13,18 +13,15 @@
 
 use core::marker::PhantomData;
 
-pub struct Precompile<R>(PhantomData<R>);
+pub struct PrecompileSet<R>(PhantomData<R>);
 
 #[precompile_utils_macro::precompile]
-impl<R> Precompile<R> {
+#[precompile::precompile_set]
+impl<R> PrecompileSet<R> {
 	#[precompile::pre_check]
-	fn pre_check(_: u32) {
-		todo!()
-	}
-
-	#[precompile::public("foo()")]
-	fn foo(_handle: &mut impl PrecompileHandle) {
-		todo!()
+	#[precompile::view]
+	fn foo(handle: &mut impl PrecompileHandle) -> EvmResult {
+		Ok(())
 	}
 }
 

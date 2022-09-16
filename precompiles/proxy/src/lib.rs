@@ -48,8 +48,8 @@ where
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
 {
-	#[precompile::pre_dispatch_check]
-	fn pre_dispatch_check(handle: &mut impl PrecompileHandle) -> EvmResult {
+	#[precompile::pre_check]
+	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let caller_code = pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
 		// Check that caller is not a smart contract s.t. no code is inserted into
