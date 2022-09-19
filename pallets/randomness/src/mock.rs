@@ -120,7 +120,7 @@ impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 		1u64
 	}
 	fn get_epoch_randomness() -> Option<H256> {
-		None
+		Some(H256::default())
 	}
 }
 
@@ -226,5 +226,23 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+}
+
+pub const ALICE: H160 = H160::repeat_byte(0xAA);
+pub const BOB: H160 = H160::repeat_byte(0xBB);
+
+/// Helps test same effects for all 4 variants of RequestType
+pub fn build_default_request(
+	info: RequestType<Test>,
+) -> Request<BalanceOf<Test>, RequestType<Test>> {
+	Request {
+		refund_address: BOB,
+		contract_address: ALICE,
+		fee: 5,
+		gas_limit: 100u64,
+		num_words: 1u8,
+		salt: H256::default(),
+		info,
 	}
 }

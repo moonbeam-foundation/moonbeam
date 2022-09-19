@@ -44,6 +44,7 @@ pallet-evm-precompile-author-mapping = { path = "../../precompiles/author-mappin
 pallet-evm-precompile-balances-erc20 = { path = "../../precompiles/balances-erc20", default-features = false }
 pallet-evm-precompile-batch = { path = "../../precompiles/batch", default-features = false }
 pallet-evm-precompile-call-permit = { path = "../../precompiles/call-permit", default-features = false }
+pallet-evm-precompile-collective = { path = "../../precompiles/collective", default-features = false }
 pallet-evm-precompile-crowdloan-rewards = { path = "../../precompiles/crowdloan-rewards", default-features = false }
 pallet-evm-precompile-democracy = { path = "../../precompiles/pallet-democracy", default-features = false }
 pallet-evm-precompile-parachain-staking = { path = "../../precompiles/parachain-staking", default-features = false }
@@ -202,6 +203,7 @@ std = [
 	"pallet-evm-precompile-balances-erc20/std",
 	"pallet-evm-precompile-batch/std",
 	"pallet-evm-precompile-call-permit/std",
+	"pallet-evm-precompile-collective/std",
 	"pallet-evm-precompile-democracy/std",
 	"pallet-evm-precompile-parachain-staking/std",
 	"pallet-evm-precompile-randomness/std",
@@ -293,6 +295,7 @@ runtime-benchmarks = [
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
 ]

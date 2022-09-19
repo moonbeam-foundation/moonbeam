@@ -45,6 +45,12 @@ pub fn staking_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from(hex!("6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b")),
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
+				// Treasury Council members: Baltathar, Charleth and Dorothy
+				vec![
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+				],
 				// Collators
 				vec![
 					(

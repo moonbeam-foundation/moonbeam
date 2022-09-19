@@ -992,3 +992,72 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 		}
 	}
 }
+
+#[test]
+fn batch_not_callable_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// "deploy" SC to alice address
+			let alice_h160: H160 = Alice.into();
+			pallet_evm::AccountCodes::<Runtime>::insert(alice_h160, vec![10u8]);
+
+			// succeeds if not called by SC, see `evm_batch_recursion_under_limit`
+			let input = EvmDataWriter::new_with_selector(Action::BatchAll)
+				.write::<Vec<Address>>(vec![Address(Precompile.into())])
+				.write::<Vec<U256>>(vec![])
+				.write::<Vec<Bytes>>(vec![Bytes(
+					EvmDataWriter::new_with_selector(Action::BatchAll)
+						.write::<Vec<Address>>(vec![Address(Bob.into())])
+						.write::<Vec<U256>>(vec![1000_u32.into()])
+						.write::<Vec<Bytes>>(vec![])
+						.write::<Vec<U256>>(vec![])
+						.build(),
+				)])
+				.write::<Vec<U256>>(vec![])
+				.build();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			// batch failed so state is same
+			assert_eq!(balance(Alice), 10_000);
+			assert_eq!(balance(Bob), 0);
+		})
+}
+
+#[test]
+fn batch_is_callable_by_dummy_code() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 10_000)])
+		.build()
+		.execute_with(|| {
+			// "deploy" dummy code to alice address
+			let alice_h160: H160 = Alice.into();
+			pallet_evm::AccountCodes::<Runtime>::insert(
+				alice_h160,
+				[0x60, 0x00, 0x60, 0x00, 0xfd].to_vec(),
+			);
+
+			// succeeds if called by dummy code, see `evm_batch_recursion_under_limit`
+			let input = EvmDataWriter::new_with_selector(Action::BatchAll)
+				.write::<Vec<Address>>(vec![Address(Precompile.into())])
+				.write::<Vec<U256>>(vec![])
+				.write::<Vec<Bytes>>(vec![Bytes(
+					EvmDataWriter::new_with_selector(Action::BatchAll)
+						.write::<Vec<Address>>(vec![Address(Bob.into())])
+						.write::<Vec<U256>>(vec![1000_u32.into()])
+						.write::<Vec<Bytes>>(vec![])
+						.write::<Vec<U256>>(vec![])
+						.build(),
+				)])
+				.write::<Vec<U256>>(vec![])
+				.build();
+
+			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+
+			// batch succeeds
+			assert_eq!(balance(Alice), 9_000);
+			assert_eq!(balance(Bob), 1_000);
+		})
+}

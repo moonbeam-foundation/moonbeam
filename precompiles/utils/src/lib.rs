@@ -96,7 +96,7 @@ pub mod prelude {
 			modifier::{check_function_modifier, FunctionModifier},
 			read_args, read_struct, revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
-			substrate::RuntimeHelper,
+			substrate::{RuntimeHelper, TryDispatchError},
 			succeed, EvmResult, StatefulPrecompile,
 		},
 		pallet_evm::PrecompileHandle,

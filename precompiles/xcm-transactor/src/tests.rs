@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	ExtBuilder, Origin, PrecompilesValue, Runtime, TestAccount::*, TestPrecompiles, XcmTransactor,
+	precompile_address_v1, precompile_address_v2, ExtBuilder, Origin, PrecompilesValue, Runtime,
+	TestAccount::*, TestPrecompiles, XcmTransactor,
 };
-use crate::Action;
+use crate::v1::Action as ActionV1;
+use crate::v2::Action as ActionV2;
 
 use frame_support::assert_ok;
 use precompile_utils::{prelude::*, solidity, testing::*};
@@ -30,20 +32,20 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::IndexToAccount as u32, 0x3fdc4f36);
-	assert_eq!(Action::TransactInfo as u32, 0xd07d87c3);
+	assert_eq!(ActionV1::IndexToAccount as u32, 0x3fdc4f36);
+	assert_eq!(ActionV1::TransactInfo as u32, 0xd07d87c3);
 	assert_eq!(
-		Action::TransactThroughDerivativeMultiLocation as u32,
+		ActionV1::TransactThroughDerivativeMultiLocation as u32,
 		0x94a63c54
 	);
-	assert_eq!(Action::TransactThroughDerivative as u32, 0x02ae072d);
+	assert_eq!(ActionV1::TransactThroughDerivative as u32, 0x02ae072d);
 }
 
 #[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, precompile_address_v1(), vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -63,7 +65,7 @@ fn take_index_for_account() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::IndexToAccount)
+			let input = EvmDataWriter::new_with_selector(ActionV1::IndexToAccount)
 				.write(0u16)
 				.build();
 
@@ -94,7 +96,7 @@ fn take_transact_info() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::TransactInfo)
+			let input = EvmDataWriter::new_with_selector(ActionV1::TransactInfo)
 				.write(MultiLocation::parent())
 				.build();
 
@@ -138,7 +140,7 @@ fn take_transact_info_with_signed() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::TransactInfoWithSigned)
+			let input = EvmDataWriter::new_with_selector(ActionV1::TransactInfoWithSigned)
 				.write(MultiLocation::parent())
 				.build();
 
@@ -183,7 +185,7 @@ fn take_fee_per_second() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(Action::FeePerSecond)
+			let input = EvmDataWriter::new_with_selector(ActionV1::FeePerSecond)
 				.write(MultiLocation::parent())
 				.build();
 
@@ -207,7 +209,45 @@ fn take_fee_per_second() {
 }
 
 #[test]
-fn test_transactor_multilocation() {
+fn test_transact_derivative_multilocation_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			// we pay with our current self reserve.
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+
+			let total_weight = 1_000_000_000u64;
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					precompile_address_v2(),
+					EvmDataWriter::new_with_selector(
+						ActionV2::TransactThroughDerivativeMultiLocation,
+					)
+					.write(0u8)
+					.write(0u16)
+					.write(fee_payer_asset)
+					.write(U256::from(4000000))
+					.write(bytes)
+					.write(total_weight as u128)
+					.write(total_weight)
+					.build(),
+				)
+				.expect_cost(180616000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_derivative_multilocation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -242,7 +282,7 @@ fn test_transactor_multilocation() {
 					Alice,
 					Precompile,
 					EvmDataWriter::new_with_selector(
-						Action::TransactThroughDerivativeMultiLocation,
+						ActionV1::TransactThroughDerivativeMultiLocation,
 					)
 					.write(0u8)
 					.write(0u16)
@@ -251,14 +291,14 @@ fn test_transactor_multilocation() {
 					.write(bytes)
 					.build(),
 				)
-				.expect_cost(4004000)
+				.expect_cost(180616000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
 }
 
 #[test]
-fn test_transactor() {
+fn test_transact_derivative() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])
 		.build()
@@ -289,7 +329,7 @@ fn test_transactor() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::TransactThroughDerivative)
+					EvmDataWriter::new_with_selector(ActionV1::TransactThroughDerivative)
 						.write(0u8)
 						.write(0u16)
 						.write(Address(AssetId(0).into()))
@@ -297,7 +337,41 @@ fn test_transactor() {
 						.write(bytes)
 						.build(),
 				)
-				.expect_cost(4004001)
+				.expect_cost(180616001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_derivative_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// register index
+			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+
+			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					precompile_address_v2(),
+					EvmDataWriter::new_with_selector(ActionV2::TransactThroughDerivative)
+						.write(0u8)
+						.write(0u16)
+						.write(Address(AssetId(0).into()))
+						.write(U256::from(4000000))
+						.write(bytes)
+						.write(total_weight as u128)
+						.write(total_weight)
+						.build(),
+				)
+				.expect_cost(180616001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -330,19 +404,56 @@ fn test_transact_signed() {
 
 			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
 
+			let total_weight = 1_000_000_000u64;
+
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::TransactThroughSigned)
+					EvmDataWriter::new_with_selector(ActionV1::TransactThroughSigned)
 						.write(dest)
 						.write(Address(AssetId(0).into()))
 						.write(U256::from(4000000))
 						.write(bytes)
+						.write(total_weight as u128)
+						.write(total_weight)
 						.build(),
 				)
-				.expect_cost(428130001)
+				.expect_cost(465476001)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_transact_signed_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					precompile_address_v2(),
+					EvmDataWriter::new_with_selector(ActionV2::TransactThroughSigned)
+						.write(dest)
+						.write(Address(AssetId(0).into()))
+						.write(U256::from(4000000))
+						.write(bytes)
+						.write(total_weight as u128)
+						.write(total_weight)
+						.build(),
+				)
+				.expect_cost(465476001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -382,22 +493,57 @@ fn test_transact_signed_multilocation() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::TransactThroughSignedMultiLocation)
+					EvmDataWriter::new_with_selector(ActionV1::TransactThroughSignedMultiLocation)
 						.write(dest)
 						.write(fee_payer_asset)
 						.write(U256::from(4000000))
 						.write(bytes)
 						.build(),
 				)
-				.expect_cost(428130000)
+				.expect_cost(465476000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
 }
 
 #[test]
-fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-	for file in ["XcmTransactor.sol"] {
+fn test_transact_signed_multilocation_v2() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Destination
+			let dest = MultiLocation::parent();
+
+			let fee_payer_asset = MultiLocation::parent();
+
+			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+
+			let total_weight = 1_000_000_000u64;
+
+			// We are transferring asset 0, which we have instructed to be the relay asset
+			precompiles()
+				.prepare_test(
+					Alice,
+					precompile_address_v2(),
+					EvmDataWriter::new_with_selector(ActionV2::TransactThroughSignedMultiLocation)
+						.write(dest)
+						.write(fee_payer_asset)
+						.write(U256::from(4000000))
+						.write(bytes)
+						.write(total_weight as u128)
+						.write(total_weight)
+						.build(),
+				)
+				.expect_cost(465476000)
+				.expect_no_logs()
+				.execute_returns(vec![]);
+		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v1() {
+	for file in ["src/v1/XcmTransactorV1.sol"] {
 		for solidity_fn in solidity::get_selectors(file) {
 			assert_eq!(
 				solidity_fn.compute_selector_hex(),
@@ -408,7 +554,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if ActionV1::try_from(selector).is_err() {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -416,6 +562,53 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 					file,
 				)
 			}
+		}
+	}
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented_v2() {
+	for file in ["src/v2/XcmTransactorV2.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if ActionV2::try_from(selector).is_err() {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"index_to_account(uint16)",
+		"transact_info((uint8,bytes[]))",
+		"transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)",
+		"transact_through_derivative(uint8,uint16,address,uint64,bytes)",
+		"transact_info_with_signed((uint8,bytes[]))",
+		"fee_per_second((uint8,bytes[]))",
+		"transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)",
+		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if ActionV1::try_from(selector).is_err() {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
 		}
 	}
 }

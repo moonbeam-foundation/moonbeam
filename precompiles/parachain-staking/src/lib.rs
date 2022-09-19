@@ -63,14 +63,16 @@ enum Action {
 	ExecuteCandidateBondLess = "executeCandidateBondLess(address)",
 	CancelCandidateBondLess = "cancelCandidateBondLess()",
 	Delegate = "delegate(address,uint256,uint256,uint256)",
-	ScheduleLeaveDelegators = "scheduleLeaveDelegators()",
-	ExecuteLeaveDelegators = "executeLeaveDelegators(address,uint256)",
-	CancelLeaveDelegators = "cancelLeaveDelegators()",
 	ScheduleRevokeDelegation = "scheduleRevokeDelegation(address)",
 	ScheduleDelegatorBondLess = "scheduleDelegatorBondLess(address,uint256)",
 	DelegatorBondMore = "delegatorBondMore(address,uint256)",
 	ExecuteDelegationRequest = "executeDelegationRequest(address,address)",
 	CancelDelegationRequest = "cancelDelegationRequest(address)",
+
+	// deprecated in favor of batch util
+	ScheduleLeaveDelegators = "scheduleLeaveDelegators()",
+	ExecuteLeaveDelegators = "executeLeaveDelegators(address,uint256)",
+	CancelLeaveDelegators = "cancelLeaveDelegators()",
 
 	// deprecated
 	DeprecatedMinDelegation = "min_delegation()",

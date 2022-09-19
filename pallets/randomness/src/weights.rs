@@ -57,13 +57,17 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn request_randomness() -> Weight;
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight;
+	fn prepare_fulfillment(x: u32, ) -> Weight;
 	#[rustfmt::skip]
 	fn finish_fulfillment() -> Weight;
 	#[rustfmt::skip]
 	fn increase_fee() -> Weight;
 	#[rustfmt::skip]
 	fn execute_request_expiration() -> Weight;
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight;
+	#[rustfmt::skip]
+	fn set_babe_randomness_results() -> Weight;
 }
 
 /// Weights for pallet_randomness using the Substrate node and recommended hardware.
@@ -82,8 +86,10 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Randomness Requests (r:1 w:0)
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight {
-		(42_051_000 as Weight)
+	fn prepare_fulfillment(x: u32, ) -> Weight {
+		(13_914_000 as Weight)
+			// Standard Error: 0
+			.saturating_add((296_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)
@@ -112,6 +118,28 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(4 as Weight))
 	}
+	// Storage: Randomness NotFirstBlock (r:1 w:0)
+	// Storage: System Digest (r:1 w:0)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
+	// Storage: Randomness LocalVrfOutput (r:1 w:1)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight {
+		(1_260_307_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+	}
+	// Storage: Randomness RelayEpoch (r:1 w:1)
+	// Storage: ParachainSystem ValidationData (r:1 w:0)
+	// Storage: ParachainSystem RelayStateProof (r:1 w:0)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
+	// Storage: Randomness InherentIncluded (r:0 w:1)
+	#[rustfmt::skip]
+	fn set_babe_randomness_results() -> Weight {
+		(21_088_000 as Weight)
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+	}
 }
 
 // For backwards compatibility and tests
@@ -129,8 +157,10 @@ impl WeightInfo for () {
 	// Storage: Randomness Requests (r:1 w:0)
 	// Storage: Randomness RandomnessResults (r:1 w:0)
 	#[rustfmt::skip]
-	fn prepare_fulfillment() -> Weight {
-		(42_051_000 as Weight)
+	fn prepare_fulfillment(x: u32, ) -> Weight {
+		(13_914_000 as Weight)
+			// Standard Error: 0
+			.saturating_add((296_000 as Weight).saturating_mul(x as Weight))
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 	}
 	// Storage: System Account (r:2 w:2)
@@ -158,5 +188,27 @@ impl WeightInfo for () {
 		(49_749_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(4 as Weight))
+	}
+	// Storage: Randomness NotFirstBlock (r:1 w:0)
+	// Storage: System Digest (r:1 w:0)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:0)
+	// Storage: Randomness LocalVrfOutput (r:1 w:1)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
+	#[rustfmt::skip]
+	fn on_initialize() -> Weight {
+		(1_260_307_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+	}
+	// Storage: Randomness RelayEpoch (r:1 w:1)
+	// Storage: ParachainSystem ValidationData (r:1 w:0)
+	// Storage: ParachainSystem RelayStateProof (r:1 w:0)
+	// Storage: Randomness RandomnessResults (r:1 w:1)
+	// Storage: Randomness InherentIncluded (r:0 w:1)
+	#[rustfmt::skip]
+	fn set_babe_randomness_results() -> Weight {
+		(21_088_000 as Weight)
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
 	}
 }
