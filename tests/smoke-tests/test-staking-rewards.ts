@@ -222,10 +222,14 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   ).to.be.true;
 
   debug(`totalRoundIssuance            ${totalRoundIssuance.toString()}
-reservedForParachainBond      ${reservedForParachainBond} (${parachainBondPercent} * totalRoundIssuance)
-totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} (${collatorCommissionRate} * totalRoundIssuance)
-totalStakingReward            ${totalStakingReward} (totalRoundIssuance - reservedForParachainBond)
-totalBondReward               ${totalBondReward} (totalStakingReward - totalCollatorCommissionReward)`);
+reservedForParachainBond      ${reservedForParachainBond} \
+(${parachainBondPercent} * totalRoundIssuance)
+totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
+(${collatorCommissionRate} * totalRoundIssuance)
+totalStakingReward            ${totalStakingReward} \
+(totalRoundIssuance - reservedForParachainBond)
+totalBondReward               ${totalBondReward} \
+(totalStakingReward - totalCollatorCommissionReward)`);
 
   // get the collators to be awarded via `awardedPts` storage
   const awardedCollators = (
