@@ -24,7 +24,8 @@ use frame_system::EnsureRootWithSuccess;
 mod origins;
 pub use origins::{
 	pallet_custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender,
-}; // WhitelistedCaller,
+	WhitelistedCaller,
+};
 mod tracks;
 pub use tracks::TracksInfo;
 
@@ -55,18 +56,16 @@ pub type TreasurySpender = EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>
 
 impl origins::pallet_custom_origins::Config for Runtime {}
 
-// purpose of this pallet is to authorize calls dispatched as root for later?
-// needs Preimage pallet configured for it
-// impl pallet_whitelist::Config for Runtime {
-// 	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Self>; //TODO
-// 	type Event = Event;
-// 	type Call = Call;
-// // polkadot: EitherOf<EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>, Fellows>;
-// 	type WhitelistOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
-// 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
-// requires Preimage pallet
-// 	type PreimageProvider = Preimage;
-// }
+// purpose of this pallet is to queue calls to be dispatched as root for later
+impl pallet_whitelist::Config for Runtime {
+	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Runtime>;
+	type Event = Event;
+	type Call = Call;
+	// polkadot: EitherOf<EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>, Fellows>;
+	type WhitelistOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
+	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
+	type PreimageProvider = Preimage;
+}
 
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Self>; //TODO

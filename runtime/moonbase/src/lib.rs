@@ -480,8 +480,18 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = ConstU32<50>;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type PreimageProvider = ();
+	type PreimageProvider = Preimage;
 	type NoPreimagePostponement = ();
+}
+
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
+	type Event = Event;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type MaxSize = ConstU32<{ 4096 * 1024 }>;
+	type BaseDeposit = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type ByteDeposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 }
 
 type CouncilInstance = pallet_collective::Instance1;
@@ -1269,6 +1279,8 @@ construct_runtime! {
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
 		Origins: pallet_custom_origins::{Origin} = 43,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}
 }
 

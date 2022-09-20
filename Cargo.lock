@@ -5021,6 +5021,7 @@ dependencies = [
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-parachain-staking",
+ "pallet-preimage",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
@@ -5034,6 +5035,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
+ "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
@@ -7984,6 +7986,20 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-whitelist"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.26#c674000cb498e8d885987bde1a4490939b5fe3db"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
  "sp-runtime",
  "sp-std",
 ]
