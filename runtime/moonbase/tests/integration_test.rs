@@ -35,8 +35,8 @@ use frame_support::{
 use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
 	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
-	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
+	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Referenda,
+	Runtime, RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use polkadot_parachain::primitives::Sibling;
@@ -76,6 +76,7 @@ use sp_runtime::{
 	DispatchError, ModuleError, TokenError,
 };
 use xcm::latest::prelude::*;
+
 #[test]
 fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {

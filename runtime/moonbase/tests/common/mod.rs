@@ -28,8 +28,8 @@ pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, HOURS,
-	WEEKS,
+	ParachainStaking, Range, Runtime, Scheduler, System, TransactionConverter, UncheckedExtrinsic,
+	HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
@@ -85,6 +85,7 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		}
 
 		// Initialize the new block
+		Scheduler::on_initialize(System::block_number());
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
