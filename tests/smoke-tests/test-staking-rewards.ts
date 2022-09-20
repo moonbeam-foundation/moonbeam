@@ -129,14 +129,6 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       };
       countedDelegationSum = countedDelegationSum.add(amount);
     }
-    const totalCountedLessTotalCounted = total.sub(countedDelegationSum.add(bond));
-    // expect(total.toString()).to.equal(
-    //   countedDelegationSum.add(bond).toString(),
-    //   `Total counted (denominator) ${total} - total counted (numerator
-    // ${countedDelegationSum.add(new BN(bond))} = ${totalCountedLessTotalCounted}` +
-    //     ` so this collator and its delegations receive fewer rewards for round ` +
-    //     `${originalRoundNumber.toString()}`
-    // );
 
     for (const topDelegation of topDelegations) {
       if (!Object.keys(collatorInfo.delegators).includes(topDelegation)) {
@@ -187,7 +179,6 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     }
   })();
   const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(totalRoundIssuance);
-  const totalBondReward = totalRoundIssuance.sub(totalCollatorCommissionReward);
 
   // calculate total staking reward
   const firstBlockRewardedEvents = await apiAtRewarded.query.system.events();
@@ -218,6 +209,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
     return totalRoundIssuance;
   })();
+  const totalBondReward = totalStakingReward.sub(totalCollatorCommissionReward);
 
   const delayedPayout = (
     await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
@@ -228,6 +220,12 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       ${delayedPayout.totalStakingReward.toString()} != ${totalStakingReward.toString()} \
       for round ${originalRoundNumber.toString()}`
   ).to.be.true;
+
+  debug(`totalRoundIssuance            ${totalRoundIssuance.toString()}
+reservedForParachainBond      ${reservedForParachainBond} (${parachainBondPercent} * totalRoundIssuance)
+totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} (${collatorCommissionRate} * totalRoundIssuance)
+totalStakingReward            ${totalStakingReward} (totalRoundIssuance - reservedForParachainBond)
+totalBondReward               ${totalBondReward} (totalStakingReward - totalCollatorCommissionReward)`);
 
   // get the collators to be awarded via `awardedPts` storage
   const awardedCollators = (
