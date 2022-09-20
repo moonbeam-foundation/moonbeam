@@ -237,7 +237,7 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-pub(crate) fn roll_one_block() -> u32 {
+pub(crate) fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -248,7 +248,7 @@ pub(crate) fn roll_one_block() -> u32 {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: u32) -> u32 {
+pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -261,14 +261,14 @@ pub(crate) fn roll_to(n: u32) -> u32 {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
-pub(crate) fn roll_to_round_begin(round: u32) -> u32 {
+pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
 	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
-pub(crate) fn roll_to_round_end(round: u32) -> u32 {
+pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	let block = round * DefaultBlocksPerRound::get() - 1;
 	roll_to(block)
 }

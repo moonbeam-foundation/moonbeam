@@ -233,7 +233,7 @@ impl pallet_proxy::Config for Test {
 pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId32> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId32, delegatee: AccountId32) -> Result<(), &'static str> {
-		let f = |x: &pallet_proxy::ProxyDefinition<AccountId32, ProxyType, u32>| -> bool {
+		let f = |x: &pallet_proxy::ProxyDefinition<AccountId32, ProxyType, BlockNumber>| -> bool {
 			x.delegate == delegatee && (x.proxy_type == ProxyType::Any)
 		};
 		Proxy::proxies(delegator)

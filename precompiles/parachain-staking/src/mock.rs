@@ -363,7 +363,7 @@ pub(crate) fn set_points(round: u32, acc: Account, pts: u32) {
 	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
 
-pub(crate) fn roll_to(n: u32) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		ParachainStaking::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
@@ -377,7 +377,7 @@ pub(crate) fn roll_to(n: u32) {
 
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
-pub(crate) fn roll_to_round_begin(round: u32) {
+pub(crate) fn roll_to_round_begin(round: BlockNumber) {
 	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }

@@ -187,7 +187,7 @@ impl ExtBuilder {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: u32) -> u32 {
+pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -198,7 +198,7 @@ pub(crate) fn roll_to(n: u32) -> u32 {
 }
 
 // Rolls forward one block. Returns the new block number.
-fn roll_one_block() -> u32 {
+fn roll_one_block() -> BlockNumber {
 	MoonbeamOrbiters::on_finalize(System::block_number());
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());

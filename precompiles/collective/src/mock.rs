@@ -342,7 +342,7 @@ impl ExtBuilder {
 }
 
 #[allow(unused)]
-pub(crate) fn roll_to(n: u32) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
 	// We may be able to simulate this by poking its storage directly, but I don't see any value
 	// added from doing that.

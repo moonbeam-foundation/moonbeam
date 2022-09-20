@@ -307,7 +307,7 @@ impl ExtBuilder {
 }
 
 //TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u32) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		// Relay chain Stuff. I might actually set this to a number different than N
 		let sproof_builder = RelayStateSproofBuilder::default();

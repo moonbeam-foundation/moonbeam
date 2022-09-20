@@ -316,7 +316,7 @@ pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
 	weight
 }
 
-pub(crate) fn roll_to(block_number: u32, invoke_on_runtime_upgrade_first: bool) {
+pub(crate) fn roll_to(block_number: BlockNumber, invoke_on_runtime_upgrade_first: bool) {
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}
