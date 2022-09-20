@@ -17,7 +17,9 @@
 use super::*;
 use frame_support::{
 	assert_noop,
+	traits::ConstU32,
 	weights::{Pays, PostDispatchInfo},
+	BoundedVec,
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
 use xcm_primitives::{EthereumXcmFee, EthereumXcmTransaction, EthereumXcmTransactionV1};
@@ -47,7 +49,11 @@ fn xcm_evm_transfer_eip_1559_transaction(destination: H160, value: U256) -> Ethe
 		gas_limit: U256::from(0x5208),
 		action: ethereum::TransactionAction::Call(destination),
 		value,
-		input: vec![],
+		input:
+			BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(
+				vec![],
+			)
+			.unwrap(),
 		access_list: None,
 	})
 }
@@ -58,7 +64,11 @@ fn xcm_evm_call_eip_1559_transaction(destination: H160, input: Vec<u8>) -> Ether
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Call(destination),
 		value: U256::zero(),
-		input,
+		input:
+			BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(
+				input,
+			)
+			.unwrap(),
 		access_list: None,
 	})
 }
@@ -70,7 +80,11 @@ fn xcm_erc20_creation_eip_1559_transaction() -> EthereumXcmTransaction {
 		gas_limit: U256::from(0x100000),
 		action: ethereum::TransactionAction::Create,
 		value: U256::zero(),
-		input: hex::decode(CONTRACT).unwrap(),
+		input:
+			BoundedVec::<u8, ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>>::try_from(
+				hex::decode(CONTRACT).unwrap(),
+			)
+			.unwrap(),
 		access_list: None,
 	})
 }
@@ -198,7 +212,11 @@ fn test_transact_xcm_validation_works() {
 					gas_limit: U256::from(0x5207),
 					action: ethereum::TransactionAction::Call(bob.address),
 					value: U256::from(1),
-					input: vec![],
+					input: BoundedVec::<
+						u8,
+						ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>,
+					>::try_from(vec![])
+					.unwrap(),
 					access_list: None,
 				}),
 			),
@@ -304,4 +322,102 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 				Proxy::remove_proxy_delegate(&bob.account_id, alice.account_id.clone(), proxy, 0);
 		});
 	}
+}
+
+#[test]
+fn test_global_nonce_incr() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	ext.execute_with(|| {
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Alice to Charlie");
+
+		assert_eq!(EthereumXcm::nonce(), U256::one());
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(bob.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Bob to Charlie");
+
+		assert_eq!(EthereumXcm::nonce(), U256::from(2));
+	});
+}
+
+#[test]
+fn test_global_nonce_not_incr() {
+	let (pairs, mut ext) = new_test_ext(2);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+
+	ext.execute_with(|| {
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+
+		let invalid_transaction_cost =
+			EthereumXcmTransaction::V1(
+				EthereumXcmTransactionV1 {
+					fee_payment: EthereumXcmFee::Auto,
+					gas_limit: U256::one(),
+					action: ethereum::TransactionAction::Call(bob.address),
+					value: U256::one(),
+					input: BoundedVec::<
+						u8,
+						ConstU32<{ xcm_primitives::MAX_ETHEREUM_XCM_INPUT_SIZE }>,
+					>::try_from(vec![])
+					.unwrap(),
+					access_list: None,
+				},
+			);
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			invalid_transaction_cost,
+		)
+		.expect_err("Failed to execute transaction from Alice to Bob");
+
+		assert_eq!(EthereumXcm::nonce(), U256::zero());
+	});
+}
+
+#[test]
+fn test_transaction_hash_collision() {
+	let (pairs, mut ext) = new_test_ext(3);
+	let alice = &pairs[0];
+	let bob = &pairs[1];
+	let charlie = &pairs[2];
+
+	ext.execute_with(|| {
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(alice.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Alice to Charlie");
+
+		EthereumXcm::transact(
+			RawOrigin::XcmEthereumTransaction(bob.address).into(),
+			xcm_evm_transfer_eip_1559_transaction(charlie.address, U256::one()),
+		)
+		.expect("Failed to execute transaction from Bob to Charlie");
+
+		let mut hashes = Ethereum::pending()
+			.iter()
+			.map(|(tx, _, _)| tx.hash())
+			.collect::<Vec<ethereum_types::H256>>();
+
+		// Holds two transactions hashes
+		assert_eq!(hashes.len(), 2);
+
+		hashes.dedup();
+
+		// Still holds two transactions hashes after removing potential consecutive repeated values.
+		assert_eq!(hashes.len(), 2);
+	});
 }

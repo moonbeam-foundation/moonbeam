@@ -15,22 +15,50 @@ jobs:
   ####### Build runtimes with srtool #######
 
   build-srtool-runtimes:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         chain: ["moonbase", "moonriver", "moonbeam"]
+        srtool_image:
+          - purestake/srtool
+        srtool_image_tag:
+          - 1.62.0
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.to }}
-      - name: Srtool build
-        id: srtool_build
-        uses: chevdor/srtool-actions@v0.5.0
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        if: github.repository == 'purestake/moonbeam'
         with:
-          chain: ${{ matrix.chain }}
-          tag: 1.62.0
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build & Push purestake/srtool image
+        if: github.repository == 'purestake/moonbeam'
+        run: |
+          docker pull "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}" && image_exists=true || image_exists=false
+
+          if [[ $image_exists = "false" ]]; then
+            echo building "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+            docker build --pull --no-cache . \
+              -f docker/moonbeam-srtool.Dockerfile \
+              --build-arg SRTOOL_IMAGE_TAG=${{ matrix.srtool_image_tag }} \
+              -t ${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}
+
+            echo pushing "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+            docker push "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+          else
+            echo skiping build "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}", image already exists
+          fi
+      - name: Build runtime using "${{ matrix.srtool_image }}:${{ matrix.srtool_image_tag }}"
+        id: srtool_build
+        env:
+          GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
+          GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
+          GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
+        run: ./scripts/build-runtime-srtool.sh
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json

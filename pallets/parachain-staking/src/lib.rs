@@ -119,9 +119,6 @@ pub mod pallet {
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
-		/// Default number of blocks per round at genesis
-		#[pallet::constant]
-		type DefaultBlocksPerRound: Get<u32>;
 		/// Number of rounds that candidates remain bonded before exit request is executable
 		#[pallet::constant]
 		type LeaveCandidatesDelay: Get<RoundIndex>;
@@ -152,12 +149,6 @@ pub mod pallet {
 		/// Maximum delegations per delegator
 		#[pallet::constant]
 		type MaxDelegationsPerDelegator: Get<u32>;
-		/// Default commission due to collators, is `CollatorCommission` storage value in genesis
-		#[pallet::constant]
-		type DefaultCollatorCommission: Get<Perbill>;
-		/// Default percent of inflation set aside for parachain bond account
-		#[pallet::constant]
-		type DefaultParachainBondReservePercent: Get<Percent>;
 		/// Minimum stake required for any candidate to be in `SelectedCandidates` for the round
 		#[pallet::constant]
 		type MinCollatorStk: Get<BalanceOf<Self>>;
@@ -598,10 +589,19 @@ pub mod pallet {
 
 	#[pallet::genesis_config]
 	pub struct GenesisConfig<T: Config> {
+		/// Initialize balance and register all as collators: `(collator AccountId, balance Amount)`
 		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
-		/// Vec of tuples of the format (delegator AccountId, collator AccountId, delegation Amount)
+		/// Initialize balance and make delegations:
+		/// `(delegator AccountId, collator AccountId, delegation Amount)`
 		pub delegations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
+		/// Inflation configuration
 		pub inflation_config: InflationInfo<BalanceOf<T>>,
+		/// Default fixed percent a collator takes off the top of due rewards
+		pub collator_commission: Perbill,
+		/// Default percent of inflation set aside for parachain bond every round
+		pub parachain_bond_reserve_percent: Percent,
+		/// Default number of blocks in a round
+		pub blocks_per_round: u32,
 	}
 
 	#[cfg(feature = "std")]
@@ -611,6 +611,9 @@ pub mod pallet {
 				candidates: vec![],
 				delegations: vec![],
 				inflation_config: Default::default(),
+				collator_commission: Default::default(),
+				parachain_bond_reserve_percent: Default::default(),
+				blocks_per_round: 1u32,
 			}
 		}
 	}
@@ -618,6 +621,7 @@ pub mod pallet {
 	#[pallet::genesis_build]
 	impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
 		fn build(&self) {
+			assert!(self.blocks_per_round > 0, "Blocks per round must be > 0");
 			<InflationConfig<T>>::put(self.inflation_config.clone());
 			let mut candidate_count = 0u32;
 			// Initialize the candidates
@@ -677,13 +681,13 @@ pub mod pallet {
 				}
 			}
 			// Set collator commission to default config
-			<CollatorCommission<T>>::put(T::DefaultCollatorCommission::get());
+			<CollatorCommission<T>>::put(self.collator_commission);
 			// Set parachain bond config to default config
 			<ParachainBondInfo<T>>::put(ParachainBondConfig {
 				// must be set soon; if not => due inflation will be sent to collators/delegators
 				account: T::AccountId::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
 					.expect("infinite length input; no invalid inputs for type; qed"),
-				percent: T::DefaultParachainBondReservePercent::get(),
+				percent: self.parachain_bond_reserve_percent,
 			});
 			// Set total selected candidates to minimum config
 			<TotalSelected<T>>::put(T::MinSelectedCandidates::get());
@@ -691,7 +695,7 @@ pub mod pallet {
 			let (v_count, _, total_staked) = <Pallet<T>>::select_top_candidates(1u32);
 			// Start Round 1 at Block 0
 			let round: RoundInfo<T::BlockNumber> =
-				RoundInfo::new(1u32, 0u32.into(), T::DefaultBlocksPerRound::get());
+				RoundInfo::new(1u32, 0u32.into(), self.blocks_per_round);
 			<Round<T>>::put(round);
 			// Snapshot total stake
 			<Staked<T>>::insert(1u32, <Total<T>>::get());

@@ -85,8 +85,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{
 	convert::{From, Into},
@@ -702,6 +701,7 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
@@ -722,13 +722,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 
 impl parachain_info::Config for Runtime {}
-
-parameter_types! {
-	/// Default fixed percent a collator takes off the top of due rewards
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// Default percent of inflation set aside for parachain bond every round
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-}
 
 pub struct OnCollatorPayout;
 impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
@@ -753,8 +746,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
-	/// Blocks per round
-	type DefaultBlocksPerRound = ConstU32<{ 2 * HOURS }>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<2>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -775,8 +766,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	/// Minimum stake required to become a collator
 	type MinCollatorStk = ConstU128<{ 1000 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
@@ -973,6 +962,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::PolkadotXcm(_) => false,
 			Call::Treasury(_) => false,
 			Call::XcmTransactor(_) => false,
+			Call::EthereumXcm(_) => false,
 			_ => true,
 		}
 	}
@@ -1269,7 +1259,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,

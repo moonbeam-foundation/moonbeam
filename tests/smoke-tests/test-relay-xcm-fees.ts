@@ -35,6 +35,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
     const paraRuntime = context.polkadotApi.runtimeVersion.specName.toString();
+    const relayVersion = context.relayApi.runtimeVersion.specVersion.toNumber();
 
     // skip test if runtime inconsistency. The storage is set for
     // specific runtimes, so does not make sense to compare non-matching runtimes
@@ -75,7 +76,11 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
     const coef = cent / 10n;
 
     const relayBaseWeight =
-      relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
+      relayVersion >= 9290
+        ? (
+            relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic as any
+          ).refTime.toBigInt()
+        : relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
 
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 

@@ -53,8 +53,8 @@ use pallet_evm_precompile_author_mapping::Action as AuthorMappingAction;
 use pallet_evm_precompile_batch::Action as BatchAction;
 use pallet_evm_precompile_crowdloan_rewards::Action as CrowdloanAction;
 use pallet_evm_precompile_randomness::{
-	EXECUTE_EXPIRATION_ESTIMATED_COST, FULFILLMENT_OVERHEAD_ESTIMATED_COST,
-	INCREASE_REQUEST_FEE_ESTIMATED_COST, REQUEST_RANDOMNESS_ESTIMATED_COST,
+	EXECUTE_EXPIRATION_ESTIMATED_COST, INCREASE_REQUEST_FEE_ESTIMATED_COST,
+	REQUEST_RANDOMNESS_ESTIMATED_COST,
 };
 use pallet_evm_precompile_xcm_transactor::{
 	v1::Action as XcmTransactorActionV1, v2::Action as XcmTransactorActionV2,
@@ -85,10 +85,6 @@ fn verify_randomness_precompile_gas_constants() {
 	assert_eq!(
 		weight_to_gas(Weight::request_randomness()),
 		REQUEST_RANDOMNESS_ESTIMATED_COST
-	);
-	assert_eq!(
-		weight_to_gas(Weight::prepare_fulfillment() + Weight::finish_fulfillment()),
-		FULFILLMENT_OVERHEAD_ESTIMATED_COST
 	);
 	assert_eq!(
 		weight_to_gas(Weight::increase_fee()),
@@ -2837,8 +2833,8 @@ fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
 		let precompile_addresses: std::collections::BTreeSet<_> = vec![
-			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1025, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054,
-			2055, 2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
+			1, 2, 3, 4, 5, 6, 7, 8, 9, 1024, 1026, 2048, 2049, 2050, 2051, 2052, 2053, 2054, 2055,
+			2056, 2057, 2058, 2059, 2060, 2061, 2062, 2063, 2064,
 		]
 		.into_iter()
 		.map(H160::from_low_u64_be)
