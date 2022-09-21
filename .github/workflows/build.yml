@@ -168,9 +168,9 @@ jobs:
         run: cargo fmt -- --check
 
   ####### Preparing polkadot binary for parachain tests #######
-  ####### For non-official repo, the script will fail if a new version of 
+  ####### For non-official repo, the script will fail if a new version of
   ####### polkadot needs to be pushed.
-  
+
   prepare-polkadot:
     runs-on: self-hosted
     needs: ["set-tags"]
