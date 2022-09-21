@@ -80,7 +80,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
         run: |
-          find . -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
+          find . -name './precompiles/utils/macro/tests' -prune -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
           FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
           if [[ $FILECOUNT -eq 0 ]]; then
             true
@@ -281,7 +281,9 @@ jobs:
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
-        run: cargo test --release --all
+        run: |
+          cargo install cargo-expand
+          cargo test --release --all
 
       # We determine whether there are unmodified Cargo.lock files by:
       # 1. Asking git for a list of all modified files
