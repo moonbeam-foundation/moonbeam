@@ -217,6 +217,20 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -243,7 +257,7 @@
 <span class="kw">use</span> <span class="ident">sp_runtime::PerThing</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">RuntimeDebug</span>};
 <span class="kw">use</span> <span class="ident">substrate_fixed::transcendental::pow</span> <span class="kw">as</span> <span class="ident">floatpow</span>;
-<span class="kw">use</span> <span class="ident">substrate_fixed::types</span>::{<span class="ident">I32F32</span>, <span class="ident">I64F64</span>};
+<span class="kw">use</span> <span class="ident">substrate_fixed::types::I64F64</span>;
 
 <span class="kw">const</span> <span class="ident">SECONDS_PER_YEAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">31557600</span>;
 <span class="kw">const</span> <span class="ident">SECONDS_PER_BLOCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">12</span>;
@@ -285,10 +299,10 @@
 	<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
 	<span class="ident">rounds_per_year</span>: <span class="ident">u32</span>,
 ) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="ident">I32F32::from_num</span>(<span class="number">1</span>) <span class="op">/</span> <span class="ident">I32F32::from_num</span>(<span class="ident">rounds_per_year</span>);
+	<span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="ident">I64F64::from_num</span>(<span class="number">1</span>) <span class="op">/</span> <span class="ident">I64F64::from_num</span>(<span class="ident">rounds_per_year</span>);
 	<span class="kw">let</span> <span class="ident">annual_to_round</span> <span class="op">=</span> <span class="op">|</span><span class="ident">annual</span>: <span class="ident">Perbill</span><span class="op">|</span> -&gt; <span class="ident">Perbill</span> {
-		<span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">I32F32::from_num</span>(<span class="ident">annual</span>.<span class="ident">deconstruct</span>()) <span class="op">/</span> <span class="ident">I32F32::from_num</span>(<span class="ident">Perbill::ACCURACY</span>);
-		<span class="kw">let</span> <span class="ident">y</span>: <span class="ident">I64F64</span> <span class="op">=</span> <span class="ident">floatpow</span>(<span class="ident">I32F32::from_num</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">x</span>, <span class="ident">exponent</span>)
+		<span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">I64F64::from_num</span>(<span class="ident">annual</span>.<span class="ident">deconstruct</span>()) <span class="op">/</span> <span class="ident">I64F64::from_num</span>(<span class="ident">Perbill::ACCURACY</span>);
+		<span class="kw">let</span> <span class="ident">y</span>: <span class="ident">I64F64</span> <span class="op">=</span> <span class="ident">floatpow</span>(<span class="ident">I64F64::from_num</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">x</span>, <span class="ident">exponent</span>)
 			.<span class="ident">expect</span>(<span class="string">&quot;Cannot overflow since rounds_per_year is u32 so worst case 0; QED&quot;</span>);
 		<span class="ident">Perbill::from_parts</span>(
 			((<span class="ident">y</span> <span class="op">-</span> <span class="ident">I64F64::from_num</span>(<span class="number">1</span>)) <span class="op">*</span> <span class="ident">I64F64::from_num</span>(<span class="ident">Perbill::ACCURACY</span>))
@@ -429,6 +443,20 @@
 			<span class="ident">expected_round_schedule</span>,
 			<span class="ident">mock_round_issuance_range</span>(<span class="number">10_000_000</span>, <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">8766</span>))
 		);
+	}
+	<span class="attribute">#[<span class="ident">test</span>]</span>
+	<span class="kw">fn</span> <span class="ident">inflation_does_not_panic_at_round_number_limit</span>() {
+		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
+			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
+			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
+			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
+		};
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u32::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u64::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u128::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u32::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u64::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
+		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u128::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
 	}
 }
 </code></pre></div>
