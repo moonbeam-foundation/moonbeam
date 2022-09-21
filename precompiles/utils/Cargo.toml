@@ -19,11 +19,11 @@ precompile-utils-macro = { path = "macro" }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
+frame-system = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
+sp-core = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
+sp-io = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
+sp-std = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
 
 # Frontier
 evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false, features = [ "with-codec" ] }
@@ -31,7 +31,7 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 
 # Polkadot / XCM
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
 
 [dev-dependencies]
 hex-literal = "0.3.1"

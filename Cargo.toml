@@ -31,11 +31,6 @@ members = [
 	"runtime/moonriver",
 ]
 
-[patch.crates-io]
-jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.14" }
-jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.14" }
-jsonrpsee-types = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.14" }
-
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]
