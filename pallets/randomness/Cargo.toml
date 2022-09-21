@@ -11,7 +11,7 @@ frame-support = { git = "https://github.com/purestake/substrate", default-featur
 frame-system = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
 hex = { version = "0.4.3", default-features = false }
 log = "0.4"
-nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
 serde = { version = "1.0.101", optional = true }
@@ -23,7 +23,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", default-features 
 sp-std = { git = "https://github.com/purestake/substrate", default-features = false , branch = "moonbeam-polkadot-v0.9.29" }
 
 # Frontier
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
