@@ -14,13 +14,16 @@
 use super::*;
 
 impl Precompile {
-	pub fn try_from(_args: syn::AttributeArgs, impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
-		let struct_ident = Self::extract_struct_ident(impl_)?;
-		let enum_ident = format_ident!("{}Call", struct_ident);
+	/// Try to extract information out of an annotated `impl` block.
+	pub fn try_from(impl_: &mut syn::ItemImpl) -> syn::Result<Self> {
+		// Extract the name of the type used in the `impl` block.
+		let impl_ident = Self::extract_impl_ident(impl_)?;
+		let enum_ident = format_ident!("{}Call", impl_ident);
 
+		// We setup the data collection struct.
 		let mut precompile = Precompile {
-			struct_type: impl_.self_ty.as_ref().clone(),
-			struct_ident,
+			impl_type: impl_.self_ty.as_ref().clone(),
+			impl_ident,
 			enum_ident,
 			generics: impl_.generics.clone(),
 			selector_to_variant: BTreeMap::new(),
@@ -34,7 +37,6 @@ impl Precompile {
 		};
 
 		precompile.process_impl_attr(impl_)?;
-
 		for mut item in &mut impl_.items {
 			// We only interact with methods and leave the rest as-is.
 			if let syn::ImplItem::Method(ref mut method) = &mut item {
@@ -42,6 +44,7 @@ impl Precompile {
 			}
 		}
 
+		// Check constraint of PrecompileSet.
 		if precompile.tagged_as_precompile_set
 			&& precompile.precompile_set_discriminant_fn.is_none()
 		{
@@ -53,6 +56,8 @@ impl Precompile {
 		Ok(precompile)
 	}
 
+	/// Process the attributes used on the `impl` block, which allows to declare
+	/// if it is a PrecompileSet or not, and to provide concrete types for tests if necessary.
 	fn process_impl_attr(&mut self, impl_: &mut syn::ItemImpl) -> syn::Result<()> {
 		let attrs = attr::take_attributes::<attr::ImplAttr>(&mut impl_.attrs)?;
 
@@ -81,7 +86,10 @@ impl Precompile {
 		Ok(())
 	}
 
-	fn extract_struct_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
+	/// Extract the ident of the type of the `impl` block.
+	/// This ident is used to generate new idents such as the name of the Call enum and
+	/// the Solidity selector test.
+	fn extract_impl_ident(impl_: &syn::ItemImpl) -> syn::Result<syn::Ident> {
 		let type_path = match impl_.self_ty.as_ref() {
 			syn::Type::Path(p) => p,
 			_ => {
@@ -99,6 +107,7 @@ impl Precompile {
 		Ok(final_path.ident.clone())
 	}
 
+	/// Process a single method, looking for attributes and checking mandatory parameters.
 	fn process_method(&mut self, method: &mut syn::ImplItemMethod) -> syn::Result<()> {
 		// Take (remove) all attributes related to this macro.
 		let attrs = attr::take_attributes::<attr::MethodAttr>(&mut method.attrs)?;
@@ -119,18 +128,9 @@ impl Precompile {
 		let mut selectors = vec![];
 		let initial_arguments = if self.tagged_as_precompile_set { 2 } else { 1 };
 
+		// We first look for unique attributes.
 		if let Some(attr::MethodAttr::Discriminant(span)) = attrs.first() {
 			let span = *span;
-			if !self.tagged_as_precompile_set {
-				let msg = "The impl block must be tagged with `#[precompile::precompile_set]` for
-				the discriminant attribute to be used";
-				return Err(syn::Error::new(span, msg));
-			}
-
-			if self.precompile_set_discriminant_fn.is_some() {
-				let msg = "A PrecompileSet can only have 1 discriminant function";
-				return Err(syn::Error::new(span, msg));
-			}
 
 			if attrs.len() != 1 {
 				let msg = "The discriminant attribute must be the only precompile attribute of \
@@ -138,71 +138,11 @@ impl Precompile {
 				return Err(syn::Error::new(span, msg));
 			}
 
-			let span = method.sig.span();
-
-			if method.sig.inputs.len() != 1 {
-				let msg = "The discriminant function must only take the code address (H160) as \
-				parameter.";
-				return Err(syn::Error::new(span, msg));
-			}
-
-			let msg = "The discriminant function must return an Option<_> (no type alias)";
-
-			let return_type = match &method.sig.output {
-				syn::ReturnType::Type(_, t) => t.as_ref(),
-				_ => return Err(syn::Error::new(span, msg)),
-			};
-
-			let return_path = match return_type {
-				syn::Type::Path(p) => p,
-				_ => return Err(syn::Error::new(span, msg)),
-			};
-
-			if return_path.qself.is_some() {
-				return Err(syn::Error::new(span, msg));
-			}
-
-			let return_path = &return_path.path;
-
-			if return_path.leading_colon.is_some() || return_path.segments.len() != 1 {
-				return Err(syn::Error::new(span, msg));
-			}
-
-			let return_segment = &return_path.segments[0];
-
-			if return_segment.ident.to_string() != "Option" {
-				return Err(syn::Error::new(return_segment.ident.span(), msg));
-			}
-
-			let option_arguments = match &return_segment.arguments {
-				syn::PathArguments::AngleBracketed(args) => args,
-				_ => return Err(syn::Error::new(return_segment.ident.span(), msg)),
-			};
-
-			if option_arguments.args.len() != 1 {
-				let msg = "Option type should only have 1 type argument";
-				return Err(syn::Error::new(option_arguments.args.span(), msg));
-			}
-
-			let discriminant_type: &syn::Type = match &option_arguments.args[0] {
-				syn::GenericArgument::Type(t) => t,
-				_ => return Err(syn::Error::new(option_arguments.args.span(), msg)),
-			};
-
-			self.try_register_discriminant_type(&discriminant_type)?;
-
-			self.precompile_set_discriminant_fn = Some(method.sig.ident.clone());
-
-			return Ok(());
+			return self.parse_discriminant_fn(span, method);
 		}
 
-		if let Some(attr::MethodAttr::PreDispatchCheck(span)) = attrs.first() {
+		if let Some(attr::MethodAttr::PreCheck(span)) = attrs.first() {
 			let span = *span;
-
-			if self.pre_check.is_some() {
-				let msg = "A Precompile can only have 1 pre_check function";
-				return Err(syn::Error::new(span, msg));
-			}
 
 			if attrs.len() != 1 {
 				let msg = "The pre_check attribute must be the only precompile attribute of \
@@ -210,29 +150,10 @@ impl Precompile {
 				return Err(syn::Error::new(span, msg));
 			}
 
-			let span = method.sig.span();
-
-			let mut method_inputs = method.sig.inputs.iter();
-
-			self.check_initial_parameters(&mut method_inputs, span)?;
-
-			if method_inputs.next().is_some() {
-				let msg = if self.tagged_as_precompile_set {
-					"PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
-					instance discriminant and the PrecompileHandle)"
-				} else {
-					"Precompile pre_check method must have exactly 1 parameter (the \
-					PrecompileHandle)"
-				};
-
-				return Err(syn::Error::new(span, msg));
-			}
-
-			self.pre_check = Some(method.sig.ident.clone());
-
-			return Ok(());
+			return self.parse_pre_check_fn(span, method);
 		}
 
+		// We iterate over all attributes of the method.
 		for attr in attrs {
 			match attr {
 				attr::MethodAttr::Discriminant(span) => {
@@ -240,7 +161,7 @@ impl Precompile {
 					attribute of the function";
 					return Err(syn::Error::new(span, msg));
 				}
-				attr::MethodAttr::PreDispatchCheck(span) => {
+				attr::MethodAttr::PreCheck(span) => {
 					let msg = "The pre_check attribute must be the only precompile \
 					attribute of the function";
 					return Err(syn::Error::new(span, msg));
@@ -273,49 +194,20 @@ impl Precompile {
 
 					modifier = Modifier::View;
 				}
-				attr::MethodAttr::Public(_span, signature_lit) => {
+				attr::MethodAttr::Public(_, signature_lit) => {
 					used = true;
 
-					let signature = signature_lit.value();
-
-					// Split signature to get arguments type.
-					let split: Vec<_> = signature.splitn(2, "(").collect();
-					if split.len() != 2 {
-						let msg = "Selector must have form \"foo(arg1,arg2,...)\"";
-						return Err(syn::Error::new(signature_lit.span(), msg));
-					}
-
-					let local_args_type = format!("({}", split[1]); // add back initial parenthesis
-
-					// If there are multiple public attributes we check that they all have
-					// the same type.
-					if let Some(ref args_type) = &solidity_arguments_type {
-						if args_type != &local_args_type {
-							let msg = "Method cannot have selectors with different types.";
-							return Err(syn::Error::new(signature_lit.span(), msg));
-						}
-					} else {
-						solidity_arguments_type = Some(local_args_type);
-					}
-
-					// Compute the 4-bytes selector.
-					let digest = Keccak256::digest(signature.as_ref());
-					let selector = u32::from_be_bytes([digest[0], digest[1], digest[2], digest[3]]);
-
-					if let Some(previous) = self
-						.selector_to_variant
-						.insert(selector, method_name.clone())
-					{
-						let msg =
-							format!("Selector collision with method {}", previous.to_string());
-						return Err(syn::Error::new(signature_lit.span(), msg));
-					}
-
+					let selector = self.parse_public_attr(
+						signature_lit,
+						&method_name,
+						&mut solidity_arguments_type,
+					)?;
 					selectors.push(selector);
 				}
 			}
 		}
 
+		// A method cannot have attributes without being public or fallback.
 		if !used {
 			let msg =
 				"A precompile method cannot have modifiers without being a fallback or having\
@@ -329,6 +221,7 @@ impl Precompile {
 			return Err(syn::Error::new(param.span(), msg));
 		}
 
+		// Fallback method cannot have custom parameters.
 		if is_fallback {
 			if let Some(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
 				let msg = if self.tagged_as_precompile_set {
@@ -344,16 +237,22 @@ impl Precompile {
 
 		let mut method_inputs = method.sig.inputs.iter();
 
+		// We check the first parameters of the method.
+		// If this is a PrecompileSet it will look for a discriminant.
+		// Then for all precompile(set)s it will look for the PrecompileHandle.
+		// We take them from the iterator such that we are only left with the
+		// custom arguments.
 		self.check_initial_parameters(&mut method_inputs, method.sig.span())?;
 
 		// We go through each parameter to collect each name and type that will be used to
 		// generate the input enum and parse the call data.
-		for input in &mut method_inputs {
+		for input in method_inputs {
 			let input = match input {
 				syn::FnArg::Typed(t) => t,
 				_ => {
 					// I don't think it is possible to encounter this error since a self receiver
-					// seems to only be possible in the first position which we skipped.
+					// seems to only be possible in the first position which is checked in
+					// `check_initial_parameters`.
 					let msg = "Exposed precompile methods cannot have a `self` parameter";
 					return Err(syn::Error::new(input.span(), msg));
 				}
@@ -387,6 +286,7 @@ impl Precompile {
 			}
 		};
 
+		// We insert the collected data in self.
 		if let Some(_) = self.variants_content.insert(
 			method_name.clone(),
 			Variant {
@@ -404,6 +304,7 @@ impl Precompile {
 		Ok(())
 	}
 
+	/// Check the initial parameters of most methods of a Precompile(Set).
 	fn check_initial_parameters<'a>(
 		&mut self,
 		method_inputs: &mut impl Iterator<Item = &'a syn::FnArg>,
@@ -468,6 +369,7 @@ impl Precompile {
 		Ok(())
 	}
 
+	/// Records the type of the discriminant and ensure they all have the same type.
 	fn try_register_discriminant_type(&mut self, ty: &syn::Type) -> syn::Result<()> {
 		if let Some(known_type) = &self.precompile_set_discriminant_type {
 			if !is_same_type(&known_type, &ty) {
@@ -483,8 +385,159 @@ impl Precompile {
 
 		Ok(())
 	}
+
+	/// Process the discriminant function.
+	fn parse_discriminant_fn(
+		&mut self,
+		span: Span,
+		method: &syn::ImplItemMethod,
+	) -> syn::Result<()> {
+		if !self.tagged_as_precompile_set {
+			let msg = "The impl block must be tagged with `#[precompile::precompile_set]` for
+			the discriminant attribute to be used";
+			return Err(syn::Error::new(span, msg));
+		}
+
+		if self.precompile_set_discriminant_fn.is_some() {
+			let msg = "A PrecompileSet can only have 1 discriminant function";
+			return Err(syn::Error::new(span, msg));
+		}
+
+		let span = method.sig.span();
+
+		if method.sig.inputs.len() != 1 {
+			let msg = "The discriminant function must only take the code address (H160) as \
+			parameter.";
+			return Err(syn::Error::new(span, msg));
+		}
+
+		let msg = "The discriminant function must return an Option<_> (no type alias)";
+
+		let return_type = match &method.sig.output {
+			syn::ReturnType::Type(_, t) => t.as_ref(),
+			_ => return Err(syn::Error::new(span, msg)),
+		};
+
+		let return_path = match return_type {
+			syn::Type::Path(p) => p,
+			_ => return Err(syn::Error::new(span, msg)),
+		};
+
+		if return_path.qself.is_some() {
+			return Err(syn::Error::new(span, msg));
+		}
+
+		let return_path = &return_path.path;
+
+		if return_path.leading_colon.is_some() || return_path.segments.len() != 1 {
+			return Err(syn::Error::new(span, msg));
+		}
+
+		let return_segment = &return_path.segments[0];
+
+		if return_segment.ident.to_string() != "Option" {
+			return Err(syn::Error::new(return_segment.ident.span(), msg));
+		}
+
+		let option_arguments = match &return_segment.arguments {
+			syn::PathArguments::AngleBracketed(args) => args,
+			_ => return Err(syn::Error::new(return_segment.ident.span(), msg)),
+		};
+
+		if option_arguments.args.len() != 1 {
+			let msg = "Option type should only have 1 type argument";
+			return Err(syn::Error::new(option_arguments.args.span(), msg));
+		}
+
+		let discriminant_type: &syn::Type = match &option_arguments.args[0] {
+			syn::GenericArgument::Type(t) => t,
+			_ => return Err(syn::Error::new(option_arguments.args.span(), msg)),
+		};
+
+		self.try_register_discriminant_type(&discriminant_type)?;
+
+		self.precompile_set_discriminant_fn = Some(method.sig.ident.clone());
+
+		Ok(())
+	}
+
+	/// Process the pre_check function.
+	fn parse_pre_check_fn(&mut self, span: Span, method: &syn::ImplItemMethod) -> syn::Result<()> {
+		if self.pre_check.is_some() {
+			let msg = "A Precompile can only have 1 pre_check function";
+			return Err(syn::Error::new(span, msg));
+		}
+
+		let span = method.sig.span();
+
+		let mut method_inputs = method.sig.inputs.iter();
+
+		self.check_initial_parameters(&mut method_inputs, span)?;
+
+		if method_inputs.next().is_some() {
+			let msg = if self.tagged_as_precompile_set {
+				"PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
+				instance discriminant and the PrecompileHandle)"
+			} else {
+				"Precompile pre_check method must have exactly 1 parameter (the \
+				PrecompileHandle)"
+			};
+
+			return Err(syn::Error::new(span, msg));
+		}
+
+		self.pre_check = Some(method.sig.ident.clone());
+
+		Ok(())
+	}
+
+	/// Process a `public` attribute on a method.
+	fn parse_public_attr(
+		&mut self,
+		signature_lit: syn::LitStr,
+		method_name: &syn::Ident,
+		solidity_arguments_type: &mut Option<String>,
+	) -> syn::Result<u32> {
+		let signature = signature_lit.value();
+		// Split signature to get arguments type.
+		let split: Vec<_> = signature.splitn(2, "(").collect();
+		if split.len() != 2 {
+			let msg = "Selector must have form \"foo(arg1,arg2,...)\"";
+			return Err(syn::Error::new(signature_lit.span(), msg));
+		}
+
+		let local_args_type = format!("({}", split[1]); // add back initial parenthesis
+
+		// If there are multiple public attributes we check that they all have
+		// the same type.
+		if let Some(ref args_type) = solidity_arguments_type {
+			if args_type != &local_args_type {
+				let msg = "Method cannot have selectors with different types.";
+				return Err(syn::Error::new(signature_lit.span(), msg));
+			}
+		} else {
+			*solidity_arguments_type = Some(local_args_type);
+		}
+
+		// Compute the 4-bytes selector.
+		let digest = Keccak256::digest(signature.as_ref());
+		let selector = u32::from_be_bytes([digest[0], digest[1], digest[2], digest[3]]);
+
+		if let Some(previous) = self
+			.selector_to_variant
+			.insert(selector, method_name.clone())
+		{
+			let msg = format!("Selector collision with method {}", previous.to_string());
+			return Err(syn::Error::new(signature_lit.span(), msg));
+		}
+
+		Ok(selector)
+	}
 }
 
+/// Helper to check 2 types are equal.
+/// Having a function with explicit type annotation helps type inference at callsite,
+/// which have trouble if `==` is used inline.
 fn is_same_type(a: &syn::Type, b: &syn::Type) -> bool {
 	a == b
 }

@@ -14,6 +14,7 @@
 use super::*;
 
 impl Precompile {
+	/// Main expand function, which expands everything else.
 	pub fn expand(&self) -> impl ToTokens {
 		let enum_ = self.expand_enum_decl();
 		let enum_impl = self.expand_enum_impl();
@@ -28,6 +29,7 @@ impl Precompile {
 		}
 	}
 
+	/// Expands the call enum declaration.
 	pub fn expand_enum_decl(&self) -> impl ToTokens {
 		let enum_ident = &self.enum_ident;
 		let (_impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -63,6 +65,7 @@ impl Precompile {
 		)
 	}
 
+	/// Expands the parse function for each variants.
 	pub fn expand_variants_parse_fn(&self) -> impl ToTokens {
 		let span = Span::call_site();
 
@@ -140,6 +143,7 @@ impl Precompile {
 		}
 	}
 
+	/// Expands the call enum impl block.
 	pub fn expand_enum_impl(&self) -> impl ToTokens {
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
@@ -230,9 +234,9 @@ impl Precompile {
 		)
 	}
 
-	/// Generate the execute fn of the enum.
+	/// Expand the execute fn of the enum.
 	fn expand_enum_execute_fn(&self) -> impl ToTokens {
-		let struct_type = &self.struct_type;
+		let impl_type = &self.impl_type;
 
 		let variants_ident: Vec<_> = self.variants_content.keys().collect();
 
@@ -265,7 +269,7 @@ impl Precompile {
 
 				quote!(
 					use ::precompile_utils::EvmDataWriter;
-					let output = <#struct_type>::#variant_ident(
+					let output = <#impl_type>::#variant_ident(
 						#opt_discriminant_arg
 						handle,
 						#(#arguments),*
@@ -370,8 +374,9 @@ impl Precompile {
 		format_ident!("_parse_{}", ident)
 	}
 
+	/// Expands the impl of the Precomile(Set) trait.
 	pub fn expand_precompile_impl(&self) -> impl ToTokens {
-		let struct_type = &self.struct_type;
+		let impl_type = &self.impl_type;
 		let enum_ident = &self.enum_ident;
 		let (impl_generics, ty_generics, where_clause) = self.generics.split_for_impl();
 
@@ -379,18 +384,18 @@ impl Precompile {
 			let opt_pre_check = self.pre_check.as_ref().map(|ident| {
 				let span = ident.span();
 				quote_spanned!(span=>
-					let _: () = <#struct_type>::#ident(discriminant, handle)
+					let _: () = <#impl_type>::#ident(discriminant, handle)
 						.map_err(|err| Some(err))?;
 				)
 			});
 
 			quote!(
-				impl #impl_generics ::fp_evm::PrecompileSet for #struct_type #where_clause {
+				impl #impl_generics ::fp_evm::PrecompileSet for #impl_type #where_clause {
 					fn execute(
 						&self,
 						handle: &mut impl PrecompileHandle
 					) -> Option<::precompile_utils::EvmResult<::fp_evm::PrecompileOutput>> {
-						let discriminant = match <#struct_type>::#discriminant_fn(
+						let discriminant = match <#impl_type>::#discriminant_fn(
 							handle.code_address()
 						) {
 							Some(d) => d,
@@ -406,7 +411,7 @@ impl Precompile {
 					}
 
 					fn is_precompile(&self, address: H160) -> bool {
-						<#struct_type>::#discriminant_fn(address).is_some()
+						<#impl_type>::#discriminant_fn(address).is_some()
 					}
 				}
 			)
@@ -414,11 +419,11 @@ impl Precompile {
 		} else {
 			let opt_pre_check = self.pre_check.as_ref().map(|ident| {
 				let span = ident.span();
-				quote_spanned!(span=>let _: () = <#struct_type>::#ident(handle)?;)
+				quote_spanned!(span=>let _: () = <#impl_type>::#ident(handle)?;)
 			});
 
 			quote!(
-				impl #impl_generics ::fp_evm::Precompile for #struct_type #where_clause {
+				impl #impl_generics ::fp_evm::Precompile for #impl_type #where_clause {
 					fn execute(
 						handle: &mut impl PrecompileHandle
 					) -> ::precompile_utils::EvmResult<::fp_evm::PrecompileOutput> {
@@ -432,6 +437,11 @@ impl Precompile {
 		}
 	}
 
+	/// Expands the Solidity signature test.
+	/// The macro expands an "inner" function in all build profiles, which is
+	/// then called by a test in test profile. This allows to display errors that occurs in
+	/// the expansion of the test without having to build in test profile, which is usually
+	/// related to the use of a type parameter in one of the parsed parameters of a method.
 	pub fn expand_test_solidity_signature(&self) -> impl ToTokens {
 		let variant_test: Vec<_> = self
 			.variants_content
@@ -455,8 +465,8 @@ impl Precompile {
 			})
 			.collect();
 
-		let test_name = format_ident!("__{}_test_solidity_signatures", self.struct_ident);
-		let inner_name = format_ident!("__{}_test_solidity_signatures_inner", self.struct_ident);
+		let test_name = format_ident!("__{}_test_solidity_signatures", self.impl_ident);
+		let inner_name = format_ident!("__{}_test_solidity_signatures_inner", self.impl_ident);
 
 		if let Some(test_types) = &self.test_concrete_types {
 			let (impl_generics, _ty_generics, where_clause) = self.generics.split_for_impl();

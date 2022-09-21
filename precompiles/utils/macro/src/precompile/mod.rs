@@ -24,15 +24,18 @@ pub mod attr;
 pub mod expand;
 pub mod parse;
 
-pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
-	let args = parse_macro_input!(args as syn::AttributeArgs);
+pub fn main(_attr: TokenStream, item: TokenStream) -> TokenStream {
+	// Macro must be used on `impl` block.
 	let mut impl_item = parse_macro_input!(item as syn::ItemImpl);
 
-	let precompile = match Precompile::try_from(args, &mut impl_item) {
+	// We inspect the block to collect all the data we need for the
+	// expansion, and make various checks.
+	let precompile = match Precompile::try_from(&mut impl_item) {
 		Ok(p) => p,
 		Err(e) => return e.into_compile_error().into(),
 	};
 
+	// We generate additional code based on the collected data.
 	let new_items = precompile.expand();
 	let output = quote!(
 		#impl_item
@@ -42,12 +45,12 @@ pub fn main(args: TokenStream, item: TokenStream) -> TokenStream {
 	output.into()
 }
 
-pub struct Precompile {
+struct Precompile {
 	/// Impl struct type.
-	struct_type: syn::Type,
+	impl_type: syn::Type,
 
 	/// Impl struct ident.
-	struct_ident: syn::Ident,
+	impl_ident: syn::Ident,
 
 	/// New parsing enum ident.
 	enum_ident: syn::Ident,
@@ -84,14 +87,14 @@ pub struct Precompile {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Modifier {
+enum Modifier {
 	NonPayable,
 	Payable,
 	View,
 }
 
 #[derive(Debug)]
-pub struct Variant {
+struct Variant {
 	/// Description of the arguments of this method, which will also
 	/// be members of a struct variant.
 	arguments: Vec<Argument>,
@@ -110,7 +113,7 @@ pub struct Variant {
 	modifier: Modifier,
 
 	/// Selectors of this function to be able to encode back the data.
-	/// None if it only the fallback function.
+	/// Empty if it only the fallback function.
 	selectors: Vec<u32>,
 
 	/// Output of the variant fn (for better error messages).
@@ -118,7 +121,7 @@ pub struct Variant {
 }
 
 #[derive(Debug)]
-pub struct Argument {
+struct Argument {
 	/// Identifier of the argument, which will be used in the struct variant.
 	ident: syn::Ident,
 

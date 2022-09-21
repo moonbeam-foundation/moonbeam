@@ -55,7 +55,7 @@ pub enum MethodAttr {
 	Payable(Span),
 	View(Span),
 	Discriminant(Span),
-	PreDispatchCheck(Span),
+	PreCheck(Span),
 }
 
 impl syn::parse::Parse for MethodAttr {
@@ -91,7 +91,7 @@ impl syn::parse::Parse for MethodAttr {
 				content.parse::<keyword::discriminant>()?.span(),
 			))
 		} else if lookahead.peek(keyword::pre_check) {
-			Ok(MethodAttr::PreDispatchCheck(
+			Ok(MethodAttr::PreCheck(
 				content.parse::<keyword::pre_check>()?.span(),
 			))
 		} else {
