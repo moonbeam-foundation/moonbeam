@@ -35,8 +35,8 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
+		max_weight: u64,
+		_weight_credit: &mut u64,
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",
