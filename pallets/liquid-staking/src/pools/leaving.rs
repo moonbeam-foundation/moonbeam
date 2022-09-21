@@ -17,7 +17,7 @@
 use super::*;
 
 pub fn shares_to_stake<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	shares: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
@@ -30,7 +30,7 @@ pub fn shares_to_stake<T: Config>(
 }
 
 pub fn stake_to_shares<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	stake: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let total_staked = LeavingSharesTotalStaked::<T>::get(candidate);
@@ -46,8 +46,8 @@ pub fn stake_to_shares<T: Config>(
 /// Accept stake instead of shares since we want to deal with rounding.
 /// Returns the amount of shares created.
 fn add_stake<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	stake: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
@@ -74,8 +74,8 @@ fn add_stake<T: Config>(
 /// Accept shares since the leaving queue deal with shares to support slashing.
 /// Returns value of removed shares.
 fn sub_shares<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	shares: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
@@ -90,8 +90,8 @@ fn sub_shares<T: Config>(
 }
 
 pub(crate) fn register_leaving<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	let leaving_shares = add_stake::<T>(candidate.clone(), delegator.clone(), stake)?;
@@ -118,8 +118,8 @@ pub(crate) fn register_leaving<T: Config>(
 }
 
 pub(crate) fn execute_leaving<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	at_block: T::BlockNumber,
 ) -> Result<T::Balance, Error<T>> {
 	let block_number = frame_system::Pallet::<T>::block_number();
@@ -150,8 +150,8 @@ pub(crate) fn execute_leaving<T: Config>(
 }
 
 pub(crate) fn cancel_leaving<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	at_block: T::BlockNumber,
 ) -> Result<T::Balance, Error<T>> {
 	let shares = LeavingRequests::<T>::get((&candidate, &delegator, at_block));
@@ -170,13 +170,13 @@ pub(crate) fn cancel_leaving<T: Config>(
 	Ok(stake)
 }
 
-pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> T::Balance {
+pub fn shares<T: Config>(candidate: &CandidateGen<T>, delegator: &Delegator<T>) -> T::Balance {
 	LeavingShares::<T>::get(candidate, delegator)
 }
 
 pub fn stake<T: Config>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
+	candidate: &CandidateGen<T>,
+	delegator: &Delegator<T>,
 ) -> Result<T::Balance, Error<T>> {
 	let shares = shares::<T>(candidate, delegator);
 

@@ -17,7 +17,7 @@
 use super::*;
 
 pub fn shares_to_stake<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	shares: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
@@ -30,7 +30,7 @@ pub fn shares_to_stake<T: Config>(
 }
 
 pub fn shares_to_stake_or_init<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	shares: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
@@ -43,7 +43,7 @@ pub fn shares_to_stake_or_init<T: Config>(
 }
 
 pub fn stake_to_shares<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	stake: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let total_staked = ManualClaimSharesTotalStaked::<T>::get(candidate);
@@ -56,7 +56,7 @@ pub fn stake_to_shares<T: Config>(
 }
 
 pub fn stake_to_shares_or_init<T: Config>(
-	candidate: &T::AccountId,
+	candidate: &CandidateGen<T>,
 	stake: &T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	if Zero::is_zero(&ManualClaimSharesSupply::<T>::get(&candidate)) {
@@ -69,8 +69,8 @@ pub fn stake_to_shares_or_init<T: Config>(
 }
 
 pub(crate) fn add_shares<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	shares: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
@@ -95,8 +95,8 @@ pub(crate) fn add_shares<T: Config>(
 }
 
 pub(crate) fn sub_shares<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 	shares: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	ensure!(!Zero::is_zero(&shares), Error::StakeMustBeNonZero);
@@ -120,13 +120,13 @@ pub(crate) fn sub_shares<T: Config>(
 	Ok(stake)
 }
 
-pub fn shares<T: Config>(candidate: &T::AccountId, delegator: &T::AccountId) -> T::Balance {
+pub fn shares<T: Config>(candidate: &CandidateGen<T>, delegator: &Delegator<T>) -> T::Balance {
 	ManualClaimShares::<T>::get(candidate, delegator)
 }
 
 pub fn stake<T: Config>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
+	candidate: &CandidateGen<T>,
+	delegator: &Delegator<T>,
 ) -> Result<T::Balance, Error<T>> {
 	let shares = shares::<T>(candidate, delegator);
 
@@ -138,8 +138,8 @@ pub fn stake<T: Config>(
 }
 
 pub fn pending_rewards<T: Config>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
+	candidate: &CandidateGen<T>,
+	delegator: &Delegator<T>,
 ) -> Result<T::Balance, Error<T>> {
 	let shares = ManualClaimShares::<T>::get(candidate, delegator);
 
@@ -157,8 +157,8 @@ pub fn pending_rewards<T: Config>(
 }
 
 pub(crate) fn claim_rewards<T: Config>(
-	candidate: T::AccountId,
-	delegator: T::AccountId,
+	candidate: CandidateGen<T>,
+	delegator: Delegator<T>,
 ) -> Result<T::Balance, Error<T>> {
 	let shares = ManualClaimShares::<T>::get(&candidate, &delegator);
 	let rewards_counter = ManualClaimSharesRewardCounter::<T>::get(&candidate);

@@ -3,7 +3,7 @@ name = "pallet-liquid-staking"
 authors = [ "PureStake" ]
 description = "Reimplementation of parachain staking using multi-level shares strategy"
 edition = "2018"
-version = "3.0.0"
+version = "0.0.0"
 
 [dependencies]
 log = "0.4"

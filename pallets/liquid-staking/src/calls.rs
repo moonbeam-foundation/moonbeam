@@ -32,10 +32,11 @@ impl<T: Config> Calls<T> {
 	/// Automatically claims pending rewards.
 	pub fn stake_manual_claim(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -80,10 +81,11 @@ impl<T: Config> Calls<T> {
 	/// Automatically claims pending rewards.
 	pub fn unstake_manual_claim(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -120,10 +122,11 @@ impl<T: Config> Calls<T> {
 	/// mode. Add "Auto Compounding" shares of this candidate to the origin.
 	pub fn stake_auto_compounding(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -154,10 +157,11 @@ impl<T: Config> Calls<T> {
 	/// mode. Remove "Auto Compounding" shares of this candidate from the origin.
 	pub fn unstake_auto_compounding(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -182,10 +186,11 @@ impl<T: Config> Calls<T> {
 	/// stake will not be converted, and will be distributed among all AutoCompound share holders.
 	pub fn convert_manual_claim_to_auto_compounding(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let mc_shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -237,10 +242,11 @@ impl<T: Config> Calls<T> {
 	/// stake will not be converted, and will be distributed among all AutoCompound share holders.
 	pub fn convert_auto_compounding_to_manual_claim(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 		quantity: SharesOrStake<T::Balance>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 
 		let ac_shares = match quantity {
 			SharesOrStake::Shares(shares) => shares,
@@ -291,9 +297,11 @@ impl<T: Config> Calls<T> {
 	/// Claim pending manual rewards for this candidate.
 	pub fn claim_manual_rewards(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
+		candidate: CandidateGen<T>,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
+
 		let rewards =
 			pools::manual_claim::claim_rewards::<T>(candidate.clone(), delegator.clone())?;
 
@@ -312,7 +320,7 @@ impl<T: Config> Calls<T> {
 	/// Claim pending manual rewards for this candidate.
 	pub fn batch_claim_manual_rewards(
 		origin: OriginFor<T>,
-		candidates: Vec<T::AccountId>,
+		candidates: Vec<CandidateGen<T>>,
 	) -> DispatchResultWithPostInfo {
 		for candidate in candidates {
 			// Each claim is transactional, but it is not important if
@@ -327,9 +335,11 @@ impl<T: Config> Calls<T> {
 	/// Anyone can execute anyones
 	pub fn execute_leaving(
 		_origin: OriginFor<T>,
-		requests: Vec<ExecuteLeavingQuery<T::AccountId, T::BlockNumber>>,
+		requests: Vec<ExecuteLeavingQuery<CandidateGen<T>, Delegator<T>, T::BlockNumber>>,
 	) -> DispatchResultWithPostInfo {
 		for request in requests {
+			Self::ensure_generation(&request.candidate)?;
+
 			let released = pools::leaving::execute_leaving::<T>(
 				request.candidate.clone(),
 				request.delegator.clone(),
@@ -356,12 +366,14 @@ impl<T: Config> Calls<T> {
 	/// ManualClaim pools. Dust is shared among AutoCompound share holders.
 	pub fn cancel_leaving(
 		origin: OriginFor<T>,
-		requests: Vec<CancelLeavingQuery<T::AccountId, T::BlockNumber>>,
+		requests: Vec<CancelLeavingQuery<CandidateGen<T>, T::BlockNumber>>,
 		put_in_auto_compound: bool,
 	) -> DispatchResultWithPostInfo {
 		let delegator = ensure_signed(origin)?;
 
 		for request in requests {
+			Self::ensure_generation(&request.candidate)?;
+
 			let canceled_stake = pools::leaving::cancel_leaving::<T>(
 				request.candidate.clone(),
 				delegator.clone(),
@@ -421,8 +433,8 @@ impl<T: Config> Calls<T> {
 
 	pub fn transfer_auto_compounding(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
-		recipient: T::AccountId,
+		candidate: CandidateGen<T>,
+		recipient: Delegator<T>,
 		shares: T::Balance,
 	) -> DispatchResultWithPostInfo {
 		ensure!(
@@ -431,10 +443,11 @@ impl<T: Config> Calls<T> {
 		);
 
 		let sender = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 		ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
 		ensure!(
-			sender != candidate,
+			sender != candidate.id,
 			Error::<T>::CandidateTransferingOwnSharesForbidden
 		);
 
@@ -461,8 +474,8 @@ impl<T: Config> Calls<T> {
 
 	pub fn transfer_manual_claim(
 		origin: OriginFor<T>,
-		candidate: T::AccountId,
-		recipient: T::AccountId,
+		candidate: CandidateGen<T>,
+		recipient: Delegator<T>,
 		shares: T::Balance,
 	) -> DispatchResultWithPostInfo {
 		ensure!(
@@ -471,10 +484,11 @@ impl<T: Config> Calls<T> {
 		);
 
 		let sender = ensure_signed(origin)?;
+		Self::ensure_generation(&candidate)?;
 		ensure!(!Zero::is_zero(&shares), Error::<T>::StakeMustBeNonZero);
 
 		ensure!(
-			sender != candidate,
+			sender != candidate.id,
 			Error::<T>::CandidateTransferingOwnSharesForbidden
 		);
 
@@ -521,5 +535,16 @@ impl<T: Config> Calls<T> {
 		});
 
 		Ok(().into())
+	}
+
+	fn ensure_generation(candidate: &CandidateGen<T>) -> Result<(), Error<T>> {
+		let generation = CandidatesGeneration::<T>::get(&candidate.id);
+
+		ensure!(
+			candidate.generation == generation,
+			Error::<T>::WrongCandidateGeneration
+		);
+
+		Ok(())
 	}
 }

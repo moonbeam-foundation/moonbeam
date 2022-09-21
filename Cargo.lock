@@ -7725,7 +7725,7 @@ dependencies = [
 
 [[package]]
 name = "pallet-liquid-staking"
-version = "3.0.0"
+version = "0.0.0"
 dependencies = [
  "frame-benchmarking 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",
  "frame-support 4.0.0-dev (git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.18)",

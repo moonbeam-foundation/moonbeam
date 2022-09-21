@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
+use {super::*, crate::CandidateExt};
 
 #[test]
 fn empty_delegation() {
@@ -22,7 +22,7 @@ fn empty_delegation() {
 		assert_noop!(
 			LiquidStaking::stake_manual_claim(
 				Origin::signed(ACCOUNT_DELEGATOR_1),
-				ACCOUNT_CANDIDATE_1,
+				ACCOUNT_CANDIDATE_1.with_gen(0),
 				SharesOrStake::Shares(0)
 			),
 			Error::<Runtime>::StakeMustBeNonZero
@@ -37,7 +37,7 @@ fn single_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(1)
 		));
 		assert_eq!(balance(&ACCOUNT_DELEGATOR_1), 1 * PETA - 1 * KILO);
@@ -45,17 +45,17 @@ fn single_delegation() {
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
 				stake: 1 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 				self_delegation: 0,
 				before: None,
@@ -70,7 +70,7 @@ fn low_self_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(1)
 		));
 		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 1 * KILO);
@@ -78,17 +78,17 @@ fn low_self_delegation() {
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 1,
 				stake: 1 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 				self_delegation: 1 * KILO,
 				before: None,
@@ -103,7 +103,7 @@ fn sufficient_self_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(10)
 		));
 		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 10 * KILO);
@@ -111,17 +111,17 @@ fn sufficient_self_delegation() {
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 10,
 				stake: 10 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 10 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 10 * KILO,
 				self_delegation: 10 * KILO,
 				before: None,
@@ -136,7 +136,7 @@ fn multi_delegations() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(1)
 		));
 		assert_eq!(balance(&ACCOUNT_DELEGATOR_1), 1 * PETA - 1 * KILO);
@@ -144,7 +144,7 @@ fn multi_delegations() {
 
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_CANDIDATE_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(10)
 		));
 		assert_eq!(balance(&ACCOUNT_CANDIDATE_1), 1 * PETA - 10 * KILO);
@@ -152,7 +152,7 @@ fn multi_delegations() {
 
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_2),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Shares(2)
 		));
 		assert_eq!(balance(&ACCOUNT_DELEGATOR_2), 1 * PETA - 2 * KILO);
@@ -160,17 +160,17 @@ fn multi_delegations() {
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
 				stake: 1 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 				self_delegation: 0,
 				before: None,
@@ -178,17 +178,17 @@ fn multi_delegations() {
 			},
 			// -----
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_CANDIDATE_1,
 				shares: 10,
 				stake: 10 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 10 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 11 * KILO,
 				self_delegation: 10 * KILO,
 				before: None,
@@ -196,17 +196,17 @@ fn multi_delegations() {
 			},
 			// -----
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_DELEGATOR_2,
 				shares: 2,
 				stake: 2 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 2 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 13 * KILO,
 				self_delegation: 10 * KILO,
 				before: Some(0),
@@ -222,7 +222,7 @@ fn stake_amount_too_low() {
 		assert_noop!(
 			LiquidStaking::stake_manual_claim(
 				Origin::signed(ACCOUNT_DELEGATOR_1),
-				ACCOUNT_CANDIDATE_1,
+				ACCOUNT_CANDIDATE_1.with_gen(0),
 				SharesOrStake::Stake(1 * KILO - 1), // 1 below minimum
 			),
 			Error::<Runtime>::StakeMustBeNonZero
@@ -237,7 +237,7 @@ fn stake_single_delegation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(LiquidStaking::stake_manual_claim(
 			Origin::signed(ACCOUNT_DELEGATOR_1),
-			ACCOUNT_CANDIDATE_1,
+			ACCOUNT_CANDIDATE_1.with_gen(0),
 			SharesOrStake::Stake(2 * KILO - 1), // will be rounded down to 1_000_000_000
 		));
 		assert_eq!(balance(&ACCOUNT_DELEGATOR_1), 1 * PETA - 1 * KILO);
@@ -245,22 +245,36 @@ fn stake_single_delegation() {
 
 		assert_eq_events!(vec![
 			Event::StakedManualClaim {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				delegator: ACCOUNT_DELEGATOR_1,
 				shares: 1,
 				stake: 1 * KILO,
 			},
 			Event::IncreasedStake {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 			},
 			Event::UpdatedCandidatePosition {
-				candidate: ACCOUNT_CANDIDATE_1,
+				candidate: ACCOUNT_CANDIDATE_1.with_gen(0),
 				stake: 1 * KILO,
 				self_delegation: 0,
 				before: None,
 				after: None,
 			},
 		]);
+	});
+}
+
+#[test]
+fn stake_wrong_generation() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_noop!(
+			LiquidStaking::stake_manual_claim(
+				Origin::signed(ACCOUNT_DELEGATOR_1),
+				ACCOUNT_CANDIDATE_1.with_gen(1),
+				SharesOrStake::Stake(2 * KILO - 1),
+			),
+			Error::<Runtime>::WrongCandidateGeneration
+		);
 	});
 }

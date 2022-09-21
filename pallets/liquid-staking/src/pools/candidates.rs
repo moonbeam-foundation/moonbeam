@@ -46,7 +46,7 @@ impl<C: Ord, S: Ord> PartialOrd for Candidate<C, S> {
 }
 
 pub(crate) fn update_candidate_stake<T: Config>(
-	candidate: T::AccountId,
+	candidate: CandidateGen<T>,
 	new_stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	let before_stake = CandidatesStake::<T>::get(&candidate);
@@ -57,7 +57,7 @@ pub(crate) fn update_candidate_stake<T: Config>(
 	} else {
 		pools::auto_compounding::shares_to_stake(
 			&candidate,
-			AutoCompoundingShares::<T>::get(&candidate, &candidate),
+			AutoCompoundingShares::<T>::get(&candidate, &candidate.id),
 		)?
 	};
 
@@ -66,7 +66,7 @@ pub(crate) fn update_candidate_stake<T: Config>(
 	} else {
 		pools::manual_claim::shares_to_stake(
 			&candidate,
-			&ManualClaimShares::<T>::get(&candidate, &candidate),
+			&ManualClaimShares::<T>::get(&candidate, &candidate.id),
 		)?
 	};
 
@@ -77,7 +77,7 @@ pub(crate) fn update_candidate_stake<T: Config>(
 	SortedEligibleCandidates::<T>::mutate(|list| {
 		// Remove old data if it existed.
 		let old_position = match list.binary_search(&Candidate {
-			candidate: candidate.clone(),
+			candidate: candidate.id.clone(),
 			stake: before_stake,
 		}) {
 			Ok(pos) => {
@@ -90,7 +90,7 @@ pub(crate) fn update_candidate_stake<T: Config>(
 		let new_position = if self_delegation >= T::MinimumSelfDelegation::get() {
 			// Insert candidate in the sorted list.
 			let entry = Candidate {
-				candidate: candidate.clone(),
+				candidate: candidate.id.clone(),
 				stake: new_stake,
 			};
 
@@ -131,7 +131,7 @@ pub(crate) fn update_candidate_stake<T: Config>(
 }
 
 pub(crate) fn add_stake<T: Config>(
-	candidate: T::AccountId,
+	candidate: CandidateGen<T>,
 	stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
@@ -156,7 +156,7 @@ pub(crate) fn add_stake<T: Config>(
 }
 
 pub(crate) fn sub_stake<T: Config>(
-	candidate: T::AccountId,
+	candidate: CandidateGen<T>,
 	stake: T::Balance,
 ) -> Result<(), Error<T>> {
 	ensure!(!Zero::is_zero(&stake), Error::StakeMustBeNonZero);
@@ -180,6 +180,6 @@ pub(crate) fn sub_stake<T: Config>(
 	Ok(())
 }
 
-pub fn stake<T: Config>(candidate: &T::AccountId) -> T::Balance {
+pub fn stake<T: Config>(candidate: &CandidateGen<T>) -> T::Balance {
 	CandidatesStake::<T>::get(candidate)
 }

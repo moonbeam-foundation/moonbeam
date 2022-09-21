@@ -33,7 +33,7 @@ use {
 
 #[transactional]
 pub(crate) fn distribute_rewards<T: Config>(
-	collator: T::AccountId,
+	collator: CandidateGen<T>,
 	value: T::Balance,
 ) -> Result<(), Error<T>> {
 	// Rewards distribution is done in the following order :
@@ -115,7 +115,7 @@ pub(crate) fn distribute_rewards<T: Config>(
 
 // Split delegators rewards between MC and AC (before MC rounding)
 fn compute_delegators_mc_rewards_before_rounding<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	delegators_rewards: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let total_stake = pools::candidates::stake::<T>(collator);
@@ -133,7 +133,7 @@ fn compute_delegators_mc_rewards_before_rounding<T: Config>(
 // Distribute delegators MC rewards.
 // Return the amount really distributed (after rounding).
 fn distribute_delegators_mc_rewards<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	mc_rewards: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	if mc_rewards.is_zero() {
@@ -163,7 +163,7 @@ fn distribute_delegators_mc_rewards<T: Config>(
 
 // Distribute delegators AC rewards.
 fn distribute_delegators_ac_rewards<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	ac_rewards: T::Balance,
 ) -> Result<(), Error<T>> {
 	if !ac_rewards.is_zero() {
@@ -175,17 +175,17 @@ fn distribute_delegators_ac_rewards<T: Config>(
 
 // Split collator rewards between MC and AC (before AC rounding)
 fn compute_collator_ac_rewards_before_rounding<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	collator_rewards: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	let mc_stake = if !ManualClaimSharesSupply::<T>::get(collator).is_zero() {
-		pools::manual_claim::stake(collator, collator)?
+		pools::manual_claim::stake(collator, &collator.id)?
 	} else {
 		Zero::zero()
 	};
 
 	let ac_stake = if !AutoCompoundingSharesSupply::<T>::get(collator).is_zero() {
-		pools::auto_compounding::stake(collator, collator)?
+		pools::auto_compounding::stake(collator, &collator.id)?
 	} else {
 		Zero::zero()
 	};
@@ -204,7 +204,7 @@ fn compute_collator_ac_rewards_before_rounding<T: Config>(
 // Distribute collator AC rewards.
 // Return the amount really distributed (after rounding).
 fn distribute_collator_ac_rewards<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	ac_rewards: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	if ac_rewards.is_zero() {
@@ -214,7 +214,7 @@ fn distribute_collator_ac_rewards<T: Config>(
 
 		let ac_rewards = pools::auto_compounding::add_shares::<T>(
 			collator.clone(),
-			collator.clone(),
+			collator.id.clone(),
 			ac_shares,
 		)?;
 		T::Currency::deposit_creating(&T::StakingAccount::get(), ac_rewards);
@@ -224,11 +224,11 @@ fn distribute_collator_ac_rewards<T: Config>(
 
 // Distribute collator MC rewards.
 fn distribute_collator_mc_rewards<T: Config>(
-	collator: &T::AccountId,
+	collator: &CandidateGen<T>,
 	mc_rewards: T::Balance,
 ) -> Result<(), Error<T>> {
 	if !mc_rewards.is_zero() {
-		T::Currency::deposit_creating(collator, mc_rewards);
+		T::Currency::deposit_creating(&collator.id, mc_rewards);
 	}
 
 	Ok(())

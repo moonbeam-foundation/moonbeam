@@ -30,16 +30,16 @@ pub mod leaving;
 pub mod manual_claim;
 
 pub fn add_staked<T, Supply, Shares, Staked>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
+	candidate: &CandidateGen<T>,
+	delegator: &Delegator<T>,
 	shares: T::Balance,
 	stake: T::Balance,
 ) -> Result<(), Error<T>>
 where
 	T: Config,
-	Supply: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, T::Balance, Query = T::Balance>,
-	Staked: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
+	Supply: StorageMap<CandidateGen<T>, T::Balance, Query = T::Balance>,
+	Shares: StorageDoubleMap<CandidateGen<T>, Delegator<T>, T::Balance, Query = T::Balance>,
+	Staked: StorageMap<CandidateGen<T>, T::Balance, Query = T::Balance>,
 {
 	let new_shares_supply = Supply::get(&candidate)
 		.checked_add(&shares)
@@ -61,16 +61,16 @@ where
 }
 
 pub fn sub_staked<T, Supply, Shares, Staked>(
-	candidate: &T::AccountId,
-	delegator: &T::AccountId,
+	candidate: &CandidateGen<T>,
+	delegator: &Delegator<T>,
 	shares: T::Balance,
 	stake: T::Balance,
 ) -> Result<(), Error<T>>
 where
 	T: Config,
-	Supply: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
-	Shares: StorageDoubleMap<T::AccountId, T::AccountId, T::Balance, Query = T::Balance>,
-	Staked: StorageMap<T::AccountId, T::Balance, Query = T::Balance>,
+	Supply: StorageMap<CandidateGen<T>, T::Balance, Query = T::Balance>,
+	Shares: StorageDoubleMap<CandidateGen<T>, Delegator<T>, T::Balance, Query = T::Balance>,
+	Staked: StorageMap<CandidateGen<T>, T::Balance, Query = T::Balance>,
 {
 	let new_shares_supply = Supply::get(&candidate)
 		.checked_sub(&shares)
@@ -91,7 +91,7 @@ where
 	Ok(())
 }
 
-pub fn check_candidate_consistency<T: Config>(candidate: &T::AccountId) -> Result<(), Error<T>> {
+pub fn check_candidate_consistency<T: Config>(candidate: &CandidateGen<T>) -> Result<(), Error<T>> {
 	let total0 = CandidatesStake::<T>::get(&candidate);
 
 	let auto = AutoCompoundingSharesTotalStaked::<T>::get(&candidate);
