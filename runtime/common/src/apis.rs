@@ -451,6 +451,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use moonbeam_xcm_benchmarks::generic::benchmarking::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -464,6 +465,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
+					list_benchmark!(list, extra, moonbeam_xcm_benchmarks, MoonbeamXcmGenericBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -477,8 +479,52 @@ macro_rules! impl_runtime_apis_plus_common {
 						add_benchmark, BenchmarkBatch, Benchmarking, TrackedStorageKey,
 					};
 
+					use xcm::latest::prelude::*;
+					use frame_benchmarking::BenchmarkError;
+
 					use frame_system_benchmarking::Pallet as SystemBench;
 					impl frame_system_benchmarking::Config for Runtime {}
+
+					impl moonbeam_xcm_benchmarks::Config for Runtime {}
+					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
+
+					impl pallet_xcm_benchmarks::Config for Runtime {
+						type XcmConfig = xcm_config::XcmExecutorConfig;
+						type AccountIdConverter = xcm_config::LocationToAccountId;
+						fn valid_destination() -> Result<MultiLocation, BenchmarkError> {
+							Ok(MultiLocation::parent())
+						}
+						fn worst_case_holding() -> MultiAssets {
+							let assets: Vec<MultiAsset> = vec![MultiAsset{
+								id: Concrete(MultiLocation::parent()),
+								fun: Fungible(1_000_000u128),
+							}];
+							assets.into()
+						}
+					}
+
+					impl pallet_xcm_benchmarks::generic::Config for Runtime {
+						type Call = Call;
+
+						fn worst_case_response() -> (u64, Response) {
+							(0u64, Response::Version(Default::default()))
+						}
+
+						fn transact_origin() -> Result<MultiLocation, BenchmarkError> {
+							Ok(MultiLocation::parent())
+						}
+
+						fn subscribe_origin() -> Result<MultiLocation, BenchmarkError> {
+							Ok(MultiLocation::parent())
+						}
+
+						fn claimable_asset() -> Result<(MultiLocation, MultiLocation, MultiAssets), BenchmarkError> {
+							let origin = MultiLocation::parent();
+							let assets: MultiAssets = (Concrete(MultiLocation::parent()), 1_000u128).into();
+							let ticket = MultiLocation { parents: 0, interior: Here };
+							Ok((origin, ticket, assets))
+						}
+					}
 
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use pallet_parachain_staking::Pallet as ParachainStakingBench;
@@ -489,6 +535,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use moonbeam_xcm_benchmarks::generic::benchmarking::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number
@@ -598,6 +645,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_randomness,
 						RandomnessBench::<Runtime>
+					);
+
+					add_benchmark!(
+						params,
+						batches,
+						moonbeam_xcm_benchmarks,
+						MoonbeamXcmGenericBench::<Runtime>
 					);
 
 					if batches.is_empty() {

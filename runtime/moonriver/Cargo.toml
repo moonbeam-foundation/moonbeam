@@ -37,6 +37,7 @@ pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-f
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false, optional = true }
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { path = "../../precompiles/author-mapping", default-features = false }
@@ -132,6 +133,7 @@ polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
 xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+pallet-xcm-benchmarks = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false, optional = true}
 
 # Benchmarking
 frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", optional = true, default-features = false }
@@ -284,6 +286,8 @@ runtime-benchmarks = [
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
+	"moonbeam-xcm-benchmarks",
+	"pallet-xcm-benchmarks"
 ]
 try-runtime = [
 	"frame-executive/try-runtime",

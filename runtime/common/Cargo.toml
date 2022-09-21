@@ -18,6 +18,7 @@ pallet-migrations = { path = "../../pallets/migrations", default-features = fals
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
 pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
+moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false, optional = true }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
