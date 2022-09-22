@@ -24,7 +24,7 @@
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
+	BlockNumber, Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
@@ -7160,7 +7160,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
-			let roll_through_steady_state_round = |round: u32| -> u32 {
+			let roll_through_steady_state_round = |round: BlockNumber| -> BlockNumber {
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(
 					num_rounds_rolled, 1,
