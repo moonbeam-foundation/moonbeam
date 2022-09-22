@@ -74,20 +74,32 @@ export async function getCommitAndLabels(
     if (!excludedCommits.includes(i)) {
       const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)$/);
       if (foundPrsNumbers && foundPrsNumbers.length > 1) {
-        const pr = await octokit.rest.pulls.get({
-          owner,
-          repo,
-          pull_number: parseInt(foundPrsNumbers[1]),
-        });
+        // This will check current repo and if the PR is not found, will try the official repo
+        const repos = [
+          { owner, repo },
+          { owner: "purestake", repo: "moonbeam" },
+        ];
+        for (const { owner, repo } of repos) {
+          try {
+            const pr = await octokit.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: parseInt(foundPrsNumbers[1]),
+            });
 
-        if (pr.data.labels && pr.data.labels.length > 0) {
-          for (const label of pr.data.labels) {
-            prByLabels[label.name] = prByLabels[label.name] || [];
-            prByLabels[label.name].push(pr.data);
+            if (pr.data.labels && pr.data.labels.length > 0) {
+              for (const label of pr.data.labels) {
+                prByLabels[label.name] = prByLabels[label.name] || [];
+                prByLabels[label.name].push(pr.data);
+              }
+            } else {
+              prByLabels[""] = prByLabels[""] || [];
+              prByLabels[""].push(pr);
+            }
+            break;
+          } catch (e) {
+            // PR not found... let's try the other repo
           }
-        } else {
-          prByLabels[""] = prByLabels[""] || [];
-          prByLabels[""].push(pr);
         }
       }
     }
