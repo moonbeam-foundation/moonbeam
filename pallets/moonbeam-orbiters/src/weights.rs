@@ -76,23 +76,23 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Balances Reserves (r:1 w:0)
 	#[rustfmt::skip]
 	fn collator_add_orbiter() -> Weight {
-		(31_392_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(31_392_000)
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn collator_remove_orbiter() -> Weight {
-		(26_451_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(26_451_000)
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn orbiter_leave_collator_pool() -> Weight {
-		(26_463_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(26_463_000)
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)
 	// Storage: Balances Reserves (r:1 w:1)
@@ -100,9 +100,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
 	#[rustfmt::skip]
 	fn orbiter_register() -> Weight {
-		(32_506_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(3 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(32_506_000)
+			.saturating_add(T::DbWeight::get().reads(3))
+			.saturating_add(T::DbWeight::get().writes(3))
 	}
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)
@@ -111,29 +111,25 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
 	#[rustfmt::skip]
 	fn orbiter_unregister(n: u32, ) -> Weight {
-		(33_919_000 as Weight)
-			// Standard Error: 6_000
-			.saturating_add((6_981_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
-			.saturating_add(T::DbWeight::get().reads((1 as Weight).saturating_mul(n as Weight)))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(33_919_000)
+		// TODO
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn add_collator() -> Weight {
-		(12_035_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(12_035_000)
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(2))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)
 	#[rustfmt::skip]
 	fn remove_collator() -> Weight {
-		(25_438_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(2 as Weight))
-			.saturating_add(T::DbWeight::get().writes(11 as Weight))
+		Weight::from_ref_time(25_438_000)
+			.saturating_add(T::DbWeight::get().reads(2))
+			.saturating_add(T::DbWeight::get().writes(11))
 	}
 }
 
@@ -143,32 +139,32 @@ impl WeightInfo for () {
 	// Storage: Balances Reserves (r:1 w:0)
 	#[rustfmt::skip]
 	fn collator_add_orbiter() -> Weight {
-		(31_392_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(31_392_000)
+			.saturating_add(RocksDbWeight::get().reads(2))
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn collator_remove_orbiter() -> Weight {
-		(26_451_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(26_451_000)
+			.saturating_add(RocksDbWeight::get().reads(1))
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn orbiter_leave_collator_pool() -> Weight {
-		(26_463_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(26_463_000)
+			.saturating_add(RocksDbWeight::get().reads(1))
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)
 	// Storage: Balances Reserves (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	#[rustfmt::skip]
 	fn orbiter_register() -> Weight {
-		(32_506_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(3 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(32_506_000)
+			.saturating_add(RocksDbWeight::get().reads(3))
+			.saturating_add(RocksDbWeight::get().writes(2))
 	}
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)
@@ -176,28 +172,24 @@ impl WeightInfo for () {
 	// Storage: System Account (r:1 w:1)
 	#[rustfmt::skip]
 	fn orbiter_unregister(n: u32, ) -> Weight {
-		(33_919_000 as Weight)
-			// Standard Error: 6_000
-			.saturating_add((6_981_000 as Weight).saturating_mul(n as Weight))
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
-			.saturating_add(RocksDbWeight::get().reads((1 as Weight).saturating_mul(n as Weight)))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(33_919_000)
+		// TODO
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
 	#[rustfmt::skip]
 	fn add_collator() -> Weight {
-		(12_035_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(12_035_000)
+			.saturating_add(RocksDbWeight::get().reads(2))
+			.saturating_add(RocksDbWeight::get().writes(2))
 	}
 	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
 	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)
 	#[rustfmt::skip]
 	fn remove_collator() -> Weight {
-		(25_438_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(11 as Weight))
+		Weight::from_ref_time(25_438_000)
+			.saturating_add(RocksDbWeight::get().reads(2))
+			.saturating_add(RocksDbWeight::get().writes(11))
 	}
 }
