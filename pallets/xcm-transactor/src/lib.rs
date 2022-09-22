@@ -83,16 +83,17 @@ pub mod migrations;
 pub mod weights;
 
 type CurrencyIdOf<T> = <T as Config>::CurrencyId;
+pub type OldWeight = u64;
 
 #[pallet]
 pub mod pallet {
 
 	use crate::weights::WeightInfo;
-	use crate::CurrencyIdOf;
+	use crate::{CurrencyIdOf, OldWeight};
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
-	use sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
+	use sp_runtime::traits::{AtLeast32BitUnsigned, Bounded, Convert};
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
@@ -157,7 +158,7 @@ pub mod pallet {
 		/// The actual weight for an XCM message is `T::BaseXcmWeight +
 		/// T::Weigher::weight(&msg)`.
 		#[pallet::constant]
-		type BaseXcmWeight: Get<Weight>;
+		type BaseXcmWeight: Get<OldWeight>;
 
 		/// The way to retrieve the reserve of a MultiAsset. This can be
 		/// configured to accept absolute or relative paths for self tokens
@@ -174,15 +175,15 @@ pub mod pallet {
 		/// Extra weight involved when transacting without DescendOrigin
 		/// This should always be possible in a destination chain, since
 		/// it involves going through the sovereign account
-		pub transact_extra_weight: Weight,
+		pub transact_extra_weight: OldWeight,
 		/// Max destination weight
-		pub max_weight: Weight,
+		pub max_weight: OldWeight,
 		/// Whether we allow transacting through signed origins in another chain, and
 		/// how much extra cost implies
 		/// Extra weight involved when transacting with DescendOrigin
 		/// The reason for it being an option is because the destination chain
 		/// might not support constructing origins based on generic MultiLocations
-		pub transact_extra_weight_signed: Option<Weight>,
+		pub transact_extra_weight_signed: Option<OldWeight>,
 	}
 
 	/// Enum defining the way to express a Currency.
@@ -236,11 +237,11 @@ pub mod pallet {
 	///   If None, then this amount will be tried to be derived from storage.  If the storage item
 	pub struct TransactWeights {
 		// the amount of weight the Transact instruction should consume at most
-		pub transact_required_weight_at_most: Weight,
+		pub transact_required_weight_at_most: OldWeight,
 		// the overall weight to be used for the whole XCM message execution. If None,
 		// then this amount will be tried to be derived from storage.  If the storage item
 		// for the chain is not populated, then it fails
-		pub overall_weight: Option<Weight>,
+		pub overall_weight: Option<OldWeight>,
 	}
 
 	/// Since we are using pallet-utility for account derivation (through AsDerivative),
@@ -398,7 +399,7 @@ pub mod pallet {
 		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
 		/// to be a reserve asset for the destination transactor::multilocation.
 		#[pallet::weight(
-			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			Weight::from_ref_time(Pallet::<T>::weight_of_initiate_reserve_withdraw())
 			.saturating_add(T::WeightInfo::transact_through_derivative())
 		)]
 		pub fn transact_through_derivative(
@@ -460,7 +461,7 @@ pub mod pallet {
 		///
 		/// SovereignAccountDispatcherOrigin callable only
 		#[pallet::weight(
-			Pallet::<T>::weight_of_initiate_reserve_withdraw()
+			Weight::from_ref_time(Pallet::<T>::weight_of_initiate_reserve_withdraw())
 			.saturating_add(T::WeightInfo::transact_through_sovereign())
 		)]
 		pub fn transact_through_sovereign(
@@ -510,9 +511,9 @@ pub mod pallet {
 		pub fn set_transact_info(
 			origin: OriginFor<T>,
 			location: Box<VersionedMultiLocation>,
-			transact_extra_weight: Weight,
+			transact_extra_weight: OldWeight,
 			max_weight: u64,
-			transact_extra_weight_signed: Option<Weight>,
+			transact_extra_weight_signed: Option<OldWeight>,
 		) -> DispatchResult {
 			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)?;
 			let location =
@@ -750,7 +751,7 @@ pub mod pallet {
 			fee_location: MultiLocation,
 			fee_amount: Option<u128>,
 			destination: MultiLocation,
-			total_weight: Weight,
+			total_weight: OldWeight,
 		) -> Result<MultiAsset, DispatchError> {
 			// If amount is provided, just use it
 			// Else, multiply weight*destination_units_per_second to see how much we should charge for
@@ -777,9 +778,9 @@ pub mod pallet {
 		fn transact_message(
 			dest: MultiLocation,
 			asset: MultiAsset,
-			dest_weight: Weight,
+			dest_weight: OldWeight,
 			call: Vec<u8>,
-			dispatch_weight: Weight,
+			dispatch_weight: OldWeight,
 			origin_kind: OriginKind,
 		) -> Result<Xcm<()>, DispatchError> {
 			Ok(Xcm(vec![
@@ -855,7 +856,7 @@ pub mod pallet {
 		}
 
 		/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
-		fn weight_of_initiate_reserve_withdraw() -> Weight {
+		fn weight_of_initiate_reserve_withdraw() -> OldWeight {
 			let dest = MultiLocation::parent();
 
 			// We can use whatever asset here
@@ -875,16 +876,16 @@ pub mod pallet {
 					xcm: Xcm(vec![]),
 				},
 			]);
-			T::Weigher::weight(&mut xcm.into()).map_or(Weight::max_value(), |w| {
+			T::Weigher::weight(&mut xcm.into()).map_or(OldWeight::max_value(), |w| {
 				T::BaseXcmWeight::get().saturating_add(w)
 			})
 		}
 
 		/// Returns the fee for a given set of parameters
 		/// We always round up in case of fractional division
-		pub fn calculate_fee_per_second(weight: Weight, fee_per_second: u128) -> u128 {
+		pub fn calculate_fee_per_second(weight: OldWeight, fee_per_second: u128) -> u128 {
 			// grab WEIGHT_PER_SECOND as u128
-			let weight_per_second_u128 = WEIGHT_PER_SECOND as u128;
+			let weight_per_second_u128 = WEIGHT_PER_SECOND.ref_time() as u128;
 
 			// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that
 			// if there is a fractional part we round up the result
@@ -898,8 +899,8 @@ pub mod pallet {
 		/// it returns the weight to be used in non-signed cases
 		pub fn take_weight_from_transact_info(
 			dest: MultiLocation,
-			dest_weight: Weight,
-		) -> Result<Weight, DispatchError> {
+			dest_weight: OldWeight,
+		) -> Result<OldWeight, DispatchError> {
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
@@ -919,8 +920,8 @@ pub mod pallet {
 		/// it returns the weight to be used in signed cases
 		pub fn take_weight_from_transact_info_signed(
 			dest: MultiLocation,
-			dest_weight: Weight,
-		) -> Result<Weight, DispatchError> {
+			dest_weight: OldWeight,
+		) -> Result<OldWeight, DispatchError> {
 			// Grab transact info for the destination provided
 			let transactor_info = TransactInfoWithWeightLimit::<T>::get(&dest)
 				.ok_or(Error::<T>::TransactorInfoNotSet)?;
@@ -947,7 +948,7 @@ pub mod pallet {
 		pub fn take_fee_per_second_from_storage(
 			fee_location: MultiLocation,
 			destination: MultiLocation,
-			total_weight: Weight,
+			total_weight: OldWeight,
 		) -> Result<u128, DispatchError> {
 			let fee_per_second = DestinationAssetFeePerSecond::<T>::get(&fee_location)
 				.ok_or(Error::<T>::FeePerSecondNotSet)?;
