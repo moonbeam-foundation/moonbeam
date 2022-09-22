@@ -108,6 +108,7 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
+<span id="106">106</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -151,9 +152,9 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">Address</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_evm::Precompile</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>, <span class="ident">precompile</span>};
 
 <span class="doccomment">/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.</span>
 <span class="doccomment">/// If the revert needs improved formatting such as backtraces, `Revert` type should</span>
@@ -168,7 +169,7 @@
 
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoded_revert</span>(<span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 	<span class="ident">EvmDataWriter::new_with_selector</span>(<span class="ident">revert::RevertSelector::Generic</span>)
-		.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Bytes</span>(<span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>()))
+		.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">data::UnboundedBytes</span><span class="op">&gt;</span>(<span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>().<span class="ident">into</span>())
 		.<span class="ident">build</span>()
 }
 
@@ -199,7 +200,8 @@
 	<span class="kw">pub</span> <span class="kw">use</span> {
 		<span class="kw">crate</span>::{
 			<span class="ident">data</span>::{
-				<span class="ident">Address</span>, <span class="ident">BoundedBytes</span>, <span class="ident">BoundedVec</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>,
+				<span class="ident">Address</span>, <span class="ident">BoundedBytes</span>, <span class="ident">BoundedString</span>, <span class="ident">BoundedVec</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>,
+				<span class="ident">EvmDataWriter</span>, <span class="ident">SolidityConvert</span>, <span class="ident">UnboundedBytes</span>, <span class="ident">UnboundedString</span>,
 			},
 			<span class="ident">handle::PrecompileHandleExt</span>,
 			<span class="ident">logs</span>::{<span class="ident">log0</span>, <span class="ident">log1</span>, <span class="ident">log2</span>, <span class="ident">log3</span>, <span class="ident">log4</span>, <span class="ident">LogExt</span>},
@@ -209,8 +211,8 @@
 			<span class="ident">substrate</span>::{<span class="ident">RuntimeHelper</span>, <span class="ident">TryDispatchError</span>},
 			<span class="ident">succeed</span>, <span class="ident">EvmResult</span>, <span class="ident">StatefulPrecompile</span>,
 		},
-		<span class="ident">pallet_evm::PrecompileHandle</span>,
-		<span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>},
+		<span class="ident">pallet_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>},
+		<span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>, <span class="ident">precompile</span>},
 	};
 }
 </code></pre></div>

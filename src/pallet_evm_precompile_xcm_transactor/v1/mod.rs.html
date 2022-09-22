@@ -123,6 +123,54 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -141,52 +189,21 @@
 
 <span class="doccomment">//! Precompile to xcm transactor runtime methods via the EVM</span>
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-
 <span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm::PrecompileOutput</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::functions</span>::{<span class="ident">CurrencyIdOf</span>, <span class="ident">TransactorOf</span>, <span class="ident">XcmTransactorWrapper</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::functions</span>::{<span class="ident">CurrencyIdOf</span>, <span class="ident">GetDataLimit</span>, <span class="ident">TransactorOf</span>, <span class="ident">XcmTransactorWrapper</span>};
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">sp_core::H160</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">fmt::Debug</span>, <span class="ident">marker::PhantomData</span>};
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryFrom</span>, <span class="ident">marker::PhantomData</span>};
+<span class="kw">use</span> <span class="ident">xcm::latest::MultiLocation</span>;
 <span class="kw">use</span> <span class="ident">xcm_primitives::AccountIdToCurrencyId</span>;
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">IndexToAccount</span> <span class="op">=</span> <span class="string">&quot;indexToAccount(uint16)&quot;</span>,
-	<span class="comment">// DEPRECATED</span>
-	<span class="ident">TransactInfo</span> <span class="op">=</span> <span class="string">&quot;transactInfo((uint8,bytes[]))&quot;</span>,
-	<span class="ident">TransactThroughDerivativeMultiLocation</span> <span class="op">=</span>
-		<span class="string">&quot;transactThroughDerivativeMultilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">TransactThroughDerivative</span> <span class="op">=</span> <span class="string">&quot;transactThroughDerivative(uint8,uint16,address,uint64,bytes)&quot;</span>,
-	<span class="ident">TransactInfoWithSigned</span> <span class="op">=</span> <span class="string">&quot;transactInfoWithSigned((uint8,bytes[]))&quot;</span>,
-	<span class="ident">FeePerSecond</span> <span class="op">=</span> <span class="string">&quot;feePerSecond((uint8,bytes[]))&quot;</span>,
-	<span class="ident">TransactThroughSignedMultiLocation</span> <span class="op">=</span>
-		<span class="string">&quot;transactThroughSignedMultilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">TransactThroughSigned</span> <span class="op">=</span> <span class="string">&quot;transactThroughSigned((uint8,bytes[]),address,uint64,bytes)&quot;</span>,
-
-	<span class="comment">// deprecated</span>
-	<span class="ident">DeprecatedIndexToAccount</span> <span class="op">=</span> <span class="string">&quot;index_to_account(uint16)&quot;</span>,
-	<span class="ident">DeprecatedTransactInfo</span> <span class="op">=</span> <span class="string">&quot;transact_info((uint8,bytes[]))&quot;</span>,
-	<span class="ident">DeprecatedTransactThroughDerivativeMultiLocation</span> <span class="op">=</span>
-		<span class="string">&quot;transact_through_derivative_multilocation(uint8,uint16,(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">DeprecatedTransactThroughDerivative</span> <span class="op">=</span>
-		<span class="string">&quot;transact_through_derivative(uint8,uint16,address,uint64,bytes)&quot;</span>,
-	<span class="ident">DeprecatedTransactInfoWithSigned</span> <span class="op">=</span> <span class="string">&quot;transact_info_with_signed((uint8,bytes[]))&quot;</span>,
-	<span class="ident">DeprecatedFeePerSecond</span> <span class="op">=</span> <span class="string">&quot;fee_per_second((uint8,bytes[]))&quot;</span>,
-	<span class="ident">DeprecatedTransactThroughSignedMultiLocation</span> <span class="op">=</span>
-		<span class="string">&quot;transact_through_signed_multilocation((uint8,bytes[]),(uint8,bytes[]),uint64,bytes)&quot;</span>,
-	<span class="ident">DeprecatedTransactThroughSigned</span> <span class="op">=</span>
-		<span class="string">&quot;transact_through_signed((uint8,bytes[]),address,uint64,bytes)&quot;</span>,
-}
-
 <span class="doccomment">/// A precompile to wrap the functionality from xcm transactor</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmTransactorWrapperV1</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmTransactorPrecompileV1</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">pallet_evm::Precompile</span> <span class="kw">for</span> <span class="ident">XcmTransactorWrapperV1</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">XcmTransactorPrecompileV1</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_xcm_transactor::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
@@ -196,51 +213,130 @@
 	<span class="ident">Runtime::AccountId</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime</span>: <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;indexToAccount(uint16)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;index_to_account(uint16)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">index_to_account</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">index</span>: <span class="ident">u16</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::account_index</span>(<span class="ident">handle</span>, <span class="ident">index</span>)
+	}
 
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::TransactThroughDerivativeMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::TransactThroughDerivative</span>
-			<span class="op">|</span> <span class="ident">Action::TransactThroughSignedMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::TransactThroughSigned</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivativeMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivative</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSignedMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSigned</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
-			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-		})<span class="question-mark">?</span>;
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transactInfo((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transact_info((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">transact_info</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">multilocation</span>: <span class="ident">MultiLocation</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">U256</span>, <span class="ident">u64</span>)<span class="op">&gt;</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_info</span>(<span class="ident">handle</span>, <span class="ident">multilocation</span>)
+	}
 
-		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="comment">// Check for accessor methods first. These return results immediately</span>
-			<span class="ident">Action::IndexToAccount</span> <span class="op">|</span> <span class="ident">Action::DeprecatedIndexToAccount</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::account_index</span>(<span class="ident">handle</span>)
-			}
-			<span class="comment">// DEPRECATED</span>
-			<span class="ident">Action::TransactInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactInfo</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_info</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransactInfoWithSigned</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactInfoWithSigned</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_info_with_signed</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::FeePerSecond</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFeePerSecond</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::fee_per_second</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransactThroughDerivativeMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivativeMultiLocation</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_derivative_multilocation</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransactThroughDerivative</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughDerivative</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_derivative</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransactThroughSignedMultiLocation</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSignedMultiLocation</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_signed_multilocation</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransactThroughSigned</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransactThroughSigned</span> =&gt; {
-				<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_signed</span>(<span class="ident">handle</span>)
-			}
-		}
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transactInfoWithSigned((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transact_info_with_signed((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">transact_info_with_signed</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">multilocation</span>: <span class="ident">MultiLocation</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">u64</span>)<span class="op">&gt;</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_info_with_signed</span>(<span class="ident">handle</span>, <span class="ident">multilocation</span>)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;feePerSecond((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;fee_per_second((uint8,bytes[]))&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">fee_per_second</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">multilocation</span>: <span class="ident">MultiLocation</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::fee_per_second</span>(<span class="ident">handle</span>, <span class="ident">multilocation</span>)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transactThroughDerivativeMultilocation(\
+		uint8,\
+		uint16,\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes)&quot;</span>
+	)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transact_through_derivative_multilocation(\
+		uint8,\
+		uint16,\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes)&quot;</span>
+	)]</span>
+	<span class="kw">fn</span> <span class="ident">transact_through_derivative_multilocation</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">transactor</span>: <span class="ident">u8</span>,
+		<span class="ident">index</span>: <span class="ident">u16</span>,
+		<span class="ident">fee_asset</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+		<span class="ident">inner_call</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_derivative_multilocation</span>(
+			<span class="ident">handle</span>, <span class="ident">transactor</span>, <span class="ident">index</span>, <span class="ident">fee_asset</span>, <span class="ident">weight</span>, <span class="ident">inner_call</span>,
+		)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transactThroughDerivative(uint8,uint16,address,uint64,bytes)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transact_through_derivative(uint8,uint16,address,uint64,bytes)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">transact_through_derivative</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">transactor</span>: <span class="ident">u8</span>,
+		<span class="ident">index</span>: <span class="ident">u16</span>,
+		<span class="ident">currency_id</span>: <span class="ident">Address</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+		<span class="ident">inner_call</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_derivative</span>(
+			<span class="ident">handle</span>,
+			<span class="ident">transactor</span>,
+			<span class="ident">index</span>,
+			<span class="ident">currency_id</span>,
+			<span class="ident">weight</span>,
+			<span class="ident">inner_call</span>,
+		)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transactThroughSignedMultilocation(\
+		(uint8,bytes[]),\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes)&quot;</span>
+	)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transact_through_signed_multilocation(\
+		(uint8,bytes[]),\
+		(uint8,bytes[]),\
+		uint64,\
+		bytes)&quot;</span>
+	)]</span>
+	<span class="kw">fn</span> <span class="ident">transact_through_signed_multilocation</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">fee_asset</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+		<span class="ident">call</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_signed_multilocation</span>(
+			<span class="ident">handle</span>, <span class="ident">dest</span>, <span class="ident">fee_asset</span>, <span class="ident">weight</span>, <span class="ident">call</span>,
+		)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transactThroughSigned((uint8,bytes[]),address,uint64,bytes)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transact_through_signed((uint8,bytes[]),address,uint64,bytes)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">transact_through_signed</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">fee_asset</span>: <span class="ident">Address</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+		<span class="ident">call</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetDataLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident">XcmTransactorWrapper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact_through_signed</span>(
+			<span class="ident">handle</span>, <span class="ident">dest</span>, <span class="ident">fee_asset</span>, <span class="ident">weight</span>, <span class="ident">call</span>,
+		)
 	}
 }
 </code></pre></div>

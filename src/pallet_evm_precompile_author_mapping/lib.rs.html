@@ -160,25 +160,6 @@
 <span id="155">155</span>
 <span id="156">156</span>
 <span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -200,73 +181,42 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
-<span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
+<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
+<span class="kw">use</span> <span class="ident">frame_support</span>::{
+	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
+	<span class="ident">traits::Get</span>,
+};
 <span class="kw">use</span> <span class="ident">pallet_author_mapping::Call</span> <span class="kw">as</span> <span class="ident">AuthorMappingCall</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core::crypto::UncheckedFrom</span>;
 <span class="kw">use</span> <span class="ident">sp_core::H256</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">fmt::Debug</span>, <span class="ident">marker::PhantomData</span>};
+<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">AddAssociation</span> <span class="op">=</span> <span class="string">&quot;addAssociation(bytes32)&quot;</span>,
-	<span class="ident">UpdateAssociation</span> <span class="op">=</span> <span class="string">&quot;updateAssociation(bytes32,bytes32)&quot;</span>,
-	<span class="ident">ClearAssociation</span> <span class="op">=</span> <span class="string">&quot;clearAssociation(bytes32)&quot;</span>,
-	<span class="ident">RemoveKeys</span> <span class="op">=</span> <span class="string">&quot;removeKeys()&quot;</span>,
-	<span class="ident">SetKeys</span> <span class="op">=</span> <span class="string">&quot;setKeys(bytes)&quot;</span>,
-
-	<span class="comment">// deprecated</span>
-	<span class="ident">DeprecatedAddAssociation</span> <span class="op">=</span> <span class="string">&quot;add_association(bytes32)&quot;</span>,
-	<span class="ident">DeprecatedUpdateAssociation</span> <span class="op">=</span> <span class="string">&quot;update_association(bytes32,bytes32)&quot;</span>,
-	<span class="ident">DeprecatedClearAssociation</span> <span class="op">=</span> <span class="string">&quot;clear_association(bytes32)&quot;</span>,
-	<span class="ident">DeprecatedRemoveKeys</span> <span class="op">=</span> <span class="string">&quot;remove_keys()&quot;</span>,
-	<span class="ident">DeprecatedSetKeys</span> <span class="op">=</span> <span class="string">&quot;set_keys(bytes)&quot;</span>,
-}
-
 <span class="doccomment">/// A precompile to wrap the functionality from pallet author mapping.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorMappingPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_author_mapping::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">AuthorMappingCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;author-mapping-precompile&quot;</span>, <span class="string">&quot;In author mapping wrapper&quot;</span>);
+<span class="doccomment">/// Bound for the keys size.</span>
+<span class="doccomment">/// Pallet will check that the size exactly matches, but we want to bound the parser to</span>
+<span class="doccomment">/// not accept larger bytes.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GetKeysSize</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
 
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
-
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="ident">FunctionModifier::NonPayable</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="comment">// Dispatchables</span>
-			<span class="ident">Action::AddAssociation</span> <span class="op">|</span> <span class="ident">Action::DeprecatedAddAssociation</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::add_association</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::UpdateAssociation</span> <span class="op">|</span> <span class="ident">Action::DeprecatedUpdateAssociation</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::update_association</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::ClearAssociation</span> <span class="op">|</span> <span class="ident">Action::DeprecatedClearAssociation</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::clear_association</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::RemoveKeys</span> <span class="op">|</span> <span class="ident">Action::DeprecatedRemoveKeys</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_keys</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::SetKeys</span> <span class="op">|</span> <span class="ident">Action::DeprecatedSetKeys</span> =&gt; <span class="ident"><span class="self">Self</span>::set_keys</span>(<span class="ident">handle</span>),
-		}
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">pallet_author_mapping::Config</span><span class="op">&gt;</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GetKeysSize</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">u32</span> {
+		<span class="ident">pallet_author_mapping::pallet::keys_size</span>::<span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>()
+			.<span class="ident">try_into</span>()
+			.<span class="ident">expect</span>(<span class="string">&quot;keys size to fit in u32&quot;</span>)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">AuthorMappingWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
+<span class="attribute">#[<span class="ident">precompile::test_concrete_types</span>(<span class="ident">mock::Runtime</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">AuthorMappingPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_author_mapping::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
@@ -275,8 +225,9 @@
 	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 {
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.</span>
-	<span class="kw">fn</span> <span class="ident">add_association</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">nimbus_id</span>: <span class="ident">H256</span> });
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;addAssociation(bytes32)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;add_association(bytes32)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">add_association</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">nimbus_id</span>: <span class="ident">H256</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">nimbus_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">nimbus_id</span>).<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
@@ -289,11 +240,16 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">update_association</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">old_nimbus_id</span>: <span class="ident">H256</span>, <span class="ident">new_nimbus_id</span>: <span class="ident">H256</span>});
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;updateAssociation(bytes32,bytes32)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;update_association(bytes32,bytes32)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">update_association</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">old_nimbus_id</span>: <span class="ident">H256</span>,
+		<span class="ident">new_nimbus_id</span>: <span class="ident">H256</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">old_nimbus_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">old_nimbus_id</span>).<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">new_nimbus_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">new_nimbus_id</span>).<span class="ident">into</span>();
 
@@ -310,11 +266,12 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">clear_association</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">nimbus_id</span>: <span class="ident">H256</span> });
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;clearAssociation(bytes32)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;clear_association(bytes32)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">clear_association</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">nimbus_id</span>: <span class="ident">H256</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">nimbus_id</span> <span class="op">=</span> <span class="ident">sp_core::sr25519::Public::unchecked_from</span>(<span class="ident">nimbus_id</span>).<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
@@ -327,10 +284,12 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">remove_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;removeKeys()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;remove_keys()&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">remove_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;author-mapping-precompile&quot;</span>,
 			<span class="string">&quot;Removing keys&quot;</span>
@@ -341,18 +300,21 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">set_keys</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">keys</span>: <span class="ident">Bytes</span> });
-
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;setKeys(bytes)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;set_keys(bytes)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">set_keys</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">keys</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetKeysSize</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">AuthorMappingCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::set_keys</span> { <span class="ident">keys</span>: <span class="ident">keys</span>.<span class="ident">into</span>() };
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>

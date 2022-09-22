@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Action",""]],"struct":[["Currency",""],["EvmMultiAsset",""],["XtokensWrapper","A precompile to wrap the functionality from xtokens"]],"type":[["CurrencyIdOf",""],["MaxAssetsForTransfer",""],["XBalanceOf",""]]});
+initSidebarItems({"enum":[["XtokensPrecompileCall",""]],"struct":[["Currency",""],["EvmMultiAsset",""],["GetMaxAssets",""],["XtokensPrecompile","A precompile to wrap the functionality from xtokens"]],"type":[["CurrencyIdOf",""],["MaxAssetsForTransfer",""],["XBalanceOf",""]]});

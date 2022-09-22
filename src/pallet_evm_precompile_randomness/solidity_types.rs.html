@@ -81,6 +81,14 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -98,7 +106,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="doccomment">//! Solidity types for randomness precompile.</span>
-<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">data::String</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RequestStatus</span> {
 	<span class="ident">DoesNotExist</span>,
@@ -136,6 +144,10 @@
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="bool-val">true</span>
 	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="ident">u8::solidity_type</span>()
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">RandomnessSource</span> {
@@ -157,6 +169,10 @@
 
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="bool-val">true</span>
+	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="ident">u8::solidity_type</span>()
 	}
 }
 </code></pre></div>

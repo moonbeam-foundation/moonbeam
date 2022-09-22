@@ -467,6 +467,13 @@
 <span id="462">462</span>
 <span id="463">463</span>
 <span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -484,6 +491,7 @@
 <span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
 <span class="kw">use</span> {
+	<span class="kw">crate</span>::{<span class="ident">EvmData</span>, <span class="ident">EvmDataWriter</span>},
 	<span class="ident">fp_evm</span>::{
 		<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>, <span class="ident">Log</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>,
 		<span class="ident">PrecompileOutput</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>, <span class="ident">Transfer</span>,
@@ -652,6 +660,7 @@
 
 	<span class="ident">expected_cost</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
 	<span class="ident">expected_logs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PrettyLog</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="ident">static_call</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span>: <span class="ident">PrecompileSet</span><span class="op">&gt;</span> <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span> {
@@ -682,6 +691,7 @@
 
 			<span class="ident">expected_cost</span>: <span class="prelude-val">None</span>,
 			<span class="ident">expected_logs</span>: <span class="prelude-val">None</span>,
+			<span class="ident">static_call</span>: <span class="bool-val">false</span>,
 		}
 	}
 
@@ -697,6 +707,11 @@
 
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_target_gas</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
 		<span class="self">self</span>.<span class="ident">target_gas</span> <span class="op">=</span> <span class="ident">target_gas</span>;
+		<span class="self">self</span>
+	}
+
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_static_call</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">static_call</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+		<span class="self">self</span>.<span class="ident">static_call</span> <span class="op">=</span> <span class="ident">static_call</span>;
 		<span class="self">self</span>
 	}
 
@@ -732,19 +747,13 @@
 	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">handle</span>;
 		<span class="ident">handle</span>.<span class="ident">subcall_handle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subcall_handle</span>.<span class="ident">take</span>();
+		<span class="ident">handle</span>.<span class="ident">is_static</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_call</span>;
 
 		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">target_gas</span> {
 			<span class="ident">handle</span>.<span class="ident">gas_limit</span> <span class="op">=</span> <span class="ident">gas_limit</span>;
 		}
 
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">precompiles</span>.<span class="ident">execute</span>(
-			<span class="ident">handle</span>,
-			<span class="comment">// self.to,</span>
-			<span class="comment">// &amp;self.data,</span>
-			<span class="comment">// self.target_gas,</span>
-			<span class="comment">// &amp;self.context,</span>
-			<span class="comment">// self.is_static,</span>
-		);
+		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">precompiles</span>.<span class="ident">execute</span>(<span class="ident">handle</span>);
 
 		<span class="self">self</span>.<span class="ident">subcall_handle</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">subcall_handle</span>.<span class="ident">take</span>();
 
@@ -817,6 +826,11 @@
 		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
 	}
 
+	<span class="doccomment">/// Execute the precompile set and check it returns provided Solidity encoded output.</span>
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_returns_encoded</span>(<span class="self">self</span>, <span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">EvmData</span>) {
+		<span class="self">self</span>.<span class="ident">execute_returns</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">output</span>).<span class="ident">build</span>())
+	}
+
 	<span class="doccomment">/// Execute the precompile set and check if it reverts.</span>
 	<span class="doccomment">/// Take a closure allowing to perform custom matching on the output.</span>
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_reverts</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">check</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span>) {
@@ -859,7 +873,7 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 		<span class="ident">to</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+		<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	) -&gt; <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
 }
 
@@ -868,9 +882,9 @@
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
 		<span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
 		<span class="ident">to</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+		<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	) -&gt; <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="ident">PrecompilesTester::new</span>(<span class="self">self</span>, <span class="ident">from</span>, <span class="ident">to</span>, <span class="ident">data</span>)
+		<span class="ident">PrecompilesTester::new</span>(<span class="self">self</span>, <span class="ident">from</span>, <span class="ident">to</span>, <span class="ident">data</span>.<span class="ident">into</span>())
 	}
 }
 

@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Action",""]],"struct":[["XcmUtilsWrapper","A precompile to wrap the functionality from xcm-utils"]],"type":[["XcmAccountIdOf",""],["XcmOriginOf",""]]});
+initSidebarItems({"enum":[["XcmUtilsPrecompileCall",""]],"struct":[["XcmUtilsPrecompile","A precompile to wrap the functionality from xcm-utils"]],"type":[["XcmAccountIdOf",""],["XcmOriginOf",""]]});

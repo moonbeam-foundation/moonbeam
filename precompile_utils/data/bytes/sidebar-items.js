@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BoundedBytesString","The `bytes/string` type of Solidity. It is different from `Vec<u8>` which will be serialized with padding for each `u8` element of the array, while `Bytes` is tightly packed."],["BytesKind",""],["StringKind",""]],"type":[["BoundedBytes",""],["BoundedString",""],["UnboundedBytes",""],["UnboundedString",""]]});

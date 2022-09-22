@@ -259,41 +259,8 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
-<span id="264">264</span>
-<span id="265">265</span>
-<span id="266">266</span>
-<span id="267">267</span>
-<span id="268">268</span>
-<span id="269">269</span>
-<span id="270">270</span>
-<span id="271">271</span>
-<span id="272">272</span>
-<span id="273">273</span>
-<span id="274">274</span>
-<span id="275">275</span>
-<span id="276">276</span>
-<span id="277">277</span>
-<span id="278">278</span>
-<span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-<span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is 	part of Moonbeam.</span>
+<span class="comment">// This file is part of Moonbeam.</span>
 
 <span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
 <span class="comment">// it under the terms of the GNU General Public License as published by</span>
@@ -312,10 +279,7 @@
 
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">evm::ExitReason</span>;
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{
-	<span class="ident">Context</span>, <span class="ident">ExitRevert</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>,
-	<span class="ident">Transfer</span>,
-};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitRevert</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">Transfer</span>};
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">ensure</span>,
 	<span class="ident">storage::types</span>::{<span class="ident">StorageMap</span>, <span class="ident">ValueQuery</span>},
@@ -367,40 +331,12 @@
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CALL_DATA_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">Dispatch</span> <span class="op">=</span> <span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;</span>,
-	<span class="ident">Nonces</span> <span class="op">=</span> <span class="string">&quot;nonces(address)&quot;</span>,
-	<span class="ident">DomainSeparator</span> <span class="op">=</span> <span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>,
-}
-
 <span class="doccomment">/// Precompile allowing to issue and dispatch call permits for gasless transactions.</span>
 <span class="doccomment">/// A user can sign a permit for a call that can be dispatched and paid by another user or</span>
 <span class="doccomment">/// smart contract.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">pallet_timestamp::Config</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
-
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::Dispatch</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
-			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-		})<span class="question-mark">?</span>;
-
-		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::Dispatch</span> =&gt; <span class="ident"><span class="self">Self</span>::dispatch</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::Nonces</span> =&gt; <span class="ident"><span class="self">Self</span>::nonces</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::DomainSeparator</span> =&gt; <span class="ident"><span class="self">Self</span>::domain_separator</span>(<span class="ident">handle</span>),
-		}
-	}
-}
-
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">pallet_timestamp::Config</span>,
@@ -459,27 +395,26 @@
 			<span class="op">+</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_write_gas_cost</span>() <span class="comment">// we write nonce</span>
 	}
 
-	<span class="kw">fn</span> <span class="ident">dispatch</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;</span>
+	)]</span>
+	<span class="kw">fn</span> <span class="ident">dispatch</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">from</span>: <span class="ident">Address</span>,
+		<span class="ident">to</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+		<span class="ident">data</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">CALL_DATA_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
+		<span class="ident">deadline</span>: <span class="ident">U256</span>,
+		<span class="ident">v</span>: <span class="ident">u8</span>,
+		<span class="ident">r</span>: <span class="ident">H256</span>,
+		<span class="ident">s</span>: <span class="ident">H256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident"><span class="self">Self</span>::dispatch_inherent_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="comment">// PARSE INPUT</span>
-		<span class="macro">read_args!</span>(
-			<span class="ident">handle</span>,
-			{
-				<span class="ident">from</span>: <span class="ident">Address</span>,
-				<span class="ident">to</span>: <span class="ident">Address</span>,
-				<span class="ident">value</span>: <span class="ident">U256</span>,
-				<span class="ident">data</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">CALL_DATA_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-				<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-				<span class="ident">deadline</span>: <span class="ident">U256</span>,
-				<span class="ident">v</span>: <span class="ident">u8</span>,
-				<span class="ident">r</span>: <span class="ident">H256</span>,
-				<span class="ident">s</span>: <span class="ident">H256</span>
-			}
-		);
 		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">into_vec</span>();
+		<span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">into</span>();
 
 		<span class="comment">// ENSURE GASLIMIT IS SUFFICIENT</span>
 		<span class="kw">let</span> <span class="ident">call_cost</span> <span class="op">=</span> <span class="ident">call_cost</span>(<span class="ident">value</span>, <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>());
@@ -553,32 +488,31 @@
 				<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
 				<span class="ident">output</span>,
 			}),
-			<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; {
-				<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">Bytes</span>(<span class="ident">output</span>)).<span class="ident">build</span>()))
-			}
+			<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">into</span>()),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">nonces</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;nonces(address)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">nonces</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">owner</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">owner</span>: <span class="ident">Address</span> });
 		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
 
 		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage::get</span>(<span class="ident">owner</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">nonce</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">nonce</span>)
 	}
 
-	<span class="kw">fn</span> <span class="ident">domain_separator</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">domain_separator</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
 		<span class="kw">let</span> <span class="ident">domain_separator</span>: <span class="ident">H256</span> <span class="op">=</span>
 			<span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>).<span class="ident">into</span>();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
-			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">domain_separator</span>).<span class="ident">build</span>(),
-		))
+		<span class="prelude-val">Ok</span>(<span class="ident">domain_separator</span>)
 	}
 }
 </code></pre></div>

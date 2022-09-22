@@ -794,89 +794,8 @@
 <span id="789">789</span>
 <span id="790">790</span>
 <span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
-<span id="823">823</span>
-<span id="824">824</span>
-<span id="825">825</span>
-<span id="826">826</span>
-<span id="827">827</span>
-<span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
-<span id="841">841</span>
-<span id="842">842</span>
-<span id="843">843</span>
-<span id="844">844</span>
-<span id="845">845</span>
-<span id="846">846</span>
-<span id="847">847</span>
-<span id="848">848</span>
-<span id="849">849</span>
-<span id="850">850</span>
-<span id="851">851</span>
-<span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is 	part of Moonbeam.</span>
+<span class="comment">// This file is part of Moonbeam.</span>
 
 <span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
 <span class="comment">// it under the terms of the GNU General Public License as published by</span>
@@ -895,7 +814,7 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">assert_matches</span>))]</span>
 
 <span class="kw">use</span> <span class="ident">core::fmt::Display</span>;
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">frame_support::traits::fungibles::approvals::Inspect</span> <span class="kw">as</span> <span class="ident">ApprovalInspect</span>;
 <span class="kw">use</span> <span class="ident">frame_support::traits::fungibles::metadata::Inspect</span> <span class="kw">as</span> <span class="ident">MetadataInspect</span>;
 <span class="kw">use</span> <span class="ident">frame_support::traits::fungibles::Inspect</span>;
@@ -904,18 +823,19 @@
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
 	<span class="ident">sp_runtime::traits::StaticLookup</span>,
 };
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">PrecompileSet</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_runtime::traits::Bounded</span>;
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
 
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
+<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
 	<span class="ident">marker::PhantomData</span>,
 };
 
 <span class="kw">mod</span> <span class="ident">eip2612</span>;
+<span class="kw">use</span> <span class="ident">eip2612::Eip2612</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
@@ -940,42 +860,6 @@
 <span class="doccomment">/// Public types to use with the PrecompileSet</span>
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IsLocal</span> <span class="op">=</span> <span class="ident">ConstBool</span><span class="op">&lt;</span><span class="bool-val">true</span><span class="op">&gt;</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IsForeign</span> <span class="op">=</span> <span class="ident">ConstBool</span><span class="op">&lt;</span><span class="bool-val">false</span><span class="op">&gt;</span>;
-
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">TotalSupply</span> <span class="op">=</span> <span class="string">&quot;totalSupply()&quot;</span>,
-	<span class="ident">BalanceOf</span> <span class="op">=</span> <span class="string">&quot;balanceOf(address)&quot;</span>,
-	<span class="ident">Allowance</span> <span class="op">=</span> <span class="string">&quot;allowance(address,address)&quot;</span>,
-	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256)&quot;</span>,
-	<span class="ident">Approve</span> <span class="op">=</span> <span class="string">&quot;approve(address,uint256)&quot;</span>,
-	<span class="ident">TransferFrom</span> <span class="op">=</span> <span class="string">&quot;transferFrom(address,address,uint256)&quot;</span>,
-	<span class="ident">Name</span> <span class="op">=</span> <span class="string">&quot;name()&quot;</span>,
-	<span class="ident">Symbol</span> <span class="op">=</span> <span class="string">&quot;symbol()&quot;</span>,
-	<span class="ident">Decimals</span> <span class="op">=</span> <span class="string">&quot;decimals()&quot;</span>,
-	<span class="ident">Mint</span> <span class="op">=</span> <span class="string">&quot;mint(address,uint256)&quot;</span>,
-	<span class="ident">Burn</span> <span class="op">=</span> <span class="string">&quot;burn(address,uint256)&quot;</span>,
-	<span class="ident">Freeze</span> <span class="op">=</span> <span class="string">&quot;freeze(address)&quot;</span>,
-	<span class="ident">Thaw</span> <span class="op">=</span> <span class="string">&quot;thaw(address)&quot;</span>,
-	<span class="ident">FreezeAsset</span> <span class="op">=</span> <span class="string">&quot;freezeAsset()&quot;</span>,
-	<span class="ident">ThawAsset</span> <span class="op">=</span> <span class="string">&quot;thawAsset()&quot;</span>,
-	<span class="ident">TransferOwnership</span> <span class="op">=</span> <span class="string">&quot;transferOwnership(address)&quot;</span>,
-	<span class="ident">SetTeam</span> <span class="op">=</span> <span class="string">&quot;setTeam(address,address,address)&quot;</span>,
-	<span class="ident">SetMetadata</span> <span class="op">=</span> <span class="string">&quot;setMetadata(string,string,uint8)&quot;</span>,
-	<span class="ident">ClearMetadata</span> <span class="op">=</span> <span class="string">&quot;clearMetadata()&quot;</span>,
-	<span class="comment">// EIP 2612</span>
-	<span class="ident">Eip2612Permit</span> <span class="op">=</span> <span class="string">&quot;permit(address,address,uint256,uint256,uint8,bytes32,bytes32)&quot;</span>,
-	<span class="ident">Eip2612Nonces</span> <span class="op">=</span> <span class="string">&quot;nonces(address)&quot;</span>,
-	<span class="ident">Eip2612DomainSeparator</span> <span class="op">=</span> <span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>,
-
-	<span class="comment">// deprecated</span>
-	<span class="ident">DeprecatedFreezeAsset</span> <span class="op">=</span> <span class="string">&quot;freeze_asset()&quot;</span>,
-	<span class="ident">DeprecatedThawAsset</span> <span class="op">=</span> <span class="string">&quot;thaw_asset()&quot;</span>,
-	<span class="ident">DeprecatedTransferOwnership</span> <span class="op">=</span> <span class="string">&quot;transfer_ownership(address)&quot;</span>,
-	<span class="ident">DeprecatedSetTeam</span> <span class="op">=</span> <span class="string">&quot;set_team(address,address,address)&quot;</span>,
-	<span class="ident">DeprecatedSetMetadata</span> <span class="op">=</span> <span class="string">&quot;set_metadata(string,string,uint8)&quot;</span>,
-	<span class="ident">DeprecatedClearMetadata</span> <span class="op">=</span> <span class="string">&quot;clear_metadata()&quot;</span>,
-}
 
 <span class="doccomment">/// This trait ensure we can convert AccountIds to AssetIds</span>
 <span class="doccomment">/// We will require Runtime to have this trait implemented</span>
@@ -1017,118 +901,15 @@
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">PrecompileSet</span>
-	<span class="kw">for</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Instance</span>: <span class="ident">eip2612::InstanceToPrefix</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_assets::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span>
-		<span class="op">+</span> <span class="ident">pallet_evm::Config</span>
-		<span class="op">+</span> <span class="ident">frame_system::Config</span>
-		<span class="op">+</span> <span class="ident">pallet_timestamp::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_assets::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">EvmData</span>,
-	<span class="ident">Runtime</span>: <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">OriginTrait</span>,
-	<span class="ident">IsLocal</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-	<span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">Display</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">asset_id</span>)) <span class="op">=</span> <span class="ident">Runtime::account_to_asset_id</span>(
-			<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>()),
-		) {
-			<span class="comment">// We check maybe_total_supply. This function returns Some if the asset exists,</span>
-			<span class="comment">// which is all we care about at this point</span>
-			<span class="kw">if</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::maybe_total_supply</span>(<span class="ident">asset_id</span>).<span class="ident">is_some</span>() {
-				<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> {
-					<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>() {
-						<span class="prelude-val">Ok</span>(<span class="ident">selector</span>) =&gt; <span class="ident">selector</span>,
-						<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">into</span>())),
-					};
-
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-						<span class="ident">Action::Approve</span> <span class="op">|</span> <span class="ident">Action::Transfer</span> <span class="op">|</span> <span class="ident">Action::TransferFrom</span> =&gt; {
-							<span class="ident">FunctionModifier::NonPayable</span>
-						}
-						<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-					}) {
-						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>.<span class="ident">into</span>()));
-					}
-
-					<span class="kw">match</span> <span class="ident">selector</span> {
-						<span class="comment">// Local and Foreign common</span>
-						<span class="ident">Action::TotalSupply</span> =&gt; <span class="ident"><span class="self">Self</span>::total_supply</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::BalanceOf</span> =&gt; <span class="ident"><span class="self">Self</span>::balance_of</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Allowance</span> =&gt; <span class="ident"><span class="self">Self</span>::allowance</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Approve</span> =&gt; <span class="ident"><span class="self">Self</span>::approve</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Transfer</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::TransferFrom</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer_from</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Name</span> =&gt; <span class="ident"><span class="self">Self</span>::name</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Symbol</span> =&gt; <span class="ident"><span class="self">Self</span>::symbol</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Decimals</span> =&gt; <span class="ident"><span class="self">Self</span>::decimals</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="comment">// Only local</span>
-						<span class="ident">Action::Mint</span> =&gt; <span class="ident"><span class="self">Self</span>::mint</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Burn</span> =&gt; <span class="ident"><span class="self">Self</span>::burn</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Freeze</span> =&gt; <span class="ident"><span class="self">Self</span>::freeze</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::Thaw</span> =&gt; <span class="ident"><span class="self">Self</span>::thaw</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>),
-						<span class="ident">Action::FreezeAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFreezeAsset</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::freeze_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::ThawAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedThawAsset</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::thaw_asset</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::TransferOwnership</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferOwnership</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::transfer_ownership</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::SetTeam</span> <span class="op">|</span> <span class="ident">Action::DeprecatedSetTeam</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::set_team</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::SetMetadata</span> <span class="op">|</span> <span class="ident">Action::DeprecatedSetMetadata</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::set_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::ClearMetadata</span> <span class="op">|</span> <span class="ident">Action::DeprecatedClearMetadata</span> =&gt; {
-							<span class="ident"><span class="self">Self</span>::clear_metadata</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::Eip2612Permit</span> =&gt; {
-							<span class="ident">eip2612::Eip2612</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::permit</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::Eip2612Nonces</span> =&gt; {
-							<span class="ident">eip2612::Eip2612</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::nonces</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
-						}
-						<span class="ident">Action::Eip2612DomainSeparator</span> =&gt; {
-							<span class="ident">eip2612::Eip2612</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::domain_separator</span>(
-								<span class="ident">asset_id</span>, <span class="ident">handle</span>,
-							)
-						}
-					}
-				};
-				<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">result</span>);
-			}
-		}
-		<span class="prelude-val">None</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">asset_id</span>)) <span class="op">=</span>
-			<span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>))
-		{
-			<span class="comment">// We check maybe_total_supply. This function returns Some if the asset exists,</span>
-			<span class="comment">// which is all we care about at this point</span>
-			<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::maybe_total_supply</span>(<span class="ident">asset_id</span>).<span class="ident">is_some</span>()
-		} <span class="kw">else</span> {
-			<span class="bool-val">false</span>
-		}
-	}
-}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> {
 	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
 		<span class="self">Self</span>(<span class="ident">PhantomData</span>)
 	}
 }
 
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
+<span class="attribute">#[<span class="ident">precompile::precompile_set</span>]</span>
+<span class="attribute">#[<span class="ident">precompile::test_concrete_types</span>(<span class="ident">mock::Runtime</span>, <span class="ident">IsForeign</span>, <span class="ident">pallet_assets::Instance1</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Erc20AssetsPrecompileSet</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Instance</span>: <span class="ident">eip2612::InstanceToPrefix</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
@@ -1146,27 +927,41 @@
 	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 	<span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">Display</span>,
 {
+	<span class="doccomment">/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,</span>
+	<span class="doccomment">/// and if this is the case which one.</span>
+	<span class="attribute">#[<span class="ident">precompile::discriminant</span>]</span>
+	<span class="kw">fn</span> <span class="ident">discriminant</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">address</span>);
+		<span class="kw">let</span> <span class="ident">asset_id</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Runtime::account_to_asset_id</span>(<span class="ident">account_id</span>) {
+			<span class="prelude-val">Some</span>((<span class="kw">_</span>, <span class="ident">asset_id</span>)) =&gt; <span class="ident">asset_id</span>,
+			<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+		};
+
+		<span class="kw">if</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::maybe_total_supply</span>(<span class="ident">asset_id</span>).<span class="ident">is_some</span>() {
+			<span class="prelude-val">Some</span>(<span class="ident">asset_id</span>)
+		} <span class="kw">else</span> {
+			<span class="prelude-val">None</span>
+		}
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;totalSupply()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">total_supply</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="comment">// Fetch info.</span>
-		<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">U256</span> <span class="op">=</span>
-			<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::total_issuance</span>(<span class="ident">asset_id</span>).<span class="ident">into</span>();
-
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::total_issuance</span>(<span class="ident">asset_id</span>).<span class="ident">into</span>())
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;balanceOf(address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">balance_of</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">who</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">who</span>: <span class="ident">Address</span> });
 		<span class="kw">let</span> <span class="ident">who</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">who</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Fetch info.</span>
@@ -1176,16 +971,18 @@
 		};
 
 		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">amount</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;allowance(address,address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">allowance</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">owner</span>: <span class="ident">Address</span>,
+		<span class="ident">spender</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">owner</span>: <span class="ident">Address</span>, <span class="ident">spender</span>: <span class="ident">Address</span>});
 		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">spender</span>.<span class="ident">into</span>();
 
@@ -1199,16 +996,18 @@
 		};
 
 		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">amount</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">amount</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;approve(address,uint256)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">approve</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">spender</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">spender</span>: <span class="ident">Address</span>, <span class="ident">value</span>: <span class="ident">U256</span>});
 		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">spender</span>.<span class="ident">into</span>();
 
 		<span class="ident"><span class="self">Self</span>::approve_inner</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>, <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>, <span class="ident">spender</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
@@ -1223,7 +1022,7 @@
 		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
 	<span class="kw">fn</span> <span class="ident">approve_inner</span>(
@@ -1269,14 +1068,17 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transfer(address,uint256)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">transfer</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">to</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">to</span>: <span class="ident">Address</span>, <span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>});
 		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">value</span>).<span class="ident">in_field</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		{
@@ -1304,26 +1106,22 @@
 		)
 		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transferFrom(address,address,uint256)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">transfer_from</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">from</span>: <span class="ident">Address</span>,
+		<span class="ident">to</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(
-			<span class="ident">handle</span>,
-			{
-				<span class="ident">from</span>: <span class="ident">Address</span>,
-				<span class="ident">to</span>: <span class="ident">Address</span>,
-				<span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
-			}
-		);
 		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">value</span>).<span class="ident">in_field</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		{
 			<span class="kw">let</span> <span class="ident">caller</span>: <span class="ident">Runtime::AccountId</span> <span class="op">=</span>
@@ -1368,74 +1166,65 @@
 		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;name()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">name</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
-			<span class="ident">EvmDataWriter::new</span>()
-				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(
-					<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::name</span>(<span class="ident">asset_id</span>)
-						.<span class="ident">as_slice</span>()
-						.<span class="ident">into</span>(),
-				)
-				.<span class="ident">build</span>(),
-		))
+		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::name</span>(<span class="ident">asset_id</span>)
+			.<span class="ident">as_slice</span>()
+			.<span class="ident">into</span>();
+
+		<span class="prelude-val">Ok</span>(<span class="ident">name</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;symbol()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">symbol</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
-			<span class="ident">EvmDataWriter::new</span>()
-				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(
-					<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::symbol</span>(<span class="ident">asset_id</span>)
-						.<span class="ident">as_slice</span>()
-						.<span class="ident">into</span>(),
-				)
-				.<span class="ident">build</span>(),
-		))
+		<span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::symbol</span>(<span class="ident">asset_id</span>)
+			.<span class="ident">as_slice</span>()
+			.<span class="ident">into</span>();
+
+		<span class="prelude-val">Ok</span>(<span class="ident">symbol</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;decimals()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">decimals</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(
-			<span class="ident">EvmDataWriter::new</span>()
-				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::decimals</span>(
-					<span class="ident">asset_id</span>,
-				))
-				.<span class="ident">build</span>(),
+		<span class="prelude-val">Ok</span>(<span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::decimals</span>(
+			<span class="ident">asset_id</span>,
 		))
 	}
 
 	<span class="comment">// From here: only for locals, we need to check whether we are in local assets otherwise fail</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;mint(address,uint256)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">mint</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">to</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
 		<span class="ident">handle</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">to</span>: <span class="ident">Address</span>, <span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>});
 		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">value</span>).<span class="ident">in_field</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		{
@@ -1463,22 +1252,24 @@
 		)
 		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;burn(address,uint256)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">burn</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">from</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
 		<span class="ident">handle</span>.<span class="ident">record_log_costs_manual</span>(<span class="number">3</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">from</span>: <span class="ident">Address</span>, <span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>});
 		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">value</span>).<span class="ident">in_field</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="comment">// Build call with origin.</span>
 		{
@@ -1506,19 +1297,19 @@
 		)
 		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;freeze(address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">freeze</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">account</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">account</span>: <span class="ident">Address</span> });
 		<span class="kw">let</span> <span class="ident">account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Build call with origin.</span>
@@ -1537,19 +1328,19 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;thaw(address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">thaw</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">account</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">account</span>: <span class="ident">Address</span> });
 		<span class="kw">let</span> <span class="ident">account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Build call with origin.</span>
@@ -1568,14 +1359,15 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;freezeAsset()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;freeze_asset()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">freeze_asset</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
@@ -1592,14 +1384,15 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;thawAsset()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;thaw_asset()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">thaw_asset</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
@@ -1617,18 +1410,20 @@
 		}
 
 		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transferOwnership(address)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transfer_ownership(address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">transfer_ownership</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">owner</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">owner</span>: <span class="ident">Address</span> });
 		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
 
 		<span class="comment">// Build call with origin.</span>
@@ -1647,19 +1442,22 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;setTeam(address,address,address)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;set_team(address,address,address)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">set_team</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">issuer</span>: <span class="ident">Address</span>,
+		<span class="ident">admin</span>: <span class="ident">Address</span>,
+		<span class="ident">freezer</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
 
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">issuer</span>: <span class="ident">Address</span>, <span class="ident">admin</span>: <span class="ident">Address</span>, <span class="ident">freezer</span>: <span class="ident">Address</span>});
 		<span class="kw">let</span> <span class="ident">issuer</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">issuer</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">admin</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">admin</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">freezer</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">freezer</span>.<span class="ident">into</span>();
@@ -1684,23 +1482,21 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;setMetadata(string,string,uint8)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;set_metadata(string,string,uint8)&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">set_metadata</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">name</span>: <span class="ident">BoundedString</span><span class="op">&lt;</span><span class="ident">GetAssetsStringLimit</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">symbol</span>: <span class="ident">BoundedString</span><span class="op">&lt;</span><span class="ident">GetAssetsStringLimit</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">decimals</span>: <span class="ident">u8</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
-
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">name</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetAssetsStringLimit</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">symbol</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetAssetsStringLimit</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">decimals</span>: <span class="ident">u8</span>
-		});
 
 		<span class="comment">// Build call with origin.</span>
 		{
@@ -1712,21 +1508,22 @@
 				<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
 				<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::set_metadata</span> {
 					<span class="ident">id</span>: <span class="ident">asset_id</span>,
-					<span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into_vec</span>(),
-					<span class="ident">symbol</span>: <span class="ident">symbol</span>.<span class="ident">into_vec</span>(),
+					<span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
+					<span class="ident">symbol</span>: <span class="ident">symbol</span>.<span class="ident">into</span>(),
 					<span class="ident">decimals</span>,
 				},
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;clearMetadata()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;clear_metadata()&quot;</span>)]</span>
 	<span class="kw">fn</span> <span class="ident">clear_metadata</span>(
 		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
 		<span class="kw">if</span> <span class="op">!</span><span class="ident">IsLocal::get</span>() {
 			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>());
 		}
@@ -1743,8 +1540,49 @@
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="bool-val">true</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="bool-val">true</span>)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;permit(address,address,uint256,uint256,uint8,bytes32,bytes32)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">eip2612_permit</span>(
+		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">owner</span>: <span class="ident">Address</span>,
+		<span class="ident">spender</span>: <span class="ident">Address</span>,
+		<span class="ident">value</span>: <span class="ident">U256</span>,
+		<span class="ident">deadline</span>: <span class="ident">U256</span>,
+		<span class="ident">v</span>: <span class="ident">u8</span>,
+		<span class="ident">r</span>: <span class="ident">H256</span>,
+		<span class="ident">s</span>: <span class="ident">H256</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="op">&lt;</span><span class="ident">Eip2612</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::permit</span>(
+			<span class="ident">asset_id</span>, <span class="ident">handle</span>, <span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">value</span>, <span class="ident">deadline</span>, <span class="ident">v</span>, <span class="ident">r</span>, <span class="ident">s</span>,
+		)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;nonces(address)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">eip2612_nonces</span>(
+		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">owner</span>: <span class="ident">Address</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
+		<span class="op">&lt;</span><span class="ident">Eip2612</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::nonces</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>, <span class="ident">owner</span>)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">eip2612_domain_separator</span>(
+		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
+		<span class="op">&lt;</span><span class="ident">Eip2612</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::domain_separator</span>(<span class="ident">asset_id</span>, <span class="ident">handle</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">u256_to_amount</span>(<span class="ident">value</span>: <span class="ident">U256</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">value</span>
+			.<span class="ident">try_into</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">into</span>())
 	}
 }
 </code></pre></div>

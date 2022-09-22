@@ -277,6 +277,76 @@
 <span id="272">272</span>
 <span id="273">273</span>
 <span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -298,25 +368,22 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">ExitError</span>, <span class="ident">ExitReason</span>};
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{
-	<span class="ident">Context</span>, <span class="ident">Log</span>, <span class="ident">Precompile</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>, <span class="ident">Transfer</span>,
-};
+<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">Log</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">Transfer</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits::ConstU32</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">iter::repeat</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">vec</span>};
+<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">iter::repeat</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">mock</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">BatchSome</span> <span class="op">=</span> <span class="string">&quot;batchSome(address[],uint256[],bytes[],uint64[])&quot;</span>,
-	<span class="ident">BatchSomeUntilFailure</span> <span class="op">=</span> <span class="string">&quot;batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])&quot;</span>,
-	<span class="ident">BatchAll</span> <span class="op">=</span> <span class="string">&quot;batchAll(address[],uint256[],bytes[],uint64[])&quot;</span>,
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Mode</span> {
+	<span class="ident">BatchSome</span>,             <span class="comment">// = &quot;batchSome(address[],uint256[],bytes[],uint64[])&quot;,</span>
+	<span class="ident">BatchSomeUntilFailure</span>, <span class="comment">// = &quot;batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])&quot;,</span>
+	<span class="ident">BatchAll</span>,              <span class="comment">// = &quot;batchAll(address[],uint256[],bytes[],uint64[])&quot;,</span>
 }
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_SUBCALL_SUCCEEDED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;SubcallSucceeded(uint256)&quot;</span>);
@@ -347,63 +414,91 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
-
-		<span class="comment">// No funds are transfered to the precompile address.</span>
-		<span class="comment">// Transfers will directly be made on the behalf of the user by the precompile.</span>
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="ident">FunctionModifier::NonPayable</span>)<span class="question-mark">?</span>;
-
-		<span class="ident"><span class="self">Self</span>::batch</span>(<span class="ident">handle</span>, <span class="ident">selector</span>)
-	}
-}
-
+<span class="comment">// No funds are transfered to the precompile address.</span>
+<span class="comment">// Transfers will directly be made on the behalf of the user by the precompile.</span>
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">BatchPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
 {
-	<span class="kw">fn</span> <span class="ident">batch</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">action</span>: <span class="ident">Action</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::pre_check</span>]</span>
+	<span class="kw">fn</span> <span class="ident">pre_check</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">caller_code</span> <span class="op">=</span> <span class="ident">pallet_evm::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::account_codes</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into</span>
 		<span class="comment">// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit</span>
 		<span class="kw">if</span> <span class="op">!</span>(<span class="ident">caller_code</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">caller_code</span> <span class="op">==</span> <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Batch not callable by smart contracts&quot;</span>));
+			<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Batch not callable by smart contracts&quot;</span>))
+		} <span class="kw">else</span> {
+			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">let</span> (<span class="ident">addresses</span>, <span class="ident">values</span>, <span class="ident">calls_data</span>, <span class="ident">gas_limits</span>);
+	}
 
-		{
-			<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-				<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
-				<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
-				<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
-				<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>
-			});
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;batchSome(address[],uint256[],bytes[],uint64[])&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">batch_some</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident"><span class="self">Self</span>::inner_batch</span>(<span class="ident">Mode::BatchSome</span>, <span class="ident">handle</span>, <span class="ident">to</span>, <span class="ident">value</span>, <span class="ident">call_data</span>, <span class="ident">gas_limit</span>)
+	}
 
-			<span class="ident">addresses</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">enumerate</span>();
-			<span class="ident">values</span> <span class="op">=</span> <span class="ident">value</span>
-				.<span class="ident">into_vec</span>()
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>))
-				.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
-			<span class="ident">calls_data</span> <span class="op">=</span> <span class="ident">call_data</span>
-				.<span class="ident">into_vec</span>()
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">into_vec</span>()))
-				.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
-			<span class="ident">gas_limits</span> <span class="op">=</span> <span class="ident">gas_limit</span>.<span class="ident">into_vec</span>().<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span>
-				<span class="comment">// x = 0 =&gt; forward all remaining gas</span>
-				<span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span> {
-					<span class="prelude-val">None</span>
-				} <span class="kw">else</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">x</span>)
-				}
-			).<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
-		}
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">batch_some_until_failure</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident"><span class="self">Self</span>::inner_batch</span>(
+			<span class="ident">Mode::BatchSomeUntilFailure</span>,
+			<span class="ident">handle</span>,
+			<span class="ident">to</span>,
+			<span class="ident">value</span>,
+			<span class="ident">call_data</span>,
+			<span class="ident">gas_limit</span>,
+		)
+	}
+
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;batchAll(address[],uint256[],bytes[],uint64[])&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">batch_all</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="ident"><span class="self">Self</span>::inner_batch</span>(<span class="ident">Mode::BatchAll</span>, <span class="ident">handle</span>, <span class="ident">to</span>, <span class="ident">value</span>, <span class="ident">call_data</span>, <span class="ident">gas_limit</span>)
+	}
+
+	<span class="kw">fn</span> <span class="ident">inner_batch</span>(
+		<span class="ident">mode</span>: <span class="ident">Mode</span>,
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">to</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Address</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">value</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">call_data</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetCallDataLimit</span><span class="op">&gt;</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">addresses</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">to</span>).<span class="ident">into_iter</span>().<span class="ident">enumerate</span>();
+		<span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">value</span>)
+			.<span class="ident">into_iter</span>()
+			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>))
+			.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+		<span class="kw">let</span> <span class="ident">calls_data</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">call_data</span>)
+			.<span class="ident">into_iter</span>()
+			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>.<span class="ident">into</span>()))
+			.<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
+		<span class="kw">let</span> <span class="ident">gas_limits</span> <span class="op">=</span> <span class="ident">Vec::from</span>(<span class="ident">gas_limit</span>).<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span>
+			<span class="comment">// x = 0 =&gt; forward all remaining gas</span>
+			<span class="kw">if</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0</span> {
+				<span class="prelude-val">None</span>
+			} <span class="kw">else</span> {
+				<span class="prelude-val">Some</span>(<span class="ident">x</span>)
+			}
+		).<span class="ident">chain</span>(<span class="ident">repeat</span>(<span class="prelude-val">None</span>));
 
 		<span class="comment">// Cost of batch log. (doesn&#39;t change when index changes)</span>
 		<span class="kw">let</span> <span class="ident">log_cost</span> <span class="op">=</span> <span class="ident">log_subcall_failed</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="number">0</span>)
@@ -434,18 +529,18 @@
 			};
 
 			<span class="comment">// We reserve enough gas to emit a final log and perform the subcall itself.</span>
-			<span class="comment">// If not enough gas we stop there according to Action strategy.</span>
+			<span class="comment">// If not enough gas we stop there according to Mode strategy.</span>
 			<span class="kw">let</span> <span class="ident">remaining_gas</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">remaining_gas</span>();
 
-			<span class="kw">let</span> <span class="ident">forwarded_gas</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">remaining_gas</span>.<span class="ident">checked_sub</span>(<span class="ident">log_cost</span>), <span class="ident">action</span>) {
+			<span class="kw">let</span> <span class="ident">forwarded_gas</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">remaining_gas</span>.<span class="ident">checked_sub</span>(<span class="ident">log_cost</span>), <span class="ident">mode</span>) {
 				(<span class="prelude-val">Some</span>(<span class="ident">remaining</span>), <span class="kw">_</span>) =&gt; <span class="ident">remaining</span>,
-				(<span class="prelude-val">None</span>, <span class="ident">Action::BatchAll</span>) =&gt; {
+				(<span class="prelude-val">None</span>, <span class="ident">Mode::BatchAll</span>) =&gt; {
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> {
 						<span class="ident">exit_status</span>: <span class="ident">ExitError::OutOfGas</span>,
 					})
 				}
 				(<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; {
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]));
+					<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
 				}
 			};
 
@@ -459,14 +554,14 @@
 					<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
 					<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
-					<span class="kw">match</span> <span class="ident">action</span> {
-						<span class="ident">Action::BatchAll</span> =&gt; {
+					<span class="kw">match</span> <span class="ident">mode</span> {
+						<span class="ident">Mode::BatchAll</span> =&gt; {
 							<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> {
 								<span class="ident">exit_status</span>: <span class="ident">ExitError::OutOfGas</span>,
 							})
 						}
-						<span class="ident">Action::BatchSomeUntilFailure</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([])),
-						<span class="ident">Action::BatchSome</span> =&gt; <span class="kw">continue</span>,
+						<span class="ident">Mode::BatchSomeUntilFailure</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+						<span class="ident">Mode::BatchSome</span> =&gt; <span class="kw">continue</span>,
 					}
 				}
 			};
@@ -480,14 +575,14 @@
 						<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
 						<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
 
-						<span class="kw">match</span> <span class="ident">action</span> {
-							<span class="ident">Action::BatchAll</span> =&gt; {
+						<span class="kw">match</span> <span class="ident">mode</span> {
+							<span class="ident">Mode::BatchAll</span> =&gt; {
 								<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> {
 									<span class="ident">exit_status</span>: <span class="ident">ExitError::OutOfGas</span>,
 								})
 							}
-							<span class="ident">Action::BatchSomeUntilFailure</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([])),
-							<span class="ident">Action::BatchSome</span> =&gt; <span class="kw">continue</span>,
+							<span class="ident">Mode::BatchSomeUntilFailure</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(()),
+							<span class="ident">Mode::BatchSome</span> =&gt; <span class="kw">continue</span>,
 						}
 					}
 					<span class="ident">limit</span>
@@ -520,27 +615,27 @@
 			}
 
 			<span class="comment">// How to proceed</span>
-			<span class="kw">match</span> (<span class="ident">action</span>, <span class="ident">reason</span>) {
+			<span class="kw">match</span> (<span class="ident">mode</span>, <span class="ident">reason</span>) {
 				<span class="comment">// _: Fatal is always fatal</span>
 				(<span class="kw">_</span>, <span class="ident">ExitReason::Fatal</span>(<span class="ident">exit_status</span>)) =&gt; {
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Fatal</span> { <span class="ident">exit_status</span> })
 				}
 
 				<span class="comment">// BatchAll : Reverts and errors are immediatly forwarded.</span>
-				(<span class="ident">Action::BatchAll</span>, <span class="ident">ExitReason::Revert</span>(<span class="ident">exit_status</span>)) =&gt; {
+				(<span class="ident">Mode::BatchAll</span>, <span class="ident">ExitReason::Revert</span>(<span class="ident">exit_status</span>)) =&gt; {
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> {
 						<span class="ident">exit_status</span>,
 						<span class="ident">output</span>,
 					})
 				}
-				(<span class="ident">Action::BatchAll</span>, <span class="ident">ExitReason::Error</span>(<span class="ident">exit_status</span>)) =&gt; {
+				(<span class="ident">Mode::BatchAll</span>, <span class="ident">ExitReason::Error</span>(<span class="ident">exit_status</span>)) =&gt; {
 					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> { <span class="ident">exit_status</span> })
 				}
 
 				<span class="comment">// BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to</span>
 				<span class="comment">// be executed but the precompile still succeed.</span>
-				(<span class="ident">Action::BatchSomeUntilFailure</span>, <span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ExitReason::Error</span>(<span class="kw">_</span>)) =&gt; {
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+				(<span class="ident">Mode::BatchSomeUntilFailure</span>, <span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ExitReason::Error</span>(<span class="kw">_</span>)) =&gt; {
+					<span class="kw">return</span> <span class="prelude-val">Ok</span>(())
 				}
 
 				<span class="comment">// Success or ignored revert/error.</span>
@@ -548,7 +643,52 @@
 			}
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
+	}
+}
+
+<span class="comment">// The enum is generated by the macro above.</span>
+<span class="comment">// We add this method to simplify writing tests generic over the mode.</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">BatchPrecompileCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
+{
+	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">batch_from_mode</span>(
+		<span class="ident">mode</span>: <span class="ident">Mode</span>,
+		<span class="ident">to</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span>,
+		<span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+		<span class="ident">call_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">gas_limit</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	) -&gt; <span class="self">Self</span> {
+		<span class="comment">// Convert Vecs into their bounded versions.</span>
+		<span class="comment">// This is mainly a convenient function to write tests.</span>
+		<span class="comment">// Bounds are only checked when parsing from call data.</span>
+		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">call_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">call_data</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">inner</span><span class="op">|</span> <span class="ident">inner</span>.<span class="ident">into</span>()).<span class="ident">collect</span>();
+		<span class="kw">let</span> <span class="ident">call_data</span> <span class="op">=</span> <span class="ident">call_data</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">gas_limit</span> <span class="op">=</span> <span class="ident">gas_limit</span>.<span class="ident">into</span>();
+
+		<span class="kw">match</span> <span class="ident">mode</span> {
+			<span class="ident">Mode::BatchSome</span> =&gt; <span class="ident"><span class="self">Self</span>::batch_some</span> {
+				<span class="ident">to</span>,
+				<span class="ident">value</span>,
+				<span class="ident">call_data</span>,
+				<span class="ident">gas_limit</span>,
+			},
+			<span class="ident">Mode::BatchSomeUntilFailure</span> =&gt; <span class="ident"><span class="self">Self</span>::batch_some_until_failure</span> {
+				<span class="ident">to</span>,
+				<span class="ident">value</span>,
+				<span class="ident">call_data</span>,
+				<span class="ident">gas_limit</span>,
+			},
+			<span class="ident">Mode::BatchAll</span> =&gt; <span class="ident"><span class="self">Self</span>::batch_all</span> {
+				<span class="ident">to</span>,
+				<span class="ident">value</span>,
+				<span class="ident">call_data</span>,
+				<span class="ident">gas_limit</span>,
+			},
+		}
 	}
 }
 </code></pre></div>

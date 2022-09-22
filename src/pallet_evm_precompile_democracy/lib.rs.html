@@ -408,43 +408,6 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -466,11 +429,11 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Currency</span>};
 <span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Conviction</span>, <span class="ident">Vote</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
+<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
@@ -493,128 +456,45 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ENCODED_PROPOSAL_SIZE_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
 <span class="kw">type</span> <span class="ident">GetEncodedProposalSizeLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">ENCODED_PROPOSAL_SIZE_LIMIT</span><span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">PublicPropCount</span> <span class="op">=</span> <span class="string">&quot;publicPropCount()&quot;</span>,
-	<span class="ident">DepositOf</span> <span class="op">=</span> <span class="string">&quot;depositOf(uint256)&quot;</span>,
-	<span class="ident">LowestUnbaked</span> <span class="op">=</span> <span class="string">&quot;lowestUnbaked()&quot;</span>,
-	<span class="ident">OngoingReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;ongoingReferendumInfo(uint256)&quot;</span>,
-	<span class="ident">FinishedReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;finishedReferendumInfo(uint256)&quot;</span>,
-	<span class="ident">Propose</span> <span class="op">=</span> <span class="string">&quot;propose(bytes32,uint256)&quot;</span>,
-	<span class="ident">Second</span> <span class="op">=</span> <span class="string">&quot;second(uint256,uint256)&quot;</span>,
-	<span class="ident">StandardVote</span> <span class="op">=</span> <span class="string">&quot;standardVote(uint256,bool,uint256,uint256)&quot;</span>,
-	<span class="ident">RemoveVote</span> <span class="op">=</span> <span class="string">&quot;removeVote(uint256)&quot;</span>,
-	<span class="ident">Delegate</span> <span class="op">=</span> <span class="string">&quot;delegate(address,uint256,uint256)&quot;</span>,
-	<span class="ident">UnDelegate</span> <span class="op">=</span> <span class="string">&quot;unDelegate()&quot;</span>,
-	<span class="ident">Unlock</span> <span class="op">=</span> <span class="string">&quot;unlock(address)&quot;</span>,
-	<span class="ident">NotePreimage</span> <span class="op">=</span> <span class="string">&quot;notePreimage(bytes)&quot;</span>,
-	<span class="ident">NoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;noteImminentPreimage(bytes)&quot;</span>,
-
-	<span class="comment">// deprecated</span>
-	<span class="ident">DeprecatedPublicPropCount</span> <span class="op">=</span> <span class="string">&quot;public_prop_count()&quot;</span>,
-	<span class="ident">DeprecatedDepositOf</span> <span class="op">=</span> <span class="string">&quot;deposit_of(uint256)&quot;</span>,
-	<span class="ident">DeprecatedLowestUnbaked</span> <span class="op">=</span> <span class="string">&quot;lowest_unbaked()&quot;</span>,
-	<span class="ident">DeprecatedOngoingReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;ongoing_referendum_info(uint256)&quot;</span>,
-	<span class="ident">DeprecatedFinishedReferendumInfo</span> <span class="op">=</span> <span class="string">&quot;finished_referendum_info(uint256)&quot;</span>,
-	<span class="ident">DeprecatedStandardVote</span> <span class="op">=</span> <span class="string">&quot;standard_vote(uint256,bool,uint256,uint256)&quot;</span>,
-	<span class="ident">DeprecatedRemoveVote</span> <span class="op">=</span> <span class="string">&quot;remove_vote(uint256)&quot;</span>,
-	<span class="ident">DeprecatedUnDelegate</span> <span class="op">=</span> <span class="string">&quot;un_delegate()&quot;</span>,
-	<span class="ident">DeprecatedNotePreimage</span> <span class="op">=</span> <span class="string">&quot;note_preimage(bytes)&quot;</span>,
-	<span class="ident">DeprecatedNoteImminentPreimage</span> <span class="op">=</span> <span class="string">&quot;note_imminent_preimage(bytes)&quot;</span>,
-}
-
 <span class="doccomment">/// A precompile to wrap the functionality from pallet democracy.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Grants evm-based DAOs the right to vote making them first-class citizens.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For an example of a political party that operates as a DAO, see PoliticalPartyDao.sol</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DemocracyPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="comment">// TODO: Migrate to precompile_utils::Precompile.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
+<span class="attribute">#[<span class="ident">precompile::test_concrete_types</span>(<span class="ident">mock::Runtime</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">DemocracyPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">pallet_democracy::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">EvmData</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DemocracyCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;In democracy wrapper&quot;</span>);
-
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
-
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::Propose</span>
-			<span class="op">|</span> <span class="ident">Action::Second</span>
-			<span class="op">|</span> <span class="ident">Action::StandardVote</span>
-			<span class="op">|</span> <span class="ident">Action::RemoveVote</span>
-			<span class="op">|</span> <span class="ident">Action::Delegate</span>
-			<span class="op">|</span> <span class="ident">Action::UnDelegate</span>
-			<span class="op">|</span> <span class="ident">Action::Unlock</span>
-			<span class="op">|</span> <span class="ident">Action::NotePreimage</span>
-			<span class="op">|</span> <span class="ident">Action::NoteImminentPreimage</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedStandardVote</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedRemoveVote</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedUnDelegate</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedNotePreimage</span>
-			<span class="op">|</span> <span class="ident">Action::DeprecatedNoteImminentPreimage</span> =&gt; <span class="ident">FunctionModifier::NonPayable</span>,
-			<span class="kw">_</span> =&gt; <span class="ident">FunctionModifier::View</span>,
-		})<span class="question-mark">?</span>;
-
-		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="comment">// Storage Accessors</span>
-			<span class="ident">Action::PublicPropCount</span> <span class="op">|</span> <span class="ident">Action::DeprecatedPublicPropCount</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::public_prop_count</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::DepositOf</span> <span class="op">|</span> <span class="ident">Action::DeprecatedDepositOf</span> =&gt; <span class="ident"><span class="self">Self</span>::deposit_of</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::LowestUnbaked</span> <span class="op">|</span> <span class="ident">Action::DeprecatedLowestUnbaked</span> =&gt; <span class="ident"><span class="self">Self</span>::lowest_unbaked</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::OngoingReferendumInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedOngoingReferendumInfo</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::ongoing_referendum_info</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::FinishedReferendumInfo</span> <span class="op">|</span> <span class="ident">Action::DeprecatedFinishedReferendumInfo</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::finished_referendum_info</span>(<span class="ident">handle</span>)
-			}
-
-			<span class="comment">// Dispatchables</span>
-			<span class="ident">Action::Propose</span> =&gt; <span class="ident"><span class="self">Self</span>::propose</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::Second</span> =&gt; <span class="ident"><span class="self">Self</span>::second</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::StandardVote</span> <span class="op">|</span> <span class="ident">Action::DeprecatedStandardVote</span> =&gt; <span class="ident"><span class="self">Self</span>::standard_vote</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::RemoveVote</span> <span class="op">|</span> <span class="ident">Action::DeprecatedRemoveVote</span> =&gt; <span class="ident"><span class="self">Self</span>::remove_vote</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::Delegate</span> =&gt; <span class="ident"><span class="self">Self</span>::delegate</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::UnDelegate</span> <span class="op">|</span> <span class="ident">Action::DeprecatedUnDelegate</span> =&gt; <span class="ident"><span class="self">Self</span>::un_delegate</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::Unlock</span> =&gt; <span class="ident"><span class="self">Self</span>::unlock</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::NotePreimage</span> <span class="op">|</span> <span class="ident">Action::DeprecatedNotePreimage</span> =&gt; <span class="ident"><span class="self">Self</span>::note_preimage</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::NoteImminentPreimage</span> <span class="op">|</span> <span class="ident">Action::DeprecatedNoteImminentPreimage</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::note_imminent_preimage</span>(<span class="ident">handle</span>)
-			}
-		}
-	}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">DemocracyWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_democracy::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">EvmData</span>,
+	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Debug</span> <span class="op">+</span> <span class="ident">EvmData</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DemocracyCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
 {
 	<span class="comment">// The accessors are first. They directly return their result.</span>
-	<span class="kw">fn</span> <span class="ident">public_prop_count</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;publicPropCount()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;public_prop_count()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">public_prop_count</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch data from pallet</span>
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">prop_count</span> <span class="op">=</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::public_prop_count</span>();
 		<span class="macro">log::trace!</span>(<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>, <span class="string">&quot;Prop count from pallet is {:?}&quot;</span>, <span class="ident">prop_count</span>);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">prop_count</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">prop_count</span>.<span class="ident">into</span>())
 	}
 
-	<span class="kw">fn</span> <span class="ident">deposit_of</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">prop_index</span>: <span class="ident">u32</span> });
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;depositOf(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;deposit_of(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">deposit_of</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">prop_index</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
+		<span class="kw">let</span> <span class="ident">prop_index</span> <span class="op">=</span> <span class="ident">prop_index</span>.<span class="ident">converted</span>();
 
 		<span class="comment">// Fetch data from pallet</span>
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
@@ -627,10 +507,13 @@
 			<span class="string">&quot;Deposit of proposal {:?} is {:?}&quot;</span>, <span class="ident">prop_index</span>, <span class="ident">deposit</span>
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">deposit</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">deposit</span>.<span class="ident">into</span>())
 	}
 
-	<span class="kw">fn</span> <span class="ident">lowest_unbaked</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;lowestUnbaked()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;lowest_unbaked()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">lowest_unbaked</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
 		<span class="comment">// Fetch data from pallet</span>
 		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
 		<span class="kw">let</span> <span class="ident">lowest_unbaked</span> <span class="op">=</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::lowest_unbaked</span>();
@@ -639,13 +522,19 @@
 			<span class="string">&quot;lowest unbaked referendum is {:?}&quot;</span>, <span class="ident">lowest_unbaked</span>
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">lowest_unbaked</span>).<span class="ident">build</span>()))
+		<span class="prelude-val">Ok</span>(<span class="ident">lowest_unbaked</span>.<span class="ident">into</span>())
 	}
 
 	<span class="comment">// This method is not yet implemented because it depends on</span>
 	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
 	<span class="comment">// master, but is not on the release branches that we are following</span>
-	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="comment">//</span>
+	<span class="comment">// The ref_index should probably be u32. Since the API is not implemented, we probably</span>
+	<span class="comment">// can change the signature of the function.</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;ongoingReferendumInfo(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;ongoing_referendum_info(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
+	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">_ref_index</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
 			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
 		))
@@ -695,18 +584,26 @@
 	<span class="comment">// This method is not yet implemented because it depends on</span>
 	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
 	<span class="comment">// master, but is not on the release branches that we are following</span>
+	<span class="comment">//</span>
+	<span class="comment">// The ref_index should probably be u32. Since the API is not implemented, we probably</span>
+	<span class="comment">// can change the signature of the function.</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;finishedReferendumInfo(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;finished_referendum_info(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
 	<span class="kw">fn</span> <span class="ident">finished_referendum_info</span>(
 		<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+		<span class="ident">_ref_index</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
 			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
 		))
 	}
 
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.</span>
-	<span class="kw">fn</span> <span class="ident">propose</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">proposal_hash</span>: <span class="ident">H256</span>, <span class="ident">value</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>});
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;propose(bytes32,uint256)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">propose</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">proposal_hash</span>: <span class="ident">H256</span>, <span class="ident">value</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">proposal_hash</span> <span class="op">=</span> <span class="ident">proposal_hash</span>.<span class="ident">into</span>();
+		<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">value</span>).<span class="ident">in_field</span>(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -721,13 +618,17 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">second</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="comment">// substrate arguments are u32 but Solidity one are uint256.</span>
-		<span class="comment">// We parse as uint32 to properly reject overflowing values.</span>
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {<span class="ident">prop_index</span>: <span class="ident">u32</span>, <span class="ident">seconds_upper_bound</span>: <span class="ident">u32</span>});
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;second(uint256,uint256)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">second</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">prop_index</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+		<span class="ident">seconds_upper_bound</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">prop_index</span> <span class="op">=</span> <span class="ident">prop_index</span>.<span class="ident">converted</span>();
+		<span class="kw">let</span> <span class="ident">seconds_upper_bound</span> <span class="op">=</span> <span class="ident">seconds_upper_bound</span>.<span class="ident">converted</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -742,17 +643,22 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">standard_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">ref_index</span>: <span class="ident">u32</span>,
-			<span class="ident">aye</span>: <span class="ident">bool</span>,
-			<span class="ident">vote_amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-			<span class="ident">conviction</span>: <span class="ident">u8</span>
-		});
-		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;standardVote(uint256,bool,uint256,uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;standard_vote(uint256,bool,uint256,uint256)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">standard_vote</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">ref_index</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+		<span class="ident">aye</span>: <span class="ident">bool</span>,
+		<span class="ident">vote_amount</span>: <span class="ident">U256</span>,
+		<span class="ident">conviction</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u8</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">ref_index</span> <span class="op">=</span> <span class="ident">ref_index</span>.<span class="ident">converted</span>();
+		<span class="kw">let</span> <span class="ident">vote_amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">vote_amount</span>).<span class="ident">in_field</span>(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">converted</span>().<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
 			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
 				.<span class="ident">in_field</span>(<span class="string">&quot;conviction&quot;</span>)
 		})<span class="question-mark">?</span>;
@@ -772,11 +678,16 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">remove_vote</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">ref_index</span>: <span class="ident">u32</span> });
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;removeVote(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;remove_vote(uint256)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">remove_vote</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">ref_index</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">ref_index</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">ref_index</span>.<span class="ident">converted</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -789,16 +700,19 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">representative</span>: <span class="ident">Address</span>,
-			<span class="ident">conviction</span>: <span class="ident">u8</span>,
-			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-		});
-		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegate(address,uint256,uint256)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">delegate</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">representative</span>: <span class="ident">Address</span>,
+		<span class="ident">conviction</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u8</span><span class="op">&gt;</span>,
+		<span class="ident">amount</span>: <span class="ident">U256</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+
+		<span class="kw">let</span> <span class="ident">conviction</span>: <span class="ident">Conviction</span> <span class="op">=</span> <span class="ident">conviction</span>.<span class="ident">converted</span>().<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
 			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
 				.<span class="ident">in_field</span>(<span class="string">&quot;conviction&quot;</span>)
 		})<span class="question-mark">?</span>;
@@ -819,20 +733,22 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">un_delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;unDelegate()&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;un_delegate()&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">un_delegate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">DemocracyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::undelegate</span> {};
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">unlock</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, { <span class="ident">target</span>: <span class="ident">Address</span> });
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;unlock(address)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">unlock</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">target</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">target</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">target</span>);
 
@@ -846,14 +762,16 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">note_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>
-		});
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into_vec</span>();
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;notePreimage(bytes)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;note_preimage(bytes)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">note_preimage</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -865,14 +783,16 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>
-		});
-		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into_vec</span>();
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;noteImminentPreimage(bytes)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;note_imminent_preimage(bytes)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">note_imminent_preimage</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">encoded_proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetEncodedProposalSizeLimit</span><span class="op">&gt;</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
+		<span class="kw">let</span> <span class="ident">encoded_proposal</span> <span class="op">=</span> <span class="ident">encoded_proposal</span>.<span class="ident">into</span>();
 
 		<span class="macro">log::trace!</span>(
 			<span class="ident">target</span>: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -884,7 +804,13 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="kw">fn</span> <span class="ident">u256_to_amount</span>(<span class="ident">value</span>: <span class="ident">U256</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+		<span class="ident">value</span>
+			.<span class="ident">try_into</span>()
+			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">into</span>())
 	}
 }
 </code></pre></div>

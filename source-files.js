@@ -53,8 +53,8 @@ sourcesIndex["pallet_parachain_staking"] = {"name":"","files":["delegation_reque
 sourcesIndex["pallet_proxy_genesis_companion"] = {"name":"","files":["lib.rs"]};
 sourcesIndex["pallet_randomness"] = {"name":"","files":["lib.rs","types.rs","vrf.rs","weights.rs"]};
 sourcesIndex["pallet_xcm_transactor"] = {"name":"","files":["lib.rs","migrations.rs","weights.rs"]};
-sourcesIndex["precompile_utils"] = {"name":"","dirs":[{"name":"data","files":["mod.rs","xcm.rs"]}],"files":["costs.rs","handle.rs","lib.rs","logs.rs","modifier.rs","precompile_set.rs","revert.rs","solidity.rs","substrate.rs","testing.rs"]};
-sourcesIndex["precompile_utils_macro"] = {"name":"","files":["lib.rs"]};
+sourcesIndex["precompile_utils"] = {"name":"","dirs":[{"name":"data","files":["bytes.rs","mod.rs","native.rs","xcm.rs"]}],"files":["costs.rs","handle.rs","lib.rs","logs.rs","modifier.rs","precompile_set.rs","revert.rs","solidity.rs","substrate.rs","testing.rs"]};
+sourcesIndex["precompile_utils_macro"] = {"name":"","dirs":[{"name":"precompile","files":["attr.rs","expand.rs","mod.rs","parse.rs"]}],"files":["generate_function_selector.rs","lib.rs"]};
 sourcesIndex["session_keys_primitives"] = {"name":"","files":["digest.rs","inherent.rs","lib.rs","vrf.rs"]};
 sourcesIndex["xcm_primitives"] = {"name":"","files":["asset_id_conversions.rs","barriers.rs","ethereum_xcm.rs","fee_handlers.rs","lib.rs","location_conversion.rs","origin_conversion.rs","transactor_traits.rs"]};
 createSourceSidebar();

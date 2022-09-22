@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["ARRAY_LIMIT",""],["CALL_DATA_LIMIT",""],["LOG_SUBCALL_FAILED",""],["LOG_SUBCALL_SUCCEEDED",""]],"enum":[["Action",""]],"fn":[["log_subcall_failed",""],["log_subcall_succeeded",""]],"struct":[["BatchPrecompile","Batch precompile."]]});
+initSidebarItems({"constant":[["ARRAY_LIMIT",""],["CALL_DATA_LIMIT",""],["LOG_SUBCALL_FAILED",""],["LOG_SUBCALL_SUCCEEDED",""]],"enum":[["BatchPrecompileCall",""],["Mode",""]],"fn":[["log_subcall_failed",""],["log_subcall_succeeded",""]],"struct":[["BatchPrecompile","Batch precompile."]]});

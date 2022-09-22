@@ -268,6 +268,19 @@
 <span id="263">263</span>
 <span id="264">264</span>
 <span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -288,9 +301,10 @@
 
 <span class="kw">use</span> {
 	<span class="kw">crate</span>::{
-		<span class="ident">data</span>::{<span class="ident">BoundedBytes</span>, <span class="ident">Bytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>},
+		<span class="ident">data</span>::{<span class="ident">BoundedBytes</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>, <span class="ident">UnboundedBytes</span>},
 		<span class="ident">revert</span>::{<span class="ident">InjectBacktrace</span>, <span class="ident">MayRevert</span>, <span class="ident">RevertReason</span>},
 	},
+	<span class="ident">alloc::string::String</span>,
 	<span class="ident">frame_support</span>::{<span class="ident">ensure</span>, <span class="ident">traits::ConstU32</span>},
 	<span class="ident">sp_std::vec::Vec</span>,
 	<span class="ident">xcm::latest</span>::{<span class="ident">Junction</span>, <span class="ident">Junctions</span>, <span class="ident">MultiLocation</span>, <span class="ident">NetworkId</span>},
@@ -361,7 +375,7 @@
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Junction</span> {
 	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
 		<span class="kw">let</span> <span class="ident">junction</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">JUNCTION_SIZE_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">junction_bytes</span> <span class="op">=</span> <span class="ident">junction</span>.<span class="ident">into_vec</span>();
+		<span class="kw">let</span> <span class="ident">junction_bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">junction</span>.<span class="ident">into</span>();
 
 		<span class="macro">ensure!</span>(
 			<span class="ident">junction_bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>,
@@ -441,7 +455,7 @@
 
 	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
 		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">let</span> <span class="ident">encoded_bytes</span>: <span class="ident">Bytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
+		<span class="kw">let</span> <span class="ident">encoded_bytes</span>: <span class="ident">UnboundedBytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span> {
 			<span class="ident">Junction::Parachain</span>(<span class="ident">para_id</span>) =&gt; {
 				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">0u8</span>);
 				<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">para_id</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>());
@@ -494,6 +508,10 @@
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="bool-val">false</span>
 	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="ident">UnboundedBytes::solidity_type</span>()
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">Junctions</span> {
@@ -517,6 +535,10 @@
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="bool-val">false</span>
 	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Junction</span><span class="op">&gt;</span><span class="ident">::solidity_type</span>()
+	}
 }
 
 <span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">MultiLocation</span> {
@@ -531,6 +553,10 @@
 
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">Junctions</span>)<span class="op">&gt;</span><span class="ident">::has_static_size</span>()
+	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="op">&lt;</span>(<span class="ident">u8</span>, <span class="ident">Junctions</span>)<span class="op">&gt;</span><span class="ident">::solidity_type</span>()
 	}
 }
 </code></pre></div>

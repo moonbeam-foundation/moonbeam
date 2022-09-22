@@ -397,7 +397,7 @@
 <span class="doccomment">//! Utilities to work with revert messages with support for backtraces and</span>
 <span class="doccomment">//! consistent formatting.</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Bytes</span>, <span class="ident">EvmDataWriter</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">data::UnboundedBytes</span>, <span class="ident">EvmDataWriter</span>};
 <span class="kw">use</span> <span class="ident">alloc::string</span>::{<span class="ident">String</span>, <span class="ident">ToString</span>};
 <span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">ExitRevert</span>, <span class="ident">PrecompileFailure</span>};
 <span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
@@ -742,7 +742,7 @@
 		<span class="ident">PrecompileFailure::Revert</span> {
 			<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
 			<span class="ident">output</span>: <span class="ident">EvmDataWriter::new_with_selector</span>(<span class="ident">RevertSelector::Generic</span>)
-				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">Bytes</span><span class="op">&gt;</span>(<span class="ident">Bytes</span>(<span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()))
+				.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span>(<span class="ident">err</span>.<span class="ident">to_string</span>().<span class="ident">into</span>())
 				.<span class="ident">build</span>(),
 		}
 	}

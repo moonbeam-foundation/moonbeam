@@ -395,45 +395,6 @@
 <span id="390">390</span>
 <span id="391">391</span>
 <span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
-<span id="406">406</span>
-<span id="407">407</span>
-<span id="408">408</span>
-<span id="409">409</span>
-<span id="410">410</span>
-<span id="411">411</span>
-<span id="412">412</span>
-<span id="413">413</span>
-<span id="414">414</span>
-<span id="415">415</span>
-<span id="416">416</span>
-<span id="417">417</span>
-<span id="418">418</span>
-<span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -455,18 +416,17 @@
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
 <span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">frame_support</span>::{
 	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
 	<span class="ident">traits::Get</span>,
 };
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">Precompile</span>};
-<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
+<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">data::String</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
 <span class="kw">use</span> <span class="ident">sp_std</span>::{
 	<span class="ident">boxed::Box</span>,
 	<span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
-	<span class="ident">fmt::Debug</span>,
 	<span class="ident">marker::PhantomData</span>,
 	<span class="ident">vec::Vec</span>,
 };
@@ -486,7 +446,7 @@
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">orml_xtokens::Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
 
-<span class="kw">struct</span> <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
 <span class="kw">where</span>
@@ -497,71 +457,12 @@
 	}
 }
 
-<span class="attribute">#[<span class="ident">generate_function_selector</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Action</span> {
-	<span class="ident">Transfer</span> <span class="op">=</span> <span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferWithFee</span> <span class="op">=</span> <span class="string">&quot;transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferMultiAsset</span> <span class="op">=</span> <span class="string">&quot;transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferMultiAssetWithFee</span> <span class="op">=</span>
-		<span class="string">&quot;transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferMultiCurrencies</span> <span class="op">=</span>
-		<span class="string">&quot;transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">TransferMultiAssets</span> <span class="op">=</span>
-		<span class="string">&quot;transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
-
-	<span class="comment">// deprecated</span>
-	<span class="ident">DeprecatedTransferWithFee</span> <span class="op">=</span> <span class="string">&quot;transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">DeprecatedTransferMultiAsset</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">DeprecatedTransferMultiAssetWithFee</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">DeprecatedTransferMultiCurrencies</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
-	<span class="ident">DeprecatedTransferMultiAssets</span> <span class="op">=</span>
-		<span class="string">&quot;transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>,
-}
-
 <span class="doccomment">/// A precompile to wrap the functionality from xtokens</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XtokensPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">Precompile</span> <span class="kw">for</span> <span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">orml_xtokens::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
-	<span class="ident">Runtime::AccountId</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">orml_xtokens::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">XBalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">EvmData</span>,
-	<span class="ident">Runtime</span>: <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-{
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_selector</span>()<span class="question-mark">?</span>;
-
-		<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="ident">FunctionModifier::NonPayable</span>)<span class="question-mark">?</span>;
-
-		<span class="kw">match</span> <span class="ident">selector</span> {
-			<span class="ident">Action::Transfer</span> =&gt; <span class="ident"><span class="self">Self</span>::transfer</span>(<span class="ident">handle</span>),
-			<span class="ident">Action::TransferWithFee</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferWithFee</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::transfer_with_fee</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransferMultiAsset</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAsset</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::transfer_multiasset</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransferMultiAssetWithFee</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAssetWithFee</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::transfer_multiasset_with_fee</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransferMultiCurrencies</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiCurrencies</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::transfer_multi_currencies</span>(<span class="ident">handle</span>)
-			}
-			<span class="ident">Action::TransferMultiAssets</span> <span class="op">|</span> <span class="ident">Action::DeprecatedTransferMultiAssets</span> =&gt; {
-				<span class="ident"><span class="self">Self</span>::transfer_multi_assets</span>(<span class="ident">handle</span>)
-			}
-		}
-	}
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">XtokensWrapper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
+<span class="attribute">#[<span class="ident">precompile::test_concrete_types</span>(<span class="ident">mock::Runtime</span>)]</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">XtokensPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
 <span class="kw">where</span>
 	<span class="ident">Runtime</span>: <span class="ident">orml_xtokens::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
@@ -570,14 +471,14 @@
 	<span class="ident">XBalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">EvmData</span>,
 	<span class="ident">Runtime</span>: <span class="ident">AccountIdToCurrencyId</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 {
-	<span class="kw">fn</span> <span class="ident">transfer</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">currency_address</span>: <span class="ident">Address</span>,
-			<span class="ident">amount</span>: <span class="ident">U256</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transfer(address,uint256,(uint8,bytes[]),uint64)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">transfer</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">currency_address</span>: <span class="ident">Address</span>,
+		<span class="ident">amount</span>: <span class="ident">U256</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency_address</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
 
@@ -600,18 +501,19 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">transfer_with_fee</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">currency_address</span>: <span class="ident">Address</span>,
-			<span class="ident">amount</span>: <span class="ident">U256</span>,
-			<span class="ident">fee</span>: <span class="ident">U256</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">transfer_with_fee</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">currency_address</span>: <span class="ident">Address</span>,
+		<span class="ident">amount</span>: <span class="ident">U256</span>,
+		<span class="ident">fee</span>: <span class="ident">U256</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">to_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">currency_address</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">to_account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">to_address</span>);
 
@@ -643,17 +545,18 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">transfer_multiasset</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">amount</span>: <span class="ident">U256</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)&quot;</span>)]</span>
+	<span class="kw">fn</span> <span class="ident">transfer_multiasset</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">amount</span>: <span class="ident">U256</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">to_balance</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
@@ -670,20 +573,23 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
 	<span class="kw">fn</span> <span class="ident">transfer_multiasset_with_fee</span>(
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">amount</span>: <span class="ident">U256</span>,
-			<span class="ident">fee</span>: <span class="ident">U256</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+		<span class="ident">asset</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">amount</span>: <span class="ident">U256</span>,
+		<span class="ident">fee</span>: <span class="ident">U256</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>
 			.<span class="ident">try_into</span>()
@@ -707,24 +613,27 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
 	<span class="kw">fn</span> <span class="ident">transfer_multi_currencies</span>(
 		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">currencies</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Currency</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">fee_item</span>: <span class="ident">u32</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+		<span class="ident">currencies</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">Currency</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">fee_item</span>: <span class="ident">u32</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
 		<span class="comment">// Build all currencies</span>
+		<span class="kw">let</span> <span class="ident">currencies</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">currencies</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">currencies</span> <span class="op">=</span> <span class="ident">currencies</span>
-			.<span class="ident">into_vec</span>()
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">enumerate</span>()
 			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">currency</span>)<span class="op">|</span> {
@@ -758,21 +667,26 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">transfer_multi_assets</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span> {
-		<span class="macro">read_args!</span>(<span class="ident">handle</span>, {
-			<span class="ident">assets</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="ident">fee_item</span>: <span class="ident">u32</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>
-		});
-
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(
+		<span class="string">&quot;transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)&quot;</span>
+	)]</span>
+	<span class="kw">fn</span> <span class="ident">transfer_multi_assets</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">assets</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">EvmMultiAsset</span>, <span class="ident">GetMaxAssets</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+		<span class="ident">fee_item</span>: <span class="ident">u32</span>,
+		<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
+		<span class="ident">weight</span>: <span class="ident">u64</span>,
+	) -&gt; <span class="ident">EvmResult</span> {
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
+		<span class="kw">let</span> <span class="ident">assets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">assets</span>.<span class="ident">into</span>();
 		<span class="kw">let</span> <span class="ident">multiasset_vec</span>: <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">assets</span>
-			.<span class="ident">into_vec</span>()
 			.<span class="ident">into_iter</span>()
 			.<span class="ident">enumerate</span>()
 			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">index</span>, <span class="ident">evm_multiasset</span>)<span class="op">|</span> {
@@ -802,7 +716,7 @@
 
 		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">succeed</span>([]))
+		<span class="prelude-val">Ok</span>(())
 	}
 }
 
@@ -824,6 +738,10 @@
 
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="op">&lt;</span>(<span class="ident">Address</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::has_static_size</span>()
+	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="op">&lt;</span>(<span class="ident">Address</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::solidity_type</span>()
 	}
 }
 
@@ -854,6 +772,10 @@
 
 	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
 		<span class="op">&lt;</span>(<span class="ident">MultiLocation</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::has_static_size</span>()
+	}
+
+	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
+		<span class="op">&lt;</span>(<span class="ident">MultiLocation</span>, <span class="ident">U256</span>)<span class="op">&gt;</span><span class="ident">::solidity_type</span>()
 	}
 }
 
