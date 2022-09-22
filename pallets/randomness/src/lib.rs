@@ -294,7 +294,7 @@ pub mod pallet {
 			if NotFirstBlock::<T>::get().is_none() {
 				NotFirstBlock::<T>::put(());
 				LocalVrfOutput::<T>::put(Some(T::Hash::default()));
-				return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
+				return T::DbWeight::get().reads_writes(1, 2)
 			}
 			// Verify VRF output included by block author and set it in storage
 			vrf::verify_and_set_output::<T>();
