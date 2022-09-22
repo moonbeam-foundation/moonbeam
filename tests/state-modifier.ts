@@ -38,7 +38,7 @@ async function main(inputFile: string, outputFile?: string) {
     return -1;
   }
 
-  let messagingState = null;
+  let messagingState: string = "";
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
   const orbiterLinePrefix = `        "${storageKey("MoonbeamOrbiters", "CollatorsPool")}`;
   const nimbusBlockNumberPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}"`;
@@ -51,10 +51,12 @@ async function main(inputFile: string, outputFile?: string) {
   const authorEligibilityCountPrefix = `        "${storageKey("AuthorFilter", "EligibleCount")}`;
   const councilLinePrefix = `        "${storageKey("CouncilCollective", "Members")}`;
   const techCommitteeeLinePrefix = `        "${storageKey("TechCommitteeCollective", "Members")}`;
+  const highestSlotSeenPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}`;
   const parachainIdPrefix = `        "${storageKey("ParachainInfo", "ParachainId")}`;
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
+
   const bootnodesPrefix = `    "/`;
 
   // List all the collator author mapping
@@ -64,7 +66,7 @@ async function main(inputFile: string, outputFile?: string) {
   let collators: string[] = [];
   let orbiters: string[] = [];
   // let selectedCollator = null;
-  let totalIssuance: bigint;
+  let totalIssuance: bigint = 0n;
   let alithAccountData;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
@@ -92,7 +94,8 @@ async function main(inputFile: string, outputFile?: string) {
     }
   }
   // We make sure the collator is not an orbiter
-  const selectedCollator = collators.find((c) => !orbiters.includes(c) && authorMappingLines[c]);
+  const selectedCollator =
+    collators.find((c) => !orbiters.includes(c) && authorMappingLines[c]) || "";
   console.log(
     chalk.blueBright(
       `  *  Found collator: ${selectedCollator} session 0x${authorMappingLines[selectedCollator]
@@ -223,6 +226,11 @@ async function main(inputFile: string, outputFile?: string) {
         "Members"
       )}": "0x04${ALITH.slice(2)}",\n`;
       console.log(` ${chalk.green(`  + Adding TechCommitteeCollective.Members`)}\n\t${newLine}`);
+      outStream.write(newLine);
+    } else if (line.startsWith(highestSlotSeenPrefix)) {
+      console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
+      const newLine = `        "${highestSlotSeenPrefix}": "0x00000000",\n`;
+      console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(lastDmqMqcHeadPrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainSystem.LastDmqMqcHead`)}\n\t${line}`);
