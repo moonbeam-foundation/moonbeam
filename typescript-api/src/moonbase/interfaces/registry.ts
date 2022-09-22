@@ -168,8 +168,6 @@ import type {
   PalletParachainStakingCandidateBondLessRequest,
   PalletParachainStakingCandidateMetadata,
   PalletParachainStakingCapacityStatus,
-  PalletParachainStakingCollator2,
-  PalletParachainStakingCollatorCandidate,
   PalletParachainStakingCollatorSnapshot,
   PalletParachainStakingCollatorStatus,
   PalletParachainStakingDelayedPayout,
@@ -183,11 +181,9 @@ import type {
   PalletParachainStakingError,
   PalletParachainStakingEvent,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingNominator2,
   PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
-  PalletParachainStakingSetOrderedSetAccountId20,
-  PalletParachainStakingSetOrderedSetBond,
+  PalletParachainStakingSetOrderedSet,
   PalletProxyAnnouncement,
   PalletProxyCall,
   PalletProxyError,
@@ -210,6 +206,7 @@ import type {
   PalletSudoEvent,
   PalletTimestampCall,
   PalletTransactionPaymentChargeTransactionPayment,
+  PalletTransactionPaymentEvent,
   PalletTransactionPaymentReleases,
   PalletTreasuryCall,
   PalletTreasuryError,
@@ -224,9 +221,12 @@ import type {
   PalletXcmOrigin,
   PalletXcmQueryStatus,
   PalletXcmTransactorCall,
+  PalletXcmTransactorCurrency,
+  PalletXcmTransactorCurrencyPayment,
   PalletXcmTransactorError,
   PalletXcmTransactorEvent,
   PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
+  PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
@@ -256,6 +256,7 @@ import type {
   XcmPrimitivesEthereumXcmEthereumXcmFee,
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
   XcmPrimitivesEthereumXcmEthereumXcmTransactionV1,
+  XcmPrimitivesEthereumXcmEthereumXcmTransactionV2,
   XcmPrimitivesEthereumXcmManualEthereumXcmFee,
   XcmV0Junction,
   XcmV0JunctionBodyId,
@@ -462,8 +463,6 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingCandidateBondLessRequest: PalletParachainStakingCandidateBondLessRequest;
     PalletParachainStakingCandidateMetadata: PalletParachainStakingCandidateMetadata;
     PalletParachainStakingCapacityStatus: PalletParachainStakingCapacityStatus;
-    PalletParachainStakingCollator2: PalletParachainStakingCollator2;
-    PalletParachainStakingCollatorCandidate: PalletParachainStakingCollatorCandidate;
     PalletParachainStakingCollatorSnapshot: PalletParachainStakingCollatorSnapshot;
     PalletParachainStakingCollatorStatus: PalletParachainStakingCollatorStatus;
     PalletParachainStakingDelayedPayout: PalletParachainStakingDelayedPayout;
@@ -477,11 +476,9 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingError: PalletParachainStakingError;
     PalletParachainStakingEvent: PalletParachainStakingEvent;
     PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
-    PalletParachainStakingNominator2: PalletParachainStakingNominator2;
     PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
-    PalletParachainStakingSetOrderedSetAccountId20: PalletParachainStakingSetOrderedSetAccountId20;
-    PalletParachainStakingSetOrderedSetBond: PalletParachainStakingSetOrderedSetBond;
+    PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
     PalletProxyError: PalletProxyError;
@@ -504,6 +501,7 @@ declare module "@polkadot/types/types/registry" {
     PalletSudoEvent: PalletSudoEvent;
     PalletTimestampCall: PalletTimestampCall;
     PalletTransactionPaymentChargeTransactionPayment: PalletTransactionPaymentChargeTransactionPayment;
+    PalletTransactionPaymentEvent: PalletTransactionPaymentEvent;
     PalletTransactionPaymentReleases: PalletTransactionPaymentReleases;
     PalletTreasuryCall: PalletTreasuryCall;
     PalletTreasuryError: PalletTreasuryError;
@@ -518,9 +516,12 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmOrigin: PalletXcmOrigin;
     PalletXcmQueryStatus: PalletXcmQueryStatus;
     PalletXcmTransactorCall: PalletXcmTransactorCall;
+    PalletXcmTransactorCurrency: PalletXcmTransactorCurrency;
+    PalletXcmTransactorCurrencyPayment: PalletXcmTransactorCurrencyPayment;
     PalletXcmTransactorError: PalletXcmTransactorError;
     PalletXcmTransactorEvent: PalletXcmTransactorEvent;
     PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
+    PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
@@ -550,6 +551,7 @@ declare module "@polkadot/types/types/registry" {
     XcmPrimitivesEthereumXcmEthereumXcmFee: XcmPrimitivesEthereumXcmEthereumXcmFee;
     XcmPrimitivesEthereumXcmEthereumXcmTransaction: XcmPrimitivesEthereumXcmEthereumXcmTransaction;
     XcmPrimitivesEthereumXcmEthereumXcmTransactionV1: XcmPrimitivesEthereumXcmEthereumXcmTransactionV1;
+    XcmPrimitivesEthereumXcmEthereumXcmTransactionV2: XcmPrimitivesEthereumXcmEthereumXcmTransactionV2;
     XcmPrimitivesEthereumXcmManualEthereumXcmFee: XcmPrimitivesEthereumXcmManualEthereumXcmFee;
     XcmV0Junction: XcmV0Junction;
     XcmV0JunctionBodyId: XcmV0JunctionBodyId;
