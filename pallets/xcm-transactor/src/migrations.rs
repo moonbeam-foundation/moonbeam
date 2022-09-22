@@ -209,10 +209,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_count = stored_data.len() as u64;
 
 		log::info!(
 			target: "TransactSignedWeightAndFeePerSecond", "Migrating {:?} elements", migrated_count);
@@ -223,7 +220,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 				RemoteTransactInfoWithMaxWeight {
 					transact_extra_weight: info.transact_extra_weight,
 					/// Max destination weight
-					max_weight: info.max_weight,
+					max_weight: Weight::from_ref_time(info.max_weight),
 					transact_extra_weight_signed: None,
 				}
 			});
@@ -236,7 +233,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		// Return the weight used. For each migrated mapping there is a red to get it into
 		// memory, a write to clear the old stored value, and a write to re-store it.
 		let db_weights = T::DbWeight::get();
-		migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)
+		db_weights.reads_writes(migrated_count, migrated_count.saturating_add(2))
 	}
 
 	#[cfg(feature = "try-runtime")]

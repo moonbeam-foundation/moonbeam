@@ -78,33 +78,33 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: XcmTransactor IndexToAccount (r:1 w:1)
 	#[rustfmt::skip]
 	fn register() -> Weight {
-		(17_998_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(17_998_000)
+			.saturating_add(T::DbWeight::get().reads(1))
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor IndexToAccount (r:0 w:1)
 	#[rustfmt::skip]
 	fn deregister() -> Weight {
-		(14_817_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_817_000)
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:0 w:1)
 	#[rustfmt::skip]
 	fn set_transact_info() -> Weight {
-		(17_470_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(17_470_000)
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:0 w:1)
 	#[rustfmt::skip]
 	fn remove_transact_info() -> Weight {
-		(16_694_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(16_694_000)
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor DestinationFeePerSecond (r:0 w:1)
 	#[rustfmt::skip]
 	fn set_fee_per_second() -> Weight {
-		(16_640_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(16_640_000)
+			.saturating_add(T::DbWeight::get().writes(1))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor IndexToAccount (r:1 w:0)
@@ -114,8 +114,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact_through_derivative() -> Weight {
-		(30_613_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
+		Weight::from_ref_time(30_613_000)
+			.saturating_add(T::DbWeight::get().reads(6))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
@@ -124,8 +124,8 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact_through_sovereign() -> Weight {
-		(26_933_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
+		Weight::from_ref_time(26_933_000)
+			.saturating_add(T::DbWeight::get().reads(5))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
@@ -137,9 +137,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn transact_through_signed() -> Weight {
-		(65_476_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(8 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(65_476_000)
+			.saturating_add(T::DbWeight::get().reads(8))
+			.saturating_add(T::DbWeight::get().writes(2))
 	}
 }
 
@@ -148,33 +148,33 @@ impl WeightInfo for () {
 	// Storage: XcmTransactor IndexToAccount (r:1 w:1)
 	#[rustfmt::skip]
 	fn register() -> Weight {
-		(17_998_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(17_998_000)
+			.saturating_add(RocksDbWeight::get().reads(1))
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor IndexToAccount (r:0 w:1)
 	#[rustfmt::skip]
 	fn deregister() -> Weight {
-		(14_817_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(14_817_000)
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:0 w:1)
 	#[rustfmt::skip]
 	fn set_transact_info() -> Weight {
-		(17_470_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(17_470_000)
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:0 w:1)
 	#[rustfmt::skip]
 	fn remove_transact_info() -> Weight {
-		(16_694_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(16_694_000)
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: XcmTransactor DestinationFeePerSecond (r:0 w:1)
 	#[rustfmt::skip]
 	fn set_fee_per_second() -> Weight {
-		(16_640_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(16_640_000)
+			.saturating_add(RocksDbWeight::get().writes(1))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor IndexToAccount (r:1 w:0)
@@ -184,8 +184,8 @@ impl WeightInfo for () {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact_through_derivative() -> Weight {
-		(30_613_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
+		Weight::from_ref_time(30_613_000)
+			.saturating_add(RocksDbWeight::get().reads(6))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
@@ -194,8 +194,8 @@ impl WeightInfo for () {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact_through_sovereign() -> Weight {
-		(26_933_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
+		Weight::from_ref_time(26_933_000)
+			.saturating_add(RocksDbWeight::get().reads(5))
 	}
 	// Storage: AssetManager AssetIdType (r:1 w:0)
 	// Storage: XcmTransactor TransactInfoWithWeightLimit (r:1 w:0)
@@ -207,8 +207,8 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn transact_through_signed() -> Weight {
-		(65_476_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(8 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(65_476_000)
+			.saturating_add(RocksDbWeight::get().reads(8))
+			.saturating_add(RocksDbWeight::get().writes(2))
 	}
 }
