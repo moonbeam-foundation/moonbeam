@@ -80,8 +80,8 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Find un-copyrighted files
         run: |
-          find . -path './precompiles/utils/macro/tests' -prune -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
-          FILECOUNT=$(find . -name '*.rs' -exec grep  -H -E -o -c  'Copyright'  {} \; | grep -c ':0' || true)
+          find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep ':0' || true
+          FILECOUNT=$(find . \! -name '*.expanded.rs' -name '*.rs' -exec grep  -H -E -o -c Copyright {} \; | grep -c ':0' || true)
           if [[ $FILECOUNT -eq 0 ]]; then
             true
           else
