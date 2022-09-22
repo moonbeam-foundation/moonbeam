@@ -231,6 +231,26 @@ declare module "@polkadot/api-base/types/consts" {
        */
       [key: string]: Codec;
     };
+    moonbeamOrbiters: {
+      /**
+       * Maximum number of orbiters per collator.
+       */
+      maxPoolSize: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum number of round to keep on storage.
+       */
+      maxRoundArchive: u32 & AugmentedConst<ApiType>;
+      /**
+       * Number of rounds before changing the selected orbiter. WARNING: when
+       * changing `RotatePeriod`, you need a migration code that sets
+       * `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
+       */
+      rotatePeriod: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
     parachainStaking: {
       /**
        * Number of rounds candidate requests to decrease self-bond must wait to
