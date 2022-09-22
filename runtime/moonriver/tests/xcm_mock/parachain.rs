@@ -983,7 +983,7 @@ pub(crate) fn on_runtime_upgrade() {
 	PolkadotXcm::on_runtime_upgrade();
 }
 
-pub(crate) fn para_roll_to(n: u32) {
+pub(crate) fn para_roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		PolkadotXcm::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());

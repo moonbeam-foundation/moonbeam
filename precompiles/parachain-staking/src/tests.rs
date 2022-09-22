@@ -178,7 +178,7 @@ fn round_works() {
 
 		// test next `ROUNDS_TO_TEST` rounds
 		const ROUNDS_TO_TEST: u32 = 10;
-		let mut current_round: u32 = 1;
+		let mut current_round: BlockNumber = 1;
 		while current_round < ROUNDS_TO_TEST {
 			current_round += 1;
 			roll_to_round_begin(current_round);

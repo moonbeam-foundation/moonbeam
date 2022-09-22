@@ -6916,7 +6916,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			let mut round: u32 = 1;
+			let mut round: BlockNumber = 1;
 			set_author(round, 1, 1);
 			set_author(round, 2, 1);
 
@@ -7121,11 +7121,11 @@ fn deferred_payment_steady_state_event_flow() {
 		.build()
 		.execute_with(|| {
 			// convenience to set the round points consistently
-			let set_round_points = |round: u32| {
-				set_author(round as u32, 1, 1);
-				set_author(round as u32, 2, 1);
-				set_author(round as u32, 3, 1);
-				set_author(round as u32, 4, 1);
+			let set_round_points = |round: BlockNumber| {
+				set_author(round as BlockNumber, 1, 1);
+				set_author(round as BlockNumber, 2, 1);
+				set_author(round as BlockNumber, 3, 1);
+				set_author(round as BlockNumber, 4, 1);
 			};
 
 			// grab initial issuance -- we will reset it before round issuance is calculated so that
@@ -7145,7 +7145,7 @@ fn deferred_payment_steady_state_event_flow() {
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
-			let roll_through_initial_rounds = |mut round: u32| -> u32 {
+			let roll_through_initial_rounds = |mut round: BlockNumber| -> BlockNumber {
 				while round < crate::mock::RewardPaymentDelay::get() + 1 {
 					set_round_points(round);
 

@@ -403,7 +403,7 @@ macro_rules! assert_event_not_emitted {
 }
 
 // Same storage changes as ParachainStaking::on_finalize
-pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
+pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }

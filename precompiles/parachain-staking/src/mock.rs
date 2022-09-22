@@ -358,7 +358,7 @@ impl ExtBuilder {
 }
 
 // Sets the same storage changes as EventHandler::note_author impl
-pub(crate) fn set_points(round: u32, acc: Account, pts: u32) {
+pub(crate) fn set_points(round: BlockNumber, acc: Account, pts: u32) {
 	<Points<Runtime>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
