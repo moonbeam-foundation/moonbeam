@@ -18,12 +18,11 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{
 		Account::{self, Alice, Bob, Charlie, Precompile},
-		ExtBuilder, Precompiles, PrecompilesValue, Runtime,
+		ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
 	},
-	Action,
 };
 use frame_support::dispatch::Encode;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{solidity, testing::*};
 use sp_core::H256;
 use sp_runtime::DispatchError;
 
@@ -44,7 +43,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -77,11 +76,11 @@ fn no_selector_exists_but_length_is_right() {
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::Execute as u32, 0x09c5eabe);
-	assert_eq!(Action::Propose as u32, 0xc57f3260);
-	assert_eq!(Action::Vote as u32, 0x73e37688);
-	assert_eq!(Action::Close as u32, 0x638d9d47);
-	assert_eq!(Action::ProposalHash as u32, 0xfc379417);
+	assert!(PCall::execute_selectors().contains(&0x09c5eabe));
+	assert!(PCall::propose_selectors().contains(&0xc57f3260));
+	assert!(PCall::vote_selectors().contains(&0x73e37688));
+	assert!(PCall::close_selectors().contains(&0x638d9d47));
+	assert!(PCall::proposal_hash_selectors().contains(&0xfc379417));
 }
 
 #[test]
@@ -98,10 +97,10 @@ fn non_member_cannot_propose() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(1u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 1,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
@@ -115,11 +114,11 @@ fn non_member_cannot_vote() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(H256::zero())
-					.write(1u32)
-					.write(false)
-					.build(),
+				PCall::vote {
+					proposal_hash: H256::zero(),
+					proposal_index: 1,
+					approve: false,
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
@@ -140,9 +139,9 @@ fn non_member_cannot_execute() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Execute)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::execute {
+					proposal: proposal.into(),
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"NotMember\") })"));
@@ -156,11 +155,11 @@ fn cannot_vote_for_unknown_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(H256::zero())
-					.write(1u32)
-					.write(false)
-					.build(),
+				PCall::vote {
+					proposal_hash: H256::zero(),
+					proposal_index: 1,
+					approve: false,
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"ProposalMissing\") })"));
@@ -174,12 +173,12 @@ fn cannot_close_unknown_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Close)
-					.write(H256::zero())
-					.write(1u32)
-					.write(0u64)
-					.write(0u32)
-					.build(),
+				PCall::close {
+					proposal_hash: H256::zero(),
+					proposal_index: 1,
+					proposal_weight_bound: 0,
+					length_bound: 0,
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"ProposalMissing\") })"));
@@ -203,13 +202,13 @@ fn member_can_make_instant_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(1u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 1,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_executed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Executed {
 			proposal_hash,
@@ -234,13 +233,13 @@ fn member_can_make_delayed_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		assert_event_emitted!(pallet_collective::Event::Proposed {
 			account: Bob,
@@ -267,23 +266,23 @@ fn member_can_vote_on_proposal() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Charlie,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(true)
-					.build(),
+				PCall::vote {
+					proposal_hash,
+					proposal_index: 0,
+					approve: true,
+				},
 			)
 			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
@@ -309,30 +308,30 @@ fn cannot_close_if_not_enough_votes() {
 		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
-		let proposal_len = proposal.len() as u64;
+		let length_bound = proposal.len() as u32;
 
 		precompiles()
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Close)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(10_000_000u64)
-					.write(proposal_len)
-					.build(),
+				PCall::close {
+					proposal_hash,
+					proposal_index: 0,
+					proposal_weight_bound: 10_000_000,
+					length_bound,
+				},
 			)
 			.expect_no_logs()
 			.execute_reverts(|output| output.ends_with(b"TooEarly\") })"));
@@ -349,29 +348,29 @@ fn can_close_execute_if_enough_votes() {
 		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
-		let proposal_len = proposal.len() as u64;
+		let length_bound = proposal.len() as u32;
 
 		precompiles()
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(true)
-					.build(),
+				PCall::vote {
+					proposal_hash,
+					proposal_index: 0,
+					approve: true,
+				},
 			)
 			.expect_log(log_voted(Precompile, Bob, proposal_hash, true))
 			.execute_returns(vec![]);
@@ -380,11 +379,11 @@ fn can_close_execute_if_enough_votes() {
 			.prepare_test(
 				Charlie,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(true)
-					.build(),
+				PCall::vote {
+					proposal_hash,
+					proposal_index: 0,
+					approve: true,
+				},
 			)
 			.expect_log(log_voted(Precompile, Charlie, proposal_hash, true))
 			.execute_returns(vec![]);
@@ -393,15 +392,15 @@ fn can_close_execute_if_enough_votes() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Close)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(100_000_000u64)
-					.write(proposal_len)
-					.build(),
+				PCall::close {
+					proposal_hash,
+					proposal_index: 0,
+					proposal_weight_bound: 100_000_000,
+					length_bound,
+				},
 			)
 			.expect_log(log_executed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(true).build());
+			.execute_returns_encoded(true);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -437,29 +436,29 @@ fn can_close_refuse_if_enough_votes() {
 		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
-		let proposal_len = proposal.len() as u64;
+		let length_bound = proposal.len() as u32;
 
 		precompiles()
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		precompiles()
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(false)
-					.build(),
+				PCall::vote {
+					proposal_hash,
+					proposal_index: 0,
+					approve: false,
+				},
 			)
 			.expect_log(log_voted(Precompile, Bob, proposal_hash, false))
 			.execute_returns(vec![]);
@@ -468,11 +467,11 @@ fn can_close_refuse_if_enough_votes() {
 			.prepare_test(
 				Charlie,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Vote)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(false)
-					.build(),
+				PCall::vote {
+					proposal_hash,
+					proposal_index: 0,
+					approve: false,
+				},
 			)
 			.expect_log(log_voted(Precompile, Charlie, proposal_hash, false))
 			.execute_returns(vec![]);
@@ -481,15 +480,15 @@ fn can_close_refuse_if_enough_votes() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Close)
-					.write(proposal_hash)
-					.write(0u32)
-					.write(100_000_000u64)
-					.write(proposal_len)
-					.build(),
+				PCall::close {
+					proposal_hash,
+					proposal_index: 0,
+					proposal_weight_bound: 100_000_000,
+					length_bound,
+				},
 			)
 			.expect_log(log_closed(Precompile, proposal_hash))
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 
 		assert_event_emitted!(pallet_collective::Event::Closed {
 			proposal_hash,
@@ -517,13 +516,13 @@ fn multiple_propose_increase_index() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 0, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 
 		let proposal = pallet_treasury::Call::<Runtime>::spend {
 			amount: 2,
@@ -537,12 +536,12 @@ fn multiple_propose_increase_index() {
 			.prepare_test(
 				Bob,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::Propose)
-					.write(2u32)
-					.write(Bytes(proposal))
-					.build(),
+				PCall::propose {
+					threshold: 2,
+					proposal: proposal.into(),
+				},
 			)
 			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))
-			.execute_returns(EvmDataWriter::new().write(1u32).build());
+			.execute_returns_encoded(1u32);
 	});
 }

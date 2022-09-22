@@ -1,0 +1,8 @@
+error[E0412]: cannot find type `R` in this scope
+  --> tests/precompile/compile-fail/test/generic-arg.rs:28:63
+   |
+26 | impl<R: Get<u32>> Precompile<R> {
+   |                             - help: you might be missing a type parameter: `<R>`
+27 |     #[precompile::public("foo(bytes)")]
+28 |     fn foo(handle: &mut impl PrecompileHandle, arg: BoundedBytes<R>) -> EvmResult {
+   |                                                                  ^ not found in this scope

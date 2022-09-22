@@ -23,6 +23,7 @@ members = [
 	"precompiles/proxy",
 	"precompiles/randomness",
 	"precompiles/relay-encoder",
+	"precompiles/utils",
 	"precompiles/utils/macro",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",

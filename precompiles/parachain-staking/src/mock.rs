@@ -174,11 +174,13 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	ParachainStakingWrapper<R>: Precompile,
+	ParachainStakingPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(handle)),
+			a if a == precompile_address() => {
+				Some(ParachainStakingPrecompile::<R>::execute(handle))
+			}
 			_ => None,
 		}
 	}
@@ -187,6 +189,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = ParachainStakingPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

@@ -64,9 +64,9 @@ interface Randomness {
         uint32 numWords;
         RandomnessSource randomnessSource;
         uint32 fulfillmentBlock;
-        uint32 fulfillmentEpochIndex;
+        uint64 fulfillmentEpochIndex;
         uint32 expirationBlock;
-        uint32 expirationEpochIndex;
+        uint64 expirationEpochIndex;
         RequestStatus status;
     }
 

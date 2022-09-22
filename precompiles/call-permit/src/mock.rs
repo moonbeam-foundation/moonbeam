@@ -198,6 +198,8 @@ where
 	}
 }
 
+pub type PCall = CallPermitPrecompileCall<Runtime>;
+
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
 }

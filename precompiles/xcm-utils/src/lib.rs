@@ -20,12 +20,10 @@
 #![feature(assert_matches)]
 
 use fp_evm::PrecompileHandle;
-use frame_support::dispatch::Dispatchable;
-use frame_support::traits::OriginTrait;
-use pallet_evm::PrecompileOutput;
+use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
 use sp_core::H160;
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::marker::PhantomData;
 use xcm::latest::{MultiLocation, OriginKind};
 use xcm_executor::traits::ConvertOrigin;
 
@@ -39,49 +37,26 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	MultiLocationToAddress = "multilocationToAddress((uint8,bytes[]))",
-}
-
 /// A precompile to wrap the functionality from xcm-utils
-pub struct XcmUtilsWrapper<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
+pub struct XcmUtilsPrecompile<Runtime, XcmConfig>(PhantomData<(Runtime, XcmConfig)>);
 
-impl<Runtime, XcmConfig> pallet_evm::Precompile for XcmUtilsWrapper<Runtime, XcmConfig>
+#[precompile_utils::precompile]
+impl<Runtime, XcmConfig> XcmUtilsPrecompile<Runtime, XcmConfig>
 where
 	Runtime: pallet_evm::Config + frame_system::Config,
 	XcmOriginOf<XcmConfig>: OriginTrait,
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
 {
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::MultiLocationToAddress => FunctionModifier::View,
-		})?;
-
-		match selector {
-			// Check for accessor methods first. These return results immediately
-			Action::MultiLocationToAddress => Self::multilocation_to_address(handle),
-		}
-	}
-}
-
-impl<Runtime, XcmConfig> XcmUtilsWrapper<Runtime, XcmConfig>
-where
-	Runtime: pallet_evm::Config + frame_system::Config,
-	XcmOriginOf<XcmConfig>: OriginTrait,
-	XcmAccountIdOf<XcmConfig>: Into<H160>,
-	XcmConfig: xcm_executor::Config,
-{
-	fn multilocation_to_address(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("multilocationToAddress((uint8,bytes[]))")]
+	#[precompile::view]
+	fn multilocation_to_address(
+		handle: &mut impl PrecompileHandle,
+		multilocation: MultiLocation,
+	) -> EvmResult<Address> {
 		// TODO: Change once precompiles are benchmarked
 		// for now we charge a db read,
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-
-		read_args!(handle, { multilocation: MultiLocation });
 
 		let origin =
 			XcmConfig::OriginConverter::convert_origin(multilocation, OriginKind::SovereignAccount)
@@ -96,8 +71,6 @@ where
 				RevertReason::custom("Failed multilocation conversion").in_field("multilocation"),
 			)?
 			.into();
-		Ok(succeed(
-			EvmDataWriter::new().write(Address(account)).build(),
-		))
+		Ok(Address(account))
 	}
 }
