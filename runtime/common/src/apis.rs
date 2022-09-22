@@ -465,7 +465,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
-					list_benchmark!(list, extra, moonbeam_xcm_benchmarks, MoonbeamXcmGenericBench::<Runtime>);
+					list_benchmark!(list, extra, moonbeam_xcm_benchmarks_generic, MoonbeamXcmGenericBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -668,7 +668,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					add_benchmark!(
 						params,
 						batches,
-						moonbeam_xcm_benchmarks,
+						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
 
