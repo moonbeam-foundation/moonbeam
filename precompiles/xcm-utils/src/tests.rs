@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	ExtBuilder, PrecompilesValue, Runtime,
+	ExtBuilder, PCall, PrecompilesValue, Runtime,
 	TestAccount::{self, *},
 	TestPrecompiles,
 };
-use crate::Action;
 
 use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::H160;
@@ -30,15 +29,15 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::MultiLocationToAddress as u32, 0x343b3e00);
+	assert!(PCall::multilocation_to_address_selectors().contains(&0x343b3e00));
 }
 
 #[test]
 fn test_get_account_parent() {
 	ExtBuilder::default().build().execute_with(|| {
-		let input = EvmDataWriter::new_with_selector(Action::MultiLocationToAddress)
-			.write(MultiLocation::parent())
-			.build();
+		let input = PCall::multilocation_to_address {
+			multilocation: MultiLocation::parent(),
+		};
 
 		let expected_address: H160 = TestAccount::Parent.into();
 
@@ -57,12 +56,12 @@ fn test_get_account_parent() {
 #[test]
 fn test_get_account_sibling() {
 	ExtBuilder::default().build().execute_with(|| {
-		let input = EvmDataWriter::new_with_selector(Action::MultiLocationToAddress)
-			.write(MultiLocation {
+		let input = PCall::multilocation_to_address {
+			multilocation: MultiLocation {
 				parents: 1,
 				interior: Junctions::X1(Junction::Parachain(2000u32)),
-			})
-			.build();
+			},
+		};
 
 		let expected_address: H160 = TestAccount::SiblingParachain(2000u32).into();
 
@@ -91,7 +90,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,

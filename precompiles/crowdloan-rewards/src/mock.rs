@@ -22,6 +22,7 @@ use cumulus_primitives_core::{
 };
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime,
 	dispatch::UnfilteredDispatchable,
@@ -184,12 +185,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	CrowdloanRewardsWrapper<R>: Precompile,
+	CrowdloanRewardsPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == Account::Precompile.into() => {
-				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
+				Some(CrowdloanRewardsPrecompile::<R>::execute(handle))
 			}
 			_ => None,
 		}
@@ -199,6 +200,8 @@ where
 		address == Account::Precompile.into()
 	}
 }
+
+pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

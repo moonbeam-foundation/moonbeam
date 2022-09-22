@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types};
 use frame_support::{
 	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
@@ -216,11 +217,11 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	XtokensWrapper<R>: Precompile,
+	XtokensPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(handle)),
+			a if a == precompile_address() => Some(XtokensPrecompile::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -229,6 +230,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = XtokensPrecompileCall<Runtime>;
 
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
