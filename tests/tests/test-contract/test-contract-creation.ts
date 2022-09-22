@@ -36,6 +36,7 @@ describeDevMoonbeamAllEthTxTypes("Contract creation", (context) => {
   });
 
   it("should store the code on chain", async function () {
+    await context.createBlock();
     const code =
       "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c8063c6888fa114610030575b" +
       "600080fd5b61004a600480360381019061004591906100b1565b610060565b60405161005791906100ed565b60" +
