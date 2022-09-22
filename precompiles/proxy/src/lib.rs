@@ -1,5 +1,5 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is 	part of Moonbeam.
+// This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
