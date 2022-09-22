@@ -47,6 +47,7 @@ async function main(inputFile: string, outputFile?: string) {
     "ParachainSystem",
     "RelevantMessagingState"
   )}`;
+  const validationDataPrefix = `        "${storageKey("ParachainSystem", "ValidationData")}`;
   const authorEligibilityRatioPrefix = `        "${storageKey("AuthorFilter", "EligibleRatio")}`;
   const authorEligibilityCountPrefix = `        "${storageKey("AuthorFilter", "EligibleCount")}`;
   const councilLinePrefix = `        "${storageKey("CouncilCollective", "Members")}`;
@@ -67,6 +68,7 @@ async function main(inputFile: string, outputFile?: string) {
   let orbiters: string[] = [];
   // let selectedCollator = null;
   let totalIssuance: bigint = 0n;
+  let validationData: string = "";
   let alithAccountData;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
@@ -85,6 +87,9 @@ async function main(inputFile: string, outputFile?: string) {
     }
     if (line.startsWith(revelentMessagingStatePrefix)) {
       messagingState = line.split('"')[3];
+    }
+    if (line.startsWith(validationDataPrefix)) {
+      validationData = line.split('"')[3];
     }
     if (line.startsWith(totalIssuanceBalancePrefix)) {
       totalIssuance = hexToBigInt(line.split('"')[3], { isLe: true });
@@ -229,7 +234,10 @@ async function main(inputFile: string, outputFile?: string) {
       outStream.write(newLine);
     } else if (line.startsWith(highestSlotSeenPrefix)) {
       console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
-      const newLine = `        "${highestSlotSeenPrefix}": "0x00000000",\n`;
+      const newLine = `        "${storageKey(
+        "AuthorInherent",
+        "HighestSlotSeen"
+      )}": "0x00000000",\n`;
       console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(lastDmqMqcHeadPrefix)) {
@@ -254,6 +262,19 @@ async function main(inputFile: string, outputFile?: string) {
         }
       )}",\n`;
       console.log(` ${chalk.green(`  + Adding Balances.TotalIssuance`)}\n\t${newLine}`);
+      outStream.write(newLine);
+    } else if (line.startsWith(validationDataPrefix)) {
+      console.log(` ${chalk.red(`  - Removing ParachainSystem.ValidationData`)}\n\t${line}`);
+
+      const head = validationData.slice(0, -(8 + 64 + 8));
+      const relayParentNumber = "00000000";
+      const relayParentStorageRoot = validationData.slice(-(8 + 64), -8);
+      const maxPovSize = validationData.slice(-8);
+      const newLine = `        "${storageKey(
+        "ParachainSystem",
+        "ValidationData"
+      )}": "${head}${relayParentNumber}${relayParentStorageRoot}${maxPovSize}",\n`;
+      console.log(` ${chalk.green(`  + Adding ParachainSystem.ValidationData`)}\n\t${newLine}`);
       outStream.write(newLine);
     } else if (line.startsWith(bootnodesPrefix)) {
       console.log(` ${chalk.red(`  - Removing bootnode`)}\n\t${line}`);
