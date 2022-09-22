@@ -56,11 +56,13 @@ impl<
 		weight: Weight,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
+		log::error!("Entering");
 		// can only call one time
 		if self.1.is_some() {
 			// TODO: better error
 			return Err(XcmError::NotWithdrawable);
 		}
+		log::error!("first check pass");
 
 		assert_eq!(self.0, 0);
 		let first_asset = payment
@@ -69,11 +71,14 @@ impl<
 			.next()
 			.ok_or(XcmError::TooExpensive)?;
 
+		log::error!("second check pass");
+
 		// We are only going to check first asset for now. This should be sufficient for simple token
 		// transfers. We will see later if we change this.
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
+
 				// Shortcut if we know the asset is not supported
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
@@ -82,6 +87,7 @@ impl<
 				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
+
 					let amount = units_per_second.saturating_mul(weight as u128)
 						/ (WEIGHT_PER_SECOND as u128);
 
@@ -184,6 +190,8 @@ pub trait UnitsToWeightRatio<AssetType> {
 	fn payment_is_supported(asset_type: AssetType) -> bool;
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
+	#[cfg(feature = "runtime-benchmarks")]
+	fn set_units_per_second(asset_type: AssetType, fee_per_second: u128) {}
 }
 
 #[cfg(test)]

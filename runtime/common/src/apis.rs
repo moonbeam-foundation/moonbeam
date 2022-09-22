@@ -488,6 +488,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl moonbeam_xcm_benchmarks::Config for Runtime {}
 					impl moonbeam_xcm_benchmarks::generic::Config for Runtime {}
 
+					use pallet_asset_manager::Config as PalletAssetManagerConfig;
+
 					impl pallet_xcm_benchmarks::Config for Runtime {
 						type XcmConfig = xcm_config::XcmExecutorConfig;
 						type AccountIdConverter = xcm_config::LocationToAccountId;
@@ -495,9 +497,25 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok(MultiLocation::parent())
 						}
 						fn worst_case_holding() -> MultiAssets {
+							<AssetManager as xcm_primitives::AssetTypeGetter<
+								<Runtime as PalletAssetManagerConfig>::AssetId,
+								<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
+							>::set_asset_type_asset_id(
+								MultiLocation::parent().into(),
+								1u128
+							);
+
+							// set 1-1
+							<AssetManager as xcm_primitives::UnitsToWeightRatio<
+								<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
+							>::set_units_per_second(
+								MultiLocation::parent().into(),
+								1_000_000_000_000u128
+							);
+
 							let assets: Vec<MultiAsset> = vec![MultiAsset{
 								id: Concrete(MultiLocation::parent()),
-								fun: Fungible(1_000_000u128),
+								fun: Fungible(100_000_000u128),
 							}];
 							assets.into()
 						}
