@@ -24,13 +24,13 @@ where
     R: pallet_evm::Config
 {
     #[precompile::public("example(uint32)")]
-    fn exemple(handle: &mut impl PrecompileHandle, arg: u32) -> EvmResult<u32> {
+    fn example(handle: &mut impl PrecompileHandle, arg: u32) -> EvmResult<u32> {
         Ok(arg * 2)
     }
 }
 ```
 
-The exemple code above will automatically generate an enum like
+The example code above will automatically generate an enum like
 
 ```rust,ignore
 #[allow(non_camel_case_types)]
@@ -38,7 +38,7 @@ pub enum ExemplePrecompileCall<R, I>
 where
     R: pallet_evm::Config
 {
-    exemple {
+    example {
         arg: u32
     },
     // + an non constrible variant with a PhantomData<(R,I)>
@@ -59,7 +59,7 @@ support renamed functions with backward compatibility, however the arguments mus
 type. It is not allowed to use the exact same signature multiple times.
 
 The function must take a `&mut impl PrecompileHandle` as parameter, followed by all the parameters
-of the Solidity function is the same order. Those parameters types must implement `EvmData`, and
+of the Solidity function in the same order. Those parameters types must implement `EvmData`, and
 their name should match the one used in the Solidity interface (.sol) while being in `snake_case`,
 which will automatically be converted to `camelCase` in revert messages. The function must return an
 `EvmResult<T>`, which is an alias of `Result<T, PrecompileFailure>`. This `T` must implement the
@@ -88,7 +88,7 @@ This function cannot have other attributes.
 
 ## PrecompileSet
 
-By default the macro considers the `impl` block to represent a precompile and will this implement
+By default the macro considers the `impl` block to represent a precompile and this will implement
 the `Precompile` trait. If you want to instead implement a precompile set, you must add the
 `#[precompile::precompile_set]` to the `impl` block.
 
@@ -96,7 +96,7 @@ Then, it is necessary to have a function annotated with the `#[precompile::discr
 This function is called with the **code address**, the address of the precompile. It must return
 `None` if this address is not part of the precompile set, or `Some` if it is. The `Some` variants
 contains a value of a type of your choice that represents which member of the set this address
-corresponds to. For exemple for our XC20 precompile sets this function returns the asset id
+corresponds to. For example for our XC20 precompile sets this function returns the asset id
 corresponding to this address if it exists.
 
 Finally, every other function annotated with a `precompile::_` attribute must now take this
@@ -149,7 +149,7 @@ error[E0412]: cannot find type `R` in this scope
    |                                                                  ^ not found in this scope
 ```
 
-In this can you need to annotate the `impl` block with the `#[precompile::test_concrete_types(...)]`
+In this case you need to annotate the `impl` block with the `#[precompile::test_concrete_types(...)]`
 attributes. The `...` should be replaced with concrete types for each type parameter, like a mock
 runtime. Those types are only used to generate the test and only one set of types can be used.
 
@@ -193,6 +193,6 @@ The generated enums exposes the following public functions:
 - For each variant/public function `foo`, there is a function `foo_selectors` which returns a static
   array of all the supported selectors **for that function**. That can be used to ensure in tests
   that some function have a selector that was computed by hand.
-- `encode`: take `self` and encodes it in Solidity format. Additionnaly, `Vec<u8>` implements
+- `encode`: take `self` and encodes it in Solidity format. Additionally, `Vec<u8>` implements
   `From<CallEnum>` which simply call encodes. This is useful to write tests as you can construct the
   variant you want and it will be encoded to Solidity format for you.
