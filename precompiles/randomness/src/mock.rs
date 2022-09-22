@@ -119,7 +119,7 @@ pub fn precompile_address() -> H160 {
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, RandomnessWrapper<R>, LimitRecursionTo<1>>,
+		PrecompileAt<AddressU64<1>, RandomnessPrecompile<R>, LimitRecursionTo<1>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;

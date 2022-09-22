@@ -21,6 +21,7 @@ use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 
+use fp_evm::PrecompileSet;
 use frame_system::EnsureRoot;
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
 use scale_info::TypeInfo;
@@ -379,3 +380,6 @@ where
 			.is_precompile(address)
 	}
 }
+
+pub type LocalPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance2>;
+pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance1>;

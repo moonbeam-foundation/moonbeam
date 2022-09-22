@@ -19,6 +19,7 @@
 use super::*;
 
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use scale_info::TypeInfo;
@@ -255,6 +256,8 @@ where
 		address == hash(PRECOMPILE_ADDRESS)
 	}
 }
+
+pub type PCall = Erc20BalancesPrecompileCall<Runtime, NativeErc20Metadata, ()>;
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)

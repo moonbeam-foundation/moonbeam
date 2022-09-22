@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 
+use fp_evm::Precompile;
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
@@ -181,12 +182,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
+	RelayEncoderPrecompile<R, test_relay_runtime::TestEncoder>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == H160::from_low_u64_be(1) => {
-				Some(RelayEncoderWrapper::<R, test_relay_runtime::TestEncoder>::execute(handle))
+				Some(RelayEncoderPrecompile::<R, test_relay_runtime::TestEncoder>::execute(handle))
 			}
 			_ => None,
 		}
@@ -196,6 +197,8 @@ where
 		address == H160::from_low_u64_be(1)
 	}
 }
+
+pub type PCall = RelayEncoderPrecompileCall<Runtime, test_relay_runtime::TestEncoder>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

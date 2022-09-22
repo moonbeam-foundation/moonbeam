@@ -24,7 +24,7 @@ use frame_support::{
 };
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
-	PrecompileSet,
+	PrecompileOutput, PrecompileSet,
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -285,12 +285,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	XcmUtilsWrapper<R, XcmConfig>: Precompile,
+	XcmUtilsPrecompile<R, XcmConfig>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == precompile_address() => {
-				Some(XcmUtilsWrapper::<R, XcmConfig>::execute(handle))
+				Some(XcmUtilsPrecompile::<R, XcmConfig>::execute(handle))
 			}
 			_ => None,
 		}
@@ -300,6 +300,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = XcmUtilsPrecompileCall<Runtime, XcmConfig>;
 
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)

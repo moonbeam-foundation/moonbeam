@@ -15,6 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use {
+	crate::{EvmData, EvmDataWriter},
 	fp_evm::{
 		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
 		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
@@ -183,6 +184,7 @@ pub struct PrecompilesTester<'p, P> {
 
 	expected_cost: Option<u64>,
 	expected_logs: Option<Vec<PrettyLog>>,
+	static_call: bool,
 }
 
 impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
@@ -213,6 +215,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 			expected_cost: None,
 			expected_logs: None,
+			static_call: false,
 		}
 	}
 
@@ -228,6 +231,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	pub fn with_target_gas(mut self, target_gas: Option<u64>) -> Self {
 		self.target_gas = target_gas;
+		self
+	}
+
+	pub fn with_static_call(mut self, static_call: bool) -> Self {
+		self.static_call = static_call;
 		self
 	}
 
@@ -263,19 +271,13 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	fn execute(&mut self) -> Option<PrecompileResult> {
 		let handle = &mut self.handle;
 		handle.subcall_handle = self.subcall_handle.take();
+		handle.is_static = self.static_call;
 
 		if let Some(gas_limit) = self.target_gas {
 			handle.gas_limit = gas_limit;
 		}
 
-		let res = self.precompiles.execute(
-			handle,
-			// self.to,
-			// &self.data,
-			// self.target_gas,
-			// &self.context,
-			// self.is_static,
-		);
+		let res = self.precompiles.execute(handle);
 
 		self.subcall_handle = handle.subcall_handle.take();
 
@@ -348,6 +350,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		self.assert_optionals();
 	}
 
+	/// Execute the precompile set and check it returns provided Solidity encoded output.
+	pub fn execute_returns_encoded(self, output: impl EvmData) {
+		self.execute_returns(EvmDataWriter::new().write(output).build())
+	}
+
 	/// Execute the precompile set and check if it reverts.
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
@@ -390,7 +397,7 @@ pub trait PrecompileTesterExt: PrecompileSet + Sized {
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,
-		data: Vec<u8>,
+		data: impl Into<Vec<u8>>,
 	) -> PrecompilesTester<Self>;
 }
 
@@ -399,9 +406,9 @@ impl<T: PrecompileSet> PrecompileTesterExt for T {
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,
-		data: Vec<u8>,
+		data: impl Into<Vec<u8>>,
 	) -> PrecompilesTester<Self> {
-		PrecompilesTester::new(self, from, to, data)
+		PrecompilesTester::new(self, from, to, data.into())
 	}
 }
 
