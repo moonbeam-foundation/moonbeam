@@ -1563,6 +1563,7 @@ pub mod pallet {
 				}
 			};
 
+			// @todo: move this function out
 			let mint_and_compound = |amt: BalanceOf<T>,
 			                         compound_percent: Percent,
 			                         candidate: T::AccountId,
