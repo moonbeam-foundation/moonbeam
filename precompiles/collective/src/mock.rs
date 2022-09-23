@@ -20,7 +20,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU128, ConstU64, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
+	traits::{ConstU128, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
 use pallet_evm::{
@@ -31,14 +31,13 @@ use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup, Replace},
 	Permill,
 };
 
 pub type AccountId = Account;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -122,7 +121,7 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -136,7 +135,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -230,7 +229,7 @@ impl pallet_treasury::Config for Runtime {
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ConstU128<1>;
-	type SpendPeriod = ConstU64<1>;
+	type SpendPeriod = ConstU32<1>;
 	type Burn = ();
 	type BurnDestination = ();
 	type MaxApprovals = ConstU32<100>;
@@ -249,7 +248,7 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type Proposal = Call;
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU64<2>;
+	type MotionDuration = ConstU32<2>;
 	/// The maximum number of Proposlas that can be open in the council at once.
 	type MaxProposals = ConstU32<100>;
 	/// The maximum number of council members.
@@ -346,7 +345,7 @@ impl ExtBuilder {
 }
 
 #[allow(unused)]
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
 	// We may be able to simulate this by poking its storage directly, but I don't see any value
 	// added from doing that.
