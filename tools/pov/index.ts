@@ -10,6 +10,17 @@ import { strict as assert } from "node:assert";
 
 const exec = util.promisify(execProcess);
 
+const openCmd = (() => {
+  switch (process.platform) {
+    case "darwin":
+      return "open";
+    case "win32":
+      return "start";
+    default:
+      return "xdg-open";
+  }
+})();
+
 async function main() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: $0")
@@ -97,7 +108,6 @@ async function main() {
       await view(argv.input, argv.output, argv.open);
       break;
     case "analyze":
-      // console.log(argv.input);
       await analyze(argv.input, argv.output);
       break;
   }
@@ -438,17 +448,6 @@ async function view(input: string, output: string, open: boolean) {
   );
   // editorconfig-checker-enable
 
-  const openCmd = (() => {
-    switch (process.platform) {
-      case "darwin":
-        return "open";
-      case "win32":
-        return "start";
-      default:
-        return "xdg-open";
-    }
-  })();
-
   if (open) {
     await exec(`${openCmd} ${output}`);
   }
@@ -677,17 +676,6 @@ async function analyze(inputs: string[], output: string) {
   </html>`
   );
   // editorconfig-checker-enable
-
-  const openCmd = (() => {
-    switch (process.platform) {
-      case "darwin":
-        return "open";
-      case "win32":
-        return "start";
-      default:
-        return "xdg-open";
-    }
-  })();
 
   await exec(`${openCmd} ${output}`);
 }
