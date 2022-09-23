@@ -1339,7 +1339,8 @@ pub mod pallet {
 			Self::delegation_cancel_request(candidate, delegator)
 		}
 
-		/// Cancel request to change an existing delegation.
+		/// Sets the auto-compounding reward percentage for a candidate.
+		/// @todo: benchmark for weight
 		#[pallet::weight(1000)]
 		pub fn candidate_set_auto_compounding_reward(
 			origin: OriginFor<T>,
@@ -1349,7 +1350,8 @@ pub mod pallet {
 			Self::candidate_set_auto_compounding(candidate, value)
 		}
 
-		/// Cancel request to change an existing delegation.
+		/// Sets the auto-compounding reward percentage for a delegation.
+		/// /// @todo: benchmark for weight
 		#[pallet::weight(1000)]
 		pub fn delegation_set_auto_compounding_reward(
 			origin: OriginFor<T>,

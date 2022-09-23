@@ -1,3 +1,21 @@
+// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
+
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Auto-compounding functionality for staking rewards
+
 use crate::pallet::{
 	AutoCompoundingInfo, CandidateInfo, Config, DelegatorState, Error, Event, Pallet,
 };
@@ -8,7 +26,7 @@ use scale_info::TypeInfo;
 use sp_runtime::Percent;
 use sp_std::{vec, vec::Vec};
 
-/// Represents the auto-compounding
+/// Represents the auto-compounding amount for a delegation.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
 pub struct AutoCompoundingDelegation<AccountId> {
 	pub delegator: AccountId,
@@ -19,7 +37,8 @@ impl<AccountId> AutoCompoundingDelegation<AccountId>
 where
 	AccountId: Eq,
 {
-	fn new(delegator: AccountId) -> Self {
+	/// Create a new [AutoCompoundingDelegation] object.
+	pub fn new(delegator: AccountId) -> Self {
 		AutoCompoundingDelegation {
 			delegator,
 			value: Percent::zero(),
@@ -27,6 +46,7 @@ where
 	}
 }
 
+/// Represents the auto-compounding amount for a collator and its delegations.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
 pub struct AutoCompounding<AccountId> {
 	pub candidate: AccountId,
@@ -38,6 +58,7 @@ impl<AccountId> AutoCompounding<AccountId>
 where
 	AccountId: Eq,
 {
+	/// Create a new [AutoCompounding] object.
 	pub fn new(candidate: AccountId) -> Self {
 		AutoCompounding {
 			candidate,
@@ -46,6 +67,7 @@ where
 		}
 	}
 
+	/// Sets the auto-compounding value for a delegation.
 	pub fn set_delegation_value(&mut self, delegator: AccountId, value: Percent) {
 		let maybe_delegation = self
 			.delegations
@@ -63,6 +85,7 @@ where
 		delegation.value = value;
 	}
 
+	/// Removes the auto-compounding value for a delegation.
 	pub fn remove_delegation_value(&mut self, delegator: &AccountId) {
 		if let Some(index) = self
 			.delegations
@@ -75,6 +98,7 @@ where
 }
 
 impl<T: Config> Pallet<T> {
+	/// Sets the auto-compounding value for a candidate.
 	pub(crate) fn candidate_set_auto_compounding(
 		candidate: T::AccountId,
 		value: Percent,
@@ -94,6 +118,7 @@ impl<T: Config> Pallet<T> {
 		Ok(().into())
 	}
 
+	/// Sets the auto-compounding value for a delegation.
 	pub(crate) fn delegation_set_auto_compounding(
 		candidate: T::AccountId,
 		delegator: T::AccountId,
@@ -123,6 +148,8 @@ impl<T: Config> Pallet<T> {
 		Ok(().into())
 	}
 
+	/// Removes the auto-compounding value for a delegation. This should be called when the
+	/// delegation is revoked to cleanup storage.
 	pub(crate) fn delegation_remove_auto_compounding(
 		candidate: &T::AccountId,
 		delegator: &T::AccountId,
