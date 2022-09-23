@@ -1561,40 +1561,48 @@ pub mod pallet {
 				}
 			};
 
-			let mint_and_compound =
-				|amt: BalanceOf<T>, candidate: T::AccountId, delegator: Option<T::AccountId>| {
-					if let Some(delegator) = delegator {
-						if let Some(_) = mint(amt, delegator.clone()) {
-							// @todo retrieve percentage autocompound setting for delegation
-							if let Err(err) = Self::delegator_bond_more(
-								T::Origin::from(Some(delegator.clone()).into()),
-								candidate.clone(),
-								amt,
-							) {
-								log::error!(
+			let mint_and_compound = |amt: BalanceOf<T>,
+			                         compound_percent: Percent,
+			                         candidate: T::AccountId,
+			                         delegator: Option<T::AccountId>| {
+				if let Some(delegator) = delegator {
+					if let Some(amount_transferred) = mint(amt, delegator.clone()) {
+						if compound_percent.is_zero() {
+							return;
+						}
+						let compound_amount = compound_percent * amount_transferred.peek();
+						if let Err(err) = Self::delegator_bond_more(
+							T::Origin::from(Some(delegator.clone()).into()),
+							candidate.clone(),
+							compound_amount,
+						) {
+							log::error!(
 									"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
 									candidate,
 									delegator,
 									err
 								);
-							}
-						}
-					} else {
-						if let Some(_) = mint(amt, candidate.clone()) {
-							// @todo retrieve percentage autocompound setting for delegation
-							if let Err(err) = Self::candidate_bond_more(
-								T::Origin::from(Some(candidate.clone()).into()),
-								amt,
-							) {
-								log::error!(
-									"Error compounding staking reward for candidate '{:?}': {:?}",
-									candidate,
-									err
-								);
-							}
 						}
 					}
-				};
+				} else {
+					if let Some(amount_transferred) = mint(amt, candidate.clone()) {
+						if compound_percent.is_zero() {
+							return;
+						}
+						let compound_amount = compound_percent * amount_transferred.peek();
+						if let Err(err) = Self::candidate_bond_more(
+							T::Origin::from(Some(candidate.clone()).into()),
+							compound_amount,
+						) {
+							log::error!(
+								"Error compounding staking reward for candidate '{:?}': {:?}",
+								candidate,
+								err
+							);
+						}
+					}
+				}
+			};
 
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
@@ -1602,6 +1610,16 @@ pub mod pallet {
 			if let Some((collator, pts)) =
 				<AwardedPts<T>>::iter_prefix(paid_for_round).drain().next()
 			{
+				// @todo: we can alternatively snapshot these values with rewardable delegators
+				//		  but that requires changing/migrating CollatorSnapshot
+				let auto_compounding = <AutoCompoundingInfo<T>>::get(&collator)
+					.unwrap_or_else(|| AutoCompounding::new(collator.clone()));
+				let auto_compounding_delegations = auto_compounding
+					.delegations
+					.into_iter()
+					.map(|x| (x.delegator, x.value))
+					.collect::<BTreeMap<_, _>>();
+
 				let mut extra_weight = 0;
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
@@ -1611,7 +1629,7 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					mint_and_compound(amt_due, collator.clone(), None);
+					mint_and_compound(amt_due, auto_compounding.value, collator.clone(), None);
 					// mint(amt_due, collator.clone());
 					extra_weight += T::OnCollatorPayout::on_collator_payout(
 						paid_for_round,
@@ -1624,7 +1642,12 @@ pub mod pallet {
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					mint_and_compound(collator_reward, collator.clone(), None);
+					mint_and_compound(
+						collator_reward,
+						auto_compounding.value,
+						collator.clone(),
+						None,
+					);
 					// mint(collator_reward, collator.clone());
 					extra_weight += T::OnCollatorPayout::on_collator_payout(
 						paid_for_round,
@@ -1636,7 +1659,15 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							mint_and_compound(due, collator.clone(), Some(owner.clone()));
+							mint_and_compound(
+								due,
+								auto_compounding_delegations
+									.get(&owner)
+									.cloned()
+									.unwrap_or_else(|| Percent::zero()),
+								collator.clone(),
+								Some(owner.clone()),
+							);
 							// mint(due, owner.clone());
 						}
 					}
