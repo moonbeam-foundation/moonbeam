@@ -205,7 +205,7 @@ parameter_types! {
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+pub type XcmWeigher = WeightInfoBounds<moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, Call>, Call, MaxInstructions>;
 
 // Allow paid executions
 pub type XcmBarrier = (

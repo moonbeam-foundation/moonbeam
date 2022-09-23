@@ -19,6 +19,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 pub mod generic;
-
+pub mod weights;
 /// A base trait for all individual pallets
 pub trait Config: frame_system::Config + pallet_xcm_benchmarks::Config {}

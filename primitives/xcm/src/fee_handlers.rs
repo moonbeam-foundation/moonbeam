@@ -87,7 +87,6 @@ impl<
 				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
-
 					let amount = units_per_second.saturating_mul(weight as u128)
 						/ (WEIGHT_PER_SECOND as u128);
 
@@ -191,7 +190,7 @@ pub trait UnitsToWeightRatio<AssetType> {
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
 	#[cfg(feature = "runtime-benchmarks")]
-	fn set_units_per_second(asset_type: AssetType, fee_per_second: u128) {}
+	fn set_units_per_second(_asset_type: AssetType, _fee_per_second: u128) {}
 }
 
 #[cfg(test)]

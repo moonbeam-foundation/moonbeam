@@ -44,7 +44,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,
+	TakeWeightCredit, UsingComponents, WeightInfoBounds
 };
 
 use xcm::latest::prelude::*;
@@ -218,7 +218,7 @@ parameter_types! {
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+pub type XcmWeigher = WeightInfoBounds<moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, Call>, Call, MaxInstructions>;
 
 // Allow paid executions
 pub type XcmBarrier = (
