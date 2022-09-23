@@ -248,6 +248,9 @@ impl<T: Config> Pallet<T> {
 				// remove delegation from delegator state
 				state.rm_delegation::<T>(&collator);
 
+				// remove delegation from auto-compounding info
+				Self::delegation_remove_auto_compounding(&collator, &delegator);
+
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
 				Self::deposit_event(Event::DelegationRevoked {
@@ -479,6 +482,7 @@ impl<T: Config> Pallet<T> {
 				}
 
 				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+				Self::delegation_remove_auto_compounding(&bond.owner, &delegator);
 			}
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {
@@ -525,7 +529,10 @@ impl<T: Config> Pallet<T> {
 
 			// remove the scheduled request, since it is fulfilled
 			scheduled_requests.remove(request_idx).action.amount();
-			updated_scheduled_requests.push((collator, scheduled_requests));
+			updated_scheduled_requests.push((collator.clone(), scheduled_requests));
+
+			// remove the auto-compounding entry for the delegation
+			Self::delegation_remove_auto_compounding(&collator, &delegator);
 		}
 
 		// set state.total so that state.adjust_bond_lock will remove lock

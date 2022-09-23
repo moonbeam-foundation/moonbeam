@@ -677,6 +677,10 @@ impl<
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
 			);
+			<Pallet<T>>::delegation_remove_auto_compounding(
+				&candidate,
+				&lowest_bottom_to_be_kicked.owner,
+			);
 
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),

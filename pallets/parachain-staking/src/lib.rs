@@ -48,6 +48,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+mod auto_compounding;
 mod delegation_requests;
 pub mod inflation;
 pub mod migrations;
@@ -67,6 +68,7 @@ use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 use weights::WeightInfo;
 
+pub use auto_compounding::AutoCompounding;
 pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 pub use pallet::*;
 pub use traits::*;
@@ -78,6 +80,7 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
+	use crate::AutoCompounding;
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -402,6 +405,17 @@ pub mod pallet {
 			new_per_round_inflation_ideal: Perbill,
 			new_per_round_inflation_max: Perbill,
 		},
+		/// Auto-compounding reward percent was set for a candidate.
+		CandidateAutoCompoundingSet {
+			candidate: T::AccountId,
+			value: Percent,
+		},
+		/// Auto-compounding reward percent was set for a delegation.
+		DelegationAutoCompoundingSet {
+			candidate: T::AccountId,
+			delegator: T::AccountId,
+			value: Percent,
+		},
 	}
 
 	#[pallet::hooks]
@@ -501,6 +515,12 @@ pub mod pallet {
 		Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
 		ValueQuery,
 	>;
+
+	/// Stores auto-compounding configuration per collator.
+	#[pallet::storage]
+	#[pallet::getter(fn auto_compounding_info)]
+	pub(crate) type AutoCompoundingInfo<T: Config> =
+		StorageMap<_, Blake2_128Concat, T::AccountId, AutoCompounding<T::AccountId>, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
@@ -967,6 +987,7 @@ pub mod pallet {
 						&bond.owner,
 						&mut delegator,
 					);
+					Self::delegation_remove_auto_compounding(&candidate, &bond.owner);
 
 					if remaining.is_zero() {
 						// we do not remove the scheduled delegation requests from other collators
@@ -1004,6 +1025,7 @@ pub mod pallet {
 			T::Currency::remove_lock(COLLATOR_LOCK_ID, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
+			<AutoCompoundingInfo<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -1315,6 +1337,27 @@ pub mod pallet {
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegation_cancel_request(candidate, delegator)
+		}
+
+		/// Cancel request to change an existing delegation.
+		#[pallet::weight(1000)]
+		pub fn candidate_set_auto_compounding_reward(
+			origin: OriginFor<T>,
+			value: Percent,
+		) -> DispatchResultWithPostInfo {
+			let candidate = ensure_signed(origin)?;
+			Self::candidate_set_auto_compounding(candidate, value)
+		}
+
+		/// Cancel request to change an existing delegation.
+		#[pallet::weight(1000)]
+		pub fn delegation_set_auto_compounding_reward(
+			origin: OriginFor<T>,
+			candidate: T::AccountId,
+			value: Percent,
+		) -> DispatchResultWithPostInfo {
+			let delegator = ensure_signed(origin)?;
+			Self::delegation_set_auto_compounding(candidate, delegator, value)
 		}
 
 		/// Hotfix to remove existing empty entries for candidates that have left.
