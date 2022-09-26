@@ -22,9 +22,9 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 
 # Frontier
 ethereum-types = { version = "0.13.1", default-features = false }
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.29", default-features = false, features = [ "with-codec" ] }
+evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 
