@@ -449,7 +449,6 @@ impl xcm_executor::Config for XcmConfig {
 	type SubscriptionService = ();
 	type AssetTrap = ();
 	type AssetClaims = ();
-	type CallDispatcher = Call;
 }
 
 pub(crate) struct ExtBuilder {}
