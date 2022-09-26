@@ -123,10 +123,17 @@ impl<T: Config> Pallet<T> {
 		candidate: T::AccountId,
 		delegator: T::AccountId,
 		value: Percent,
+		delegation_count_hint: u32,
+		candidate_auto_compounding_delegation_count_hint: u32,
 	) -> DispatchResultWithPostInfo {
+		let delegator_state =
+			<DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		ensure!(
-			<DelegatorState<T>>::get(&delegator)
-				.ok_or(<Error<T>>::DelegatorDNE)?
+			delegator_state.delegations.0.len() <= delegation_count_hint as usize,
+			<Error<T>>::TooLowDelegationCountToAutoCompound,
+		);
+		ensure!(
+			delegator_state
 				.delegations
 				.0
 				.iter()
@@ -137,6 +144,10 @@ impl<T: Config> Pallet<T> {
 		let mut state = <AutoCompoundingInfo<T>>::get(&candidate)
 			.unwrap_or_else(|| AutoCompounding::new(candidate.clone()));
 
+		ensure!(
+			state.delegations.len() <= candidate_auto_compounding_delegation_count_hint as usize,
+			<Error<T>>::TooLowCandidateAutoCompoundingDelegationCountToAutoCompound,
+		);
 		state.set_delegation_value(delegator.clone(), value);
 		<AutoCompoundingInfo<T>>::insert(candidate.clone(), state);
 		Self::deposit_event(Event::DelegationAutoCompoundingSet {

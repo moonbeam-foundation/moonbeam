@@ -128,6 +128,24 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 }
 
 const USER_SEED: u32 = 999666;
+struct Seed {
+	inner: u32,
+}
+impl Seed {
+	fn new() -> Self {
+		Seed { inner: USER_SEED }
+	}
+
+	pub fn peek(&self) -> u32 {
+		self.inner
+	}
+
+	pub fn take(&mut self) -> u32 {
+		let v = self.inner;
+		self.inner += 1;
+		v
+	}
+}
 
 benchmarks! {
 	// MONETARY ORIGIN DISPATCHABLES
@@ -1078,6 +1096,89 @@ benchmarks! {
 	verify {
 		// Round transitions
 		assert_eq!(start + 1u32.into(), end);
+	}
+
+
+	delegation_set_auto_compounding_reward {
+		// x controls number of distinct delegations the prime delegator will have
+		// y controls number of distinct auto-compounding delegations the prime collator will have
+		let x in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
+		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+
+		use crate::AutoCompoundingInfo;
+		use crate::auto_compounding::{AutoCompounding, AutoCompoundingDelegation};
+
+		let min_candidate_stake = min_candidate_stk::<T>();
+		let min_delegator_stake = min_delegator_stk::<T>();
+		let mut seed = Seed::new();
+
+		// initialize the prime collator
+		let prime_candidate = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stake,
+			true,
+			1,
+		)?;
+
+		// initialize the prime delegator
+		let prime_delegator = create_funded_delegator::<T>(
+			"delegator",
+			seed.take(),
+			min_delegator_stake * (x+1).into(),
+			prime_candidate.clone(),
+			true,
+			0,
+		)?;
+
+		// delegate to x-1 distinct collators from the prime delegator
+		for i in 1..x {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed.take(),
+				min_candidate_stake,
+				true,
+				i+1,
+			)?;
+			Pallet::<T>::delegate(
+				RawOrigin::Signed(prime_delegator.clone()).into(),
+				collator,
+				min_delegator_stake,
+				0,
+				i,
+			)?;
+		}
+
+		// have y-1 distinct auto-compounding delegators delegate to prime collator
+		// we directly set the storage, since benchmarks don't work when the same extrinsic is
+		// called from within the benchmark.
+		let mut auto_compound = AutoCompounding::new(prime_candidate.clone());
+		for i in 1..y {
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed.take(),
+				min_delegator_stake,
+				prime_candidate.clone(),
+				true,
+				i,
+			)?;
+			auto_compound.set_delegation_value(delegator, Percent::from_percent(100));
+		}
+		<AutoCompoundingInfo<T>>::insert(prime_candidate.clone(), auto_compound);
+	}: {
+		Pallet::<T>::delegation_set_auto_compounding_reward(RawOrigin::Signed(prime_delegator.clone()).into(), prime_candidate.clone(), Percent::from_percent(50), x+1, y+1)?;
+	}
+	verify {
+		let actual_auto_compound = <AutoCompoundingInfo<T>>::get(&prime_candidate).expect("candidate's auto-compounding entry must exist").delegations.into_iter().find(|d| d.delegator == prime_delegator);
+		let expected_auto_compound = Some(AutoCompoundingDelegation{
+			delegator: prime_delegator,
+			value: Percent::from_percent(50)
+		});
+		assert_eq!(
+			expected_auto_compound,
+			actual_auto_compound,
+			"delegation must have an auto-compound entry",
+		);
 	}
 }
 
