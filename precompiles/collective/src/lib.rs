@@ -24,7 +24,7 @@ use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, Pays, PostDispatchInfo},
+	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -238,7 +238,7 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound,
+				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
 				length_bound,
 			},
 		)?;

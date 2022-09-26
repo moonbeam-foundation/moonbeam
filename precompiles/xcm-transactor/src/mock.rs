@@ -53,6 +53,7 @@ use xcm_primitives::AccountIdToCurrencyId;
 pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u64;
+pub type OldWeight = u64;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -273,10 +274,10 @@ parameter_types! {
 pub struct MockGasWeightMapping;
 impl GasWeightMapping for MockGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		return gas;
+		Weight::from_ref_time(gas)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		return weight;
+		weight.ref_time().into()
 	}
 }
 
@@ -345,7 +346,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: OldWeight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -370,7 +371,7 @@ pub enum CurrencyId {
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 1000;
+	pub const BaseXcmWeight: OldWeight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
