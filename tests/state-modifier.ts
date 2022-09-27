@@ -48,6 +48,10 @@ async function main(inputFile: string, outputFile?: string) {
     "RelevantMessagingState"
   )}`;
   const validationDataPrefix = `        "${storageKey("ParachainSystem", "ValidationData")}`;
+  const lastRelayChainBlockNumberPrefix = `        "${storageKey(
+    "ParachainSystem",
+    "LastRelayChainBlockNumber"
+  )}`;
   const authorEligibilityRatioPrefix = `        "${storageKey("AuthorFilter", "EligibleRatio")}`;
   const authorEligibilityCountPrefix = `        "${storageKey("AuthorFilter", "EligibleCount")}`;
   const councilLinePrefix = `        "${storageKey("CouncilCollective", "Members")}`;
@@ -57,6 +61,14 @@ async function main(inputFile: string, outputFile?: string) {
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
+
+  const inboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpMessages")}`;
+  const inboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpStatus")}`;
+  const outboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "OutboundXcmpMessages")}`;
+  const outboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "OutboundXcmpStatus")}`;
+  const overweightPrefix = `        "${storageKey("XcmpQueue", "Overweight")}`;
+  const overweightCountPrefix = `        "${storageKey("XcmpQueue", "OverweightCount")}`;
+  const signalMessagesPrefix = `        "${storageKey("XcmpQueue", "SignalMessages")}`;
 
   const bootnodesPrefix = `    "/`;
 
@@ -242,6 +254,18 @@ async function main(inputFile: string, outputFile?: string) {
       outStream.write(newLine);
     } else if (line.startsWith(lastDmqMqcHeadPrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainSystem.LastDmqMqcHead`)}\n\t${line}`);
+    } else if (line.startsWith(lastRelayChainBlockNumberPrefix)) {
+      console.log(
+        ` ${chalk.red(`  - Removing ParachainSystem.LastRelayChainBlockNumber`)}\n\t${line}`
+      );
+      const newLine = `        "${storageKey(
+        "ParachainSystem",
+        "LastRelayChainBlockNumber"
+      )}": "0x00000000",\n`;
+      console.log(
+        ` ${chalk.green(`  + Adding ParachainSystem.LastRelayChainBlockNumber`)}\n\t${newLine}`
+      );
+      outStream.write(newLine);
     } else if (line.startsWith(alithBalancePrefix)) {
       console.log(` ${chalk.red(`  - Removing System.Account: Alith`)}\n\t${line}`);
       const newLine = `        "${storageBlake128MapKey(
@@ -278,6 +302,20 @@ async function main(inputFile: string, outputFile?: string) {
       outStream.write(newLine);
     } else if (line.startsWith(bootnodesPrefix)) {
       console.log(` ${chalk.red(`  - Removing bootnode`)}\n\t${line}`);
+    } else if (line.startsWith(inboundXcmpMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing inboundXcmpMessagesPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(inboundXcmpStatusPrefix)) {
+      console.log(` ${chalk.red(`  - Removing inboundXcmpStatusPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(outboundXcmpMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing outboundXcmpMessagesPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(outboundXcmpStatusPrefix)) {
+      console.log(` ${chalk.red(`  - Removing outboundXcmpStatusPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(overweightPrefix)) {
+      console.log(` ${chalk.red(`  - Removing overweightPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(overweightCountPrefix)) {
+      console.log(` ${chalk.red(`  - Removing overweightCountPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(signalMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing signalMessagesPrefix`)}\n\t${line}`);
     } else {
       outStream.write(line);
       outStream.write("\n");
