@@ -2913,14 +2913,14 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		let size_bytes = 0;
 		let tip = 0;
 		let dispatch_info = DispatchInfo {
-			weight: 0,
+			weight: Weight::zero(),
 			class: DispatchClass::Normal,
 			pays_fee: Pays::Yes,
 		};
 
 		assert_eq!(
 			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
-			EXTRINSIC_BASE_WEIGHT as u128 * currency::WEIGHT_FEE,
+			EXTRINSIC_BASE_WEIGHT.ref_time() as u128 * currency::WEIGHT_FEE,
 		);
 	});
 }

@@ -63,6 +63,8 @@ use sp_std::{
 
 use orml_traits::parameter_type_with_key;
 
+pub type OldWeight = u64;
+
 parameter_types! {
 	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
@@ -198,7 +200,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = 200_000_000;
+	pub UnitWeightCost: OldWeight = 200_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -418,7 +420,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 200_000_000;
+	pub const BaseXcmWeight: OldWeight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset

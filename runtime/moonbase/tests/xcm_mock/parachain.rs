@@ -62,6 +62,7 @@ use xcm_simulator::{
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
 pub type AssetId = u128;
+pub type OldWeight = u64;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -195,7 +196,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	pub const UnitWeightCost: Weight = 1;
+	pub const UnitWeightCost: OldWeight = 1u64;
 	pub MaxInstructions: u32 = 100;
 }
 
@@ -409,7 +410,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 100;
+	pub const BaseXcmWeight: OldWeight = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub SelfLocation: MultiLocation = MultiLocation::here();
 	pub SelfLocationAbsolute: MultiLocation = MultiLocation {
@@ -539,12 +540,16 @@ pub mod mock_msg_queue {
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
-					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
+					match T::XcmExecutor::execute_xcm(location, xcm, max_weight.ref_time()) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
-						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
+						Outcome::Complete(w) => {
+							(Ok(Weight::from_ref_time(w)), Event::Success(Some(hash)))
+						}
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
-						Outcome::Incomplete(w, e) => (Ok(w), Event::Fail(Some(hash), e)),
+						Outcome::Incomplete(w, e) => {
+							(Ok(Weight::from_ref_time(w)), Event::Fail(Some(hash), e))
+						}
 					}
 				}
 				Err(()) => (
@@ -597,7 +602,7 @@ pub mod mock_msg_queue {
 						Self::deposit_event(Event::UnsupportedVersion(id));
 					}
 					Ok(Ok(x)) => {
-						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit);
+						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit.ref_time());
 
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}
@@ -956,7 +961,7 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = u64::max_value();
+	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
 }
 
 #[derive(

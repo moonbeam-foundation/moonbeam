@@ -133,7 +133,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(2);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -650,6 +650,7 @@ impl pallet_ethereum::Config for Runtime {
 
 parameter_types! {
 	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
+	pub DefaultElasticity: Permill = Permill::zero();
 }
 
 pub struct BaseFeeThreshold;
@@ -670,11 +671,12 @@ impl pallet_base_fee::Config for Runtime {
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+	type DefaultElasticity = DefaultElasticity;
 }
 
 parameter_types! {
-	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
-	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {

@@ -37,6 +37,7 @@ use xcm_builder::{
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
 pub type Balance = u128;
+pub type OldWeight = u64;
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
@@ -105,7 +106,7 @@ parameter_types! {
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	pub const AnyNetwork: NetworkId = NetworkId::Any;
 	pub Ancestry: MultiLocation = Here.into();
-	pub UnitWeightCost: Weight = 1_000;
+	pub UnitWeightCost: OldWeight = 1_000;
 }
 
 pub type SovereignAccountOf = (
@@ -127,7 +128,7 @@ type LocalOriginConverter = (
 );
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 1_000;
+	pub const BaseXcmWeight: OldWeight = 1_000;
 	pub KsmPerSecond: (AssetId, u128) = (Concrete(KsmLocation::get()), 1);
 	pub const MaxInstructions: u32 = 100;
 }
