@@ -1391,6 +1391,9 @@ impl<
 			None
 		}
 	}
+
+	/// Increases the delegation amount and returns `true` if the delegation is part of the
+	/// TopDelegations set, `false` otherwise.
 	pub fn increase_delegation<T: Config>(
 		&mut self,
 		candidate: AccountId,
@@ -1431,7 +1434,6 @@ impl<
 				<Total<T>>::put(new_total_staked);
 				let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
 				<DelegatorState<T>>::insert(&delegator_id, nom_st);
-				// todo emit event
 				return Ok(in_top);
 			}
 		}

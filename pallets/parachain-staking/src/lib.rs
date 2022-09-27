@@ -1353,7 +1353,6 @@ pub mod pallet {
 		}
 
 		/// Sets the auto-compounding reward percentage for a delegation.
-		/// /// @todo: benchmark for weight
 		#[pallet::weight(<T as Config>::WeightInfo::delegation_set_auto_compounding(
 			*delegation_count_hint,
 			*candidate_auto_compounding_delegation_count_hint,
