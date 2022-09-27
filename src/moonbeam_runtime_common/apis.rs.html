@@ -631,6 +631,29 @@
 <span id="626">626</span>
 <span id="627">627</span>
 <span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -731,6 +754,18 @@
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
 					{
 						<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
+						<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
+							<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
+							<span class="ident">EthereumXcmTracingStatus</span>
+						};
+						<span class="kw">use</span> <span class="ident">frame_support::storage::unhashed</span>;
+
+						<span class="comment">// Tell the CallDispatcher we are tracing a specific Transaction.</span>
+						<span class="ident">unhashed::put</span>::<span class="op">&lt;</span><span class="ident">EthereumXcmTracingStatus</span><span class="op">&gt;</span>(
+							<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
+							<span class="kw-2">&amp;</span><span class="ident">EthereumXcmTracingStatus::Transaction</span>(<span class="ident">traced_transaction</span>.<span class="ident">hash</span>()),
+						);
+
 						<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum</span>
 						<span class="comment">// transactions that preceded the requested transaction.</span>
 						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
@@ -745,8 +780,12 @@
 								}
 								<span class="kw">_</span> =&gt; <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>),
 							};
+							<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">EthereumXcmTracingStatus::TransactionExited</span>) <span class="op">=</span> <span class="ident">unhashed::get</span>(
+								<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>
+							) {
+								<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+							}
 						}
-
 						<span class="prelude-val">Err</span>(<span class="ident">sp_runtime::DispatchError::Other</span>(
 							<span class="string">&quot;Failed to find Ethereum transaction among the extrinsics.&quot;</span>,
 						))
@@ -767,6 +806,13 @@
 					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
 					{
 						<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
+						<span class="kw">use</span> <span class="ident">xcm_primitives::EthereumXcmTracingStatus</span>;
+
+						<span class="comment">// Tell the CallDispatcher we are tracing a full Block.</span>
+						<span class="ident">frame_support::storage::unhashed::put</span>::<span class="op">&lt;</span><span class="ident">EthereumXcmTracingStatus</span><span class="op">&gt;</span>(
+							<span class="ident">xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
+							<span class="kw-2">&amp;</span><span class="ident">EthereumXcmTracingStatus::Block</span>,
+						);
 
 						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
 						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;

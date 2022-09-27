@@ -576,6 +576,9 @@
 <span id="571">571</span>
 <span id="572">572</span>
 <span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -832,7 +835,10 @@
 
 <span class="comment">// Our implementation of the Moonbeam Call</span>
 <span class="comment">// Attachs the right origin in case the call is made to pallet-ethereum-xcm</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>))]</span>
 <span class="macro">moonbeam_runtime_common::impl_moonbeam_xcm_call!</span>();
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
+<span class="macro">moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!</span>();
 
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmExecutorConfig</span>;
 <span class="kw">impl</span> <span class="ident">xcm_executor::Config</span> <span class="kw">for</span> <span class="ident">XcmExecutorConfig</span> {
