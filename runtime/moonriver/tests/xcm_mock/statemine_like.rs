@@ -263,7 +263,6 @@ impl Config for XcmConfig {
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
 	type SubscriptionService = PolkadotXcm;
-	type CallDispatcher = Call;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.

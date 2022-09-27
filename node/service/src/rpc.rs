@@ -213,6 +213,7 @@ where
 			Arc::clone(&block_data_cache),
 			fee_history_cache,
 			fee_history_limit,
+			10, // TODO: sensible value (this came from frontier's node template)
 		)
 		.into_rpc(),
 	)?;

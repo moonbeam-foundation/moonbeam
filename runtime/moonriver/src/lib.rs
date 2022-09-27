@@ -337,22 +337,22 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
 
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		gas.saturating_mul(WEIGHT_PER_GAS)
+		Weight::from_ref_time(gas.saturating_mul(WEIGHT_PER_GAS))
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
+		u64::try_from(weight.ref_time().wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
 }
 
 parameter_types! {
 	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
@@ -373,7 +373,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
+			Weight::zero(),
 		)
 	}
 }
@@ -669,7 +669,6 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
@@ -1006,7 +1005,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
+		DmpQueue::handle_dmp_messages(iter, Weight::zero())
 	}
 }
 
@@ -1027,7 +1026,7 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 // we need to provide it here
 impl OnIdle<BlockNumber> for MaintenanceHooks {
 	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
-		0
+		Weight::zero()
 	}
 }
 

@@ -281,7 +281,6 @@ pub fn testnet_genesis(
 		ethereum: EthereumConfig {},
 		base_fee: BaseFeeConfig::new(
 			U256::from(1_000_000_000u64),
-			false,
 			Permill::from_parts(125_000),
 		),
 		democracy: DemocracyConfig::default(),

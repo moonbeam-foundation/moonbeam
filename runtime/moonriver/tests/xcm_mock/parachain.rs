@@ -351,7 +351,6 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {

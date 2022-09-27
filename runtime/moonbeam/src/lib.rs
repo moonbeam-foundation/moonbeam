@@ -454,7 +454,6 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
 }
 
@@ -678,10 +677,10 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type OnSystemEvent = ();
 	type SelfParaId = ParachainInfo;
 	type DmpMessageHandler = MaintenanceMode;
-	type ReservedDmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
+	type ReservedDmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT.ref_time() / 4 }>;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type XcmpMessageHandler = XcmpQueue;
-	type ReservedXcmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT / 4 }>;
+	type ReservedXcmpWeight = ConstU64<{ MAXIMUM_BLOCK_WEIGHT.ref_time() / 4 }>;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 impl parachain_info::Config for Runtime {}

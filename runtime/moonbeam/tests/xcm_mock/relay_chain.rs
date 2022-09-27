@@ -216,7 +216,6 @@ impl Config for XcmConfig {
 	type AssetTrap = XcmPallet;
 	type AssetClaims = XcmPallet;
 	type SubscriptionService = XcmPallet;
-	type CallDispatcher = Call;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, KusamaNetwork>;

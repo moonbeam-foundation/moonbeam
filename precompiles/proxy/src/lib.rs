@@ -75,6 +75,8 @@ where
 		proxy_type: u8,
 		delay: u32,
 	) -> EvmResult {
+		panic!("fixme");
+		/*
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
 			.map_err(|_| {
@@ -109,6 +111,7 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+		*/
 	}
 
 	/// Unregister a proxy account for the sender.
@@ -125,6 +128,8 @@ where
 		proxy_type: u8,
 		delay: u32,
 	) -> EvmResult {
+		panic!("fixme");
+		/*
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
 			.map_err(|_| {
@@ -143,6 +148,7 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+		*/
 	}
 
 	/// Unregister all proxy accounts for the sender.

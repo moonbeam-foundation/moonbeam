@@ -48,7 +48,7 @@ use xcm_builder::{
 };
 
 use xcm::latest::prelude::*;
-use xcm_executor::traits::{CallDispatcher, JustTry};
+use xcm_executor::traits::JustTry;
 
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
@@ -65,6 +65,8 @@ use sp_std::{
 };
 
 use orml_traits::parameter_type_with_key;
+
+pub type OldWeight = u64;
 
 parameter_types! {
 	// The network Id of the relay
@@ -211,7 +213,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	pub UnitWeightCost: Weight = 200_000_000;
+	pub UnitWeightCost: OldWeight = 200_000_000u64;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -252,10 +254,6 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 	XcmFeesAccount,
 >;
 
-// Our implementation of the Moonbeam Call
-// Attachs the right origin in case the call is made to pallet-ethereum-xcm
-moonbeam_runtime_common::impl_moonbeam_xcm_call!();
-
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
 	type Call = Call;
@@ -290,7 +288,6 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = MoonbeamCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
@@ -440,7 +437,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 200_000_000;
+	pub const BaseXcmWeight: OldWeight = 200_000_000u64;
 	pub const MaxAssetsForTransfer: usize = 2;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only

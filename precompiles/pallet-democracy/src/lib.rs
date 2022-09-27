@@ -300,6 +300,8 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
+		panic!("fixme");
+		/*
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -307,7 +309,10 @@ where
 				.in_field("conviction")
 		})?;
 
-		let to = Runtime::AddressMapping::into_account_id(representative.into());
+		// let to = Runtime::AddressMapping::into_account_id(representative.into());
+		use sp_runtime::traits::StaticLookup;
+		let to: <<Runtime as frame_system::Config>::Lookup as StaticLookup>::Source =
+			Runtime::AddressMapping::into_account_id(representative.into()).into();
 
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
@@ -324,6 +329,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+		*/
 	}
 
 	#[precompile::public("unDelegate()")]
@@ -339,6 +345,8 @@ where
 
 	#[precompile::public("unlock(address)")]
 	fn unlock(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
+		panic!("fixme");
+		/*
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 
@@ -353,6 +361,7 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+		*/
 	}
 
 	#[precompile::public("notePreimage(bytes)")]

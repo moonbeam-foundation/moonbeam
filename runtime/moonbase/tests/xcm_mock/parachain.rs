@@ -337,7 +337,6 @@ parameter_types! {
 use frame_system::RawOrigin;
 use sp_runtime::traits::PostDispatchInfoOf;
 use sp_runtime::DispatchErrorWithPostInfo;
-use xcm_executor::traits::CallDispatcher;
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmConfig;
@@ -366,7 +365,6 @@ impl Config for XcmConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = MoonbeamCall;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
