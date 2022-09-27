@@ -54,7 +54,7 @@
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.1",
     "@moonbeam-network/api-augment": "^0.1700.0",
-    "@parity/zombienet": "^1.2.48",
+    "@parity/zombienet": "^1.2.70",
     "@polkadot/api": "^9.3.3",
     "@polkadot/keyring": "^10.1.7",
     "@polkadot/util": "^10.1.7",
