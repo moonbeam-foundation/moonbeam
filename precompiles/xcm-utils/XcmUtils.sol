@@ -20,4 +20,12 @@ interface XcmUtils {
         external
         view
         returns (address account);
+
+    /// Get the weight that a message will consume in our chain
+    /// @custom:selector 25d54154
+    /// @param message scale encoded xcm mversioned xcm message
+    function weightMessage(bytes memory message)
+        external
+        view
+        returns (uint64 weight);
 }

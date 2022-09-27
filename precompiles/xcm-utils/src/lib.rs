@@ -19,18 +19,27 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
+use codec::DecodeLimit;
 use fp_evm::PrecompileHandle;
+use frame_support::traits::ConstU32;
 use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::marker::PhantomData;
-use xcm::latest::{MultiLocation, OriginKind};
+use xcm::{
+	latest::{MultiLocation, OriginKind, Xcm},
+	VersionedXcm, MAX_XCM_DECODE_DEPTH,
+};
 use xcm_executor::traits::ConvertOrigin;
+use xcm_executor::traits::WeightBounds;
 
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
 pub type XcmAccountIdOf<XcmConfig> =
 	<<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin as OriginTrait>::AccountId;
+
+pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
+type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
 
 #[cfg(test)]
 mod mock;
@@ -72,5 +81,32 @@ where
 			)?
 			.into();
 		Ok(Address(account))
+	}
+
+	#[precompile::public("weightMessage(bytes)")]
+	#[precompile::view]
+	fn weight_message(
+		_handle: &mut impl PrecompileHandle,
+		message: BoundedBytes<GetXcmSizeLimit>,
+	) -> EvmResult<u64> {
+		let message: Vec<u8> = message.into();
+
+		let msg =
+			VersionedXcm::<<XcmConfig as xcm_executor::Config>::Call>::decode_all_with_depth_limit(
+				MAX_XCM_DECODE_DEPTH,
+				&mut message.as_slice(),
+			)
+			.map(Xcm::<<XcmConfig as xcm_executor::Config>::Call>::try_from);
+
+		let result = match msg {
+			Ok(Ok(mut x)) => {
+				XcmConfig::Weigher::weight(&mut x).map_err(|_| revert("failed weighting"))
+			}
+			_ => Err(RevertReason::custom("Failed decoding")
+				.in_field("message")
+				.into()),
+		};
+
+		result
 	}
 }
