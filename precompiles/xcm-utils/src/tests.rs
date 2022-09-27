@@ -96,6 +96,21 @@ fn test_weight_message() {
 }
 
 #[test]
+fn test_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let input = PCall::get_units_per_second {
+			multilocation: MultiLocation::parent(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(1)
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(1_000_000_000_000u128).build());
+	});
+}
+
+#[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["XcmUtils.sol"] {
 		for solidity_fn in solidity::get_selectors(file) {

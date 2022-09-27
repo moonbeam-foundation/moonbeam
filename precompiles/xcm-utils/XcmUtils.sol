@@ -28,4 +28,12 @@ interface XcmUtils {
         external
         view
         returns (uint64 weight);
+
+    /// Get units per second charged for a given multilocation
+    /// @custom:selector 3f0f65db
+    /// @param multilocation scale encoded xcm mversioned xcm message
+    function getUnitsPerSecond(Multilocation memory multilocation)
+        external
+        view
+        returns (uint256 unitsPerSecond);
 }

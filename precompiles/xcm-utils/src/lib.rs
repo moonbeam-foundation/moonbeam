@@ -26,13 +26,10 @@ use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
 use sp_core::H160;
 use sp_std::marker::PhantomData;
-use xcm::{
-	latest::{MultiLocation, OriginKind, Xcm},
-	VersionedXcm, MAX_XCM_DECODE_DEPTH,
-};
+use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
-
+use xcm_executor::traits::WeightTrader;
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
 pub type XcmAccountIdOf<XcmConfig> =
@@ -81,6 +78,53 @@ where
 			)?
 			.into();
 		Ok(Address(account))
+	}
+
+	#[precompile::public("getUnitsPerSecond((uint8,bytes[]))")]
+	#[precompile::view]
+	fn get_units_per_second(
+		handle: &mut impl PrecompileHandle,
+		multilocation: MultiLocation,
+	) -> EvmResult<u128> {
+		// TODO: Change once precompiles are benchmarked
+		// for now we charge a db read,
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// We will construct an asset with the max amount, and check how much we
+		// get in return to substract
+		let multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
+		let payment: xcm_executor::Assets = vec![multiasset].into();
+		let weight_per_second = 1_000_000_000_000u64;
+		let mut trader = XcmConfig::Trader::new();
+		let remaining: Vec<xcm::latest::MultiAsset> = trader
+			.buy_weight(weight_per_second, payment.clone())
+			.map_err(|_| revert("error retrieving info"))?
+			.into();
+
+		// If remaining is empty, it means we spent the whole max u128,
+		// shouldnt happen
+		let remaining_asset = remaining
+			.first()
+			.ok_or(revert("spent whole weight, shouldnt happen"))?;
+
+		let paid_assets: Vec<xcm::latest::MultiAsset> = payment
+			.clone()
+			.checked_sub(remaining_asset.clone())
+			.map_err(|_| revert("error retrieving info"))?
+			.into();
+
+		// Its safe to assume that if paid_assets is empty, is because we didnt
+		// consume anything
+		match paid_assets
+			.first()
+			.unwrap_or(&(multilocation, 0u128).into())
+		{
+			MultiAsset {
+				id: Concrete(_),
+				fun: Fungible(amount),
+			} => Ok(*amount),
+			_ => Err(revert("Something went wrong")),
+		}
 	}
 
 	#[precompile::public("weightMessage(bytes)")]

@@ -388,8 +388,13 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
-		Ok(Assets::default())
+	fn buy_weight(&mut self, weight: Weight, payment: Assets) -> Result<Assets, XcmError> {
+		let asset_to_charge: MultiAsset = (MultiLocation::parent(), weight as u128).into();
+		let unused = payment
+			.checked_sub(asset_to_charge)
+			.map_err(|_| XcmError::TooExpensive)?;
+
+		Ok(unused)
 	}
 }
 
