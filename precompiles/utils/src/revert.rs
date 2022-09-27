@@ -17,7 +17,7 @@
 //! Utilities to work with revert messages with support for backtraces and
 //! consistent formatting.
 
-use crate::{Bytes, EvmDataWriter};
+use crate::{data::UnboundedBytes, EvmDataWriter};
 use alloc::string::{String, ToString};
 use fp_evm::{ExitRevert, PrecompileFailure};
 use sp_std::vec::Vec;
@@ -362,7 +362,7 @@ impl From<Revert> for PrecompileFailure {
 		PrecompileFailure::Revert {
 			exit_status: ExitRevert::Reverted,
 			output: EvmDataWriter::new_with_selector(RevertSelector::Generic)
-				.write::<Bytes>(Bytes(err.to_string().into()))
+				.write::<UnboundedBytes>(err.to_string().into())
 				.build(),
 		}
 	}

@@ -25,3 +25,8 @@ indent_size=2
 
 [*.md]
 trim_trailing_whitespace=false
+
+[*.expanded.rs]
+indent_style=off
+indent_size=off
+max_line_length=off
