@@ -195,8 +195,6 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -283,9 +281,7 @@
 
 		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
 
-		<span class="comment">// Disallow re-adding proxy via precompile to prevent privilege escalation attack.</span>
-		<span class="comment">// If a proxy account manages to call this precompile via `pallet_proxy.proxy` they can</span>
-		<span class="comment">// escalate their own privileges.</span>
+		<span class="comment">// Disallow re-adding proxy via precompile to prevent re-entrancy.</span>
 		<span class="comment">// See: https://github.com/PureStake/sr-moonbeam/issues/30</span>
 		<span class="comment">// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and</span>
 		<span class="comment">// filtered via CallFilter</span>
