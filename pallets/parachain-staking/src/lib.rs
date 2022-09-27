@@ -1560,6 +1560,22 @@ pub mod pallet {
 				return (None, 0u64.into());
 			}
 
+			// let mint = |amt: BalanceOf<T>,
+			//             to: T::AccountId|
+			//  -> Option<
+			// 	<<T as Config>::Currency as frame_support::traits::Currency<T::AccountId>>::PositiveImbalance,
+			// > {
+			// 	if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+			// 		Self::deposit_event(Event::Rewarded {
+			// 			account: to.clone(),
+			// 			rewards: amount_transferred.peek(),
+			// 		});
+			// 		Some(amount_transferred)
+			// 	} else {
+			// 		None
+			// 	}
+			// };
+
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 

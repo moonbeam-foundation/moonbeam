@@ -448,7 +448,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegatorState (r:1 w:0)
 	// Storage: ParachainStaking AutoCompoundingInfo (r:1 w:1)
 	#[rustfmt::skip]
-	fn delegation_set_auto_compounding_reward(_x: u32, y: u32, ) -> Weight {
+	fn delegation_set_auto_compounding_reward(_x: u32, _y: u32, ) -> Weight {
 		(82_120_000 as Weight)
 			.saturating_add(T::DbWeight::get().reads(2 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
@@ -782,7 +782,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking DelegatorState (r:1 w:0)
 	// Storage: ParachainStaking AutoCompoundingInfo (r:1 w:1)
 	#[rustfmt::skip]
-	fn delegation_set_auto_compounding_reward(_x: u32, y: u32, ) -> Weight {
+	fn delegation_set_auto_compounding_reward(_x: u32, _y: u32, ) -> Weight {
 		(82_120_000 as Weight)
 			.saturating_add(RocksDbWeight::get().reads(2 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
