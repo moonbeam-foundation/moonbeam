@@ -8877,6 +8877,55 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 }
 
 #[test]
+fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_exists() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 200), (3, 200)])
+		.with_candidates(vec![(1, 100)])
+		.with_delegations(vec![(2, 1, 200), (3, 1, 200)])
+		.build()
+		.execute_with(|| {
+			(2..=5).for_each(|round| set_author(round, 1, 1));
+			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+				Origin::signed(2),
+				1,
+				Percent::from_percent(50),
+				1,
+				0,
+			));
+			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+				Origin::signed(3),
+				1,
+				Percent::from_percent(50),
+				1,
+				1,
+			));
+			roll_to_round_begin(3);
+
+			// schedule revoke for delegator 2; no rewards should be compounded
+			assert_ok!(ParachainStaking::schedule_revoke_delegation(
+				Origin::signed(2),
+				1
+			));
+			roll_to_round_begin(4);
+
+			assert_eq_last_events!(vec![
+				// 0
+				Event::<Test>::RewardedWithCompound {
+					account: 2,
+					rewards: 8,
+					compounded: 0,
+				},
+				// 50%
+				Event::<Test>::RewardedWithCompound {
+					account: 3,
+					rewards: 8,
+					compounded: 4,
+				},
+			]);
+		});
+}
+
+#[test]
 fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 100), (2, 200), (3, 200), (4, 200), (5, 200)])
@@ -8910,31 +8959,22 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 
 			assert_eq_last_events!(vec![
 				// 0%
-				Event::<Test>::Rewarded {
+				Event::<Test>::RewardedWithCompound {
 					account: 2,
 					rewards: 8,
+					compounded: 0,
 				},
 				// 50%
-				Event::<Test>::Rewarded {
+				Event::<Test>::RewardedWithCompound {
 					account: 3,
 					rewards: 8,
-				},
-				Event::<Test>::DelegationIncreased {
-					delegator: 3,
-					candidate: 1,
-					amount: 4,
-					in_top: true,
+					compounded: 4,
 				},
 				// 100%
-				Event::<Test>::Rewarded {
+				Event::<Test>::RewardedWithCompound {
 					account: 4,
 					rewards: 8,
-				},
-				Event::<Test>::DelegationIncreased {
-					delegator: 4,
-					candidate: 1,
-					amount: 8,
-					in_top: true,
+					compounded: 8,
 				},
 				// no-config
 				Event::<Test>::Rewarded {

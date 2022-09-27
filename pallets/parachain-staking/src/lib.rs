@@ -412,6 +412,12 @@ pub mod pallet {
 			delegator: T::AccountId,
 			value: Percent,
 		},
+		/// Paid the account (delegator or collator) the balance as liquid rewards.
+		RewardedWithCompound {
+			account: T::AccountId,
+			rewards: BalanceOf<T>,
+			compounded: BalanceOf<T>,
+		},
 	}
 
 	#[pallet::hooks]
@@ -1299,12 +1305,18 @@ pub mod pallet {
 			more: BalanceOf<T>,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			ensure!(
-				!Self::delegation_request_revoke_exists(&candidate, &delegator),
-				Error::<T>::PendingDelegationRevoke
-			);
-			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
-			state.increase_delegation::<T>(candidate.clone(), more)?;
+			let in_top = Self::delegation_bond_more_without_event(
+				delegator.clone(),
+				candidate.clone(),
+				more.clone(),
+			)?;
+			Pallet::<T>::deposit_event(Event::DelegationIncreased {
+				delegator,
+				candidate,
+				amount: more,
+				in_top,
+			});
+
 			Ok(().into())
 		}
 
@@ -1548,22 +1560,6 @@ pub mod pallet {
 				return (None, 0u64.into());
 			}
 
-			// let mint = |amt: BalanceOf<T>,
-			//             to: T::AccountId|
-			//  -> Option<
-			// 	<<T as Config>::Currency as frame_support::traits::Currency<T::AccountId>>::PositiveImbalance,
-			// > {
-			// 	if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
-			// 		Self::deposit_event(Event::Rewarded {
-			// 			account: to.clone(),
-			// 			rewards: amount_transferred.peek(),
-			// 		});
-			// 		Some(amount_transferred)
-			// 	} else {
-			// 		None
-			// 	}
-			// };
-
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
@@ -1609,16 +1605,18 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							Self::mint_and_compound(
-								due,
-								auto_compounding_delegations
-									.get(&owner)
-									.cloned()
-									.unwrap_or_else(|| Percent::zero()),
-								collator.clone(),
-								owner.clone(),
-							);
-							// mint(due, owner.clone());
+							if let Some(auto_compound_percent) =
+								auto_compounding_delegations.get(&owner)
+							{
+								Self::mint_and_compound(
+									due,
+									auto_compound_percent.clone(),
+									collator.clone(),
+									owner.clone(),
+								);
+							} else {
+								Self::mint(due, owner.clone());
+							}
 						}
 					}
 				}
@@ -1769,47 +1767,71 @@ pub mod pallet {
 			}
 		}
 
-		fn mint(
-			amt: BalanceOf<T>,
-			to: T::AccountId,
-		) -> Option<
-		<<T as Config>::Currency as frame_support::traits::Currency<T::AccountId>>::PositiveImbalance,
-		>{
+		/// This function exists as a helper to delegator_bond_more & auto_compound functionality.
+		/// Any changes to this function must align with both user-initiated bond increases and
+		/// auto-compounding bond increases.
+		/// Any feature-specific preconditions should be validated before this function is invoked.
+		/// Any feature-specific events must be emitted after this function is invoked.
+		pub fn delegation_bond_more_without_event(
+			delegator: T::AccountId,
+			candidate: T::AccountId,
+			more: BalanceOf<T>,
+		) -> Result<bool, sp_runtime::DispatchError> {
+			ensure!(
+				!Self::delegation_request_revoke_exists(&candidate, &delegator),
+				Error::<T>::PendingDelegationRevoke
+			);
+			let mut state = <DelegatorState<T>>::get(&delegator).ok_or(Error::<T>::DelegatorDNE)?;
+			state.increase_delegation::<T>(candidate.clone(), more)
+		}
+
+		/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
+		fn mint(amt: BalanceOf<T>, to: T::AccountId) {
 			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
 				Self::deposit_event(Event::Rewarded {
 					account: to.clone(),
 					rewards: amount_transferred.peek(),
 				});
-				Some(amount_transferred)
-			} else {
-				None
 			}
 		}
 
+		/// Mint and compound delegation rewards. The function mints the amount towards the
+		/// delegator and tries to compound a specified percent of it back towards the delegation.
+		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
+		/// compounded. Emits the [RewardedWithCompound] event.
 		fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) {
-			if let Some(amount_transferred) = Self::mint(amt, delegator.clone()) {
-				if compound_percent.is_zero() {
-					return;
+			if let Ok(amount_transferred) =
+				T::Currency::deposit_into_existing(&delegator, amt.clone())
+			{
+				let mut compound_amount = compound_percent * amount_transferred.peek();
+				if !compound_amount.is_zero() {
+					if let Err(err) = Self::delegation_bond_more_without_event(
+						delegator.clone(),
+						candidate.clone(),
+						compound_amount.clone(),
+					) {
+						log::error!(
+									"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+									candidate,
+									delegator,
+									err
+								);
+						// an error occurred, set compounded amount to 0
+						compound_amount = <BalanceOf<T>>::zero();
+					};
 				}
-				let compound_amount = compound_percent * amount_transferred.peek();
-				if let Err(err) = Self::delegator_bond_more(
-					T::Origin::from(Some(delegator.clone()).into()),
-					candidate.clone(),
-					compound_amount,
-				) {
-					log::error!(
-								"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-								candidate,
-								delegator,
-								err
-							);
-				}
-			}
+
+				Pallet::<T>::deposit_event(Event::RewardedWithCompound {
+					account: delegator.clone(),
+					rewards: amount_transferred.peek(),
+					compounded: compound_amount.clone(),
+				});
+			};
 		}
 	}
 

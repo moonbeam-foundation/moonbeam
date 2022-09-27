@@ -1395,7 +1395,7 @@ impl<
 		&mut self,
 		candidate: AccountId,
 		amount: Balance,
-	) -> DispatchResult
+	) -> Result<bool, sp_runtime::DispatchError>
 	where
 		BalanceOf<T>: From<Balance>,
 		T::AccountId: From<AccountId>,
@@ -1431,13 +1431,8 @@ impl<
 				<Total<T>>::put(new_total_staked);
 				let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
 				<DelegatorState<T>>::insert(&delegator_id, nom_st);
-				Pallet::<T>::deposit_event(Event::DelegationIncreased {
-					delegator: delegator_id,
-					candidate: candidate_id,
-					amount: balance_amt,
-					in_top: in_top,
-				});
-				return Ok(());
+				// todo emit event
+				return Ok(in_top);
 			}
 		}
 		Err(Error::<T>::DelegationDNE.into())
