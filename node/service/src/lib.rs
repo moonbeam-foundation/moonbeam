@@ -55,7 +55,7 @@ use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
 use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
+	error::Error as ServiceError, BasePath, BlocksPruning, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -1119,7 +1119,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role,
+		Configuration, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1236,10 +1236,9 @@ mod tests {
 				path: "db".into(),
 				cache_size: 128,
 			},
-			state_cache_size: 16777216,
-			state_cache_child_ratio: None,
+			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			keep_blocks: KeepBlocks::All,
+			blocks_pruning: BlocksPruning::All,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

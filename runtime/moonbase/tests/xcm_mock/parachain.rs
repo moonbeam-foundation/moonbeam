@@ -338,7 +338,6 @@ parameter_types! {
 use frame_system::RawOrigin;
 use sp_runtime::traits::PostDispatchInfoOf;
 use sp_runtime::DispatchErrorWithPostInfo;
-moonbeam_runtime_common::impl_moonbeam_xcm_call!();
 
 pub struct XcmConfig;
 impl Config for XcmConfig {
