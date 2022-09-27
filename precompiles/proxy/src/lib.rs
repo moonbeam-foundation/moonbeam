@@ -24,7 +24,7 @@ use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
-use sp_runtime::codec::Decode;
+use sp_runtime::{codec::Decode, traits::StaticLookup};
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -75,8 +75,6 @@ where
 		proxy_type: u8,
 		delay: u32,
 	) -> EvmResult {
-		panic!("fixme");
-		/*
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
 			.map_err(|_| {
@@ -101,6 +99,8 @@ where
 			return Err(revert("Cannot add more than one proxy"));
 		}
 
+		let delegate: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
 		let call = ProxyCall::<Runtime>::add_proxy {
 			delegate,
 			proxy_type,
@@ -111,7 +111,6 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
-		*/
 	}
 
 	/// Unregister a proxy account for the sender.
@@ -128,8 +127,6 @@ where
 		proxy_type: u8,
 		delay: u32,
 	) -> EvmResult {
-		panic!("fixme");
-		/*
 		let delegate = Runtime::AddressMapping::into_account_id(delegate.into());
 		let proxy_type = Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice())
 			.map_err(|_| {
@@ -137,6 +134,8 @@ where
 			})?;
 		let delay = delay.into();
 
+		let delegate: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxy {
 			delegate,
@@ -148,7 +147,6 @@ where
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
-		*/
 	}
 
 	/// Unregister all proxy accounts for the sender.

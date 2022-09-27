@@ -22,6 +22,7 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{ConstU32, Currency};
+use sp_runtime::traits::StaticLookup;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Conviction, Vote};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -300,8 +301,6 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
-		panic!("fixme");
-		/*
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -309,16 +308,13 @@ where
 				.in_field("conviction")
 		})?;
 
-		// let to = Runtime::AddressMapping::into_account_id(representative.into());
-		use sp_runtime::traits::StaticLookup;
-		let to: <<Runtime as frame_system::Config>::Lookup as StaticLookup>::Source =
-			Runtime::AddressMapping::into_account_id(representative.into()).into();
-
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
-			to, conviction, amount
+			representative, conviction, amount
 		);
 
+		let representative = Runtime::AddressMapping::into_account_id(representative.into());
+		let to: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(representative.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
@@ -329,7 +325,6 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
-		*/
 	}
 
 	#[precompile::public("unDelegate()")]
@@ -345,10 +340,9 @@ where
 
 	#[precompile::public("unlock(address)")]
 	fn unlock(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
-		panic!("fixme");
-		/*
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
+		let target: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(target.clone());
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -361,7 +355,6 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
-		*/
 	}
 
 	#[precompile::public("notePreimage(bytes)")]
