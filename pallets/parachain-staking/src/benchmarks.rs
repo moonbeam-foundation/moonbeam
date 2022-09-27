@@ -129,15 +129,11 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 
 const USER_SEED: u32 = 999666;
 struct Seed {
-	inner: u32,
+	pub inner: u32,
 }
 impl Seed {
 	fn new() -> Self {
 		Seed { inner: USER_SEED }
-	}
-
-	pub fn peek(&self) -> u32 {
-		self.inner
 	}
 
 	pub fn take(&mut self) -> u32 {
@@ -1201,8 +1197,8 @@ benchmarks! {
 		let x in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 
-		use crate::AutoCompoundingInfo;
-		use crate::auto_compounding::{AutoCompounding, AutoCompoundingDelegation};
+		use crate::AutoCompoundingDelegations;
+		use crate::auto_compounding::{self, DelegationAutoCompoundConfig};
 
 		let min_candidate_stake = min_candidate_stk::<T>();
 		let min_delegator_stake = min_delegator_stk::<T>();
@@ -1248,7 +1244,7 @@ benchmarks! {
 		// have y-1 distinct auto-compounding delegators delegate to prime collator
 		// we directly set the storage, since benchmarks don't work when the same extrinsic is
 		// called from within the benchmark.
-		let mut auto_compound = AutoCompounding::new(prime_candidate.clone());
+		let mut auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&prime_candidate);
 		for i in 1..y {
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
@@ -1258,15 +1254,15 @@ benchmarks! {
 				true,
 				i,
 			)?;
-			auto_compound.set_delegation_value(delegator, Percent::from_percent(100));
+			auto_compounding::set_delegation_config(&mut auto_compounding_delegations, delegator, Percent::from_percent(100));
 		}
-		<AutoCompoundingInfo<T>>::insert(prime_candidate.clone(), auto_compound);
+		<AutoCompoundingDelegations<T>>::insert(prime_candidate.clone(), auto_compounding_delegations);
 	}: {
 		Pallet::<T>::delegation_set_auto_compounding_reward(RawOrigin::Signed(prime_delegator.clone()).into(), prime_candidate.clone(), Percent::from_percent(50), x+1, y+1)?;
 	}
 	verify {
-		let actual_auto_compound = <AutoCompoundingInfo<T>>::get(&prime_candidate).expect("candidate's auto-compounding entry must exist").delegations.into_iter().find(|d| d.delegator == prime_delegator);
-		let expected_auto_compound = Some(AutoCompoundingDelegation{
+		let actual_auto_compound = <AutoCompoundingDelegations<T>>::get(&prime_candidate).into_iter().find(|d| d.delegator == prime_delegator);
+		let expected_auto_compound = Some(DelegationAutoCompoundConfig{
 			delegator: prime_delegator,
 			value: Percent::from_percent(50)
 		});

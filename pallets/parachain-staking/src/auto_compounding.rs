@@ -16,110 +16,63 @@
 
 //! Auto-compounding functionality for staking rewards
 
-use crate::pallet::{
-	AutoCompoundingInfo, CandidateInfo, Config, DelegatorState, Error, Event, Pallet,
-};
+use crate::pallet::{AutoCompoundingDelegations, Config, DelegatorState, Error, Event, Pallet};
 use frame_support::ensure;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::Percent;
-use sp_std::{vec, vec::Vec};
+use sp_std::vec::Vec;
 
 /// Represents the auto-compounding amount for a delegation.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
-pub struct AutoCompoundingDelegation<AccountId> {
+pub struct DelegationAutoCompoundConfig<AccountId> {
 	pub delegator: AccountId,
 	pub value: Percent,
 }
 
-impl<AccountId> AutoCompoundingDelegation<AccountId>
-where
-	AccountId: Eq,
-{
-	/// Create a new [AutoCompoundingDelegation] object.
-	pub fn new(delegator: AccountId) -> Self {
-		AutoCompoundingDelegation {
+/// Sets the auto-compounding value for a delegation.
+pub fn set_delegation_config<AccountId: Eq>(
+	delegations_config: &mut Vec<DelegationAutoCompoundConfig<AccountId>>,
+	delegator: AccountId,
+	value: Percent,
+) {
+	let maybe_delegation = delegations_config
+		.iter_mut()
+		.find(|entry| entry.delegator == delegator);
+
+	let mut delegation = if let Some(delegation) = maybe_delegation {
+		delegation
+	} else {
+		delegations_config.push(DelegationAutoCompoundConfig {
 			delegator,
 			value: Percent::zero(),
-		}
-	}
+		});
+		delegations_config.last_mut().expect("cannot fail; qed")
+	};
+
+	delegation.value = value;
 }
 
-/// Represents the auto-compounding amount for a collator and its delegations.
-#[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
-pub struct AutoCompounding<AccountId> {
-	pub candidate: AccountId,
-	pub value: Percent,
-	pub delegations: Vec<AutoCompoundingDelegation<AccountId>>,
-}
-
-impl<AccountId> AutoCompounding<AccountId>
-where
-	AccountId: Eq,
-{
-	/// Create a new [AutoCompounding] object.
-	pub fn new(candidate: AccountId) -> Self {
-		AutoCompounding {
-			candidate,
-			value: Percent::zero(),
-			delegations: vec![],
-		}
-	}
-
-	/// Sets the auto-compounding value for a delegation.
-	pub fn set_delegation_value(&mut self, delegator: AccountId, value: Percent) {
-		let maybe_delegation = self
-			.delegations
-			.iter_mut()
-			.find(|entry| entry.delegator == delegator);
-
-		let mut delegation = if let Some(delegation) = maybe_delegation {
-			delegation
-		} else {
-			let new_entry = AutoCompoundingDelegation::new(delegator);
-			self.delegations.push(new_entry);
-			self.delegations.last_mut().expect("cannot fail; qed")
-		};
-
-		delegation.value = value;
-	}
-
-	/// Removes the auto-compounding value for a delegation.
-	pub fn remove_delegation_value(&mut self, delegator: &AccountId) {
-		if let Some(index) = self
-			.delegations
-			.iter()
-			.position(|entry| &entry.delegator == delegator)
-		{
-			self.delegations.remove(index);
-		}
+/// Removes the auto-compounding value for a delegation.
+pub fn remove_delegation_config<AccountId: Eq>(
+	delegations_config: &mut Vec<DelegationAutoCompoundConfig<AccountId>>,
+	delegator: &AccountId,
+) -> bool {
+	if let Some(index) = delegations_config
+		.iter()
+		.position(|entry| &entry.delegator == delegator)
+	{
+		delegations_config.remove(index);
+		true
+	} else {
+		false
 	}
 }
 
 impl<T: Config> Pallet<T> {
-	/// Sets the auto-compounding value for a candidate.
-	pub(crate) fn candidate_set_auto_compounding(
-		candidate: T::AccountId,
-		value: Percent,
-	) -> DispatchResultWithPostInfo {
-		ensure!(
-			<CandidateInfo<T>>::get(&candidate).is_some(),
-			<Error<T>>::CandidateDNE,
-		);
-
-		let mut state = <AutoCompoundingInfo<T>>::get(&candidate)
-			.unwrap_or_else(|| AutoCompounding::new(candidate.clone()));
-		state.value = value;
-
-		<AutoCompoundingInfo<T>>::insert(candidate.clone(), state);
-		Self::deposit_event(Event::CandidateAutoCompoundingSet { candidate, value });
-
-		Ok(().into())
-	}
-
 	/// Sets the auto-compounding value for a delegation.
-	pub(crate) fn delegation_set_auto_compounding(
+	pub(crate) fn delegation_set_auto_compounding_config(
 		candidate: T::AccountId,
 		delegator: T::AccountId,
 		value: Percent,
@@ -141,15 +94,14 @@ impl<T: Config> Pallet<T> {
 			<Error<T>>::DelegationDNE,
 		);
 
-		let mut state = <AutoCompoundingInfo<T>>::get(&candidate)
-			.unwrap_or_else(|| AutoCompounding::new(candidate.clone()));
-
+		let mut auto_compounding_state = <AutoCompoundingDelegations<T>>::get(&candidate);
 		ensure!(
-			state.delegations.len() <= candidate_auto_compounding_delegation_count_hint as usize,
+			auto_compounding_state.len()
+				<= candidate_auto_compounding_delegation_count_hint as usize,
 			<Error<T>>::TooLowCandidateAutoCompoundingDelegationCountToAutoCompound,
 		);
-		state.set_delegation_value(delegator.clone(), value);
-		<AutoCompoundingInfo<T>>::insert(candidate.clone(), state);
+		set_delegation_config(&mut auto_compounding_state, delegator.clone(), value);
+		<AutoCompoundingDelegations<T>>::insert(candidate.clone(), auto_compounding_state);
 		Self::deposit_event(Event::DelegationAutoCompoundingSet {
 			candidate,
 			delegator,
@@ -160,14 +112,63 @@ impl<T: Config> Pallet<T> {
 	}
 
 	/// Removes the auto-compounding value for a delegation. This should be called when the
-	/// delegation is revoked to cleanup storage.
-	pub(crate) fn delegation_remove_auto_compounding(
+	/// delegation is revoked to cleanup storage. Storage is only written iff the entry existed.
+	pub(crate) fn delegation_remove_auto_compounding_config(
 		candidate: &T::AccountId,
 		delegator: &T::AccountId,
 	) {
-		if let Some(mut state) = <AutoCompoundingInfo<T>>::get(candidate) {
-			state.remove_delegation_value(delegator);
-			<AutoCompoundingInfo<T>>::insert(candidate, state);
+		let mut auto_compounding_state = <AutoCompoundingDelegations<T>>::get(candidate);
+		if remove_delegation_config(&mut auto_compounding_state, delegator) {
+			<AutoCompoundingDelegations<T>>::insert(candidate, auto_compounding_state);
 		}
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_set_delegation_config_inserts_config_if_entry_missing() {
+		let mut delegations_config = vec![];
+		set_delegation_config(&mut delegations_config, 1, Percent::from_percent(50));
+		assert_eq!(
+			vec![DelegationAutoCompoundConfig {
+				delegator: 1,
+				value: Percent::from_percent(50),
+			}],
+			delegations_config,
+		);
+	}
+
+	#[test]
+	fn test_set_delegation_config_updates_config_if_entry_exists() {
+		let mut delegations_config = vec![DelegationAutoCompoundConfig {
+			delegator: 1,
+			value: Percent::from_percent(10),
+		}];
+		set_delegation_config(&mut delegations_config, 1, Percent::from_percent(50));
+		assert_eq!(
+			vec![DelegationAutoCompoundConfig {
+				delegator: 1,
+				value: Percent::from_percent(50),
+			}],
+			delegations_config,
+		);
+	}
+
+	#[test]
+	fn test_remove_delegation_config_returns_false_if_entry_was_missing() {
+		let mut delegations_config = vec![];
+		assert_eq!(false, remove_delegation_config(&mut delegations_config, &1),);
+	}
+
+	#[test]
+	fn test_remove_delegation_config_returns_true_if_entry_existed() {
+		let mut delegations_config = vec![DelegationAutoCompoundConfig {
+			delegator: 1,
+			value: Percent::from_percent(10),
+		}];
+		assert_eq!(true, remove_delegation_config(&mut delegations_config, &1));
 	}
 }

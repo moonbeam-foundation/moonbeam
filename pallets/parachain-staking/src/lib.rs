@@ -68,7 +68,7 @@ use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 use weights::WeightInfo;
 
-pub use auto_compounding::AutoCompounding;
+pub use auto_compounding::DelegationAutoCompoundConfig;
 pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 pub use pallet::*;
 pub use traits::*;
@@ -80,7 +80,7 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	use crate::AutoCompounding;
+	use crate::DelegationAutoCompoundConfig;
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
@@ -88,7 +88,6 @@ pub mod pallet {
 		ReservableCurrency,
 	};
 	use frame_system::pallet_prelude::*;
-	use parity_scale_codec::Decode;
 	use sp_runtime::{
 		traits::{Saturating, Zero},
 		Perbill, Percent,
@@ -407,11 +406,6 @@ pub mod pallet {
 			new_per_round_inflation_ideal: Perbill,
 			new_per_round_inflation_max: Perbill,
 		},
-		/// Auto-compounding reward percent was set for a candidate.
-		CandidateAutoCompoundingSet {
-			candidate: T::AccountId,
-			value: Percent,
-		},
 		/// Auto-compounding reward percent was set for a delegation.
 		DelegationAutoCompoundingSet {
 			candidate: T::AccountId,
@@ -520,9 +514,14 @@ pub mod pallet {
 
 	/// Stores auto-compounding configuration per collator.
 	#[pallet::storage]
-	#[pallet::getter(fn auto_compounding_info)]
-	pub(crate) type AutoCompoundingInfo<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::AccountId, AutoCompounding<T::AccountId>, OptionQuery>;
+	#[pallet::getter(fn auto_compounding_delegations)]
+	pub(crate) type AutoCompoundingDelegations<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		T::AccountId,
+		Vec<DelegationAutoCompoundConfig<T::AccountId>>,
+		ValueQuery,
+	>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn top_delegations)]
@@ -989,7 +988,7 @@ pub mod pallet {
 						&bond.owner,
 						&mut delegator,
 					);
-					Self::delegation_remove_auto_compounding(&candidate, &bond.owner);
+					Self::delegation_remove_auto_compounding_config(&candidate, &bond.owner);
 
 					if remaining.is_zero() {
 						// we do not remove the scheduled delegation requests from other collators
@@ -1027,7 +1026,7 @@ pub mod pallet {
 			T::Currency::remove_lock(COLLATOR_LOCK_ID, &candidate);
 			<CandidateInfo<T>>::remove(&candidate);
 			<DelegationScheduledRequests<T>>::remove(&candidate);
-			<AutoCompoundingInfo<T>>::remove(&candidate);
+			<AutoCompoundingDelegations<T>>::remove(&candidate);
 			<TopDelegations<T>>::remove(&candidate);
 			<BottomDelegations<T>>::remove(&candidate);
 			let new_total_staked = <Total<T>>::get().saturating_sub(total_backing);
@@ -1341,20 +1340,9 @@ pub mod pallet {
 			Self::delegation_cancel_request(candidate, delegator)
 		}
 
-		/// Sets the auto-compounding reward percentage for a candidate.
-		/// @todo: benchmark for weight
-		#[pallet::weight(1000)]
-		pub fn candidate_set_auto_compounding_reward(
-			origin: OriginFor<T>,
-			value: Percent,
-		) -> DispatchResultWithPostInfo {
-			let candidate = ensure_signed(origin)?;
-			Self::candidate_set_auto_compounding(candidate, value)
-		}
-
 		/// Sets the auto-compounding reward percentage for a delegation.
 		/// /// @todo: benchmark for weight
-		#[pallet::weight(<T as Config>::WeightInfo::delegation_set_auto_compounding_reward(
+		#[pallet::weight(<T as Config>::WeightInfo::delegation_set_auto_compounding(
 			*delegation_count_hint,
 			*candidate_auto_compounding_delegation_count_hint,
 		))]
@@ -1366,7 +1354,7 @@ pub mod pallet {
 			candidate_auto_compounding_delegation_count_hint: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegation_set_auto_compounding(
+			Self::delegation_set_auto_compounding_config(
 				candidate,
 				delegator,
 				value,
@@ -1584,10 +1572,7 @@ pub mod pallet {
 			{
 				// @todo: we can alternatively snapshot these values with rewardable delegators
 				//		  but that requires changing/migrating CollatorSnapshot
-				let auto_compounding = <AutoCompoundingInfo<T>>::get(&collator)
-					.unwrap_or_else(|| AutoCompounding::new(collator.clone()));
-				let auto_compounding_delegations = auto_compounding
-					.delegations
+				let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&collator)
 					.into_iter()
 					.map(|x| (x.delegator, x.value))
 					.collect::<BTreeMap<_, _>>();
@@ -1601,13 +1586,7 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					Self::mint_and_compound(
-						amt_due,
-						auto_compounding.value,
-						collator.clone(),
-						None,
-					);
-					// mint(amt_due, collator.clone());
+					Self::mint(amt_due, collator.clone());
 					extra_weight += T::OnCollatorPayout::on_collator_payout(
 						paid_for_round,
 						collator.clone(),
@@ -1619,13 +1598,7 @@ pub mod pallet {
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					Self::mint_and_compound(
-						collator_reward,
-						auto_compounding.value,
-						collator.clone(),
-						None,
-					);
-					// mint(collator_reward, collator.clone());
+					Self::mint(collator_reward, collator.clone());
 					extra_weight += T::OnCollatorPayout::on_collator_payout(
 						paid_for_round,
 						collator.clone(),
@@ -1643,7 +1616,7 @@ pub mod pallet {
 									.cloned()
 									.unwrap_or_else(|| Percent::zero()),
 								collator.clone(),
-								Some(owner.clone()),
+								owner.clone(),
 							);
 							// mint(due, owner.clone());
 						}
@@ -1796,63 +1769,45 @@ pub mod pallet {
 			}
 		}
 
+		fn mint(
+			amt: BalanceOf<T>,
+			to: T::AccountId,
+		) -> Option<
+		<<T as Config>::Currency as frame_support::traits::Currency<T::AccountId>>::PositiveImbalance,
+		>{
+			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
+				Self::deposit_event(Event::Rewarded {
+					account: to.clone(),
+					rewards: amount_transferred.peek(),
+				});
+				Some(amount_transferred)
+			} else {
+				None
+			}
+		}
+
 		fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
 			candidate: T::AccountId,
-			delegator: Option<T::AccountId>,
+			delegator: T::AccountId,
 		) {
-			let mint = |amt: BalanceOf<T>,
-			            to: T::AccountId|
-			 -> Option<
-				<<T as Config>::Currency as frame_support::traits::Currency<T::AccountId>>::PositiveImbalance,
-			> {
-				if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
-					Self::deposit_event(Event::Rewarded {
-						account: to.clone(),
-						rewards: amount_transferred.peek(),
-					});
-					Some(amount_transferred)
-				} else {
-					None
+			if let Some(amount_transferred) = Self::mint(amt, delegator.clone()) {
+				if compound_percent.is_zero() {
+					return;
 				}
-			};
-
-			if let Some(delegator) = delegator {
-				if let Some(amount_transferred) = mint(amt, delegator.clone()) {
-					if compound_percent.is_zero() {
-						return;
-					}
-					let compound_amount = compound_percent * amount_transferred.peek();
-					if let Err(err) = Self::delegator_bond_more(
-						T::Origin::from(Some(delegator.clone()).into()),
-						candidate.clone(),
-						compound_amount,
-					) {
-						log::error!(
-									"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-									candidate,
-									delegator,
-									err
-								);
-					}
-				}
-			} else {
-				if let Some(amount_transferred) = mint(amt, candidate.clone()) {
-					if compound_percent.is_zero() {
-						return;
-					}
-					let compound_amount = compound_percent * amount_transferred.peek();
-					if let Err(err) = Self::candidate_bond_more(
-						T::Origin::from(Some(candidate.clone()).into()),
-						compound_amount,
-					) {
-						log::error!(
-							"Error compounding staking reward for candidate '{:?}': {:?}",
-							candidate,
-							err
-						);
-					}
+				let compound_amount = compound_percent * amount_transferred.peek();
+				if let Err(err) = Self::delegator_bond_more(
+					T::Origin::from(Some(delegator.clone()).into()),
+					candidate.clone(),
+					compound_amount,
+				) {
+					log::error!(
+								"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+								candidate,
+								delegator,
+								err
+							);
 				}
 			}
 		}
