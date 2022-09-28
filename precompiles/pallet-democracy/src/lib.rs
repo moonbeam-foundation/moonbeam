@@ -22,11 +22,11 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{ConstU32, Currency};
-use sp_runtime::traits::StaticLookup;
 use pallet_democracy::{AccountVote, Call as DemocracyCall, Conviction, Vote};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
+use sp_runtime::traits::StaticLookup;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -314,7 +314,8 @@ where
 		);
 
 		let representative = Runtime::AddressMapping::into_account_id(representative.into());
-		let to: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(representative.clone());
+		let to: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(representative.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
@@ -342,7 +343,8 @@ where
 	fn unlock(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
-		let target: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(target.clone());
+		let target: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(target.clone());
 
 		log::trace!(
 			target: "democracy-precompile",
