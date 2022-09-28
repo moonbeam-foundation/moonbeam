@@ -32,7 +32,7 @@ export async function createAndFinalizeBlock(
 
   return {
     duration: Date.now() - startTime,
-    hash: block.get("hash").toString(),
+    hash: (block.hash || block.get("hash")).toString(),
   };
 }
 
