@@ -25,7 +25,7 @@ use frame_support::traits::ConstU32;
 use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
 use sp_core::H160;
-use sp_std::marker::PhantomData;
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
