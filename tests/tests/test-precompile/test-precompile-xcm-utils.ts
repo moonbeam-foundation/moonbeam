@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { u8aToHex } from "@polkadot/util";
+import { u8aToHex, bnToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
 import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../../util/constants";
@@ -120,5 +120,28 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
 
     const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
     expect(result.result).to.equal(`0x${descendOriginAddress.slice(2).padStart(64, "0")}`);
+  });
+
+  it("allows to retrieve weight of message", async function () {
+    const message = {
+      V2: [
+        {
+          ClearOrigin: null
+        }
+      ],
+    };
+
+    const xcm = await context.polkadotApi.createType("VersionedXcm", message);
+
+    const result = await web3EthCall(context.web3, {
+      to: PRECOMPILE_XCM_UTILS_ADDRESS,
+      data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [
+        xcm.toU8a(),
+      ]),
+    });
+    const expectedWeight = 200_000_000n;
+    const expectedWeightHex = "0x" + bnToHex(expectedWeight).slice(2).padStart(64, "0");
+
+    expect(result.result).to.equal(expectedWeightHex);
   });
 });
