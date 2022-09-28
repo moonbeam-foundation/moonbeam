@@ -24,7 +24,7 @@
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
+	BlockNumber, Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
@@ -6916,7 +6916,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			let mut round: u32 = 1;
+			let mut round: BlockNumber = 1;
 			set_author(round, 1, 1);
 			set_author(round, 2, 1);
 
@@ -7121,11 +7121,11 @@ fn deferred_payment_steady_state_event_flow() {
 		.build()
 		.execute_with(|| {
 			// convenience to set the round points consistently
-			let set_round_points = |round: u64| {
-				set_author(round as u32, 1, 1);
-				set_author(round as u32, 2, 1);
-				set_author(round as u32, 3, 1);
-				set_author(round as u32, 4, 1);
+			let set_round_points = |round: BlockNumber| {
+				set_author(round as BlockNumber, 1, 1);
+				set_author(round as BlockNumber, 2, 1);
+				set_author(round as BlockNumber, 3, 1);
+				set_author(round as BlockNumber, 4, 1);
 			};
 
 			// grab initial issuance -- we will reset it before round issuance is calculated so that
@@ -7145,8 +7145,8 @@ fn deferred_payment_steady_state_event_flow() {
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
-			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
+			let roll_through_initial_rounds = |mut round: BlockNumber| -> BlockNumber {
+				while round < crate::mock::RewardPaymentDelay::get() + 1 {
 					set_round_points(round);
 
 					roll_to_round_end(round);
@@ -7160,7 +7160,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
-			let roll_through_steady_state_round = |round: u64| -> u64 {
+			let roll_through_steady_state_round = |round: BlockNumber| -> BlockNumber {
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(
 					num_rounds_rolled, 1,

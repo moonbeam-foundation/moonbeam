@@ -28,10 +28,7 @@ use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompi
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
@@ -49,7 +46,7 @@ use xcm_executor::{
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 pub type OldWeight = u64;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
@@ -160,7 +157,7 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -174,7 +171,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();

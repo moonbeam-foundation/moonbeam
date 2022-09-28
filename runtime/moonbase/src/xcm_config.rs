@@ -256,7 +256,10 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 
 // Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
+#[cfg(not(feature = "evm-tracing"))]
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+#[cfg(feature = "evm-tracing")]
+moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!();
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
