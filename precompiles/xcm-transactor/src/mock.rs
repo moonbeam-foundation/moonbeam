@@ -28,6 +28,7 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
 	PrecompileSet,
 };
+use pallet_xcm_transactor::OldWeight;
 use precompile_utils::prelude::*;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -50,7 +51,6 @@ use xcm_primitives::AccountIdToCurrencyId;
 pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
-pub type OldWeight = u64;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;

@@ -29,6 +29,7 @@ use sp_runtime::{
 	AccountId32,
 };
 
+use pallet_xcm_transactor::OldWeight;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 
 use polkadot_parachain::primitives::Id as ParaId;
@@ -52,7 +53,6 @@ use xcm_simulator::{
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type AssetId = u128;
-pub type OldWeight = u64;
 pub type BlockNumber = u32;
 
 parameter_types! {

@@ -27,6 +27,7 @@ use sp_runtime::{
 	AccountId32,
 };
 
+use pallet_xcm_transactor::OldWeight;
 use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
 use xcm::latest::prelude::*;
@@ -40,7 +41,6 @@ use xcm_builder::{
 use xcm_executor::{Config, XcmExecutor};
 pub type AccountId = AccountId32;
 pub type Balance = u128;
-pub type OldWeight = u64;
 pub type BlockNumber = u32;
 
 parameter_types! {

@@ -24,6 +24,7 @@ use super::{
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+use pallet_xcm_transactor::OldWeight;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
@@ -61,8 +62,6 @@ use sp_std::{
 };
 
 use orml_traits::parameter_type_with_key;
-
-pub type OldWeight = u64;
 
 parameter_types! {
 	// The network Id of the relay

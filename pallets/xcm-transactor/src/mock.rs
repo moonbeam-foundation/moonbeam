@@ -1,4 +1,4 @@
-// Copyright 2019-2022 PureStake Inc.
+use pallet_xcm_transactor::OldWeight;
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -21,6 +21,7 @@ use crate as pallet_xcm_transactor;
 use frame_support::traits::PalletInfo as PalletInfoTrait;
 use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
+use pallet_xcm_transactor::OldWeight;
 use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
@@ -58,8 +59,6 @@ construct_runtime!(
 pub type Balance = u128;
 pub type BlockNumber = u32;
 pub type AccountId = u64;
-
-pub type OldWeight = u64;
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();

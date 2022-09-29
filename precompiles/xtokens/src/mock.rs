@@ -25,6 +25,7 @@ use frame_support::{
 };
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use pallet_xcm_transactor::OldWeight;
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
@@ -47,7 +48,6 @@ use xcm_executor::{
 pub type AccountId = TestAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
-pub type OldWeight = u64;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;

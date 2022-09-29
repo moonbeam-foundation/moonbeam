@@ -35,6 +35,7 @@ use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use orml_traits::parameter_type_with_key;
+use pallet_xcm_transactor::OldWeight;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
@@ -61,7 +62,6 @@ use xcm_simulator::{
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
 pub type AssetId = u128;
-pub type OldWeight = u64;
 pub type BlockNumber = u32;
 
 parameter_types! {
