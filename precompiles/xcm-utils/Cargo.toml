@@ -59,8 +59,8 @@ std = [
 	"frame-system/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
-	"xcm-primitives/std",
 	"sp-core/std",
 	"sp-std/std",
 	"xcm-executor/std",
+	"xcm-primitives/std",
 ]
