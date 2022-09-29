@@ -22,7 +22,7 @@
 
 use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::{constants::WEIGHT_PER_SECOND},
 };
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;

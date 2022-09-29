@@ -32,7 +32,6 @@ use sp_runtime::{
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::Weight,
 };
 
 use frame_system::{EnsureRoot, RawOrigin};
