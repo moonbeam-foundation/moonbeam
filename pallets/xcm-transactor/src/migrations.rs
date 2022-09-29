@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	Config, DestinationAssetFeePerSecond, XcmV2Weight, RemoteTransactInfoWithMaxWeight,
-	TransactInfoWithWeightLimit,
+	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight,
+	TransactInfoWithWeightLimit, XcmV2Weight,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,

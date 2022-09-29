@@ -98,8 +98,8 @@ pub mod pallet {
 	use sp_std::prelude::*;
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
-	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 	pub(crate) use xcm_primitives::XcmV2Weight;
+	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
