@@ -379,7 +379,7 @@ jobs:
               node node_modules/.bin/mocha \
                 --parallel -j $((CPUS / 2)) \
                 --exit \
-                'build/tests/**/test-*.ts'
+                'build/tests/**/test-*.js'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
@@ -443,7 +443,8 @@ jobs:
           npm run build
           cd ../tests
           npm ci
-          node_modules/.bin/mocha --exit --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
+          npm run build
+          node_modules/.bin/mocha --exit --parallel -j 2 'tracing-tests/**/test-*.js'
 
   typescript-para-tests:
     runs-on: self-hosted
@@ -490,6 +491,7 @@ jobs:
           npm ci
           cd ../tests
           npm ci
+          npm run build
           cd ..
 
           POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
@@ -528,7 +530,7 @@ jobs:
             -u $UID \
             -w /moonbeam/tests \
             $DOCKER_TAG \
-              node node_modules/.bin/mocha --exit -r ts-node/register 'para-tests/**/test-*.ts'
+              node node_modules/.bin/mocha --exit 'build/para-tests/**/test-*.js'
 
   docker-parachain:
     runs-on: ubuntu-latest
