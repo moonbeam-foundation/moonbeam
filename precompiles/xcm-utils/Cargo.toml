@@ -10,6 +10,7 @@ num_enum = { version = "0.5.3", default-features = false }
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
@@ -58,6 +59,7 @@ std = [
 	"frame-system/std",
 	"pallet-evm/std",
 	"precompile-utils/std",
+	"xcm-primitives/std",
 	"sp-core/std",
 	"sp-std/std",
 	"xcm-executor/std",

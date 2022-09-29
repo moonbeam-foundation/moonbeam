@@ -29,7 +29,6 @@ use sp_runtime::{
 	AccountId32,
 };
 
-use pallet_xcm_transactor::OldWeight;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 
 use polkadot_parachain::primitives::Id as ParaId;
@@ -46,6 +45,7 @@ use xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -219,7 +219,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: OldWeight = 100;
+	pub UnitWeightCost: XcmV2Weight = 100;
 	pub const MaxInstructions: u32 = 100;
 }
 

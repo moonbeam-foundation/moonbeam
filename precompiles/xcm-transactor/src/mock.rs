@@ -28,7 +28,6 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
 	PrecompileSet,
 };
-use pallet_xcm_transactor::OldWeight;
 use precompile_utils::prelude::*;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
@@ -46,7 +45,7 @@ use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
 };
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, XcmV2Weight};
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
@@ -343,7 +342,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: OldWeight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -368,7 +367,7 @@ pub enum CurrencyId {
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: OldWeight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();

@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	Config, DestinationAssetFeePerSecond, OldWeight, RemoteTransactInfoWithMaxWeight,
+	Config, DestinationAssetFeePerSecond, XcmV2Weight, RemoteTransactInfoWithMaxWeight,
 	TransactInfoWithWeightLimit,
 };
 use frame_support::{
@@ -41,7 +41,7 @@ pub struct OldRemoteTransactInfo {
 	/// Size of the tx metadata of a transaction in the destination chain
 	pub metadata_size: u64,
 	/// Minimum weight the destination chain charges for a transaction
-	pub base_weight: OldWeight,
+	pub base_weight: XcmV2Weight,
 	/// Fee per weight in the destination chain
 	pub fee_per_weight: u128,
 }
@@ -50,7 +50,7 @@ pub struct OldRemoteTransactInfo {
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 pub struct OldRemoteTransactInfoWithFeePerSecond {
 	/// Extra weight that transacting a call in a destination chain adds
-	pub transact_extra_weight: OldWeight,
+	pub transact_extra_weight: XcmV2Weight,
 	/// Fee per second
 	pub fee_per_second: u128,
 	/// MaxWeight

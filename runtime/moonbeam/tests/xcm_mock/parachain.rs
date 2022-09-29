@@ -34,7 +34,6 @@ use sp_runtime::{
 use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
-use pallet_xcm_transactor::OldWeight;
 use polkadot_core_primitives::BlockNumber as RelayBlockNumber;
 use polkadot_parachain::primitives::{Id as ParaId, Sibling};
 use xcm::latest::{
@@ -51,6 +50,7 @@ use xcm_builder::{
 	SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 
 use scale_info::TypeInfo;
 use xcm_simulator::{
@@ -193,7 +193,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	pub const UnitWeightCost: OldWeight = 1;
+	pub const UnitWeightCost: XcmV2Weight = 1;
 	pub MaxInstructions: u32 = 100;
 }
 
@@ -384,7 +384,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: OldWeight = 100;
+	pub const BaseXcmWeight: XcmV2Weight = 100;
 	pub const MaxAssetsForTransfer: usize = 2;
 	pub SelfLocation: MultiLocation = MultiLocation::here();
 	pub SelfLocationAbsolute: MultiLocation = MultiLocation {

@@ -19,7 +19,6 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
-	weights::Weight,
 };
 use sp_core::H256;
 use sp_runtime::{
@@ -27,7 +26,6 @@ use sp_runtime::{
 	AccountId32,
 };
 
-use pallet_xcm_transactor::OldWeight;
 use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
 use xcm::latest::prelude::*;
@@ -39,6 +37,7 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type BlockNumber = u32;
@@ -110,7 +109,7 @@ parameter_types! {
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	pub const AnyNetwork: NetworkId = NetworkId::Any;
 	pub Ancestry: MultiLocation = Here.into();
-	pub UnitWeightCost: OldWeight = 1_000;
+	pub UnitWeightCost: XcmV2Weight = 1_000;
 }
 
 pub type SovereignAccountOf = (
@@ -132,7 +131,7 @@ type LocalOriginConverter = (
 );
 
 parameter_types! {
-	pub const BaseXcmWeight: OldWeight = 1_000;
+	pub const BaseXcmWeight: XcmV2Weight = 1_000;
 	pub KsmPerSecond: (AssetId, u128) = (Concrete(KsmLocation::get()), 1);
 	pub const MaxInstructions: u32 = 100;
 }

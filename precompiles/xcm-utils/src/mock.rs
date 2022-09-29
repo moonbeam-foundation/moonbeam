@@ -26,7 +26,6 @@ use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressRoot, GasWeightMapping, Precompile,
 	PrecompileOutput, PrecompileSet,
 };
-use pallet_xcm_transactor::OldWeight;
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
 use sp_core::{H256, U256};
@@ -389,7 +388,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: OldWeight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -408,7 +407,7 @@ impl InvertLocation for InvertNothing {
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: OldWeight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
@@ -423,6 +422,7 @@ parameter_types! {
 }
 
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
+use xcm_primitives::XcmV2Weight;
 
 pub type XcmOriginToTransactDispatchOrigin = (
 	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
