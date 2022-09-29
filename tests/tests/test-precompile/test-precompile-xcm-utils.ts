@@ -165,6 +165,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     });
 
     const expectedUnitsPerSecond = 50_000n * 1_000_000_000_000n;
-    expect(result.result).to.equal(expectedUnitsPerSecond);
+    const expectedUnitsHex = "0x" + bnToHex(expectedUnitsPerSecond).slice(2).padStart(64, "0");
+
+    expect(result.result).to.equal(expectedUnitsHex);
   });
 });
