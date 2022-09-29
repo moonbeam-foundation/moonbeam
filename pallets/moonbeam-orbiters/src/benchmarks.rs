@@ -18,11 +18,12 @@
 
 //! Benchmarking
 
-use crate::{BalanceOf, Call, Config, MinOrbiterDeposit, Pallet};
+use crate::{BalanceOf, Call, Config, MinOrbiterDeposit, Pallet, OrbiterPerRound, CurrentRound};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
-use frame_support::traits::{Currency, Get, ReservableCurrency};
+use frame_support::traits::{Currency, Get, ReservableCurrency, OnInitialize};
 use frame_system::RawOrigin;
 use sp_runtime::traits::StaticLookup;
+use sp_runtime::traits::Saturating;
 
 const MIN_ORBITER_DEPOSIT: u32 = 10_000;
 const USER_SEED: u32 = 999666;
@@ -84,7 +85,7 @@ benchmarks! {
 
 	}
 	collator_remove_orbiter {
-		init::<T>();
+		init::<T>();		
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// orbiter_lookup must be initialized with an account id
@@ -182,6 +183,31 @@ benchmarks! {
 	verify {
 
 	}
+
+	round_on_initialize {
+		// We make it dependent on the number of collator in the orbiter program
+		let x in 0..100;
+
+		init::<T>();
+
+		let round = CurrentRound::<T>::get().saturating_add(T::MaxRoundArchive::get()).saturating_add(1u32.into());
+		// Force worst case
+		<CurrentRound<T>>::put(round);
+
+		let round_to_prune: T::RoundIndex = 1u32.into();
+		for i in 0..x {
+			let collator_account: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED-i, 10_000);
+			// It does not rellay matter that the orbiter is the collator for the sake of the benchmark
+			<OrbiterPerRound<T>>::insert(round_to_prune, collator_account.clone(), collator_account);
+		};
+	}: { Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number()); }
+	verify {
+		let collator_account: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED, 10_000);
+		assert!(
+			<OrbiterPerRound<T>>::get(round_to_prune, collator_account).is_none(), "Should have been removed"
+		);
+		
+	}
 }
 
 #[cfg(test)]
@@ -190,7 +216,7 @@ mod tests {
 	use crate::mock::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
-
+	use parity_scale_codec::Encode;
 	pub fn new_test_ext() -> TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -250,6 +276,13 @@ mod tests {
 	fn bench_remove_collator() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_remove_collator());
+		});
+	}
+
+	#[test]
+	fn bench_on_initialize() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_round_on_initialize());
 		});
 	}
 }
