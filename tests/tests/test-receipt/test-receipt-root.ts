@@ -9,7 +9,6 @@ import { createContract, createTransfer } from "../../util/transactions";
 import { BaseTrie as Trie } from "merkle-patricia-tree";
 import { Receipt } from "eth-object";
 import { encode } from "eth-util-lite";
-import { promisify } from "util";
 
 describeDevMoonbeam(
   "Receipt root - With events",
@@ -71,7 +70,7 @@ describeDevMoonbeam(
       // Build the receipt trie.
       const tree = new Trie();
       await Promise.all(
-        receipts.map((siblingReceipt, index) => {
+        receipts.map(async (siblingReceipt, index) => {
           let innerReceipt = {
             logs: siblingReceipt.logs,
             // The MPT js library expects `status` to be a number, not the
@@ -84,8 +83,7 @@ describeDevMoonbeam(
           let siblingPath = encode(index);
           let serializedReceipt = Receipt.fromRpc(innerReceipt);
           serializedReceipt = serializedReceipt.serialize();
-          let promisified = promisify(tree.put).bind(tree);
-          return promisified(siblingPath, serializedReceipt);
+          return await tree.put(siblingPath, serializedReceipt);
         })
       );
       // Onchain receipt root == Offchain receipt root

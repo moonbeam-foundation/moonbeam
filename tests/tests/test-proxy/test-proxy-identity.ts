@@ -27,14 +27,10 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(
-            0,
-            baltathar.address,
-            {
-              Reasonable: true,
-            },
-            ""
-          )
+          // TODO: removes as any once we import new identity pallet (v0.9.29 probably)
+          (context.polkadotApi.tx.identity as any).provideJudgement(0, baltathar.address, {
+            Reasonable: true,
+          })
         )
         .signAsync(baltathar)
     );
@@ -87,14 +83,10 @@ describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(
-            0,
-            baltathar.address,
-            {
-              Reasonable: true,
-            },
-            "" // TODO: put correct judgement hash
-          )
+          // TODO: removes as any once we import new identity pallet (v0.9.29 probably)
+          (context.polkadotApi.tx.identity as any).provideJudgement(0, baltathar.address, {
+            Reasonable: true,
+          })
         )
         .signAsync(baltathar)
     );

@@ -70,7 +70,7 @@
     "eth-object": "github:aurora-is-near/eth-object#master",
     "eth-util-lite": "1.0.1",
     "ethers": "^5.4.6",
-    "merkle-patricia-tree": "^3.0.0",
+    "merkle-patricia-tree": "^4.2.4",
     "mocha": "^10.0.0",
     "moonbeam-types-bundle": "^2.0.7",
     "npm-watch": "^0.9.0",

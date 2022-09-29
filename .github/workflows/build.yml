@@ -356,6 +356,11 @@ jobs:
           npm run build
           cd ../tests
           npm ci
+
+          #### Compile typescript tests into javascript (more stable for Mocha)
+          #### This also better display typescript issues
+          npm run build
+
           cd ..
 
           #### Retrieving docker image as base to run tests
@@ -374,8 +379,7 @@ jobs:
               node node_modules/.bin/mocha \
                 --parallel -j $((CPUS / 2)) \
                 --exit \
-                -r ts-node/register \
-                'tests/**/test-*.ts'
+                'build/tests/**/test-*.ts'
 
       # We determine whether there are unmodified package-lock.json files by:
       # 1. Asking git for a list of all modified files
