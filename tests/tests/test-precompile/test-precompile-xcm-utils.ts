@@ -142,4 +142,29 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
 
     expect(result.result).to.equal(expectedWeightHex);
   });
+
+  it("allows to retrieve units per second for an asset", async function () {
+    // Junction::PalletInstance(3)
+    const x2_pallet_instance_enum_selector = "0x04";
+    const x2_instance = "03";
+
+    // This represents X1(PalletInstance(3)))
+
+    // This multilocation represents our native token
+    const asset = [
+      // zero parents
+      0,
+      // X1(PalletInstance)
+      // PalletInstance: Selector (04) + palconst instance 1 byte (03)
+      [x2_pallet_instance_enum_selector + x2_instance],
+    ];
+
+    const result = await web3EthCall(context.web3, {
+      to: PRECOMPILE_XCM_UTILS_ADDRESS,
+      data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("getUnitsPerSecond", [asset]),
+    });
+
+    const expectedUnitsPerSecond = 50_000n * 1_000_000_000_000n;
+    expect(result.result).to.equal(expectedUnitsPerSecond);
+  });
 });
