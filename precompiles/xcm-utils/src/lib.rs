@@ -24,7 +24,7 @@ use fp_evm::PrecompileHandle;
 use frame_support::traits::ConstU32;
 use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
 use precompile_utils::prelude::*;
-use sp_core::H160;
+use sp_core::{H160, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
 use xcm_executor::traits::ConvertOrigin;
@@ -85,7 +85,7 @@ where
 	fn get_units_per_second(
 		handle: &mut impl PrecompileHandle,
 		multilocation: MultiLocation,
-	) -> EvmResult<u128> {
+	) -> EvmResult<U256> {
 		// TODO: Change once precompiles are benchmarked
 		// for now we charge a db read,
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -98,7 +98,7 @@ where
 		let mut trader = XcmConfig::Trader::new();
 		let remaining: Vec<xcm::latest::MultiAsset> = trader
 			.buy_weight(weight_per_second, payment.clone())
-			.map_err(|_| revert("error retrieving info"))?
+			.map_err(|_| revert("Trader does not support multiasset"))?
 			.into();
 
 		// If remaining is empty, it means we spent the whole max u128,
@@ -110,7 +110,7 @@ where
 		let paid_assets: Vec<xcm::latest::MultiAsset> = payment
 			.clone()
 			.checked_sub(remaining_asset.clone())
-			.map_err(|_| revert("error retrieving info"))?
+			.map_err(|_| revert("spent more than U128 MAX, shouldnt happen"))?
 			.into();
 
 		// Its safe to assume that if paid_assets is empty, is because we didnt
@@ -122,8 +122,10 @@ where
 			MultiAsset {
 				id: Concrete(_),
 				fun: Fungible(amount),
-			} => Ok(*amount),
-			_ => Err(revert("Something went wrong")),
+			} => Ok((*amount).into()),
+			_ => Err(revert(
+				"Non-concrete or non-fungible assets not evaluated by trader",
+			)),
 		}
 	}
 

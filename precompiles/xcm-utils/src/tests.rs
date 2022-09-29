@@ -21,7 +21,7 @@ use crate::mock::{
 
 use codec::Encode;
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::H160;
+use sp_core::{H160, U256};
 use xcm::prelude::*;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -91,7 +91,7 @@ fn test_weight_message() {
 			.prepare_test(Alice, Precompile, input)
 			.expect_cost(0)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(1000u64).build());
+			.execute_returns_encoded(1000u64);
 	});
 }
 
@@ -106,7 +106,7 @@ fn test_get_units_per_second() {
 			.prepare_test(Alice, Precompile, input)
 			.expect_cost(1)
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(1_000_000_000_000u128).build());
+			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
 	});
 }
 
