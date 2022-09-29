@@ -23,7 +23,7 @@ sc-tracing = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
 substrate-prometheus-endpoint = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
-try-runtime-cli = { git = "https://github.com/purestake/substrate", optional = true , branch = "moonbeam-polkadot-v0.9.29" }
+try-runtime-cli = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", optional = true }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.29" }
