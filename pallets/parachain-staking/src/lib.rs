@@ -1527,11 +1527,12 @@ pub mod pallet {
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					mint(amt_due, collator.clone());
-					extra_weight = extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
-						paid_for_round,
-						collator.clone(),
-						amt_due,
-					));
+					extra_weight =
+						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+							paid_for_round,
+							collator.clone(),
+							amt_due,
+						));
 				} else {
 					// pay collator first; commission + due_portion
 					let collator_pct = Perbill::from_rational(state.bond, state.total);
@@ -1539,11 +1540,12 @@ pub mod pallet {
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
 					mint(collator_reward, collator.clone());
-					extra_weight = extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
-						paid_for_round,
-						collator.clone(),
-						collator_reward,
-					));
+					extra_weight =
+						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+							paid_for_round,
+							collator.clone(),
+							collator_reward,
+						));
 					// pay delegators due portion
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
