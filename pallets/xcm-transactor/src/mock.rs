@@ -1,4 +1,4 @@
-use pallet_xcm_transactor::OldWeight;
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
