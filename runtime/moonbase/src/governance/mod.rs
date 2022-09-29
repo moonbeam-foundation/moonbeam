@@ -62,7 +62,8 @@ impl pallet_whitelist::Config for Runtime {
 	type Event = Event;
 	type Call = Call;
 	// polkadot: EitherOf<EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>, Fellows>;
-	type WhitelistOrigin = EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>;
+	type WhitelistOrigin =
+		EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>, TODO: COLLECTIVE>;
 	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
 	type PreimageProvider = Preimage;
 }

@@ -69,6 +69,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			min_support: SUP_ROOT,
 		},
 	),
+	// Fastrack
 	(
 		1,
 		pallet_referenda::TrackInfo {
@@ -77,7 +78,9 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			decision_deposit: 10_000 * KILOUNIT,
 			prepare_period: 3 * HOURS,
 			decision_period: 28 * DAYS,
+			// TODO: review
 			confirm_period: 10 * MINUTES,
+			// TODO: review
 			min_enactment_period: 30 * MINUTES,
 			min_approval: APP_WHITELISTED_CALLER,
 			min_support: SUP_WHITELISTED_CALLER,

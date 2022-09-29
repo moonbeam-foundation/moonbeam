@@ -24,7 +24,7 @@ use frame_support::{
 	dispatch::RawOrigin,
 	traits::{schedule::DispatchTime, PreimageRecipient},
 };
-use moonbase_runtime::{Preimage, Referenda};
+use moonbase_runtime::{governance::*, Preimage, Referenda};
 use nimbus_primitives::NimbusId;
 use pallet_referenda::ReferendumInfo;
 use sp_core::{ByteArray, Encode, H256};
@@ -63,7 +63,8 @@ fn referenda_times_out_if_inaction() {
 			run_to_block(0, NimbusId::from_slice(&ALICE_NIMBUS).ok());
 			assert_ok!(Referenda::submit(
 				origin_of(AccountId::from(ALICE)),
-				Box::new(RawOrigin::Root.into()),
+				// TODO: treasury spend from fasttrack origin
+				Box::new(WhitelistedCaller.into()),
 				set_balance_proposal_hash(1),
 				DispatchTime::At(10),
 			));
