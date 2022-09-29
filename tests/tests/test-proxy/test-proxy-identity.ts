@@ -27,9 +27,14 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(0, baltathar.address, {
-            Reasonable: true,
-          })
+          context.polkadotApi.tx.identity.provideJudgement(
+            0,
+            baltathar.address,
+            {
+              Reasonable: true,
+            },
+            ""
+          )
         )
         .signAsync(baltathar)
     );
@@ -82,9 +87,14 @@ describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) =
         .proxy(
           alith.address,
           null,
-          context.polkadotApi.tx.identity.provideJudgement(0, baltathar.address, {
-            Reasonable: true,
-          })
+          context.polkadotApi.tx.identity.provideJudgement(
+            0,
+            baltathar.address,
+            {
+              Reasonable: true,
+            },
+            "" // TODO: put correct judgement hash
+          )
         )
         .signAsync(baltathar)
     );

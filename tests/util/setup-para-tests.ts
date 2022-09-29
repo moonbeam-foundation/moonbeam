@@ -101,7 +101,7 @@ export function describeParachain(
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
           const provider =
             protocol == "ws"
-              ? await provideWeb3Api(`ws://locahost:${init.paraPorts[0].ports[0].wsPort}`)
+              ? await provideWeb3Api(`ws://localhost:${init.paraPorts[0].ports[0].wsPort}`)
               : await provideWeb3Api(`http://localhost:${init.paraPorts[0].ports[0].rpcPort}`);
           context._web3Providers.push((provider as any)._provider);
           return provider;

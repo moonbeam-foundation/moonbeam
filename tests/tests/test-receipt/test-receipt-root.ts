@@ -6,7 +6,7 @@ import { alith, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createContract, createTransfer } from "../../util/transactions";
 
-import Tree from "merkle-patricia-tree";
+import { BaseTrie as Trie } from "merkle-patricia-tree";
 import { Receipt } from "eth-object";
 import { encode } from "eth-util-lite";
 import { promisify } from "util";
@@ -69,7 +69,7 @@ describeDevMoonbeam(
       expect(receipts[4].type).to.be.eq("0x2");
       expect(receipts[5].type).to.be.eq("0x2");
       // Build the receipt trie.
-      const tree = new Tree();
+      const tree = new Trie();
       await Promise.all(
         receipts.map((siblingReceipt, index) => {
           let innerReceipt = {
@@ -89,7 +89,7 @@ describeDevMoonbeam(
         })
       );
       // Onchain receipt root == Offchain receipt root
-      expect(block.receiptsRoot).to.be.eq("0x" + tree._root.toString("hex"));
+      expect(block.receiptsRoot).to.be.eq("0x" + tree.root.toString("hex"));
     });
   },
   "Legacy"
