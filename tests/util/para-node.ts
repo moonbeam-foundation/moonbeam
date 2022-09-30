@@ -405,9 +405,11 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace,author=trace," +
-                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace,filtering=trace",
+              "--log=info,evm=trace,ethereum=trace," +
+                "pallet_parachain_staking=error," +
+                "cumulus-consensus=trace,cumulus-collator=trace," +
+                "parachain::collator_protocol=trace,parachain::candidate-selection=trace," +
+                "parachain::collation_generation=trace,parachain::filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-hardware-benchmarks",
@@ -438,9 +440,11 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 3].key,
             name: "bob",
             flags: [
-              "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
-                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace,author=trace,filtering=trace",
+              "--log=info,evm=trace,ethereum=trace," +
+                "pallet_parachain_staking=error," +
+                "cumulus-consensus=trace,cumulus-collator=trace," +
+                "parachain::collator_protocol=trace,parachain::candidate-selection=trace," +
+                "parachain::collation_generation=trace,parachain::filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--wasm-execution=interpreted-i-know-what-i-do",
