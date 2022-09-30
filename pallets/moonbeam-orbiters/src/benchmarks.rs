@@ -187,7 +187,7 @@ benchmarks! {
 
 	}
 
-	round_on_initialize {
+	on_initialize {
 		// We make it dependent on the number of collator in the orbiter program
 		let x in 0..100;
 
@@ -350,7 +350,7 @@ mod tests {
 	#[test]
 	fn bench_on_initialize() {
 		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_round_on_initialize());
+			assert_ok!(Pallet::<Test>::test_benchmark_on_initialize());
 		});
 	}
 
