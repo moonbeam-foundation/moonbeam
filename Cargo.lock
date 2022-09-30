@@ -2503,6 +2503,7 @@ dependencies = [
  "fp-storage",
  "futures 0.3.24",
  "hex",
+ "hex-literal",
  "jsonrpsee",
  "libsecp256k1 0.7.0",
  "log",
