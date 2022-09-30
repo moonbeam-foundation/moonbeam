@@ -14,15 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Old governance configurations
-
-// TODO: should remove collectives and replace with Members like Fellows?
-// -> referendum should be only voting pallet now, not collective
-
-// TODO: move councils into councils until we know what to do with it
+//! Old democracy config
 
 use super::councils::*;
-use super::*;
+use crate::*;
 
 // The purpose of this offset is to ensure that a democratic proposal will not apply in the same
 // block as a round change.

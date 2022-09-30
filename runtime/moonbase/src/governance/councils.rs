@@ -18,11 +18,9 @@
 
 use super::*;
 
-// TODO: are we keeping these or removing them
-
-type CouncilInstance = pallet_collective::Instance1;
-type TechCommitteeInstance = pallet_collective::Instance2;
-type TreasuryCouncilInstance = pallet_collective::Instance3;
+pub type CouncilInstance = pallet_collective::Instance1;
+pub type TechCommitteeInstance = pallet_collective::Instance2;
+pub type TreasuryCouncilInstance = pallet_collective::Instance3;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type Origin = Origin;

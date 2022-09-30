@@ -17,7 +17,6 @@
 //! New governance configurations for the Moonbase runtime.
 
 use super::*;
-use crate::currency::*;
 
 pub mod councils;
-mod old; // old and new
+mod democracy;
