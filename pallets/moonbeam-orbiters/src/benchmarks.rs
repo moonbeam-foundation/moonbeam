@@ -18,12 +18,15 @@
 
 //! Benchmarking
 
-use crate::{BalanceOf, Call, Config, MinOrbiterDeposit, Pallet, OrbiterPerRound, CurrentRound};
+use crate::{
+	AccountLookupOverride, BalanceOf, Call, CollatorPoolInfo, CollatorsPool, Config, CurrentRound,
+	ForceRotation, MinOrbiterDeposit, OrbiterPerRound, Pallet,
+};
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite};
-use frame_support::traits::{Currency, Get, ReservableCurrency, OnInitialize};
+use frame_support::traits::{Currency, Get, OnInitialize, ReservableCurrency};
 use frame_system::RawOrigin;
-use sp_runtime::traits::StaticLookup;
 use sp_runtime::traits::Saturating;
+use sp_runtime::traits::StaticLookup;
 
 const MIN_ORBITER_DEPOSIT: u32 = 10_000;
 const USER_SEED: u32 = 999666;
@@ -85,7 +88,7 @@ benchmarks! {
 
 	}
 	collator_remove_orbiter {
-		init::<T>();		
+		init::<T>();
 		let collator_account: T::AccountId = create_collator::<T>("COLLATOR", USER_SEED, 10_000);
 
 		// orbiter_lookup must be initialized with an account id
@@ -206,7 +209,72 @@ benchmarks! {
 		assert!(
 			<OrbiterPerRound<T>>::get(round_to_prune, collator_account).is_none(), "Should have been removed"
 		);
-		
+
+	}
+
+	distribute_rewards {
+		init::<T>();
+
+		let round_to_pay: T::RoundIndex = 1u32.into();
+		let collator: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED, 10_000);
+		let orbiter: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED -1, 10_000);
+
+		// Worst case, orbiter exists
+		<OrbiterPerRound<T>>::insert(round_to_pay, &collator, &orbiter);
+
+	}: { Pallet::<T>::distribute_rewards(round_to_pay, collator.clone(), 1_000u32.into()); }
+	verify {
+		assert_eq!(
+			T::Currency::total_balance(&orbiter), 11_000u32.into()
+		);
+		assert_eq!(
+			T::Currency::total_balance(&collator), 9_000u32.into()
+		);
+
+	}
+
+	on_new_round {
+		init::<T>();
+
+		// We want to simulate worst case:
+		// An orbiter for a collator exists
+		// we rotate to a new orbiter
+		let round_to_rotate: T::RoundIndex = 1u32.into();
+
+		// Worst case, orbiter exists
+		let collator: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED, 10_000);
+		let old_orbiter: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED-1, 10_000);
+		let new_orbiter: T::AccountId = create_funded_user::<T>("COLLATOR", USER_SEED-2, 10_000);
+
+		let mut collator_pool_info = CollatorPoolInfo::<T::AccountId>::default();
+		collator_pool_info.add_orbiter(old_orbiter.clone());
+		collator_pool_info.add_orbiter(new_orbiter.clone());
+		// To put old_orbiter in place
+		let rotate_result = collator_pool_info.rotate_orbiter();
+
+		// Worst case: forced rotation
+		ForceRotation::<T>::put(true);
+
+
+		assert!(
+			rotate_result.maybe_old_orbiter.is_none()
+		);
+
+		assert_eq!(
+			rotate_result.maybe_next_orbiter, Some(old_orbiter)
+		);
+
+		<CollatorsPool<T>>::insert(&collator, &collator_pool_info);
+
+	}: { Pallet::<T>::on_new_round(round_to_rotate); }
+	verify {
+		assert_eq!(
+			AccountLookupOverride::<T>::get(&collator), Some(None)
+		);
+		assert_eq!(
+			AccountLookupOverride::<T>::get(&new_orbiter).unwrap(), Some(collator)
+		);
+
 	}
 }
 
@@ -215,8 +283,8 @@ mod tests {
 	use crate::benchmarks::*;
 	use crate::mock::Test;
 	use frame_support::assert_ok;
-	use sp_io::TestExternalities;
 	use parity_scale_codec::Encode;
+	use sp_io::TestExternalities;
 	pub fn new_test_ext() -> TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -283,6 +351,20 @@ mod tests {
 	fn bench_on_initialize() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_round_on_initialize());
+		});
+	}
+
+	#[test]
+	fn bench_distribute_rewards() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_distribute_rewards());
+		});
+	}
+
+	#[test]
+	fn bench_on_new_round() {
+		new_test_ext().execute_with(|| {
+			assert_ok!(Pallet::<Test>::test_benchmark_on_new_round());
 		});
 	}
 }
