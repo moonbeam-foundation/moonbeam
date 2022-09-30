@@ -16,7 +16,86 @@
 
 //! New governance configurations for the Moonbase runtime.
 
-use super::*;
-
 pub mod councils;
 mod democracy;
+
+use super::*;
+use crate::currency::*;
+use frame_support::traits::{EitherOf, MapSuccess};
+use frame_system::EnsureRootWithSuccess;
+use sp_runtime::traits::Replace;
+
+mod origins;
+pub use origins::{
+	pallet_custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender,
+	WhitelistedCaller,
+};
+mod tracks;
+pub use tracks::TracksInfo;
+
+parameter_types! {
+	pub const VoteLockingPeriod: BlockNumber = 7 * DAYS;
+}
+
+impl pallet_conviction_voting::Config for Runtime {
+	type WeightInfo = pallet_conviction_voting::weights::SubstrateWeight<Runtime>;
+	type Event = Event;
+	type Currency = Balances;
+	type VoteLockingPeriod = VoteLockingPeriod;
+	type MaxVotes = ConstU32<512>;
+	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
+	type Polls = Referenda;
+}
+
+parameter_types! {
+	pub const AlarmInterval: BlockNumber = 1;
+	pub const SubmissionDeposit: Balance = 100 * UNIT;
+	pub const UndecidingTimeout: BlockNumber = 28 * DAYS;
+}
+
+parameter_types! {
+	pub const MaxBalance: Balance = Balance::max_value();
+}
+pub type TreasurySpender = EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, Spender>;
+
+impl origins::pallet_custom_origins::Config for Runtime {}
+
+// purpose of this pallet is to queue calls to be dispatched as by root for later
+impl pallet_whitelist::Config for Runtime {
+	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Runtime>;
+	type Event = Event;
+	type Call = Call;
+	type WhitelistOrigin = EitherOf<
+		EnsureRootWithSuccess<Self::AccountId, ConstU16<65535>>,
+		MapSuccess<
+			pallet_collective::EnsureProportionAtLeast<
+				Self::AccountId,
+				TechCommitteeInstance,
+				2,
+				3,
+			>,
+			Replace<ConstU16<6>>,
+		>,
+	>;
+	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<Self::AccountId>, WhitelistedCaller>;
+	type PreimageProvider = Preimage;
+}
+
+impl pallet_referenda::Config for Runtime {
+	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Runtime>;
+	type Call = Call;
+	type Event = Event;
+	type Scheduler = Scheduler;
+	type Currency = Balances;
+	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
+	type CancelOrigin = ReferendumCanceller;
+	type KillOrigin = ReferendumKiller;
+	type Slash = Treasury;
+	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
+	type Tally = pallet_conviction_voting::TallyOf<Runtime>;
+	type SubmissionDeposit = SubmissionDeposit;
+	type MaxQueued = ConstU32<100>;
+	type UndecidingTimeout = UndecidingTimeout;
+	type AlarmInterval = AlarmInterval;
+	type Tracks = TracksInfo;
+}
