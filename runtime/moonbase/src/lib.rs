@@ -1048,6 +1048,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_initialize(n)
 	}
 }
@@ -1066,27 +1067,32 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::offchain_worker(n)
 	}
 }
@@ -1102,6 +1108,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
+	#[allow(deprecated)]
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
 	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
