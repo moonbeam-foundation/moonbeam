@@ -22,7 +22,10 @@
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{ConstU32, Currency};
-use pallet_democracy::{AccountVote, Call as DemocracyCall, Conviction, Vote};
+use pallet_democracy::{
+	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, ReferendumStatus, Vote,
+	VoteThreshold,
+};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
@@ -62,7 +65,8 @@ where
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
 	Runtime::Call: From<DemocracyCall<Runtime>>,
-	Runtime::Hash: From<H256>,
+	Runtime::Hash: From<H256> + Into<H256>,
+	Runtime::BlockNumber: Into<U256>,
 {
 	// The accessors are first. They directly return their result.
 	#[precompile::public("publicPropCount()")]
@@ -115,78 +119,50 @@ where
 		Ok(lowest_unbaked.into())
 	}
 
-	// This method is not yet implemented because it depends on
-	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
-	// master, but is not on the release branches that we are following
-	//
-	// The ref_index should probably be u32. Since the API is not implemented, we probably
-	// can change the signature of the function.
-	#[precompile::public("ongoingReferendumInfo(uint256)")]
-	#[precompile::public("ongoing_referendum_info(uint256)")]
+	#[precompile::public("ongoingReferendumInfo(uint32)")]
 	#[precompile::view]
-	fn ongoing_referendum_info(_handle: &mut impl PrecompileHandle, _ref_index: U256) -> EvmResult {
-		Err(revert(
-			"This method depends on https://github.com/paritytech/substrate/pull/9565",
+	fn ongoing_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		ref_index: u32,
+	) -> EvmResult<(U256, H256, u8, U256, U256, U256, U256)> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let ref_status = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
+			Some(ReferendumInfo::Ongoing(ref_status)) => ref_status,
+			Some(ReferendumInfo::Finished { .. }) => Err(revert("Referendum is finished"))?,
+			None => Err(revert("Unknown referendum"))?,
+		};
+
+		let threshold_u8: u8 = match ref_status.threshold {
+			VoteThreshold::SuperMajorityApprove => 0,
+			VoteThreshold::SuperMajorityAgainst => 1,
+			VoteThreshold::SimpleMajority => 2,
+		};
+
+		Ok((
+			ref_status.end.into(),
+			ref_status.proposal_hash.into(),
+			threshold_u8.into(),
+			ref_status.delay.into(),
+			ref_status.tally.ayes.into(),
+			ref_status.tally.nays.into(),
+			ref_status.tally.turnout.into(),
 		))
-		// let mut gasometer = Gasometer::new(target_gas);
-
-		// // Bound check
-		// input.expect_arguments(1)?;
-		// let ref_index: u32 = input.read()?;
-
-		// // Fetch data from pallet
-		// gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		// let ref_status = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
-		// 	Some(ReferendumInfo::Ongoing(ref_status)) => ref_status,
-		// 	Some(ReferendumInfo::Finished{..}) => Err(error("Referendum is finished"))?,
-		// 	None => Err(error("failed to get ongoing (or finished for that matter) referendum"))?,
-		// };
-		// log::trace!(
-		// 	target: "democracy-precompile",
-		// 	"Ongoing Referendum info for ref {:?} is {:?}", ref_index, ref_status
-		// );
-
-		// // Write data
-		// //TODO woof, between private fields and generic types, this is pretty complicated
-		// let threshold_u8: u8 = match ref_status.threshold {
-		// 	VoteThreshold::SuperMajorityApprove => 0,
-		// 	VoteThreshold::SuperMajorityAgainst => 1,
-		// 	VoteThreshold::SimpleMajority => 2,
-		// };
-
-		// let output = EvmDataWriter::new()
-		// 	.write(ref_status.end)
-		// 	.write(ref_status.proposal_hash)
-		// 	.write(threshold_u8)
-		// 	.write(ref_status.delay)
-		// 	.write(ref_status.tally.ayes)
-		// 	.write(ref_status.tally.nays)
-		// 	.write(ref_status.tally.turnout);
-
-		// Ok(PrecompileOutput {
-		// 	exit_status: ExitSucceed::Returned,
-		// 	cost: gasometer.used_gas(),
-		// 	output: output.build(),
-		// 	logs: Default::default(),
-		// })
 	}
 
-	// This method is not yet implemented because it depends on
-	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
-	// master, but is not on the release branches that we are following
-	//
-	// The ref_index should probably be u32. Since the API is not implemented, we probably
-	// can change the signature of the function.
-	#[precompile::public("finishedReferendumInfo(uint256)")]
-	#[precompile::public("finished_referendum_info(uint256)")]
+	#[precompile::public("finishedReferendumInfo(uint32)")]
 	#[precompile::view]
 	fn finished_referendum_info(
-		_handle: &mut impl PrecompileHandle,
-		_ref_index: U256,
-	) -> EvmResult {
-		Err(revert(
-			"This method depends on https://github.com/paritytech/substrate/pull/9565",
-		))
+		handle: &mut impl PrecompileHandle,
+		ref_index: u32,
+	) -> EvmResult<(bool, U256)> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let (approved, end) = match DemocracyOf::<Runtime>::referendum_info(ref_index) {
+			Some(ReferendumInfo::Ongoing(_)) => Err(revert("Referendum is ongoing"))?,
+			Some(ReferendumInfo::Finished { approved, end }) => (approved, end),
+			None => Err(revert("Unknown referendum"))?,
+		};
+
+		Ok((approved, end.into()))
 	}
 
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
