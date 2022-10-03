@@ -27,7 +27,7 @@ describeDevMoonbeamAllEthTxTypes("Block Gas - Limit", (context) => {
     expect(
       ((await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).error as any)
         .message
-    ).to.equal("exceeds block gas limit");
+    ).to.equal("gas limit reached");
   });
 });
 
