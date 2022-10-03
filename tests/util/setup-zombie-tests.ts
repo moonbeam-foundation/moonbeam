@@ -65,6 +65,9 @@ export function describeZombienet(title: string, cb: (context: InternalZombieTes
         context._web3Providers = [];
 
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
+          if (protocol == "http") {
+            throw new Error("http protocol is not yet supported by zombienet");
+          }
           const provider = await provideWeb3Api(Object.values(network.paras)[0].nodes[0].wsUri);
           context._web3Providers.push((provider as any)._provider);
           return provider;
