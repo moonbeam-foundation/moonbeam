@@ -185,12 +185,9 @@ export const verifyBlockFees = async (
 
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
-            // TODO: sudo should not have paysFee
-            if (
-              dispatchInfo.paysFee.isYes &&
-              extrinsic.method.section !== "sudo" &&
-              (!extrinsic.signer.isEmpty || extrinsic.method.section == "ethereum")
-            ) {
+            if ((dispatchInfo.paysFee.isYes && !extrinsic.signer.isEmpty)
+                || extrinsic.method.section == "ethereum") {
+
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
@@ -210,7 +207,12 @@ export const verifyBlockFees = async (
                   // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
                   // prioritization component: the EVM is not aware of it and thus not part of the
                   // weight cost of the extrinsic.
-                  gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+
+                  // TODO: why did this break? ultimately we (currently) use our FixedGasPrice which
+                  // returns a constant 1GWEI (For moonbase). So are the block headers wrong now for
+                  // some reason?
+                  // gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+                  gasPrice = 1_000_000_000n;
                 }
                 // And then multiplying by gasPrice
                 txFees = gasFee * gasPrice;
