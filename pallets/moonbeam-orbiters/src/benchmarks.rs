@@ -196,7 +196,7 @@ benchmarks! {
 		let round = CurrentRound::<T>::get()
 			.saturating_add(T::MaxRoundArchive::get())
 			.saturating_add(1u32.into());
-		
+
 		// Force worst case
 		<CurrentRound<T>>::put(round);
 
