@@ -75,8 +75,12 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
         : units / 100n;
     const coef = cent / 10n;
 
-    const relayBaseWeight =
-        relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
+    // the blockWeights structure has been modified around 9300 to include reftime.
+    const relayBaseExtrinsic = relayApiAt.consts.system.blockWeights.perClass.normal
+      .baseExtrinsic as any;
+    const relayBaseWeight = relayBaseExtrinsic.refTime
+      ? relayBaseExtrinsic.refTime.toBigInt()
+      : relayBaseExtrinsic.toBigInt();
 
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 
