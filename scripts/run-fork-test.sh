@@ -141,7 +141,7 @@ export WSS_URL=ws://localhost:51102
 echo "Running fork tests... (10 minutes)"
 SUCCESS_UPGRADE=false
 DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
-  "Failed to do runtime upgrade"
+  echo "Failed to do runtime upgrade"
 
 if [[ $SUCCESS_UPGRADE == "true" ]]
 then
