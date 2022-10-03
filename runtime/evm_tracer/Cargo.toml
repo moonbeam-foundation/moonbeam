@@ -26,7 +26,7 @@ evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0
 evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [features]
 default = [ "std" ]
