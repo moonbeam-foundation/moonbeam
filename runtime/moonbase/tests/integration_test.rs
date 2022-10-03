@@ -1847,7 +1847,7 @@ fn xtokens_precompiles_transfer() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(24000)
+				.expect_cost(30249)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1899,7 +1899,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						.write(U256::from(4000000))
 						.build(),
 				)
-				.expect_cost(24000)
+				.expect_cost(30249)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
