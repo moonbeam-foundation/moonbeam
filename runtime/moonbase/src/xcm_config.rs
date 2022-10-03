@@ -41,10 +41,10 @@ use sp_core::{H160, H256};
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, LocationInverter,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds,
 };
 
 use xcm::latest::prelude::*;
@@ -218,7 +218,11 @@ parameter_types! {
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = WeightInfoBounds<moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, Call>, Call, MaxInstructions>;
+pub type XcmWeigher = WeightInfoBounds<
+	moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, Call>,
+	Call,
+	MaxInstructions,
+>;
 
 // Allow paid executions
 pub type XcmBarrier = (

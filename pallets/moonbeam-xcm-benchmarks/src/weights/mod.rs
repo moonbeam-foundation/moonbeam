@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-
 mod moonbeam_xcm_benchmarks_fungible;
 mod moonbeam_xcm_benchmarks_generic;
 
+use crate::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
 use frame_support::weights::Weight;
 use moonbeam_xcm_benchmarks_fungible::WeightInfo as XcmFungibleWeight;
 use moonbeam_xcm_benchmarks_generic::SubstrateWeight as XcmGeneric;
@@ -26,7 +26,6 @@ use xcm::{
 	latest::{prelude::*, Weight as XCMWeight},
 	DoubleEncoded,
 };
-use crate::weights::moonbeam_xcm_benchmarks_generic::WeightInfo;
 
 trait WeighMultiAssets {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight;
@@ -37,8 +36,9 @@ const MAX_ASSETS: u32 = 100;
 impl WeighMultiAssets for MultiAssetFilter {
 	fn weigh_multi_assets(&self, weight: Weight) -> XCMWeight {
 		let weight = match self {
-			Self::Definite(assets) =>
-				weight.saturating_mul(assets.inner().into_iter().count() as u64),
+			Self::Definite(assets) => {
+				weight.saturating_mul(assets.inner().into_iter().count() as u64)
+			}
 			Self::Wild(_) => weight.saturating_mul(MAX_ASSETS as u64),
 		};
 		weight
@@ -52,7 +52,10 @@ impl WeighMultiAssets for MultiAssets {
 }
 
 pub struct XcmWeight<Runtime, Call>(core::marker::PhantomData<(Runtime, Call)>);
-impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call> where Runtime: frame_system::Config {
+impl<Runtime, Call> XcmWeightInfo<Call> for XcmWeight<Runtime, Call>
+where
+	Runtime: frame_system::Config,
+{
 	fn withdraw_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::withdraw_asset())
 	}

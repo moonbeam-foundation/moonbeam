@@ -18,7 +18,15 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(feature = "runtime-benchmarks")]
 pub mod generic;
+
+#[cfg(test)]
+mod mock;
+
+// Only weights should be accesible, no need for the rest outside benchmarking
 pub mod weights;
+
+#[cfg(feature = "runtime-benchmarks")]
 /// A base trait for all individual pallets
 pub trait Config: frame_system::Config + pallet_xcm_benchmarks::Config {}

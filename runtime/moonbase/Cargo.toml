@@ -38,7 +38,7 @@ pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-f
 pallet-proxy-genesis-companion = { path = "../../pallets/proxy-genesis-companion", default-features = false }
 pallet-randomness = { path = "../../pallets/randomness", default-features = false }
 pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-features = false }
-moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false, optional = true }
+moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false}
 
 # Moonbeam precompiles
 pallet-evm-precompile-author-mapping = { path = "../../precompiles/author-mapping", default-features = false }
@@ -292,7 +292,7 @@ runtime-benchmarks = [
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
 	"xcm-builder/runtime-benchmarks",
-	"moonbeam-xcm-benchmarks",
+	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"pallet-xcm-benchmarks"
 ]
 try-runtime = [

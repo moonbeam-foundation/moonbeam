@@ -5679,15 +5679,11 @@ dependencies = [
 name = "moonbeam-xcm-benchmarks"
 version = "0.2.0"
 dependencies = [
- "cumulus-primitives-core",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
- "orml-traits",
  "pallet-balances",
- "pallet-timestamp",
- "pallet-xcm",
  "pallet-xcm-benchmarks",
  "parity-scale-codec",
  "scale-info",
