@@ -100,7 +100,7 @@ fc-rpc-core = { git = "https://github.com/purestake/frontier", branch = "moonbea
 fp-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
 fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
 fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
-pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", features = [ "forbid-evm-reentrancy" ] }
 
 # Cumulus / Nimbus
 cumulus-client-cli = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.29" }
