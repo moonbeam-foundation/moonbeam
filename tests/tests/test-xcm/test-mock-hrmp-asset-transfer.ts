@@ -327,7 +327,7 @@ describeDevMoonbeam(
     });
 
     it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {
-      // Get Pallet balances index
+      // Get Pallet balances index60000000000000n
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
         (pallet) => pallet.name === "Balances"
@@ -376,7 +376,7 @@ describeDevMoonbeam(
       let randomBalance = (
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
-      let expectedRandomBalance = 60000000000000n;
+      let expectedRandomBalance = 71289450000000n;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
@@ -525,7 +525,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     }
   );
 
-  it("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
+  it.only("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
     const xcmMessage = new XcmFragment({
