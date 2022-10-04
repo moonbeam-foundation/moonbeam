@@ -101,12 +101,13 @@ export function describeParachain(
         context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
           const provider =
             protocol == "ws"
-              ? await provideWeb3Api(init.paraPorts[0].ports[0].wsPort, "ws")
-              : await provideWeb3Api(init.paraPorts[0].ports[0].rpcPort, "http");
+              ? await provideWeb3Api(`ws://localhost:${init.paraPorts[0].ports[0].wsPort}`)
+              : await provideWeb3Api(`http://localhost:${init.paraPorts[0].ports[0].rpcPort}`);
           context._web3Providers.push((provider as any)._provider);
           return provider;
         };
-        context.createEthers = async () => provideEthersApi(init.paraPorts[0].ports[0].rpcPort);
+        context.createEthers = async () =>
+          provideEthersApi(`http://localhost:${init.paraPorts[0].ports[0].rpcPort}`);
         context.createPolkadotApiParachain = async (parachainNumber: number) => {
           const promise = providePolkadotApi(init.paraPorts[parachainNumber].ports[0].wsPort);
           context._polkadotApiParachains.push({

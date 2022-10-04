@@ -19,18 +19,17 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{PrecompileHandle, PrecompileOutput};
+use fp_evm::PrecompileHandle;
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
 	traits::Get,
 };
-use pallet_evm::{AddressMapping, Precompile};
-use precompile_utils::prelude::*;
+use pallet_evm::AddressMapping;
+use precompile_utils::{data::String, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{
 	boxed::Box,
 	convert::{TryFrom, TryInto},
-	fmt::Debug,
 	marker::PhantomData,
 	vec::Vec,
 };
@@ -50,7 +49,7 @@ pub type MaxAssetsForTransfer<Runtime> = <Runtime as orml_xtokens::Config>::MaxA
 
 pub type CurrencyIdOf<Runtime> = <Runtime as orml_xtokens::Config>::CurrencyId;
 
-struct GetMaxAssets<R>(PhantomData<R>);
+pub struct GetMaxAssets<R>(PhantomData<R>);
 
 impl<R> Get<u32> for GetMaxAssets<R>
 where
@@ -61,71 +60,12 @@ where
 	}
 }
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	Transfer = "transfer(address,uint256,(uint8,bytes[]),uint64)",
-	TransferWithFee = "transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAsset = "transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-	TransferMultiAssetWithFee =
-		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
-	TransferMultiCurrencies =
-		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
-	TransferMultiAssets =
-		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
-
-	// deprecated
-	DeprecatedTransferWithFee = "transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)",
-	DeprecatedTransferMultiAsset =
-		"transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)",
-	DeprecatedTransferMultiAssetWithFee =
-		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)",
-	DeprecatedTransferMultiCurrencies =
-		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)",
-	DeprecatedTransferMultiAssets =
-		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)",
-}
-
 /// A precompile to wrap the functionality from xtokens
-pub struct XtokensWrapper<Runtime>(PhantomData<Runtime>);
+pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for XtokensWrapper<Runtime>
-where
-	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::AccountId: From<H160>,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
-	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
-
-		match selector {
-			Action::Transfer => Self::transfer(handle),
-			Action::TransferWithFee | Action::DeprecatedTransferWithFee => {
-				Self::transfer_with_fee(handle)
-			}
-			Action::TransferMultiAsset | Action::DeprecatedTransferMultiAsset => {
-				Self::transfer_multiasset(handle)
-			}
-			Action::TransferMultiAssetWithFee | Action::DeprecatedTransferMultiAssetWithFee => {
-				Self::transfer_multiasset_with_fee(handle)
-			}
-			Action::TransferMultiCurrencies | Action::DeprecatedTransferMultiCurrencies => {
-				Self::transfer_multi_currencies(handle)
-			}
-			Action::TransferMultiAssets | Action::DeprecatedTransferMultiAssets => {
-				Self::transfer_multi_assets(handle)
-			}
-		}
-	}
-}
-
-impl<Runtime> XtokensWrapper<Runtime>
+#[precompile_utils::precompile]
+#[precompile::test_concrete_types(mock::Runtime)]
+impl<Runtime> XtokensPrecompile<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
 	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -134,14 +74,14 @@ where
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
-	fn transfer(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			currency_address: Address,
-			amount: U256,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+	#[precompile::public("transfer(address,uint256,(uint8,bytes[]),uint64)")]
+	fn transfer(
+		handle: &mut impl PrecompileHandle,
+		currency_address: Address,
+		amount: U256,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let to_address: H160 = currency_address.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -164,18 +104,19 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn transfer_with_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			currency_address: Address,
-			amount: U256,
-			fee: U256,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+	#[precompile::public("transferWithFee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
+	#[precompile::public("transfer_with_fee(address,uint256,uint256,(uint8,bytes[]),uint64)")]
+	fn transfer_with_fee(
+		handle: &mut impl PrecompileHandle,
+		currency_address: Address,
+		amount: U256,
+		fee: U256,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let to_address: H160 = currency_address.into();
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
@@ -207,17 +148,18 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn transfer_multiasset(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			asset: MultiLocation,
-			amount: U256,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+	#[precompile::public("transferMultiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")]
+	#[precompile::public("transfer_multiasset((uint8,bytes[]),uint256,(uint8,bytes[]),uint64)")]
+	fn transfer_multiasset(
+		handle: &mut impl PrecompileHandle,
+		asset: MultiLocation,
+		amount: U256,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let to_balance = amount
 			.try_into()
@@ -234,20 +176,23 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
+	#[precompile::public(
+		"transferMultiassetWithFee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)"
+	)]
+	#[precompile::public(
+		"transfer_multiasset_with_fee((uint8,bytes[]),uint256,uint256,(uint8,bytes[]),uint64)"
+	)]
 	fn transfer_multiasset_with_fee(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			asset: MultiLocation,
-			amount: U256,
-			fee: U256,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+		asset: MultiLocation,
+		amount: U256,
+		fee: U256,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let amount = amount
 			.try_into()
@@ -271,24 +216,27 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
+	#[precompile::public(
+		"transferMultiCurrencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)"
+	)]
+	#[precompile::public(
+		"transfer_multi_currencies((address,uint256)[],uint32,(uint8,bytes[]),uint64)"
+	)]
 	fn transfer_multi_currencies(
 		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			currencies: BoundedVec<Currency, GetMaxAssets<Runtime>>,
-			fee_item: u32,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+		currencies: BoundedVec<Currency, GetMaxAssets<Runtime>>,
+		fee_item: u32,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		// Build all currencies
+		let currencies: Vec<_> = currencies.into();
 		let currencies = currencies
-			.into_vec()
 			.into_iter()
 			.enumerate()
 			.map(|(index, currency)| {
@@ -322,21 +270,26 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn transfer_multi_assets(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>>,
-			fee_item: u32,
-			destination: MultiLocation,
-			weight: u64
-		});
-
+	#[precompile::public(
+		"transferMultiAssets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)"
+	)]
+	#[precompile::public(
+		"transfer_multi_assets(((uint8,bytes[]),uint256)[],uint32,(uint8,bytes[]),uint64)"
+	)]
+	fn transfer_multi_assets(
+		handle: &mut impl PrecompileHandle,
+		assets: BoundedVec<EvmMultiAsset, GetMaxAssets<Runtime>>,
+		fee_item: u32,
+		destination: MultiLocation,
+		weight: u64,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
+		let assets: Vec<_> = assets.into();
 		let multiasset_vec: EvmResult<Vec<MultiAsset>> = assets
-			.into_vec()
 			.into_iter()
 			.enumerate()
 			.map(|(index, evm_multiasset)| {
@@ -366,7 +319,7 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 }
 
@@ -388,6 +341,10 @@ impl EvmData for Currency {
 
 	fn has_static_size() -> bool {
 		<(Address, U256)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(Address, U256)>::solidity_type()
 	}
 }
 
@@ -418,6 +375,10 @@ impl EvmData for EvmMultiAsset {
 
 	fn has_static_size() -> bool {
 		<(MultiLocation, U256)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(MultiLocation, U256)>::solidity_type()
 	}
 }
 

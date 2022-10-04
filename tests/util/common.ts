@@ -73,3 +73,12 @@ export class Percent extends Perthing {
     super(new BN(100), numerator, denominator);
   }
 }
+
+export function getObjectMethods(obj) {
+  let properties = new Set();
+  let currentObj = obj;
+  do {
+    Object.getOwnPropertyNames(currentObj).map((item) => properties.add(item));
+  } while ((currentObj = Object.getPrototypeOf(currentObj)));
+  return [...properties.keys()].filter((item: any) => typeof obj[item] === "function");
+}
