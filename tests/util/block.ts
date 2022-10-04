@@ -185,9 +185,10 @@ export const verifyBlockFees = async (
 
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
-            if ((dispatchInfo.paysFee.isYes && !extrinsic.signer.isEmpty)
-                || extrinsic.method.section == "ethereum") {
-
+            if (
+              (dispatchInfo.paysFee.isYes && !extrinsic.signer.isEmpty) ||
+              extrinsic.method.section == "ethereum"
+            ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
