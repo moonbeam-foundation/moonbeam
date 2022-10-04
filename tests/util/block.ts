@@ -32,7 +32,7 @@ export async function createAndFinalizeBlock(
 
   return {
     duration: Date.now() - startTime,
-    hash: block.get("hash").toString(),
+    hash: block.toJSON().hash as string, // toString doesn't work for block hashes
   };
 }
 

@@ -24,6 +24,16 @@ async function main() {
         describe: "current tag being drafted",
         required: true,
       },
+      owner: {
+        type: "string",
+        describe: "Repository owner (Ex: PureStake)",
+        required: true,
+      },
+      repo: {
+        type: "string",
+        describe: "Repository name (Ex: moonbeam)",
+        required: true,
+      },
     })
     .demandOption(["from", "to"])
     .help().argv;
@@ -42,8 +52,8 @@ async function main() {
 
   const { prByLabels } = await getCommitAndLabels(
     octokit,
-    "PureStake",
-    "moonbeam",
+    argv.owner,
+    argv.repo,
     previousTag,
     newTag
   );
@@ -64,7 +74,7 @@ ${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 
-Moonbeam: https://github.com/PureStake/moonbeam/compare/${previousTag}...${newTag}
+Moonbeam: https://github.com/${argv.owner}/${argv.repo}/compare/${previousTag}...${newTag}
 ${moduleLinks.map((modules) => `${capitalize(modules.name)}: ${modules.link}`).join("\n")}
 `;
   console.log(template);

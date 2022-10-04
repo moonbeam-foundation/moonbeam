@@ -1,0 +1,13 @@
+error[E0277]: `?` couldn't convert the error to `PrecompileFailure`
+  --> tests/precompile/compile-fail/evm-data/output-wrong-error-result.rs:25:63
+   |
+25 |     fn foo(test: &mut impl PrecompileHandle) -> Result<(), String> {
+   |                                                                  ^ the trait `From<String>` is not implemented for `PrecompileFailure`
+   |
+   = note: the question mark operation (`?`) implicitly performs a conversion on the error value using the `From` trait
+   = help: the following other types implement trait `From<T>`:
+             <PrecompileFailure as From<ExitError>>
+             <PrecompileFailure as From<RevertReason>>
+             <PrecompileFailure as From<TryDispatchError>>
+             <PrecompileFailure as From<precompile_utils::revert::Revert>>
+   = note: required because of the requirements on the impl of `FromResidual<Result<Infallible, String>>` for `Result<PrecompileOutput, PrecompileFailure>`
