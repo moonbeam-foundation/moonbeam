@@ -111,7 +111,6 @@ then
     npm ci
 
     cd $ROOT_FOLDER/moonbeam/tests
-    git checkout crystalin-fork-test-preparation
     npm ci
 fi
 
