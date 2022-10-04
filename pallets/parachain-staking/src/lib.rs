@@ -412,11 +412,11 @@ pub mod pallet {
 			delegator: T::AccountId,
 			value: Percent,
 		},
-		/// Paid the account (delegator or collator) the balance as liquid rewards.
-		RewardedWithCompound {
-			account: T::AccountId,
-			rewards: BalanceOf<T>,
-			compounded: BalanceOf<T>,
+		/// Compounded a portion of rewards towards the delegation.
+		Compounded {
+			candidate: T::AccountId,
+			delegator: T::AccountId,
+			amount: BalanceOf<T>,
 		},
 	}
 
@@ -579,6 +579,11 @@ pub mod pallet {
 		CollatorSnapshot<T::AccountId, BalanceOf<T>>,
 		ValueQuery,
 	>;
+
+	/// Migration storage holding value for collators already migrated to the new snapshot variant
+	#[pallet::storage]
+	#[pallet::getter(fn migrated_at_stake)]
+	pub type MigratedAtStake<T: Config> = StorageValue<_, RoundIndex, OptionQuery>;
 
 	#[pallet::storage]
 	#[pallet::getter(fn delayed_payouts)]
@@ -1567,17 +1572,48 @@ pub mod pallet {
 			{
 				// @todo: we can alternatively snapshot these values with rewardable delegators
 				//		  but that requires changing/migrating CollatorSnapshot
-				let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&collator)
-					.into_iter()
-					.map(|x| (x.delegator, x.value))
-					.collect::<BTreeMap<_, _>>();
+				// let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&collator)
+				// 	.into_iter()
+				// 	.map(|x| (x.delegator, x.value))
+				// 	.collect::<BTreeMap<_, _>>();
 
 				let mut extra_weight = 0;
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
 				// Take the snapshot of block author and delegations
-				let state = <AtStake<T>>::take(paid_for_round, &collator);
+
+				// Decode [CollatorSnapshot] depending upon when the storage was migrated
+				let is_at_stake_migrated = <MigratedAtStake<T>>::get()
+					.map_or(false, |migrated_at_round| {
+						paid_for_round >= migrated_at_round
+					});
+				#[allow(deprecated)]
+				let state = if is_at_stake_migrated {
+					let at_stake: CollatorSnapshot<T::AccountId, BalanceOf<T>> =
+						<AtStake<T>>::take(paid_for_round, &collator);
+					at_stake
+				} else {
+					// storage still not migrated, decode as deprecated CollatorSnapshot.
+					let key = <AtStake<T>>::hashed_key_for(paid_for_round, &collator);
+					let at_stake: deprecated::CollatorSnapshot<T::AccountId, BalanceOf<T>> =
+						frame_support::storage::unhashed::get(&key).expect("must exist; qed");
+
+					CollatorSnapshot {
+						bond: at_stake.bond,
+						delegations: at_stake
+							.delegations
+							.into_iter()
+							.map(|d| BondWithAutoCompound {
+								owner: d.owner,
+								amount: d.amount,
+								auto_compound: Percent::zero(),
+							})
+							.collect(),
+						total: at_stake.total,
+					}
+				};
+
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
@@ -1600,22 +1636,21 @@ pub mod pallet {
 						collator_reward,
 					);
 					// pay delegators due portion
-					for Bond { owner, amount } in state.delegations {
+					for BondWithAutoCompound {
+						owner,
+						amount,
+						auto_compound,
+					} in state.delegations
+					{
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							if let Some(auto_compound_percent) =
-								auto_compounding_delegations.get(&owner)
-							{
-								Self::mint_and_compound(
-									due,
-									auto_compound_percent.clone(),
-									collator.clone(),
-									owner.clone(),
-								);
-							} else {
-								Self::mint(due, owner.clone());
-							}
+							Self::mint_and_compound(
+								due,
+								auto_compound.clone(),
+								collator.clone(),
+								owner.clone(),
+							);
 						}
 					}
 				}
@@ -1698,11 +1733,32 @@ pub mod pallet {
 				} = Self::get_rewardable_delegators(&account);
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
+				let auto_compounding_delegations = <AutoCompoundingDelegations<T>>::get(&account)
+					.into_iter()
+					.map(|x| (x.delegator, x.value))
+					.collect::<BTreeMap<_, _>>();
+				let rewardable_delegations = rewardable_delegations
+					.into_iter()
+					.map(|d| BondWithAutoCompound {
+						owner: d.owner.clone(),
+						amount: d.amount,
+						auto_compound: auto_compounding_delegations
+							.get(&d.owner)
+							.cloned()
+							.unwrap_or_else(|| Percent::zero()),
+					})
+					.collect();
+
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
 					delegations: rewardable_delegations,
 					total: total_counted,
 				};
+				<MigratedAtStake<T>>::mutate(|v| {
+					if v.is_none() {
+						*v = Some(now);
+					}
+				});
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
@@ -1797,7 +1853,7 @@ pub mod pallet {
 		/// Mint and compound delegation rewards. The function mints the amount towards the
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
-		/// compounded. Emits the [RewardedWithCompound] event.
+		/// compounded. Emits the [Compounded] event.
 		fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
@@ -1807,28 +1863,34 @@ pub mod pallet {
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
-				let mut compound_amount = compound_percent * amount_transferred.peek();
-				if !compound_amount.is_zero() {
-					if let Err(err) = Self::delegation_bond_more_without_event(
-						delegator.clone(),
-						candidate.clone(),
-						compound_amount.clone(),
-					) {
-						log::error!(
-									"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
-									candidate,
-									delegator,
-									err
-								);
-						// an error occurred, set compounded amount to 0
-						compound_amount = <BalanceOf<T>>::zero();
-					};
-				}
-
-				Pallet::<T>::deposit_event(Event::RewardedWithCompound {
+				Self::deposit_event(Event::Rewarded {
 					account: delegator.clone(),
 					rewards: amount_transferred.peek(),
-					compounded: compound_amount.clone(),
+				});
+
+				let compound_amount = compound_percent * amount_transferred.peek();
+				if compound_amount.is_zero() {
+					return;
+				}
+
+				if let Err(err) = Self::delegation_bond_more_without_event(
+					delegator.clone(),
+					candidate.clone(),
+					compound_amount.clone(),
+				) {
+					log::error!(
+								"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+								candidate,
+								delegator,
+								err
+							);
+					return;
+				};
+
+				Pallet::<T>::deposit_event(Event::Compounded {
+					delegator,
+					candidate,
+					amount: compound_amount.clone(),
 				});
 			};
 		}

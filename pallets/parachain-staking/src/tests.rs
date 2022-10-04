@@ -32,7 +32,7 @@ use crate::{
 	assert_tail_eq, set::OrderedSet, AtStake, AutoCompoundingDelegations, Bond, BottomDelegations,
 	CandidateInfo, CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus,
 	DelegationScheduledRequests, Delegations, DelegatorAdded, DelegatorState, DelegatorStatus,
-	Error, Event, Range, TopDelegations, DELEGATOR_LOCK_ID,
+	Error, Event, MigratedAtStake, Range, TopDelegations, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -8909,17 +8909,20 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 			roll_to_round_begin(4);
 
 			assert_eq_last_events!(vec![
-				// 0
-				Event::<Test>::RewardedWithCompound {
+				// no compound since revoke request exists
+				Event::<Test>::Rewarded {
 					account: 2,
 					rewards: 8,
-					compounded: 0,
 				},
 				// 50%
-				Event::<Test>::RewardedWithCompound {
+				Event::<Test>::Rewarded {
 					account: 3,
 					rewards: 8,
-					compounded: 4,
+				},
+				Event::<Test>::Compounded {
+					candidate: 1,
+					delegator: 3,
+					amount: 4,
 				},
 			]);
 		});
@@ -8933,7 +8936,7 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 		.with_delegations(vec![(2, 1, 200), (3, 1, 200), (4, 1, 200), (5, 1, 200)])
 		.build()
 		.execute_with(|| {
-			(2..=5).for_each(|round| set_author(round, 1, 1));
+			(2..=6).for_each(|round| set_author(round, 1, 1));
 			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
 				Origin::signed(2),
 				1,
@@ -8959,22 +8962,29 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 
 			assert_eq_last_events!(vec![
 				// 0%
-				Event::<Test>::RewardedWithCompound {
+				Event::<Test>::Rewarded {
 					account: 2,
 					rewards: 8,
-					compounded: 0,
 				},
 				// 50%
-				Event::<Test>::RewardedWithCompound {
+				Event::<Test>::Rewarded {
 					account: 3,
 					rewards: 8,
-					compounded: 4,
+				},
+				Event::<Test>::Compounded {
+					candidate: 1,
+					delegator: 3,
+					amount: 4,
 				},
 				// 100%
-				Event::<Test>::RewardedWithCompound {
+				Event::<Test>::Rewarded {
 					account: 4,
 					rewards: 8,
-					compounded: 8,
+				},
+				Event::<Test>::Compounded {
+					candidate: 1,
+					delegator: 4,
+					amount: 8,
 				},
 				// no-config
 				Event::<Test>::Rewarded {
@@ -8982,5 +8992,100 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					rewards: 8,
 				},
 			]);
+		});
+}
+
+#[allow(deprecated)]
+#[test]
+fn test_migrated_at_stake_handles_deprecated_storage_value() {
+	use crate::deprecated::CollatorSnapshot as DeprecatedCollatorSnapshot;
+	use crate::mock::{AccountId, Balance};
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 100), (2, 100)])
+		.with_candidates(vec![(1, 100)])
+		.with_delegations(vec![(2, 1, 100)])
+		.build()
+		.execute_with(|| {
+			(1..=6).for_each(|round| set_author(round, 1, 1));
+			roll_to_round_begin(1);
+			// force store deprecated CollatorSnapshot format for round 1
+			frame_support::storage::unhashed::put(
+				&<AtStake<Test>>::hashed_key_for(1, 1),
+				&DeprecatedCollatorSnapshot {
+					bond: 100 as Balance,
+					delegations: vec![Bond {
+						owner: 2 as AccountId,
+						amount: 100 as Balance,
+					}],
+					total: 200 as Balance,
+				},
+			);
+			// reset migrated at storage
+			<MigratedAtStake<Test>>::kill();
+
+			// assert MigratedAtStake storage is updated at round 2, and set auto-compound value
+			roll_to_round_begin(2);
+			assert_eq!(Some(2), <MigratedAtStake<Test>>::get());
+			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+				Origin::signed(2),
+				1,
+				Percent::from_percent(50),
+				1,
+				0,
+			));
+
+			// assert rewards were correctly given with deprecated CollatorSnapshot
+			roll_to_round_begin(3);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 6,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 4,
+					},
+				],
+				"incorrect rewards at round 3 with deprecated CollatorSnapshot",
+			);
+
+			// assert rewards were correctly given with new CollatorSnapshot, but without compound
+			roll_to_round_begin(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 6,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 4,
+					},
+				],
+				"incorrect rewards without compounding at round 4",
+			);
+
+			// assert rewards were correctly given with new CollatorSnapshot and with compound
+			roll_to_round_begin(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 6,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 4,
+					},
+					Event::<Test>::Compounded {
+						candidate: 1,
+						delegator: 2,
+						amount: 2,
+					},
+				],
+				"incorrect compounding rewards at round 5",
+			);
 		});
 }
