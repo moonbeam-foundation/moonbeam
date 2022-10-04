@@ -35,8 +35,6 @@ trait WeighMultiAssetsFilter {
 	fn weigh_multi_assets_filter(&self, max_assests: u32, weight: Weight) -> XCMWeight;
 }
 
-const MAX_ASSETS: u32 = 100;
-
 impl WeighMultiAssetsFilter for MultiAssetFilter {
 	fn weigh_multi_assets_filter(&self, max_assests: u32, weight: Weight) -> XCMWeight {
 		let weight = match self {
