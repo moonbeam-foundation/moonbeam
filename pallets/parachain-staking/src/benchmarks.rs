@@ -18,8 +18,8 @@
 
 //! Benchmarking
 use crate::{
-	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest,
+	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, CandidateInfo, Config, DelegationAction,
+	Pallet, Points, Range, Round, ScheduledRequest,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
@@ -384,7 +384,8 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), more)
 	verify {
 		let expected_bond = more * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+		let actual_bond = <CandidateInfo<T>>::get(&caller).unwrap().bond;
+		assert_eq!(expected_bond, actual_bond);
 	}
 
 	schedule_candidate_bond_less {
