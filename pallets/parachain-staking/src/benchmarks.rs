@@ -987,7 +987,7 @@ benchmarks! {
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{
-			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
+			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, BondWithAutoCompound, Points,
 			AwardedPts,
 		};
 
@@ -1033,11 +1033,12 @@ benchmarks! {
 			collator_commission: Perbill::from_rational(1u32, 100u32),
 		});
 
-		let mut delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> = Vec::new();
+		let mut delegations: Vec<BondWithAutoCompound<T::AccountId, BalanceOf<T>>> = Vec::new();
 		for delegator in &delegators {
-			delegations.push(Bond {
+			delegations.push(BondWithAutoCompound {
 				owner: delegator.clone(),
 				amount: 100u32.into(),
+				auto_compound: Percent::zero(),
 			});
 		}
 
