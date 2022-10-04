@@ -3727,8 +3727,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bd0d559d5e679b1ab2f869b486a11182923863b1b3ee8b421763cdd707b783a"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "jsonrpsee-core",
  "jsonrpsee-http-server",
@@ -3742,8 +3741,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-client-transport"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8752740ecd374bcbf8b69f3e80b0327942df76f793f8d4e60d3355650c31fb74"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "futures-util",
  "http",
@@ -3763,8 +3761,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-core"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3dc3e9cf2ba50b7b1d7d76a667619f82846caa39e8e8daa8a4962d74acaddca"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "anyhow",
  "arrayvec 0.7.2",
@@ -3795,8 +3792,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-http-server"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03802f0373a38c2420c70b5144742d800b509e2937edc4afb116434f07120117"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -3813,8 +3809,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-proc-macros"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd67957d4280217247588ac86614ead007b301ca2fa9f19c19f880a536f029e3"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -3825,8 +3820,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-types"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e290bba767401b646812f608c099b922d8142603c9e73a50fb192d3ac86f4a0d"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "anyhow",
  "beef",
@@ -3839,8 +3833,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-ws-client"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ee5feddd5188e62ac08fcf0e56478138e581509d4730f3f7be9b57dd402a4ff"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "http",
  "jsonrpsee-client-transport",
@@ -3851,8 +3844,7 @@ dependencies = [
 [[package]]
 name = "jsonrpsee-ws-server"
 version = "0.15.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d488ba74fb369e5ab68926feb75a483458b88e768d44319f37e4ecad283c7325"
+source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15.1#7c2a0149c3a134c6d84d0fccc94efd455f314f80"
 dependencies = [
  "futures-channel",
  "futures-util",
@@ -13617,9 +13609,9 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 
@@ -14643,18 +14635,3 @@ dependencies = [
  "cc",
  "libc",
 ]
-
-[[patch.unused]]
-name = "jsonrpsee"
-version = "0.15.0"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15#057a5070b5f698c60367a78333778599610780e6"
-
-[[patch.unused]]
-name = "jsonrpsee-core"
-version = "0.15.0"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15#057a5070b5f698c60367a78333778599610780e6"
-
-[[patch.unused]]
-name = "jsonrpsee-types"
-version = "0.15.0"
-source = "git+https://github.com/PureStake/jsonrpsee?branch=moonbeam-v0.15#057a5070b5f698c60367a78333778599610780e6"
