@@ -2498,6 +2498,7 @@ dependencies = [
  "evm",
  "fc-db",
  "fc-rpc-core",
+ "fp-ethereum",
  "fp-evm",
  "fp-rpc",
  "fp-storage",
@@ -2690,6 +2691,7 @@ dependencies = [
  "ethereum-types",
  "fp-evm",
  "frame-support",
+ "num_enum",
  "parity-scale-codec",
  "sp-core",
  "sp-std",
@@ -6298,6 +6300,7 @@ version = "0.5.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3b0498641e53dd6ac1a4f22547548caa6864cc4933784319cd1775271c5a46ce"
 dependencies = [
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "syn",
