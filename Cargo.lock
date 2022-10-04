@@ -6390,7 +6390,7 @@ dependencies = [
 [[package]]
 name = "orml-traits"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#00ced7b8afa542bf76b497ee0f65901f712d3bf2"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#3089084582d2c8a4370378efddd7eadc8393d273"
 dependencies = [
  "frame-support",
  "impl-trait-for-tuples",
@@ -6408,7 +6408,7 @@ dependencies = [
 [[package]]
 name = "orml-utilities"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#00ced7b8afa542bf76b497ee0f65901f712d3bf2"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#3089084582d2c8a4370378efddd7eadc8393d273"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -6422,7 +6422,7 @@ dependencies = [
 [[package]]
 name = "orml-xcm-support"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#00ced7b8afa542bf76b497ee0f65901f712d3bf2"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#3089084582d2c8a4370378efddd7eadc8393d273"
 dependencies = [
  "frame-support",
  "orml-traits",
@@ -6436,7 +6436,7 @@ dependencies = [
 [[package]]
 name = "orml-xtokens"
 version = "0.4.1-dev"
-source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#00ced7b8afa542bf76b497ee0f65901f712d3bf2"
+source = "git+https://github.com/purestake/open-runtime-module-library?branch=moonbeam-polkadot-v0.9.29#3089084582d2c8a4370378efddd7eadc8393d273"
 dependencies = [
  "cumulus-primitives-core",
  "frame-support",
