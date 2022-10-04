@@ -23,7 +23,7 @@ use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{ConstU32, Currency};
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, ReferendumStatus, Vote,
+	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote,
 	VoteThreshold,
 };
 use pallet_evm::AddressMapping;
