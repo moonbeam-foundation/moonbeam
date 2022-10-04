@@ -253,6 +253,24 @@ export class XcmFragment {
     return this;
   }
 
+  // Add a `BuyExecution` unlimited instruction
+  buy_execution_unlimited(multilocation_index: number = 0, repeat: bigint = 1n): this {
+    for (var i = 0; i < repeat; i++) {
+      this.instructions.push({
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: this.config.fees.multilocation[multilocation_index],
+            },
+            fun: { Fungible: this.config.fees.fungible },
+          },
+          weightLimit: { Unlimited: null },
+        },
+      });
+    }
+    return this;    
+  }
+
   // Add a `ClaimAsset` instruction
   claim_asset(): this {
     this.instructions.push({

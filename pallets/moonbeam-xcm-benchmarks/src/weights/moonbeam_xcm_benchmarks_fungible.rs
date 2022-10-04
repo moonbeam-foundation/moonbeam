@@ -45,4 +45,7 @@ impl<T: frame_system::Config> WeightInfo<T> {
 	pub(crate) fn initiate_teleport() -> Weight {
 		200_000_000u64
 	}
+	pub(crate) fn reserve_asset_deposited() -> Weight {
+		200_000_000u64
+	}
 }

@@ -63,7 +63,7 @@ where
 	}
 	// Currently there is no trusted reserve
 	fn reserve_asset_deposited(_assets: &MultiAssets) -> XCMWeight {
-		unimplemented!()
+		XcmFungibleWeight::<Runtime>::reserve_asset_deposited()
 	}
 	fn receive_teleported_asset(assets: &MultiAssets) -> XCMWeight {
 		assets.weigh_multi_assets(XcmFungibleWeight::<Runtime>::receive_teleported_asset())
