@@ -7,7 +7,6 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
-import { ed25519PairFromRandom } from "@polkadot/util-crypto";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
