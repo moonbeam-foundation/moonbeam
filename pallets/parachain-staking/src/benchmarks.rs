@@ -1192,6 +1192,114 @@ benchmarks! {
 			"delegation must have an auto-compound entry",
 		);
 	}
+
+	// analysis benchmark
+	// pay_one_collator_reward_analyze {
+	// 	// y controls number of delegations, its maximum per collator is the max top delegations
+	// 	let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+	// 	let z in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+
+	// 	// must come after 'let foo in 0..` statements for macro
+	// 	use crate::{
+	// 		DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
+	// 		AwardedPts, DelegationScheduledRequests,
+	// 	};
+
+	// 	let before_running_round_index = Pallet::<T>::round().current;
+	// 	let initial_stake_amount = min_candidate_stk::<T>() * 1_000_000u32.into();
+
+	// 	let mut total_staked = 0u32.into();
+
+	// 	// initialize our single collator
+	// 	let sole_collator = create_funded_collator::<T>(
+	// 		"collator",
+	// 		0,
+	// 		initial_stake_amount,
+	// 		true,
+	// 		1u32,
+	// 	)?;
+	// 	total_staked += initial_stake_amount;
+
+	// 	// insert dummy scheduled requests
+	// 	let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&sole_collator);
+	// 	for i in 0..350 {
+	// 		scheduled_requests.push(ScheduledRequest{
+	// 			delegator: account("foo", 99999999 + i, 0),
+	// 			when_executable: 1,
+	// 			action: DelegationAction::Decrease(0u32.into()),
+	// 		});
+	// 	}
+	// 	<DelegationScheduledRequests<T>>::insert(sole_collator.clone(), scheduled_requests);
+
+	// 	// generate funded collator accounts
+	// 	let mut delegators: Vec<T::AccountId> = Vec::new();
+	// 	for i in 0..y {
+	// 		let seed = USER_SEED + i;
+	// 		let delegator = create_funded_delegator::<T>(
+	// 			"delegator",
+	// 			seed,
+	// 			initial_stake_amount,
+	// 			sole_collator.clone(),
+	// 			true,
+	// 			delegators.len() as u32,
+	// 		)?;
+	// 		if i < z {
+	// 			log::info!("set auto compounding {:?}", i);
+	// 			Pallet::<T>::delegation_set_auto_compounding_reward(RawOrigin::Signed(delegator.clone().into()).into(), sole_collator.clone(), Percent::from_percent(100), 1000, 1000)?;
+	// 		}
+	// 		delegators.push(delegator);
+	// 		total_staked += initial_stake_amount;
+	// 	}
+
+	// 	// rather than roll through rounds in order to initialize the storage we want, we set it
+	// 	// directly and then call pay_one_collator_reward directly.
+
+	// 	let round_for_payout = 5;
+	// 	<DelayedPayouts<T>>::insert(&round_for_payout, DelayedPayout {
+	// 		// NOTE: round_issuance is not correct here, but it doesn't seem to cause problems
+	// 		round_issuance: 1000u32.into(),
+	// 		total_staking_reward: total_staked,
+	// 		collator_commission: Perbill::from_rational(1u32, 100u32),
+	// 	});
+
+	// 	let mut delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> = Vec::new();
+	// 	for delegator in &delegators {
+	// 		delegations.push(Bond {
+	// 			owner: delegator.clone(),
+	// 			amount: 100u32.into(),
+	// 		});
+	// 	}
+
+	// 	<AtStake<T>>::insert(round_for_payout, &sole_collator, CollatorSnapshot {
+	// 		bond: 1_000u32.into(),
+	// 		delegations,
+	// 		total: 1_000_000u32.into(),
+	// 	});
+
+	// 	<Points<T>>::insert(round_for_payout, 100);
+	// 	<AwardedPts<T>>::insert(round_for_payout, &sole_collator, 20);
+
+	// }: {
+	// 	let round_for_payout = 5;
+	// 	// TODO: this is an extra read right here (we should whitelist it?)
+	// 	let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
+	// 	let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
+	// 	assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+	// }
+	// verify {
+	// 	// collator should have been paid
+	// 	assert!(
+	// 		T::Currency::free_balance(&sole_collator) > initial_stake_amount,
+	// 		"collator should have been paid in pay_one_collator_reward"
+	// 	);
+	// 	// nominators should have been paid
+	// 	for delegator in &delegators {
+	// 		assert!(
+	// 			T::Currency::free_balance(&delegator) > initial_stake_amount,
+	// 			"delegator should have been paid in pay_one_collator_reward"
+	// 		);
+	// 	}
+	// }
 }
 
 #[cfg(test)]
