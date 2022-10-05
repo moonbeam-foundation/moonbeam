@@ -1,12 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
-import { expect } from "chai";
+import { expect, should } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
 import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
+import { ed25519PairFromRandom } from "@polkadot/util-crypto";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
@@ -15,7 +16,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify created account proxy`, { wssUrl, relayWssUrl }, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -23,6 +24,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   //             Displays PalletProxyProxyDefinition
   //           Then add the type in the import from "@polkadot/types/lookup"
   const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
+  const proxyAccList = [];
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -74,6 +76,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
         let accountId = `0x${proxyData[0].toHex().slice(-40)}`;
         last_key = proxyData[0].toString();
         proxiesPerAccount[accountId] = proxyData[1][0].toArray();
+        proxyAccList.push(accountId);
       }
 
       // Debug logs to make sure it keeps progressing
@@ -166,6 +169,24 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
     // TEMPLATE: Updates the log line
     debug(`Verified maximum allowed proxies constant`);
+  });
+
+  it("should only exist for non-smartcontract accounts", async function () {
+    // For each account with a registered proxy, lookup whether its address is a contract or not
+    await Promise.all(
+      proxyAccList.map(async (address) => {
+        const resp = await apiAt.query.evm.accountCodes(address);
+        const contract = resp.toJSON() == "0x" ? false : true;
+        // create results array of whether account is contract or not
+        return { address, contract };
+      })
+    ).then((results) => {
+      results.forEach((item) => {
+        // External accounts aka wallet account aka non-contract address
+        if (item.contract) debug(`Proxy detected from non-external account: ${item.address} `);
+      });
+      expect(results.every((item) => item.contract == false)).to.be.true;
+    });
   });
 });
 
