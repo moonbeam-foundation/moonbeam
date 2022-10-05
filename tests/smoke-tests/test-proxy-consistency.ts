@@ -71,17 +71,18 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
       }
       count += query.length;
 
-      let delegates = [];
+      // let delegates = [];
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const proxyData of query) {
         let accountId = `0x${proxyData[0].toHex().slice(-40)}`;
         last_key = proxyData[0].toString();
         proxiesPerAccount[accountId] = proxyData[1][0].toArray();
-        proxyData[1][0].forEach((item) => delegates.push(item.delegate.toHuman()));
+        // proxyData[1][0].forEach((item) => delegates.push(item.delegate.toHuman()));
+        proxyAccList.push(accountId);
       }
 
       // Remove duplicates
-      proxyAccList = [...new Set(delegates)];
+      // proxyAccList = [...new Set(delegates)];
 
       // Debug logs to make sure it keeps progressing
       // TEMPLATE: Adapt log line
@@ -113,7 +114,7 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     }
 
     // TEMPLATE: Write nice logging for your test if it fails :)
-    if (failedProxies.length > 0){
+    if (failedProxies.length > 0) {
       debug("Failed accounts with too many proxies:");
       debug(
         failedProxies
@@ -125,7 +126,6 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
           .join(`\n`)
       );
     }
-  
 
     // Make sure the test fails after we print the errors
     // TEMPLATE: Adapt variable & text
@@ -178,10 +178,10 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it("should only be delegated to non-smart contract accounts", async function () {
+  it("should only be possible for proxies of non-smart contract accounts", async function () {
     this.timeout(60000);
 
-    // For each account with a registered proxy, lookup whether its delegates are smart contracts or not
+    // For each account with a registered proxy, check whether it is a non-SC address
     await Promise.all(
       proxyAccList.map(async (address) => {
         const resp = await apiAt.query.evm.accountCodes(address);
@@ -192,7 +192,8 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     ).then((results) => {
       results.forEach((item) => {
         // External accounts aka wallet account aka non-contract address
-        if (item.contract) debug(`Non-external proxy account detected: ${item.address} `);
+        if (item.contract)
+          debug(`Proxy account for non-external address detected: ${item.address} `);
       });
       expect(results.every((item) => item.contract == false)).to.be.true;
     });
