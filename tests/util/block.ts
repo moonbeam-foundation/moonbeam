@@ -208,12 +208,7 @@ export const verifyBlockFees = async (
                   // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
                   // prioritization component: the EVM is not aware of it and thus not part of the
                   // weight cost of the extrinsic.
-
-                  // TODO: why did this break? ultimately we (currently) use our FixedGasPrice which
-                  // returns a constant 1GWEI (For moonbase). So are the block headers wrong now for
-                  // some reason?
-                  // gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
-                  gasPrice = 1_000_000_000n;
+                  gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
                 }
                 // And then multiplying by gasPrice
                 txFees = gasFee * gasPrice;

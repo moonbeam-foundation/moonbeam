@@ -279,7 +279,7 @@ pub fn testnet_genesis(
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
-		base_fee: BaseFeeConfig::new(U256::from(1_000_000_000u64), Permill::from_parts(125_000)),
+		base_fee: BaseFeeConfig::new(U256::from(1_000_000_000u64), Permill::zero()),
 		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates
