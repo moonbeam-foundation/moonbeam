@@ -319,6 +319,11 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     descendedAddress = descendOriginAddress;
     random = generateKeyringPair();
 
+    const buyExecutionWeight = 68_188_000n + (25_000_000n*4n);
+    const clearOriginWeight = 6_023_000n;
+    const reserveAssetDepositedWeight = 200_000_000n;
+    const depositAsset = 200_000_000n;
+
     // registerForeignAsset
     const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
       context,
@@ -335,7 +340,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     const xcmMessage = new XcmFragment({
       fees: {
         multilocation: [ASSET_MULTILOCATION],
-        fungible: assetsToTransfer + 800_000_000n,
+        fungible: assetsToTransfer + buyExecutionWeight + clearOriginWeight + reserveAssetDepositedWeight + depositAsset,
       },
       weight_limit: new BN(800_000_000),
       beneficiary: descendOriginAddress,

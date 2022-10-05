@@ -525,7 +525,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transfer", (context) => {
     }
   );
 
-  it.only("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
+  it("Should receive 10 asset 0 tokens using statemint asset 1 as fee ", async function () {
     // We are going to test that, using one of them as fee payment (assetOne),
     // we can receive the other
     const xcmMessage = new XcmFragment({
