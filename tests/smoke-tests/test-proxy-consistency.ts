@@ -16,7 +16,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify created account proxy`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -176,7 +176,7 @@ describeSmokeSuite(`Verify created account proxy`, { wssUrl, relayWssUrl }, (con
     await Promise.all(
       proxyAccList.map(async (address) => {
         const resp = await apiAt.query.evm.accountCodes(address);
-        const contract = resp.toJSON() == "0x" ? false : true;
+        const contract = resp.toJSON() == "0xX" ? false : true;
         // create results array of whether account is contract or not
         return { address, contract };
       })
