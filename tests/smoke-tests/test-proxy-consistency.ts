@@ -1,7 +1,7 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
-import { expect, should } from "chai";
+import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
@@ -176,7 +176,7 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     await Promise.all(
       proxyAccList.map(async (address) => {
         const resp = await apiAt.query.evm.accountCodes(address);
-        const contract = resp.toJSON() == "0xX" ? false : true;
+        const contract = resp.toJSON() == "0x" ? false : true;
         // create results array of whether account is contract or not
         return { address, contract };
       })
