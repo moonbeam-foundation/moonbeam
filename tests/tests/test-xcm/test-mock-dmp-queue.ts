@@ -69,7 +69,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     const totalMessage = [...receivedMessage.toU8a()];
 
-    console.log(totalMessage.toString());
     // We want these isntructions to fail in BuyExecution. That means
     // WithdrawAsset needs to work. The only way for this to work
     // is to fund each sovereign account
