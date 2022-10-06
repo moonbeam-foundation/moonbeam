@@ -109,3 +109,13 @@ where
 		}
 	}
 }
+
+#[cfg(feature = "try-runtime")]
+impl<T: frame_system::Config> frame_support::traits::TryState<BlockNumberOf<T>> for ExecutiveHooks<T> {
+	fn try_state(
+		_: BlockNumberOf<T>,
+		_: frame_support::traits::TryStateSelect,
+	) -> Result<(), &'static str> {
+		Ok(())
+	}
+}
