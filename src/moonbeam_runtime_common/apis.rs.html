@@ -642,6 +642,18 @@
 <span id="642">642</span>
 <span id="643">643</span>
 <span id="644">644</span>
+<span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1279,8 +1291,20 @@
 					(weight, BlockWeights::get().max_block)
 				}
 
-				<span class="kw">fn </span>execute_block_no_check(block: Block) -&gt; Weight {
-					Executive::execute_block_no_check(block)
+				<span class="kw">fn </span>execute_block(
+					block: Block,
+					state_root_check: bool,
+					select: frame_try_runtime::TryStateSelect
+				) -&gt; Weight {
+					<span class="macro">log::info!</span>(
+						<span class="string">&quot;try-runtime: executing block {:?} / root checks: {:?} / try-state-select: {:?}&quot;</span>,
+						block.header.hash(),
+						state_root_check,
+						select,
+					);
+					<span class="comment">// NOTE: intentional unwrap: we don&#39;t want to propagate the error backwards, and want to
+					// have a backtrace here.
+					</span>Executive::try_execute_block(block, state_root_check, select).expect(<span class="string">&quot;execute-block failed&quot;</span>)
 				}
 			}
 		}
