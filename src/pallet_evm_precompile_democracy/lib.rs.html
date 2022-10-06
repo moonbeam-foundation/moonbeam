@@ -383,31 +383,6 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
-<span id="399">399</span>
-<span id="400">400</span>
-<span id="401">401</span>
-<span id="402">402</span>
-<span id="403">403</span>
-<span id="404">404</span>
-<span id="405">405</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
 <span class="comment">// This file is part of Moonbeam.</span>
 
@@ -432,7 +407,9 @@
 <span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
 <span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
 <span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Currency</span>};
-<span class="kw">use</span> <span class="ident">pallet_democracy</span>::{<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Conviction</span>, <span class="ident">Vote</span>};
+<span class="kw">use</span> <span class="ident">pallet_democracy</span>::{
+	<span class="ident">AccountVote</span>, <span class="ident">Call</span> <span class="kw">as</span> <span class="ident">DemocracyCall</span>, <span class="ident">Conviction</span>, <span class="ident">ReferendumInfo</span>, <span class="ident">Vote</span>, <span class="ident">VoteThreshold</span>,
+};
 <span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
 <span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
@@ -472,7 +449,8 @@
 	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
 	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">DemocracyCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+	<span class="ident">Runtime::Hash</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+	<span class="ident">Runtime::BlockNumber</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
 {
 	<span class="comment">// The accessors are first. They directly return their result.</span>
 	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;publicPropCount()&quot;</span>)]</span>
@@ -525,78 +503,50 @@
 		<span class="prelude-val">Ok</span>(<span class="ident">lowest_unbaked</span>.<span class="ident">into</span>())
 	}
 
-	<span class="comment">// This method is not yet implemented because it depends on</span>
-	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
-	<span class="comment">// master, but is not on the release branches that we are following</span>
-	<span class="comment">//</span>
-	<span class="comment">// The ref_index should probably be u32. Since the API is not implemented, we probably</span>
-	<span class="comment">// can change the signature of the function.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;ongoingReferendumInfo(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;ongoing_referendum_info(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;ongoingReferendumInfo(uint32)&quot;</span>)]</span>
 	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">_ref_index</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
-			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
+	<span class="kw">fn</span> <span class="ident">ongoing_referendum_info</span>(
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">ref_index</span>: <span class="ident">u32</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="ident">U256</span>, <span class="ident">H256</span>, <span class="ident">u8</span>, <span class="ident">U256</span>, <span class="ident">U256</span>, <span class="ident">U256</span>, <span class="ident">U256</span>)<span class="op">&gt;</span> {
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> <span class="ident">ref_status</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::referendum_info</span>(<span class="ident">ref_index</span>) {
+			<span class="prelude-val">Some</span>(<span class="ident">ReferendumInfo::Ongoing</span>(<span class="ident">ref_status</span>)) =&gt; <span class="ident">ref_status</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">ReferendumInfo::Finished</span> { .. }) =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Referendum is finished&quot;</span>))<span class="question-mark">?</span>,
+			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Unknown referendum&quot;</span>))<span class="question-mark">?</span>,
+		};
+
+		<span class="kw">let</span> <span class="ident">threshold_u8</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">ref_status</span>.<span class="ident">threshold</span> {
+			<span class="ident">VoteThreshold::SuperMajorityApprove</span> =&gt; <span class="number">0</span>,
+			<span class="ident">VoteThreshold::SuperMajorityAgainst</span> =&gt; <span class="number">1</span>,
+			<span class="ident">VoteThreshold::SimpleMajority</span> =&gt; <span class="number">2</span>,
+		};
+
+		<span class="prelude-val">Ok</span>((
+			<span class="ident">ref_status</span>.<span class="ident">end</span>.<span class="ident">into</span>(),
+			<span class="ident">ref_status</span>.<span class="ident">proposal_hash</span>.<span class="ident">into</span>(),
+			<span class="ident">threshold_u8</span>.<span class="ident">into</span>(),
+			<span class="ident">ref_status</span>.<span class="ident">delay</span>.<span class="ident">into</span>(),
+			<span class="ident">ref_status</span>.<span class="ident">tally</span>.<span class="ident">ayes</span>.<span class="ident">into</span>(),
+			<span class="ident">ref_status</span>.<span class="ident">tally</span>.<span class="ident">nays</span>.<span class="ident">into</span>(),
+			<span class="ident">ref_status</span>.<span class="ident">tally</span>.<span class="ident">turnout</span>.<span class="ident">into</span>(),
 		))
-		<span class="comment">// let mut gasometer = Gasometer::new(target_gas);</span>
-
-		<span class="comment">// // Bound check</span>
-		<span class="comment">// input.expect_arguments(1)?;</span>
-		<span class="comment">// let ref_index: u32 = input.read()?;</span>
-
-		<span class="comment">// // Fetch data from pallet</span>
-		<span class="comment">// gasometer.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())?;</span>
-		<span class="comment">// let ref_status = match DemocracyOf::&lt;Runtime&gt;::referendum_info(ref_index) {</span>
-		<span class="comment">// 	Some(ReferendumInfo::Ongoing(ref_status)) =&gt; ref_status,</span>
-		<span class="comment">// 	Some(ReferendumInfo::Finished{..}) =&gt; Err(error(&quot;Referendum is finished&quot;))?,</span>
-		<span class="comment">// 	None =&gt; Err(error(&quot;failed to get ongoing (or finished for that matter) referendum&quot;))?,</span>
-		<span class="comment">// };</span>
-		<span class="comment">// log::trace!(</span>
-		<span class="comment">// 	target: &quot;democracy-precompile&quot;,</span>
-		<span class="comment">// 	&quot;Ongoing Referendum info for ref {:?} is {:?}&quot;, ref_index, ref_status</span>
-		<span class="comment">// );</span>
-
-		<span class="comment">// // Write data</span>
-		<span class="comment">// //TODO woof, between private fields and generic types, this is pretty complicated</span>
-		<span class="comment">// let threshold_u8: u8 = match ref_status.threshold {</span>
-		<span class="comment">// 	VoteThreshold::SuperMajorityApprove =&gt; 0,</span>
-		<span class="comment">// 	VoteThreshold::SuperMajorityAgainst =&gt; 1,</span>
-		<span class="comment">// 	VoteThreshold::SimpleMajority =&gt; 2,</span>
-		<span class="comment">// };</span>
-
-		<span class="comment">// let output = EvmDataWriter::new()</span>
-		<span class="comment">// 	.write(ref_status.end)</span>
-		<span class="comment">// 	.write(ref_status.proposal_hash)</span>
-		<span class="comment">// 	.write(threshold_u8)</span>
-		<span class="comment">// 	.write(ref_status.delay)</span>
-		<span class="comment">// 	.write(ref_status.tally.ayes)</span>
-		<span class="comment">// 	.write(ref_status.tally.nays)</span>
-		<span class="comment">// 	.write(ref_status.tally.turnout);</span>
-
-		<span class="comment">// Ok(PrecompileOutput {</span>
-		<span class="comment">// 	exit_status: ExitSucceed::Returned,</span>
-		<span class="comment">// 	cost: gasometer.used_gas(),</span>
-		<span class="comment">// 	output: output.build(),</span>
-		<span class="comment">// 	logs: Default::default(),</span>
-		<span class="comment">// })</span>
 	}
 
-	<span class="comment">// This method is not yet implemented because it depends on</span>
-	<span class="comment">// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate</span>
-	<span class="comment">// master, but is not on the release branches that we are following</span>
-	<span class="comment">//</span>
-	<span class="comment">// The ref_index should probably be u32. Since the API is not implemented, we probably</span>
-	<span class="comment">// can change the signature of the function.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;finishedReferendumInfo(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;finished_referendum_info(uint256)&quot;</span>)]</span>
+	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;finishedReferendumInfo(uint32)&quot;</span>)]</span>
 	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
 	<span class="kw">fn</span> <span class="ident">finished_referendum_info</span>(
-		<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">_ref_index</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
-			<span class="string">&quot;This method depends on https://github.com/paritytech/substrate/pull/9565&quot;</span>,
-		))
+		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
+		<span class="ident">ref_index</span>: <span class="ident">u32</span>,
+	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(<span class="ident">bool</span>, <span class="ident">U256</span>)<span class="op">&gt;</span> {
+		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="kw">let</span> (<span class="ident">approved</span>, <span class="ident">end</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">DemocracyOf</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::referendum_info</span>(<span class="ident">ref_index</span>) {
+			<span class="prelude-val">Some</span>(<span class="ident">ReferendumInfo::Ongoing</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Referendum is ongoing&quot;</span>))<span class="question-mark">?</span>,
+			<span class="prelude-val">Some</span>(<span class="ident">ReferendumInfo::Finished</span> { <span class="ident">approved</span>, <span class="ident">end</span> }) =&gt; (<span class="ident">approved</span>, <span class="ident">end</span>),
+			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Unknown referendum&quot;</span>))<span class="question-mark">?</span>,
+		};
+
+		<span class="prelude-val">Ok</span>((<span class="ident">approved</span>, <span class="ident">end</span>.<span class="ident">into</span>()))
 	}
 
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.</span>
