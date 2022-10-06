@@ -524,7 +524,7 @@ pub mod pallet {
 				let _ = Self::on_rotate(round_index);
 				T::WeightInfo::on_new_round()
 			} else {
-				T::DbWeight::get().write
+				T::DbWeight::get().writes(1)
 			}
 		}
 		/// Notify this pallet that a collator received rewards

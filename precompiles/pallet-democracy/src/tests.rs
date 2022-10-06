@@ -71,9 +71,9 @@ fn no_selector_exists_but_length_is_right() {
 fn selectors() {
 	assert!(PCall::delegate_selectors().contains(&0x0185921e));
 	assert!(PCall::deposit_of_selectors().contains(&0x4767142d));
-	assert!(PCall::finished_referendum_info_selectors().contains(&0x07df495b));
+	assert!(PCall::finished_referendum_info_selectors().contains(&0xc75abcce));
 	assert!(PCall::lowest_unbaked_selectors().contains(&0xd49dccf0));
-	assert!(PCall::ongoing_referendum_info_selectors().contains(&0xe5a18359));
+	assert!(PCall::ongoing_referendum_info_selectors().contains(&0xf033b7cd));
 	assert!(PCall::propose_selectors().contains(&0x7824e7d1));
 	assert!(PCall::public_prop_count_selectors().contains(&0x31305462));
 	assert!(PCall::remove_vote_selectors().contains(&0x3f68fde4));
@@ -233,46 +233,184 @@ fn lowest_unbaked_non_zero() {
 		});
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_returns_encoded((
+					U256::from(11),      // end
+					H256::zero(),        // hash
+					2u8,                 // threshold type
+					U256::from(10),      // delay
+					U256::from(10_000),  // tally ayes
+					U256::zero(),        // tally nays
+					U256::from(100_000), // turnout
+				));
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_bad_index() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 1 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Unknown referendum");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_is_not_ongoing() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			roll_to(12);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Referendum is finished");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			roll_to(12);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_returns_encoded((true, U256::from(11)));
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_bad_index() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 1 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Unknown referendum");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_is_not_finished() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Referendum is ongoing");
+		})
 }
 
 #[test]
@@ -678,19 +816,18 @@ fn delegate_works() {
 					prior: Default::default(),
 				}
 			);
-			// Would be nice to check that it shows up for Bob too, but  can't because of
-			// private fields. At elast I can see it works manually when uncommenting this.
-			// assert_eq!(
-			// 	pallet_democracy::VotingOf::<Runtime>::get(Bob),
-			// 	Voting::Direct {
-			// 		votes: Default::default(),
-			// 		delegations: pallet_democracy::Delegations {
-			// 			votes: 200, //because of 2x conviction
-			// 			capital: 100,
-			// 		},
-			// 		prior: Default::default(),
-			// 	}
-			// );
+
+			assert_eq!(
+				pallet_democracy::VotingOf::<Runtime>::get(Bob),
+				Voting::Direct {
+					votes: Default::default(),
+					delegations: pallet_democracy::Delegations {
+						votes: 200, //because of 2x conviction
+						capital: 100,
+					},
+					prior: Default::default(),
+				}
+			);
 		})
 }
 
@@ -923,7 +1060,7 @@ fn note_preimage_works() {
 				assert_eq!(deposit, 40u128);
 				assert_eq!(expiry, None);
 			} else {
-				panic!("Expected preimge status to be available");
+				panic!("Expected preimage status to be available");
 			}
 		})
 }
@@ -1010,7 +1147,7 @@ fn note_preimage_works_with_real_data() {
 				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
 				assert_eq!(expiry, None);
 			} else {
-				panic!("Expected preimge status to be available");
+				panic!("Expected preimage status to be available");
 			}
 		})
 }
@@ -1165,8 +1302,6 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"public_prop_count()",
 		"deposit_of(uint256)",
 		"lowest_unbaked()",
-		"ongoing_referendum_info(uint256)",
-		"finished_referendum_info(uint256)",
 		"standard_vote(uint256,bool,uint256,uint256)",
 		"remove_vote(uint256)",
 		"un_delegate()",

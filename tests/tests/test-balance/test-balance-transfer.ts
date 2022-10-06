@@ -86,7 +86,6 @@ describeDevMoonbeam("Balance transfer - Multiple transfers", (context) => {
       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 2 }),
       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 3 }),
     ]);
-    console.log(result);
     expect(result.filter((r) => r.successful)).to.be.length(4);
   });
 });
