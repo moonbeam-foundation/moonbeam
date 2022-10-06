@@ -11,7 +11,7 @@ import {
   injectHrmpMessage,
   WITHDRAW_WEIGHT,
   BUY_EXECUTION_WEIGHT,
-  TRANSACT_WEIGHT
+  TRANSACT_WEIGHT,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -117,7 +117,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
-  // we want half of numParaMsgs to be executed. That give us how much each message weights
+    // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
     // Now we need to construct the message. This needs to:
@@ -128,7 +128,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // In this case we want to never reach the thresholdLimit, to make sure we execute every
     // single messages
-    const unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
+    const unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     const xcmMessage = new XcmFragment({
       fees: {
@@ -177,7 +178,10 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + `buyExecutions
-    const weightUsePerMessage = (unlimitedBuyExecutionsPerMessage * BUY_EXECUTION_WEIGHT) + BUY_EXECUTION_WEIGHT + WITHDRAW_WEIGHT;
+    const weightUsePerMessage =
+      unlimitedBuyExecutionsPerMessage * BUY_EXECUTION_WEIGHT +
+      BUY_EXECUTION_WEIGHT +
+      WITHDRAW_WEIGHT;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -240,22 +244,24 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    let unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
+    let unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     // we want to reach EXACTLY weightPerMessage
     // We know we cant reach it with buyExecutions, but we can fill the remaining with a TRANSACT
     // In Transact, we can control specifically how much our message is gonna weight
     // Specifically, it will weight the base Transact weight plus whatever we put in requireWeightAtMost
-    let weightUsePerMessageWithoutTransact = ((unlimitedBuyExecutionsPerMessage + 1n) * BUY_EXECUTION_WEIGHT) + WITHDRAW_WEIGHT;
-    
+    let weightUsePerMessageWithoutTransact =
+      (unlimitedBuyExecutionsPerMessage + 1n) * BUY_EXECUTION_WEIGHT + WITHDRAW_WEIGHT;
+
     let transactWeight;
-    if ((weightPerMessage - weightUsePerMessageWithoutTransact) > TRANSACT_WEIGHT) {
+    if (weightPerMessage - weightUsePerMessageWithoutTransact > TRANSACT_WEIGHT) {
       transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
-    }
-    else {
+    } else {
       // we substract if not a buyExecution, which is always bigger
-      unlimitedBuyExecutionsPerMessage = unlimitedBuyExecutionsPerMessage -1n;
-      weightUsePerMessageWithoutTransact = weightUsePerMessageWithoutTransact - BUY_EXECUTION_WEIGHT;
+      unlimitedBuyExecutionsPerMessage = unlimitedBuyExecutionsPerMessage - 1n;
+      weightUsePerMessageWithoutTransact =
+        weightUsePerMessageWithoutTransact - BUY_EXECUTION_WEIGHT;
       transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
     }
 
@@ -273,20 +279,20 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
       weight_limit: new BN(20000000000),
     })
-    .withdraw_asset()
-    .buy_execution()
-    .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
-    // Does not reallly matter, wont be executed, we want it to fail
-    .push_any({
-      Transact: {
-        originType: "SovereignAccount",
-        requireWeightAtMost: new BN(transactWeight.toString()),
-        call: {
-          encoded: 0x01,
+      .withdraw_asset()
+      .buy_execution()
+      .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
+      // Does not reallly matter, wont be executed, we want it to fail
+      .push_any({
+        Transact: {
+          originType: "SovereignAccount",
+          requireWeightAtMost: new BN(transactWeight.toString()),
+          call: {
+            encoded: 0x01,
+          },
         },
-      },
-    })
-    .as_v2();
+      })
+      .as_v2();
 
     // We want these isntructions to fail in BuyExecution. That means
     // WithdrawAsset needs to work. The only way for this to work

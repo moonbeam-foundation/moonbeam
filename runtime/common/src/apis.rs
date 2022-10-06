@@ -456,6 +456,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					Vec<frame_support::traits::StorageInfo>,
 				) {
 					use frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
 					use frame_support::traits::StorageInfoTrait;
 					use frame_system_benchmarking::Pallet as SystemBench;
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
@@ -467,7 +468,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
-					use moonbeam_xcm_benchmarks::generic::benchmarking::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
+					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
@@ -481,7 +482,12 @@ macro_rules! impl_runtime_apis_plus_common {
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
 					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_randomness, RandomnessBench::<Runtime>);
-					list_benchmark!(list, extra, moonbeam_xcm_benchmarks_generic, MoonbeamXcmGenericBench::<Runtime>);
+					list_benchmark!(
+						list,
+						extra,
+						moonbeam_xcm_benchmarks_generic,
+						MoonbeamXcmGenericBench::<Runtime>
+					);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -560,6 +566,8 @@ macro_rules! impl_runtime_apis_plus_common {
 						}
 					}
 
+					use moonbeam_xcm_benchmarks::generic::benchmarking as MoonbeamXcmBenchmarks;
+
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
 					use pallet_parachain_staking::Pallet as ParachainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
@@ -569,7 +577,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
-					use moonbeam_xcm_benchmarks::generic::benchmarking::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
+					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
 						// Block Number

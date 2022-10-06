@@ -17,7 +17,7 @@ import {
   BUY_EXECUTION_WEIGHT,
   CLEAR_ORIGIN_WEIGHT,
   DEPOSIT_ASSET_WEIGHT,
-  RESERVE_ASSET_DEPOSITED_WEIGHT
+  RESERVE_ASSET_DEPOSITED_WEIGHT,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -340,7 +340,12 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     const xcmMessage = new XcmFragment({
       fees: {
         multilocation: [ASSET_MULTILOCATION],
-        fungible: assetsToTransfer + BUY_EXECUTION_WEIGHT + CLEAR_ORIGIN_WEIGHT + RESERVE_ASSET_DEPOSITED_WEIGHT + DEPOSIT_ASSET_WEIGHT,
+        fungible:
+          assetsToTransfer +
+          BUY_EXECUTION_WEIGHT +
+          CLEAR_ORIGIN_WEIGHT +
+          RESERVE_ASSET_DEPOSITED_WEIGHT +
+          DEPOSIT_ASSET_WEIGHT,
       },
       weight_limit: new BN(800_000_000),
       beneficiary: descendOriginAddress,

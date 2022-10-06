@@ -36,7 +36,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we get out of the loop of the execution (we reach the threshold limit), to then
     // go on idle
 
-    const unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
+    const unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     const xcmMessage = new XcmFragment({
       fees: {
