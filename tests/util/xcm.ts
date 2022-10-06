@@ -268,7 +268,7 @@ export class XcmFragment {
         },
       });
     }
-    return this;    
+    return this;
   }
 
   // Add a `ClaimAsset` instruction

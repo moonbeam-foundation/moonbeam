@@ -250,7 +250,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want to reach EXACTLY weightPerMessage
     // We know we cant reach it with buyExecutions, but we can fill the remaining with a TRANSACT
     // In Transact, we can control specifically how much our message is gonna weight
-    // Specifically, it will weight the base Transact weight plus whatever we put in requireWeightAtMost
+    // Specifically, it will weight the base Transact weight
+    // plus whatever we put in requireWeightAtMost
     let weightUsePerMessageWithoutTransact =
       (unlimitedBuyExecutionsPerMessage + 1n) * BUY_EXECUTION_WEIGHT + WITHDRAW_WEIGHT;
 
