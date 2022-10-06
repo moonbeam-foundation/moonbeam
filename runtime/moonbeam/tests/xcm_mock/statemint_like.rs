@@ -45,6 +45,7 @@ use xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -218,7 +219,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 100;
+	pub UnitWeightCost: XcmV2Weight = 100;
 	pub const MaxInstructions: u32 = 100;
 }
 
@@ -360,12 +361,16 @@ pub mod mock_msg_queue {
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
 				Ok(xcm) => {
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
-					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
+					match T::XcmExecutor::execute_xcm(location, xcm, max_weight.ref_time()) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
-						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
+						Outcome::Complete(w) => {
+							(Ok(Weight::from_ref_time(w)), Event::Success(Some(hash)))
+						}
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
-						Outcome::Incomplete(w, e) => (Ok(w), Event::Fail(Some(hash), e)),
+						Outcome::Incomplete(w, e) => {
+							(Ok(Weight::from_ref_time(w)), Event::Fail(Some(hash), e))
+						}
 					}
 				}
 				Err(()) => (
@@ -418,7 +423,7 @@ pub mod mock_msg_queue {
 						Self::deposit_event(Event::UnsupportedVersion(id));
 					}
 					Ok(Ok(x)) => {
-						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit);
+						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit.ref_time());
 
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}

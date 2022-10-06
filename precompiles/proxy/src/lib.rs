@@ -24,7 +24,7 @@ use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
-use sp_runtime::codec::Decode;
+use sp_runtime::{codec::Decode, traits::StaticLookup};
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -97,6 +97,8 @@ where
 			return Err(revert("Cannot add more than one proxy"));
 		}
 
+		let delegate: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
 		let call = ProxyCall::<Runtime>::add_proxy {
 			delegate,
 			proxy_type,
@@ -130,6 +132,8 @@ where
 			})?;
 		let delay = delay.into();
 
+		let delegate: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ProxyCall::<Runtime>::remove_proxy {
 			delegate,

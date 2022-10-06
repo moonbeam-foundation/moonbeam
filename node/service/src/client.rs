@@ -44,7 +44,6 @@ pub trait RuntimeApiCollection:
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 	+ nimbus_primitives::NimbusApi<Block>
-	+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
 	+ session_keys_primitives::VrfApi<Block>
 where
@@ -67,7 +66,6 @@ where
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
-		+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 		+ cumulus_primitives_core::CollectCollationInfo<Block>
 		+ session_keys_primitives::VrfApi<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,

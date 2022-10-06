@@ -546,7 +546,10 @@ fn test_fee_calculation_works() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				XcmTransactor::calculate_fee_per_second(1000000000, 8 * WEIGHT_PER_SECOND as u128),
+				XcmTransactor::calculate_fee_per_second(
+					1000000000,
+					8 * WEIGHT_PER_SECOND.ref_time() as u128
+				),
 				8000000000
 			);
 		})

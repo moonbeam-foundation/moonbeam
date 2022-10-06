@@ -384,7 +384,10 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), more)
 	verify {
 		let expected_bond = more * 2u32.into();
-		assert_eq!(Pallet::<T>::candidate_info(&caller).expect("must exist").bond, expected_bond);
+		assert_eq!(
+			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond,
+			expected_bond,
+		);
 	}
 
 	schedule_candidate_bond_less {
@@ -429,7 +432,7 @@ benchmarks! {
 		)?;
 	} verify {
 		assert_eq!(
-			Pallet::<T>::candidate_info(&caller).expect("must exist").bond,
+			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond,
 			min_candidate_stk,
 		);
 	}
@@ -662,7 +665,10 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond)
 	verify {
 		let expected_bond = bond * 2u32.into();
-		assert_eq!(Pallet::<T>::delegator_state(&caller).expect("must exist").total, expected_bond);
+		assert_eq!(
+			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			expected_bond,
+		);
 	}
 
 	schedule_delegator_bond_less {
@@ -761,7 +767,10 @@ benchmarks! {
 		)?;
 	} verify {
 		let expected = total - bond_less;
-		assert_eq!(Pallet::<T>::delegator_state(&caller).expect("must exist").total, expected);
+		assert_eq!(
+			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			expected,
+		);
 	}
 
 	cancel_revoke_delegation {
