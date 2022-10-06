@@ -6,7 +6,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
-import { XcmFragment } from "../../util/xcm";
+import { XcmFragment, BUY_EXECUTION_WEIGHT, WITHDRAW_WEIGHT } from "../../util/xcm";
 import { GLMR } from "../../util/constants";
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
@@ -26,22 +26,17 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
-    const buyExecution = 68_188_000n + 25_000_000n * 4n;
-    const withdraw = 200_000_000n;
-
     // Now we need to construct the message. This needs to:
-    // - pass barrier (withdraw + clearOrigin*n buyExecution)
-    // - fail in buyExecution, so that the previous instruction weights are counted
+    // - pass barrier (withdraw + buyExecution + unlimited buyExecution*n)
     // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
-    // how many clearOrigins do we need to append?
+    // how many unlimited buyExecutions do we need to append?
 
     // we will bias this number. The reason is we want to test the decay, and therefore we need
     // an unbalanced number of messages executed. We specifically need that at some point
     // we get out of the loop of the execution (we reach the threshold limit), to then
     // go on idle
 
-    // for that reason, we multiply times 2
-    const clearOriginsPerMessage = (weightPerMessage - withdraw - buyExecution) / buyExecution;
+    const unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     const xcmMessage = new XcmFragment({
       fees: {
@@ -59,7 +54,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     })
       .withdraw_asset()
       .buy_execution()
-      .buy_execution_unlimited(0, clearOriginsPerMessage)
+      .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
       .as_v2();
 
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(

@@ -13,6 +13,11 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
+  WITHDRAW_WEIGHT,
+  BUY_EXECUTION_WEIGHT,
+  CLEAR_ORIGIN_WEIGHT,
+  DEPOSIT_ASSET_WEIGHT,
+  RESERVE_ASSET_DEPOSITED_WEIGHT
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -319,11 +324,6 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     descendedAddress = descendOriginAddress;
     random = generateKeyringPair();
 
-    const buyExecutionWeight = 68_188_000n + (25_000_000n*4n);
-    const clearOriginWeight = 6_023_000n;
-    const reserveAssetDepositedWeight = 200_000_000n;
-    const depositAsset = 200_000_000n;
-
     // registerForeignAsset
     const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
       context,
@@ -340,7 +340,7 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     const xcmMessage = new XcmFragment({
       fees: {
         multilocation: [ASSET_MULTILOCATION],
-        fungible: assetsToTransfer + buyExecutionWeight + clearOriginWeight + reserveAssetDepositedWeight + depositAsset,
+        fungible: assetsToTransfer + BUY_EXECUTION_WEIGHT + CLEAR_ORIGIN_WEIGHT + RESERVE_ASSET_DEPOSITED_WEIGHT + DEPOSIT_ASSET_WEIGHT,
       },
       weight_limit: new BN(800_000_000),
       beneficiary: descendOriginAddress,

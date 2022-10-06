@@ -9,6 +9,9 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   injectHrmpMessage,
+  WITHDRAW_WEIGHT,
+  BUY_EXECUTION_WEIGHT,
+  TRANSACT_WEIGHT
 } from "../../util/xcm";
 
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -114,9 +117,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    const buyExecution = 68_188_000n + 25_000_000n * 4n;
-    const withdraw = 200_000_000n;
-
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + buyExecution + n*unLimitedbuyExecution)
     // - does not fail, so all weight is counted
@@ -124,8 +124,8 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // how many unlimited buy executions do we need to append?
 
     // In this case we want to never reach the thresholdLimit, to make sure we execute every
-    // single messages.
-    const unlimitedBuyExecutionsPerMessage = (weightPerMessage - withdraw - buyExecution) / buyExecution;
+    // single messages
+    const unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     const xcmMessage = new XcmFragment({
       fees: {
@@ -174,7 +174,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + `buyExecutions
-    const weightUsePerMessage = (unlimitedBuyExecutionsPerMessage * buyExecution) + buyExecution + withdraw;
+    const weightUsePerMessage = (unlimitedBuyExecutionsPerMessage * BUY_EXECUTION_WEIGHT) + BUY_EXECUTION_WEIGHT + WITHDRAW_WEIGHT;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -234,31 +234,26 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     const totalXcmpWeight =
       context.polkadotApi.consts.system.blockWeights.maxBlock.toBigInt() / BigInt(4);
 
-      
-    const buyExecution = 68_188_000n + 25_000_000n * 4n;
-    const withdraw = 200_000_000n;
-    const transact = 28_878_000n + 25_000_000n;
-  
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    let unlimitedBuyExecutionsPerMessage = (weightPerMessage - withdraw - buyExecution) / buyExecution;
+    let unlimitedBuyExecutionsPerMessage = (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
 
     // we want to reach EXACTLY weightPerMessage
     // We know we cant reach it with buyExecutions, but we can fill the remaining with a TRANSACT
     // In Transact, we can control specifically how much our message is gonna weight
     // Specifically, it will weight the base Transact weight plus whatever we put in requireWeightAtMost
-    let weightUsePerMessageWithoutTransact = ((unlimitedBuyExecutionsPerMessage + 1n) * buyExecution) + withdraw;
+    let weightUsePerMessageWithoutTransact = ((unlimitedBuyExecutionsPerMessage + 1n) * BUY_EXECUTION_WEIGHT) + WITHDRAW_WEIGHT;
     
     let transactWeight;
-    if ((weightPerMessage - weightUsePerMessageWithoutTransact) > transact) {
-      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - transact;
+    if ((weightPerMessage - weightUsePerMessageWithoutTransact) > TRANSACT_WEIGHT) {
+      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
     }
     else {
       // we substract if not a buyExecution, which is always bigger
       unlimitedBuyExecutionsPerMessage = unlimitedBuyExecutionsPerMessage -1n;
-      weightUsePerMessageWithoutTransact = weightUsePerMessageWithoutTransact - buyExecution;
-      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - transact;
+      weightUsePerMessageWithoutTransact = weightUsePerMessageWithoutTransact - BUY_EXECUTION_WEIGHT;
+      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
     }
 
     const xcmMessage = new XcmFragment({

@@ -392,3 +392,10 @@ export class XcmFragment {
     };
   }
 }
+
+export const BUY_EXECUTION_WEIGHT = 68_188_000n + 25_000_000n * 4n;
+export const WITHDRAW_WEIGHT = 200_000_000n;
+export const CLEAR_ORIGIN_WEIGHT = 6_023_000n;
+export const RESERVE_ASSET_DEPOSITED_WEIGHT = 200_000_000n;
+export const DEPOSIT_ASSET_WEIGHT = 200_000_000n;
+export const TRANSACT_WEIGHT = 28_878_000n + 25_000_000n;
