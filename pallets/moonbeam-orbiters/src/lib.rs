@@ -518,9 +518,9 @@ pub mod pallet {
 				ForceRotation::<T>::put(false);
 				Self::on_rotate(round_index) + T::DbWeight::get().writes(2)
 			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
-				Self::on_rotate(round_index) + T::DbWeight::get().write
+				Self::on_rotate(round_index).saturating_add(T::DbWeight::get().writes(1))
 			} else {
-				T::DbWeight::get().write
+				T::DbWeight::get().writes(1)
 			}
 		}
 		/// Notify this pallet that a collator received rewards

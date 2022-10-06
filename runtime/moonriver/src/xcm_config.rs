@@ -29,7 +29,6 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::Weight,
 };
 
 use frame_system::EnsureRoot;
@@ -51,6 +50,7 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -205,7 +205,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = 200_000_000;
+	pub UnitWeightCost: XcmV2Weight = 200_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -432,7 +432,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 200_000_000;
+	pub const BaseXcmWeight: XcmV2Weight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset

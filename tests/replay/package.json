@@ -10,6 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "typescript": "^3.9.6",
-    "web3": "^1.3.3"
+    "web3": "^1.8.0"
   }
 }
