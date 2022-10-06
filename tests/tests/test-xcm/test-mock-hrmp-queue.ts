@@ -9,7 +9,6 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   injectHrmpMessage,
-  buildXcmpMessage,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -20,6 +19,8 @@ import { customWeb3Request } from "../../util/providers";
 
 import { expectOk } from "../../util/expect";
 import { XcmFragment } from "../../util/xcm";
+import { GLMR } from "../../util/constants";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
 // enum to mark how xcmp execution went
 enum XcmpExecution {
@@ -624,7 +625,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     );
 
     let message = [].concat(firstEncodedFragment.toU8a(), secondEncodedFragment.toU8a());
-    console.log(message);
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
@@ -641,5 +641,11 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
     );
     expect(events).to.have.lengthOf(2);
+    expect(events[0].event.data[0].toString()).to.be.eq(
+      blake2AsHex(firstEncodedFragment.toU8a()).toString()
+    );
+    expect(events[1].event.data[0].toString()).to.be.eq(
+      blake2AsHex(secondEncodedFragment.toU8a()).toString()
+    );
   });
 });
