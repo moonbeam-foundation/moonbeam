@@ -65,6 +65,12 @@ pub trait WeightInfo {
 	fn add_collator() -> Weight;
 	#[rustfmt::skip]
 	fn remove_collator() -> Weight;
+	#[rustfmt::skip]
+	fn on_initialize(x: u32, ) -> Weight;
+	#[rustfmt::skip]
+	fn distribute_rewards() -> Weight;
+	#[rustfmt::skip]
+	fn on_new_round() -> Weight;
 }
 
 /// Weights for pallet_moonbeam_orbiters using the Substrate node and recommended hardware.
@@ -133,6 +139,35 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(2 as u64))
 			.saturating_add(T::DbWeight::get().writes(11 as u64))
 	}
+	// Storage: MoonbeamOrbiters CurrentRound (r:1 w:0)
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:0 w:2)
+	#[rustfmt::skip]
+	fn on_initialize(x: u32, ) -> Weight {
+		Weight::from_ref_time(13_562_000 as u64)
+			// Standard Error: 1_000
+			.saturating_add((Weight::from_ref_time(1_108_000 as u64)).saturating_mul(x as u64))
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
+	}
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:1)
+	// Storage: System Account (r:2 w:2)
+	#[rustfmt::skip]
+	fn distribute_rewards() -> Weight {
+		Weight::from_ref_time(44_981_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(3 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
+	}
+	// Storage: MoonbeamOrbiters ForceRotation (r:1 w:1)
+	// Storage: MoonbeamOrbiters CollatorsPool (r:2 w:1)
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:0 w:3)
+	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:3)
+	// Storage: MoonbeamOrbiters CurrentRound (r:0 w:1)
+	#[rustfmt::skip]
+	fn on_new_round() -> Weight {
+		Weight::from_ref_time(43_744_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(3 as u64))
+			.saturating_add(RocksDbWeight::get().writes(9 as u64))
+	}
 }
 
 // For backwards compatibility and tests
@@ -199,5 +234,34 @@ impl WeightInfo for () {
 		Weight::from_ref_time(38_825_000 as u64)
 			.saturating_add(RocksDbWeight::get().reads(2 as u64))
 			.saturating_add(RocksDbWeight::get().writes(11 as u64))
+	}
+	// Storage: MoonbeamOrbiters CurrentRound (r:1 w:0)
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:0 w:2)
+	#[rustfmt::skip]
+	fn on_initialize(x: u32, ) -> Weight {
+		Weight::from_ref_time(13_562_000 as u64)
+			// Standard Error: 1_000
+			.saturating_add((Weight::from_ref_time(1_108_000 as u64)).saturating_mul(x as u64))
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
+	}
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:1)
+	// Storage: System Account (r:2 w:2)
+	#[rustfmt::skip]
+	fn distribute_rewards() -> Weight {
+		Weight::from_ref_time(44_981_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(3 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
+	}
+	// Storage: MoonbeamOrbiters ForceRotation (r:1 w:1)
+	// Storage: MoonbeamOrbiters CollatorsPool (r:2 w:1)
+	// Storage: MoonbeamOrbiters OrbiterPerRound (r:0 w:3)
+	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:3)
+	// Storage: MoonbeamOrbiters CurrentRound (r:0 w:1)
+	#[rustfmt::skip]
+	fn on_new_round() -> Weight {
+		Weight::from_ref_time(43_744_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(3 as u64))
+			.saturating_add(RocksDbWeight::get().writes(9 as u64))
 	}
 }
