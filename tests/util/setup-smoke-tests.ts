@@ -1,7 +1,7 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { MockProvider } from "@polkadot/rpc-provider/mock";
 import { TypeRegistry } from "@polkadot/types";
-import { types } from "moonbeam-types-bundle"
+import { types } from "moonbeam-types-bundle";
 
 const debug = require("debug")("test:setup");
 
@@ -41,7 +41,7 @@ export function describeSmokeSuite(
         ApiPromise.create({
           initWasm: false,
           provider: new WsProvider(options.wssUrl),
-          typesBundle: types
+          typesBundle: types,
         }),
         options.relayWssUrl
           ? ApiPromise.create({
