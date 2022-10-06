@@ -2718,7 +2718,8 @@ fn test_xcm_utils_get_units_per_second() {
 
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 
-		let expected_units = WEIGHT_PER_SECOND.ref_time() as u128 * moonriver_runtime::currency::WEIGHT_FEE;
+		let expected_units =
+			WEIGHT_PER_SECOND.ref_time() as u128 * moonriver_runtime::currency::WEIGHT_FEE;
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
