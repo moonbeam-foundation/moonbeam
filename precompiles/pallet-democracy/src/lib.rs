@@ -28,6 +28,7 @@ use pallet_democracy::{
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
+use sp_runtime::traits::StaticLookup;
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -282,13 +283,14 @@ where
 				.in_field("conviction")
 		})?;
 
-		let to = Runtime::AddressMapping::into_account_id(representative.into());
-
 		log::trace!(target: "democracy-precompile",
 			"Delegating vote to {:?} with balance {:?} and {:?}",
-			to, conviction, amount
+			representative, conviction, amount
 		);
 
+		let representative = Runtime::AddressMapping::into_account_id(representative.into());
+		let to: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(representative.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
@@ -316,6 +318,8 @@ where
 	fn unlock(handle: &mut impl PrecompileHandle, target: Address) -> EvmResult {
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
+		let target: <Runtime::Lookup as StaticLookup>::Source =
+			Runtime::Lookup::unlookup(target.clone());
 
 		log::trace!(
 			target: "democracy-precompile",
