@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/randomness/src/vrf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vrf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_randomness/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/randomness/src/vrf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vrf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_randomness/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -102,105 +97,104 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! VRF logic</span>
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Config</span>, <span class="ident">LocalVrfOutput</span>, <span class="ident">RandomnessResults</span>, <span class="ident">RequestType</span>};
-<span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">NimbusId</span>, <span class="ident">NIMBUS_ENGINE_ID</span>};
-<span class="kw">use</span> <span class="ident">parity_scale_codec::Decode</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">session_keys_primitives::make_transcript</span>;
-<span class="kw">use</span> <span class="ident">session_keys_primitives</span>::{<span class="ident">KeysLookup</span>, <span class="ident">PreDigest</span>, <span class="ident">VrfId</span>, <span class="ident">VRF_ENGINE_ID</span>, <span class="ident">VRF_INOUT_CONTEXT</span>};
-<span class="kw">use</span> <span class="ident">sp_consensus_vrf::schnorrkel</span>;
-<span class="kw">use</span> <span class="ident">sp_core::crypto::ByteArray</span>;
+</span><span class="doccomment">//! VRF logic
+</span><span class="kw">use crate</span>::{Config, LocalVrfOutput, RandomnessResults, RequestType};
+<span class="kw">use </span>nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
+<span class="kw">use </span>parity_scale_codec::Decode;
+<span class="kw">pub use </span>session_keys_primitives::make_transcript;
+<span class="kw">use </span>session_keys_primitives::{KeysLookup, PreDigest, VrfId, VRF_ENGINE_ID, VRF_INOUT_CONTEXT};
+<span class="kw">use </span>sp_consensus_vrf::schnorrkel;
+<span class="kw">use </span>sp_core::crypto::ByteArray;
 
-<span class="doccomment">/// VRF output</span>
-<span class="kw">type</span> <span class="ident">Randomness</span> <span class="op">=</span> <span class="ident">schnorrkel::Randomness</span>;
+<span class="doccomment">/// VRF output
+</span><span class="kw">type </span>Randomness = schnorrkel::Randomness;
 
-<span class="doccomment">/// Gets VRF output from system digests and verifies it using the block author&#39;s VrfId</span>
-<span class="doccomment">/// Transforms VRF output into randomness value and puts it into `LocalVrfOutput`</span>
-<span class="doccomment">/// Fills the `RandomnessResult` associated with the current block if any requests exist</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">verify_and_set_output</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>() {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_author_vrf_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">VrfId</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-	<span class="comment">// Get VrfOutput and VrfProof from system digests</span>
-	<span class="comment">// Expect client to insert VrfOutput, VrfProof into digests by setting</span>
-	<span class="comment">// `BuildNimbusConsensusParams.additional_digests_provider` to `moonbeam_vrf::vrf_pre_digest`</span>
-	<span class="comment">// (see moonbeam/node/service/src/lib.rs)</span>
-	<span class="kw">let</span> <span class="ident">PreDigest</span> {
-		<span class="ident">vrf_output</span>,
-		<span class="ident">vrf_proof</span>,
-	} <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::digest</span>()
-		.<span class="ident">logs</span>
-		.<span class="ident">iter</span>()
-		.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">as_pre_runtime</span>())
-		.<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">id</span>, <span class="kw-2">mut</span> <span class="ident">data</span>)<span class="op">|</span> {
-			<span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">VRF_ENGINE_ID</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">vrf_digest</span>) <span class="op">=</span> <span class="ident">PreDigest::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>) {
-					<span class="prelude-val">Some</span>(<span class="ident">vrf_digest</span>)
-				} <span class="kw">else</span> {
+<span class="doccomment">/// Gets VRF output from system digests and verifies it using the block author&#39;s VrfId
+/// Transforms VRF output into randomness value and puts it into `LocalVrfOutput`
+/// Fills the `RandomnessResult` associated with the current block if any requests exist
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>verify_and_set_output&lt;T: Config&gt;() {
+	<span class="kw">let </span><span class="kw-2">mut </span>block_author_vrf_id: <span class="prelude-ty">Option</span>&lt;VrfId&gt; = <span class="prelude-val">None</span>;
+	<span class="comment">// Get VrfOutput and VrfProof from system digests
+	// Expect client to insert VrfOutput, VrfProof into digests by setting
+	// `BuildNimbusConsensusParams.additional_digests_provider` to `moonbeam_vrf::vrf_pre_digest`
+	// (see moonbeam/node/service/src/lib.rs)
+	</span><span class="kw">let </span>PreDigest {
+		vrf_output,
+		vrf_proof,
+	} = &lt;frame_system::Pallet&lt;T&gt;&gt;::digest()
+		.logs
+		.iter()
+		.filter_map(|s| s.as_pre_runtime())
+		.filter_map(|(id, <span class="kw-2">mut </span>data)| {
+			<span class="kw">if </span>id == VRF_ENGINE_ID {
+				<span class="kw">if let </span><span class="prelude-val">Ok</span>(vrf_digest) = PreDigest::decode(<span class="kw-2">&amp;mut </span>data) {
+					<span class="prelude-val">Some</span>(vrf_digest)
+				} <span class="kw">else </span>{
 					<span class="macro">panic!</span>(<span class="string">&quot;VRF digest encoded in pre-runtime digest must be valid&quot;</span>);
 				}
-			} <span class="kw">else</span> {
-				<span class="kw">if</span> <span class="ident">id</span> <span class="op">==</span> <span class="ident">NIMBUS_ENGINE_ID</span> {
-					<span class="kw">let</span> <span class="ident">nimbus_id</span> <span class="op">=</span> <span class="ident">NimbusId::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">data</span>)
-						.<span class="ident">expect</span>(<span class="string">&quot;NimbusId encoded in pre-runtime digest must be valid&quot;</span>);
+			} <span class="kw">else </span>{
+				<span class="kw">if </span>id == NIMBUS_ENGINE_ID {
+					<span class="kw">let </span>nimbus_id = NimbusId::decode(<span class="kw-2">&amp;mut </span>data)
+						.expect(<span class="string">&quot;NimbusId encoded in pre-runtime digest must be valid&quot;</span>);
 
-					<span class="comment">// Get the block author&#39;s VrfId, the public key corresponding to the private</span>
-					<span class="comment">// key used to generate the VrfOutput, VrfProof</span>
-					<span class="ident">block_author_vrf_id</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-						<span class="ident">T::VrfKeyLookup::lookup_keys</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>)
-							.<span class="ident">expect</span>(<span class="string">&quot;No VRF Key Mapped to this NimbusId&quot;</span>),
+					<span class="comment">// Get the block author&#39;s VrfId, the public key corresponding to the private
+					// key used to generate the VrfOutput, VrfProof
+					</span>block_author_vrf_id = <span class="prelude-val">Some</span>(
+						T::VrfKeyLookup::lookup_keys(<span class="kw-2">&amp;</span>nimbus_id)
+							.expect(<span class="string">&quot;No VRF Key Mapped to this NimbusId&quot;</span>),
 					);
 				}
-				<span class="prelude-val">None</span>
-			}
+				<span class="prelude-val">None
+			</span>}
 		})
-		.<span class="ident">next</span>()
-		.<span class="ident">expect</span>(<span class="string">&quot;VRF PreDigest was not included in the digests (check rand key is in keystore)&quot;</span>);
-	<span class="kw">let</span> <span class="ident">block_author_vrf_id</span> <span class="op">=</span>
-		<span class="ident">block_author_vrf_id</span>.<span class="ident">expect</span>(<span class="string">&quot;VrfId encoded in pre-runtime digest must be valid&quot;</span>);
-	<span class="kw">let</span> <span class="ident">block_author_vrf_id</span> <span class="op">=</span> <span class="ident">schnorrkel::PublicKey::from_bytes</span>(<span class="ident">block_author_vrf_id</span>.<span class="ident">as_slice</span>())
-		.<span class="ident">expect</span>(<span class="string">&quot;Expect VrfId to be valid schnorrkel public key&quot;</span>);
-	<span class="comment">// VRF input is last block&#39;s VRF output</span>
-	<span class="kw">let</span> <span class="ident">vrf_input_transcript</span> <span class="op">=</span>
-		<span class="ident">make_transcript</span>::<span class="op">&lt;</span><span class="ident">T::Hash</span><span class="op">&gt;</span>(<span class="ident">LocalVrfOutput</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">unwrap_or_default</span>());
-	<span class="comment">// Verify VRF output + proof using input transcript + block author&#39;s VrfId</span>
-	<span class="macro">assert!</span>(
-		<span class="ident">block_author_vrf_id</span>
-			.<span class="ident">vrf_verify</span>(<span class="ident">vrf_input_transcript</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">vrf_output</span>, <span class="kw-2">&amp;</span><span class="ident">vrf_proof</span>)
-			.<span class="ident">is_ok</span>(),
-		<span class="string">&quot;VRF signature verification failed&quot;</span>
-	);
-	<span class="comment">// Transform VrfOutput into randomness bytes stored on-chain</span>
-	<span class="kw">let</span> <span class="ident">randomness</span>: <span class="ident">Randomness</span> <span class="op">=</span> <span class="ident">vrf_output</span>
-		.<span class="ident">attach_input_hash</span>(<span class="kw-2">&amp;</span><span class="ident">block_author_vrf_id</span>, <span class="ident">vrf_input_transcript</span>)
-		.<span class="ident">ok</span>()
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">inout</span><span class="op">|</span> <span class="ident">inout</span>.<span class="ident">make_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">VRF_INOUT_CONTEXT</span>))
-		.<span class="ident">expect</span>(<span class="string">&quot;Transforming VrfOutput into randomness bytes failed&quot;</span>);
-	<span class="kw">let</span> <span class="ident">randomness</span> <span class="op">=</span> <span class="ident">T::Hash::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="ident">randomness</span>[..])
-		.<span class="ident">ok</span>()
-		.<span class="ident">expect</span>(<span class="string">&quot;Bytes can be decoded into T::Hash&quot;</span>);
-	<span class="ident">LocalVrfOutput</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="prelude-val">Some</span>(<span class="ident">randomness</span>));
-	<span class="comment">// Supply randomness result if any requests exist for the VRF output this block</span>
-	<span class="kw">let</span> <span class="ident">local_vrf_this_block</span> <span class="op">=</span> <span class="ident">RequestType::Local</span>(<span class="ident">frame_system::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::block_number</span>());
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">results</span>) <span class="op">=</span> <span class="ident">RandomnessResults</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">local_vrf_this_block</span>) {
-		<span class="ident">results</span>.<span class="ident">randomness</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">randomness</span>);
-		<span class="ident">RandomnessResults</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">local_vrf_this_block</span>, <span class="ident">results</span>);
+		.next()
+		.expect(<span class="string">&quot;VRF PreDigest was not included in the digests (check rand key is in keystore)&quot;</span>);
+	<span class="kw">let </span>block_author_vrf_id =
+		block_author_vrf_id.expect(<span class="string">&quot;VrfId encoded in pre-runtime digest must be valid&quot;</span>);
+	<span class="kw">let </span>block_author_vrf_id = schnorrkel::PublicKey::from_bytes(block_author_vrf_id.as_slice())
+		.expect(<span class="string">&quot;Expect VrfId to be valid schnorrkel public key&quot;</span>);
+	<span class="comment">// VRF input is last block&#39;s VRF output
+	</span><span class="kw">let </span>vrf_input_transcript =
+		make_transcript::&lt;T::Hash&gt;(LocalVrfOutput::&lt;T&gt;::get().unwrap_or_default());
+	<span class="comment">// Verify VRF output + proof using input transcript + block author&#39;s VrfId
+	</span><span class="macro">assert!</span>(
+		block_author_vrf_id
+			.vrf_verify(vrf_input_transcript.clone(), <span class="kw-2">&amp;</span>vrf_output, <span class="kw-2">&amp;</span>vrf_proof)
+			.is_ok(),
+		<span class="string">&quot;VRF signature verification failed&quot;
+	</span>);
+	<span class="comment">// Transform VrfOutput into randomness bytes stored on-chain
+	</span><span class="kw">let </span>randomness: Randomness = vrf_output
+		.attach_input_hash(<span class="kw-2">&amp;</span>block_author_vrf_id, vrf_input_transcript)
+		.ok()
+		.map(|inout| inout.make_bytes(<span class="kw-2">&amp;</span>VRF_INOUT_CONTEXT))
+		.expect(<span class="string">&quot;Transforming VrfOutput into randomness bytes failed&quot;</span>);
+	<span class="kw">let </span>randomness = T::Hash::decode(<span class="kw-2">&amp;mut &amp;</span>randomness[..])
+		.ok()
+		.expect(<span class="string">&quot;Bytes can be decoded into T::Hash&quot;</span>);
+	LocalVrfOutput::&lt;T&gt;::put(<span class="prelude-val">Some</span>(randomness));
+	<span class="comment">// Supply randomness result if any requests exist for the VRF output this block
+	</span><span class="kw">let </span>local_vrf_this_block = RequestType::Local(frame_system::Pallet::&lt;T&gt;::block_number());
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>results) = RandomnessResults::&lt;T&gt;::get(<span class="kw-2">&amp;</span>local_vrf_this_block) {
+		results.randomness = <span class="prelude-val">Some</span>(randomness);
+		RandomnessResults::&lt;T&gt;::insert(local_vrf_this_block, results);
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_randomness" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_randomness" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

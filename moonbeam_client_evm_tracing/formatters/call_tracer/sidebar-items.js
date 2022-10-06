@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["CallTracerInner",""]],"struct":[["CallTracerCall",""],["Formatter",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["CallTracerInner",""]],"struct":[["CallTracerCall",""],["Formatter",""]]};

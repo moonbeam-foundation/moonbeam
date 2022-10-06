@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["call_list",""],["raw",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["call_list",""],["raw",""]]};

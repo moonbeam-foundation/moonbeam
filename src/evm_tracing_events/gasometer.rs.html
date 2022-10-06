@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/rpc/evm-tracing-events/src/gasometer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gasometer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../evm_tracing_events/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/rpc/evm-tracing-events/src/gasometer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>gasometer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../evm_tracing_events/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -117,120 +112,119 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
+</span><span class="kw">use </span>codec::{Decode, Encode};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Snapshot</span> {
-	<span class="kw">pub</span> <span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">memory_gas</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">used_gas</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">refunded_gas</span>: <span class="ident">i64</span>,
+<span class="attribute">#[derive(Debug, Default, Copy, Clone, Encode, Decode, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Snapshot {
+	<span class="kw">pub </span>gas_limit: u64,
+	<span class="kw">pub </span>memory_gas: u64,
+	<span class="kw">pub </span>used_gas: u64,
+	<span class="kw">pub </span>refunded_gas: i64,
 }
 
-<span class="kw">impl</span> <span class="ident">Snapshot</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-		<span class="self">self</span>.<span class="ident">gas_limit</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">used_gas</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">memory_gas</span>
+<span class="kw">impl </span>Snapshot {
+	<span class="kw">pub fn </span>gas(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+		<span class="self">self</span>.gas_limit - <span class="self">self</span>.used_gas - <span class="self">self</span>.memory_gas
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">evm_gasometer::Snapshot</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Snapshot</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">evm_gasometer::Snapshot</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">i</span>) <span class="op">=</span> <span class="ident">i</span> {
-			<span class="self">Self</span> {
-				<span class="ident">gas_limit</span>: <span class="ident">i</span>.<span class="ident">gas_limit</span>,
-				<span class="ident">memory_gas</span>: <span class="ident">i</span>.<span class="ident">memory_gas</span>,
-				<span class="ident">used_gas</span>: <span class="ident">i</span>.<span class="ident">used_gas</span>,
-				<span class="ident">refunded_gas</span>: <span class="ident">i</span>.<span class="ident">refunded_gas</span>,
+<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;<span class="prelude-ty">Option</span>&lt;evm_gasometer::Snapshot&gt;&gt; <span class="kw">for </span>Snapshot {
+	<span class="kw">fn </span>from(i: <span class="prelude-ty">Option</span>&lt;evm_gasometer::Snapshot&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(i) = i {
+			<span class="self">Self </span>{
+				gas_limit: i.gas_limit,
+				memory_gas: i.memory_gas,
+				used_gas: i.used_gas,
+				refunded_gas: i.refunded_gas,
 			}
-		} <span class="kw">else</span> {
-			<span class="ident">Default::default</span>()
+		} <span class="kw">else </span>{
+			Default::default()
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GasometerEvent</span> {
-	<span class="ident">RecordCost</span> {
-		<span class="ident">cost</span>: <span class="ident">u64</span>,
-		<span class="ident">snapshot</span>: <span class="ident">Snapshot</span>,
+<span class="attribute">#[derive(Debug, Copy, Clone, Encode, Decode, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>GasometerEvent {
+	RecordCost {
+		cost: u64,
+		snapshot: Snapshot,
 	},
-	<span class="ident">RecordRefund</span> {
-		<span class="ident">refund</span>: <span class="ident">i64</span>,
-		<span class="ident">snapshot</span>: <span class="ident">Snapshot</span>,
+	RecordRefund {
+		refund: i64,
+		snapshot: Snapshot,
 	},
-	<span class="ident">RecordStipend</span> {
-		<span class="ident">stipend</span>: <span class="ident">u64</span>,
-		<span class="ident">snapshot</span>: <span class="ident">Snapshot</span>,
+	RecordStipend {
+		stipend: u64,
+		snapshot: Snapshot,
 	},
-	<span class="ident">RecordDynamicCost</span> {
-		<span class="ident">gas_cost</span>: <span class="ident">u64</span>,
-		<span class="ident">memory_gas</span>: <span class="ident">u64</span>,
-		<span class="ident">gas_refund</span>: <span class="ident">i64</span>,
-		<span class="ident">snapshot</span>: <span class="ident">Snapshot</span>,
+	RecordDynamicCost {
+		gas_cost: u64,
+		memory_gas: u64,
+		gas_refund: i64,
+		snapshot: Snapshot,
 	},
-	<span class="ident">RecordTransaction</span> {
-		<span class="ident">cost</span>: <span class="ident">u64</span>,
-		<span class="ident">snapshot</span>: <span class="ident">Snapshot</span>,
+	RecordTransaction {
+		cost: u64,
+		snapshot: Snapshot,
 	},
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">evm_gasometer::tracing::Event</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GasometerEvent</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">evm_gasometer::tracing::Event</span>) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">i</span> {
-			<span class="ident">evm_gasometer::tracing::Event::RecordCost</span> { <span class="ident">cost</span>, <span class="ident">snapshot</span> } =&gt; <span class="ident"><span class="self">Self</span>::RecordCost</span> {
-				<span class="ident">cost</span>,
-				<span class="ident">snapshot</span>: <span class="ident">snapshot</span>.<span class="ident">into</span>(),
+<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+</span><span class="kw">impl </span>From&lt;evm_gasometer::tracing::Event&gt; <span class="kw">for </span>GasometerEvent {
+	<span class="kw">fn </span>from(i: evm_gasometer::tracing::Event) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>i {
+			evm_gasometer::tracing::Event::RecordCost { cost, snapshot } =&gt; <span class="self">Self</span>::RecordCost {
+				cost,
+				snapshot: snapshot.into(),
 			},
-			<span class="ident">evm_gasometer::tracing::Event::RecordRefund</span> { <span class="ident">refund</span>, <span class="ident">snapshot</span> } =&gt; {
-				<span class="ident"><span class="self">Self</span>::RecordRefund</span> {
-					<span class="ident">refund</span>,
-					<span class="ident">snapshot</span>: <span class="ident">snapshot</span>.<span class="ident">into</span>(),
+			evm_gasometer::tracing::Event::RecordRefund { refund, snapshot } =&gt; {
+				<span class="self">Self</span>::RecordRefund {
+					refund,
+					snapshot: snapshot.into(),
 				}
 			}
-			<span class="ident">evm_gasometer::tracing::Event::RecordStipend</span> { <span class="ident">stipend</span>, <span class="ident">snapshot</span> } =&gt; {
-				<span class="ident"><span class="self">Self</span>::RecordStipend</span> {
-					<span class="ident">stipend</span>,
-					<span class="ident">snapshot</span>: <span class="ident">snapshot</span>.<span class="ident">into</span>(),
+			evm_gasometer::tracing::Event::RecordStipend { stipend, snapshot } =&gt; {
+				<span class="self">Self</span>::RecordStipend {
+					stipend,
+					snapshot: snapshot.into(),
 				}
 			}
-			<span class="ident">evm_gasometer::tracing::Event::RecordDynamicCost</span> {
-				<span class="ident">gas_cost</span>,
-				<span class="ident">memory_gas</span>,
-				<span class="ident">gas_refund</span>,
-				<span class="ident">snapshot</span>,
-			} =&gt; <span class="ident"><span class="self">Self</span>::RecordDynamicCost</span> {
-				<span class="ident">gas_cost</span>,
-				<span class="ident">memory_gas</span>,
-				<span class="ident">gas_refund</span>,
-				<span class="ident">snapshot</span>: <span class="ident">snapshot</span>.<span class="ident">into</span>(),
+			evm_gasometer::tracing::Event::RecordDynamicCost {
+				gas_cost,
+				memory_gas,
+				gas_refund,
+				snapshot,
+			} =&gt; <span class="self">Self</span>::RecordDynamicCost {
+				gas_cost,
+				memory_gas,
+				gas_refund,
+				snapshot: snapshot.into(),
 			},
-			<span class="ident">evm_gasometer::tracing::Event::RecordTransaction</span> { <span class="ident">cost</span>, <span class="ident">snapshot</span> } =&gt; {
-				<span class="ident"><span class="self">Self</span>::RecordTransaction</span> {
-					<span class="ident">cost</span>,
-					<span class="ident">snapshot</span>: <span class="ident">snapshot</span>.<span class="ident">into</span>(),
+			evm_gasometer::tracing::Event::RecordTransaction { cost, snapshot } =&gt; {
+				<span class="self">Self</span>::RecordTransaction {
+					cost,
+					snapshot: snapshot.into(),
 				}
 			}
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="evm_tracing_events" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="evm_tracing_events" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

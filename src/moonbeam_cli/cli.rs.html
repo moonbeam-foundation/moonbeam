@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_cli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_cli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_cli/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/cli/src/cli.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>cli.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_cli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_cli/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_cli/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -300,303 +295,302 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Moonbeam CLI Library. Built with clap</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This module defines the Moonbeam node&#39;s Command Line Interface (CLI)</span>
-<span class="doccomment">//! It is built using clap and inherits behavior from Substrate&#39;s sc_cli crate.</span>
+</span><span class="doccomment">//! Moonbeam CLI Library. Built with clap
+//!
+//! This module defines the Moonbeam node&#39;s Command Line Interface (CLI)
+//! It is built using clap and inherits behavior from Substrate&#39;s sc_cli crate.
 
-<span class="kw">use</span> <span class="ident">clap::Parser</span>;
-<span class="kw">use</span> <span class="ident">cli_opt</span>::{<span class="ident">account_key::GenerateAccountKey</span>, <span class="ident">EthApi</span>, <span class="ident">Sealing</span>};
-<span class="kw">use</span> <span class="ident">sc_cli</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">CliError</span>, <span class="ident">SubstrateCli</span>};
-<span class="kw">use</span> <span class="ident">service::chain_spec</span>;
-<span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
+</span><span class="kw">use </span>clap::Parser;
+<span class="kw">use </span>cli_opt::{account_key::GenerateAccountKey, EthApi, Sealing};
+<span class="kw">use </span>sc_cli::{Error <span class="kw">as </span>CliError, SubstrateCli};
+<span class="kw">use </span>service::chain_spec;
+<span class="kw">use </span>std::path::PathBuf;
 
-<span class="doccomment">/// Sub-commands supported by the collator.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">clap::Subcommand</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Subcommand</span> {
-	<span class="doccomment">/// Export the genesis state of the parachain.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;export-genesis-state&quot;</span>)]</span>
-	<span class="ident">ExportGenesisState</span>(<span class="ident">ExportGenesisStateCommand</span>),
+<span class="doccomment">/// Sub-commands supported by the collator.
+</span><span class="attribute">#[derive(Debug, clap::Subcommand)]
+</span><span class="kw">pub enum </span>Subcommand {
+	<span class="doccomment">/// Export the genesis state of the parachain.
+	</span><span class="attribute">#[clap(name = <span class="string">&quot;export-genesis-state&quot;</span>)]
+	</span>ExportGenesisState(ExportGenesisStateCommand),
 
-	<span class="doccomment">/// Export the genesis wasm of the parachain.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;export-genesis-wasm&quot;</span>)]</span>
-	<span class="ident">ExportGenesisWasm</span>(<span class="ident">ExportGenesisWasmCommand</span>),
+	<span class="doccomment">/// Export the genesis wasm of the parachain.
+	</span><span class="attribute">#[clap(name = <span class="string">&quot;export-genesis-wasm&quot;</span>)]
+	</span>ExportGenesisWasm(ExportGenesisWasmCommand),
 
-	<span class="doccomment">/// Build a chain specification.</span>
-	<span class="ident">BuildSpec</span>(<span class="ident">BuildSpecCommand</span>),
+	<span class="doccomment">/// Build a chain specification.
+	</span>BuildSpec(BuildSpecCommand),
 
-	<span class="doccomment">/// Validate blocks.</span>
-	<span class="ident">CheckBlock</span>(<span class="ident">sc_cli::CheckBlockCmd</span>),
+	<span class="doccomment">/// Validate blocks.
+	</span>CheckBlock(sc_cli::CheckBlockCmd),
 
-	<span class="doccomment">/// Export blocks.</span>
-	<span class="ident">ExportBlocks</span>(<span class="ident">sc_cli::ExportBlocksCmd</span>),
+	<span class="doccomment">/// Export blocks.
+	</span>ExportBlocks(sc_cli::ExportBlocksCmd),
 
-	<span class="doccomment">/// Export the state of a given block into a chain spec.</span>
-	<span class="ident">ExportState</span>(<span class="ident">sc_cli::ExportStateCmd</span>),
+	<span class="doccomment">/// Export the state of a given block into a chain spec.
+	</span>ExportState(sc_cli::ExportStateCmd),
 
-	<span class="doccomment">/// Import blocks.</span>
-	<span class="ident">ImportBlocks</span>(<span class="ident">sc_cli::ImportBlocksCmd</span>),
+	<span class="doccomment">/// Import blocks.
+	</span>ImportBlocks(sc_cli::ImportBlocksCmd),
 
-	<span class="doccomment">/// Remove the whole chain.</span>
-	<span class="ident">PurgeChain</span>(<span class="ident">cumulus_client_cli::PurgeChainCmd</span>),
+	<span class="doccomment">/// Remove the whole chain.
+	</span>PurgeChain(cumulus_client_cli::PurgeChainCmd),
 
-	<span class="doccomment">/// Revert the chain to a previous state.</span>
-	<span class="ident">Revert</span>(<span class="ident">sc_cli::RevertCmd</span>),
+	<span class="doccomment">/// Revert the chain to a previous state.
+	</span>Revert(sc_cli::RevertCmd),
 
-	<span class="doccomment">/// Sub-commands concerned with benchmarking.</span>
-	<span class="doccomment">/// The pallet benchmarking moved to the `pallet` sub-command.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
-	<span class="ident">Benchmark</span>(<span class="ident">frame_benchmarking_cli::BenchmarkCmd</span>),
+	<span class="doccomment">/// Sub-commands concerned with benchmarking.
+	/// The pallet benchmarking moved to the `pallet` sub-command.
+	</span><span class="attribute">#[clap(subcommand)]
+	</span>Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
-	<span class="doccomment">/// Try some command against runtime state.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="ident">TryRuntime</span>(<span class="ident">try_runtime_cli::TryRuntimeCmd</span>),
+	<span class="doccomment">/// Try some command against runtime state.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span>TryRuntime(try_runtime_cli::TryRuntimeCmd),
 
-	<span class="doccomment">/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>))]</span>
-	<span class="ident">TryRuntime</span>,
+	<span class="doccomment">/// Try some command against runtime state. Note: `try-runtime` feature must be enabled.
+	</span><span class="attribute">#[cfg(not(feature = <span class="string">&quot;try-runtime&quot;</span>))]
+	</span>TryRuntime,
 
-	<span class="doccomment">/// Key management cli utilities</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
-	<span class="ident">Key</span>(<span class="ident">KeyCmd</span>),
+	<span class="doccomment">/// Key management cli utilities
+	</span><span class="attribute">#[clap(subcommand)]
+	</span>Key(KeyCmd),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BuildSpecCommand</span> {
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">sc_cli::BuildSpecCmd</span>,
+<span class="attribute">#[derive(Debug, Parser)]
+</span><span class="kw">pub struct </span>BuildSpecCommand {
+	<span class="attribute">#[clap(flatten)]
+	</span><span class="kw">pub </span>base: sc_cli::BuildSpecCmd,
 
-	<span class="doccomment">/// Number of accounts to be funded in the genesis</span>
-	<span class="doccomment">/// Warning: This flag implies a development spec and overrides any explicitly supplied spec</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;chain&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">accounts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Number of accounts to be funded in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	</span><span class="attribute">#[clap(long, conflicts_with = <span class="string">&quot;chain&quot;</span>)]
+	</span><span class="kw">pub </span>accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
-	<span class="doccomment">/// Mnemonic from which we can derive funded accounts in the genesis</span>
-	<span class="doccomment">/// Warning: This flag implies a development spec and overrides any explicitly supplied spec</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;chain&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">mnemonic</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Mnemonic from which we can derive funded accounts in the genesis
+	/// Warning: This flag implies a development spec and overrides any explicitly supplied spec
+	</span><span class="attribute">#[clap(long, conflicts_with = <span class="string">&quot;chain&quot;</span>)]
+	</span><span class="kw">pub </span>mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="doccomment">/// Command for exporting the genesis state of the parachain</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExportGenesisStateCommand</span> {
-	<span class="doccomment">/// Output file name or stdout if unspecified.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_parser</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Command for exporting the genesis state of the parachain
+</span><span class="attribute">#[derive(Debug, Parser)]
+</span><span class="kw">pub struct </span>ExportGenesisStateCommand {
+	<span class="doccomment">/// Output file name or stdout if unspecified.
+	</span><span class="attribute">#[clap(value_parser)]
+	</span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
-	<span class="doccomment">/// Id of the parachain this state is for.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">parachain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Id of the parachain this state is for.
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>parachain_id: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
-	<span class="doccomment">/// Write output in binary. Default is to write in hex.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">raw</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Write output in binary. Default is to write in hex.
+	</span><span class="attribute">#[clap(short, long)]
+	</span><span class="kw">pub </span>raw: bool,
 
-	<span class="doccomment">/// The name of the chain for that the genesis state should be exported.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">chain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The name of the chain for that the genesis state should be exported.
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>chain: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="doccomment">/// Command for exporting the genesis wasm file.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExportGenesisWasmCommand</span> {
-	<span class="doccomment">/// Output file name or stdout if unspecified.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">value_parser</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Command for exporting the genesis wasm file.
+</span><span class="attribute">#[derive(Debug, Parser)]
+</span><span class="kw">pub struct </span>ExportGenesisWasmCommand {
+	<span class="doccomment">/// Output file name or stdout if unspecified.
+	</span><span class="attribute">#[clap(value_parser)]
+	</span><span class="kw">pub </span>output: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 
-	<span class="doccomment">/// Write output in binary. Default is to write in hex.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">raw</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Write output in binary. Default is to write in hex.
+	</span><span class="attribute">#[clap(short, long)]
+	</span><span class="kw">pub </span>raw: bool,
 
-	<span class="doccomment">/// The name of the chain for that the genesis wasm file should be exported.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">chain</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The name of the chain for that the genesis wasm file should be exported.
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>chain: <span class="prelude-ty">Option</span>&lt;String&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RunCmd</span> {
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">cumulus_client_cli::RunCmd</span>,
+<span class="attribute">#[derive(Debug, Parser)]
+</span><span class="kw">pub struct </span>RunCmd {
+	<span class="attribute">#[clap(flatten)]
+	</span><span class="kw">pub </span>base: cumulus_client_cli::RunCmd,
 
-	<span class="doccomment">/// Enable the development service to run without a backing relay chain</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">dev_service</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Enable the development service to run without a backing relay chain
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>dev_service: bool,
 
-	<span class="doccomment">/// When blocks should be sealed in the dev service.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Options are &quot;instant&quot;, &quot;manual&quot;, or timer interval in milliseconds</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;instant&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">sealing</span>: <span class="ident">Sealing</span>,
+	<span class="doccomment">/// When blocks should be sealed in the dev service.
+	///
+	/// Options are &quot;instant&quot;, &quot;manual&quot;, or timer interval in milliseconds
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;instant&quot;</span>)]
+	</span><span class="kw">pub </span>sealing: Sealing,
 
-	<span class="doccomment">/// Public authoring identity to be inserted in the author inherent</span>
-	<span class="doccomment">/// This is not currently used, but we may want a way to use it in the dev service.</span>
-	<span class="comment">// #[clap(long)]</span>
-	<span class="comment">// pub author_id: Option&lt;NimbusId&gt;,</span>
+	<span class="doccomment">/// Public authoring identity to be inserted in the author inherent
+	/// This is not currently used, but we may want a way to use it in the dev service.
+	</span><span class="comment">// #[clap(long)]
+	// pub author_id: Option&lt;NimbusId&gt;,
 
-	<span class="doccomment">/// Enable EVM tracing module on a non-authority node.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(
-		<span class="ident">long</span>,
-		<span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;collator&quot;</span>,
-		<span class="ident">conflicts_with</span> <span class="op">=</span> <span class="string">&quot;validator&quot;</span>,
-		<span class="ident">use_value_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>,
-		<span class="ident">require_value_delimiter</span> <span class="op">=</span> <span class="bool-val">true</span>,
-		<span class="ident">multiple_values</span> <span class="op">=</span> <span class="bool-val">true</span>
-	)]</span>
-	<span class="kw">pub</span> <span class="ident">ethapi</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthApi</span><span class="op">&gt;</span>,
+	</span><span class="doccomment">/// Enable EVM tracing module on a non-authority node.
+	</span><span class="attribute">#[clap(
+		long,
+		conflicts_with = <span class="string">&quot;collator&quot;</span>,
+		conflicts_with = <span class="string">&quot;validator&quot;</span>,
+		use_value_delimiter = <span class="bool-val">true</span>,
+		require_value_delimiter = <span class="bool-val">true</span>,
+		multiple_values = <span class="bool-val">true
+	</span>)]
+	</span><span class="kw">pub </span>ethapi: Vec&lt;EthApi&gt;,
 
-	<span class="doccomment">/// Number of concurrent tracing tasks. Meant to be shared by both &quot;debug&quot; and &quot;trace&quot; modules.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">ethapi_max_permits</span>: <span class="ident">u32</span>,
+	<span class="doccomment">/// Number of concurrent tracing tasks. Meant to be shared by both &quot;debug&quot; and &quot;trace&quot; modules.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;10&quot;</span>)]
+	</span><span class="kw">pub </span>ethapi_max_permits: u32,
 
-	<span class="doccomment">/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.</span>
-	<span class="doccomment">/// A request asking for more or an unbounded one going over this limit will both return an</span>
-	<span class="doccomment">/// error.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;500&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">ethapi_trace_max_count</span>: <span class="ident">u32</span>,
+	<span class="doccomment">/// Maximum number of trace entries a single request of `trace_filter` is allowed to return.
+	/// A request asking for more or an unbounded one going over this limit will both return an
+	/// error.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;500&quot;</span>)]
+	</span><span class="kw">pub </span>ethapi_trace_max_count: u32,
 
-	<span class="doccomment">/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be</span>
-	<span class="doccomment">/// discarded.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">ethapi_trace_cache_duration</span>: <span class="ident">u64</span>,
+	<span class="doccomment">/// Duration (in seconds) after which the cache of `trace_filter` for a given block will be
+	/// discarded.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;300&quot;</span>)]
+	</span><span class="kw">pub </span>ethapi_trace_cache_duration: u64,
 
-	<span class="doccomment">/// Size in bytes of the LRU cache for block data.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300000000&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">eth_log_block_cache</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// Size in bytes of the LRU cache for block data.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;300000000&quot;</span>)]
+	</span><span class="kw">pub </span>eth_log_block_cache: usize,
 
-	<span class="doccomment">/// Size in bytes of the LRU cache for transactions statuses data.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;300000000&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">eth_statuses_cache</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// Size in bytes of the LRU cache for transactions statuses data.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;300000000&quot;</span>)]
+	</span><span class="kw">pub </span>eth_statuses_cache: usize,
 
-	<span class="doccomment">/// Size in bytes of data a raw tracing request is allowed to use.</span>
-	<span class="doccomment">/// Bound the size of memory, stack and storage data.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;20000000&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">tracing_raw_max_memory_usage</span>: <span class="ident">usize</span>,
+	<span class="doccomment">/// Size in bytes of data a raw tracing request is allowed to use.
+	/// Bound the size of memory, stack and storage data.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;20000000&quot;</span>)]
+	</span><span class="kw">pub </span>tracing_raw_max_memory_usage: usize,
 
-	<span class="doccomment">/// Maximum number of logs in a query.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;10000&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">max_past_logs</span>: <span class="ident">u32</span>,
+	<span class="doccomment">/// Maximum number of logs in a query.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;10000&quot;</span>)]
+	</span><span class="kw">pub </span>max_past_logs: u32,
 
-	<span class="doccomment">/// Force using Moonbase native runtime.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-moonbase&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">force_moonbase</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Force using Moonbase native runtime.
+	</span><span class="attribute">#[clap(long = <span class="string">&quot;force-moonbase&quot;</span>)]
+	</span><span class="kw">pub </span>force_moonbase: bool,
 
-	<span class="doccomment">/// Force using Moonriver native runtime.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span> <span class="op">=</span> <span class="string">&quot;force-moonriver&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">force_moonriver</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Force using Moonriver native runtime.
+	</span><span class="attribute">#[clap(long = <span class="string">&quot;force-moonriver&quot;</span>)]
+	</span><span class="kw">pub </span>force_moonriver: bool,
 
-	<span class="doccomment">/// Id of the parachain this collator collates for.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">parachain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Id of the parachain this collator collates for.
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>parachain_id: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 
-	<span class="doccomment">/// Maximum fee history cache size.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;2048&quot;</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">fee_history_limit</span>: <span class="ident">u64</span>,
+	<span class="doccomment">/// Maximum fee history cache size.
+	</span><span class="attribute">#[clap(long, default_value = <span class="string">&quot;2048&quot;</span>)]
+	</span><span class="kw">pub </span>fee_history_limit: u64,
 
-	<span class="doccomment">/// Disable automatic hardware benchmarks.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// By default these benchmarks are automatically ran at startup and measure</span>
-	<span class="doccomment">/// the CPU speed, the memory bandwidth and the disk speed.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The results are then printed out in the logs, and also sent as part of</span>
-	<span class="doccomment">/// telemetry, if telemetry is enabled.</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">no_hardware_benchmarks</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Disable automatic hardware benchmarks.
+	///
+	/// By default these benchmarks are automatically ran at startup and measure
+	/// the CPU speed, the memory bandwidth and the disk speed.
+	///
+	/// The results are then printed out in the logs, and also sent as part of
+	/// telemetry, if telemetry is enabled.
+	</span><span class="attribute">#[clap(long)]
+	</span><span class="kw">pub </span>no_hardware_benchmarks: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">std::ops::Deref</span> <span class="kw">for</span> <span class="ident">RunCmd</span> {
-	<span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">cumulus_client_cli::RunCmd</span>;
+<span class="kw">impl </span>std::ops::Deref <span class="kw">for </span>RunCmd {
+	<span class="kw">type </span>Target = cumulus_client_cli::RunCmd;
 
-	<span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Target</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">base</span>
+	<span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.base
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">clap::Subcommand</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">KeyCmd</span> {
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
-	<span class="ident">BaseCli</span>(<span class="ident">sc_cli::KeySubcommand</span>),
-	<span class="doccomment">/// Generate an Ethereum account.</span>
-	<span class="ident">GenerateAccountKey</span>(<span class="ident">GenerateAccountKey</span>),
+<span class="attribute">#[derive(Debug, clap::Subcommand)]
+</span><span class="kw">pub enum </span>KeyCmd {
+	<span class="attribute">#[clap(flatten)]
+	</span>BaseCli(sc_cli::KeySubcommand),
+	<span class="doccomment">/// Generate an Ethereum account.
+	</span>GenerateAccountKey(GenerateAccountKey),
 }
 
-<span class="kw">impl</span> <span class="ident">KeyCmd</span> {
-	<span class="doccomment">/// run the key subcommands</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">run</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">SubstrateCli</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cli</span>: <span class="kw-2">&amp;</span><span class="ident">C</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">CliError</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="self">self</span> {
-			<span class="ident">KeyCmd::BaseCli</span>(<span class="ident">cmd</span>) =&gt; <span class="ident">cmd</span>.<span class="ident">run</span>(<span class="ident">cli</span>),
-			<span class="ident">KeyCmd::GenerateAccountKey</span>(<span class="ident">cmd</span>) =&gt; {
-				<span class="ident">cmd</span>.<span class="ident">run</span>();
+<span class="kw">impl </span>KeyCmd {
+	<span class="doccomment">/// run the key subcommands
+	</span><span class="kw">pub fn </span>run&lt;C: SubstrateCli&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, cli: <span class="kw-2">&amp;</span>C) -&gt; <span class="prelude-ty">Result</span>&lt;(), CliError&gt; {
+		<span class="kw">match </span><span class="self">self </span>{
+			KeyCmd::BaseCli(cmd) =&gt; cmd.run(cli),
+			KeyCmd::GenerateAccountKey(cmd) =&gt; {
+				cmd.run();
 				<span class="prelude-val">Ok</span>(())
 			}
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="attribute">#[<span class="ident">clap</span>(
-	<span class="ident">propagate_version</span> <span class="op">=</span> <span class="bool-val">true</span>,
-	<span class="ident">args_conflicts_with_subcommands</span> <span class="op">=</span> <span class="bool-val">true</span>,
-	<span class="ident">subcommand_negates_reqs</span> <span class="op">=</span> <span class="bool-val">true</span>
-)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Cli</span> {
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">subcommand</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">subcommand</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Subcommand</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug, Parser)]
+#[clap(
+	propagate_version = <span class="bool-val">true</span>,
+	args_conflicts_with_subcommands = <span class="bool-val">true</span>,
+	subcommand_negates_reqs = <span class="bool-val">true
+</span>)]
+</span><span class="kw">pub struct </span>Cli {
+	<span class="attribute">#[clap(subcommand)]
+	</span><span class="kw">pub </span>subcommand: <span class="prelude-ty">Option</span>&lt;Subcommand&gt;,
 
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">flatten</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">run</span>: <span class="ident">RunCmd</span>,
+	<span class="attribute">#[clap(flatten)]
+	</span><span class="kw">pub </span>run: RunCmd,
 
-	<span class="doccomment">/// Relaychain arguments</span>
-	<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">raw</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
-	<span class="kw">pub</span> <span class="ident">relaychain_args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Relaychain arguments
+	</span><span class="attribute">#[clap(raw = <span class="bool-val">true</span>)]
+	</span><span class="kw">pub </span>relaychain_args: Vec&lt;String&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RelayChainCli</span> {
-	<span class="doccomment">/// The actual relay chain cli object.</span>
-	<span class="kw">pub</span> <span class="ident">base</span>: <span class="ident">polkadot_cli::RunCmd</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>RelayChainCli {
+	<span class="doccomment">/// The actual relay chain cli object.
+	</span><span class="kw">pub </span>base: polkadot_cli::RunCmd,
 
-	<span class="doccomment">/// Optional chain id that should be passed to the relay chain.</span>
-	<span class="kw">pub</span> <span class="ident">chain_id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Optional chain id that should be passed to the relay chain.
+	</span><span class="kw">pub </span>chain_id: <span class="prelude-ty">Option</span>&lt;String&gt;,
 
-	<span class="doccomment">/// The base path that should be used by the relay chain.</span>
-	<span class="kw">pub</span> <span class="ident">base_path</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// The base path that should be used by the relay chain.
+	</span><span class="kw">pub </span>base_path: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
 }
 
-<span class="kw">impl</span> <span class="ident">RelayChainCli</span> {
-	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-		<span class="ident">para_config</span>: <span class="kw-2">&amp;</span><span class="ident">sc_service::Configuration</span>,
-		<span class="ident">relay_chain_args</span>: <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">String</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">extension</span> <span class="op">=</span> <span class="ident">chain_spec::Extensions::try_get</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">para_config</span>.<span class="ident">chain_spec</span>);
-		<span class="kw">let</span> <span class="ident">chain_id</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">relay_chain</span>.<span class="ident">clone</span>());
-		<span class="kw">let</span> <span class="ident">base_path</span> <span class="op">=</span> <span class="ident">para_config</span>
-			.<span class="ident">base_path</span>
-			.<span class="ident">as_ref</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">path</span>().<span class="ident">join</span>(<span class="string">&quot;polkadot&quot;</span>));
-		<span class="self">Self</span> {
-			<span class="ident">base_path</span>,
-			<span class="ident">chain_id</span>,
-			<span class="ident">base</span>: <span class="ident">polkadot_cli::RunCmd::parse_from</span>(<span class="ident">relay_chain_args</span>),
+<span class="kw">impl </span>RelayChainCli {
+	<span class="doccomment">/// Parse the relay chain CLI parameters using the para chain `Configuration`.
+	</span><span class="kw">pub fn </span>new&lt;<span class="lifetime">&#39;a</span>&gt;(
+		para_config: <span class="kw-2">&amp;</span>sc_service::Configuration,
+		relay_chain_args: <span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>String&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>extension = chain_spec::Extensions::try_get(<span class="kw-2">&amp;*</span>para_config.chain_spec);
+		<span class="kw">let </span>chain_id = extension.map(|e| e.relay_chain.clone());
+		<span class="kw">let </span>base_path = para_config
+			.base_path
+			.as_ref()
+			.map(|x| x.path().join(<span class="string">&quot;polkadot&quot;</span>));
+		<span class="self">Self </span>{
+			base_path,
+			chain_id,
+			base: polkadot_cli::RunCmd::parse_from(relay_chain_args),
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_cli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_cli" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

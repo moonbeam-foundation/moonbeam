@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/xcm-transactor/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_xcm_transactor/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_xcm_transactor/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_xcm_transactor/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/xcm-transactor/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_xcm_transactor/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_xcm_transactor/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_xcm_transactor/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -976,979 +971,980 @@
 <span id="971">971</span>
 <span id="972">972</span>
 <span id="973">973</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+<span id="974">974</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! # Xcm Transactor Module</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ## Overview</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Module to provide transact capabilities on other chains</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! In this pallet we will make distinctions between sovereign, derivative accounts and</span>
-<span class="doccomment">//! multilocation-based derived accounts. The first is the account the parachain controls</span>
-<span class="doccomment">//! in the destination chain, the second is an account derived from the</span>
-<span class="doccomment">//! sovereign account itself, e.g., by hashing it with an index, while the third is an account</span>
-<span class="doccomment">//! derived from the multilocation of a use in this chain (tipically, hashing the ML).</span>
-<span class="doccomment">//! Such distinction is important since we want to keep the integrity of the sovereign account</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This pallet provides three ways of sending Transact operations to anothe chain</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - transact_through_derivative: Transact through an address derived from this chains sovereign</span>
-<span class="doccomment">//! 	account in the destination chain. For the transaction to successfully be dispatched in the</span>
-<span class="doccomment">//! 	destination chain, pallet-utility needs to be installed and at least paid xcm message</span>
-<span class="doccomment">//! 	execution should be allowed (and WithdrawAsset,BuyExecution and Transact messages allowed)</span>
-<span class="doccomment">//! 	in the destination chain</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 	The transactions are dispatched from a derivative account</span>
-<span class="doccomment">//! 	of the sovereign account</span>
-<span class="doccomment">//! 	This pallet only stores the index of the derivative account used, but</span>
-<span class="doccomment">//! 	not the derivative account itself. The only assumption this pallet makes</span>
-<span class="doccomment">//! 	is the existence of the pallet_utility pallet in the destination chain</span>
-<span class="doccomment">//! 	through the XcmTransact trait.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 	All calls will be wrapped around utility::as_derivative. This makes sure</span>
-<span class="doccomment">//! 	the inner call is executed from the derivative account and not the sovereign</span>
-<span class="doccomment">//! 	account itself.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! 	Index registration happens through DerivativeAddressRegistrationOrigin.</span>
-<span class="doccomment">//! 	This derivative account can be funded by external users to</span>
-<span class="doccomment">//! 	ensure it has enough funds to make the calls</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - transact_through_sovereign: Transact through the sovereign account representing this chain.</span>
-<span class="doccomment">//! 	For the transaction to successfully be dispatched in the destination chain, at least paid</span>
-<span class="doccomment">//! 	xcm message execution should be allowed (and WithdrawAsset,BuyExecution and Transact</span>
-<span class="doccomment">//! 	messages allowed) in the destination chain. Only callable by Root</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! - transact_through_signed: Transact through an account derived from the multilocation</span>
-<span class="doccomment">//! 	representing the signed user making the call. We ensure this by prepending DescendOrigin as</span>
-<span class="doccomment">//! 	the first instruction of the XCM message. For the transaction to successfully be dispatched</span>
-<span class="doccomment">//! 	in the destination chain, at least descended paid xcm message execution should be allowed</span>
-<span class="doccomment">//! 	(and DescendOrigin + WithdrawAsset + BuyExecution + Transact messages allowed) in the</span>
-<span class="doccomment">//! 	destination chain. Additionally, a ML-based derivation mechanism needs to be implemented</span>
-<span class="doccomment">//! 	in the destination chain.</span>
+</span><span class="doccomment">//! # Xcm Transactor Module
+//!
+//! ## Overview
+//!
+//! Module to provide transact capabilities on other chains
+//!
+//! In this pallet we will make distinctions between sovereign, derivative accounts and
+//! multilocation-based derived accounts. The first is the account the parachain controls
+//! in the destination chain, the second is an account derived from the
+//! sovereign account itself, e.g., by hashing it with an index, while the third is an account
+//! derived from the multilocation of a use in this chain (tipically, hashing the ML).
+//! Such distinction is important since we want to keep the integrity of the sovereign account
+//!
+//! This pallet provides three ways of sending Transact operations to anothe chain
+//!
+//! - transact_through_derivative: Transact through an address derived from this chains sovereign
+//! 	account in the destination chain. For the transaction to successfully be dispatched in the
+//! 	destination chain, pallet-utility needs to be installed and at least paid xcm message
+//! 	execution should be allowed (and WithdrawAsset,BuyExecution and Transact messages allowed)
+//! 	in the destination chain
+//!
+//!
+//!
+//! 	The transactions are dispatched from a derivative account
+//! 	of the sovereign account
+//! 	This pallet only stores the index of the derivative account used, but
+//! 	not the derivative account itself. The only assumption this pallet makes
+//! 	is the existence of the pallet_utility pallet in the destination chain
+//! 	through the XcmTransact trait.
+//!
+//! 	All calls will be wrapped around utility::as_derivative. This makes sure
+//! 	the inner call is executed from the derivative account and not the sovereign
+//! 	account itself.
+//!
+//! 	Index registration happens through DerivativeAddressRegistrationOrigin.
+//! 	This derivative account can be funded by external users to
+//! 	ensure it has enough funds to make the calls
+//!
+//! - transact_through_sovereign: Transact through the sovereign account representing this chain.
+//! 	For the transaction to successfully be dispatched in the destination chain, at least paid
+//! 	xcm message execution should be allowed (and WithdrawAsset,BuyExecution and Transact
+//! 	messages allowed) in the destination chain. Only callable by Root
+//!
+//! - transact_through_signed: Transact through an account derived from the multilocation
+//! 	representing the signed user making the call. We ensure this by prepending DescendOrigin as
+//! 	the first instruction of the XCM message. For the transaction to successfully be dispatched
+//! 	in the destination chain, at least descended paid xcm message execution should be allowed
+//! 	(and DescendOrigin + WithdrawAsset + BuyExecution + Transact messages allowed) in the
+//! 	destination chain. Additionally, a ML-based derivation mechanism needs to be implemented
+//! 	in the destination chain.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-<span class="kw">use</span> <span class="ident">frame_support::pallet</span>;
+</span><span class="kw">use </span>frame_support::pallet;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">benchmarks</span>;
+<span class="attribute">#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+</span><span class="kw">mod </span>benchmarks;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migrations</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
+<span class="kw">pub mod </span>migrations;
+<span class="kw">pub mod </span>weights;
 
-<span class="kw">type</span> <span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::CurrencyId</span>;
+<span class="kw">type </span>CurrencyIdOf&lt;T&gt; = &lt;T <span class="kw">as </span>Config&gt;::CurrencyId;
 
-<span class="attribute">#[<span class="ident">pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
+<span class="attribute">#[pallet]
+</span><span class="kw">pub mod </span>pallet {
 
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::weights::WeightInfo</span>;
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::CurrencyIdOf</span>;
-	<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>, <span class="ident">weights::constants::WEIGHT_PER_SECOND</span>};
-	<span class="kw">use</span> <span class="ident">frame_system</span>::{<span class="ident">ensure_signed</span>, <span class="ident">pallet_prelude</span>::<span class="kw-2">*</span>};
-	<span class="kw">use</span> <span class="ident">orml_traits::location</span>::{<span class="ident">Parse</span>, <span class="ident">Reserve</span>};
-	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">AtLeast32BitUnsigned</span>, <span class="ident">Convert</span>};
-	<span class="kw">use</span> <span class="ident">sp_std::boxed::Box</span>;
-	<span class="kw">use</span> <span class="ident">sp_std::convert::TryFrom</span>;
-	<span class="kw">use</span> <span class="ident">sp_std::prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">xcm</span>::{<span class="ident">latest::prelude</span>::<span class="kw-2">*</span>, <span class="ident">VersionedMultiLocation</span>};
-	<span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">InvertLocation</span>, <span class="ident">TransactAsset</span>, <span class="ident">WeightBounds</span>};
-	<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">UtilityAvailableCalls</span>, <span class="ident">UtilityEncodeCall</span>, <span class="ident">XcmTransact</span>};
+	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
+	<span class="kw">use </span><span class="kw">crate</span>::CurrencyIdOf;
+	<span class="kw">use </span>frame_support::{pallet_prelude::<span class="kw-2">*</span>, weights::constants::WEIGHT_PER_SECOND};
+	<span class="kw">use </span>frame_system::{ensure_signed, pallet_prelude::<span class="kw-2">*</span>};
+	<span class="kw">use </span>orml_traits::location::{Parse, Reserve};
+	<span class="kw">use </span>sp_runtime::traits::{AtLeast32BitUnsigned, Convert};
+	<span class="kw">use </span>sp_std::boxed::Box;
+	<span class="kw">use </span>sp_std::convert::TryFrom;
+	<span class="kw">use </span>sp_std::prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>xcm::{latest::prelude::<span class="kw-2">*</span>, VersionedMultiLocation};
+	<span class="kw">use </span>xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>xcm_primitives::XcmV2Weight;
+	<span class="kw">use </span>xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(PhantomData&lt;T&gt;);
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> {
-		<span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// The balance type.</span>
-		<span class="kw">type</span> <span class="ident">Balance</span>: <span class="ident">Parameter</span>
-			<span class="op">+</span> <span class="ident">Member</span>
-			<span class="op">+</span> <span class="ident">AtLeast32BitUnsigned</span>
-			<span class="op">+</span> <span class="ident">Default</span>
-			<span class="op">+</span> <span class="ident">Copy</span>
-			<span class="op">+</span> <span class="ident">MaybeSerializeDeserialize</span>
-			<span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config {
+		<span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		<span class="doccomment">/// The balance type.
+		</span><span class="kw">type </span>Balance: Parameter
+			+ Member
+			+ AtLeast32BitUnsigned
+			+ Default
+			+ Copy
+			+ MaybeSerializeDeserialize
+			+ Into&lt;u128&gt;;
 
-		<span class="doccomment">/// Currency Id.</span>
-		<span class="kw">type</span> <span class="ident">CurrencyId</span>: <span class="ident">Parameter</span> <span class="op">+</span> <span class="ident">Member</span> <span class="op">+</span> <span class="ident">Clone</span>;
+		<span class="doccomment">/// Currency Id.
+		</span><span class="kw">type </span>CurrencyId: Parameter + Member + Clone;
 
-		<span class="doccomment">/// Convert `T::CurrencyId` to `MultiLocation`.</span>
-		<span class="kw">type</span> <span class="ident">CurrencyIdToMultiLocation</span>: <span class="ident">Convert</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::CurrencyId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Convert `T::CurrencyId` to `MultiLocation`.
+		</span><span class="kw">type </span>CurrencyIdToMultiLocation: Convert&lt;<span class="self">Self</span>::CurrencyId, <span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt;;
 
-		<span class="comment">// XcmTransact needs to be implemented. This type needs to implement</span>
-		<span class="comment">// utility call encoding and multilocation gathering</span>
-		<span class="kw">type</span> <span class="ident">Transactor</span>: <span class="ident">Parameter</span> <span class="op">+</span> <span class="ident">Member</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">XcmTransact</span>;
+		<span class="comment">// XcmTransact needs to be implemented. This type needs to implement
+		// utility call encoding and multilocation gathering
+		</span><span class="kw">type </span>Transactor: Parameter + Member + Clone + XcmTransact;
 
-		<span class="doccomment">/// AssetTransactor allows us to withdraw asset without being trapped</span>
-		<span class="doccomment">/// This should change in xcm v3, which allows us to burn assets</span>
-		<span class="kw">type</span> <span class="ident">AssetTransactor</span>: <span class="ident">TransactAsset</span>;
+		<span class="doccomment">/// AssetTransactor allows us to withdraw asset without being trapped
+		/// This should change in xcm v3, which allows us to burn assets
+		</span><span class="kw">type </span>AssetTransactor: TransactAsset;
 
-		<span class="comment">// The origin that is allowed to register derivative address indices</span>
-		<span class="kw">type</span> <span class="ident">DerivativeAddressRegistrationOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+		<span class="comment">// The origin that is allowed to register derivative address indices
+		</span><span class="kw">type </span>DerivativeAddressRegistrationOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
 
-		<span class="doccomment">/// Convert `T::AccountId` to `MultiLocation`.</span>
-		<span class="kw">type</span> <span class="ident">AccountIdToMultiLocation</span>: <span class="ident">Convert</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span>, <span class="ident">MultiLocation</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Convert `T::AccountId` to `MultiLocation`.
+		</span><span class="kw">type </span>AccountIdToMultiLocation: Convert&lt;<span class="self">Self</span>::AccountId, MultiLocation&gt;;
 
-		<span class="doccomment">/// Means of measuring the weight consumed by an XCM message locally.</span>
-		<span class="kw">type</span> <span class="ident">Weigher</span>: <span class="ident">WeightBounds</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Call</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Means of measuring the weight consumed by an XCM message locally.
+		</span><span class="kw">type </span>Weigher: WeightBounds&lt;<span class="self">Self</span>::Call&gt;;
 
-		<span class="doccomment">/// Means of inverting a location.</span>
-		<span class="kw">type</span> <span class="ident">LocationInverter</span>: <span class="ident">InvertLocation</span>;
+		<span class="doccomment">/// Means of inverting a location.
+		</span><span class="kw">type </span>LocationInverter: InvertLocation;
 
-		<span class="doccomment">/// Self chain location.</span>
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
-		<span class="kw">type</span> <span class="ident">SelfLocation</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Self chain location.
+		</span><span class="attribute">#[pallet::constant]
+		</span><span class="kw">type </span>SelfLocation: Get&lt;MultiLocation&gt;;
 
-		<span class="comment">// The origin that is allowed to dispatch calls from the sovereign account directly</span>
-		<span class="kw">type</span> <span class="ident">SovereignAccountDispatcherOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+		<span class="comment">// The origin that is allowed to dispatch calls from the sovereign account directly
+		</span><span class="kw">type </span>SovereignAccountDispatcherOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
 
-		<span class="doccomment">/// XCM sender.</span>
-		<span class="kw">type</span> <span class="ident">XcmSender</span>: <span class="ident">SendXcm</span>;
+		<span class="doccomment">/// XCM sender.
+		</span><span class="kw">type </span>XcmSender: SendXcm;
 
-		<span class="comment">// Base XCM weight.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// The actual weight for an XCM message is `T::BaseXcmWeight +</span>
-		<span class="doccomment">/// T::Weigher::weight(&amp;msg)`.</span>
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
-		<span class="kw">type</span> <span class="ident">BaseXcmWeight</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>;
+		<span class="comment">// Base XCM weight.
+		</span><span class="doccomment">///
+		/// The actual weight for an XCM message is `T::BaseXcmWeight +
+		/// T::Weigher::weight(&amp;msg)`.
+		</span><span class="attribute">#[pallet::constant]
+		</span><span class="kw">type </span>BaseXcmWeight: Get&lt;XcmV2Weight&gt;;
 
-		<span class="doccomment">/// The way to retrieve the reserve of a MultiAsset. This can be</span>
-		<span class="doccomment">/// configured to accept absolute or relative paths for self tokens</span>
-		<span class="kw">type</span> <span class="ident">ReserveProvider</span>: <span class="ident">Reserve</span>;
+		<span class="doccomment">/// The way to retrieve the reserve of a MultiAsset. This can be
+		/// configured to accept absolute or relative paths for self tokens
+		</span><span class="kw">type </span>ReserveProvider: Reserve;
 
-		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
+		<span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
-	<span class="doccomment">/// Stores the information to be able to issue a transact operation in another chain use an</span>
-	<span class="doccomment">/// asset as fee payer.</span>
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">PartialEq</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RemoteTransactInfoWithMaxWeight</span> {
-		<span class="doccomment">/// Extra weight that transacting a call in a destination chain adds</span>
-		<span class="doccomment">/// Extra weight involved when transacting without DescendOrigin</span>
-		<span class="doccomment">/// This should always be possible in a destination chain, since</span>
-		<span class="doccomment">/// it involves going through the sovereign account</span>
-		<span class="kw">pub</span> <span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
-		<span class="doccomment">/// Max destination weight</span>
-		<span class="kw">pub</span> <span class="ident">max_weight</span>: <span class="ident">Weight</span>,
-		<span class="doccomment">/// Whether we allow transacting through signed origins in another chain, and</span>
-		<span class="doccomment">/// how much extra cost implies</span>
-		<span class="doccomment">/// Extra weight involved when transacting with DescendOrigin</span>
-		<span class="doccomment">/// The reason for it being an option is because the destination chain</span>
-		<span class="doccomment">/// might not support constructing origins based on generic MultiLocations</span>
-		<span class="kw">pub</span> <span class="ident">transact_extra_weight_signed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Stores the information to be able to issue a transact operation in another chain use an
+	/// asset as fee payer.
+	</span><span class="attribute">#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	</span><span class="kw">pub struct </span>RemoteTransactInfoWithMaxWeight {
+		<span class="doccomment">/// Extra weight that transacting a call in a destination chain adds
+		/// Extra weight involved when transacting without DescendOrigin
+		/// This should always be possible in a destination chain, since
+		/// it involves going through the sovereign account
+		</span><span class="kw">pub </span>transact_extra_weight: XcmV2Weight,
+		<span class="doccomment">/// Max destination weight
+		</span><span class="kw">pub </span>max_weight: XcmV2Weight,
+		<span class="doccomment">/// Whether we allow transacting through signed origins in another chain, and
+		/// how much extra cost implies
+		/// Extra weight involved when transacting with DescendOrigin
+		/// The reason for it being an option is because the destination chain
+		/// might not support constructing origins based on generic MultiLocations
+		</span><span class="kw">pub </span>transact_extra_weight_signed: <span class="prelude-ty">Option</span>&lt;XcmV2Weight&gt;,
 	}
 
-	<span class="doccomment">/// Enum defining the way to express a Currency.</span>
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
-		<span class="comment">// Express the Currency as a CurrencyId</span>
-		<span class="ident">AsCurrencyId</span>(<span class="ident">CurrencyId</span>),
-		<span class="comment">// Express the Currency as its MultiLOcation</span>
-		<span class="ident">AsMultiLocation</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>),
+	<span class="doccomment">/// Enum defining the way to express a Currency.
+	</span><span class="attribute">#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	</span><span class="kw">pub enum </span>Currency&lt;CurrencyId&gt; {
+		<span class="comment">// Express the Currency as a CurrencyId
+		</span>AsCurrencyId(CurrencyId),
+		<span class="comment">// Express the Currency as its MultiLOcation
+		</span>AsMultiLocation(Box&lt;VersionedMultiLocation&gt;),
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-			<span class="ident">Currency</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AsMultiLocation</span>(<span class="ident">Box::new</span>(<span class="ident">MultiLocation::default</span>().<span class="ident">into</span>()))
+	<span class="kw">impl</span>&lt;T&gt; Default <span class="kw">for </span>Currency&lt;T&gt; {
+		<span class="kw">fn </span>default() -&gt; Currency&lt;T&gt; {
+			Currency::&lt;T&gt;::AsMultiLocation(Box::new(MultiLocation::default().into()))
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(
-		<span class="ident">Default</span>,
-		<span class="ident">Clone</span>,
-		<span class="ident">Encode</span>,
-		<span class="ident">Decode</span>,
-		<span class="ident">Eq</span>,
-		<span class="ident">PartialEq</span>,
-		<span class="ident">RuntimeDebug</span>,
-		<span class="ident">MaxEncodedLen</span>,
-		<span class="ident">scale_info::TypeInfo</span>,
-	)]</span>
+	<span class="attribute">#[derive(
+		Default,
+		Clone,
+		Encode,
+		Decode,
+		Eq,
+		PartialEq,
+		RuntimeDebug,
+		MaxEncodedLen,
+		scale_info::TypeInfo,
+	)]
 
-	<span class="doccomment">/// Struct that defines how to express the payment in a particular currency</span>
-	<span class="doccomment">/// currency is defined by the Currency enum, which can be expressed as:</span>
-	<span class="doccomment">/// - CurrencyId</span>
-	<span class="doccomment">/// - MultiLocation</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// The fee_amount is an option. In case of None, the fee will be tried to</span>
-	<span class="doccomment">/// be calculated from storage. If the storage item for the currency is not</span>
-	<span class="doccomment">/// populated, then it fails</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CurrencyPayment</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span> {
-		<span class="comment">// the currency in which we want to express our payment</span>
-		<span class="kw">pub</span> <span class="ident">currency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident">CurrencyId</span><span class="op">&gt;</span>,
-		<span class="comment">// indicates whether we want to specify the fee amount to be used</span>
-		<span class="kw">pub</span> <span class="ident">fee_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>,
+	</span><span class="doccomment">/// Struct that defines how to express the payment in a particular currency
+	/// currency is defined by the Currency enum, which can be expressed as:
+	/// - CurrencyId
+	/// - MultiLocation
+	///
+	/// The fee_amount is an option. In case of None, the fee will be tried to
+	/// be calculated from storage. If the storage item for the currency is not
+	/// populated, then it fails
+	</span><span class="kw">pub struct </span>CurrencyPayment&lt;CurrencyId&gt; {
+		<span class="comment">// the currency in which we want to express our payment
+		</span><span class="kw">pub </span>currency: Currency&lt;CurrencyId&gt;,
+		<span class="comment">// indicates whether we want to specify the fee amount to be used
+		</span><span class="kw">pub </span>fee_amount: <span class="prelude-ty">Option</span>&lt;u128&gt;,
 	}
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">PartialEq</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-	<span class="doccomment">/// Struct tindicating information about transact weights</span>
-	<span class="doccomment">/// It allows to specify:</span>
-	<span class="doccomment">/// - transact_required_weight_at_most: the amount of weight the Transact instruction</span>
-	<span class="doccomment">///   should consume at most</span>
-	<span class="doccomment">/// - overall_weight: the overall weight to be used for the whole XCM message execution.</span>
-	<span class="doccomment">///   If None, then this amount will be tried to be derived from storage.  If the storage item</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TransactWeights</span> {
-		<span class="comment">// the amount of weight the Transact instruction should consume at most</span>
-		<span class="kw">pub</span> <span class="ident">transact_required_weight_at_most</span>: <span class="ident">Weight</span>,
-		<span class="comment">// the overall weight to be used for the whole XCM message execution. If None,</span>
-		<span class="comment">// then this amount will be tried to be derived from storage.  If the storage item</span>
-		<span class="comment">// for the chain is not populated, then it fails</span>
-		<span class="kw">pub</span> <span class="ident">overall_weight</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>,
+	<span class="attribute">#[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
+	</span><span class="doccomment">/// Struct tindicating information about transact weights
+	/// It allows to specify:
+	/// - transact_required_weight_at_most: the amount of weight the Transact instruction
+	///   should consume at most
+	/// - overall_weight: the overall weight to be used for the whole XCM message execution.
+	///   If None, then this amount will be tried to be derived from storage.  If the storage item
+	</span><span class="kw">pub struct </span>TransactWeights {
+		<span class="comment">// the amount of weight the Transact instruction should consume at most
+		</span><span class="kw">pub </span>transact_required_weight_at_most: XcmV2Weight,
+		<span class="comment">// the overall weight to be used for the whole XCM message execution. If None,
+		// then this amount will be tried to be derived from storage.  If the storage item
+		// for the chain is not populated, then it fails
+		</span><span class="kw">pub </span>overall_weight: <span class="prelude-ty">Option</span>&lt;XcmV2Weight&gt;,
 	}
 
-	<span class="doccomment">/// Since we are using pallet-utility for account derivation (through AsDerivative),</span>
-	<span class="doccomment">/// we need to provide an index for the account derivation. This storage item stores the index</span>
-	<span class="doccomment">/// assigned for a given local account. These indices are usable as derivative in the relay chain</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">index_to_account</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">IndexToAccount</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">u16</span>, <span class="ident">T::AccountId</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Since we are using pallet-utility for account derivation (through AsDerivative),
+	/// we need to provide an index for the account derivation. This storage item stores the index
+	/// assigned for a given local account. These indices are usable as derivative in the relay chain
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>index_to_account)]
+	</span><span class="kw">pub type </span>IndexToAccount&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, u16, T::AccountId&gt;;
 
-	<span class="doccomment">/// Stores the transact info of a MultiLocation. This defines how much extra weight we need to</span>
-	<span class="doccomment">/// add when we want to transact in the destination chain and maximum amount of weight allowed</span>
-	<span class="doccomment">/// by the destination chain</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">transact_info</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TransactInfoWithWeightLimit</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">MultiLocation</span>, <span class="ident">RemoteTransactInfoWithMaxWeight</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Stores the transact info of a MultiLocation. This defines how much extra weight we need to
+	/// add when we want to transact in the destination chain and maximum amount of weight allowed
+	/// by the destination chain
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>transact_info)]
+	</span><span class="kw">pub type </span>TransactInfoWithWeightLimit&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, MultiLocation, RemoteTransactInfoWithMaxWeight&gt;;
 
-	<span class="doccomment">/// Stores the fee per second for an asset in its reserve chain. This allows us to convert</span>
-	<span class="doccomment">/// from weight to fee</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">dest_asset_fee_per_second</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DestinationAssetFeePerSecond</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Twox64Concat</span>, <span class="ident">MultiLocation</span>, <span class="ident">u128</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Stores the fee per second for an asset in its reserve chain. This allows us to convert
+	/// from weight to fee
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>dest_asset_fee_per_second)]
+	</span><span class="kw">pub type </span>DestinationAssetFeePerSecond&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, MultiLocation, u128&gt;;
 
-	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.</span>
-	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="ident">IndexAlreadyClaimed</span>,
-		<span class="ident">UnclaimedIndex</span>,
-		<span class="ident">NotOwner</span>,
-		<span class="ident">UnweighableMessage</span>,
-		<span class="ident">CannotReanchor</span>,
-		<span class="ident">AssetHasNoReserve</span>,
-		<span class="ident">InvalidDest</span>,
-		<span class="ident">NotCrossChainTransfer</span>,
-		<span class="ident">AssetIsNotReserveInDestination</span>,
-		<span class="ident">DestinationNotInvertible</span>,
-		<span class="ident">ErrorSending</span>,
-		<span class="ident">DispatchWeightBiggerThanTotalWeight</span>,
-		<span class="ident">WeightOverflow</span>,
-		<span class="ident">AmountOverflow</span>,
-		<span class="ident">TransactorInfoNotSet</span>,
-		<span class="ident">NotCrossChainTransferableCurrency</span>,
-		<span class="ident">XcmExecuteError</span>,
-		<span class="ident">BadVersion</span>,
-		<span class="ident">MaxWeightTransactReached</span>,
-		<span class="ident">UnableToWithdrawAsset</span>,
-		<span class="ident">FeePerSecondNotSet</span>,
-		<span class="ident">SignedTransactNotAllowedForDestination</span>,
-		<span class="ident">FailedMultiLocationToJunction</span>,
+	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.
+	</span><span class="attribute">#[pallet::error]
+	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
+		IndexAlreadyClaimed,
+		UnclaimedIndex,
+		NotOwner,
+		UnweighableMessage,
+		CannotReanchor,
+		AssetHasNoReserve,
+		InvalidDest,
+		NotCrossChainTransfer,
+		AssetIsNotReserveInDestination,
+		DestinationNotInvertible,
+		ErrorSending,
+		DispatchWeightBiggerThanTotalWeight,
+		WeightOverflow,
+		AmountOverflow,
+		TransactorInfoNotSet,
+		NotCrossChainTransferableCurrency,
+		XcmExecuteError,
+		BadVersion,
+		MaxWeightTransactReached,
+		UnableToWithdrawAsset,
+		FeePerSecondNotSet,
+		SignedTransactNotAllowedForDestination,
+		FailedMultiLocationToJunction,
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Transacted the inner call through a derivative account in a destination chain.</span>
-		<span class="ident">TransactedDerivative</span> {
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="ident">index</span>: <span class="ident">u16</span>,
+	<span class="attribute">#[pallet::event]
+	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deposit_event)]
+	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
+		<span class="doccomment">/// Transacted the inner call through a derivative account in a destination chain.
+		</span>TransactedDerivative {
+			account_id: T::AccountId,
+			dest: MultiLocation,
+			call: Vec&lt;u8&gt;,
+			index: u16,
 		},
-		<span class="doccomment">/// Transacted the call through the sovereign account in a destination chain.</span>
-		<span class="ident">TransactedSovereign</span> {
-			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+		<span class="doccomment">/// Transacted the call through the sovereign account in a destination chain.
+		</span>TransactedSovereign {
+			fee_payer: T::AccountId,
+			dest: MultiLocation,
+			call: Vec&lt;u8&gt;,
 		},
-		<span class="doccomment">/// Transacted the call through a signed account in a destination chain.</span>
-		<span class="ident">TransactedSigned</span> {
-			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+		<span class="doccomment">/// Transacted the call through a signed account in a destination chain.
+		</span>TransactedSigned {
+			fee_payer: T::AccountId,
+			dest: MultiLocation,
+			call: Vec&lt;u8&gt;,
 		},
-		<span class="doccomment">/// Registered a derivative index for an account id.</span>
-		<span class="ident">RegisteredDerivative</span> {
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">index</span>: <span class="ident">u16</span>,
+		<span class="doccomment">/// Registered a derivative index for an account id.
+		</span>RegisteredDerivative {
+			account_id: T::AccountId,
+			index: u16,
 		},
-		<span class="ident">DeRegisteredDerivative</span> {
-			<span class="ident">index</span>: <span class="ident">u16</span>,
+		DeRegisteredDerivative {
+			index: u16,
 		},
-		<span class="doccomment">/// Transact failed</span>
-		<span class="ident">TransactFailed</span> {
-			<span class="ident">error</span>: <span class="ident">XcmError</span>,
+		<span class="doccomment">/// Transact failed
+		</span>TransactFailed {
+			error: XcmError,
 		},
-		<span class="doccomment">/// Changed the transact info of a location</span>
-		<span class="ident">TransactInfoChanged</span> {
-			<span class="ident">location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">remote_info</span>: <span class="ident">RemoteTransactInfoWithMaxWeight</span>,
+		<span class="doccomment">/// Changed the transact info of a location
+		</span>TransactInfoChanged {
+			location: MultiLocation,
+			remote_info: RemoteTransactInfoWithMaxWeight,
 		},
-		<span class="doccomment">/// Removed the transact info of a location</span>
-		<span class="ident">TransactInfoRemoved</span> {
-			<span class="ident">location</span>: <span class="ident">MultiLocation</span>,
+		<span class="doccomment">/// Removed the transact info of a location
+		</span>TransactInfoRemoved {
+			location: MultiLocation,
 		},
-		<span class="doccomment">/// Set dest fee per second</span>
-		<span class="ident">DestFeePerSecondChanged</span> {
-			<span class="ident">location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">fee_per_second</span>: <span class="ident">u128</span>,
+		<span class="doccomment">/// Set dest fee per second
+		</span>DestFeePerSecondChanged {
+			location: MultiLocation,
+			fee_per_second: u128,
 		},
-		<span class="doccomment">/// Remove dest fee per second</span>
-		<span class="ident">DestFeePerSecondRemoved</span> {
-			<span class="ident">location</span>: <span class="ident">MultiLocation</span>,
+		<span class="doccomment">/// Remove dest fee per second
+		</span>DestFeePerSecondRemoved {
+			location: MultiLocation,
 		},
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::register</span>())]</span>
-		<span class="doccomment">/// Register a derivative index for an account id. Dispatchable by</span>
-		<span class="doccomment">/// DerivativeAddressRegistrationOrigin</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// We do not store the derivative address, but only the index. We do not need to store</span>
-		<span class="doccomment">/// the derivative address to issue calls, only the index is enough</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// For now an index is registered for all possible destinations and not per-destination.</span>
-		<span class="doccomment">/// We can change this in the future although it would just make things more complicated</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">who</span>: <span class="ident">T::AccountId</span>, <span class="ident">index</span>: <span class="ident">u16</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="attribute">#[pallet::weight(T::WeightInfo::register())]
+		</span><span class="doccomment">/// Register a derivative index for an account id. Dispatchable by
+		/// DerivativeAddressRegistrationOrigin
+		///
+		/// We do not store the derivative address, but only the index. We do not need to store
+		/// the derivative address to issue calls, only the index is enough
+		///
+		/// For now an index is registered for all possible destinations and not per-destination.
+		/// We can change this in the future although it would just make things more complicated
+		</span><span class="kw">pub fn </span>register(origin: OriginFor&lt;T&gt;, who: T::AccountId, index: u16) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">IndexToAccount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>).<span class="ident">is_none</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::IndexAlreadyClaimed</span>
+				IndexToAccount::&lt;T&gt;::get(<span class="kw-2">&amp;</span>index).is_none(),
+				Error::&lt;T&gt;::IndexAlreadyClaimed
 			);
 
-			<span class="ident">IndexToAccount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>, <span class="ident">who</span>.<span class="ident">clone</span>());
+			IndexToAccount::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>index, who.clone());
 
-			<span class="comment">// Deposit event</span>
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::RegisteredDerivative</span> {
-				<span class="ident">account_id</span>: <span class="ident">who</span>,
-				<span class="ident">index</span>: <span class="ident">index</span>,
+			<span class="comment">// Deposit event
+			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::RegisteredDerivative {
+				account_id: who,
+				index: index,
 			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::deregister</span>())]</span>
-		<span class="doccomment">/// De-Register a derivative index. This prevents an account to use a derivative address</span>
-		<span class="doccomment">/// (represented by an index) from our of our sovereign accounts anymore</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">deregister</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">index</span>: <span class="ident">u16</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="attribute">#[pallet::weight(T::WeightInfo::deregister())]
+		</span><span class="doccomment">/// De-Register a derivative index. This prevents an account to use a derivative address
+		/// (represented by an index) from our of our sovereign accounts anymore
+		</span><span class="kw">pub fn </span>deregister(origin: OriginFor&lt;T&gt;, index: u16) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="comment">// Remove index</span>
-			<span class="ident">IndexToAccount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">index</span>);
+			<span class="comment">// Remove index
+			</span>IndexToAccount::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>index);
 
-			<span class="comment">// Deposit event</span>
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DeRegisteredDerivative</span> { <span class="ident">index</span> });
+			<span class="comment">// Deposit event
+			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::DeRegisteredDerivative { index });
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Transact the inner call through a derivative account in a destination chain,</span>
-		<span class="doccomment">/// using &#39;fee_location&#39; to pay for the fees. This fee_location is given as a multilocation</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// The caller needs to have the index registered in this pallet. The fee multiasset needs</span>
-		<span class="doccomment">/// to be a reserve asset for the destination transactor::multilocation.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(
-			<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::weight_of_initiate_reserve_withdraw</span>()
-			.<span class="ident">saturating_add</span>(<span class="ident">T::WeightInfo::transact_through_derivative</span>())
-		)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_derivative</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="comment">// destination to which the message should be sent</span>
-			<span class="ident">dest</span>: <span class="ident">T::Transactor</span>,
-			<span class="comment">// derivative index to be used</span>
-			<span class="ident">index</span>: <span class="ident">u16</span>,
-			<span class="comment">// fee to be used</span>
-			<span class="ident">fee</span>: <span class="ident">CurrencyPayment</span><span class="op">&lt;</span><span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="comment">// inner call to be executed in destination. This wiol</span>
-			<span class="comment">// be wrapped into utility.as_derivative</span>
-			<span class="ident">inner_call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="comment">// weight information to be used</span>
-			<span class="ident">weight_info</span>: <span class="ident">TransactWeights</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Transact the inner call through a derivative account in a destination chain,
+		/// using &#39;fee_location&#39; to pay for the fees. This fee_location is given as a multilocation
+		///
+		/// The caller needs to have the index registered in this pallet. The fee multiasset needs
+		/// to be a reserve asset for the destination transactor::multilocation.
+		</span><span class="attribute">#[pallet::weight(
+			Weight::from_ref_time(Pallet::&lt;T&gt;::weight_of_initiate_reserve_withdraw())
+			.saturating_add(T::WeightInfo::transact_through_derivative())
+		)]
+		</span><span class="kw">pub fn </span>transact_through_derivative(
+			origin: OriginFor&lt;T&gt;,
+			<span class="comment">// destination to which the message should be sent
+			</span>dest: T::Transactor,
+			<span class="comment">// derivative index to be used
+			</span>index: u16,
+			<span class="comment">// fee to be used
+			</span>fee: CurrencyPayment&lt;CurrencyIdOf&lt;T&gt;&gt;,
+			<span class="comment">// inner call to be executed in destination. This wiol
+			// be wrapped into utility.as_derivative
+			</span>inner_call: Vec&lt;u8&gt;,
+			<span class="comment">// weight information to be used
+			</span>weight_info: TransactWeights,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::currency_to_multilocation</span>(<span class="ident">fee</span>.<span class="ident">currency</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransferableCurrency</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>fee_location = <span class="self">Self</span>::currency_to_multilocation(fee.currency)
+				.ok_or(Error::&lt;T&gt;::NotCrossChainTransferableCurrency)<span class="question-mark">?</span>;
 
-			<span class="comment">// The index exists</span>
-			<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">IndexToAccount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">index</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::UnclaimedIndex</span>)<span class="question-mark">?</span>;
-			<span class="comment">// The derivative index is owned by the origin</span>
-			<span class="macro">ensure!</span>(<span class="ident">account</span> <span class="op">==</span> <span class="ident">who</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotOwner</span>);
+			<span class="comment">// The index exists
+			</span><span class="kw">let </span>account = IndexToAccount::&lt;T&gt;::get(index).ok_or(Error::&lt;T&gt;::UnclaimedIndex)<span class="question-mark">?</span>;
+			<span class="comment">// The derivative index is owned by the origin
+			</span><span class="macro">ensure!</span>(account == who, Error::&lt;T&gt;::NotOwner);
 
-			<span class="comment">// Encode call bytes</span>
-			<span class="comment">// We make sure the inner call is wrapped on a as_derivative dispatchable</span>
-			<span class="kw">let</span> <span class="ident">call_bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">dest</span>
-				.<span class="ident">clone</span>()
-				.<span class="ident">encode_call</span>(<span class="ident">UtilityAvailableCalls::AsDerivative</span>(<span class="ident">index</span>, <span class="ident">inner_call</span>));
+			<span class="comment">// Encode call bytes
+			// We make sure the inner call is wrapped on a as_derivative dispatchable
+			</span><span class="kw">let </span>call_bytes: Vec&lt;u8&gt; = dest
+				.clone()
+				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
 
-			<span class="comment">// Grab the destination</span>
-			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">dest</span>.<span class="ident">destination</span>();
+			<span class="comment">// Grab the destination
+			</span><span class="kw">let </span>dest = dest.destination();
 
-			<span class="ident"><span class="self">Self</span>::transact_in_dest_chain_asset_non_signed</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>(),
-				<span class="ident">who</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee_location</span>,
-				<span class="ident">call_bytes</span>.<span class="ident">clone</span>(),
-				<span class="ident">OriginKind::SovereignAccount</span>,
-				<span class="ident">fee</span>.<span class="ident">fee_amount</span>,
-				<span class="ident">weight_info</span>,
+			<span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
+				dest.clone(),
+				who.clone(),
+				fee_location,
+				call_bytes.clone(),
+				OriginKind::SovereignAccount,
+				fee.fee_amount,
+				weight_info,
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Deposit event</span>
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactedDerivative</span> {
-				<span class="ident">account_id</span>: <span class="ident">who</span>,
-				<span class="ident">dest</span>: <span class="ident">dest</span>,
-				<span class="ident">call</span>: <span class="ident">call_bytes</span>,
-				<span class="ident">index</span>: <span class="ident">index</span>,
+			<span class="comment">// Deposit event
+			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::TransactedDerivative {
+				account_id: who,
+				dest: dest,
+				call: call_bytes,
+				index: index,
 			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Transact the call through the sovereign account in a destination chain,</span>
-		<span class="doccomment">/// &#39;fee_payer&#39; pays for the fee</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// SovereignAccountDispatcherOrigin callable only</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(
-			<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::weight_of_initiate_reserve_withdraw</span>()
-			.<span class="ident">saturating_add</span>(<span class="ident">T::WeightInfo::transact_through_sovereign</span>())
-		)]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_sovereign</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="comment">// destination to which the message should be sent</span>
-			<span class="ident">dest</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-			<span class="comment">// account paying for fees</span>
-			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="comment">// fee to be used</span>
-			<span class="ident">fee</span>: <span class="ident">CurrencyPayment</span><span class="op">&lt;</span><span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="comment">// call to be executed in destination</span>
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="comment">// origin kind to be used</span>
-			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
-			<span class="comment">// weight information to be used</span>
-			<span class="ident">weight_info</span>: <span class="ident">TransactWeights</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::SovereignAccountDispatcherOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Transact the call through the sovereign account in a destination chain,
+		/// &#39;fee_payer&#39; pays for the fee
+		///
+		/// SovereignAccountDispatcherOrigin callable only
+		</span><span class="attribute">#[pallet::weight(
+			Weight::from_ref_time(Pallet::&lt;T&gt;::weight_of_initiate_reserve_withdraw())
+			.saturating_add(T::WeightInfo::transact_through_sovereign())
+		)]
+		</span><span class="kw">pub fn </span>transact_through_sovereign(
+			origin: OriginFor&lt;T&gt;,
+			<span class="comment">// destination to which the message should be sent
+			</span>dest: Box&lt;VersionedMultiLocation&gt;,
+			<span class="comment">// account paying for fees
+			</span>fee_payer: T::AccountId,
+			<span class="comment">// fee to be used
+			</span>fee: CurrencyPayment&lt;CurrencyIdOf&lt;T&gt;&gt;,
+			<span class="comment">// call to be executed in destination
+			</span>call: Vec&lt;u8&gt;,
+			<span class="comment">// origin kind to be used
+			</span>origin_kind: OriginKind,
+			<span class="comment">// weight information to be used
+			</span>weight_info: TransactWeights,
+		) -&gt; DispatchResult {
+			T::SovereignAccountDispatcherOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::currency_to_multilocation</span>(<span class="ident">fee</span>.<span class="ident">currency</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransferableCurrency</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>fee_location = <span class="self">Self</span>::currency_to_multilocation(fee.currency)
+				.ok_or(Error::&lt;T&gt;::NotCrossChainTransferableCurrency)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">dest</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
-			<span class="comment">// Grab the destination</span>
-			<span class="ident"><span class="self">Self</span>::transact_in_dest_chain_asset_non_signed</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee_payer</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee_location</span>,
-				<span class="ident">call</span>.<span class="ident">clone</span>(),
-				<span class="ident">origin_kind</span>,
-				<span class="ident">fee</span>.<span class="ident">fee_amount</span>,
-				<span class="ident">weight_info</span>,
+			<span class="kw">let </span>dest = MultiLocation::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="comment">// Grab the destination
+			</span><span class="self">Self</span>::transact_in_dest_chain_asset_non_signed(
+				dest.clone(),
+				fee_payer.clone(),
+				fee_location,
+				call.clone(),
+				origin_kind,
+				fee.fee_amount,
+				weight_info,
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Deposit event</span>
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactedSovereign</span> {
-				<span class="ident">fee_payer</span>,
-				<span class="ident">dest</span>,
-				<span class="ident">call</span>,
+			<span class="comment">// Deposit event
+			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::TransactedSovereign {
+				fee_payer,
+				dest,
+				call,
 			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Change the transact info of a location</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::set_transact_info</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_transact_info</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-			<span class="ident">transact_extra_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">max_weight</span>: <span class="ident">u64</span>,
-			<span class="ident">transact_extra_weight_signed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span>
-				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">remote_info</span> <span class="op">=</span> <span class="ident">RemoteTransactInfoWithMaxWeight</span> {
-				<span class="ident">transact_extra_weight</span>,
-				<span class="ident">max_weight</span>,
-				<span class="ident">transact_extra_weight_signed</span>,
+		<span class="doccomment">/// Change the transact info of a location
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::set_transact_info())]
+		</span><span class="kw">pub fn </span>set_transact_info(
+			origin: OriginFor&lt;T&gt;,
+			location: Box&lt;VersionedMultiLocation&gt;,
+			transact_extra_weight: XcmV2Weight,
+			max_weight: u64,
+			transact_extra_weight_signed: <span class="prelude-ty">Option</span>&lt;XcmV2Weight&gt;,
+		) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>location =
+				MultiLocation::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
+			<span class="kw">let </span>remote_info = RemoteTransactInfoWithMaxWeight {
+				transact_extra_weight,
+				max_weight,
+				transact_extra_weight_signed,
 			};
 
-			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>, <span class="kw-2">&amp;</span><span class="ident">remote_info</span>);
+			TransactInfoWithWeightLimit::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>location, <span class="kw-2">&amp;</span>remote_info);
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::TransactInfoChanged</span> {
-				<span class="ident">location</span>,
-				<span class="ident">remote_info</span>,
+			<span class="self">Self</span>::deposit_event(Event::TransactInfoChanged {
+				location,
+				remote_info,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Remove the transact info of a location</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::remove_transact_info</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_transact_info</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">location</span> <span class="op">=</span>
-				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove the transact info of a location
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::remove_transact_info())]
+		</span><span class="kw">pub fn </span>remove_transact_info(
+			origin: OriginFor&lt;T&gt;,
+			location: Box&lt;VersionedMultiLocation&gt;,
+		) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>location =
+				MultiLocation::try_from(<span class="kw-2">*</span>location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
-			<span class="comment">// Remove transact info</span>
-			<span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">location</span>);
+			<span class="comment">// Remove transact info
+			</span>TransactInfoWithWeightLimit::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>location);
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::TransactInfoRemoved</span> { <span class="ident">location</span> });
+			<span class="self">Self</span>::deposit_event(Event::TransactInfoRemoved { location });
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Transact the call through the a signed origin in this chain</span>
-		<span class="doccomment">/// that should be converted to a transaction dispatch account in the destination chain</span>
-		<span class="doccomment">/// by any method implemented in the destination chains runtime</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// This time we are giving the currency as a currencyId instead of multilocation</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::transact_through_signed</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_signed</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="comment">// destination to which the message should be sent</span>
-			<span class="ident">dest</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-			<span class="comment">// fee to be used</span>
-			<span class="ident">fee</span>: <span class="ident">CurrencyPayment</span><span class="op">&lt;</span><span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-			<span class="comment">// call to be executed in destination</span>
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="comment">// weight information to be used</span>
-			<span class="ident">weight_info</span>: <span class="ident">TransactWeights</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">who</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Transact the call through the a signed origin in this chain
+		/// that should be converted to a transaction dispatch account in the destination chain
+		/// by any method implemented in the destination chains runtime
+		///
+		/// This time we are giving the currency as a currencyId instead of multilocation
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::transact_through_signed())]
+		</span><span class="kw">pub fn </span>transact_through_signed(
+			origin: OriginFor&lt;T&gt;,
+			<span class="comment">// destination to which the message should be sent
+			</span>dest: Box&lt;VersionedMultiLocation&gt;,
+			<span class="comment">// fee to be used
+			</span>fee: CurrencyPayment&lt;CurrencyIdOf&lt;T&gt;&gt;,
+			<span class="comment">// call to be executed in destination
+			</span>call: Vec&lt;u8&gt;,
+			<span class="comment">// weight information to be used
+			</span>weight_info: TransactWeights,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>who = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">dest</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>dest = MultiLocation::try_from(<span class="kw-2">*</span>dest).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">fee_location</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::currency_to_multilocation</span>(<span class="ident">fee</span>.<span class="ident">currency</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransferableCurrency</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>fee_location = <span class="self">Self</span>::currency_to_multilocation(fee.currency)
+				.ok_or(Error::&lt;T&gt;::NotCrossChainTransferableCurrency)<span class="question-mark">?</span>;
 
-			<span class="comment">// Grab the destination</span>
-			<span class="ident"><span class="self">Self</span>::transact_in_dest_chain_asset_signed</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>(),
-				<span class="ident">who</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee_location</span>,
-				<span class="ident">call</span>.<span class="ident">clone</span>(),
-				<span class="ident">OriginKind::SovereignAccount</span>,
-				<span class="ident">fee</span>.<span class="ident">fee_amount</span>,
-				<span class="ident">weight_info</span>,
+			<span class="comment">// Grab the destination
+			</span><span class="self">Self</span>::transact_in_dest_chain_asset_signed(
+				dest.clone(),
+				who.clone(),
+				fee_location,
+				call.clone(),
+				OriginKind::SovereignAccount,
+				fee.fee_amount,
+				weight_info,
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Deposit event</span>
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactedSigned</span> {
-				<span class="ident">fee_payer</span>: <span class="ident">who</span>,
-				<span class="ident">dest</span>,
-				<span class="ident">call</span>,
+			<span class="comment">// Deposit event
+			</span><span class="self">Self</span>::deposit_event(Event::&lt;T&gt;::TransactedSigned {
+				fee_payer: who,
+				dest,
+				call,
 			});
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Set the fee per second of an asset on its reserve chain</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::set_fee_per_second</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_fee_per_second</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">asset_location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-			<span class="ident">fee_per_second</span>: <span class="ident">u128</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">asset_location</span> <span class="op">=</span>
-				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">asset_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Set the fee per second of an asset on its reserve chain
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::set_fee_per_second())]
+		</span><span class="kw">pub fn </span>set_fee_per_second(
+			origin: OriginFor&lt;T&gt;,
+			asset_location: Box&lt;VersionedMultiLocation&gt;,
+			fee_per_second: u128,
+		) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>asset_location =
+				MultiLocation::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
-			<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">asset_location</span>, <span class="kw-2">&amp;</span><span class="ident">fee_per_second</span>);
+			DestinationAssetFeePerSecond::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_location, <span class="kw-2">&amp;</span>fee_per_second);
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DestFeePerSecondChanged</span> {
-				<span class="ident">location</span>: <span class="ident">asset_location</span>,
-				<span class="ident">fee_per_second</span>,
+			<span class="self">Self</span>::deposit_event(Event::DestFeePerSecondChanged {
+				location: asset_location,
+				fee_per_second,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Remove the fee per second of an asset on its reserve chain</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::set_fee_per_second</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_fee_per_second</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">asset_location</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">VersionedMultiLocation</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DerivativeAddressRegistrationOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">asset_location</span> <span class="op">=</span>
-				<span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">asset_location</span>).<span class="ident">map_err</span>(<span class="op">|</span>()<span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::BadVersion</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove the fee per second of an asset on its reserve chain
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::set_fee_per_second())]
+		</span><span class="kw">pub fn </span>remove_fee_per_second(
+			origin: OriginFor&lt;T&gt;,
+			asset_location: Box&lt;VersionedMultiLocation&gt;,
+		) -&gt; DispatchResult {
+			T::DerivativeAddressRegistrationOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>asset_location =
+				MultiLocation::try_from(<span class="kw-2">*</span>asset_location).map_err(|()| Error::&lt;T&gt;::BadVersion)<span class="question-mark">?</span>;
 
-			<span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">asset_location</span>);
+			DestinationAssetFeePerSecond::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>asset_location);
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::DestFeePerSecondRemoved</span> {
-				<span class="ident">location</span>: <span class="ident">asset_location</span>,
+			<span class="self">Self</span>::deposit_event(Event::DestFeePerSecondRemoved {
+				location: asset_location,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">transact_in_dest_chain_asset_non_signed</span>(
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
+	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="kw">fn </span>transact_in_dest_chain_asset_non_signed(
+			dest: MultiLocation,
+			fee_payer: T::AccountId,
+			fee_location: MultiLocation,
+			call: Vec&lt;u8&gt;,
+			origin_kind: OriginKind,
 
-			<span class="ident">fee_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>,
-			<span class="ident">weight_info</span>: <span class="ident">TransactWeights</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the</span>
-			<span class="comment">// destination chain</span>
-			<span class="kw">let</span> <span class="ident">total_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">weight_info</span>.<span class="ident">overall_weight</span>.<span class="ident">map_or_else</span>(
-				<span class="op">|</span><span class="op">|</span> {
-					<span class="ident"><span class="self">Self</span>::take_weight_from_transact_info</span>(
-						<span class="ident">dest</span>.<span class="ident">clone</span>(),
-						<span class="ident">weight_info</span>.<span class="ident">transact_required_weight_at_most</span>,
+			fee_amount: <span class="prelude-ty">Option</span>&lt;u128&gt;,
+			weight_info: TransactWeights,
+		) -&gt; DispatchResult {
+			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			</span><span class="kw">let </span>total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					<span class="self">Self</span>::take_weight_from_transact_info(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
 					)
 				},
-				<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
+				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
-			<span class="comment">// Calculate fee based on FeePerSecond and total_weight</span>
-			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::calculate_fee</span>(<span class="ident">fee_location</span>, <span class="ident">fee_amount</span>, <span class="ident">dest</span>.<span class="ident">clone</span>(), <span class="ident">total_weight</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Calculate fee based on FeePerSecond and total_weight
+			</span><span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)<span class="question-mark">?</span>;
 
-			<span class="comment">// Convert origin to multilocation</span>
-			<span class="kw">let</span> <span class="ident">origin_as_mult</span> <span class="op">=</span> <span class="ident">T::AccountIdToMultiLocation::convert</span>(<span class="ident">fee_payer</span>);
+			<span class="comment">// Convert origin to multilocation
+			</span><span class="kw">let </span>origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
 
-			<span class="comment">// Construct the local withdraw message with the previous calculated amount</span>
-			<span class="comment">// This message deducts and burns &quot;amount&quot; from the caller when executed</span>
-			<span class="ident">T::AssetTransactor::withdraw_asset</span>(<span class="kw-2">&amp;</span><span class="ident">fee</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">origin_as_mult</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::UnableToWithdrawAsset</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Construct the local withdraw message with the previous calculated amount
+			// This message deducts and burns &quot;amount&quot; from the caller when executed
+			</span>T::AssetTransactor::withdraw_asset(<span class="kw-2">&amp;</span>fee.clone().into(), <span class="kw-2">&amp;</span>origin_as_mult)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::UnableToWithdrawAsset)<span class="question-mark">?</span>;
 
-			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||</span>
-			<span class="comment">// Transact.</span>
-			<span class="comment">// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be</span>
-			<span class="comment">// used to pay fees</span>
-			<span class="comment">// BuyExecution: Buys &quot;execution power&quot; in the destination chain</span>
-			<span class="comment">// Transact: Issues the transaction</span>
-			<span class="kw">let</span> <span class="ident">transact_message</span>: <span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::transact_message</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee</span>,
-				<span class="ident">total_weight</span>,
-				<span class="ident">call</span>,
-				<span class="ident">weight_info</span>.<span class="ident">transact_required_weight_at_most</span>,
-				<span class="ident">origin_kind</span>,
+			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
+			// Transact.
+			// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be
+			// used to pay fees
+			// BuyExecution: Buys &quot;execution power&quot; in the destination chain
+			// Transact: Issues the transaction
+			</span><span class="kw">let </span>transact_message: Xcm&lt;()&gt; = <span class="self">Self</span>::transact_message(
+				dest.clone(),
+				fee,
+				total_weight,
+				call,
+				weight_info.transact_required_weight_at_most,
+				origin_kind,
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Send to sovereign</span>
-			<span class="ident">T::XcmSender::send_xcm</span>(<span class="ident">dest</span>, <span class="ident">transact_message</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::ErrorSending</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Send to sovereign
+			</span>T::XcmSender::send_xcm(dest, transact_message).map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::ErrorSending)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="kw">fn</span> <span class="ident">transact_in_dest_chain_asset_signed</span>(
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">fee_payer</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
-			<span class="ident">fee_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>,
-			<span class="ident">weight_info</span>: <span class="ident">TransactWeights</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the</span>
-			<span class="comment">// destination chain</span>
-			<span class="kw">let</span> <span class="ident">total_weight</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="ident">weight_info</span>.<span class="ident">overall_weight</span>.<span class="ident">map_or_else</span>(
-				<span class="op">|</span><span class="op">|</span> {
-					<span class="ident"><span class="self">Self</span>::take_weight_from_transact_info_signed</span>(
-						<span class="ident">dest</span>.<span class="ident">clone</span>(),
-						<span class="ident">weight_info</span>.<span class="ident">transact_required_weight_at_most</span>,
+		<span class="kw">fn </span>transact_in_dest_chain_asset_signed(
+			dest: MultiLocation,
+			fee_payer: T::AccountId,
+			fee_location: MultiLocation,
+			call: Vec&lt;u8&gt;,
+			origin_kind: OriginKind,
+			fee_amount: <span class="prelude-ty">Option</span>&lt;u128&gt;,
+			weight_info: TransactWeights,
+		) -&gt; DispatchResult {
+			<span class="comment">// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			</span><span class="kw">let </span>total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					<span class="self">Self</span>::take_weight_from_transact_info_signed(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
 					)
 				},
-				<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
+				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Calculate fee based on FeePerSecond and total_weight</span>
-			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::calculate_fee</span>(<span class="ident">fee_location</span>, <span class="ident">fee_amount</span>, <span class="ident">dest</span>.<span class="ident">clone</span>(), <span class="ident">total_weight</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Calculate fee based on FeePerSecond and total_weight
+			</span><span class="kw">let </span>fee = <span class="self">Self</span>::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)<span class="question-mark">?</span>;
 
-			<span class="comment">// Convert origin to multilocation</span>
-			<span class="kw">let</span> <span class="ident">origin_as_mult</span> <span class="op">=</span> <span class="ident">T::AccountIdToMultiLocation::convert</span>(<span class="ident">fee_payer</span>);
+			<span class="comment">// Convert origin to multilocation
+			</span><span class="kw">let </span>origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
 
-			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||</span>
-			<span class="comment">// Transact.</span>
-			<span class="comment">// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be</span>
-			<span class="comment">// used to pay fees</span>
-			<span class="comment">// BuyExecution: Buys &quot;execution power&quot; in the destination chain</span>
-			<span class="comment">// Transact: Issues the transaction</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transact_message</span>: <span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::transact_message</span>(
-				<span class="ident">dest</span>.<span class="ident">clone</span>(),
-				<span class="ident">fee</span>,
-				<span class="ident">total_weight</span>,
-				<span class="ident">call</span>,
-				<span class="ident">weight_info</span>.<span class="ident">transact_required_weight_at_most</span>,
-				<span class="ident">origin_kind</span>,
+			<span class="comment">// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
+			// Transact.
+			// WithdrawAsset: Withdraws &quot;amount&quot; from the sovereign account. These tokens will be
+			// used to pay fees
+			// BuyExecution: Buys &quot;execution power&quot; in the destination chain
+			// Transact: Issues the transaction
+			</span><span class="kw">let </span><span class="kw-2">mut </span>transact_message: Xcm&lt;()&gt; = <span class="self">Self</span>::transact_message(
+				dest.clone(),
+				fee,
+				total_weight,
+				call,
+				weight_info.transact_required_weight_at_most,
+				origin_kind,
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// We append DescendOrigin as the first instruction in the message</span>
-			<span class="comment">// The new message looks like DescendOrigin||WithdrawAsset||BuyExecution||</span>
-			<span class="comment">// Transact.</span>
-			<span class="kw">let</span> <span class="ident">interior</span>: <span class="ident">Junctions</span> <span class="op">=</span> <span class="ident">origin_as_mult</span>
-				.<span class="ident">clone</span>()
-				.<span class="ident">try_into</span>()
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::FailedMultiLocationToJunction</span>)<span class="question-mark">?</span>;
-			<span class="ident">transact_message</span>.<span class="number">0</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">DescendOrigin</span>(<span class="ident">interior</span>));
+			<span class="comment">// We append DescendOrigin as the first instruction in the message
+			// The new message looks like DescendOrigin||WithdrawAsset||BuyExecution||
+			// Transact.
+			</span><span class="kw">let </span>interior: Junctions = origin_as_mult
+				.clone()
+				.try_into()
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::FailedMultiLocationToJunction)<span class="question-mark">?</span>;
+			transact_message.<span class="number">0</span>.insert(<span class="number">0</span>, DescendOrigin(interior));
 
-			<span class="comment">// Send to destination chain</span>
-			<span class="ident">T::XcmSender::send_xcm</span>(<span class="ident">dest</span>, <span class="ident">transact_message</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::ErrorSending</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Send to destination chain
+			</span>T::XcmSender::send_xcm(dest, transact_message).map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::ErrorSending)<span class="question-mark">?</span>;
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Calculate the amount of fee based on the multilocation of the fee asset and</span>
-		<span class="doccomment">/// the total weight to be spent</span>
-		<span class="kw">fn</span> <span class="ident">calculate_fee</span>(
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">fee_amount</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">total_weight</span>: <span class="ident">Weight</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiAsset</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="comment">// If amount is provided, just use it</span>
-			<span class="comment">// Else, multiply weight*destination_units_per_second to see how much we should charge for</span>
-			<span class="comment">// this weight execution</span>
-			<span class="kw">let</span> <span class="ident">amount</span>: <span class="ident">u128</span> <span class="op">=</span> <span class="ident">fee_amount</span>.<span class="ident">map_or_else</span>(
-				<span class="op">|</span><span class="op">|</span> {
-					<span class="ident"><span class="self">Self</span>::take_fee_per_second_from_storage</span>(
-						<span class="ident">fee_location</span>.<span class="ident">clone</span>(),
-						<span class="ident">destination</span>,
-						<span class="ident">total_weight</span>,
+		<span class="doccomment">/// Calculate the amount of fee based on the multilocation of the fee asset and
+		/// the total weight to be spent
+		</span><span class="kw">fn </span>calculate_fee(
+			fee_location: MultiLocation,
+			fee_amount: <span class="prelude-ty">Option</span>&lt;u128&gt;,
+			destination: MultiLocation,
+			total_weight: XcmV2Weight,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;MultiAsset, DispatchError&gt; {
+			<span class="comment">// If amount is provided, just use it
+			// Else, multiply weight*destination_units_per_second to see how much we should charge for
+			// this weight execution
+			</span><span class="kw">let </span>amount: u128 = fee_amount.map_or_else(
+				|| {
+					<span class="self">Self</span>::take_fee_per_second_from_storage(
+						fee_location.clone(),
+						destination,
+						total_weight,
 					)
 				},
-				<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>),
+				|v| <span class="prelude-val">Ok</span>(v),
 			)<span class="question-mark">?</span>;
 
-			<span class="comment">// Construct MultiAsset</span>
-			<span class="prelude-val">Ok</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">Concrete</span>(<span class="ident">fee_location</span>),
-				<span class="ident">fun</span>: <span class="ident">Fungible</span>(<span class="ident">amount</span>),
+			<span class="comment">// Construct MultiAsset
+			</span><span class="prelude-val">Ok</span>(MultiAsset {
+				id: Concrete(fee_location),
+				fun: Fungible(amount),
 			})
 		}
 
-		<span class="doccomment">/// Construct the transact xcm message with the provided parameters</span>
-		<span class="kw">fn</span> <span class="ident">transact_message</span>(
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">asset</span>: <span class="ident">MultiAsset</span>,
-			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">call</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-			<span class="ident">dispatch_weight</span>: <span class="ident">Weight</span>,
-			<span class="ident">origin_kind</span>: <span class="ident">OriginKind</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="prelude-val">Ok</span>(<span class="ident">Xcm</span>(<span class="macro">vec!</span>[
-				<span class="ident"><span class="self">Self</span>::withdraw_instruction</span>(<span class="ident">asset</span>.<span class="ident">clone</span>(), <span class="kw-2">&amp;</span><span class="ident">dest</span>)<span class="question-mark">?</span>,
-				<span class="ident"><span class="self">Self</span>::buy_execution</span>(<span class="ident">asset</span>, <span class="kw-2">&amp;</span><span class="ident">dest</span>, <span class="ident">dest_weight</span>)<span class="question-mark">?</span>,
-				<span class="ident">Transact</span> {
-					<span class="ident">origin_type</span>: <span class="ident">origin_kind</span>,
-					<span class="ident">require_weight_at_most</span>: <span class="ident">dispatch_weight</span>,
-					<span class="ident">call</span>: <span class="ident">call</span>.<span class="ident">into</span>(),
+		<span class="doccomment">/// Construct the transact xcm message with the provided parameters
+		</span><span class="kw">fn </span>transact_message(
+			dest: MultiLocation,
+			asset: MultiAsset,
+			dest_weight: XcmV2Weight,
+			call: Vec&lt;u8&gt;,
+			dispatch_weight: XcmV2Weight,
+			origin_kind: OriginKind,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;Xcm&lt;()&gt;, DispatchError&gt; {
+			<span class="prelude-val">Ok</span>(Xcm(<span class="macro">vec!</span>[
+				<span class="self">Self</span>::withdraw_instruction(asset.clone(), <span class="kw-2">&amp;</span>dest)<span class="question-mark">?</span>,
+				<span class="self">Self</span>::buy_execution(asset, <span class="kw-2">&amp;</span>dest, dest_weight)<span class="question-mark">?</span>,
+				Transact {
+					origin_type: origin_kind,
+					require_weight_at_most: dispatch_weight,
+					call: call.into(),
 				},
 			]))
 		}
 
-		<span class="doccomment">/// Construct a buy execution xcm order with the provided parameters</span>
-		<span class="kw">fn</span> <span class="ident">buy_execution</span>(
-			<span class="ident">asset</span>: <span class="ident">MultiAsset</span>,
-			<span class="ident">at</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
-			<span class="ident">weight</span>: <span class="ident">u64</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">ancestry</span> <span class="op">=</span> <span class="ident">T::LocationInverter::ancestry</span>();
-			<span class="kw">let</span> <span class="ident">fees</span> <span class="op">=</span> <span class="ident">asset</span>
-				.<span class="ident">reanchored</span>(<span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="ident">ancestry</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotReanchor</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Construct a buy execution xcm order with the provided parameters
+		</span><span class="kw">fn </span>buy_execution(
+			asset: MultiAsset,
+			at: <span class="kw-2">&amp;</span>MultiLocation,
+			weight: u64,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
+			<span class="kw">let </span>ancestry = T::LocationInverter::ancestry();
+			<span class="kw">let </span>fees = asset
+				.reanchored(at, <span class="kw-2">&amp;</span>ancestry)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident">BuyExecution</span> {
-				<span class="ident">fees</span>,
-				<span class="ident">weight_limit</span>: <span class="ident">WeightLimit::Limited</span>(<span class="ident">weight</span>),
+			<span class="prelude-val">Ok</span>(BuyExecution {
+				fees,
+				weight_limit: WeightLimit::Limited(weight),
 			})
 		}
 
-		<span class="doccomment">/// Construct a withdraw instruction from a sovereign account</span>
-		<span class="kw">fn</span> <span class="ident">withdraw_instruction</span>(
-			<span class="ident">asset</span>: <span class="ident">MultiAsset</span>,
-			<span class="ident">at</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Instruction</span><span class="op">&lt;</span>()<span class="op">&gt;</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">ancestry</span> <span class="op">=</span> <span class="ident">T::LocationInverter::ancestry</span>();
-			<span class="kw">let</span> <span class="ident">fees</span> <span class="op">=</span> <span class="ident">asset</span>
-				.<span class="ident">reanchored</span>(<span class="ident">at</span>, <span class="kw-2">&amp;</span><span class="ident">ancestry</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotReanchor</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Construct a withdraw instruction from a sovereign account
+		</span><span class="kw">fn </span>withdraw_instruction(
+			asset: MultiAsset,
+			at: <span class="kw-2">&amp;</span>MultiLocation,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;Instruction&lt;()&gt;, DispatchError&gt; {
+			<span class="kw">let </span>ancestry = T::LocationInverter::ancestry();
+			<span class="kw">let </span>fees = asset
+				.reanchored(at, <span class="kw-2">&amp;</span>ancestry)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotReanchor)<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident">WithdrawAsset</span>(<span class="ident">fees</span>.<span class="ident">into</span>()))
+			<span class="prelude-val">Ok</span>(WithdrawAsset(fees.into()))
 		}
 
-		<span class="doccomment">/// Ensure `dest` has chain part and none recipient part.</span>
-		<span class="kw">fn</span> <span class="ident">ensure_valid_dest</span>(<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">if</span> <span class="kw">let</span> (<span class="prelude-val">Some</span>(<span class="ident">dest</span>), <span class="prelude-val">None</span>) <span class="op">=</span> (<span class="ident">dest</span>.<span class="ident">chain_part</span>(), <span class="ident">dest</span>.<span class="ident">non_chain_part</span>()) {
-				<span class="prelude-val">Ok</span>(<span class="ident">dest</span>)
-			} <span class="kw">else</span> {
-				<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::InvalidDest</span>.<span class="ident">into</span>())
+		<span class="doccomment">/// Ensure `dest` has chain part and none recipient part.
+		</span><span class="kw">fn </span>ensure_valid_dest(dest: <span class="kw-2">&amp;</span>MultiLocation) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, DispatchError&gt; {
+			<span class="kw">if let </span>(<span class="prelude-val">Some</span>(dest), <span class="prelude-val">None</span>) = (dest.chain_part(), dest.non_chain_part()) {
+				<span class="prelude-val">Ok</span>(dest)
+			} <span class="kw">else </span>{
+				<span class="prelude-val">Err</span>(Error::&lt;T&gt;::InvalidDest.into())
 			}
 		}
 
-		<span class="doccomment">/// Check whether the transfer is allowed.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// Returns `Err` if `asset` is not a reserved asset of `dest`,</span>
-		<span class="doccomment">/// else returns `dest`, parachain or relay chain location.</span>
-		<span class="kw">fn</span> <span class="ident">transfer_allowed</span>(
-			<span class="ident">asset</span>: <span class="kw-2">&amp;</span><span class="ident">MultiAsset</span>,
-			<span class="ident">dest</span>: <span class="kw-2">&amp;</span><span class="ident">MultiLocation</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::ensure_valid_dest</span>(<span class="ident">dest</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Check whether the transfer is allowed.
+		///
+		/// Returns `Err` if `asset` is not a reserved asset of `dest`,
+		/// else returns `dest`, parachain or relay chain location.
+		</span><span class="kw">fn </span>transfer_allowed(
+			asset: <span class="kw-2">&amp;</span>MultiAsset,
+			dest: <span class="kw-2">&amp;</span>MultiLocation,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, DispatchError&gt; {
+			<span class="kw">let </span>dest = <span class="self">Self</span>::ensure_valid_dest(dest)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">self_location</span> <span class="op">=</span> <span class="ident">T::SelfLocation::get</span>();
-			<span class="macro">ensure!</span>(<span class="ident">dest</span> <span class="op">!</span><span class="op">=</span> <span class="ident">self_location</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotCrossChainTransfer</span>);
+			<span class="kw">let </span>self_location = T::SelfLocation::get();
+			<span class="macro">ensure!</span>(dest != self_location, Error::&lt;T&gt;::NotCrossChainTransfer);
 
-			<span class="kw">let</span> <span class="ident">reserve</span> <span class="op">=</span>
-				<span class="ident">T::ReserveProvider::reserve</span>(<span class="ident">asset</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssetHasNoReserve</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>reserve =
+				T::ReserveProvider::reserve(asset).ok_or(Error::&lt;T&gt;::AssetHasNoReserve)<span class="question-mark">?</span>;
 
-			<span class="comment">// We only allow to transact using a reserve asset as fee</span>
-			<span class="macro">ensure!</span>(<span class="ident">reserve</span> <span class="op">==</span> <span class="ident">dest</span>, <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssetIsNotReserveInDestination</span>);
+			<span class="comment">// We only allow to transact using a reserve asset as fee
+			</span><span class="macro">ensure!</span>(reserve == dest, Error::&lt;T&gt;::AssetIsNotReserveInDestination);
 
-			<span class="prelude-val">Ok</span>(<span class="ident">dest</span>)
+			<span class="prelude-val">Ok</span>(dest)
 		}
 
-		<span class="doccomment">/// Returns weight of `weight_of_initiate_reserve_withdraw` call.</span>
-		<span class="kw">fn</span> <span class="ident">weight_of_initiate_reserve_withdraw</span>() -&gt; <span class="ident">Weight</span> {
-			<span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="ident">MultiLocation::parent</span>();
+		<span class="doccomment">/// Returns weight of `weight_of_initiate_reserve_withdraw` call.
+		</span><span class="kw">fn </span>weight_of_initiate_reserve_withdraw() -&gt; XcmV2Weight {
+			<span class="kw">let </span>dest = MultiLocation::parent();
 
-			<span class="comment">// We can use whatever asset here</span>
-			<span class="kw">let</span> <span class="ident">asset</span> <span class="op">=</span> <span class="ident">MultiLocation::parent</span>();
+			<span class="comment">// We can use whatever asset here
+			</span><span class="kw">let </span>asset = MultiLocation::parent();
 
-			<span class="comment">// Construct MultiAsset</span>
-			<span class="kw">let</span> <span class="ident">fee</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
-				<span class="ident">id</span>: <span class="ident">Concrete</span>(<span class="ident">asset</span>.<span class="ident">clone</span>()),
-				<span class="ident">fun</span>: <span class="ident">Fungible</span>(<span class="number">0</span>),
+			<span class="comment">// Construct MultiAsset
+			</span><span class="kw">let </span>fee = MultiAsset {
+				id: Concrete(asset.clone()),
+				fun: Fungible(<span class="number">0</span>),
 			};
 
-			<span class="kw">let</span> <span class="ident">xcm</span>: <span class="ident">Xcm</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Xcm</span>(<span class="macro">vec!</span>[
-				<span class="ident">WithdrawAsset</span>(<span class="ident">fee</span>.<span class="ident">into</span>()),
-				<span class="ident">InitiateReserveWithdraw</span> {
-					<span class="ident">assets</span>: <span class="ident">MultiAssetFilter::Wild</span>(<span class="ident">All</span>),
-					<span class="ident">reserve</span>: <span class="ident">dest</span>.<span class="ident">clone</span>(),
-					<span class="ident">xcm</span>: <span class="ident">Xcm</span>(<span class="macro">vec!</span>[]),
+			<span class="kw">let </span>xcm: Xcm&lt;()&gt; = Xcm(<span class="macro">vec!</span>[
+				WithdrawAsset(fee.into()),
+				InitiateReserveWithdraw {
+					assets: MultiAssetFilter::Wild(All),
+					reserve: dest.clone(),
+					xcm: Xcm(<span class="macro">vec!</span>[]),
 				},
 			]);
-			<span class="ident">T::Weigher::weight</span>(<span class="kw-2">&amp;mut</span> <span class="ident">xcm</span>.<span class="ident">into</span>()).<span class="ident">map_or</span>(<span class="ident">Weight::max_value</span>(), <span class="op">|</span><span class="ident">w</span><span class="op">|</span> {
-				<span class="ident">T::BaseXcmWeight::get</span>().<span class="ident">saturating_add</span>(<span class="ident">w</span>)
+			T::Weigher::weight(<span class="kw-2">&amp;mut </span>xcm.into()).map_or(XcmV2Weight::max_value(), |w| {
+				T::BaseXcmWeight::get().saturating_add(w)
 			})
 		}
 
-		<span class="doccomment">/// Returns the fee for a given set of parameters</span>
-		<span class="doccomment">/// We always round up in case of fractional division</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">calculate_fee_per_second</span>(<span class="ident">weight</span>: <span class="ident">Weight</span>, <span class="ident">fee_per_second</span>: <span class="ident">u128</span>) -&gt; <span class="ident">u128</span> {
-			<span class="comment">// grab WEIGHT_PER_SECOND as u128</span>
-			<span class="kw">let</span> <span class="ident">weight_per_second_u128</span> <span class="op">=</span> <span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>;
+		<span class="doccomment">/// Returns the fee for a given set of parameters
+		/// We always round up in case of fractional division
+		</span><span class="kw">pub fn </span>calculate_fee_per_second(weight: XcmV2Weight, fee_per_second: u128) -&gt; u128 {
+			<span class="comment">// grab WEIGHT_PER_SECOND as u128
+			</span><span class="kw">let </span>weight_per_second_u128 = WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128;
 
-			<span class="comment">// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that</span>
-			<span class="comment">// if there is a fractional part we round up the result</span>
-			<span class="kw">let</span> <span class="ident">fee_mul_rounded_up</span> <span class="op">=</span> (<span class="ident">fee_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>))
-				.<span class="ident">saturating_add</span>(<span class="ident">weight_per_second_u128</span> <span class="op">-</span> <span class="number">1</span>);
+			<span class="comment">// we add WEIGHT_PER_SECOND -1 after multiplication to make sure that
+			// if there is a fractional part we round up the result
+			</span><span class="kw">let </span>fee_mul_rounded_up = (fee_per_second.saturating_mul(weight <span class="kw">as </span>u128))
+				.saturating_add(weight_per_second_u128 - <span class="number">1</span>);
 
-			<span class="ident">fee_mul_rounded_up</span> <span class="op">/</span> <span class="ident">weight_per_second_u128</span>
+			fee_mul_rounded_up / weight_per_second_u128
 		}
 
-		<span class="doccomment">/// Returns the weight information for a destination from storage</span>
-		<span class="doccomment">/// it returns the weight to be used in non-signed cases</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_weight_from_transact_info</span>(
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Weight</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="comment">// Grab transact info for the destination provided</span>
-			<span class="kw">let</span> <span class="ident">transactor_info</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactorInfoNotSet</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Returns the weight information for a destination from storage
+		/// it returns the weight to be used in non-signed cases
+		</span><span class="kw">pub fn </span>take_weight_from_transact_info(
+			dest: MultiLocation,
+			dest_weight: XcmV2Weight,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;XcmV2Weight, DispatchError&gt; {
+			<span class="comment">// Grab transact info for the destination provided
+			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)
+				.ok_or(Error::&lt;T&gt;::TransactorInfoNotSet)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">total_weight</span> <span class="op">=</span> <span class="ident">dest_weight</span>
-				.<span class="ident">checked_add</span>(<span class="ident">transactor_info</span>.<span class="ident">transact_extra_weight</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::WeightOverflow</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>total_weight = dest_weight
+				.checked_add(transactor_info.transact_extra_weight)
+				.ok_or(Error::&lt;T&gt;::WeightOverflow)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">total_weight</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">transactor_info</span>.<span class="ident">max_weight</span>,
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
+				total_weight &lt;= transactor_info.max_weight,
+				Error::&lt;T&gt;::MaxWeightTransactReached
 			);
-			<span class="prelude-val">Ok</span>(<span class="ident">total_weight</span>)
+			<span class="prelude-val">Ok</span>(total_weight)
 		}
 
-		<span class="doccomment">/// Returns the weight information for a destination from storage</span>
-		<span class="doccomment">/// it returns the weight to be used in signed cases</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_weight_from_transact_info_signed</span>(
-			<span class="ident">dest</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">dest_weight</span>: <span class="ident">Weight</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Weight</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="comment">// Grab transact info for the destination provided</span>
-			<span class="kw">let</span> <span class="ident">transactor_info</span> <span class="op">=</span> <span class="ident">TransactInfoWithWeightLimit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">dest</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::TransactorInfoNotSet</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Returns the weight information for a destination from storage
+		/// it returns the weight to be used in signed cases
+		</span><span class="kw">pub fn </span>take_weight_from_transact_info_signed(
+			dest: MultiLocation,
+			dest_weight: XcmV2Weight,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;XcmV2Weight, DispatchError&gt; {
+			<span class="comment">// Grab transact info for the destination provided
+			</span><span class="kw">let </span>transactor_info = TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>dest)
+				.ok_or(Error::&lt;T&gt;::TransactorInfoNotSet)<span class="question-mark">?</span>;
 
-			<span class="comment">// If this storage item is not set, it means that the destination chain</span>
-			<span class="comment">// does not support this kind of transact message</span>
-			<span class="kw">let</span> <span class="ident">transact_in_dest_as_signed_weight</span> <span class="op">=</span> <span class="ident">transactor_info</span>
-				.<span class="ident">transact_extra_weight_signed</span>
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::SignedTransactNotAllowedForDestination</span>)<span class="question-mark">?</span>;
+			<span class="comment">// If this storage item is not set, it means that the destination chain
+			// does not support this kind of transact message
+			</span><span class="kw">let </span>transact_in_dest_as_signed_weight = transactor_info
+				.transact_extra_weight_signed
+				.ok_or(Error::&lt;T&gt;::SignedTransactNotAllowedForDestination)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">total_weight</span> <span class="op">=</span> <span class="ident">dest_weight</span>
-				.<span class="ident">checked_add</span>(<span class="ident">transact_in_dest_as_signed_weight</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::WeightOverflow</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>total_weight = dest_weight
+				.checked_add(transact_in_dest_as_signed_weight)
+				.ok_or(Error::&lt;T&gt;::WeightOverflow)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">total_weight</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">transactor_info</span>.<span class="ident">max_weight</span>,
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MaxWeightTransactReached</span>
+				total_weight &lt;= transactor_info.max_weight,
+				Error::&lt;T&gt;::MaxWeightTransactReached
 			);
-			<span class="prelude-val">Ok</span>(<span class="ident">total_weight</span>)
+			<span class="prelude-val">Ok</span>(total_weight)
 		}
 
-		<span class="doccomment">/// Returns the fee per second charged by a reserve chain for an asset</span>
-		<span class="doccomment">/// it takes this information from storage</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_fee_per_second_from_storage</span>(
-			<span class="ident">fee_location</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">destination</span>: <span class="ident">MultiLocation</span>,
-			<span class="ident">total_weight</span>: <span class="ident">Weight</span>,
-		) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u128</span>, <span class="ident">DispatchError</span><span class="op">&gt;</span> {
-			<span class="kw">let</span> <span class="ident">fee_per_second</span> <span class="op">=</span> <span class="ident">DestinationAssetFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">fee_location</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::FeePerSecondNotSet</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Returns the fee per second charged by a reserve chain for an asset
+		/// it takes this information from storage
+		</span><span class="kw">pub fn </span>take_fee_per_second_from_storage(
+			fee_location: MultiLocation,
+			destination: MultiLocation,
+			total_weight: XcmV2Weight,
+		) -&gt; <span class="prelude-ty">Result</span>&lt;u128, DispatchError&gt; {
+			<span class="kw">let </span>fee_per_second = DestinationAssetFeePerSecond::&lt;T&gt;::get(<span class="kw-2">&amp;</span>fee_location)
+				.ok_or(Error::&lt;T&gt;::FeePerSecondNotSet)<span class="question-mark">?</span>;
 
-			<span class="comment">// Ensure the asset is a reserve</span>
-			<span class="comment">// We only store information about asset fee per second on its reserve chain</span>
-			<span class="comment">// if amount is provided, we first check whether we have this information</span>
-			<span class="ident"><span class="self">Self</span>::transfer_allowed</span>(<span class="kw-2">&amp;</span>(<span class="ident">fee_location</span>, <span class="ident">fee_per_second</span>).<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">destination</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Ensure the asset is a reserve
+			// We only store information about asset fee per second on its reserve chain
+			// if amount is provided, we first check whether we have this information
+			</span><span class="self">Self</span>::transfer_allowed(<span class="kw-2">&amp;</span>(fee_location, fee_per_second).into(), <span class="kw-2">&amp;</span>destination)<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::calculate_fee_per_second</span>(<span class="ident">total_weight</span>, <span class="ident">fee_per_second</span>))
+			<span class="prelude-val">Ok</span>(<span class="self">Self</span>::calculate_fee_per_second(total_weight, fee_per_second))
 		}
 
-		<span class="doccomment">/// Converts Currency to multilocation</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">currency_to_multilocation</span>(
-			<span class="ident">currency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident">CurrencyIdOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> {
-			<span class="kw">match</span> <span class="ident">currency</span> {
-				<span class="ident">Currency::AsCurrencyId</span>(<span class="ident">id</span>) =&gt; <span class="ident">T::CurrencyIdToMultiLocation::convert</span>(<span class="ident">id</span>),
-				<span class="ident">Currency::AsMultiLocation</span>(<span class="ident">multiloc</span>) =&gt; <span class="ident">MultiLocation::try_from</span>(<span class="kw-2">*</span><span class="ident">multiloc</span>).<span class="ident">ok</span>(),
+		<span class="doccomment">/// Converts Currency to multilocation
+		</span><span class="kw">pub fn </span>currency_to_multilocation(
+			currency: Currency&lt;CurrencyIdOf&lt;T&gt;&gt;,
+		) -&gt; <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; {
+			<span class="kw">match </span>currency {
+				Currency::AsCurrencyId(id) =&gt; T::CurrencyIdToMultiLocation::convert(id),
+				Currency::AsMultiLocation(multiloc) =&gt; MultiLocation::try_from(<span class="kw-2">*</span>multiloc).ok(),
 			}
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_xcm_transactor" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_xcm_transactor" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

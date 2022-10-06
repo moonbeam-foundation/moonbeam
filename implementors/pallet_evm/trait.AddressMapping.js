@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["moonbeam_runtime_common"] = [{"text":"impl&lt;T:&nbsp;<a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.From.html\" title=\"trait core::convert::From\">From</a>&lt;H160&gt;&gt; AddressMapping&lt;T&gt; for <a class=\"struct\" href=\"moonbeam_runtime_common/struct.IntoAddressMapping.html\" title=\"struct moonbeam_runtime_common::IntoAddressMapping\">IntoAddressMapping</a>","synthetic":false,"types":["moonbeam_runtime_common::IntoAddressMapping"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbeam_runtime_common":[["impl&lt;T:&nbsp;<a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/convert/trait.From.html\" title=\"trait core::convert::From\">From</a>&lt;H160&gt;&gt; AddressMapping&lt;T&gt; for <a class=\"struct\" href=\"moonbeam_runtime_common/struct.IntoAddressMapping.html\" title=\"struct moonbeam_runtime_common::IntoAddressMapping\">IntoAddressMapping</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["moonbeam_runtime"] = [{"text":"impl <a class=\"trait\" href=\"moonbeam_runtime/trait.BuildStorage.html\" title=\"trait moonbeam_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"moonbeam_runtime/struct.GenesisConfig.html\" title=\"struct moonbeam_runtime::GenesisConfig\">GenesisConfig</a>","synthetic":false,"types":["moonbeam_runtime::GenesisConfig"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

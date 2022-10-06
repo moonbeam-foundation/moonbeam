@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Call",""],["TraceType",""],["TransactionTrace","Single transaction trace."]],"struct":[["RawStepLog",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Call",""],["TraceType",""],["TransactionTrace","Single transaction trace."]],"struct":[["RawStepLog",""]]};

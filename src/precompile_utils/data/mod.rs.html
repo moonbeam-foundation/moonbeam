@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/data/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/data/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -396,399 +391,398 @@
 <span id="391">391</span>
 <span id="392">392</span>
 <span id="393">393</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bytes</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">native</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">xcm</span>;
+</span><span class="kw">pub mod </span>bytes;
+<span class="kw">pub mod </span>native;
+<span class="kw">pub mod </span>xcm;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">affix::paste</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">alloc::string::String</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">bytes</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">native</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>affix::paste;
+<span class="kw">pub use </span>alloc::string::String;
+<span class="kw">pub use </span>bytes::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>native::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> {
-	<span class="ident"><span class="kw">crate</span>::revert</span>::{<span class="ident">InjectBacktrace</span>, <span class="ident">MayRevert</span>, <span class="ident">RevertReason</span>},
-	<span class="ident">alloc::borrow::ToOwned</span>,
-	<span class="ident">core</span>::{<span class="ident">any::type_name</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">ops::Range</span>},
-	<span class="ident">frame_support::traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Get</span>},
-	<span class="ident">impl_trait_for_tuples::impl_for_tuples</span>,
-	<span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>},
-	<span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>},
+<span class="kw">use </span>{
+	<span class="kw">crate</span>::revert::{InjectBacktrace, MayRevert, RevertReason},
+	alloc::borrow::ToOwned,
+	core::{any::type_name, marker::PhantomData, ops::Range},
+	frame_support::traits::{ConstU32, Get},
+	impl_trait_for_tuples::impl_for_tuples,
+	sp_core::{H160, H256, U256},
+	sp_std::{convert::TryInto, vec, vec::Vec},
 };
 
-<span class="doccomment">/// Data that can be converted from and to EVM data types.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">EvmData</span>: <span class="ident">Sized</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
-	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>);
-	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span>;
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span>;
+<span class="doccomment">/// Data that can be converted from and to EVM data types.
+</span><span class="kw">pub trait </span>EvmData: Sized {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>);
+	<span class="kw">fn </span>has_static_size() -&gt; bool;
+	<span class="kw">fn </span>solidity_type() -&gt; String;
 }
 
-<span class="doccomment">/// Wrapper around an EVM input slice, helping to parse it.</span>
-<span class="doccomment">/// Provide functions to parse common types.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EvmDataReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-	<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
-	<span class="ident">cursor</span>: <span class="ident">usize</span>,
+<span class="doccomment">/// Wrapper around an EVM input slice, helping to parse it.
+/// Provide functions to parse common types.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub struct </span>EvmDataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+	input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8],
+	cursor: usize,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">EvmDataReader</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Create a new input parser.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">input</span>, <span class="ident">cursor</span>: <span class="number">0</span> }
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;a</span>&gt; EvmDataReader&lt;<span class="lifetime">&#39;a</span>&gt; {
+	<span class="doccomment">/// Create a new input parser.
+	</span><span class="kw">pub fn </span>new(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ input, cursor: <span class="number">0 </span>}
 	}
 
-	<span class="doccomment">/// Create a new input parser from a selector-initial input.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_selector</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">T</span>: <span class="ident">num_enum::TryFromPrimitive</span><span class="op">&lt;</span><span class="ident">Primitive</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Create a new input parser from a selector-initial input.
+	</span><span class="kw">pub fn </span>read_selector&lt;T&gt;(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; MayRevert&lt;T&gt;
+	<span class="kw">where
+		</span>T: num_enum::TryFromPrimitive&lt;Primitive = u32&gt;,
 	{
-		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;selector&quot;</span>).<span class="ident">into</span>());
+		<span class="kw">if </span>input.len() &lt; <span class="number">4 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into());
 		}
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-		<span class="ident">buffer</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">0</span>..<span class="number">4</span>]);
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">T::try_from_primitive</span>(<span class="ident">u32::from_be_bytes</span>(<span class="ident">buffer</span>)).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+		<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
+		buffer.copy_from_slice(<span class="kw-2">&amp;</span>input[<span class="number">0</span>..<span class="number">4</span>]);
+		<span class="kw">let </span>selector = T::try_from_primitive(u32::from_be_bytes(buffer)).map_err(|<span class="kw">_</span>| {
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;precompile-utils&quot;</span>,
+				target: <span class="string">&quot;precompile-utils&quot;</span>,
 				<span class="string">&quot;Failed to match function selector for {}&quot;</span>,
-				<span class="ident">type_name</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+				type_name::&lt;T&gt;()
 			);
-			<span class="ident">RevertReason::UnknownSelector</span>
+			RevertReason::UnknownSelector
 		})<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">selector</span>)
+		<span class="prelude-val">Ok</span>(selector)
 	}
 
-	<span class="doccomment">/// Create a new input parser from a selector-initial input.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_skip_selector</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">4</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;selector&quot;</span>).<span class="ident">into</span>());
+	<span class="doccomment">/// Create a new input parser from a selector-initial input.
+	</span><span class="kw">pub fn </span>new_skip_selector(input: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>[u8]) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">if </span>input.len() &lt; <span class="number">4 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into());
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="number">4</span>..]))
+		<span class="prelude-val">Ok</span>(<span class="self">Self</span>::new(<span class="kw-2">&amp;</span>input[<span class="number">4</span>..]))
 	}
 
-	<span class="doccomment">/// Check the input has at least the correct amount of arguments before the end (32 bytes values).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">args</span>: <span class="ident">usize</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span> <span class="op">+</span> <span class="ident">args</span> <span class="op">*</span> <span class="number">32</span> {
+	<span class="doccomment">/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
+	</span><span class="kw">pub fn </span>expect_arguments(<span class="kw-2">&amp;</span><span class="self">self</span>, args: usize) -&gt; MayRevert&lt;()&gt; {
+		<span class="kw">if </span><span class="self">self</span>.input.len() &gt;= <span class="self">self</span>.cursor + args * <span class="number">32 </span>{
 			<span class="prelude-val">Ok</span>(())
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">RevertReason::ExpectedAtLeastNArguments</span>(<span class="ident">args</span>).<span class="ident">into</span>())
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(RevertReason::ExpectedAtLeastNArguments(args).into())
 		}
 	}
 
-	<span class="doccomment">/// Read data from the input.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="ident">T::read</span>(<span class="self">self</span>)
+	<span class="doccomment">/// Read data from the input.
+	</span><span class="kw">pub fn </span>read&lt;T: EvmData&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; MayRevert&lt;T&gt; {
+		T::read(<span class="self">self</span>)
 	}
 
-	<span class="doccomment">/// Read raw bytes from the input.</span>
-	<span class="doccomment">/// Doesn&#39;t handle any alignment checks, prefer using `read` instead of possible.</span>
-	<span class="doccomment">/// Returns an error if trying to parse out of bounds.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_raw_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="ident">len</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Read raw bytes from the input.
+	/// Doesn&#39;t handle any alignment checks, prefer using `read` instead of possible.
+	/// Returns an error if trying to parse out of bounds.
+	</span><span class="kw">pub fn </span>read_raw_bytes(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; MayRevert&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+		<span class="kw">let </span>range = <span class="self">self</span>.move_cursor(len)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">input</span>
-			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>data = <span class="self">self
+			</span>.input
+			.get(range)
+			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
+		<span class="prelude-val">Ok</span>(data)
 	}
 
-	<span class="doccomment">/// Reads a pointer, returning a reader targetting the pointed location.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_pointer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?</span>;
+	<span class="doccomment">/// Reads a pointer, returning a reader targetting the pointed location.
+	</span><span class="kw">pub fn </span>read_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span>offset: usize = <span class="self">self
+			</span>.read::&lt;U256&gt;()
+			.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?
+			</span>.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;pointer&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::PointerToOutofBound</span>.<span class="ident">into</span>());
+		<span class="kw">if </span>offset &gt;= <span class="self">self</span>.input.len() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::PointerToOutofBound.into());
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-			<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input</span>[<span class="ident">offset</span>..],
-			<span class="ident">cursor</span>: <span class="number">0</span>,
+		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+			input: <span class="kw-2">&amp;</span><span class="self">self</span>.input[offset..],
+			cursor: <span class="number">0</span>,
 		})
 	}
 
-	<span class="doccomment">/// Read remaining bytes</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">read_till_end</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">move_cursor</span>(<span class="self">self</span>.<span class="ident">input</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="self">self</span>.<span class="ident">cursor</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Read remaining bytes
+	</span><span class="kw">pub fn </span>read_till_end(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; MayRevert&lt;<span class="kw-2">&amp;</span>[u8]&gt; {
+		<span class="kw">let </span>range = <span class="self">self</span>.move_cursor(<span class="self">self</span>.input.len() - <span class="self">self</span>.cursor)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">input</span>
-			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>data = <span class="self">self
+			</span>.input
+			.get(range)
+			.ok_or_else(|| RevertReason::read_out_of_bounds(<span class="string">&quot;raw bytes&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">data</span>)
+		<span class="prelude-val">Ok</span>(data)
 	}
 
-	<span class="doccomment">/// Move the reading cursor with provided length, and return a range from the previous cursor</span>
-	<span class="doccomment">/// location to the new one.</span>
-	<span class="doccomment">/// Checks cursor overflows.</span>
-	<span class="kw">fn</span> <span class="ident">move_cursor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cursor</span>;
-		<span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">cursor</span>
-			.<span class="ident">checked_add</span>(<span class="ident">len</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">RevertReason::CursorOverflow</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Move the reading cursor with provided length, and return a range from the previous cursor
+	/// location to the new one.
+	/// Checks cursor overflows.
+	</span><span class="kw">fn </span>move_cursor(<span class="kw-2">&amp;mut </span><span class="self">self</span>, len: usize) -&gt; MayRevert&lt;Range&lt;usize&gt;&gt; {
+		<span class="kw">let </span>start = <span class="self">self</span>.cursor;
+		<span class="kw">let </span>end = <span class="self">self
+			</span>.cursor
+			.checked_add(len)
+			.ok_or_else(|| RevertReason::CursorOverflow)<span class="question-mark">?</span>;
 
-		<span class="self">self</span>.<span class="ident">cursor</span> <span class="op">=</span> <span class="ident">end</span>;
+		<span class="self">self</span>.cursor = end;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">start</span>..<span class="ident">end</span>)
+		<span class="prelude-val">Ok</span>(start..end)
 	}
 }
 
-<span class="doccomment">/// Help build an EVM input/output data.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Functions takes `self` to allow chaining all calls like</span>
-<span class="doccomment">/// `EvmDataWriter::new().write(...).write(...).build()`.</span>
-<span class="doccomment">/// While it could be more ergonomic to take &amp;mut self, this would</span>
-<span class="doccomment">/// prevent to have a `build` function that don&#39;t clone the output.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EvmDataWriter</span> {
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">offset_data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>,
-	<span class="ident">selector</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Help build an EVM input/output data.
+///
+/// Functions takes `self` to allow chaining all calls like
+/// `EvmDataWriter::new().write(...).write(...).build()`.
+/// While it could be more ergonomic to take &amp;mut self, this would
+/// prevent to have a `build` function that don&#39;t clone the output.
+</span><span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">pub struct </span>EvmDataWriter {
+	<span class="kw">pub</span>(<span class="kw">crate</span>) data: Vec&lt;u8&gt;,
+	offset_data: Vec&lt;OffsetDatum&gt;,
+	selector: <span class="prelude-ty">Option</span>&lt;u32&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">OffsetDatum</span> {
-	<span class="comment">// Offset location in the container data.</span>
-	<span class="ident">offset_position</span>: <span class="ident">usize</span>,
-	<span class="comment">// Data pointed by the offset that must be inserted at the end of container data.</span>
-	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="comment">// Inside of arrays, the offset is not from the start of array data (length), but from the start</span>
-	<span class="comment">// of the item. This shift allow to correct this.</span>
-	<span class="ident">offset_shift</span>: <span class="ident">usize</span>,
+<span class="attribute">#[derive(Clone, Debug)]
+</span><span class="kw">struct </span>OffsetDatum {
+	<span class="comment">// Offset location in the container data.
+	</span>offset_position: usize,
+	<span class="comment">// Data pointed by the offset that must be inserted at the end of container data.
+	</span>data: Vec&lt;u8&gt;,
+	<span class="comment">// Inside of arrays, the offset is not from the start of array data (length), but from the start
+	// of the item. This shift allow to correct this.
+	</span>offset_shift: usize,
 }
 
-<span class="kw">impl</span> <span class="ident">EvmDataWriter</span> {
-	<span class="doccomment">/// Creates a new empty output builder (without selector).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="macro">vec!</span>[],
-			<span class="ident">offset_data</span>: <span class="macro">vec!</span>[],
-			<span class="ident">selector</span>: <span class="prelude-val">None</span>,
+<span class="kw">impl </span>EvmDataWriter {
+	<span class="doccomment">/// Creates a new empty output builder (without selector).
+	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: <span class="macro">vec!</span>[],
+			offset_data: <span class="macro">vec!</span>[],
+			selector: <span class="prelude-val">None</span>,
 		}
 	}
 
-	<span class="doccomment">/// Creates a new empty output builder with provided selector.</span>
-	<span class="doccomment">/// Selector will only be appended before the data when calling</span>
-	<span class="doccomment">/// `build` to not mess with the offsets.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_with_selector</span>(<span class="ident">selector</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="macro">vec!</span>[],
-			<span class="ident">offset_data</span>: <span class="macro">vec!</span>[],
-			<span class="ident">selector</span>: <span class="prelude-val">Some</span>(<span class="ident">selector</span>.<span class="ident">into</span>()),
+	<span class="doccomment">/// Creates a new empty output builder with provided selector.
+	/// Selector will only be appended before the data when calling
+	/// `build` to not mess with the offsets.
+	</span><span class="kw">pub fn </span>new_with_selector(selector: <span class="kw">impl </span>Into&lt;u32&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: <span class="macro">vec!</span>[],
+			offset_data: <span class="macro">vec!</span>[],
+			selector: <span class="prelude-val">Some</span>(selector.into()),
 		}
 	}
 
-	<span class="doccomment">/// Return the built data.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-		<span class="ident"><span class="self">Self</span>::bake_offsets</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data</span>, <span class="self">self</span>.<span class="ident">offset_data</span>);
+	<span class="doccomment">/// Return the built data.
+	</span><span class="kw">pub fn </span>build(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+		<span class="self">Self</span>::bake_offsets(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data, <span class="self">self</span>.offset_data);
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">selector</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">selector</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">selector</span>.<span class="ident">to_be_bytes</span>().<span class="ident">to_vec</span>();
-			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data</span>);
-			<span class="ident">output</span>
-		} <span class="kw">else</span> {
-			<span class="self">self</span>.<span class="ident">data</span>
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(selector) = <span class="self">self</span>.selector {
+			<span class="kw">let </span><span class="kw-2">mut </span>output = selector.to_be_bytes().to_vec();
+			output.append(<span class="kw-2">&amp;mut </span><span class="self">self</span>.data);
+			output
+		} <span class="kw">else </span>{
+			<span class="self">self</span>.data
 		}
 	}
 
-	<span class="doccomment">/// Add offseted data at the end of this writer&#39;s data, updating the offsets.</span>
-	<span class="kw">fn</span> <span class="ident">bake_offsets</span>(<span class="ident">output</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">offsets</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">OffsetDatum</span><span class="op">&gt;</span>) {
-		<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">offset_datum</span> <span class="kw">in</span> <span class="ident">offsets</span> {
-			<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="ident">offset_datum</span>.<span class="ident">offset_position</span>;
-			<span class="kw">let</span> <span class="ident">offset_position_end</span> <span class="op">=</span> <span class="ident">offset_position</span> <span class="op">+</span> <span class="number">32</span>;
+	<span class="doccomment">/// Add offseted data at the end of this writer&#39;s data, updating the offsets.
+	</span><span class="kw">fn </span>bake_offsets(output: <span class="kw-2">&amp;mut </span>Vec&lt;u8&gt;, offsets: Vec&lt;OffsetDatum&gt;) {
+		<span class="kw">for </span><span class="kw-2">mut </span>offset_datum <span class="kw">in </span>offsets {
+			<span class="kw">let </span>offset_position = offset_datum.offset_position;
+			<span class="kw">let </span>offset_position_end = offset_position + <span class="number">32</span>;
 
-			<span class="comment">// The offset is the distance between the start of the data and the</span>
-			<span class="comment">// start of the pointed data (start of a struct, length of an array).</span>
-			<span class="comment">// Offsets in inner data are relative to the start of their respective &quot;container&quot;.</span>
-			<span class="comment">// However in arrays the &quot;container&quot; is actually the item itself instead of the whole</span>
-			<span class="comment">// array, which is corrected by `offset_shift`.</span>
-			<span class="kw">let</span> <span class="ident">free_space_offset</span> <span class="op">=</span> <span class="ident">output</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">offset_datum</span>.<span class="ident">offset_shift</span>;
+			<span class="comment">// The offset is the distance between the start of the data and the
+			// start of the pointed data (start of a struct, length of an array).
+			// Offsets in inner data are relative to the start of their respective &quot;container&quot;.
+			// However in arrays the &quot;container&quot; is actually the item itself instead of the whole
+			// array, which is corrected by `offset_shift`.
+			</span><span class="kw">let </span>free_space_offset = output.len() - offset_datum.offset_shift;
 
-			<span class="comment">// Override dummy offset to the offset it will be in the final output.</span>
-			<span class="ident">U256::from</span>(<span class="ident">free_space_offset</span>)
-				.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>[<span class="ident">offset_position</span>..<span class="ident">offset_position_end</span>]);
+			<span class="comment">// Override dummy offset to the offset it will be in the final output.
+			</span>U256::from(free_space_offset)
+				.to_big_endian(<span class="kw-2">&amp;mut </span>output[offset_position..offset_position_end]);
 
-			<span class="comment">// Append this data at the end of the current output.</span>
-			<span class="ident">output</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">offset_datum</span>.<span class="ident">data</span>);
+			<span class="comment">// Append this data at the end of the current output.
+			</span>output.append(<span class="kw-2">&amp;mut </span>offset_datum.data);
 		}
 	}
 
-	<span class="doccomment">/// Write arbitrary bytes.</span>
-	<span class="doccomment">/// Doesn&#39;t handle any alignement checks, prefer using `write` instead if possible.</span>
-	<span class="kw">fn</span> <span class="ident">write_raw_bytes</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">extend_from_slice</span>(<span class="ident">value</span>);
-		<span class="self">self</span>
-	}
+	<span class="doccomment">/// Write arbitrary bytes.
+	/// Doesn&#39;t handle any alignement checks, prefer using `write` instead if possible.
+	</span><span class="kw">fn </span>write_raw_bytes(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.data.extend_from_slice(value);
+		<span class="self">self
+	</span>}
 
-	<span class="doccomment">/// Write data of requested type.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">EvmData</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">T::write</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>);
-		<span class="self">self</span>
-	}
+	<span class="doccomment">/// Write data of requested type.
+	</span><span class="kw">pub fn </span>write&lt;T: EvmData&gt;(<span class="kw-2">mut </span><span class="self">self</span>, value: T) -&gt; <span class="self">Self </span>{
+		T::write(<span class="kw-2">&amp;mut </span><span class="self">self</span>, value);
+		<span class="self">self
+	</span>}
 
-	<span class="doccomment">/// Writes a pointer to given data.</span>
-	<span class="doccomment">/// The data will be appended when calling `build`.</span>
-	<span class="doccomment">/// Initially write a dummy value as offset in this writer&#39;s data, which will be replaced by</span>
-	<span class="doccomment">/// the correct offset once the pointed data is appended.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Takes `&amp;mut self` since its goal is to be used inside `EvmData` impl and not in chains.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_pointer</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">offset_position</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">len</span>();
-		<span class="ident">H256::write</span>(<span class="self">self</span>, <span class="ident">H256::repeat_byte</span>(<span class="number">0xff</span>));
+	<span class="doccomment">/// Writes a pointer to given data.
+	/// The data will be appended when calling `build`.
+	/// Initially write a dummy value as offset in this writer&#39;s data, which will be replaced by
+	/// the correct offset once the pointed data is appended.
+	///
+	/// Takes `&amp;mut self` since its goal is to be used inside `EvmData` impl and not in chains.
+	</span><span class="kw">pub fn </span>write_pointer(<span class="kw-2">&amp;mut </span><span class="self">self</span>, data: Vec&lt;u8&gt;) {
+		<span class="kw">let </span>offset_position = <span class="self">self</span>.data.len();
+		H256::write(<span class="self">self</span>, H256::repeat_byte(<span class="number">0xff</span>));
 
-		<span class="self">self</span>.<span class="ident">offset_data</span>.<span class="ident">push</span>(<span class="ident">OffsetDatum</span> {
-			<span class="ident">offset_position</span>,
-			<span class="ident">data</span>,
-			<span class="ident">offset_shift</span>: <span class="number">0</span>,
+		<span class="self">self</span>.offset_data.push(OffsetDatum {
+			offset_position,
+			data,
+			offset_shift: <span class="number">0</span>,
 		});
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">EvmDataWriter</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="ident"><span class="self">Self</span>::new</span>()
+<span class="kw">impl </span>Default <span class="kw">for </span>EvmDataWriter {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>::new()
 	}
 }
 
-<span class="doccomment">/// Adapter to parse data as a first type then convert it to another one.</span>
-<span class="doccomment">/// Useful for old precompiles in which Solidity arguments where set larger than</span>
-<span class="doccomment">/// the needed Rust type.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="ident">inner</span>: <span class="ident">C</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Adapter to parse data as a first type then convert it to another one.
+/// Useful for old precompiles in which Solidity arguments where set larger than
+/// the needed Rust type.
+</span><span class="kw">pub struct </span>SolidityConvert&lt;P, C&gt; {
+	inner: C,
+	_phantom: PhantomData&lt;P&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">C</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">inner</span>: <span class="ident">value</span>,
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;P, C&gt; From&lt;C&gt; <span class="kw">for </span>SolidityConvert&lt;P, C&gt; {
+	<span class="kw">fn </span>from(value: C) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			inner: value,
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">converted</span>(<span class="self">self</span>) -&gt; <span class="ident">C</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>
+<span class="kw">impl</span>&lt;P, C&gt; SolidityConvert&lt;P, C&gt; {
+	<span class="kw">pub fn </span>converted(<span class="self">self</span>) -&gt; C {
+		<span class="self">self</span>.inner
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">C</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">P</span>: <span class="ident">EvmData</span> <span class="op">+</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">EvmData</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;P, C&gt; EvmData <span class="kw">for </span>SolidityConvert&lt;P, C&gt;
+<span class="kw">where
+	</span>P: EvmData + TryInto&lt;C&gt;,
+	C: EvmData + Into&lt;P&gt;,
 {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">P::read</span>(<span class="ident">reader</span>)<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="ident">C::solidity_type</span>()))<span class="question-mark">?</span>;
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span>c = P::read(reader)<span class="question-mark">?
+			</span>.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(C::solidity_type()))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-			<span class="ident">inner</span>: <span class="ident">c</span>,
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+		<span class="prelude-val">Ok</span>(<span class="self">Self </span>{
+			inner: c,
+			_phantom: PhantomData,
 		})
 	}
 
-	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="ident">P::write</span>(<span class="ident">writer</span>, <span class="ident">value</span>.<span class="ident">inner</span>.<span class="ident">into</span>())
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+		P::write(writer, value.inner.into())
 	}
 
-	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
-		<span class="ident">P::has_static_size</span>()
+	<span class="kw">fn </span>has_static_size() -&gt; bool {
+		P::has_static_size()
 	}
 
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
-		<span class="ident">P::solidity_type</span>()
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		P::solidity_type()
 	}
 }
 
-<span class="doccomment">/// Helper to write `EvmData` impl for Solidity structs.</span>
-<span class="doccomment">/// Identifiers used should match Solidity ones.</span>
-<span class="doccomment">/// Types are infered from context, which should always be</span>
-<span class="doccomment">/// possible when parsing input to build a Rust struct.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,ignore</span>
-<span class="doccomment">/// impl EvmData for Currency {</span>
-<span class="doccomment">/// 	fn read(reader: &amp;mut EvmDataReader) -&gt; MayRevert&lt;Self&gt; {</span>
-<span class="doccomment">/// 		read_struct!(reader, (address, amount));</span>
-<span class="doccomment">/// 		Ok(Currency { address, amount })</span>
-<span class="doccomment">/// 	}</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 	fn write(writer: &amp;mut EvmDataWriter, value: Self) {</span>
-<span class="doccomment">/// 		EvmData::write(writer, (value.address, value.amount));</span>
-<span class="doccomment">/// 	}</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// 	fn has_static_size() -&gt; bool {</span>
-<span class="doccomment">/// 		&lt;(Address, U256)&gt;::has_static_size()</span>
-<span class="doccomment">/// 	}</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">read_struct</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">reader</span>:<span class="ident">ident</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),<span class="op">+</span>}) =&gt; {
-		<span class="kw">use</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::revert::BacktraceExt</span> <span class="kw">as</span> <span class="kw">_</span>;
-		<span class="kw">let</span> ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>),<span class="kw-2">*</span>): ($(<span class="macro-nonterminal">$</span><span class="kw">type</span>),<span class="kw-2">*</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">reader</span>
-			.<span class="ident">read</span>()
-			.<span class="ident">map_in_tuple_to_field</span>(<span class="kw-2">&amp;</span>[$(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>)),<span class="kw-2">*</span>])<span class="question-mark">?</span>;
+<span class="doccomment">/// Helper to write `EvmData` impl for Solidity structs.
+/// Identifiers used should match Solidity ones.
+/// Types are infered from context, which should always be
+/// possible when parsing input to build a Rust struct.
+///
+/// ```rust,ignore
+/// impl EvmData for Currency {
+/// 	fn read(reader: &amp;mut EvmDataReader) -&gt; MayRevert&lt;Self&gt; {
+/// 		read_struct!(reader, (address, amount));
+/// 		Ok(Currency { address, amount })
+/// 	}
+///
+/// 	fn write(writer: &amp;mut EvmDataWriter, value: Self) {
+/// 		EvmData::write(writer, (value.address, value.amount));
+/// 	}
+///
+/// 	fn has_static_size() -&gt; bool {
+/// 		&lt;(Address, U256)&gt;::has_static_size()
+/// 	}
+/// }
+/// ```
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>read_struct {
+	(<span class="macro-nonterminal">$reader</span>:ident, {$(<span class="macro-nonterminal">$field</span>:ident: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),+}) =&gt; {
+		<span class="kw">use </span><span class="macro-nonterminal">$crate::revert::BacktraceExt </span><span class="kw">as _</span>;
+		<span class="kw">let </span>($(<span class="macro-nonterminal">$field</span>),<span class="kw-2">*</span>): ($(<span class="macro-nonterminal">$</span><span class="kw">type</span>),<span class="kw-2">*</span>) = <span class="macro-nonterminal">$reader
+			</span>.read()
+			.map_in_tuple_to_field(<span class="kw-2">&amp;</span>[$(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$field</span>)),<span class="kw-2">*</span>])<span class="question-mark">?</span>;
 	};
 }
 
-<span class="doccomment">/// Helper to read arguments of a Solidity function.</span>
-<span class="doccomment">/// Arguments are read in the provided order using the provided types.</span>
-<span class="doccomment">/// Those types should match the ones in the Solidity file,</span>
-<span class="doccomment">/// and identifiers used should match Solidity ones.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Identifiers written in Rust in snake_case are converted to</span>
-<span class="doccomment">/// camelCase to match Solidity conventions.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```rust,ignore</span>
-<span class="doccomment">/// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.</span>
-<span class="doccomment">/// read_args!(handle, {owner: Address, account_index: U256});</span>
-<span class="doccomment">/// let owner: H160 = owner.into();</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">read_args</span> {
-	(@<span class="ident">count</span>) =&gt; (<span class="number">0usize</span>);
-	(@<span class="ident">count</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">x</span>:<span class="ident">ident</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>:<span class="ident">ident</span>)<span class="op">*</span> ) =&gt; (<span class="number">1usize</span> <span class="op">+</span> <span class="macro">read_args!</span>(@<span class="ident">count</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">xs</span>)<span class="kw-2">*</span>));
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">handle</span>:<span class="ident">ident</span>, {$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">ident</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),<span class="kw-2">*</span>}) =&gt; {
-		<span class="macro-nonterminal">$</span><span class="macro">crate::data::paste!</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="macro-nonterminal">input</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">handle</span>.<span class="ident">read_after_selector</span>()<span class="question-mark">?</span>;
-			<span class="ident">input</span>.<span class="ident">expect_arguments</span>(<span class="macro">read_args!</span>(@<span class="ident">count</span> $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>)<span class="kw-2">*</span>))<span class="question-mark">?</span>;
+<span class="doccomment">/// Helper to read arguments of a Solidity function.
+/// Arguments are read in the provided order using the provided types.
+/// Those types should match the ones in the Solidity file,
+/// and identifiers used should match Solidity ones.
+///
+/// Identifiers written in Rust in snake_case are converted to
+/// camelCase to match Solidity conventions.
+///
+/// ```rust,ignore
+/// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.
+/// read_args!(handle, {owner: Address, account_index: U256});
+/// let owner: H160 = owner.into();
+///
+/// ```
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>read_args {
+	(@count) =&gt; (<span class="number">0usize</span>);
+	(@count <span class="macro-nonterminal">$x</span>:ident $(<span class="macro-nonterminal">$xs</span>:ident)* ) =&gt; (<span class="number">1usize </span>+ <span class="macro">read_args!</span>(@count $(<span class="macro-nonterminal">$xs</span>)<span class="kw-2">*</span>));
+	(<span class="macro-nonterminal">$handle</span>:ident, {$(<span class="macro-nonterminal">$field</span>:ident: <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>),<span class="kw-2">*</span>}) =&gt; {
+		<span class="macro-nonterminal">$</span><span class="macro">crate::data::paste! </span>{
+			<span class="kw">let </span><span class="kw-2">mut </span><span class="macro-nonterminal">input </span>= <span class="macro-nonterminal">$handle</span>.read_after_selector()<span class="question-mark">?</span>;
+			input.expect_arguments(<span class="macro">read_args!</span>(@count $(<span class="macro-nonterminal">$field</span>)<span class="kw-2">*</span>))<span class="question-mark">?</span>;
 			$(
-				<span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>: <span class="macro-nonterminal">$</span><span class="kw">type</span> <span class="op">=</span> <span class="macro-nonterminal">input</span>.<span class="ident">read</span>().<span class="ident">in_field</span>(
-					<span class="macro">stringify!</span>([<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">field</span>:<span class="ident">camel</span><span class="op">&gt;</span>])
+				<span class="kw">let </span><span class="macro-nonterminal">$field</span>: <span class="macro-nonterminal">$</span><span class="kw">type </span>= <span class="macro-nonterminal">input</span>.read().in_field(
+					<span class="macro">stringify!</span>([&lt;<span class="macro-nonterminal">$field</span>:camel&gt;])
 				)<span class="question-mark">?</span>;
-			)<span class="op">*</span>
+			)*
 		}
 	};
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

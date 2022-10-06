@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/xcm/src/fee_handlers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fee_handlers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../xcm_primitives/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../xcm_primitives/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../xcm_primitives/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/xcm/src/fee_handlers.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>fee_handlers.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../xcm_primitives/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../xcm_primitives/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../xcm_primitives/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -422,425 +417,426 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+<span id="420">420</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="comment">// We need to know how to charge for incoming assets</span>
-<span class="comment">// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should</span>
-<span class="comment">// charge for a given asset</span>
-<span class="comment">// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes</span>
-<span class="comment">// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter</span>
+// We need to know how to charge for incoming assets
+// We assume AssetIdInfoGetter is implemented and is capable of getting how much units we should
+// charge for a given asset
+// This takes the first fungible asset, and takes whatever UnitPerSecondGetter establishes
+// UnitsToWeightRatio trait, which needs to be implemented by AssetIdInfoGetter
 
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">traits</span>::{<span class="ident">tokens::fungibles::Mutate</span>, <span class="ident">Get</span>},
-	<span class="ident">weights</span>::{<span class="ident">constants::WEIGHT_PER_SECOND</span>, <span class="ident">Weight</span>},
+</span><span class="kw">use </span>frame_support::{
+	traits::{tokens::fungibles::Mutate, Get},
+	weights::constants::WEIGHT_PER_SECOND,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::traits::Zero</span>;
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">xcm::latest</span>::{
-	<span class="ident">AssetId</span> <span class="kw">as</span> <span class="ident">xcmAssetId</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">XcmError</span>, <span class="ident">Fungibility</span>, <span class="ident">MultiAsset</span>, <span class="ident">MultiLocation</span>,
+<span class="kw">use </span>sp_runtime::traits::Zero;
+<span class="kw">use </span>sp_std::marker::PhantomData;
+<span class="kw">use </span>xcm::latest::{
+	AssetId <span class="kw">as </span>xcmAssetId, Error <span class="kw">as </span>XcmError, Fungibility, MultiAsset, MultiLocation,
 };
 
-<span class="kw">use</span> <span class="ident">xcm_builder::TakeRevenue</span>;
-<span class="kw">use</span> <span class="ident">xcm_executor::traits</span>::{<span class="ident">MatchesFungibles</span>, <span class="ident">WeightTrader</span>};
+<span class="kw">use </span>xcm_builder::TakeRevenue;
+<span class="kw">use </span>xcm_executor::traits::{MatchesFungibles, WeightTrader};
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span>
-	<span class="ident">AssetType</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
-	<span class="ident">AssetIdInfoGetter</span>: <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>,
-	<span class="ident">R</span>: <span class="ident">TakeRevenue</span>,
-<span class="op">&gt;</span>(
-	<span class="ident">Weight</span>,
-	<span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">MultiLocation</span>, <span class="ident">u128</span>, <span class="ident">u128</span>)<span class="op">&gt;</span>, <span class="comment">// id, amount, units_per_second</span>
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">AssetType</span>, <span class="ident">AssetIdInfoGetter</span>, <span class="ident">R</span>)<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>FirstAssetTrader&lt;
+	AssetType: From&lt;MultiLocation&gt; + Clone,
+	AssetIdInfoGetter: UnitsToWeightRatio&lt;AssetType&gt;,
+	R: TakeRevenue,
+&gt;(
+	u64,
+	<span class="prelude-ty">Option</span>&lt;(MultiLocation, u128, u128)&gt;, <span class="comment">// id, amount, units_per_second
+	</span>PhantomData&lt;(AssetType, AssetIdInfoGetter, R)&gt;,
 );
-<span class="kw">impl</span><span class="op">&lt;</span>
-		<span class="ident">AssetType</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
-		<span class="ident">AssetIdInfoGetter</span>: <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>,
-		<span class="ident">R</span>: <span class="ident">TakeRevenue</span>,
-	<span class="op">&gt;</span> <span class="ident">WeightTrader</span> <span class="kw">for</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetIdInfoGetter</span>, <span class="ident">R</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;
+		AssetType: From&lt;MultiLocation&gt; + Clone,
+		AssetIdInfoGetter: UnitsToWeightRatio&lt;AssetType&gt;,
+		R: TakeRevenue,
+	&gt; WeightTrader <span class="kw">for </span>FirstAssetTrader&lt;AssetType, AssetIdInfoGetter, R&gt;
 {
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="ident">FirstAssetTrader</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">PhantomData</span>)
+	<span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		FirstAssetTrader(<span class="number">0</span>, <span class="prelude-val">None</span>, PhantomData)
 	}
-	<span class="kw">fn</span> <span class="ident">buy_weight</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">weight</span>: <span class="ident">Weight</span>,
-		<span class="ident">payment</span>: <span class="ident">xcm_executor::Assets</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">xcm_executor::Assets</span>, <span class="ident">XcmError</span><span class="op">&gt;</span> {
-		<span class="comment">// can only call one time</span>
-		<span class="kw">if</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">is_some</span>() {
-			<span class="comment">// TODO: better error</span>
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::NotWithdrawable</span>);
+	<span class="kw">fn </span>buy_weight(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		weight: u64,
+		payment: xcm_executor::Assets,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;xcm_executor::Assets, XcmError&gt; {
+		<span class="comment">// can only call one time
+		</span><span class="kw">if </span><span class="self">self</span>.<span class="number">1</span>.is_some() {
+			<span class="comment">// TODO: better error
+			</span><span class="kw">return </span><span class="prelude-val">Err</span>(XcmError::NotWithdrawable);
 		}
 
 		<span class="macro">assert_eq!</span>(<span class="self">self</span>.<span class="number">0</span>, <span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">first_asset</span> <span class="op">=</span> <span class="ident">payment</span>
-			.<span class="ident">clone</span>()
-			.<span class="ident">fungible_assets_iter</span>()
-			.<span class="ident">next</span>()
-			.<span class="ident">ok_or</span>(<span class="ident">XcmError::TooExpensive</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>first_asset = payment
+			.clone()
+			.fungible_assets_iter()
+			.next()
+			.ok_or(XcmError::TooExpensive)<span class="question-mark">?</span>;
 
-		<span class="comment">// We are only going to check first asset for now. This should be sufficient for simple token</span>
-		<span class="comment">// transfers. We will see later if we change this.</span>
-		<span class="kw">match</span> (<span class="ident">first_asset</span>.<span class="ident">id</span>, <span class="ident">first_asset</span>.<span class="ident">fun</span>) {
-			(<span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>), <span class="ident">Fungibility::Fungible</span>(<span class="kw">_</span>)) =&gt; {
-				<span class="kw">let</span> <span class="ident">asset_type</span>: <span class="ident">AssetType</span> <span class="op">=</span> <span class="ident">id</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
-				<span class="comment">// Shortcut if we know the asset is not supported</span>
-				<span class="comment">// This involves the same db read per block, mitigating any attack based on</span>
-				<span class="comment">// non-supported assets</span>
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">AssetIdInfoGetter::payment_is_supported</span>(<span class="ident">asset_type</span>.<span class="ident">clone</span>()) {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>);
+		<span class="comment">// We are only going to check first asset for now. This should be sufficient for simple token
+		// transfers. We will see later if we change this.
+		</span><span class="kw">match </span>(first_asset.id, first_asset.fun) {
+			(xcmAssetId::Concrete(id), Fungibility::Fungible(<span class="kw">_</span>)) =&gt; {
+				<span class="kw">let </span>asset_type: AssetType = id.clone().into();
+				<span class="comment">// Shortcut if we know the asset is not supported
+				// This involves the same db read per block, mitigating any attack based on
+				// non-supported assets
+				</span><span class="kw">if </span>!AssetIdInfoGetter::payment_is_supported(asset_type.clone()) {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(XcmError::TooExpensive);
 				}
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">units_per_second</span>) <span class="op">=</span> <span class="ident">AssetIdInfoGetter::get_units_per_second</span>(<span class="ident">asset_type</span>)
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
-					<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span>.<span class="ident">saturating_mul</span>(<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>)
-						<span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
+					<span class="kw">let </span>amount = units_per_second.saturating_mul(weight <span class="kw">as </span>u128)
+						/ (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
 
-					<span class="comment">// We dont need to proceed if the amount is 0</span>
-					<span class="comment">// For cases (specially tests) where the asset is very cheap with respect</span>
-					<span class="comment">// to the weight needed</span>
-					<span class="kw">if</span> <span class="ident">amount</span>.<span class="ident">is_zero</span>() {
-						<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">payment</span>);
+					<span class="comment">// We dont need to proceed if the amount is 0
+					// For cases (specially tests) where the asset is very cheap with respect
+					// to the weight needed
+					</span><span class="kw">if </span>amount.is_zero() {
+						<span class="kw">return </span><span class="prelude-val">Ok</span>(payment);
 					}
 
-					<span class="kw">let</span> <span class="ident">required</span> <span class="op">=</span> <span class="ident">MultiAsset</span> {
-						<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
-						<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>.<span class="ident">clone</span>()),
+					<span class="kw">let </span>required = MultiAsset {
+						fun: Fungibility::Fungible(amount),
+						id: xcmAssetId::Concrete(id.clone()),
 					};
-					<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">payment</span>
-						.<span class="ident">checked_sub</span>(<span class="ident">required</span>)
-						.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">XcmError::TooExpensive</span>)<span class="question-mark">?</span>;
+					<span class="kw">let </span>unused = payment
+						.checked_sub(required)
+						.map_err(|<span class="kw">_</span>| XcmError::TooExpensive)<span class="question-mark">?</span>;
 
-					<span class="self">self</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">weight</span>;
-					<span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">amount</span>, <span class="ident">units_per_second</span>));
+					<span class="self">self</span>.<span class="number">0 </span>= weight;
+					<span class="self">self</span>.<span class="number">1 </span>= <span class="prelude-val">Some</span>((id, amount, units_per_second));
 
-					<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">unused</span>);
-				} <span class="kw">else</span> {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>);
+					<span class="kw">return </span><span class="prelude-val">Ok</span>(unused);
+				} <span class="kw">else </span>{
+					<span class="kw">return </span><span class="prelude-val">Err</span>(XcmError::TooExpensive);
 				};
 			}
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">XcmError::TooExpensive</span>),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(XcmError::TooExpensive),
 		}
 	}
 
-	<span class="comment">// Refund weight. We will refund in whatever asset is stored in self.</span>
-	<span class="kw">fn</span> <span class="ident">refund_weight</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">weight</span>: <span class="ident">Weight</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiAsset</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">prev_amount</span>, <span class="ident">units_per_second</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
-			<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">min</span>(<span class="self">self</span>.<span class="number">0</span>);
-			<span class="self">self</span>.<span class="number">0</span> <span class="op">-</span><span class="op">=</span> <span class="ident">weight</span>;
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">units_per_second</span> <span class="op">*</span> (<span class="ident">weight</span> <span class="kw">as</span> <span class="ident">u128</span>) <span class="op">/</span> (<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>);
-			<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident">amount</span>.<span class="ident">min</span>(<span class="ident">prev_amount</span>);
-			<span class="self">self</span>.<span class="number">1</span> <span class="op">=</span> <span class="prelude-val">Some</span>((
-				<span class="ident">id</span>.<span class="ident">clone</span>(),
-				<span class="ident">prev_amount</span>.<span class="ident">saturating_sub</span>(<span class="ident">amount</span>),
-				<span class="ident">units_per_second</span>,
+	<span class="comment">// Refund weight. We will refund in whatever asset is stored in self.
+	</span><span class="kw">fn </span>refund_weight(<span class="kw-2">&amp;mut </span><span class="self">self</span>, weight: u64) -&gt; <span class="prelude-ty">Option</span>&lt;MultiAsset&gt; {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>((id, prev_amount, units_per_second)) = <span class="self">self</span>.<span class="number">1</span>.clone() {
+			<span class="kw">let </span>weight = weight.min(<span class="self">self</span>.<span class="number">0</span>);
+			<span class="self">self</span>.<span class="number">0 </span>-= weight;
+			<span class="kw">let </span>amount =
+				units_per_second * (weight <span class="kw">as </span>u128) / (WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128);
+			<span class="kw">let </span>amount = amount.min(prev_amount);
+			<span class="self">self</span>.<span class="number">1 </span>= <span class="prelude-val">Some</span>((
+				id.clone(),
+				prev_amount.saturating_sub(amount),
+				units_per_second,
 			));
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
-				<span class="ident">id</span>: <span class="ident">xcmAssetId::Concrete</span>(<span class="ident">id</span>.<span class="ident">clone</span>()),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(amount),
+				id: xcmAssetId::Concrete(id.clone()),
 			})
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 }
 
-<span class="doccomment">/// Deal with spent fees, deposit them as dictated by R</span>
-<span class="kw">impl</span><span class="op">&lt;</span>
-		<span class="ident">AssetType</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
-		<span class="ident">AssetIdInfoGetter</span>: <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span>,
-		<span class="ident">R</span>: <span class="ident">TakeRevenue</span>,
-	<span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">AssetType</span>, <span class="ident">AssetIdInfoGetter</span>, <span class="ident">R</span><span class="op">&gt;</span>
+<span class="doccomment">/// Deal with spent fees, deposit them as dictated by R
+</span><span class="kw">impl</span>&lt;
+		AssetType: From&lt;MultiLocation&gt; + Clone,
+		AssetIdInfoGetter: UnitsToWeightRatio&lt;AssetType&gt;,
+		R: TakeRevenue,
+	&gt; Drop <span class="kw">for </span>FirstAssetTrader&lt;AssetType, AssetIdInfoGetter, R&gt;
 {
-	<span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">id</span>, <span class="ident">amount</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="number">1</span>.<span class="ident">clone</span>() {
-			<span class="ident">R::take_revenue</span>((<span class="ident">id</span>, <span class="ident">amount</span>).<span class="ident">into</span>());
+	<span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>((id, amount, <span class="kw">_</span>)) = <span class="self">self</span>.<span class="number">1</span>.clone() {
+			R::take_revenue((id, amount).into());
 		}
 	}
 }
 
-<span class="doccomment">/// XCM fee depositor to which we implement the TakeRevenue trait</span>
-<span class="doccomment">/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into</span>
-<span class="doccomment">/// AssetId and amount, and the fee receiver account</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmFeesToAccount</span><span class="op">&lt;</span><span class="ident">Assets</span>, <span class="ident">Matcher</span>, <span class="ident">AccountId</span>, <span class="ident">ReceiverAccount</span><span class="op">&gt;</span>(
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Assets</span>, <span class="ident">Matcher</span>, <span class="ident">AccountId</span>, <span class="ident">ReceiverAccount</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// XCM fee depositor to which we implement the TakeRevenue trait
+/// It receives a fungibles::Mutate implemented argument, a matcher to convert MultiAsset into
+/// AssetId and amount, and the fee receiver account
+</span><span class="kw">pub struct </span>XcmFeesToAccount&lt;Assets, Matcher, AccountId, ReceiverAccount&gt;(
+	PhantomData&lt;(Assets, Matcher, AccountId, ReceiverAccount)&gt;,
 );
-<span class="kw">impl</span><span class="op">&lt;</span>
-		<span class="ident">Assets</span>: <span class="ident">Mutate</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-		<span class="ident">Matcher</span>: <span class="ident">MatchesFungibles</span><span class="op">&lt;</span><span class="ident">Assets::AssetId</span>, <span class="ident">Assets::Balance</span><span class="op">&gt;</span>,
-		<span class="ident">AccountId</span>: <span class="ident">Clone</span>,
-		<span class="ident">ReceiverAccount</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="op">&gt;</span> <span class="ident">TakeRevenue</span> <span class="kw">for</span> <span class="ident">XcmFeesToAccount</span><span class="op">&lt;</span><span class="ident">Assets</span>, <span class="ident">Matcher</span>, <span class="ident">AccountId</span>, <span class="ident">ReceiverAccount</span><span class="op">&gt;</span>
+<span class="kw">impl</span>&lt;
+		Assets: Mutate&lt;AccountId&gt;,
+		Matcher: MatchesFungibles&lt;Assets::AssetId, Assets::Balance&gt;,
+		AccountId: Clone,
+		ReceiverAccount: Get&lt;AccountId&gt;,
+	&gt; TakeRevenue <span class="kw">for </span>XcmFeesToAccount&lt;Assets, Matcher, AccountId, ReceiverAccount&gt;
 {
-	<span class="kw">fn</span> <span class="ident">take_revenue</span>(<span class="ident">revenue</span>: <span class="ident">MultiAsset</span>) {
-		<span class="kw">match</span> <span class="ident">Matcher::matches_fungibles</span>(<span class="kw-2">&amp;</span><span class="ident">revenue</span>) {
-			<span class="prelude-val">Ok</span>((<span class="ident">asset_id</span>, <span class="ident">amount</span>)) =&gt; {
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">amount</span>.<span class="ident">is_zero</span>() {
-					<span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">Assets::mint_into</span>(<span class="ident">asset_id</span>, <span class="kw-2">&amp;</span><span class="ident">ReceiverAccount::get</span>(), <span class="ident">amount</span>).<span class="ident">is_ok</span>();
-					<span class="macro">debug_assert!</span>(<span class="ident">ok</span>, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
+	<span class="kw">fn </span>take_revenue(revenue: MultiAsset) {
+		<span class="kw">match </span>Matcher::matches_fungibles(<span class="kw-2">&amp;</span>revenue) {
+			<span class="prelude-val">Ok</span>((asset_id, amount)) =&gt; {
+				<span class="kw">if </span>!amount.is_zero() {
+					<span class="kw">let </span>ok = Assets::mint_into(asset_id, <span class="kw-2">&amp;</span>ReceiverAccount::get(), amount).is_ok();
+					<span class="macro">debug_assert!</span>(ok, <span class="string">&quot;`mint_into` cannot generally fail; qed&quot;</span>);
 				}
 			}
 			<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">log::debug!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;xcm&quot;</span>,
-				<span class="string">&quot;take revenue failed matching fungible&quot;</span>
-			),
+				target: <span class="string">&quot;xcm&quot;</span>,
+				<span class="string">&quot;take revenue failed matching fungible&quot;
+			</span>),
 		}
 	}
 }
 
-<span class="comment">// Defines the trait to obtain the units per second of a give asset_type for local execution</span>
-<span class="comment">// This parameter will be used to charge for fees upon asset_type deposit</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">AssetType</span><span class="op">&gt;</span> {
-	<span class="comment">// Whether payment in a particular asset_type is suppotrted</span>
-	<span class="kw">fn</span> <span class="ident">payment_is_supported</span>(<span class="ident">asset_type</span>: <span class="ident">AssetType</span>) -&gt; <span class="ident">bool</span>;
-	<span class="comment">// Get units per second from asset type</span>
-	<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">asset_type</span>: <span class="ident">AssetType</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span>;
+<span class="comment">// Defines the trait to obtain the units per second of a give asset_type for local execution
+// This parameter will be used to charge for fees upon asset_type deposit
+</span><span class="kw">pub trait </span>UnitsToWeightRatio&lt;AssetType&gt; {
+	<span class="comment">// Whether payment in a particular asset_type is suppotrted
+	</span><span class="kw">fn </span>payment_is_supported(asset_type: AssetType) -&gt; bool;
+	<span class="comment">// Get units per second from asset type
+	</span><span class="kw">fn </span>get_units_per_second(asset_type: AssetType) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt;;
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">xcm::latest</span>::{<span class="ident">AssetId</span>, <span class="ident">Fungibility</span>, <span class="ident">Junction</span>, <span class="ident">Junctions</span>};
-	<span class="kw">use</span> <span class="ident">xcm_executor::Assets</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>xcm::latest::{AssetId, Fungibility, Junction, Junctions};
+	<span class="kw">use </span>xcm_executor::Assets;
 
-	<span class="kw">const</span> <span class="ident">ARBITRARY_ID</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId::Concrete</span>(<span class="ident">MultiLocation</span> {
-		<span class="ident">parents</span>: <span class="number">0u8</span>,
-		<span class="ident">interior</span>: <span class="ident">Junctions::Here</span>,
+	<span class="kw">const </span>ARBITRARY_ID: AssetId = AssetId::Concrete(MultiLocation {
+		parents: <span class="number">0u8</span>,
+		interior: Junctions::Here,
 	});
 
-	<span class="kw">impl</span> <span class="ident">UnitsToWeightRatio</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span> <span class="kw">for</span> () {
-		<span class="kw">fn</span> <span class="ident">payment_is_supported</span>(<span class="ident">_asset_type</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="ident">bool</span> {
-			<span class="bool-val">true</span>
-		}
-		<span class="kw">fn</span> <span class="ident">get_units_per_second</span>(<span class="ident">_asset_type</span>: <span class="ident">MultiLocation</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-			<span class="comment">// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()</span>
-			<span class="comment">// this should make weight and payment amounts directly comparable</span>
-			<span class="prelude-val">Some</span>(<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>)
+	<span class="kw">impl </span>UnitsToWeightRatio&lt;MultiLocation&gt; <span class="kw">for </span>() {
+		<span class="kw">fn </span>payment_is_supported(_asset_type: MultiLocation) -&gt; bool {
+			<span class="bool-val">true
+		</span>}
+		<span class="kw">fn </span>get_units_per_second(_asset_type: MultiLocation) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
+			<span class="comment">// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
+			// this should make weight and payment amounts directly comparable
+			</span><span class="prelude-val">Some</span>(WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128)
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_buy_weight_accounts_weight_properly</span>() {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="number">1000u128</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_buy_weight_accounts_weight_properly() {
+		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">MultiLocation</span> {
-				<span class="ident">parents</span>: <span class="number">0u8</span>,
-				<span class="ident">interior</span>: <span class="ident">Junctions::Here</span>,
+		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: <span class="number">0u8</span>,
+				interior: Junctions::Here,
 			}),
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+			fun: Fungibility::Fungible(amount),
 		});
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
-		<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="ident">amount</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert!</span>(<span class="ident">unused</span>.<span class="ident">is_empty</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>unused = trader
+			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert!</span>(unused.is_empty());
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">cant_call_buy_weight_twice</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>cant_call_buy_weight_twice() {
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
 
-		<span class="comment">// should be able to buy once</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">asset_one_payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">asset_one_payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">MultiLocation</span> {
-				<span class="ident">parents</span>: <span class="number">0u8</span>,
-				<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(<span class="ident">Junction::Parachain</span>(<span class="number">1000</span>)),
+		<span class="comment">// should be able to buy once
+		</span><span class="kw">let </span><span class="kw-2">mut </span>asset_one_payment = Assets::new();
+		asset_one_payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: <span class="number">0u8</span>,
+				interior: Junctions::X1(Junction::Parachain(<span class="number">1000</span>)),
 			}),
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">100u128</span>),
+			fun: Fungibility::Fungible(<span class="number">100u128</span>),
 		});
-		<span class="kw">let</span> <span class="ident">buy_one_results</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="number">100u32</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">asset_one_payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">buy_one_results</span>.<span class="ident">fungible</span>.<span class="ident">len</span>(), <span class="number">0</span>); <span class="comment">// no unused amount</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">100u64</span>);
+		<span class="kw">let </span>buy_one_results = trader
+			.buy_weight(<span class="number">100u64</span>, asset_one_payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert_eq!</span>(buy_one_results.fungible.len(), <span class="number">0</span>); <span class="comment">// no unused amount
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>);
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="number">1</span>,
+			trader.<span class="number">1</span>,
 			<span class="prelude-val">Some</span>((
-				<span class="ident">MultiLocation</span> {
-					<span class="ident">parents</span>: <span class="number">0u8</span>,
-					<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(<span class="ident">Junction::Parachain</span>(<span class="number">1000</span>))
+				MultiLocation {
+					parents: <span class="number">0u8</span>,
+					interior: Junctions::X1(Junction::Parachain(<span class="number">1000</span>))
 				},
 				<span class="number">100</span>,
-				<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>
+				WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128
 			))
 		);
 
-		<span class="comment">// but not twice</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">asset_two_payment</span> <span class="op">=</span> <span class="ident">xcm_executor::Assets::new</span>();
-		<span class="ident">asset_two_payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">AssetId::Concrete</span>(<span class="ident">MultiLocation</span> {
-				<span class="ident">parents</span>: <span class="number">0u8</span>,
-				<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(<span class="ident">Junction::Parachain</span>(<span class="number">1001</span>)),
+		<span class="comment">// but not twice
+		</span><span class="kw">let </span><span class="kw-2">mut </span>asset_two_payment = xcm_executor::Assets::new();
+		asset_two_payment.subsume(MultiAsset {
+			id: AssetId::Concrete(MultiLocation {
+				parents: <span class="number">0u8</span>,
+				interior: Junctions::X1(Junction::Parachain(<span class="number">1001</span>)),
 			}),
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">10_000u128</span>),
+			fun: Fungibility::Fungible(<span class="number">10_000u128</span>),
 		});
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">buy_weight</span>(<span class="number">10_000u32</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">asset_two_payment</span>.<span class="ident">clone</span>()),
-			<span class="prelude-val">Err</span>(<span class="ident">XcmError::NotWithdrawable</span>),
+			trader.buy_weight(<span class="number">10_000u64</span>, asset_two_payment.clone()),
+			<span class="prelude-val">Err</span>(XcmError::NotWithdrawable),
 		);
 
-		<span class="comment">// state should be unchanged</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">100u64</span>);
+		<span class="comment">// state should be unchanged
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">100u64</span>);
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="number">1</span>,
+			trader.<span class="number">1</span>,
 			<span class="prelude-val">Some</span>((
-				<span class="ident">MultiLocation</span> {
-					<span class="ident">parents</span>: <span class="number">0u8</span>,
-					<span class="ident">interior</span>: <span class="ident">Junctions::X1</span>(<span class="ident">Junction::Parachain</span>(<span class="number">1000</span>))
+				MultiLocation {
+					parents: <span class="number">0u8</span>,
+					interior: Junctions::X1(Junction::Parachain(<span class="number">1000</span>))
 				},
 				<span class="number">100</span>,
-				<span class="ident">WEIGHT_PER_SECOND</span> <span class="kw">as</span> <span class="ident">u128</span>
+				WEIGHT_PER_SECOND.ref_time() <span class="kw">as </span>u128
 			))
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">can_call_refund_weight_with_all_weight</span>() {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="number">1000u128</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>can_call_refund_weight_with_all_weight() {
+		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		payment.subsume(MultiAsset {
+			id: ARBITRARY_ID,
+			fun: Fungibility::Fungible(amount),
 		});
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
-		<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="ident">amount</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert!</span>(<span class="ident">unused</span>.<span class="ident">is_empty</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>unused = trader
+			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert!</span>(unused.is_empty());
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">refund_weight</span>(<span class="number">1000u64</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">1000</span>),
-				<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
+			trader.refund_weight(<span class="number">1000u64</span>),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(<span class="number">1000</span>),
+				id: ARBITRARY_ID,
 			})
 		);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">can_call_refund_multiple_times</span>() {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="number">1000u128</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>can_call_refund_multiple_times() {
+		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		payment.subsume(MultiAsset {
+			id: ARBITRARY_ID,
+			fun: Fungibility::Fungible(amount),
 		});
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
-		<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="ident">amount</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert!</span>(<span class="ident">unused</span>.<span class="ident">is_empty</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>unused = trader
+			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert!</span>(unused.is_empty());
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
 
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">refund_weight</span>(<span class="number">100u64</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">100</span>),
-				<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
+			trader.refund_weight(<span class="number">100u64</span>),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(<span class="number">100</span>),
+				id: ARBITRARY_ID,
 			})
 		);
 
-		<span class="comment">// should reflect 100 weight and 100 currency deducted</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">900</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">1</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>().<span class="number">1</span>, <span class="number">900</span>);
+		<span class="comment">// should reflect 100 weight and 100 currency deducted
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">900</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">1</span>.clone().unwrap().<span class="number">1</span>, <span class="number">900</span>);
 
-		<span class="comment">// can call again</span>
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">refund_weight</span>(<span class="number">200u64</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">200</span>),
-				<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
+		<span class="comment">// can call again
+		</span><span class="macro">assert_eq!</span>(
+			trader.refund_weight(<span class="number">200u64</span>),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(<span class="number">200</span>),
+				id: ARBITRARY_ID,
 			})
 		);
 
-		<span class="comment">// should reflect another 200 weight and 200 currency deducted</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">700</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">1</span>.<span class="ident">clone</span>().<span class="ident">unwrap</span>().<span class="number">1</span>, <span class="number">700</span>);
+		<span class="comment">// should reflect another 200 weight and 200 currency deducted
+		</span><span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">700</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">1</span>.clone().unwrap().<span class="number">1</span>, <span class="number">700</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">refund_weight_caps_weight</span>() {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="number">1000u128</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>refund_weight_caps_weight() {
+		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		payment.subsume(MultiAsset {
+			id: ARBITRARY_ID,
+			fun: Fungibility::Fungible(amount),
 		});
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
-		<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="ident">amount</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert!</span>(<span class="ident">unused</span>.<span class="ident">is_empty</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>unused = trader
+			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert!</span>(unused.is_empty());
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
 
-		<span class="comment">// can&#39;t call with more weight</span>
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">refund_weight</span>(<span class="number">9999u64</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">1000</span>),
-				<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
+		<span class="comment">// can&#39;t call with more weight
+		</span><span class="macro">assert_eq!</span>(
+			trader.refund_weight(<span class="number">9999u64</span>),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(<span class="number">1000</span>),
+				id: ARBITRARY_ID,
 			})
 		);
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">0</span>);
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">0</span>);
 	}
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">refund_weight_caps_currency</span>() {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="number">1000u128</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>refund_weight_caps_currency() {
+		<span class="kw">let </span>amount = <span class="number">1000u128</span>;
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">payment</span> <span class="op">=</span> <span class="ident">Assets::new</span>();
-		<span class="ident">payment</span>.<span class="ident">subsume</span>(<span class="ident">MultiAsset</span> {
-			<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
-			<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="ident">amount</span>),
+		<span class="kw">let </span><span class="kw-2">mut </span>payment = Assets::new();
+		payment.subsume(MultiAsset {
+			id: ARBITRARY_ID,
+			fun: Fungibility::Fungible(amount),
 		});
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trader</span>: <span class="ident">FirstAssetTrader</span><span class="op">&lt;</span><span class="ident">MultiLocation</span>, (), ()<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FirstAssetTrader::new</span>();
-		<span class="kw">let</span> <span class="ident">unused</span> <span class="op">=</span> <span class="ident">trader</span>
-			.<span class="ident">buy_weight</span>(<span class="ident">amount</span> <span class="kw">as</span> <span class="ident">Weight</span>, <span class="ident">payment</span>.<span class="ident">clone</span>())
-			.<span class="ident">expect</span>(<span class="string">&quot;can buy weight once&quot;</span>);
-		<span class="macro">assert!</span>(<span class="ident">unused</span>.<span class="ident">is_empty</span>());
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">1000u64</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>trader: FirstAssetTrader&lt;MultiLocation, (), ()&gt; = FirstAssetTrader::new();
+		<span class="kw">let </span>unused = trader
+			.buy_weight(amount <span class="kw">as </span>u64, payment.clone())
+			.expect(<span class="string">&quot;can buy weight once&quot;</span>);
+		<span class="macro">assert!</span>(unused.is_empty());
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">1000u64</span>);
 
-		<span class="comment">// adjust weight so that it will allow a higher amount -- we want to see that the currency</span>
-		<span class="comment">// (self.1.1) is capped even when weight is not</span>
-		<span class="ident">trader</span>.<span class="number">0</span> <span class="op">=</span> <span class="ident">trader</span>.<span class="number">0</span> <span class="op">+</span> <span class="number">1000</span>;
+		<span class="comment">// adjust weight so that it will allow a higher amount -- we want to see that the currency
+		// (self.1.1) is capped even when weight is not
+		</span>trader.<span class="number">0 </span>= trader.<span class="number">0 </span>+ <span class="number">1000</span>;
 
-		<span class="comment">// can&#39;t call with more weight</span>
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">trader</span>.<span class="ident">refund_weight</span>(<span class="number">1500u64</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">MultiAsset</span> {
-				<span class="ident">fun</span>: <span class="ident">Fungibility::Fungible</span>(<span class="number">1000</span>),
-				<span class="ident">id</span>: <span class="ident">ARBITRARY_ID</span>,
+		<span class="comment">// can&#39;t call with more weight
+		</span><span class="macro">assert_eq!</span>(
+			trader.refund_weight(<span class="number">1500u64</span>),
+			<span class="prelude-val">Some</span>(MultiAsset {
+				fun: Fungibility::Fungible(<span class="number">1000</span>),
+				id: ARBITRARY_ID,
 			})
 		);
-		<span class="macro">assert_eq!</span>(<span class="ident">trader</span>.<span class="number">0</span>, <span class="number">500</span>); <span class="comment">// still thinks we have unreturned weight</span>
-	}
+		<span class="macro">assert_eq!</span>(trader.<span class="number">0</span>, <span class="number">500</span>); <span class="comment">// still thinks we have unreturned weight
+	</span>}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="xcm_primitives" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="xcm_primitives" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

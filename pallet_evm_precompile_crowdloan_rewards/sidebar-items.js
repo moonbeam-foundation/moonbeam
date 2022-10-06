@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["CrowdloanRewardsPrecompileCall",""]],"struct":[["CrowdloanRewardsPrecompile","A precompile to wrap the functionality from pallet_crowdloan_rewards."]],"type":[["BalanceOf",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["CrowdloanRewardsPrecompileCall",""]],"struct":[["CrowdloanRewardsPrecompile","A precompile to wrap the functionality from pallet_crowdloan_rewards."]],"type":[["BalanceOf",""]]};

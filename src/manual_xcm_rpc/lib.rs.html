@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/manual-xcm/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../manual_xcm_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../manual_xcm_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../manual_xcm_rpc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/manual-xcm/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../manual_xcm_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../manual_xcm_rpc/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../manual_xcm_rpc/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -153,156 +148,155 @@
 <span id="148">148</span>
 <span id="149">149</span>
 <span id="150">150</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
-<span class="kw">use</span> <span class="ident">cumulus_primitives_core::XcmpMessageFormat</span>;
-<span class="kw">use</span> <span class="ident">jsonrpsee</span>::{<span class="ident">core::RpcResult</span>, <span class="ident">proc_macros::rpc</span>};
-<span class="kw">use</span> <span class="ident">parity_scale_codec::Encode</span>;
-<span class="kw">use</span> <span class="ident">xcm::latest::prelude</span>::<span class="kw-2">*</span>;
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</span><span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>cumulus_primitives_core::XcmpMessageFormat;
+<span class="kw">use </span>jsonrpsee::{core::RpcResult, proc_macros::rpc};
+<span class="kw">use </span>parity_scale_codec::Encode;
+<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// This RPC interface is used to manually submit XCM messages that will be injected into a</span>
-<span class="doccomment">/// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration</span>
-<span class="doccomment">/// tests.</span>
-<span class="attribute">#[<span class="ident">rpc</span>(<span class="ident">server</span>)]</span>
-<span class="attribute">#[<span class="ident">jsonrpsee::core::async_trait</span>]</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ManualXcmApi</span> {
-	<span class="doccomment">/// Inject a downward xcm message - A message that comes from the relay chain.</span>
-	<span class="doccomment">/// You may provide an arbitrary message, or if you provide an emtpy byte array,</span>
-	<span class="doccomment">/// Then a default message (DOT transfer down to ALITH) will be injected</span>
-	<span class="attribute">#[<span class="ident">method</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;xcm_injectDownwardMessage&quot;</span>)]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">inject_downward_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">message</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+<span class="doccomment">/// This RPC interface is used to manually submit XCM messages that will be injected into a
+/// parachain-enabled runtime. This allows testing XCM logic in a controlled way in integration
+/// tests.
+</span><span class="attribute">#[rpc(server)]
+#[jsonrpsee::core::async_trait]
+</span><span class="kw">pub trait </span>ManualXcmApi {
+	<span class="doccomment">/// Inject a downward xcm message - A message that comes from the relay chain.
+	/// You may provide an arbitrary message, or if you provide an emtpy byte array,
+	/// Then a default message (DOT transfer down to ALITH) will be injected
+	</span><span class="attribute">#[method(name = <span class="string">&quot;xcm_injectDownwardMessage&quot;</span>)]
+	</span><span class="kw">async fn </span>inject_downward_message(<span class="kw-2">&amp;</span><span class="self">self</span>, message: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt;;
 
-	<span class="doccomment">/// Inject an HRMP message - A message that comes from a dedicated channel to a sibling</span>
-	<span class="doccomment">/// parachain.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Cumulus Parachain System seems to have a constraint that at most one hrmp message will be</span>
-	<span class="doccomment">/// sent on a channel per block. At least that&#39;s what this comment implies:</span>
-	<span class="doccomment">/// https://github.com/paritytech/cumulus/blob/c308c01b/pallets/parachain-system/src/lib.rs#L204</span>
-	<span class="doccomment">/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this</span>
-	<span class="doccomment">/// constraint. In fact, violating it may be useful for testing.</span>
-	<span class="doccomment">/// The method accepts a sending paraId and a bytearray representing an arbitrary message as</span>
-	<span class="doccomment">/// parameters. If you provide an emtpy byte array, then a default message representing a</span>
-	<span class="doccomment">/// transfer of the sending paraId&#39;s native token will be injected.</span>
-	<span class="attribute">#[<span class="ident">method</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;xcm_injectHrmpMessage&quot;</span>)]</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">inject_hrmp_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sender</span>: <span class="ident">ParaId</span>, <span class="ident">message</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>;
+	<span class="doccomment">/// Inject an HRMP message - A message that comes from a dedicated channel to a sibling
+	/// parachain.
+	///
+	/// Cumulus Parachain System seems to have a constraint that at most one hrmp message will be
+	/// sent on a channel per block. At least that&#39;s what this comment implies:
+	/// https://github.com/paritytech/cumulus/blob/c308c01b/pallets/parachain-system/src/lib.rs#L204
+	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
+	/// constraint. In fact, violating it may be useful for testing.
+	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
+	/// parameters. If you provide an emtpy byte array, then a default message representing a
+	/// transfer of the sending paraId&#39;s native token will be injected.
+	</span><span class="attribute">#[method(name = <span class="string">&quot;xcm_injectHrmpMessage&quot;</span>)]
+	</span><span class="kw">async fn </span>inject_hrmp_message(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: ParaId, message: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt;;
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ManualXcm</span> {
-	<span class="kw">pub</span> <span class="ident">downward_message_channel</span>: <span class="ident">flume::Sender</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">hrmp_message_channel</span>: <span class="ident">flume::Sender</span><span class="op">&lt;</span>(<span class="ident">ParaId</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>)<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>ManualXcm {
+	<span class="kw">pub </span>downward_message_channel: flume::Sender&lt;Vec&lt;u8&gt;&gt;,
+	<span class="kw">pub </span>hrmp_message_channel: flume::Sender&lt;(ParaId, Vec&lt;u8&gt;)&gt;,
 }
 
-<span class="attribute">#[<span class="ident">jsonrpsee::core::async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">ManualXcmApiServer</span> <span class="kw">for</span> <span class="ident">ManualXcm</span> {
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">inject_downward_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">msg</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">downward_message_channel</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">downward_message_channel</span>.<span class="ident">clone</span>();
-		<span class="comment">// If no message is supplied, inject a default one.</span>
-		<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">is_empty</span>() {
-			<span class="ident">xcm::VersionedXcm</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::V2</span>(<span class="ident">Xcm</span>(<span class="macro">vec!</span>[
-				<span class="ident">ReserveAssetDeposited</span>((<span class="ident">Parent</span>, <span class="number">10000000000000</span>).<span class="ident">into</span>()),
-				<span class="ident">ClearOrigin</span>,
-				<span class="ident">BuyExecution</span> {
-					<span class="ident">fees</span>: (<span class="ident">Parent</span>, <span class="number">10000000000000</span>).<span class="ident">into</span>(),
-					<span class="ident">weight_limit</span>: <span class="ident">Limited</span>(<span class="number">4_000_000_000</span>),
+<span class="attribute">#[jsonrpsee::core::async_trait]
+</span><span class="kw">impl </span>ManualXcmApiServer <span class="kw">for </span>ManualXcm {
+	<span class="kw">async fn </span>inject_downward_message(<span class="kw-2">&amp;</span><span class="self">self</span>, msg: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt; {
+		<span class="kw">let </span>downward_message_channel = <span class="self">self</span>.downward_message_channel.clone();
+		<span class="comment">// If no message is supplied, inject a default one.
+		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
+			xcm::VersionedXcm::&lt;()&gt;::V2(Xcm(<span class="macro">vec!</span>[
+				ReserveAssetDeposited((Parent, <span class="number">10000000000000</span>).into()),
+				ClearOrigin,
+				BuyExecution {
+					fees: (Parent, <span class="number">10000000000000</span>).into(),
+					weight_limit: Limited(<span class="number">4_000_000_000</span>),
 				},
-				<span class="ident">DepositAsset</span> {
-					<span class="ident">assets</span>: <span class="ident">All</span>.<span class="ident">into</span>(),
-					<span class="ident">max_assets</span>: <span class="number">1</span>,
-					<span class="ident">beneficiary</span>: <span class="ident">MultiLocation::new</span>(
+				DepositAsset {
+					assets: All.into(),
+					max_assets: <span class="number">1</span>,
+					beneficiary: MultiLocation::new(
 						<span class="number">0</span>,
-						<span class="ident">X1</span>(<span class="ident">AccountKey20</span> {
-							<span class="ident">network</span>: <span class="ident">Any</span>,
-							<span class="ident">key</span>: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
+						X1(AccountKey20 {
+							network: Any,
+							key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
 						}),
 					),
 				},
 			]))
-			.<span class="ident">encode</span>()
-		} <span class="kw">else</span> {
-			<span class="ident">msg</span>
+			.encode()
+		} <span class="kw">else </span>{
+			msg
 		};
 
-		<span class="comment">// Push the message to the shared channel where it will be queued up</span>
-		<span class="comment">// to be injected in to an upcoming block.</span>
-		<span class="ident">downward_message_channel</span>
-			.<span class="ident">send_async</span>(<span class="ident">msg</span>)
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="ident">err</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+		<span class="comment">// Push the message to the shared channel where it will be queued up
+		// to be injected in to an upcoming block.
+		</span>downward_message_channel
+			.send_async(msg)
+			.<span class="kw">await
+			</span>.map_err(|err| internal_err(err.to_string()))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">inject_hrmp_message</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sender</span>: <span class="ident">ParaId</span>, <span class="ident">msg</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">hrmp_message_channel</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hrmp_message_channel</span>.<span class="ident">clone</span>();
+	<span class="kw">async fn </span>inject_hrmp_message(<span class="kw-2">&amp;</span><span class="self">self</span>, sender: ParaId, msg: Vec&lt;u8&gt;) -&gt; RpcResult&lt;()&gt; {
+		<span class="kw">let </span>hrmp_message_channel = <span class="self">self</span>.hrmp_message_channel.clone();
 
-		<span class="comment">// If no message is supplied, inject a default one.</span>
-		<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mes</span> <span class="op">=</span> <span class="ident">XcmpMessageFormat::ConcatenatedVersionedXcm</span>.<span class="ident">encode</span>();
-			<span class="ident">mes</span>.<span class="ident">append</span>(
-				<span class="kw-2">&amp;mut</span> (<span class="ident">xcm::VersionedXcm</span>::<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::V2</span>(<span class="ident">Xcm</span>(<span class="macro">vec!</span>[
-					<span class="ident">ReserveAssetDeposited</span>(
-						((<span class="ident">Parent</span>, <span class="ident">Parachain</span>(<span class="ident">sender</span>.<span class="ident">into</span>())), <span class="number">10000000000000</span>).<span class="ident">into</span>(),
+		<span class="comment">// If no message is supplied, inject a default one.
+		</span><span class="kw">let </span>msg = <span class="kw">if </span>msg.is_empty() {
+			<span class="kw">let </span><span class="kw-2">mut </span>mes = XcmpMessageFormat::ConcatenatedVersionedXcm.encode();
+			mes.append(
+				<span class="kw-2">&amp;mut </span>(xcm::VersionedXcm::&lt;()&gt;::V2(Xcm(<span class="macro">vec!</span>[
+					ReserveAssetDeposited(
+						((Parent, Parachain(sender.into())), <span class="number">10000000000000</span>).into(),
 					),
-					<span class="ident">ClearOrigin</span>,
-					<span class="ident">BuyExecution</span> {
-						<span class="ident">fees</span>: ((<span class="ident">Parent</span>, <span class="ident">Parachain</span>(<span class="ident">sender</span>.<span class="ident">into</span>())), <span class="number">10000000000000</span>).<span class="ident">into</span>(),
-						<span class="ident">weight_limit</span>: <span class="ident">Limited</span>(<span class="number">4_000_000_000</span>),
+					ClearOrigin,
+					BuyExecution {
+						fees: ((Parent, Parachain(sender.into())), <span class="number">10000000000000</span>).into(),
+						weight_limit: Limited(<span class="number">4_000_000_000</span>),
 					},
-					<span class="ident">DepositAsset</span> {
-						<span class="ident">assets</span>: <span class="ident">All</span>.<span class="ident">into</span>(),
-						<span class="ident">max_assets</span>: <span class="number">1</span>,
-						<span class="ident">beneficiary</span>: <span class="ident">MultiLocation::new</span>(
+					DepositAsset {
+						assets: All.into(),
+						max_assets: <span class="number">1</span>,
+						beneficiary: MultiLocation::new(
 							<span class="number">0</span>,
-							<span class="ident">X1</span>(<span class="ident">AccountKey20</span> {
-								<span class="ident">network</span>: <span class="ident">Any</span>,
-								<span class="ident">key</span>: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
+							X1(AccountKey20 {
+								network: Any,
+								key: <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>),
 							}),
 						),
 					},
 				]))
-				.<span class="ident">encode</span>()),
+				.encode()),
 			);
-			<span class="ident">mes</span>
-		} <span class="kw">else</span> {
-			<span class="ident">msg</span>
+			mes
+		} <span class="kw">else </span>{
+			msg
 		};
 
-		<span class="comment">// Push the message to the shared channel where it will be queued up</span>
-		<span class="comment">// to be injected in to an upcoming block.</span>
-		<span class="ident">hrmp_message_channel</span>
-			.<span class="ident">send_async</span>((<span class="ident">sender</span>, <span class="ident">msg</span>))
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="ident">err</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+		<span class="comment">// Push the message to the shared channel where it will be queued up
+		// to be injected in to an upcoming block.
+		</span>hrmp_message_channel
+			.send_async((sender, msg))
+			.<span class="kw">await
+			</span>.map_err(|err| internal_err(err.to_string()))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 
-<span class="comment">// This bit cribbed from frontier.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internal_err</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="ident">message</span>: <span class="ident">T</span>) -&gt; <span class="ident">jsonrpsee::core::Error</span> {
-	<span class="ident">jsonrpsee::core::Error::Call</span>(<span class="ident">jsonrpsee::types::error::CallError::Custom</span>(
-		<span class="ident">jsonrpsee::types::error::ErrorObject::borrowed</span>(
-			<span class="ident">jsonrpsee::types::error::INTERNAL_ERROR_CODE</span>,
-			<span class="kw-2">&amp;</span><span class="ident">message</span>,
+<span class="comment">// This bit cribbed from frontier.
+</span><span class="kw">pub fn </span>internal_err&lt;T: AsRef&lt;str&gt;&gt;(message: T) -&gt; jsonrpsee::core::Error {
+	jsonrpsee::core::Error::Call(jsonrpsee::types::error::CallError::Custom(
+		jsonrpsee::types::error::ErrorObject::borrowed(
+			jsonrpsee::types::error::INTERNAL_ERROR_CODE,
+			<span class="kw-2">&amp;</span>message,
 			<span class="prelude-val">None</span>,
 		)
-		.<span class="ident">into_owned</span>(),
+		.into_owned(),
 	))
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="manual_xcm_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="manual_xcm_rpc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

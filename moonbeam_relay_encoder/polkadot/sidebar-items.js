@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["RelayCall",""],["StakeCall",""],["UtilityCall",""]],"struct":[["PolkadotEncoder",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["RelayCall",""],["StakeCall",""],["UtilityCall",""]],"struct":[["PolkadotEncoder",""]]};

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/weights.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/weights.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -206,209 +201,208 @@
 <span id="201">201</span>
 <span id="202">202</span>
 <span id="203">203</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Autogenerated weights for pallet_moonbeam_orbiters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev</span>
-<span class="doccomment">//! DATE: 2022-04-26, STEPS: `50`, REPEAT: 20, LOW RANGE: `[]`, HIGH RANGE: `[]`</span>
-<span class="doccomment">//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some(&quot;dev&quot;), DB CACHE: 1024</span>
+</span><span class="doccomment">//! Autogenerated weights for pallet_moonbeam_orbiters
+//!
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
+//! DATE: 2022-09-28, STEPS: `50`, REPEAT: 20, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: None, DB CACHE: 1024
 
-<span class="comment">// Executed Command:</span>
-<span class="comment">// ./target/release/moonbeam</span>
-<span class="comment">// benchmark</span>
-<span class="comment">// --chain</span>
-<span class="comment">// dev</span>
-<span class="comment">// --execution=wasm</span>
-<span class="comment">// --wasm-execution=compiled</span>
-<span class="comment">// --pallet</span>
-<span class="comment">// pallet_moonbeam_orbiters</span>
-<span class="comment">// --extrinsic</span>
-<span class="comment">// *</span>
-<span class="comment">// --steps</span>
-<span class="comment">// 50</span>
-<span class="comment">// --repeat</span>
-<span class="comment">// 20</span>
-<span class="comment">// --template=./benchmarking/frame-weight-template.hbs</span>
-<span class="comment">// --record-proof</span>
-<span class="comment">// --json-file</span>
-<span class="comment">// raw.json</span>
-<span class="comment">// --output</span>
-<span class="comment">// ./benchmarks/</span>
+</span><span class="comment">// Executed Command:
+// ./target/release/moonbeam
+// benchmark
+// pallet
+// --execution=wasm
+// --wasm-execution=compiled
+// --pallet
+// *
+// --extrinsic
+// *
+// --steps
+// 50
+// --repeat
+// 20
+// --template=./benchmarking/frame-weight-template.hbs
+// --json-file
+// raw.json
+// --output
+// ./tmp/
 
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_parens</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+</span><span class="attribute">#![allow(unused_parens)]
+#![allow(unused_imports)]
 
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">traits::Get</span>,
-	<span class="ident">weights</span>::{<span class="ident">constants::RocksDbWeight</span>, <span class="ident">Weight</span>},
+</span><span class="kw">use </span>frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+<span class="kw">use </span>sp_std::marker::PhantomData;
 
-<span class="doccomment">/// Weight functions needed for pallet_moonbeam_orbiters.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WeightInfo</span> {
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_add_orbiter</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_remove_orbiter</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_leave_collator_pool</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_register</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_unregister</span>(<span class="ident">n</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_collator</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_collator</span>() -&gt; <span class="ident">Weight</span>;
+<span class="doccomment">/// Weight functions needed for pallet_moonbeam_orbiters.
+</span><span class="kw">pub trait </span>WeightInfo {
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_add_orbiter() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_remove_orbiter() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_leave_collator_pool() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_register() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_unregister(n: u32, ) -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_collator() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_collator() -&gt; Weight;
 }
 
-<span class="doccomment">/// Weights for pallet_moonbeam_orbiters using the Substrate node and recommended hardware.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:0)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_add_orbiter</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">31_392_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+<span class="doccomment">/// Weights for pallet_moonbeam_orbiters using the Substrate node and recommended hardware.
+</span><span class="kw">pub struct </span>SubstrateWeight&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: frame_system::Config&gt; WeightInfo <span class="kw">for </span>SubstrateWeight&lt;T&gt; {
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: Balances Reserves (r:1 w:0)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_add_orbiter() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">46_047_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_remove_orbiter</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">26_451_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_remove_orbiter() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">39_380_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_leave_collator_pool</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">26_463_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_leave_collator_pool() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">39_455_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_register</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">32_506_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)
+	// Storage: Balances Reserves (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_register() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">55_794_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_unregister</span>(<span class="ident">n</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_919_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 6_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">6_981_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)
+	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)
+	// Storage: Balances Reserves (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_unregister(n: u32, ) -&gt; Weight {
+		Weight::from_ref_time(<span class="number">62_955_000 </span><span class="kw">as </span>u64)
+			<span class="comment">// Standard Error: 7_000
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">6_537_000 </span><span class="kw">as </span>u64).saturating_mul(n <span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">4 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().reads((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(n <span class="kw">as </span>u64)))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_collator</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">12_035_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_collator() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">22_010_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_collator</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_438_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">11</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_collator() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">38_825_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">11 </span><span class="kw">as </span>u64))
 	}
 }
 
-<span class="comment">// For backwards compatibility and tests</span>
-<span class="kw">impl</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> () {
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:0)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_add_orbiter</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">31_392_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+<span class="comment">// For backwards compatibility and tests
+</span><span class="kw">impl </span>WeightInfo <span class="kw">for </span>() {
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: Balances Reserves (r:1 w:0)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_add_orbiter() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">46_047_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">collator_remove_orbiter</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">26_451_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>collator_remove_orbiter() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">39_380_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_leave_collator_pool</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">26_463_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_leave_collator_pool() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">39_455_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_register</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">32_506_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters MinOrbiterDeposit (r:1 w:0)
+	// Storage: Balances Reserves (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_register() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">55_794_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)</span>
-	<span class="comment">// Storage: Balances Reserves (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">orbiter_unregister</span>(<span class="ident">n</span>: <span class="ident">u32</span>, ) -&gt; <span class="ident">Weight</span> {
-		(<span class="number">33_919_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			<span class="comment">// Standard Error: 6_000</span>
-			.<span class="ident">saturating_add</span>((<span class="number">6_981_000</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">4</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>((<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>).<span class="ident">saturating_mul</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">Weight</span>)))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:0)
+	// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:0)
+	// Storage: Balances Reserves (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: MoonbeamOrbiters RegisteredOrbiter (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>orbiter_unregister(n: u32, ) -&gt; Weight {
+		Weight::from_ref_time(<span class="number">62_955_000 </span><span class="kw">as </span>u64)
+			<span class="comment">// Standard Error: 7_000
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">6_537_000 </span><span class="kw">as </span>u64).saturating_mul(n <span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">4 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().reads((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(n <span class="kw">as </span>u64)))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_collator</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">12_035_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_collator() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">22_010_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">2 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)</span>
-	<span class="comment">// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_collator</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">25_438_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">11</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: MoonbeamOrbiters CollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters CounterForCollatorsPool (r:1 w:1)
+	// Storage: MoonbeamOrbiters AccountLookupOverride (r:0 w:9)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_collator() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">38_825_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">11 </span><span class="kw">as </span>u64))
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

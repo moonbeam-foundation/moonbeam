@@ -1,5 +1,5 @@
-(function() {var implementors = {};
-implementors["moonbase_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonbase_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonbase_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>","synthetic":false,"types":["moonbase_runtime::xcm_config::XcmExecutorConfig"]}];
-implementors["moonbeam_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonbeam_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonbeam_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>","synthetic":false,"types":["moonbeam_runtime::xcm_config::XcmExecutorConfig"]}];
-implementors["moonriver_runtime"] = [{"text":"impl Config for <a class=\"struct\" href=\"moonriver_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonriver_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>","synthetic":false,"types":["moonriver_runtime::xcm_config::XcmExecutorConfig"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbase_runtime":[["impl Config for <a class=\"struct\" href=\"moonbase_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonbase_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>"]],
+"moonbeam_runtime":[["impl Config for <a class=\"struct\" href=\"moonbeam_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonbeam_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>"]],
+"moonriver_runtime":[["impl Config for <a class=\"struct\" href=\"moonriver_runtime/xcm_config/struct.XcmExecutorConfig.html\" title=\"struct moonriver_runtime::xcm_config::XcmExecutorConfig\">XcmExecutorConfig</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

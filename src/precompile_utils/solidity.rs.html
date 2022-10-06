@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/solidity.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>solidity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/solidity.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>solidity.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -347,350 +342,349 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Utility module to interact with solidity file.</span>
+</span><span class="doccomment">//! Utility module to interact with solidity file.
 
-<span class="kw">use</span> <span class="ident">sp_io::hashing::keccak_256</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-	<span class="ident">collections::HashMap</span>,
-	<span class="ident">fs::File</span>,
-	<span class="ident">io</span>::{<span class="ident">BufRead</span>, <span class="ident">BufReader</span>, <span class="ident">Read</span>},
+</span><span class="kw">use </span>sp_io::hashing::keccak_256;
+<span class="kw">use </span>std::{
+	collections::HashMap,
+	fs::File,
+	io::{BufRead, BufReader, Read},
 };
 
-<span class="doccomment">/// Represents a declared custom type struct within a solidity file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SolidityStruct</span> {
-	<span class="doccomment">/// Struct name</span>
-	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// List of parameter types</span>
-	<span class="kw">pub</span> <span class="ident">params</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Is struct an enum</span>
-	<span class="kw">pub</span> <span class="ident">is_enum</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Represents a declared custom type struct within a solidity file
+</span><span class="attribute">#[derive(Clone, Default, Debug)]
+</span><span class="kw">pub struct </span>SolidityStruct {
+	<span class="doccomment">/// Struct name
+	</span><span class="kw">pub </span>name: String,
+	<span class="doccomment">/// List of parameter types
+	</span><span class="kw">pub </span>params: Vec&lt;String&gt;,
+	<span class="doccomment">/// Is struct an enum
+	</span><span class="kw">pub </span>is_enum: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">SolidityStruct</span> {
-	<span class="doccomment">/// Returns the representative signature for the solidity struct</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_enum</span> {
-			<span class="string">&quot;uint8&quot;</span>.<span class="ident">to_string</span>()
-		} <span class="kw">else</span> {
-			<span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="self">self</span>.<span class="ident">params</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>))
+<span class="kw">impl </span>SolidityStruct {
+	<span class="doccomment">/// Returns the representative signature for the solidity struct
+	</span><span class="kw">pub fn </span>signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+		<span class="kw">if </span><span class="self">self</span>.is_enum {
+			<span class="string">&quot;uint8&quot;</span>.to_string()
+		} <span class="kw">else </span>{
+			<span class="macro">format!</span>(<span class="string">&quot;({})&quot;</span>, <span class="self">self</span>.params.join(<span class="string">&quot;,&quot;</span>))
 		}
 	}
 }
 
-<span class="doccomment">/// Represents a declared function within a solidity file</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SolidityFunction</span> {
-	<span class="doccomment">/// Function name</span>
-	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// List of function parameter types</span>
-	<span class="kw">pub</span> <span class="ident">args</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// The declared selector in the file</span>
-	<span class="kw">pub</span> <span class="ident">docs_selector</span>: <span class="ident">String</span>,
+<span class="doccomment">/// Represents a declared function within a solidity file
+</span><span class="attribute">#[derive(Clone, Default)]
+</span><span class="kw">pub struct </span>SolidityFunction {
+	<span class="doccomment">/// Function name
+	</span><span class="kw">pub </span>name: String,
+	<span class="doccomment">/// List of function parameter types
+	</span><span class="kw">pub </span>args: Vec&lt;String&gt;,
+	<span class="doccomment">/// The declared selector in the file
+	</span><span class="kw">pub </span>docs_selector: String,
 }
 
-<span class="kw">impl</span> <span class="ident">SolidityFunction</span> {
-	<span class="doccomment">/// Returns the representative signature for the solidity function</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-		<span class="macro">format!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">args</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>))
+<span class="kw">impl </span>SolidityFunction {
+	<span class="doccomment">/// Returns the representative signature for the solidity function
+	</span><span class="kw">pub fn </span>signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+		<span class="macro">format!</span>(<span class="string">&quot;{}({})&quot;</span>, <span class="self">self</span>.name, <span class="self">self</span>.args.join(<span class="string">&quot;,&quot;</span>))
 	}
 
-	<span class="doccomment">/// Computes the selector code for the solidity function</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-		<span class="ident">compute_selector</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">signature</span>())
+	<span class="doccomment">/// Computes the selector code for the solidity function
+	</span><span class="kw">pub fn </span>compute_selector(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+		compute_selector(<span class="kw-2">&amp;</span><span class="self">self</span>.signature())
 	}
 
-	<span class="doccomment">/// Computes the selector code as a hex string for the solidity function</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_selector_hex</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">String</span> {
-		<span class="macro">format!</span>(<span class="string">&quot;{:0&gt;8x}&quot;</span>, <span class="self">self</span>.<span class="ident">compute_selector</span>())
+	<span class="doccomment">/// Computes the selector code as a hex string for the solidity function
+	</span><span class="kw">pub fn </span>compute_selector_hex(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+		<span class="macro">format!</span>(<span class="string">&quot;{:0&gt;8x}&quot;</span>, <span class="self">self</span>.compute_selector())
 	}
 }
 
-<span class="doccomment">/// Computes a solidity selector from a given string</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_selector</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u32</span> {
-	<span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="ident">v</span>.<span class="ident">as_bytes</span>());
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-	<span class="ident">buf</span>.<span class="ident">clone_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>[..<span class="number">4</span>]);
-	<span class="ident">u32::from_be_bytes</span>(<span class="ident">buf</span>)
+<span class="doccomment">/// Computes a solidity selector from a given string
+</span><span class="kw">pub fn </span>compute_selector(v: <span class="kw-2">&amp;</span>str) -&gt; u32 {
+	<span class="kw">let </span>output = keccak_256(v.as_bytes());
+	<span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">4</span>];
+	buf.clone_from_slice(<span class="kw-2">&amp;</span>output[..<span class="number">4</span>]);
+	u32::from_be_bytes(buf)
 }
 
-<span class="doccomment">/// Returns a list of [SolidityFunction] defined in a solidity file</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_selectors</span>(<span class="ident">filename</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SolidityFunction</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">file</span> <span class="op">=</span> <span class="ident">File::open</span>(<span class="ident">filename</span>)
-		.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">panic!</span>(<span class="string">&quot;failed opening file &#39;{}&#39;: {}&quot;</span>, <span class="ident">filename</span>, <span class="ident">e</span>));
-	<span class="ident">get_selectors_from_reader</span>(<span class="ident">file</span>)
+<span class="doccomment">/// Returns a list of [SolidityFunction] defined in a solidity file
+</span><span class="kw">pub fn </span>get_selectors(filename: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;SolidityFunction&gt; {
+	<span class="kw">let </span>file = File::open(filename)
+		.unwrap_or_else(|e| <span class="macro">panic!</span>(<span class="string">&quot;failed opening file &#39;{}&#39;: {}&quot;</span>, filename, e));
+	get_selectors_from_reader(file)
 }
 
-<span class="doccomment">/// Attempts to lookup a custom struct and returns its primitive signature</span>
-<span class="kw">fn</span> <span class="ident">try_lookup_custom_type</span>(<span class="ident">word</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">custom_types</span>: <span class="kw-2">&amp;</span><span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">SolidityStruct</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-	<span class="kw">match</span> <span class="ident">word</span>.<span class="ident">strip_suffix</span>(<span class="string">&quot;[]&quot;</span>) {
-		<span class="prelude-val">Some</span>(<span class="ident">word</span>) =&gt; {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">custom_types</span>.<span class="ident">get</span>(<span class="ident">word</span>) {
-				<span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{}[]&quot;</span>, <span class="ident">t</span>.<span class="ident">signature</span>());
+<span class="doccomment">/// Attempts to lookup a custom struct and returns its primitive signature
+</span><span class="kw">fn </span>try_lookup_custom_type(word: <span class="kw-2">&amp;</span>str, custom_types: <span class="kw-2">&amp;</span>HashMap&lt;String, SolidityStruct&gt;) -&gt; String {
+	<span class="kw">match </span>word.strip_suffix(<span class="string">&quot;[]&quot;</span>) {
+		<span class="prelude-val">Some</span>(word) =&gt; {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(t) = custom_types.get(word) {
+				<span class="kw">return </span><span class="macro">format!</span>(<span class="string">&quot;{}[]&quot;</span>, t.signature());
 			}
 		}
-		<span class="prelude-val">None</span> =&gt; {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">custom_types</span>.<span class="ident">get</span>(<span class="ident">word</span>) {
-				<span class="kw">return</span> <span class="ident">t</span>.<span class="ident">signature</span>();
+		<span class="prelude-val">None </span>=&gt; {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(t) = custom_types.get(word) {
+				<span class="kw">return </span>t.signature();
 			}
 		}
 	};
 
-	<span class="ident">word</span>.<span class="ident">to_string</span>()
+	word.to_string()
 }
 
-<span class="kw">fn</span> <span class="ident">get_selectors_from_reader</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Read</span><span class="op">&gt;</span>(<span class="ident">reader</span>: <span class="ident">R</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">SolidityFunction</span><span class="op">&gt;</span> {
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-	<span class="kw">enum</span> <span class="ident">Stage</span> {
-		<span class="ident">Start</span>,
-		<span class="ident">Enum</span>,
-		<span class="ident">Struct</span>,
-		<span class="ident">StructParams</span>,
-		<span class="ident">FnName</span>,
-		<span class="ident">Args</span>,
+<span class="kw">fn </span>get_selectors_from_reader&lt;R: Read&gt;(reader: R) -&gt; Vec&lt;SolidityFunction&gt; {
+	<span class="attribute">#[derive(Clone, Copy)]
+	</span><span class="kw">enum </span>Stage {
+		Start,
+		Enum,
+		Struct,
+		StructParams,
+		FnName,
+		Args,
 	}
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-	<span class="kw">enum</span> <span class="ident">Pair</span> {
-		<span class="ident">First</span>,
-		<span class="ident">Second</span>,
+	<span class="attribute">#[derive(Clone, Copy)]
+	</span><span class="kw">enum </span>Pair {
+		First,
+		Second,
 	}
-	<span class="kw">impl</span> <span class="ident">Pair</span> {
-		<span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-			<span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
-				<span class="ident">Pair::First</span> =&gt; <span class="ident">Pair::Second</span>,
-				<span class="ident">Pair::Second</span> =&gt; <span class="ident">Pair::First</span>,
+	<span class="kw">impl </span>Pair {
+		<span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+			<span class="kw-2">*</span><span class="self">self </span>= <span class="kw">match </span><span class="self">self </span>{
+				Pair::First =&gt; Pair::Second,
+				Pair::Second =&gt; Pair::First,
 			}
 		}
 	}
 
-	<span class="kw">let</span> <span class="ident">reader</span> <span class="op">=</span> <span class="ident">BufReader::new</span>(<span class="ident">reader</span>);
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">functions</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">custom_types</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solidity_struct</span> <span class="op">=</span> <span class="ident">SolidityStruct::default</span>();
+	<span class="kw">let </span>reader = BufReader::new(reader);
+	<span class="kw">let </span><span class="kw-2">mut </span>functions = <span class="macro">vec!</span>[];
+	<span class="kw">let </span><span class="kw-2">mut </span>custom_types = HashMap::new();
+	<span class="kw">let </span><span class="kw-2">mut </span>solidity_struct = SolidityStruct::default();
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pair</span> <span class="op">=</span> <span class="ident">Pair::First</span>;
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solidity_fn</span> <span class="op">=</span> <span class="ident">SolidityFunction::default</span>();
-	<span class="kw">for</span> <span class="ident">line</span> <span class="kw">in</span> <span class="ident">reader</span>.<span class="ident">lines</span>() {
-		<span class="kw">let</span> <span class="ident">line</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">expect</span>(<span class="string">&quot;failed unwrapping line&quot;</span>).<span class="ident">trim</span>().<span class="ident">to_string</span>();
-		<span class="comment">// identify declared selector</span>
-		<span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;/// @custom:selector &quot;</span>) <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">stage</span>, <span class="ident">Stage::Start</span>) {
-			<span class="ident">solidity_fn</span>.<span class="ident">docs_selector</span> <span class="op">=</span> <span class="ident">line</span>.<span class="ident">replace</span>(<span class="string">&quot;/// @custom:selector &quot;</span>, <span class="string">&quot;&quot;</span>).<span class="ident">to_string</span>();
+	<span class="kw">let </span><span class="kw-2">mut </span>stage = Stage::Start;
+	<span class="kw">let </span><span class="kw-2">mut </span>pair = Pair::First;
+	<span class="kw">let </span><span class="kw-2">mut </span>solidity_fn = SolidityFunction::default();
+	<span class="kw">for </span>line <span class="kw">in </span>reader.lines() {
+		<span class="kw">let </span>line = line.expect(<span class="string">&quot;failed unwrapping line&quot;</span>).trim().to_string();
+		<span class="comment">// identify declared selector
+		</span><span class="kw">if </span>line.starts_with(<span class="string">&quot;/// @custom:selector &quot;</span>) &amp;&amp; <span class="macro">matches!</span>(stage, Stage::Start) {
+			solidity_fn.docs_selector = line.replace(<span class="string">&quot;/// @custom:selector &quot;</span>, <span class="string">&quot;&quot;</span>).to_string();
 		}
 
-		<span class="comment">// skip comments</span>
-		<span class="kw">if</span> <span class="ident">line</span>.<span class="ident">starts_with</span>(<span class="string">&quot;//&quot;</span>) {
+		<span class="comment">// skip comments
+		</span><span class="kw">if </span>line.starts_with(<span class="string">&quot;//&quot;</span>) {
 			<span class="kw">continue</span>;
 		}
 
-		<span class="kw">for</span> <span class="ident">word</span> <span class="kw">in</span> <span class="ident">line</span>.<span class="ident">split</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;;&#39;</span>, <span class="string">&#39;,&#39;</span>, <span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>, <span class="string">&#39; &#39;</span>]) {
-			<span class="comment">// skip whitespace</span>
-			<span class="kw">if</span> <span class="ident">word</span>.<span class="ident">trim</span>().<span class="ident">is_empty</span>() {
+		<span class="kw">for </span>word <span class="kw">in </span>line.split(<span class="kw-2">&amp;</span>[<span class="string">&#39;;&#39;</span>, <span class="string">&#39;,&#39;</span>, <span class="string">&#39;(&#39;</span>, <span class="string">&#39;)&#39;</span>, <span class="string">&#39; &#39;</span>]) {
+			<span class="comment">// skip whitespace
+			</span><span class="kw">if </span>word.trim().is_empty() {
 				<span class="kw">continue</span>;
 			}
-			<span class="kw">match</span> (<span class="ident">stage</span>, <span class="ident">pair</span>, <span class="ident">word</span>) {
-				<span class="comment">// parse custom type enums</span>
-				(<span class="ident">Stage::Start</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;enum&quot;</span>) =&gt; {
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Enum</span>;
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+			<span class="kw">match </span>(stage, pair, word) {
+				<span class="comment">// parse custom type enums
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;enum&quot;</span>) =&gt; {
+					stage = Stage::Enum;
+					pair.next();
 				}
-				(<span class="ident">Stage::Enum</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
-					<span class="ident">custom_types</span>.<span class="ident">insert</span>(
-						<span class="ident">word</span>.<span class="ident">to_string</span>(),
-						<span class="ident">SolidityStruct</span> {
-							<span class="ident">name</span>: <span class="ident">word</span>.<span class="ident">to_string</span>(),
-							<span class="ident">is_enum</span>: <span class="bool-val">true</span>,
-							<span class="ident">params</span>: <span class="macro">vec!</span>[],
+				(Stage::Enum, Pair::Second, <span class="kw">_</span>) =&gt; {
+					custom_types.insert(
+						word.to_string(),
+						SolidityStruct {
+							name: word.to_string(),
+							is_enum: <span class="bool-val">true</span>,
+							params: <span class="macro">vec!</span>[],
 						},
 					);
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
-					<span class="ident">pair</span> <span class="op">=</span> <span class="ident">Pair::First</span>;
+					stage = Stage::Start;
+					pair = Pair::First;
 				}
 
-				<span class="comment">// parse custom type structs</span>
-				(<span class="ident">Stage::Start</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;struct&quot;</span>) =&gt; {
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Struct</span>;
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				<span class="comment">// parse custom type structs
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;struct&quot;</span>) =&gt; {
+					stage = Stage::Struct;
+					pair.next();
 				}
-				(<span class="ident">Stage::Struct</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
-					<span class="ident">solidity_struct</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">word</span>.<span class="ident">to_string</span>();
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::StructParams</span>;
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				(Stage::Struct, Pair::Second, <span class="kw">_</span>) =&gt; {
+					solidity_struct.name = word.to_string();
+					stage = Stage::StructParams;
+					pair.next();
 				}
-				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;{&quot;</span>) =&gt; (),
-				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;}&quot;</span>) =&gt; {
-					<span class="ident">custom_types</span>.<span class="ident">insert</span>(<span class="ident">solidity_struct</span>.<span class="ident">name</span>.<span class="ident">clone</span>(), <span class="ident">solidity_struct</span>);
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
-					<span class="ident">solidity_struct</span> <span class="op">=</span> <span class="ident">SolidityStruct::default</span>();
+				(Stage::StructParams, Pair::First, <span class="string">&quot;{&quot;</span>) =&gt; (),
+				(Stage::StructParams, Pair::First, <span class="string">&quot;}&quot;</span>) =&gt; {
+					custom_types.insert(solidity_struct.name.clone(), solidity_struct);
+					stage = Stage::Start;
+					solidity_struct = SolidityStruct::default();
 				}
-				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::First</span>, <span class="kw">_</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">try_lookup_custom_type</span>(<span class="kw-2">&amp;</span><span class="ident">word</span>, <span class="kw-2">&amp;</span><span class="ident">custom_types</span>);
-					<span class="ident">solidity_struct</span>.<span class="ident">params</span>.<span class="ident">push</span>(<span class="ident">param</span>);
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				(Stage::StructParams, Pair::First, <span class="kw">_</span>) =&gt; {
+					<span class="kw">let </span>param = try_lookup_custom_type(<span class="kw-2">&amp;</span>word, <span class="kw-2">&amp;</span>custom_types);
+					solidity_struct.params.push(param);
+					pair.next();
 				}
-				(<span class="ident">Stage::StructParams</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				(Stage::StructParams, Pair::Second, <span class="kw">_</span>) =&gt; {
+					pair.next();
 				}
 
-				<span class="comment">// parse function</span>
-				(<span class="ident">Stage::Start</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;function&quot;</span>) =&gt; {
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::FnName</span>;
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				<span class="comment">// parse function
+				</span>(Stage::Start, Pair::First, <span class="string">&quot;function&quot;</span>) =&gt; {
+					stage = Stage::FnName;
+					pair.next();
 				}
-				(<span class="ident">Stage::FnName</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; {
-					<span class="ident">solidity_fn</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">word</span>.<span class="ident">to_string</span>();
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Args</span>;
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+				(Stage::FnName, Pair::Second, <span class="kw">_</span>) =&gt; {
+					solidity_fn.name = word.to_string();
+					stage = Stage::Args;
+					pair.next();
 				}
-				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::First</span>, <span class="string">&quot;external&quot;</span>) =&gt; {
-					<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">solidity_fn</span>);
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
-					<span class="ident">pair</span> <span class="op">=</span> <span class="ident">Pair::First</span>;
-					<span class="ident">solidity_fn</span> <span class="op">=</span> <span class="ident">SolidityFunction::default</span>()
+				(Stage::Args, Pair::First, <span class="string">&quot;external&quot;</span>) =&gt; {
+					functions.push(solidity_fn);
+					stage = Stage::Start;
+					pair = Pair::First;
+					solidity_fn = SolidityFunction::default()
 				}
-				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::First</span>, <span class="kw">_</span>) =&gt; {
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">word</span>.<span class="ident">to_string</span>();
-					<span class="ident">arg</span> <span class="op">=</span> <span class="ident">try_lookup_custom_type</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>, <span class="kw-2">&amp;</span><span class="ident">custom_types</span>);
+				(Stage::Args, Pair::First, <span class="kw">_</span>) =&gt; {
+					<span class="kw">let </span><span class="kw-2">mut </span>arg = word.to_string();
+					arg = try_lookup_custom_type(<span class="kw-2">&amp;</span>arg, <span class="kw-2">&amp;</span>custom_types);
 
-					<span class="ident">solidity_fn</span>.<span class="ident">args</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
-					<span class="ident">pair</span>.<span class="ident">next</span>();
+					solidity_fn.args.push(arg);
+					pair.next();
 				}
-				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::Second</span>, <span class="string">&quot;memory&quot;</span> <span class="op">|</span> <span class="string">&quot;calldata&quot;</span> <span class="op">|</span> <span class="string">&quot;storage&quot;</span>) =&gt; (),
-				(<span class="ident">Stage::Args</span>, <span class="ident">Pair::Second</span>, <span class="kw">_</span>) =&gt; <span class="ident">pair</span>.<span class="ident">next</span>(),
-				<span class="kw">_</span> =&gt; {
-					<span class="ident">stage</span> <span class="op">=</span> <span class="ident">Stage::Start</span>;
-					<span class="ident">pair</span> <span class="op">=</span> <span class="ident">Pair::First</span>;
-					<span class="ident">solidity_fn</span> <span class="op">=</span> <span class="ident">SolidityFunction::default</span>()
+				(Stage::Args, Pair::Second, <span class="string">&quot;memory&quot; </span>| <span class="string">&quot;calldata&quot; </span>| <span class="string">&quot;storage&quot;</span>) =&gt; (),
+				(Stage::Args, Pair::Second, <span class="kw">_</span>) =&gt; pair.next(),
+				<span class="kw">_ </span>=&gt; {
+					stage = Stage::Start;
+					pair = Pair::First;
+					solidity_fn = SolidityFunction::default()
 				}
 			}
 		}
 	}
 
-	<span class="ident">functions</span>
+	functions
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_selectors_are_parsed</span>() {
-		<span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">get_selectors</span>(<span class="string">&quot;tests/solidity_test.sol&quot;</span>)
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">sol_fn</span><span class="op">|</span> {
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_selectors_are_parsed() {
+		<span class="kw">let </span>actual = get_selectors(<span class="string">&quot;tests/solidity_test.sol&quot;</span>)
+			.into_iter()
+			.map(|sol_fn| {
 				(
-					<span class="ident">sol_fn</span>.<span class="ident">compute_selector_hex</span>(),
-					<span class="ident">sol_fn</span>.<span class="ident">docs_selector</span>.<span class="ident">clone</span>(),
-					<span class="ident">sol_fn</span>.<span class="ident">signature</span>(),
+					sol_fn.compute_selector_hex(),
+					sol_fn.docs_selector.clone(),
+					sol_fn.signature(),
 				)
 			})
-			.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-		<span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="macro">vec!</span>[
+			.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+		<span class="kw">let </span>expected = <span class="macro">vec!</span>[
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;f7af8d91&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnNoArgs()&quot;</span>),
+				String::from(<span class="string">&quot;f7af8d91&quot;</span>),
+				String::from(<span class="string">&quot;&quot;</span>),
+				String::from(<span class="string">&quot;fnNoArgs()&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;d43a9a43&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;c4921133&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnOneArg(address)&quot;</span>),
+				String::from(<span class="string">&quot;d43a9a43&quot;</span>),
+				String::from(<span class="string">&quot;c4921133&quot;</span>),
+				String::from(<span class="string">&quot;fnOneArg(address)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;40d6a43d&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;67ea837e&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnTwoArgs(address,uint256)&quot;</span>),
+				String::from(<span class="string">&quot;40d6a43d&quot;</span>),
+				String::from(<span class="string">&quot;67ea837e&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgs(address,uint256)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;cee150c8&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;d6b423d9&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnSameArgs(uint64,uint64)&quot;</span>),
+				String::from(<span class="string">&quot;cee150c8&quot;</span>),
+				String::from(<span class="string">&quot;d6b423d9&quot;</span>),
+				String::from(<span class="string">&quot;fnSameArgs(uint64,uint64)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;c6024207&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;b9904a86&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnOneArgSameLine(uint64)&quot;</span>),
+				String::from(<span class="string">&quot;c6024207&quot;</span>),
+				String::from(<span class="string">&quot;b9904a86&quot;</span>),
+				String::from(<span class="string">&quot;fnOneArgSameLine(uint64)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;fcbc04c3&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;28f0c44e&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnTwoArgsSameLine(uint64,bytes32)&quot;</span>),
+				String::from(<span class="string">&quot;fcbc04c3&quot;</span>),
+				String::from(<span class="string">&quot;28f0c44e&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgsSameLine(uint64,bytes32)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;c590304c&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;06f0c1ce&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnTwoArgsSameLineExternalSplit(uint64,bytes32)&quot;</span>),
+				String::from(<span class="string">&quot;c590304c&quot;</span>),
+				String::from(<span class="string">&quot;06f0c1ce&quot;</span>),
+				String::from(<span class="string">&quot;fnTwoArgsSameLineExternalSplit(uint64,bytes32)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;a19a07e1&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;18001a4e&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnMemoryArrayArgs(address[],uint256[],bytes[])&quot;</span>),
+				String::from(<span class="string">&quot;a19a07e1&quot;</span>),
+				String::from(<span class="string">&quot;18001a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnMemoryArrayArgs(address[],uint256[],bytes[])&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;ec26cf1c&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;1ea61a4e&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnCalldataArgs(string,bytes[])&quot;</span>),
+				String::from(<span class="string">&quot;ec26cf1c&quot;</span>),
+				String::from(<span class="string">&quot;1ea61a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnCalldataArgs(string,bytes[])&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;f29f96de&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;d8af1a4e&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnCustomArgs((uint8,bytes[]),bytes[],uint64)&quot;</span>),
+				String::from(<span class="string">&quot;f29f96de&quot;</span>),
+				String::from(<span class="string">&quot;d8af1a4e&quot;</span>),
+				String::from(<span class="string">&quot;fnCustomArgs((uint8,bytes[]),bytes[],uint64)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;d751d651&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;e8af1642&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnEnumArgs(uint8,uint64)&quot;</span>),
+				String::from(<span class="string">&quot;d751d651&quot;</span>),
+				String::from(<span class="string">&quot;e8af1642&quot;</span>),
+				String::from(<span class="string">&quot;fnEnumArgs(uint8,uint64)&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;b2c9f1a3&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;550c1a4e&quot;</span>),
-				<span class="ident">String::from</span>(
+				String::from(<span class="string">&quot;b2c9f1a3&quot;</span>),
+				String::from(<span class="string">&quot;550c1a4e&quot;</span>),
+				String::from(
 					<span class="string">&quot;fnCustomArgsMultiple((uint8,bytes[]),(address[],uint256[],bytes[]),bytes[],\
 					uint64)&quot;</span>,
 				),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;d5363eee&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;77af1a40&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;fnCustomArrayArgs((uint8,bytes[])[],bytes[])&quot;</span>),
+				String::from(<span class="string">&quot;d5363eee&quot;</span>),
+				String::from(<span class="string">&quot;77af1a40&quot;</span>),
+				String::from(<span class="string">&quot;fnCustomArrayArgs((uint8,bytes[])[],bytes[])&quot;</span>),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;b82da727&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;80af0a40&quot;</span>),
-				<span class="ident">String::from</span>(
+				String::from(<span class="string">&quot;b82da727&quot;</span>),
+				String::from(<span class="string">&quot;80af0a40&quot;</span>),
+				String::from(
 					<span class="string">&quot;fnCustomComposedArg(((uint8,bytes[]),\
 				(address[],uint256[],bytes[])[]),uint64)&quot;</span>,
 				),
 			),
 			(
-				<span class="ident">String::from</span>(<span class="string">&quot;586a2193&quot;</span>),
-				<span class="ident">String::from</span>(<span class="string">&quot;97baa040&quot;</span>),
-				<span class="ident">String::from</span>(
+				String::from(<span class="string">&quot;586a2193&quot;</span>),
+				String::from(<span class="string">&quot;97baa040&quot;</span>),
+				String::from(
 					<span class="string">&quot;fnCustomComposedArrayArg(((uint8,bytes[]),\
 				(address[],uint256[],bytes[])[])[],uint64)&quot;</span>,
 				),
 			),
 		];
 
-		<span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">actual</span>);
+		<span class="macro">assert_eq!</span>(expected, actual);
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

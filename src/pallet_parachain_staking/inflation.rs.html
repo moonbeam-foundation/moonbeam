@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/inflation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inflation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/parachain-staking/src/inflation.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>inflation.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_parachain_staking/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -231,234 +226,233 @@
 <span id="226">226</span>
 <span id="227">227</span>
 <span id="228">228</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Helper methods for computing issuance based on inflation</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pallet</span>::{<span class="ident">BalanceOf</span>, <span class="ident">Config</span>, <span class="ident">Pallet</span>};
-<span class="kw">use</span> <span class="ident">frame_support::traits::Currency</span>;
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>};
-<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime::PerThing</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">RuntimeDebug</span>};
-<span class="kw">use</span> <span class="ident">substrate_fixed::transcendental::pow</span> <span class="kw">as</span> <span class="ident">floatpow</span>;
-<span class="kw">use</span> <span class="ident">substrate_fixed::types::I64F64</span>;
+</span><span class="doccomment">//! Helper methods for computing issuance based on inflation
+</span><span class="kw">use </span><span class="kw">crate</span>::pallet::{BalanceOf, Config, Pallet};
+<span class="kw">use </span>frame_support::traits::Currency;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+<span class="kw">use </span>scale_info::TypeInfo;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+</span><span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>sp_runtime::PerThing;
+<span class="kw">use </span>sp_runtime::{Perbill, RuntimeDebug};
+<span class="kw">use </span>substrate_fixed::transcendental::pow <span class="kw">as </span>floatpow;
+<span class="kw">use </span>substrate_fixed::types::I64F64;
 
-<span class="kw">const</span> <span class="ident">SECONDS_PER_YEAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">31557600</span>;
-<span class="kw">const</span> <span class="ident">SECONDS_PER_BLOCK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">12</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLOCKS_PER_YEAR</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">SECONDS_PER_YEAR</span> <span class="op">/</span> <span class="ident">SECONDS_PER_BLOCK</span>;
+<span class="kw">const </span>SECONDS_PER_YEAR: u32 = <span class="number">31557600</span>;
+<span class="kw">const </span>SECONDS_PER_BLOCK: u32 = <span class="number">12</span>;
+<span class="kw">pub const </span>BLOCKS_PER_YEAR: u32 = SECONDS_PER_YEAR / SECONDS_PER_BLOCK;
 
-<span class="kw">fn</span> <span class="ident">rounds_per_year</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">u32</span> {
-	<span class="kw">let</span> <span class="ident">blocks_per_round</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">length</span>;
-	<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">blocks_per_round</span>
+<span class="kw">fn </span>rounds_per_year&lt;T: Config&gt;() -&gt; u32 {
+	<span class="kw">let </span>blocks_per_round = &lt;Pallet&lt;T&gt;&gt;::round().length;
+	BLOCKS_PER_YEAR / blocks_per_round
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(
-	<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Default</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">MaxEncodedLen</span>, <span class="ident">TypeInfo</span>,
-)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="ident">min</span>: <span class="ident">T</span>,
-	<span class="kw">pub</span> <span class="ident">ideal</span>: <span class="ident">T</span>,
-	<span class="kw">pub</span> <span class="ident">max</span>: <span class="ident">T</span>,
+<span class="attribute">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize))]
+#[derive(
+	Eq, PartialEq, Clone, Copy, Encode, Decode, Default, RuntimeDebug, MaxEncodedLen, TypeInfo,
+)]
+</span><span class="kw">pub struct </span>Range&lt;T&gt; {
+	<span class="kw">pub </span>min: T,
+	<span class="kw">pub </span>ideal: T,
+	<span class="kw">pub </span>max: T,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_valid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">max</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">ideal</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">ideal</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">min</span>
+<span class="kw">impl</span>&lt;T: Ord&gt; Range&lt;T&gt; {
+	<span class="kw">pub fn </span>is_valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.max &gt;= <span class="self">self</span>.ideal &amp;&amp; <span class="self">self</span>.ideal &gt;= <span class="self">self</span>.min
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">other</span>: <span class="ident">T</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">other</span>,
-			<span class="ident">ideal</span>: <span class="ident">other</span>,
-			<span class="ident">max</span>: <span class="ident">other</span>,
+<span class="kw">impl</span>&lt;T: Ord + Copy&gt; From&lt;T&gt; <span class="kw">for </span>Range&lt;T&gt; {
+	<span class="kw">fn </span>from(other: T) -&gt; Range&lt;T&gt; {
+		Range {
+			min: other,
+			ideal: other,
+			max: other,
 		}
 	}
 }
-<span class="doccomment">/// Convert an annual inflation to a round inflation</span>
-<span class="doccomment">/// round = (1+annual)^(1/rounds_per_year) - 1</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">perbill_annual_to_perbill_round</span>(
-	<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
-	<span class="ident">rounds_per_year</span>: <span class="ident">u32</span>,
-) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">exponent</span> <span class="op">=</span> <span class="ident">I64F64::from_num</span>(<span class="number">1</span>) <span class="op">/</span> <span class="ident">I64F64::from_num</span>(<span class="ident">rounds_per_year</span>);
-	<span class="kw">let</span> <span class="ident">annual_to_round</span> <span class="op">=</span> <span class="op">|</span><span class="ident">annual</span>: <span class="ident">Perbill</span><span class="op">|</span> -&gt; <span class="ident">Perbill</span> {
-		<span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">I64F64::from_num</span>(<span class="ident">annual</span>.<span class="ident">deconstruct</span>()) <span class="op">/</span> <span class="ident">I64F64::from_num</span>(<span class="ident">Perbill::ACCURACY</span>);
-		<span class="kw">let</span> <span class="ident">y</span>: <span class="ident">I64F64</span> <span class="op">=</span> <span class="ident">floatpow</span>(<span class="ident">I64F64::from_num</span>(<span class="number">1</span>) <span class="op">+</span> <span class="ident">x</span>, <span class="ident">exponent</span>)
-			.<span class="ident">expect</span>(<span class="string">&quot;Cannot overflow since rounds_per_year is u32 so worst case 0; QED&quot;</span>);
-		<span class="ident">Perbill::from_parts</span>(
-			((<span class="ident">y</span> <span class="op">-</span> <span class="ident">I64F64::from_num</span>(<span class="number">1</span>)) <span class="op">*</span> <span class="ident">I64F64::from_num</span>(<span class="ident">Perbill::ACCURACY</span>))
-				.<span class="ident">ceil</span>()
-				.<span class="ident">to_num</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(),
+<span class="doccomment">/// Convert an annual inflation to a round inflation
+/// round = (1+annual)^(1/rounds_per_year) - 1
+</span><span class="kw">pub fn </span>perbill_annual_to_perbill_round(
+	annual: Range&lt;Perbill&gt;,
+	rounds_per_year: u32,
+) -&gt; Range&lt;Perbill&gt; {
+	<span class="kw">let </span>exponent = I64F64::from_num(<span class="number">1</span>) / I64F64::from_num(rounds_per_year);
+	<span class="kw">let </span>annual_to_round = |annual: Perbill| -&gt; Perbill {
+		<span class="kw">let </span>x = I64F64::from_num(annual.deconstruct()) / I64F64::from_num(Perbill::ACCURACY);
+		<span class="kw">let </span>y: I64F64 = floatpow(I64F64::from_num(<span class="number">1</span>) + x, exponent)
+			.expect(<span class="string">&quot;Cannot overflow since rounds_per_year is u32 so worst case 0; QED&quot;</span>);
+		Perbill::from_parts(
+			((y - I64F64::from_num(<span class="number">1</span>)) * I64F64::from_num(Perbill::ACCURACY))
+				.ceil()
+				.to_num::&lt;u32&gt;(),
 		)
 	};
-	<span class="ident">Range</span> {
-		<span class="ident">min</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">min</span>),
-		<span class="ident">ideal</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">ideal</span>),
-		<span class="ident">max</span>: <span class="ident">annual_to_round</span>(<span class="ident">annual</span>.<span class="ident">max</span>),
+	Range {
+		min: annual_to_round(annual.min),
+		ideal: annual_to_round(annual.ideal),
+		max: annual_to_round(annual.max),
 	}
 }
-<span class="doccomment">/// Convert annual inflation rate range to round inflation range</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">annual_to_round</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">periods</span> <span class="op">=</span> <span class="ident">rounds_per_year</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
-	<span class="ident">perbill_annual_to_perbill_round</span>(<span class="ident">annual</span>, <span class="ident">periods</span>)
+<span class="doccomment">/// Convert annual inflation rate range to round inflation range
+</span><span class="kw">pub fn </span>annual_to_round&lt;T: Config&gt;(annual: Range&lt;Perbill&gt;) -&gt; Range&lt;Perbill&gt; {
+	<span class="kw">let </span>periods = rounds_per_year::&lt;T&gt;();
+	perbill_annual_to_perbill_round(annual, periods)
 }
 
-<span class="doccomment">/// Compute round issuance range from round inflation range and current total issuance</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">round_issuance_range</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="ident">round</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">circulating</span> <span class="op">=</span> <span class="ident">T::Currency::total_issuance</span>();
-	<span class="ident">Range</span> {
-		<span class="ident">min</span>: <span class="ident">round</span>.<span class="ident">min</span> <span class="op">*</span> <span class="ident">circulating</span>,
-		<span class="ident">ideal</span>: <span class="ident">round</span>.<span class="ident">ideal</span> <span class="op">*</span> <span class="ident">circulating</span>,
-		<span class="ident">max</span>: <span class="ident">round</span>.<span class="ident">max</span> <span class="op">*</span> <span class="ident">circulating</span>,
+<span class="doccomment">/// Compute round issuance range from round inflation range and current total issuance
+</span><span class="kw">pub fn </span>round_issuance_range&lt;T: Config&gt;(round: Range&lt;Perbill&gt;) -&gt; Range&lt;BalanceOf&lt;T&gt;&gt; {
+	<span class="kw">let </span>circulating = T::Currency::total_issuance();
+	Range {
+		min: round.min * circulating,
+		ideal: round.ideal * circulating,
+		max: round.max * circulating,
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">Default</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Staking expectations</span>
-	<span class="kw">pub</span> <span class="ident">expect</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Annual inflation range</span>
-	<span class="kw">pub</span> <span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
-	<span class="doccomment">/// Round inflation range</span>
-	<span class="kw">pub</span> <span class="ident">round</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
+<span class="attribute">#[cfg_attr(feature = <span class="string">&quot;std&quot;</span>, derive(Serialize, Deserialize))]
+#[derive(Eq, PartialEq, Clone, Encode, Decode, Default, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub struct </span>InflationInfo&lt;Balance&gt; {
+	<span class="doccomment">/// Staking expectations
+	</span><span class="kw">pub </span>expect: Range&lt;Balance&gt;,
+	<span class="doccomment">/// Annual inflation range
+	</span><span class="kw">pub </span>annual: Range&lt;Perbill&gt;,
+	<span class="doccomment">/// Round inflation range
+	</span><span class="kw">pub </span>round: Range&lt;Perbill&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-		<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
-		<span class="ident">expect</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-		<span class="ident">InflationInfo</span> {
-			<span class="ident">expect</span>,
-			<span class="ident">annual</span>,
-			<span class="ident">round</span>: <span class="ident">annual_to_round</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">annual</span>),
+<span class="kw">impl</span>&lt;Balance&gt; InflationInfo&lt;Balance&gt; {
+	<span class="kw">pub fn </span>new&lt;T: Config&gt;(
+		annual: Range&lt;Perbill&gt;,
+		expect: Range&lt;Balance&gt;,
+	) -&gt; InflationInfo&lt;Balance&gt; {
+		InflationInfo {
+			expect,
+			annual,
+			round: annual_to_round::&lt;T&gt;(annual),
 		}
 	}
-	<span class="doccomment">/// Set round inflation range according to input annual inflation range</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_round_from_annual</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">round</span> <span class="op">=</span> <span class="ident">annual_to_round</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">new</span>);
+	<span class="doccomment">/// Set round inflation range according to input annual inflation range
+	</span><span class="kw">pub fn </span>set_round_from_annual&lt;T: Config&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new: Range&lt;Perbill&gt;) {
+		<span class="self">self</span>.round = annual_to_round::&lt;T&gt;(new);
 	}
-	<span class="doccomment">/// Reset round inflation rate based on changes to round length</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">reset_round</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new_length</span>: <span class="ident">u32</span>) {
-		<span class="kw">let</span> <span class="ident">periods</span> <span class="op">=</span> <span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">new_length</span>;
-		<span class="self">self</span>.<span class="ident">round</span> <span class="op">=</span> <span class="ident">perbill_annual_to_perbill_round</span>(<span class="self">self</span>.<span class="ident">annual</span>, <span class="ident">periods</span>);
+	<span class="doccomment">/// Reset round inflation rate based on changes to round length
+	</span><span class="kw">pub fn </span>reset_round(<span class="kw-2">&amp;mut </span><span class="self">self</span>, new_length: u32) {
+		<span class="kw">let </span>periods = BLOCKS_PER_YEAR / new_length;
+		<span class="self">self</span>.round = perbill_annual_to_perbill_round(<span class="self">self</span>.annual, periods);
 	}
-	<span class="doccomment">/// Set staking expectations</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_expectations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">expect</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span>) {
-		<span class="self">self</span>.<span class="ident">expect</span> <span class="op">=</span> <span class="ident">expect</span>;
+	<span class="doccomment">/// Set staking expectations
+	</span><span class="kw">pub fn </span>set_expectations(<span class="kw-2">&amp;mut </span><span class="self">self</span>, expect: Range&lt;Balance&gt;) {
+		<span class="self">self</span>.expect = expect;
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">fn</span> <span class="ident">mock_annual_to_round</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>, <span class="ident">rounds_per_year</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-		<span class="ident">perbill_annual_to_perbill_round</span>(<span class="ident">annual</span>, <span class="ident">rounds_per_year</span>)
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">fn </span>mock_annual_to_round(annual: Range&lt;Perbill&gt;, rounds_per_year: u32) -&gt; Range&lt;Perbill&gt; {
+		perbill_annual_to_perbill_round(annual, rounds_per_year)
 	}
-	<span class="kw">fn</span> <span class="ident">mock_round_issuance_range</span>(
-		<span class="comment">// Total circulating before minting</span>
-		<span class="ident">circulating</span>: <span class="ident">u128</span>,
-		<span class="comment">// Round inflation range</span>
-		<span class="ident">round</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-		<span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">round</span>.<span class="ident">min</span> <span class="op">*</span> <span class="ident">circulating</span>,
-			<span class="ident">ideal</span>: <span class="ident">round</span>.<span class="ident">ideal</span> <span class="op">*</span> <span class="ident">circulating</span>,
-			<span class="ident">max</span>: <span class="ident">round</span>.<span class="ident">max</span> <span class="op">*</span> <span class="ident">circulating</span>,
+	<span class="kw">fn </span>mock_round_issuance_range(
+		<span class="comment">// Total circulating before minting
+		</span>circulating: u128,
+		<span class="comment">// Round inflation range
+		</span>round: Range&lt;Perbill&gt;,
+	) -&gt; Range&lt;u128&gt; {
+		Range {
+			min: round.min * circulating,
+			ideal: round.ideal * circulating,
+			max: round.max * circulating,
 		}
 	}
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">simple_issuance_conversion</span>() {
-		<span class="comment">// 5% inflation for 10_000_0000 = 500,000 minted over the year</span>
-		<span class="comment">// let&#39;s assume there are 10 periods in a year</span>
-		<span class="comment">// =&gt; mint 500_000 over 10 periods =&gt; 50_000 minted per period</span>
-		<span class="kw">let</span> <span class="ident">expected_round_issuance_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">48_909</span>,
-			<span class="ident">ideal</span>: <span class="number">48_909</span>,
-			<span class="ident">max</span>: <span class="number">48_909</span>,
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>simple_issuance_conversion() {
+		<span class="comment">// 5% inflation for 10_000_0000 = 500,000 minted over the year
+		// let&#39;s assume there are 10 periods in a year
+		// =&gt; mint 500_000 over 10 periods =&gt; 50_000 minted per period
+		</span><span class="kw">let </span>expected_round_issuance_range: Range&lt;u128&gt; = Range {
+			min: <span class="number">48_909</span>,
+			ideal: <span class="number">48_909</span>,
+			max: <span class="number">48_909</span>,
 		};
-		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-		};
-		<span class="macro">assert_eq!</span>(
-			<span class="ident">expected_round_issuance_range</span>,
-			<span class="ident">mock_round_issuance_range</span>(<span class="number">10_000_000</span>, <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">10</span>))
-		);
-	}
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">range_issuance_conversion</span>() {
-		<span class="comment">// 3-5% inflation for 10_000_0000 = 300_000-500,000 minted over the year</span>
-		<span class="comment">// let&#39;s assume there are 10 periods in a year</span>
-		<span class="comment">// =&gt; mint 300_000-500_000 over 10 periods =&gt; 30_000-50_000 minted per period</span>
-		<span class="kw">let</span> <span class="ident">expected_round_issuance_range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">29_603</span>,
-			<span class="ident">ideal</span>: <span class="number">39298</span>,
-			<span class="ident">max</span>: <span class="number">48_909</span>,
-		};
-		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">3</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">4</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
+		<span class="kw">let </span>schedule = Range {
+			min: Perbill::from_percent(<span class="number">5</span>),
+			ideal: Perbill::from_percent(<span class="number">5</span>),
+			max: Perbill::from_percent(<span class="number">5</span>),
 		};
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">expected_round_issuance_range</span>,
-			<span class="ident">mock_round_issuance_range</span>(<span class="number">10_000_000</span>, <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">10</span>))
+			expected_round_issuance_range,
+			mock_round_issuance_range(<span class="number">10_000_000</span>, mock_annual_to_round(schedule, <span class="number">10</span>))
 		);
 	}
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">expected_parameterization</span>() {
-		<span class="kw">let</span> <span class="ident">expected_round_schedule</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">45</span>,
-			<span class="ident">ideal</span>: <span class="number">56</span>,
-			<span class="ident">max</span>: <span class="number">56</span>,
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>range_issuance_conversion() {
+		<span class="comment">// 3-5% inflation for 10_000_0000 = 300_000-500,000 minted over the year
+		// let&#39;s assume there are 10 periods in a year
+		// =&gt; mint 300_000-500_000 over 10 periods =&gt; 30_000-50_000 minted per period
+		</span><span class="kw">let </span>expected_round_issuance_range: Range&lt;u128&gt; = Range {
+			min: <span class="number">29_603</span>,
+			ideal: <span class="number">39298</span>,
+			max: <span class="number">48_909</span>,
 		};
-		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">4</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
+		<span class="kw">let </span>schedule = Range {
+			min: Perbill::from_percent(<span class="number">3</span>),
+			ideal: Perbill::from_percent(<span class="number">4</span>),
+			max: Perbill::from_percent(<span class="number">5</span>),
 		};
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">expected_round_schedule</span>,
-			<span class="ident">mock_round_issuance_range</span>(<span class="number">10_000_000</span>, <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">8766</span>))
+			expected_round_issuance_range,
+			mock_round_issuance_range(<span class="number">10_000_000</span>, mock_annual_to_round(schedule, <span class="number">10</span>))
 		);
 	}
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">inflation_does_not_panic_at_round_number_limit</span>() {
-		<span class="kw">let</span> <span class="ident">schedule</span> <span class="op">=</span> <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
-			<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
-			<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">100</span>),
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>expected_parameterization() {
+		<span class="kw">let </span>expected_round_schedule: Range&lt;u128&gt; = Range {
+			min: <span class="number">45</span>,
+			ideal: <span class="number">56</span>,
+			max: <span class="number">56</span>,
 		};
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u32::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u64::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u128::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="ident">u32::MAX</span>));
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u32::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u64::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
-		<span class="ident">mock_round_issuance_range</span>(<span class="ident">u128::MAX</span>.<span class="ident">into</span>(), <span class="ident">mock_annual_to_round</span>(<span class="ident">schedule</span>, <span class="number">1</span>));
+		<span class="kw">let </span>schedule = Range {
+			min: Perbill::from_percent(<span class="number">4</span>),
+			ideal: Perbill::from_percent(<span class="number">5</span>),
+			max: Perbill::from_percent(<span class="number">5</span>),
+		};
+		<span class="macro">assert_eq!</span>(
+			expected_round_schedule,
+			mock_round_issuance_range(<span class="number">10_000_000</span>, mock_annual_to_round(schedule, <span class="number">8766</span>))
+		);
+	}
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>inflation_does_not_panic_at_round_number_limit() {
+		<span class="kw">let </span>schedule = Range {
+			min: Perbill::from_percent(<span class="number">100</span>),
+			ideal: Perbill::from_percent(<span class="number">100</span>),
+			max: Perbill::from_percent(<span class="number">100</span>),
+		};
+		mock_round_issuance_range(u32::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
+		mock_round_issuance_range(u64::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
+		mock_round_issuance_range(u128::MAX.into(), mock_annual_to_round(schedule, u32::MAX));
+		mock_round_issuance_range(u32::MAX.into(), mock_annual_to_round(schedule, <span class="number">1</span>));
+		mock_round_issuance_range(u64::MAX.into(), mock_annual_to_round(schedule, <span class="number">1</span>));
+		mock_round_issuance_range(u128::MAX.into(), mock_annual_to_round(schedule, <span class="number">1</span>));
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_parachain_staking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_parachain_staking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

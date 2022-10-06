@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["PrecompileHandleExt",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["PrecompileHandleExt",""]]};

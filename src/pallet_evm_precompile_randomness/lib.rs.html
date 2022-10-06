@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/randomness/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_randomness/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/randomness/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_randomness/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_randomness/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -479,482 +474,481 @@
 <span id="474">474</span>
 <span id="475">475</span>
 <span id="476">476</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Precompile to interact with randomness through an evm precompile.</span>
+</span><span class="doccomment">//! Precompile to interact with randomness through an evm precompile.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![feature(assert_matches)]
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+</span><span class="kw">extern crate </span>alloc;
 
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitReason</span>, <span class="ident">Log</span>, <span class="ident">PrecompileHandle</span>};
-<span class="kw">use</span> <span class="ident">frame_support::traits::Get</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm::GasWeightMapping</span>;
-<span class="kw">use</span> <span class="ident">pallet_randomness</span>::{
-	<span class="ident">weights</span>::{<span class="ident">SubstrateWeight</span>, <span class="ident">WeightInfo</span>},
-	<span class="ident">BalanceOf</span>, <span class="ident">GetBabeData</span>, <span class="ident">Pallet</span>, <span class="ident">Request</span>, <span class="ident">RequestInfo</span>, <span class="ident">RequestState</span>, <span class="ident">RequestType</span>,
+<span class="kw">use </span>fp_evm::{Context, ExitReason, Log, PrecompileHandle};
+<span class="kw">use </span>frame_support::traits::Get;
+<span class="kw">use </span>pallet_evm::GasWeightMapping;
+<span class="kw">use </span>pallet_randomness::{
+	weights::{SubstrateWeight, WeightInfo},
+	BalanceOf, GetBabeData, Pallet, Request, RequestInfo, RequestState, RequestType,
 };
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
+<span class="kw">use </span>precompile_utils::{costs::call_cost, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_std::{marker::PhantomData, vec, vec::Vec};
 
-<span class="comment">// #[cfg(test)]</span>
-<span class="comment">// mod mock;</span>
-<span class="kw">mod</span> <span class="ident">solidity_types</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
-<span class="kw">use</span> <span class="ident">solidity_types</span>::<span class="kw-2">*</span>;
+<span class="comment">// #[cfg(test)]
+// mod mock;
+</span><span class="kw">mod </span>solidity_types;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
+<span class="kw">use </span>solidity_types::<span class="kw-2">*</span>;
 
-<span class="comment">// Tests to verify equal to weight_to_gas(weight) in runtime integration tests</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REQUEST_RANDOMNESS_ESTIMATED_COST</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">26325</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INCREASE_REQUEST_FEE_ESTIMATED_COST</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">16718</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EXECUTE_EXPIRATION_ESTIMATED_COST</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">21989</span>;
+<span class="comment">// Tests to verify equal to weight_to_gas(weight) in runtime integration tests
+</span><span class="kw">pub const </span>REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = <span class="number">26474</span>;
+<span class="kw">pub const </span>INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = <span class="number">16995</span>;
+<span class="kw">pub const </span>EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = <span class="number">22201</span>;
 
-<span class="doccomment">/// Fulfillment overhead cost, which takes input weight hint -&gt; weight -&gt; return gas</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fulfillment_overhead_gas_cost</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span>(<span class="ident">num_words</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u64</span> {
-	<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-		<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::prepare_fulfillment</span>(<span class="ident">num_words</span>.<span class="ident">into</span>())
-			.<span class="ident">saturating_add</span>(<span class="ident">SubstrateWeight</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::finish_fulfillment</span>()),
+<span class="doccomment">/// Fulfillment overhead cost, which takes input weight hint -&gt; weight -&gt; return gas
+</span><span class="kw">pub fn </span>fulfillment_overhead_gas_cost&lt;T: pallet_evm::Config&gt;(num_words: u8) -&gt; u64 {
+	&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
+		SubstrateWeight::&lt;T&gt;::prepare_fulfillment(num_words.into())
+			.saturating_add(SubstrateWeight::&lt;T&gt;::finish_fulfillment()),
 	)
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_FULFILLMENT_SUCCEEDED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentSucceeded()&quot;</span>);
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LOG_FULFILLMENT_FAILED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentFailed()&quot;</span>);
+<span class="kw">pub const </span>LOG_FULFILLMENT_SUCCEEDED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentSucceeded()&quot;</span>);
+<span class="kw">pub const </span>LOG_FULFILLMENT_FAILED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;FulFillmentFailed()&quot;</span>);
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_fulfillment_succeeded</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log1</span>(<span class="ident">address</span>, <span class="ident">LOG_FULFILLMENT_SUCCEEDED</span>, <span class="macro">vec!</span>[])
+<span class="kw">pub fn </span>log_fulfillment_succeeded(address: <span class="kw">impl </span>Into&lt;H160&gt;) -&gt; Log {
+	log1(address, LOG_FULFILLMENT_SUCCEEDED, <span class="macro">vec!</span>[])
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_fulfillment_failed</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log1</span>(<span class="ident">address</span>, <span class="ident">LOG_FULFILLMENT_FAILED</span>, <span class="macro">vec!</span>[])
+<span class="kw">pub fn </span>log_fulfillment_failed(address: <span class="kw">impl </span>Into&lt;H160&gt;) -&gt; Log {
+	log1(address, LOG_FULFILLMENT_FAILED, <span class="macro">vec!</span>[])
 }
 
-<span class="doccomment">/// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup</span>
-<span class="kw">fn</span> <span class="ident">ensure_can_provide_randomness</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(
-	<span class="ident">code_address</span>: <span class="ident">H160</span>,
-	<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-	<span class="ident">request_fee</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-	<span class="ident">clean_up_cost</span>: <span class="ident">u64</span>,
-) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_randomness::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">pallet_base_fee::Config</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Reverts if fees and gas_limit are not sufficient to make subcall and cleanup
+</span><span class="kw">fn </span>ensure_can_provide_randomness&lt;Runtime&gt;(
+	code_address: H160,
+	gas_limit: u64,
+	request_fee: BalanceOf&lt;Runtime&gt;,
+	clean_up_cost: u64,
+) -&gt; EvmResult&lt;()&gt;
+<span class="kw">where
+	</span>Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
 {
-	<span class="comment">// assert fee &gt; gasLimit * base_fee</span>
-	<span class="kw">let</span> <span class="ident">gas_limit_as_u256</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">gas_limit</span>.<span class="ident">into</span>();
-	<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">gas_limit_times_base_fee</span>) <span class="op">=</span>
-		<span class="ident">gas_limit_as_u256</span>.<span class="ident">checked_mul</span>(<span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::base_fee_per_gas</span>())
+	<span class="comment">// assert fee &gt; gasLimit * base_fee
+	</span><span class="kw">let </span>gas_limit_as_u256: U256 = gas_limit.into();
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(gas_limit_times_base_fee) =
+		gas_limit_as_u256.checked_mul(pallet_base_fee::Pallet::&lt;Runtime&gt;::base_fee_per_gas())
 	{
-		<span class="kw">if</span> <span class="ident">gas_limit_times_base_fee</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">request_fee</span>.<span class="ident">into</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+		<span class="kw">if </span>gas_limit_times_base_fee &gt;= request_fee.into() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(
 				<span class="string">&quot;Gas limit at current price must be less than fees allotted&quot;</span>,
 			));
 		}
-	} <span class="kw">else</span> {
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Gas limit times base fee overflowed U256&quot;</span>));
+	} <span class="kw">else </span>{
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gas limit times base fee overflowed U256&quot;</span>));
 	}
-	<span class="kw">let</span> <span class="ident">log_cost</span> <span class="op">=</span> <span class="ident">log_fulfillment_failed</span>(<span class="ident">code_address</span>)
-		.<span class="ident">compute_cost</span>()
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
-	<span class="comment">// Cost of the call itself that the batch precompile must pay.</span>
-	<span class="kw">let</span> <span class="ident">call_cost</span> <span class="op">=</span> <span class="ident">call_cost</span>(<span class="ident">U256::zero</span>(), <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>());
-	<span class="comment">// assert gasLimit &gt; overhead cost</span>
-	<span class="kw">let</span> <span class="ident">overhead</span> <span class="op">=</span> <span class="ident">call_cost</span> <span class="op">+</span> <span class="ident">log_cost</span> <span class="op">+</span> <span class="ident">clean_up_cost</span>;
-	<span class="kw">if</span> <span class="ident">gas_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">overhead</span> {
-		<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Gas limit must exceed overhead call cost&quot;</span>));
+	<span class="kw">let </span>log_cost = log_fulfillment_failed(code_address)
+		.compute_cost()
+		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;failed to compute log cost&quot;</span>))<span class="question-mark">?</span>;
+	<span class="comment">// Cost of the call itself that the batch precompile must pay.
+	</span><span class="kw">let </span>call_cost = call_cost(U256::zero(), &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config());
+	<span class="comment">// assert gasLimit &gt; overhead cost
+	</span><span class="kw">let </span>overhead = call_cost + log_cost + clean_up_cost;
+	<span class="kw">if </span>gas_limit &lt;= overhead {
+		<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gas limit must exceed overhead call cost&quot;</span>));
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// Subcall to provide randomness</span>
-<span class="doccomment">/// caller must call `ensure_can_provide_randomness` before calling this function</span>
-<span class="kw">fn</span> <span class="ident">provide_randomness</span>(
-	<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	<span class="ident">request_id</span>: <span class="ident">u64</span>,
-	<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-	<span class="ident">contract</span>: <span class="ident">H160</span>,
-	<span class="ident">randomness</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-	<span class="kw">let</span> (<span class="ident">reason</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">call</span>(
-		<span class="ident">contract</span>,
+<span class="doccomment">/// Subcall to provide randomness
+/// caller must call `ensure_can_provide_randomness` before calling this function
+</span><span class="kw">fn </span>provide_randomness(
+	handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	request_id: u64,
+	gas_limit: u64,
+	contract: H160,
+	randomness: Vec&lt;H256&gt;,
+) -&gt; EvmResult&lt;()&gt; {
+	<span class="kw">let </span>(reason, <span class="kw">_</span>) = handle.call(
+		contract,
 		<span class="prelude-val">None</span>,
-		<span class="comment">// callback function selector: keccak256(&quot;rawFulfillRandomWords(uint256,uint256[])&quot;)</span>
-		<span class="ident">EvmDataWriter::new_with_selector</span>(<span class="number">0x1fe543e3_u32</span>)
-			.<span class="ident">write</span>(<span class="ident">request_id</span>)
-			.<span class="ident">write</span>(<span class="ident">randomness</span>)
-			.<span class="ident">build</span>(),
-		<span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>),
+		<span class="comment">// callback function selector: keccak256(&quot;rawFulfillRandomWords(uint256,uint256[])&quot;)
+		</span>EvmDataWriter::new_with_selector(<span class="number">0x1fe543e3_u32</span>)
+			.write(request_id)
+			.write(randomness)
+			.build(),
+		<span class="prelude-val">Some</span>(gas_limit),
 		<span class="bool-val">false</span>,
-		<span class="kw-2">&amp;</span><span class="ident">Context</span> {
-			<span class="ident">caller</span>: <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
-			<span class="ident">address</span>: <span class="ident">contract</span>,
-			<span class="ident">apparent_value</span>: <span class="ident">U256::zero</span>(),
+		<span class="kw-2">&amp;</span>Context {
+			caller: handle.context().address,
+			address: contract,
+			apparent_value: U256::zero(),
 		},
 	);
-	<span class="comment">// Logs</span>
-	<span class="comment">// We reserved enough gas so this should not OOG.</span>
-	<span class="kw">match</span> <span class="ident">reason</span> {
-		<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">ExitReason::Error</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="ident">log_fulfillment_failed</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>());
-			<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-			<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>
-		}
-		<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; {
-			<span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="ident">log_fulfillment_succeeded</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>());
-			<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-			<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>
-		}
-		<span class="kw">_</span> =&gt; (),
+	<span class="comment">// Logs
+	// We reserved enough gas so this should not OOG.
+	</span><span class="kw">match </span>reason {
+		ExitReason::Revert(<span class="kw">_</span>) | ExitReason::Error(<span class="kw">_</span>) =&gt; {
+			<span class="kw">let </span>log = log_fulfillment_failed(handle.code_address());
+			handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+			log.record(handle)<span class="question-mark">?
+		</span>}
+		ExitReason::Succeed(<span class="kw">_</span>) =&gt; {
+			<span class="kw">let </span>log = log_fulfillment_succeeded(handle.code_address());
+			handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+			log.record(handle)<span class="question-mark">?
+		</span>}
+		<span class="kw">_ </span>=&gt; (),
 	}
 	<span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// A precompile to wrap the functionality from pallet-randomness</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RandomnessPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A precompile to wrap the functionality from pallet-randomness
+</span><span class="kw">pub struct </span>RandomnessPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">RandomnessPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_randomness::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">pallet_base_fee::Config</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BlockNumber</span>: <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime&gt; RandomnessPrecompile&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockNumber: TryInto&lt;u32&gt; + TryFrom&lt;u32&gt;,
+	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 {
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;relayEpochIndex()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">relay_epoch_index</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">relay_epoch_index</span> <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_randomness::Config</span><span class="op">&gt;</span><span class="ident">::BabeDataGetter::get_epoch_index</span>();
-		<span class="prelude-val">Ok</span>(<span class="ident">relay_epoch_index</span>)
+	<span class="attribute">#[precompile::public(<span class="string">&quot;relayEpochIndex()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>relay_epoch_index(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u64&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>relay_epoch_index =
+			&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::BabeDataGetter::get_epoch_index();
+		<span class="prelude-val">Ok</span>(relay_epoch_index)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;requiredDeposit()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">required_deposit</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">required_deposit</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_randomness::Config</span><span class="op">&gt;</span><span class="ident">::Deposit::get</span>().<span class="ident">into</span>();
-		<span class="prelude-val">Ok</span>(<span class="ident">required_deposit</span>)
+	<span class="attribute">#[precompile::public(<span class="string">&quot;requiredDeposit()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>required_deposit(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>required_deposit: U256 = &lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::Deposit::get().into();
+		<span class="prelude-val">Ok</span>(required_deposit)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;getRequestStatus(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">get_request_status</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">request_id</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u64</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">RequestStatus</span><span class="op">&gt;</span> {
-		<span class="comment">// record cost of 2 DB reads</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>() <span class="op">*</span> <span class="number">2</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;getRequestStatus(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>get_request_status(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		request_id: SolidityConvert&lt;U256, u64&gt;,
+	) -&gt; EvmResult&lt;RequestStatus&gt; {
+		<span class="comment">// record cost of 2 DB reads
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request_id</span> <span class="op">=</span> <span class="ident">request_id</span>.<span class="ident">converted</span>();
+		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">RequestState</span> { <span class="ident">request</span>, .. }) <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::requests</span>(<span class="ident">request_id</span>) {
-				<span class="kw">if</span> <span class="ident">request</span>.<span class="ident">is_expired</span>() {
-					<span class="ident">RequestStatus::Expired</span>
-				} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">can_be_fulfilled</span>() {
-					<span class="ident">RequestStatus::Ready</span>
-				} <span class="kw">else</span> {
-					<span class="ident">RequestStatus::Pending</span>
+		<span class="kw">let </span>status =
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(RequestState { request, .. }) = Pallet::&lt;Runtime&gt;::requests(request_id) {
+				<span class="kw">if </span>request.is_expired() {
+					RequestStatus::Expired
+				} <span class="kw">else if </span>request.can_be_fulfilled() {
+					RequestStatus::Ready
+				} <span class="kw">else </span>{
+					RequestStatus::Pending
 				}
-			} <span class="kw">else</span> {
-				<span class="ident">RequestStatus::DoesNotExist</span>
+			} <span class="kw">else </span>{
+				RequestStatus::DoesNotExist
 			};
-		<span class="prelude-val">Ok</span>(<span class="ident">status</span>)
+		<span class="prelude-val">Ok</span>(status)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;getRequest(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">get_request</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">request_id</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u64</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span>(
-		<span class="ident">U256</span>,    <span class="comment">// id</span>
-		<span class="ident">Address</span>, <span class="comment">// refund address</span>
-		<span class="ident">Address</span>, <span class="comment">// contract address</span>
-		<span class="ident">U256</span>,    <span class="comment">// fee</span>
-		<span class="ident">U256</span>,    <span class="comment">// gas limit</span>
-		<span class="ident">H256</span>,    <span class="comment">// salt</span>
-		<span class="ident">u32</span>,     <span class="comment">// num words</span>
-		<span class="ident">RandomnessSource</span>,
-		<span class="ident">u32</span>, <span class="comment">// fulfillment block</span>
-		<span class="ident">u64</span>, <span class="comment">// fulfullment epoch index</span>
-		<span class="ident">u32</span>, <span class="comment">// expiration block</span>
-		<span class="ident">u64</span>, <span class="comment">// expiration epoch index</span>
-		<span class="ident">RequestStatus</span>,
-	)<span class="op">&gt;</span> {
-		<span class="comment">// record cost of 2 DB reads</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>() <span class="op">*</span> <span class="number">2</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;getRequest(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>get_request(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		request_id: SolidityConvert&lt;U256, u64&gt;,
+	) -&gt; EvmResult&lt;(
+		U256,    <span class="comment">// id
+		</span>Address, <span class="comment">// refund address
+		</span>Address, <span class="comment">// contract address
+		</span>U256,    <span class="comment">// fee
+		</span>U256,    <span class="comment">// gas limit
+		</span>H256,    <span class="comment">// salt
+		</span>u32,     <span class="comment">// num words
+		</span>RandomnessSource,
+		u32, <span class="comment">// fulfillment block
+		</span>u64, <span class="comment">// fulfullment epoch index
+		</span>u32, <span class="comment">// expiration block
+		</span>u64, <span class="comment">// expiration epoch index
+		</span>RequestStatus,
+	)&gt; {
+		<span class="comment">// record cost of 2 DB reads
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request_id</span> <span class="op">=</span> <span class="ident">request_id</span>.<span class="ident">converted</span>();
+		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="kw">let</span> <span class="ident">RequestState</span> { <span class="ident">request</span>, .. } <span class="op">=</span>
-			<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::requests</span>(<span class="ident">request_id</span>).<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;Request Does Not Exist&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>RequestState { request, .. } =
+			Pallet::&lt;Runtime&gt;::requests(request_id).ok_or(revert(<span class="string">&quot;Request Does Not Exist&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">status</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">is_expired</span>() {
-			<span class="ident">RequestStatus::Expired</span>
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">request</span>.<span class="ident">can_be_fulfilled</span>() {
-			<span class="ident">RequestStatus::Ready</span>
-		} <span class="kw">else</span> {
-			<span class="ident">RequestStatus::Pending</span>
+		<span class="kw">let </span>status = <span class="kw">if </span>request.is_expired() {
+			RequestStatus::Expired
+		} <span class="kw">else if </span>request.can_be_fulfilled() {
+			RequestStatus::Ready
+		} <span class="kw">else </span>{
+			RequestStatus::Pending
 		};
 
-		<span class="kw">let</span> (
-			<span class="ident">randomness_source</span>,
-			<span class="ident">fulfillment_block</span>,
-			<span class="ident">fulfillment_epoch</span>,
-			<span class="ident">expiration_block</span>,
-			<span class="ident">expiration_epoch</span>,
-			<span class="ident">request_status</span>,
-		) <span class="op">=</span> <span class="kw">match</span> <span class="ident">request</span>.<span class="ident">info</span> {
-			<span class="ident">RequestInfo::BabeEpoch</span>(<span class="ident">epoch_due</span>, <span class="ident">epoch_expired</span>) =&gt; (
-				<span class="ident">RandomnessSource::RelayBabeEpoch</span>,
+		<span class="kw">let </span>(
+			randomness_source,
+			fulfillment_block,
+			fulfillment_epoch,
+			expiration_block,
+			expiration_epoch,
+			request_status,
+		) = <span class="kw">match </span>request.info {
+			RequestInfo::BabeEpoch(epoch_due, epoch_expired) =&gt; (
+				RandomnessSource::RelayBabeEpoch,
 				<span class="number">0u32</span>,
-				<span class="ident">epoch_due</span>,
+				epoch_due,
 				<span class="number">0u32</span>,
-				<span class="ident">epoch_expired</span>,
-				<span class="ident">status</span>,
+				epoch_expired,
+				status,
 			),
-			<span class="ident">RequestInfo::Local</span>(<span class="ident">block_due</span>, <span class="ident">block_expired</span>) =&gt; (
-				<span class="ident">RandomnessSource::LocalVRF</span>,
-				<span class="ident">block_due</span>
-					.<span class="ident">try_into</span>()
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
+			RequestInfo::Local(block_due, block_expired) =&gt; (
+				RandomnessSource::LocalVRF,
+				block_due
+					.try_into()
+					.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
 				<span class="number">0u64</span>,
-				<span class="ident">block_expired</span>
-					.<span class="ident">try_into</span>()
-					.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
+				block_expired
+					.try_into()
+					.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>,
 				<span class="number">0u64</span>,
-				<span class="ident">status</span>,
+				status,
 			),
 		};
 
-		<span class="kw">let</span> (<span class="ident">refund_address</span>, <span class="ident">contract_address</span>, <span class="ident">fee</span>): (<span class="ident">Address</span>, <span class="ident">Address</span>, <span class="ident">U256</span>) <span class="op">=</span> (
-			<span class="ident">request</span>.<span class="ident">refund_address</span>.<span class="ident">into</span>(),
-			<span class="ident">request</span>.<span class="ident">contract_address</span>.<span class="ident">into</span>(),
-			<span class="ident">request</span>.<span class="ident">fee</span>.<span class="ident">into</span>(),
+		<span class="kw">let </span>(refund_address, contract_address, fee): (Address, Address, U256) = (
+			request.refund_address.into(),
+			request.contract_address.into(),
+			request.fee.into(),
 		);
 
 		<span class="prelude-val">Ok</span>((
-			<span class="ident">request_id</span>.<span class="ident">into</span>(),
-			<span class="ident">refund_address</span>.<span class="ident">into</span>(),
-			<span class="ident">contract_address</span>,
-			<span class="ident">fee</span>,
-			<span class="ident">request</span>.<span class="ident">gas_limit</span>.<span class="ident">into</span>(),
-			<span class="ident">request</span>.<span class="ident">salt</span>,
-			<span class="ident">request</span>.<span class="ident">num_words</span>.<span class="ident">into</span>(),
-			<span class="ident">randomness_source</span>,
-			<span class="ident">fulfillment_block</span>,
-			<span class="ident">fulfillment_epoch</span>,
-			<span class="ident">expiration_block</span>,
-			<span class="ident">expiration_epoch</span>,
-			<span class="ident">request_status</span>,
+			request_id.into(),
+			refund_address.into(),
+			contract_address,
+			fee,
+			request.gas_limit.into(),
+			request.salt,
+			request.num_words.into(),
+			randomness_source,
+			fulfillment_block,
+			fulfillment_epoch,
+			expiration_block,
+			expiration_epoch,
+			request_status,
 		))
 	}
 
-	<span class="doccomment">/// Make request for babe randomness one epoch ago</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">request_babe_randomness</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">refund_address</span>: <span class="ident">Address</span>,
-		<span class="ident">fee</span>: <span class="ident">U256</span>,
-		<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-		<span class="ident">salt</span>: <span class="ident">H256</span>,
-		<span class="ident">num_words</span>: <span class="ident">u8</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(
-			<span class="ident">REQUEST_RANDOMNESS_ESTIMATED_COST</span> <span class="op">+</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>(),
+	<span class="doccomment">/// Make request for babe randomness one epoch ago
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)&quot;</span>)]
+	</span><span class="kw">fn </span>request_babe_randomness(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		refund_address: Address,
+		fee: U256,
+		gas_limit: u64,
+		salt: H256,
+		num_words: u8,
+	) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(
+			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost(),
 		)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">refund_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">refund_address</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">fee</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">fee</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>refund_address: H160 = refund_address.into();
+		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
+			.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">contract_address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>;
+		<span class="kw">let </span>contract_address = handle.context().caller;
 
-		<span class="kw">let</span> <span class="ident">two_epochs_later</span> <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_randomness::Config</span><span class="op">&gt;</span><span class="ident">::BabeDataGetter::get_epoch_index</span>()
-				.<span class="ident">checked_add</span>(<span class="number">2u64</span>)
-				.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;Epoch Index (u64) overflowed&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>two_epochs_later =
+			&lt;Runtime <span class="kw">as </span>pallet_randomness::Config&gt;::BabeDataGetter::get_epoch_index()
+				.checked_add(<span class="number">2u64</span>)
+				.ok_or(revert(<span class="string">&quot;Epoch Index (u64) overflowed&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">Request</span> {
-			<span class="ident">refund_address</span>,
-			<span class="ident">contract_address</span>,
-			<span class="ident">fee</span>,
-			<span class="ident">gas_limit</span>,
-			<span class="ident">num_words</span>,
-			<span class="ident">salt</span>,
-			<span class="ident">info</span>: <span class="ident">RequestType::BabeEpoch</span>(<span class="ident">two_epochs_later</span>),
+		<span class="kw">let </span>request = Request {
+			refund_address,
+			contract_address,
+			fee,
+			gas_limit,
+			num_words,
+			salt,
+			info: RequestType::BabeEpoch(two_epochs_later),
 		};
 
-		<span class="kw">let</span> <span class="ident">request_id</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::request_randomness</span>(<span class="ident">request</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>request_id: U256 = Pallet::&lt;Runtime&gt;::request_randomness(request)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?
+			</span>.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">request_id</span>)
+		<span class="prelude-val">Ok</span>(request_id)
 	}
-	<span class="doccomment">/// Make request for local VRF randomness</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">request_local_randomness</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">refund_address</span>: <span class="ident">Address</span>,
-		<span class="ident">fee</span>: <span class="ident">U256</span>,
-		<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-		<span class="ident">salt</span>: <span class="ident">H256</span>,
-		<span class="ident">num_words</span>: <span class="ident">u8</span>,
-		<span class="ident">delay</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(
-			<span class="ident">REQUEST_RANDOMNESS_ESTIMATED_COST</span> <span class="op">+</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>(),
+	<span class="doccomment">/// Make request for local VRF randomness
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)&quot;</span>)]
+	</span><span class="kw">fn </span>request_local_randomness(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		refund_address: Address,
+		fee: U256,
+		gas_limit: u64,
+		salt: H256,
+		num_words: u8,
+		delay: SolidityConvert&lt;u64, u32&gt;,
+	) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(
+			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost(),
 		)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">refund_address</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">refund_address</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">fee</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">fee</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>refund_address: H160 = refund_address.into();
+		<span class="kw">let </span>fee: BalanceOf&lt;Runtime&gt; = fee
+			.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;fee&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">contract_address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>;
+		<span class="kw">let </span>contract_address = handle.context().caller;
 
-		<span class="kw">let</span> <span class="ident">current_block_number</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">frame_system::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::block_number</span>()
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>current_block_number: u32 = &lt;frame_system::Pallet&lt;Runtime&gt;&gt;::block_number()
+			.try_into()
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;block number overflowed u32&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">requested_block_number</span> <span class="op">=</span> <span class="ident">delay</span>
-			.<span class="ident">converted</span>()
-			.<span class="ident">checked_add</span>(<span class="ident">current_block_number</span>)
-			.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;addition result overflowed u64&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;u64 addition result overflowed block number type&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>requested_block_number = delay
+			.converted()
+			.checked_add(current_block_number)
+			.ok_or(revert(<span class="string">&quot;addition result overflowed u64&quot;</span>))<span class="question-mark">?
+			</span>.try_into()
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;u64 addition result overflowed block number type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request</span> <span class="op">=</span> <span class="ident">Request</span> {
-			<span class="ident">refund_address</span>,
-			<span class="ident">contract_address</span>,
-			<span class="ident">fee</span>,
-			<span class="ident">gas_limit</span>,
-			<span class="ident">num_words</span>,
-			<span class="ident">salt</span>,
-			<span class="ident">info</span>: <span class="ident">RequestType::Local</span>(<span class="ident">requested_block_number</span>),
+		<span class="kw">let </span>request = Request {
+			refund_address,
+			contract_address,
+			fee,
+			gas_limit,
+			num_words,
+			salt,
+			info: RequestType::Local(requested_block_number),
 		};
 
-		<span class="kw">let</span> <span class="ident">request_id</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::request_randomness</span>(<span class="ident">request</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>request_id: U256 = Pallet::&lt;Runtime&gt;::request_randomness(request)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Error in pallet_randomness: {:?}&quot;</span>, e)))<span class="question-mark">?
+			</span>.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">request_id</span>)
+		<span class="prelude-val">Ok</span>(request_id)
 	}
 
-	<span class="doccomment">/// Fulfill a randomness request due to be fulfilled</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;fulfillRequest(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">fulfill_request</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">request_id</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u64</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">request_id</span> <span class="op">=</span> <span class="ident">request_id</span>.<span class="ident">converted</span>();
+	<span class="doccomment">/// Fulfill a randomness request due to be fulfilled
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;fulfillRequest(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>fulfill_request(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		request_id: SolidityConvert&lt;U256, u64&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="kw">let</span> <span class="ident">pallet_randomness::FulfillArgs</span> {
-			<span class="ident">request</span>,
-			<span class="ident">deposit</span>,
-			<span class="ident">randomness</span>,
-		} <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::prepare_fulfillment</span>(<span class="ident">request_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+		<span class="kw">let </span>pallet_randomness::FulfillArgs {
+			request,
+			deposit,
+			randomness,
+		} = Pallet::&lt;Runtime&gt;::prepare_fulfillment(request_id)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
-		<span class="comment">// check that randomness can be provided</span>
-		<span class="ident">ensure_can_provide_randomness</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(
-			<span class="ident">handle</span>.<span class="ident">code_address</span>(),
-			<span class="ident">request</span>.<span class="ident">gas_limit</span>,
-			<span class="ident">request</span>.<span class="ident">fee</span>,
-			<span class="ident">fulfillment_overhead_gas_cost</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">request</span>.<span class="ident">num_words</span>),
+		<span class="comment">// check that randomness can be provided
+		</span>ensure_can_provide_randomness::&lt;Runtime&gt;(
+			handle.code_address(),
+			request.gas_limit,
+			request.fee,
+			fulfillment_overhead_gas_cost::&lt;Runtime&gt;(request.num_words),
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// get gas before subcall</span>
-		<span class="kw">let</span> <span class="ident">before_remaining_gas</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">remaining_gas</span>();
-		<span class="ident">provide_randomness</span>(
-			<span class="ident">handle</span>,
-			<span class="ident">request_id</span>,
-			<span class="ident">request</span>.<span class="ident">gas_limit</span>,
-			<span class="ident">request</span>.<span class="ident">contract_address</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-			<span class="ident">randomness</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">H256</span>(<span class="ident">x</span>)).<span class="ident">collect</span>(),
+		<span class="comment">// get gas before subcall
+		</span><span class="kw">let </span>before_remaining_gas = handle.remaining_gas();
+		provide_randomness(
+			handle,
+			request_id,
+			request.gas_limit,
+			request.contract_address.clone().into(),
+			randomness.into_iter().map(|x| H256(x)).collect(),
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// get gas after subcall</span>
-		<span class="kw">let</span> <span class="ident">after_remaining_gas</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">remaining_gas</span>();
-		<span class="kw">let</span> <span class="ident">gas_used</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">before_remaining_gas</span>
-			.<span class="ident">checked_sub</span>(<span class="ident">after_remaining_gas</span>)
-			.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">into</span>();
-		<span class="comment">// cost of execution is before_remaining_gas less after_remaining_gas</span>
-		<span class="kw">let</span> <span class="ident">cost_of_execution</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">gas_used</span>
-			.<span class="ident">checked_mul</span>(<span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::base_fee_per_gas</span>())
-			.<span class="ident">ok_or</span>(<span class="ident">revert</span>(<span class="string">&quot;Multiply gas used by base fee overflowed&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+		<span class="comment">// get gas after subcall
+		</span><span class="kw">let </span>after_remaining_gas = handle.remaining_gas();
+		<span class="kw">let </span>gas_used: U256 = before_remaining_gas
+			.checked_sub(after_remaining_gas)
+			.ok_or(revert(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?
+			</span>.into();
+		<span class="comment">// cost of execution is before_remaining_gas less after_remaining_gas
+		</span><span class="kw">let </span>cost_of_execution: BalanceOf&lt;Runtime&gt; = gas_used
+			.checked_mul(pallet_base_fee::Pallet::&lt;Runtime&gt;::base_fee_per_gas())
+			.ok_or(revert(<span class="string">&quot;Multiply gas used by base fee overflowed&quot;</span>))<span class="question-mark">?
+			</span>.try_into()
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="comment">// Finish fulfillment to</span>
-		<span class="comment">// refund cost of execution to caller</span>
-		<span class="comment">// refund excess fee to the refund_address</span>
-		<span class="comment">// remove request state</span>
-		<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::finish_fulfillment</span>(
-			<span class="ident">request_id</span>,
-			<span class="ident">request</span>,
-			<span class="ident">deposit</span>,
-			<span class="kw-2">&amp;</span><span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-			<span class="ident">cost_of_execution</span>,
+		<span class="comment">// Finish fulfillment to
+		// refund cost of execution to caller
+		// refund excess fee to the refund_address
+		// remove request state
+		</span>Pallet::&lt;Runtime&gt;::finish_fulfillment(
+			request_id,
+			request,
+			deposit,
+			<span class="kw-2">&amp;</span>handle.context().caller,
+			cost_of_execution,
 		);
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Increase the fee used to refund fulfillment of the request</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;increaseRequestFee(uint256,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">increase_request_fee</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">request_id</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u64</span><span class="op">&gt;</span>,
-		<span class="ident">fee_increase</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">INCREASE_REQUEST_FEE_ESTIMATED_COST</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Increase the fee used to refund fulfillment of the request
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;increaseRequestFee(uint256,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>increase_request_fee(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		request_id: SolidityConvert&lt;U256, u64&gt;,
+		fee_increase: U256,
+	) -&gt; EvmResult {
+		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request_id</span> <span class="op">=</span> <span class="ident">request_id</span>.<span class="ident">converted</span>();
+		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="kw">let</span> <span class="ident">fee_increase</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">fee_increase</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;feeIncrease&quot;</span>)
+		<span class="kw">let </span>fee_increase: BalanceOf&lt;Runtime&gt; = fee_increase.try_into().map_err(|<span class="kw">_</span>| {
+			RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).in_field(<span class="string">&quot;feeIncrease&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::increase_request_fee</span>(<span class="kw-2">&amp;</span><span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>, <span class="ident">request_id</span>, <span class="ident">fee_increase</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+		Pallet::&lt;Runtime&gt;::increase_request_fee(<span class="kw-2">&amp;</span>handle.context().caller, request_id, fee_increase)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
-	<span class="doccomment">/// Execute request expiration to remove the request from storage</span>
-	<span class="doccomment">/// Transfers `fee` to caller and `deposit` back to `contract_address`</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;purgeExpiredRequest(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">purge_expired_request</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">request_id</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u64</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">EXECUTE_EXPIRATION_ESTIMATED_COST</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Execute request expiration to remove the request from storage
+	/// Transfers `fee` to caller and `deposit` back to `contract_address`
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;purgeExpiredRequest(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>purge_expired_request(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		request_id: SolidityConvert&lt;U256, u64&gt;,
+	) -&gt; EvmResult {
+		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">request_id</span> <span class="op">=</span> <span class="ident">request_id</span>.<span class="ident">converted</span>();
+		<span class="kw">let </span>request_id = request_id.converted();
 
-		<span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_request_expiration</span>(<span class="kw-2">&amp;</span><span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>, <span class="ident">request_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+		Pallet::&lt;Runtime&gt;::execute_request_expiration(<span class="kw-2">&amp;</span>handle.context().caller, request_id)
+			.map_err(|e| revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_randomness" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_randomness" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

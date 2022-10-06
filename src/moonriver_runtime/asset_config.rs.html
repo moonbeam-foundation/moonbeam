@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonriver/src/asset_config.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>asset_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonriver_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonriver_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonriver_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/moonriver/src/asset_config.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>asset_config.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonriver_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonriver_runtime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonriver_runtime/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -298,301 +293,300 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Asset configuration for Moonbase.</span>
-<span class="doccomment">//!</span>
+</span><span class="doccomment">//! Asset configuration for Moonbase.
+//!
 
-<span class="kw">use</span> <span class="kw">super</span>::{
-	<span class="ident">currency</span>, <span class="ident">xcm_config</span>, <span class="ident">AccountId</span>, <span class="ident">AssetId</span>, <span class="ident">AssetManager</span>, <span class="ident">Assets</span>, <span class="ident">Balance</span>, <span class="ident">Balances</span>, <span class="ident">Call</span>,
-	<span class="ident">CouncilInstance</span>, <span class="ident">Event</span>, <span class="ident">LocalAssets</span>, <span class="ident">Origin</span>, <span class="ident">Runtime</span>, <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
-	<span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>,
+</span><span class="kw">use super</span>::{
+	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call,
+	CouncilInstance, Event, LocalAssets, Origin, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
-<span class="kw">use</span> <span class="ident">pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::traits::Hash</span> <span class="kw">as</span> <span class="ident">THash</span>;
+<span class="kw">use </span>pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
+<span class="kw">use </span>sp_runtime::traits::Hash <span class="kw">as </span>THash;
 
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">parameter_types</span>,
-	<span class="ident">traits</span>::{<span class="ident">ConstU128</span>, <span class="ident">EitherOfDiverse</span>},
-	<span class="ident">weights</span>::{<span class="ident">GetDispatchInfo</span>, <span class="ident">Weight</span>},
+<span class="kw">use </span>frame_support::{
+	parameter_types,
+	traits::{ConstU128, EitherOfDiverse},
+	weights::{GetDispatchInfo, Weight},
 };
 
-<span class="kw">use</span> <span class="ident">frame_system::EnsureRoot</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>};
+<span class="kw">use </span>frame_system::EnsureRoot;
+<span class="kw">use </span>sp_core::{H160, H256};
 
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+<span class="kw">use </span>scale_info::TypeInfo;
 
-<span class="kw">use</span> <span class="ident">sp_std</span>::{
-	<span class="ident">convert</span>::{<span class="ident">From</span>, <span class="ident">Into</span>},
-	<span class="ident">prelude</span>::<span class="kw-2">*</span>,
+<span class="kw">use </span>sp_std::{
+	convert::{From, Into},
+	prelude::<span class="kw-2">*</span>,
 };
 
-<span class="comment">// Not to disrupt the previous asset instance, we assign () to Foreign</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ForeignAssetInstance</span> <span class="op">=</span> ();
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">LocalAssetInstance</span> <span class="op">=</span> <span class="ident">pallet_assets::Instance1</span>;
+<span class="comment">// Not to disrupt the previous asset instance, we assign () to Foreign
+</span><span class="kw">pub type </span>ForeignAssetInstance = ();
+<span class="kw">pub type </span>LocalAssetInstance = pallet_assets::Instance1;
 
-<span class="comment">// For foreign assets, these parameters dont matter much</span>
-<span class="comment">// as this will only be called by root with the forced arguments</span>
-<span class="comment">// No deposit is substracted with those methods</span>
-<span class="comment">// For local assets, they do matter. We use similar parameters</span>
-<span class="comment">// to those in statemine (except for approval)</span>
-<span class="macro">parameter_types!</span> {
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AssetDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">100</span> <span class="op">*</span> <span class="ident">currency::MOVR</span> <span class="op">*</span> <span class="ident">currency::SUPPLY_FACTOR</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ApprovalDeposit</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="number">0</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AssetsStringLimit</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">50</span>;
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MetadataDepositBase</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">1</span>,<span class="number">68</span>);
-	<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MetadataDepositPerByte</span>: <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">currency::deposit</span>(<span class="number">0</span>, <span class="number">1</span>);
+<span class="comment">// For foreign assets, these parameters dont matter much
+// as this will only be called by root with the forced arguments
+// No deposit is substracted with those methods
+// For local assets, they do matter. We use similar parameters
+// to those in statemine (except for approval)
+</span><span class="macro">parameter_types! </span>{
+	<span class="kw">pub const </span>AssetDeposit: Balance = <span class="number">100 </span>* currency::MOVR * currency::SUPPLY_FACTOR;
+	<span class="kw">pub const </span>ApprovalDeposit: Balance = <span class="number">0</span>;
+	<span class="kw">pub const </span>AssetsStringLimit: u32 = <span class="number">50</span>;
+	<span class="kw">pub const </span>MetadataDepositBase: Balance = currency::deposit(<span class="number">1</span>,<span class="number">68</span>);
+	<span class="kw">pub const </span>MetadataDepositPerByte: Balance = currency::deposit(<span class="number">0</span>, <span class="number">1</span>);
 }
 
-<span class="doccomment">/// We allow root and Chain council to execute privileged asset operations.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AssetsForceOrigin</span> <span class="op">=</span> <span class="ident">EitherOfDiverse</span><span class="op">&lt;</span>
-	<span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">pallet_collective::EnsureProportionMoreThan</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">CouncilInstance</span>, <span class="number">1</span>, <span class="number">2</span><span class="op">&gt;</span>,
-<span class="op">&gt;</span>;
+<span class="doccomment">/// We allow root and Chain council to execute privileged asset operations.
+</span><span class="kw">pub type </span>AssetsForceOrigin = EitherOfDiverse&lt;
+	EnsureRoot&lt;AccountId&gt;,
+	pallet_collective::EnsureProportionMoreThan&lt;AccountId, CouncilInstance, <span class="number">1</span>, <span class="number">2</span>&gt;,
+&gt;;
 
-<span class="comment">// Foreign assets</span>
-<span class="kw">impl</span> <span class="ident">pallet_assets::Config</span><span class="op">&lt;</span><span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
-	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
-	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">AssetsForceOrigin</span>;
-	<span class="kw">type</span> <span class="ident">AssetDeposit</span> <span class="op">=</span> <span class="ident">AssetDeposit</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositBase</span> <span class="op">=</span> <span class="ident">MetadataDepositBase</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositPerByte</span> <span class="op">=</span> <span class="ident">MetadataDepositPerByte</span>;
-	<span class="kw">type</span> <span class="ident">ApprovalDeposit</span> <span class="op">=</span> <span class="ident">ApprovalDeposit</span>;
-	<span class="kw">type</span> <span class="ident">StringLimit</span> <span class="op">=</span> <span class="ident">AssetsStringLimit</span>;
-	<span class="kw">type</span> <span class="ident">Freezer</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">Extra</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">AssetAccountDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">18</span>) }<span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+<span class="comment">// Foreign assets
+</span><span class="kw">impl </span>pallet_assets::Config&lt;ForeignAssetInstance&gt; <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>AssetId = AssetId;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>ForceOrigin = AssetsForceOrigin;
+	<span class="kw">type </span>AssetDeposit = AssetDeposit;
+	<span class="kw">type </span>MetadataDepositBase = MetadataDepositBase;
+	<span class="kw">type </span>MetadataDepositPerByte = MetadataDepositPerByte;
+	<span class="kw">type </span>ApprovalDeposit = ApprovalDeposit;
+	<span class="kw">type </span>StringLimit = AssetsStringLimit;
+	<span class="kw">type </span>Freezer = ();
+	<span class="kw">type </span>Extra = ();
+	<span class="kw">type </span>AssetAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">18</span>) }&gt;;
+	<span class="kw">type </span>WeightInfo = pallet_assets::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
-<span class="comment">// Local assets</span>
-<span class="kw">impl</span> <span class="ident">pallet_assets::Config</span><span class="op">&lt;</span><span class="ident">LocalAssetInstance</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
-	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
-	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">ForceOrigin</span> <span class="op">=</span> <span class="ident">AssetsForceOrigin</span>;
-	<span class="kw">type</span> <span class="ident">AssetDeposit</span> <span class="op">=</span> <span class="ident">AssetDeposit</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositBase</span> <span class="op">=</span> <span class="ident">MetadataDepositBase</span>;
-	<span class="kw">type</span> <span class="ident">MetadataDepositPerByte</span> <span class="op">=</span> <span class="ident">MetadataDepositPerByte</span>;
-	<span class="kw">type</span> <span class="ident">ApprovalDeposit</span> <span class="op">=</span> <span class="ident">ApprovalDeposit</span>;
-	<span class="kw">type</span> <span class="ident">StringLimit</span> <span class="op">=</span> <span class="ident">AssetsStringLimit</span>;
-	<span class="kw">type</span> <span class="ident">Freezer</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">Extra</span> <span class="op">=</span> ();
-	<span class="kw">type</span> <span class="ident">AssetAccountDeposit</span> <span class="op">=</span> <span class="ident">ConstU128</span><span class="op">&lt;</span>{ <span class="ident">currency::deposit</span>(<span class="number">1</span>, <span class="number">18</span>) }<span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_assets::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+<span class="comment">// Local assets
+</span><span class="kw">impl </span>pallet_assets::Config&lt;LocalAssetInstance&gt; <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>AssetId = AssetId;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>ForceOrigin = AssetsForceOrigin;
+	<span class="kw">type </span>AssetDeposit = AssetDeposit;
+	<span class="kw">type </span>MetadataDepositBase = MetadataDepositBase;
+	<span class="kw">type </span>MetadataDepositPerByte = MetadataDepositPerByte;
+	<span class="kw">type </span>ApprovalDeposit = ApprovalDeposit;
+	<span class="kw">type </span>StringLimit = AssetsStringLimit;
+	<span class="kw">type </span>Freezer = ();
+	<span class="kw">type </span>Extra = ();
+	<span class="kw">type </span>AssetAccountDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">18</span>) }&gt;;
+	<span class="kw">type </span>WeightInfo = pallet_assets::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
-<span class="comment">// We instruct how to register the Assets</span>
-<span class="comment">// In this case, we tell it to Create an Asset in pallet-assets</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrar</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{<span class="ident">pallet_prelude::DispatchResult</span>, <span class="ident">transactional</span>};
+<span class="comment">// We instruct how to register the Assets
+// In this case, we tell it to Create an Asset in pallet-assets
+</span><span class="kw">pub struct </span>AssetRegistrar;
+<span class="kw">use </span>frame_support::{pallet_prelude::DispatchResult, transactional};
 
-<span class="kw">impl</span> <span class="ident">pallet_asset_manager::AssetRegistrar</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AssetRegistrar</span> {
-	<span class="attribute">#[<span class="ident">transactional</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_foreign_asset</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
-		<span class="ident">metadata</span>: <span class="ident">AssetRegistrarMetadata</span>,
-		<span class="ident">is_sufficient</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="ident">Assets::force_create</span>(
-			<span class="ident">Origin::root</span>(),
-			<span class="ident">asset</span>,
-			<span class="ident">AssetManager::account_id</span>(),
-			<span class="ident">is_sufficient</span>,
-			<span class="ident">min_balance</span>,
+<span class="kw">impl </span>pallet_asset_manager::AssetRegistrar&lt;Runtime&gt; <span class="kw">for </span>AssetRegistrar {
+	<span class="attribute">#[transactional]
+	</span><span class="kw">fn </span>create_foreign_asset(
+		asset: AssetId,
+		min_balance: Balance,
+		metadata: AssetRegistrarMetadata,
+		is_sufficient: bool,
+	) -&gt; DispatchResult {
+		Assets::force_create(
+			Origin::root(),
+			asset,
+			AssetManager::account_id(),
+			is_sufficient,
+			min_balance,
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// TODO uncomment when we feel comfortable</span>
-		<span class="comment">/*
+		<span class="comment">// TODO uncomment when we feel comfortable
+		/*
 		// The asset has been created. Let&#39;s put the revert code in the precompile address
 		let precompile_address = Runtime::asset_id_to_account(asset);
 		pallet_evm::AccountCodes::&lt;Runtime&gt;::insert(
 			precompile_address,
 			vec![0x60, 0x00, 0x60, 0x00, 0xfd],
-		);*/</span>
+		);*/
 
-		<span class="comment">// Lastly, the metadata</span>
-		<span class="ident">Assets::force_set_metadata</span>(
-			<span class="ident">Origin::root</span>(),
-			<span class="ident">asset</span>,
-			<span class="ident">metadata</span>.<span class="ident">name</span>,
-			<span class="ident">metadata</span>.<span class="ident">symbol</span>,
-			<span class="ident">metadata</span>.<span class="ident">decimals</span>,
-			<span class="ident">metadata</span>.<span class="ident">is_frozen</span>,
+		// Lastly, the metadata
+		</span>Assets::force_set_metadata(
+			Origin::root(),
+			asset,
+			metadata.name,
+			metadata.symbol,
+			metadata.decimals,
+			metadata.is_frozen,
 		)
 	}
 
-	<span class="attribute">#[<span class="ident">transactional</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_local_asset</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">_creator</span>: <span class="ident">AccountId</span>,
-		<span class="ident">min_balance</span>: <span class="ident">Balance</span>,
-		<span class="ident">is_sufficient</span>: <span class="ident">bool</span>,
-		<span class="ident">owner</span>: <span class="ident">AccountId</span>,
-	) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="comment">// We create with root, because we need to decide whether we want to create the asset</span>
-		<span class="comment">// as sufficient. Take into account this does not hold any reserved amount</span>
-		<span class="comment">// in pallet-assets</span>
-		<span class="ident">LocalAssets::force_create</span>(<span class="ident">Origin::root</span>(), <span class="ident">asset</span>, <span class="ident">owner</span>, <span class="ident">is_sufficient</span>, <span class="ident">min_balance</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[transactional]
+	</span><span class="kw">fn </span>create_local_asset(
+		asset: AssetId,
+		_creator: AccountId,
+		min_balance: Balance,
+		is_sufficient: bool,
+		owner: AccountId,
+	) -&gt; DispatchResult {
+		<span class="comment">// We create with root, because we need to decide whether we want to create the asset
+		// as sufficient. Take into account this does not hold any reserved amount
+		// in pallet-assets
+		</span>LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)<span class="question-mark">?</span>;
 
-		<span class="comment">// No metadata needs to be set, as this can be set through regular calls</span>
+		<span class="comment">// No metadata needs to be set, as this can be set through regular calls
 
-		<span class="comment">// TODO: should we put the revert code?</span>
-		<span class="comment">// The asset has been created. Let&#39;s put the revert code in the precompile address</span>
-		<span class="kw">let</span> <span class="ident">precompile_address</span>: <span class="ident">H160</span> <span class="op">=</span>
-			<span class="ident">Runtime::asset_id_to_account</span>(<span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>, <span class="ident">asset</span>).<span class="ident">into</span>();
-		<span class="ident">pallet_evm::AccountCodes</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-			<span class="ident">precompile_address</span>,
+		// TODO: should we put the revert code?
+		// The asset has been created. Let&#39;s put the revert code in the precompile address
+		</span><span class="kw">let </span>precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::&lt;Runtime&gt;::insert(
+			precompile_address,
 			<span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>],
 		);
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">transactional</span>]</span>
-	<span class="kw">fn</span> <span class="ident">destroy_foreign_asset</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">asset_destroy_witness</span>: <span class="ident">pallet_assets::DestroyWitness</span>,
-	) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="comment">// First destroy the asset</span>
-		<span class="ident">Assets::destroy</span>(<span class="ident">Origin::root</span>(), <span class="ident">asset</span>, <span class="ident">asset_destroy_witness</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">error</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[transactional]
+	</span><span class="kw">fn </span>destroy_foreign_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -&gt; DispatchResult {
+		<span class="comment">// First destroy the asset
+		</span>Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)<span class="question-mark">?</span>;
 
-		<span class="comment">// We remove the EVM revert code</span>
-		<span class="comment">// This does not panick even if there is no code in the address</span>
-		<span class="kw">let</span> <span class="ident">precompile_address</span>: <span class="ident">H160</span> <span class="op">=</span>
-			<span class="ident">Runtime::asset_id_to_account</span>(<span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>, <span class="ident">asset</span>).<span class="ident">into</span>();
-		<span class="ident">pallet_evm::AccountCodes</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">precompile_address</span>);
+		<span class="comment">// We remove the EVM revert code
+		// This does not panick even if there is no code in the address
+		</span><span class="kw">let </span>precompile_address: H160 =
+			Runtime::asset_id_to_account(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::&lt;Runtime&gt;::remove(precompile_address);
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">transactional</span>]</span>
-	<span class="kw">fn</span> <span class="ident">destroy_local_asset</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">asset_destroy_witness</span>: <span class="ident">pallet_assets::DestroyWitness</span>,
-	) -&gt; <span class="ident">DispatchResult</span> {
-		<span class="comment">// First destroy the asset</span>
-		<span class="ident">LocalAssets::destroy</span>(<span class="ident">Origin::root</span>(), <span class="ident">asset</span>, <span class="ident">asset_destroy_witness</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">error</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[transactional]
+	</span><span class="kw">fn </span>destroy_local_asset(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -&gt; DispatchResult {
+		<span class="comment">// First destroy the asset
+		</span>LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)<span class="question-mark">?</span>;
 
-		<span class="comment">// We remove the EVM revert code</span>
-		<span class="comment">// This does not panick even if there is no code in the address</span>
-		<span class="kw">let</span> <span class="ident">precompile_address</span>: <span class="ident">H160</span> <span class="op">=</span>
-			<span class="ident">Runtime::asset_id_to_account</span>(<span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>, <span class="ident">asset</span>).<span class="ident">into</span>();
-		<span class="ident">pallet_evm::AccountCodes</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">precompile_address</span>);
+		<span class="comment">// We remove the EVM revert code
+		// This does not panick even if there is no code in the address
+		</span><span class="kw">let </span>precompile_address: H160 =
+			Runtime::asset_id_to_account(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, asset).into();
+		pallet_evm::AccountCodes::&lt;Runtime&gt;::remove(precompile_address);
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">destroy_asset_dispatch_info_weight</span>(
-		<span class="ident">asset</span>: <span class="ident">AssetId</span>,
-		<span class="ident">asset_destroy_witness</span>: <span class="ident">pallet_assets::DestroyWitness</span>,
-	) -&gt; <span class="ident">Weight</span> {
-		<span class="comment">// For us both of them (Foreign and Local) have the same annotated weight for a given</span>
-		<span class="comment">// witness</span>
-		<span class="comment">// We need to take the dispatch info from the destroy call, which is already annotated in</span>
-		<span class="comment">// the assets pallet</span>
-		<span class="comment">// Additionally, we need to add a DB write for removing the precompile revert code in the</span>
-		<span class="comment">// EVM</span>
+	<span class="kw">fn </span>destroy_asset_dispatch_info_weight(
+		asset: AssetId,
+		asset_destroy_witness: pallet_assets::DestroyWitness,
+	) -&gt; Weight {
+		<span class="comment">// For us both of them (Foreign and Local) have the same annotated weight for a given
+		// witness
+		// We need to take the dispatch info from the destroy call, which is already annotated in
+		// the assets pallet
+		// Additionally, we need to add a DB write for removing the precompile revert code in the
+		// EVM
 
-		<span class="comment">// This is the dispatch info of destroy</span>
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">Call::Assets</span>(
-			<span class="ident">pallet_assets::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">ForeignAssetInstance</span><span class="op">&gt;</span><span class="ident">::destroy</span> {
-				<span class="ident">id</span>: <span class="ident">asset</span>,
-				<span class="ident">witness</span>: <span class="ident">asset_destroy_witness</span>,
+		// This is the dispatch info of destroy
+		</span><span class="kw">let </span>call = Call::Assets(
+			pallet_assets::Call::&lt;Runtime, ForeignAssetInstance&gt;::destroy {
+				id: asset,
+				witness: asset_destroy_witness,
 			},
 		);
 
-		<span class="comment">// This is the db write</span>
-		<span class="ident">call</span>.<span class="ident">get_dispatch_info</span>()
-			.<span class="ident">weight</span>
-			.<span class="ident">saturating_add</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+		<span class="comment">// This is the db write
+		</span>call.get_dispatch_info()
+			.weight
+			.saturating_add(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().writes(<span class="number">1</span>))
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LocalAssetIdCreator</span>;
-<span class="kw">impl</span> <span class="ident">pallet_asset_manager::LocalAssetIdCreator</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LocalAssetIdCreator</span> {
-	<span class="kw">fn</span> <span class="ident">create_asset_id_from_metadata</span>(<span class="ident">local_asset_counter</span>: <span class="ident">u128</span>) -&gt; <span class="ident">AssetId</span> {
-		<span class="comment">// Our means of converting a local asset counter to an assetId</span>
-		<span class="comment">// We basically hash (local asset counter)</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-		<span class="kw">let</span> <span class="ident">hash</span>: <span class="ident">H256</span> <span class="op">=</span>
-			<span class="ident">local_asset_counter</span>.<span class="ident">using_encoded</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hashing::hash</span>);
-		<span class="ident">result</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">hash</span>.<span class="ident">as_fixed_bytes</span>()[<span class="number">0</span>..<span class="number">16</span>]);
-		<span class="ident">u128::from_le_bytes</span>(<span class="ident">result</span>)
+<span class="kw">pub struct </span>LocalAssetIdCreator;
+<span class="kw">impl </span>pallet_asset_manager::LocalAssetIdCreator&lt;Runtime&gt; <span class="kw">for </span>LocalAssetIdCreator {
+	<span class="kw">fn </span>create_asset_id_from_metadata(local_asset_counter: u128) -&gt; AssetId {
+		<span class="comment">// Our means of converting a local asset counter to an assetId
+		// We basically hash (local asset counter)
+		</span><span class="kw">let </span><span class="kw-2">mut </span>result: [u8; <span class="number">16</span>] = [<span class="number">0u8</span>; <span class="number">16</span>];
+		<span class="kw">let </span>hash: H256 =
+			local_asset_counter.using_encoded(&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash);
+		result.copy_from_slice(<span class="kw-2">&amp;</span>hash.as_fixed_bytes()[<span class="number">0</span>..<span class="number">16</span>]);
+		u128::from_le_bytes(result)
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetRegistrarMetadata</span> {
-	<span class="kw">pub</span> <span class="ident">name</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">symbol</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">decimals</span>: <span class="ident">u8</span>,
-	<span class="kw">pub</span> <span class="ident">is_frozen</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Clone, Default, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
+</span><span class="kw">pub struct </span>AssetRegistrarMetadata {
+	<span class="kw">pub </span>name: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>symbol: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>decimals: u8,
+	<span class="kw">pub </span>is_frozen: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">pallet_asset_manager::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="kw">type</span> <span class="ident">Event</span> <span class="op">=</span> <span class="ident">Event</span>;
-	<span class="kw">type</span> <span class="ident">Balance</span> <span class="op">=</span> <span class="ident">Balance</span>;
-	<span class="kw">type</span> <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">AssetId</span>;
-	<span class="kw">type</span> <span class="ident">AssetRegistrarMetadata</span> <span class="op">=</span> <span class="ident">AssetRegistrarMetadata</span>;
-	<span class="kw">type</span> <span class="ident">ForeignAssetType</span> <span class="op">=</span> <span class="ident">xcm_config::AssetType</span>;
-	<span class="kw">type</span> <span class="ident">AssetRegistrar</span> <span class="op">=</span> <span class="ident">AssetRegistrar</span>;
-	<span class="kw">type</span> <span class="ident">ForeignAssetModifierOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">LocalAssetModifierOrigin</span> <span class="op">=</span> <span class="ident">EnsureRoot</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>;
-	<span class="kw">type</span> <span class="ident">LocalAssetIdCreator</span> <span class="op">=</span> <span class="ident">LocalAssetIdCreator</span>;
-	<span class="kw">type</span> <span class="ident">AssetDestroyWitness</span> <span class="op">=</span> <span class="ident">pallet_assets::DestroyWitness</span>;
-	<span class="kw">type</span> <span class="ident">Currency</span> <span class="op">=</span> <span class="ident">Balances</span>;
-	<span class="kw">type</span> <span class="ident">LocalAssetDeposit</span> <span class="op">=</span> <span class="ident">AssetDeposit</span>;
-	<span class="kw">type</span> <span class="ident">WeightInfo</span> <span class="op">=</span> <span class="ident">pallet_asset_manager::weights::SubstrateWeight</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>;
+<span class="kw">impl </span>pallet_asset_manager::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>Balance = Balance;
+	<span class="kw">type </span>AssetId = AssetId;
+	<span class="kw">type </span>AssetRegistrarMetadata = AssetRegistrarMetadata;
+	<span class="kw">type </span>ForeignAssetType = xcm_config::AssetType;
+	<span class="kw">type </span>AssetRegistrar = AssetRegistrar;
+	<span class="kw">type </span>ForeignAssetModifierOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>LocalAssetModifierOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>LocalAssetIdCreator = LocalAssetIdCreator;
+	<span class="kw">type </span>AssetDestroyWitness = pallet_assets::DestroyWitness;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>LocalAssetDeposit = AssetDeposit;
+	<span class="kw">type </span>WeightInfo = pallet_asset_manager::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
-<span class="comment">// Instruct how to go from an H160 to an AssetID</span>
-<span class="comment">// We just take the lowest 128 bits</span>
-<span class="kw">impl</span> <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">AssetId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-	<span class="doccomment">/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF</span>
-	<span class="doccomment">/// and by taking the lowest 128 bits as the assetId</span>
-	<span class="kw">fn</span> <span class="ident">account_to_asset_id</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">AssetId</span>)<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">h160_account</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">account</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">16</span>];
-		<span class="kw">let</span> (<span class="ident">prefix_part</span>, <span class="ident">id_part</span>) <span class="op">=</span> <span class="ident">h160_account</span>.<span class="ident">as_fixed_bytes</span>().<span class="ident">split_at</span>(<span class="number">4</span>);
-		<span class="kw">if</span> <span class="ident">prefix_part</span> <span class="op">==</span> <span class="ident">FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>
-			<span class="op">|</span><span class="op">|</span> <span class="ident">prefix_part</span> <span class="op">==</span> <span class="ident">LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX</span>
+<span class="comment">// Instruct how to go from an H160 to an AssetID
+// We just take the lowest 128 bits
+</span><span class="kw">impl </span>AccountIdAssetIdConversion&lt;AccountId, AssetId&gt; <span class="kw">for </span>Runtime {
+	<span class="doccomment">/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
+	/// and by taking the lowest 128 bits as the assetId
+	</span><span class="kw">fn </span>account_to_asset_id(account: AccountId) -&gt; <span class="prelude-ty">Option</span>&lt;(Vec&lt;u8&gt;, AssetId)&gt; {
+		<span class="kw">let </span>h160_account: H160 = account.into();
+		<span class="kw">let </span><span class="kw-2">mut </span>data = [<span class="number">0u8</span>; <span class="number">16</span>];
+		<span class="kw">let </span>(prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(<span class="number">4</span>);
+		<span class="kw">if </span>prefix_part == FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+			|| prefix_part == LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
 		{
-			<span class="ident">data</span>.<span class="ident">copy_from_slice</span>(<span class="ident">id_part</span>);
-			<span class="kw">let</span> <span class="ident">asset_id</span>: <span class="ident">AssetId</span> <span class="op">=</span> <span class="ident">u128::from_be_bytes</span>(<span class="ident">data</span>).<span class="ident">into</span>();
-			<span class="prelude-val">Some</span>((<span class="ident">prefix_part</span>.<span class="ident">to_vec</span>(), <span class="ident">asset_id</span>))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+			data.copy_from_slice(id_part);
+			<span class="kw">let </span>asset_id: AssetId = u128::from_be_bytes(data).into();
+			<span class="prelude-val">Some</span>((prefix_part.to_vec(), asset_id))
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 
-	<span class="comment">// The opposite conversion</span>
-	<span class="kw">fn</span> <span class="ident">asset_id_to_account</span>(<span class="ident">prefix</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">asset_id</span>: <span class="ident">AssetId</span>) -&gt; <span class="ident">AccountId</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">20</span>];
-		<span class="ident">data</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="ident">prefix</span>);
-		<span class="ident">data</span>[<span class="number">4</span>..<span class="number">20</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">asset_id</span>.<span class="ident">to_be_bytes</span>());
-		<span class="ident">AccountId::from</span>(<span class="ident">data</span>)
+	<span class="comment">// The opposite conversion
+	</span><span class="kw">fn </span>asset_id_to_account(prefix: <span class="kw-2">&amp;</span>[u8], asset_id: AssetId) -&gt; AccountId {
+		<span class="kw">let </span><span class="kw-2">mut </span>data = [<span class="number">0u8</span>; <span class="number">20</span>];
+		data[<span class="number">0</span>..<span class="number">4</span>].copy_from_slice(prefix);
+		data[<span class="number">4</span>..<span class="number">20</span>].copy_from_slice(<span class="kw-2">&amp;</span>asset_id.to_be_bytes());
+		AccountId::from(data)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonriver_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonriver_runtime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

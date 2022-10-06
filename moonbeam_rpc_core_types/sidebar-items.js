@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["RequestBlockId",""],["RequestBlockTag",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["RequestBlockId",""],["RequestBlockTag",""]]};

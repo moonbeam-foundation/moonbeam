@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["kusama",""],["polkadot",""],["westend",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["kusama",""],["polkadot",""],["westend",""]]};

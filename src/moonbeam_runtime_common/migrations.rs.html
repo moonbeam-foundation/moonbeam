@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/migrations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migrations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/migrations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migrations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -758,343 +753,343 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! # Migrations</span>
+</span><span class="doccomment">//! # Migrations
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">dispatch::GetStorageVersion</span>,
-	<span class="ident">storage::migration::get_storage_value</span>,
-	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">PalletInfoAccess</span>},
-	<span class="ident">weights::Weight</span>,
+</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+<span class="kw">use </span>frame_support::{
+	dispatch::GetStorageVersion,
+	storage::migration::get_storage_value,
+	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
+	weights::Weight,
 };
-<span class="kw">use</span> <span class="ident">pallet_asset_manager</span>::{
-	<span class="ident">migrations</span>::{
-		<span class="ident">ChangeStateminePrefixes</span>, <span class="ident">PopulateAssetTypeIdStorage</span>, <span class="ident">PopulateSupportedFeePaymentAssets</span>,
-		<span class="ident">UnitsWithAssetType</span>,
+<span class="kw">use </span>pallet_asset_manager::{
+	migrations::{
+		ChangeStateminePrefixes, PopulateAssetTypeIdStorage, PopulateSupportedFeePaymentAssets,
+		UnitsWithAssetType,
 	},
-	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">AssetManagerConfig</span>,
+	Config <span class="kw">as </span>AssetManagerConfig,
 };
-<span class="kw">use</span> <span class="ident">pallet_author_mapping</span>::{
-	<span class="ident">migrations</span>::{<span class="ident">AddAccountIdToNimbusLookup</span>, <span class="ident">AddKeysToRegistrationInfo</span>},
-	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">AuthorMappingConfig</span>,
+<span class="kw">use </span>pallet_author_mapping::{
+	migrations::{AddAccountIdToNimbusLookup, AddKeysToRegistrationInfo},
+	Config <span class="kw">as </span>AuthorMappingConfig,
 };
-<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount</span>;
-<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::Config</span> <span class="kw">as</span> <span class="ident">AuthorSlotFilterConfig</span>;
-<span class="kw">use</span> <span class="ident">pallet_base_fee::Config</span> <span class="kw">as</span> <span class="ident">BaseFeeConfig</span>;
-<span class="kw">use</span> <span class="ident">pallet_migrations</span>::{<span class="ident">GetMigrations</span>, <span class="ident">Migration</span>};
-<span class="kw">use</span> <span class="ident">pallet_parachain_staking</span>::{
-	<span class="ident">migrations</span>::{
-		<span class="ident">PatchIncorrectDelegationSums</span>, <span class="ident">PurgeStaleStorage</span>,
-		<span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span>,
+<span class="kw">use </span>pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
+<span class="kw">use </span>pallet_author_slot_filter::Config <span class="kw">as </span>AuthorSlotFilterConfig;
+<span class="kw">use </span>pallet_base_fee::Config <span class="kw">as </span>BaseFeeConfig;
+<span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
+<span class="kw">use </span>pallet_parachain_staking::{
+	migrations::{
+		PatchIncorrectDelegationSums, PurgeStaleStorage,
+		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
-	<span class="ident">Config</span> <span class="kw">as</span> <span class="ident">ParachainStakingConfig</span>,
+	Config <span class="kw">as </span>ParachainStakingConfig,
 };
-<span class="kw">use</span> <span class="ident">pallet_xcm_transactor</span>::{
-	<span class="ident">migrations::TransactSignedWeightAndFeePerSecond</span>, <span class="ident">Config</span> <span class="kw">as</span> <span class="ident">XcmTransactorConfig</span>,
+<span class="kw">use </span>pallet_xcm_transactor::{
+	migrations::TransactSignedWeightAndFeePerSecond, Config <span class="kw">as </span>XcmTransactorConfig,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::Permill</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">xcm::latest::MultiLocation</span>;
+<span class="kw">use </span>sp_runtime::Permill;
+<span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>xcm::latest::MultiLocation;
 
-<span class="doccomment">/// This module acts as a registry where each migration is defined. Each migration should implement</span>
-<span class="doccomment">/// the &quot;Migration&quot; trait declared in the pallet-migrations crate.</span>
+<span class="doccomment">/// This module acts as a registry where each migration is defined. Each migration should implement
+/// the &quot;Migration&quot; trait declared in the pallet-migrations crate.
 
-<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorMappingAddAccountIdToNimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AuthorMappingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">AuthorMappingAddAccountIdToNimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Author_Mapping_AddAccountIdToNimbusLookup&quot;</span>
+/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+</span><span class="kw">pub struct </span>AuthorMappingAddAccountIdToNimbusLookup&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: AuthorMappingConfig&gt; Migration <span class="kw">for </span>AuthorMappingAddAccountIdToNimbusLookup&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Author_Mapping_AddAccountIdToNimbusLookup&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		AddAccountIdToNimbusLookup::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">AddAccountIdToNimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		AddAccountIdToNimbusLookup::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">AddAccountIdToNimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">AddAccountIdToNimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
-	}
-}
-
-<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorMappingAddKeysToRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AuthorMappingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">AuthorMappingAddKeysToRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Author_Mapping_AddKeysToRegistrationInfo&quot;</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">AddKeysToRegistrationInfo</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">AddKeysToRegistrationInfo</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">AddKeysToRegistrationInfo</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		AddAccountIdToNimbusLookup::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="doccomment">/// Patch delegations total mismatch</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingPatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ParachainStakingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">ParachainStakingPatchIncorrectDelegationSums</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Parachain_Staking_Patch_Incorrect_Delegation_Sums&quot;</span>
+<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+</span><span class="kw">pub struct </span>AuthorMappingAddKeysToRegistrationInfo&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: AuthorMappingConfig&gt; Migration <span class="kw">for </span>AuthorMappingAddKeysToRegistrationInfo&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Author_Mapping_AddKeysToRegistrationInfo&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		AddKeysToRegistrationInfo::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		AddKeysToRegistrationInfo::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PatchIncorrectDelegationSums</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		AddKeysToRegistrationInfo::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="doccomment">/// Staking split delegator state into [pallet_parachain_staking::DelegatorScheduledRequests]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ParachainStakingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span>
-	<span class="kw">for</span> <span class="ident">ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="doccomment">/// Patch delegations total mismatch
+</span><span class="kw">pub struct </span>ParachainStakingPatchIncorrectDelegationSums&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: ParachainStakingConfig&gt; Migration <span class="kw">for </span>ParachainStakingPatchIncorrectDelegationSums&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Parachain_Staking_Patch_Incorrect_Delegation_Sums&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		PatchIncorrectDelegationSums::&lt;T&gt;::on_runtime_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PatchIncorrectDelegationSums::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PatchIncorrectDelegationSums::&lt;T&gt;::post_upgrade()
+	}
+}
+
+<span class="doccomment">/// Staking split delegator state into [pallet_parachain_staking::DelegatorScheduledRequests]
+</span><span class="kw">pub struct </span>ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: ParachainStakingConfig&gt; Migration
+	<span class="kw">for </span>ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests&lt;T&gt;
 {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Parachain_Staking_Split_Delegator_State_Into_Delegation_Scheduled_Requests&quot;</span>
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Parachain_Staking_Split_Delegator_State_Into_Delegation_Scheduled_Requests&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		SplitDelegatorStateIntoDelegationScheduledRequests::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		SplitDelegatorStateIntoDelegationScheduledRequests::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">SplitDelegatorStateIntoDelegationScheduledRequests</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
-	}
-}
-
-<span class="comment">// /// Staking transition from automatic to manual exits, delay bond_{more, less} requests</span>
-<span class="comment">// pub struct ParachainStakingManualExits&lt;T&gt;(PhantomData&lt;T&gt;);</span>
-<span class="comment">// impl&lt;T: ParachainStakingConfig&gt; Migration for ParachainStakingManualExits&lt;T&gt; {</span>
-<span class="comment">// 	fn friendly_name(&amp;self) -&gt; &amp;str {</span>
-<span class="comment">// 		&quot;MM_Parachain_Staking_ManualExits&quot;</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {</span>
-<span class="comment">// 		RemoveExitQueue::&lt;T&gt;::on_runtime_upgrade()</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		RemoveExitQueue::&lt;T&gt;::pre_upgrade()</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		RemoveExitQueue::&lt;T&gt;::post_upgrade()</span>
-<span class="comment">// 	}</span>
-<span class="comment">// }</span>
-
-<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in parachain-staking</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingPurgeStaleStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">ParachainStakingConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">ParachainStakingPurgeStaleStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Parachain_Staking_PurgeStaleStorage&quot;</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">PurgeStaleStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PurgeStaleStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PurgeStaleStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		SplitDelegatorStateIntoDelegationScheduledRequests::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping</span>
-<span class="comment">// pub struct AuthorMappingTwoXToBlake&lt;T&gt;(PhantomData&lt;T&gt;);</span>
-<span class="comment">// impl&lt;T: AuthorMappingConfig&gt; Migration for AuthorMappingTwoXToBlake&lt;T&gt; {</span>
-<span class="comment">// 	fn friendly_name(&amp;self) -&gt; &amp;str {</span>
-<span class="comment">// 		&quot;MM_Author_Mapping_TwoXToBlake&quot;</span>
-<span class="comment">// 	}</span>
+<span class="comment">// /// Staking transition from automatic to manual exits, delay bond_{more, less} requests
+// pub struct ParachainStakingManualExits&lt;T&gt;(PhantomData&lt;T&gt;);
+// impl&lt;T: ParachainStakingConfig&gt; Migration for ParachainStakingManualExits&lt;T&gt; {
+// 	fn friendly_name(&amp;self) -&gt; &amp;str {
+// 		&quot;MM_Parachain_Staking_ManualExits&quot;
+// 	}
 
-<span class="comment">// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {</span>
-<span class="comment">// 		TwoXToBlake::&lt;T&gt;::on_runtime_upgrade()</span>
-<span class="comment">// 	}</span>
+// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {
+// 		RemoveExitQueue::&lt;T&gt;::on_runtime_upgrade()
+// 	}
 
-<span class="comment">// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		TwoXToBlake::&lt;T&gt;::pre_upgrade()</span>
-<span class="comment">// 	}</span>
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		RemoveExitQueue::&lt;T&gt;::pre_upgrade()
+// 	}
 
-<span class="comment">// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		TwoXToBlake::&lt;T&gt;::post_upgrade()</span>
-<span class="comment">// 	}</span>
-<span class="comment">// }</span>
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		RemoveExitQueue::&lt;T&gt;::post_upgrade()
+// 	}
+// }
 
-<span class="kw">const</span> <span class="ident">COUNCIL_OLD_PREFIX</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Instance1Collective&quot;</span>;
-<span class="kw">const</span> <span class="ident">TECH_OLD_PREFIX</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Instance2Collective&quot;</span>;
+</span><span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in parachain-staking
+</span><span class="kw">pub struct </span>ParachainStakingPurgeStaleStorage&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: ParachainStakingConfig&gt; Migration <span class="kw">for </span>ParachainStakingPurgeStaleStorage&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Parachain_Staking_PurgeStaleStorage&quot;
+	</span>}
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigrateCollectivePallets</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span>)<span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">MigrateCollectivePallets</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">frame_system::Config</span>,
-	<span class="ident">Council</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span>,
-	<span class="ident">Tech</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span>,
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		PurgeStaleStorage::&lt;T&gt;::on_runtime_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PurgeStaleStorage::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PurgeStaleStorage::&lt;T&gt;::post_upgrade()
+	}
+}
+
+<span class="doccomment">/// A moonbeam migration wrapping the similarly named migration in pallet-author-mapping
+</span><span class="comment">// pub struct AuthorMappingTwoXToBlake&lt;T&gt;(PhantomData&lt;T&gt;);
+// impl&lt;T: AuthorMappingConfig&gt; Migration for AuthorMappingTwoXToBlake&lt;T&gt; {
+// 	fn friendly_name(&amp;self) -&gt; &amp;str {
+// 		&quot;MM_Author_Mapping_TwoXToBlake&quot;
+// 	}
+
+// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {
+// 		TwoXToBlake::&lt;T&gt;::on_runtime_upgrade()
+// 	}
+
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		TwoXToBlake::&lt;T&gt;::pre_upgrade()
+// 	}
+
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		TwoXToBlake::&lt;T&gt;::post_upgrade()
+// 	}
+// }
+
+</span><span class="kw">const </span>COUNCIL_OLD_PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Instance1Collective&quot;</span>;
+<span class="kw">const </span>TECH_OLD_PREFIX: <span class="kw-2">&amp;</span>str = <span class="string">&quot;Instance2Collective&quot;</span>;
+
+<span class="kw">pub struct </span>MigrateCollectivePallets&lt;Runtime, Council, Tech&gt;(PhantomData&lt;(Runtime, Council, Tech)&gt;);
+<span class="kw">impl</span>&lt;Runtime, Council, Tech&gt; Migration <span class="kw">for </span>MigrateCollectivePallets&lt;Runtime, Council, Tech&gt;
+<span class="kw">where
+	</span>Runtime: frame_system::Config,
+	Council: GetStorageVersion + PalletInfoAccess,
+	Tech: GetStorageVersion + PalletInfoAccess,
 {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Collective_Pallets_v0.9.11_Prefixes&quot;</span>
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Collective_Pallets_v0.9.11_Prefixes&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		pallet_collective::migrations::v4::migrate::&lt;Runtime, Council, <span class="kw">_</span>&gt;(COUNCIL_OLD_PREFIX)
+			+ pallet_collective::migrations::v4::migrate::&lt;Runtime, Tech, <span class="kw">_</span>&gt;(TECH_OLD_PREFIX)
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">pallet_collective::migrations::v4::migrate</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">COUNCIL_OLD_PREFIX</span>)
-			<span class="op">+</span> <span class="ident">pallet_collective::migrations::v4::migrate</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Tech</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TECH_OLD_PREFIX</span>)
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">pallet_collective::migrations::v4::pre_migrate</span>::<span class="op">&lt;</span><span class="ident">Council</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">COUNCIL_OLD_PREFIX</span>);
-		<span class="ident">pallet_collective::migrations::v4::pre_migrate</span>::<span class="op">&lt;</span><span class="ident">Tech</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TECH_OLD_PREFIX</span>);
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		pallet_collective::migrations::v4::pre_migrate::&lt;Council, <span class="kw">_</span>&gt;(COUNCIL_OLD_PREFIX);
+		pallet_collective::migrations::v4::pre_migrate::&lt;Tech, <span class="kw">_</span>&gt;(TECH_OLD_PREFIX);
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">pallet_collective::migrations::v4::post_migrate</span>::<span class="op">&lt;</span><span class="ident">Council</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">COUNCIL_OLD_PREFIX</span>);
-		<span class="ident">pallet_collective::migrations::v4::post_migrate</span>::<span class="op">&lt;</span><span class="ident">Tech</span>, <span class="kw">_</span><span class="op">&gt;</span>(<span class="ident">TECH_OLD_PREFIX</span>);
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		pallet_collective::migrations::v4::post_migrate::&lt;Council, <span class="kw">_</span>&gt;(COUNCIL_OLD_PREFIX);
+		pallet_collective::migrations::v4::post_migrate::&lt;Tech, <span class="kw">_</span>&gt;(TECH_OLD_PREFIX);
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 
-<span class="doccomment">/// BaseFee pallet, set missing storage values.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">BaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-		<span class="comment">// Verify the storage before the upgrade is empty</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
-			<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="string">&quot;base_fee_is_empty&quot;</span>);
+<span class="doccomment">/// BaseFee pallet, set missing storage values.
+</span><span class="kw">pub struct </span>BaseFeePerGas&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: BaseFeeConfig&gt; OnRuntimeUpgrade <span class="kw">for </span>BaseFeePerGas&lt;T&gt; {
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="comment">// Verify the storage before the upgrade is empty
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+			<span class="kw">let </span>value = get_storage_value::&lt;sp_core::U256&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+			<span class="self">Self</span>::set_temp_storage(value.is_none(), <span class="string">&quot;base_fee_is_empty&quot;</span>);
 		}
-		<span class="comment">// Elasticity storage value</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-			<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">value</span>.<span class="ident">is_none</span>(), <span class="string">&quot;elasticity_is_empty&quot;</span>);
+		<span class="comment">// Elasticity storage value
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let </span>value = get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+			<span class="self">Self</span>::set_temp_storage(value.is_none(), <span class="string">&quot;elasticity_is_empty&quot;</span>);
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-		<span class="kw">let</span> <span class="ident">db_weights</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">2</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">read</span>;
-		<span class="comment">// BaseFeePerGas storage value</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
-			<span class="kw">let</span> <span class="ident">current_value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-			<span class="kw">if</span> <span class="ident">current_value</span>.<span class="ident">is_none</span>() {
-				<span class="comment">// Put the default configured value in storage</span>
-				<span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_base_fee_per_gas_inner</span>(
-					<span class="ident">T::DefaultBaseFeePerGas::get</span>(),
+	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="kw">let </span>db_weights = T::DbWeight::get();
+		<span class="kw">let </span><span class="kw-2">mut </span>weight: Weight = db_weights.reads(<span class="number">2</span>);
+		<span class="comment">// BaseFeePerGas storage value
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+			<span class="kw">let </span>current_value = get_storage_value::&lt;sp_core::U256&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+			<span class="kw">if </span>current_value.is_none() {
+				<span class="comment">// Put the default configured value in storage
+				</span><span class="kw">let </span>write = pallet_base_fee::Pallet::&lt;T&gt;::set_base_fee_per_gas_inner(
+					T::DefaultBaseFeePerGas::get(),
 				);
-				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">write</span>);
+				weight = weight.saturating_add(write);
 			}
 		}
-		<span class="comment">// Elasticity storage value</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-			<span class="kw">let</span> <span class="ident">current_value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-			<span class="kw">if</span> <span class="ident">current_value</span>.<span class="ident">is_none</span>() {
-				<span class="comment">// Put the default value in storage</span>
-				<span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_elasticity_inner</span>(
-					<span class="ident">Permill::from_parts</span>(<span class="number">125_000</span>),
+		<span class="comment">// Elasticity storage value
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let </span>current_value = get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+			<span class="kw">if </span>current_value.is_none() {
+				<span class="comment">// Put the default value in storage
+				</span><span class="kw">let </span>write = pallet_base_fee::Pallet::&lt;T&gt;::set_elasticity_inner(
+					Permill::from_parts(<span class="number">125_000</span>),
 				);
-				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">write</span>);
+				weight = weight.saturating_add(write);
 			}
 		}
-		<span class="ident">weight</span>
+		weight
 	}
 
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;base_fee_is_empty&quot;</span>).<span class="ident">is_some</span>()
-			<span class="op">&amp;&amp;</span> <span class="ident"><span class="self">Self</span>::get_temp_storage</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="string">&quot;elasticity_is_empty&quot;</span>).<span class="ident">is_some</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">if </span><span class="self">Self</span>::get_temp_storage::&lt;bool&gt;(<span class="string">&quot;base_fee_is_empty&quot;</span>).is_some()
+			&amp;&amp; <span class="self">Self</span>::get_temp_storage::&lt;bool&gt;(<span class="string">&quot;elasticity_is_empty&quot;</span>).is_some()
 		{
-			<span class="comment">// Verify the storage after the upgrade matches the runtime configured default</span>
-			<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-			<span class="comment">// BaseFeePerGas storage value</span>
-			{
-				<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFeePerGas&quot;</span>;
-				<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">sp_core::U256</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-				<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="ident">T::DefaultBaseFeePerGas::get</span>()));
+			<span class="comment">// Verify the storage after the upgrade matches the runtime configured default
+			</span><span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+			<span class="comment">// BaseFeePerGas storage value
+			</span>{
+				<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFeePerGas&quot;</span>;
+				<span class="kw">let </span>value = get_storage_value::&lt;sp_core::U256&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+				<span class="macro">assert_eq!</span>(value, <span class="prelude-val">Some</span>(T::DefaultBaseFeePerGas::get()));
 			}
-			<span class="comment">// Elasticity storage value</span>
-			{
-				<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-				<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-				<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="ident">Permill::from_parts</span>(<span class="number">125_000</span>)));
+			<span class="comment">// Elasticity storage value
+			</span>{
+				<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+				<span class="kw">let </span>value = get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+				<span class="macro">assert_eq!</span>(value, <span class="prelude-val">Some</span>(Permill::from_parts(<span class="number">125_000</span>)));
 			}
 		}
 
@@ -1102,279 +1097,279 @@
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigrateBaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="comment">// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy</span>
-<span class="comment">// proposal to set this values through an extrinsic.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">MigrateBaseFeePerGas</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Base_Fee_Per_Gas&quot;</span>
+<span class="kw">pub struct </span>MigrateBaseFeePerGas&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="comment">// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
+// proposal to set this values through an extrinsic.
+</span><span class="kw">impl</span>&lt;T: BaseFeeConfig&gt; Migration <span class="kw">for </span>MigrateBaseFeePerGas&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Base_Fee_Per_Gas&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		BaseFeePerGas::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		BaseFeePerGas::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">BaseFeePerGas</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
-	}
-}
-
-<span class="comment">// #[cfg(feature = &quot;xcm-support&quot;)]</span>
-<span class="comment">// pub struct XcmTransactorMaxTransactWeight&lt;T&gt;(PhantomData&lt;T&gt;);</span>
-<span class="comment">// #[cfg(feature = &quot;xcm-support&quot;)]</span>
-<span class="comment">// impl&lt;T: XcmTransactorConfig&gt; Migration for XcmTransactorMaxTransactWeight&lt;T&gt; {</span>
-<span class="comment">// 	fn friendly_name(&amp;self) -&gt; &amp;str {</span>
-<span class="comment">// 		&quot;MM_Xcm_Transactor_MaxTransactWeight&quot;</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {</span>
-<span class="comment">// 		MaxTransactWeight::&lt;T&gt;::on_runtime_upgrade()</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		MaxTransactWeight::&lt;T&gt;::pre_upgrade()</span>
-<span class="comment">// 	}</span>
-
-<span class="comment">// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-<span class="comment">// 	#[cfg(feature = &quot;try-runtime&quot;)]</span>
-<span class="comment">// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {</span>
-<span class="comment">// 		MaxTransactWeight::&lt;T&gt;::post_upgrade()</span>
-<span class="comment">// 	}</span>
-<span class="comment">// }</span>
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmTransactorTransactSignedWeightAndFeePerSecond</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">XcmTransactorConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">XcmTransactorTransactSignedWeightAndFeePerSecond</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond&quot;</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">TransactSignedWeightAndFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">TransactSignedWeightAndFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">TransactSignedWeightAndFeePerSecond</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
-	}
-}
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetManagerUnitsWithAssetType</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AssetManagerConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">AssetManagerUnitsWithAssetType</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Asset_Manager_UnitsWithAssetType&quot;</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">UnitsWithAssetType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">UnitsWithAssetType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">UnitsWithAssetType</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		BaseFeePerGas::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetManagerPopulateAssetTypeIdStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AssetManagerConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">AssetManagerPopulateAssetTypeIdStorage</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Asset_Manager_PopulateAssetTypeIdStorage&quot;</span>
+<span class="comment">// #[cfg(feature = &quot;xcm-support&quot;)]
+// pub struct XcmTransactorMaxTransactWeight&lt;T&gt;(PhantomData&lt;T&gt;);
+// #[cfg(feature = &quot;xcm-support&quot;)]
+// impl&lt;T: XcmTransactorConfig&gt; Migration for XcmTransactorMaxTransactWeight&lt;T&gt; {
+// 	fn friendly_name(&amp;self) -&gt; &amp;str {
+// 		&quot;MM_Xcm_Transactor_MaxTransactWeight&quot;
+// 	}
+
+// 	fn migrate(&amp;self, _available_weight: Weight) -&gt; Weight {
+// 		MaxTransactWeight::&lt;T&gt;::on_runtime_upgrade()
+// 	}
+
+// 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn pre_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		MaxTransactWeight::&lt;T&gt;::pre_upgrade()
+// 	}
+
+// 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+// 	#[cfg(feature = &quot;try-runtime&quot;)]
+// 	fn post_upgrade(&amp;self) -&gt; Result&lt;(), &amp;&#39;static str&gt; {
+// 		MaxTransactWeight::&lt;T&gt;::post_upgrade()
+// 	}
+// }
+
+</span><span class="kw">pub struct </span>XcmTransactorTransactSignedWeightAndFeePerSecond&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: XcmTransactorConfig&gt; Migration <span class="kw">for </span>XcmTransactorTransactSignedWeightAndFeePerSecond&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Xcm_Transactor_TransactSignedWeightAndFeePerSecond&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		TransactSignedWeightAndFeePerSecond::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">PopulateAssetTypeIdStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		TransactSignedWeightAndFeePerSecond::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PopulateAssetTypeIdStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		TransactSignedWeightAndFeePerSecond::&lt;T&gt;::post_upgrade()
+	}
+}
+<span class="kw">pub struct </span>AssetManagerUnitsWithAssetType&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: AssetManagerConfig&gt; Migration <span class="kw">for </span>AssetManagerUnitsWithAssetType&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Asset_Manager_UnitsWithAssetType&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		UnitsWithAssetType::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PopulateAssetTypeIdStorage</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		UnitsWithAssetType::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		UnitsWithAssetType::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AssetManagerChangeStateminePrefixes</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span><span class="op">&gt;</span>(
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span>)<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>AssetManagerPopulateAssetTypeIdStorage&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: AssetManagerConfig&gt; Migration <span class="kw">for </span>AssetManagerPopulateAssetTypeIdStorage&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Asset_Manager_PopulateAssetTypeIdStorage&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		PopulateAssetTypeIdStorage::&lt;T&gt;::on_runtime_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PopulateAssetTypeIdStorage::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PopulateAssetTypeIdStorage::&lt;T&gt;::post_upgrade()
+	}
+}
+
+<span class="kw">pub struct </span>AssetManagerChangeStateminePrefixes&lt;T, StatemineParaIdInfo, StatemineAssetsPalletInfo&gt;(
+	PhantomData&lt;(T, StatemineParaIdInfo, StatemineAssetsPalletInfo)&gt;,
 );
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span><span class="op">&gt;</span> <span class="ident">Migration</span>
-	<span class="kw">for</span> <span class="ident">AssetManagerChangeStateminePrefixes</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">AssetManagerConfig</span>,
-	<span class="ident">StatemineParaIdInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">StatemineAssetsPalletInfo</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">T::ForeignAssetType</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">MultiLocation</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;T, StatemineParaIdInfo, StatemineAssetsPalletInfo&gt; Migration
+	<span class="kw">for </span>AssetManagerChangeStateminePrefixes&lt;T, StatemineParaIdInfo, StatemineAssetsPalletInfo&gt;
+<span class="kw">where
+	</span>T: AssetManagerConfig,
+	StatemineParaIdInfo: Get&lt;u32&gt;,
+	StatemineAssetsPalletInfo: Get&lt;u8&gt;,
+	T::ForeignAssetType: Into&lt;<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt; + From&lt;MultiLocation&gt;,
 {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Asset_Manager_ChangeStateminePrefixes&quot;</span>
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Asset_Manager_ChangeStateminePrefixes&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		ChangeStateminePrefixes::&lt;
+			T,
+			StatemineParaIdInfo,
+			StatemineAssetsPalletInfo
+		&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">ChangeStateminePrefixes</span>::<span class="op">&lt;</span>
-			<span class="ident">T</span>,
-			<span class="ident">StatemineParaIdInfo</span>,
-			<span class="ident">StatemineAssetsPalletInfo</span>
-		<span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		ChangeStateminePrefixes::&lt;T, StatemineParaIdInfo, StatemineAssetsPalletInfo&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">ChangeStateminePrefixes</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">ChangeStateminePrefixes</span>::<span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">StatemineParaIdInfo</span>, <span class="ident">StatemineAssetsPalletInfo</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		ChangeStateminePrefixes::&lt;T, StatemineParaIdInfo, StatemineAssetsPalletInfo&gt;::post_upgrade()
 	}
 }
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">XcmPaymentSupportedAssets</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">AssetManagerConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">XcmPaymentSupportedAssets</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Xcm_Payment_Supported_Assets&quot;</span>
+<span class="kw">pub struct </span>XcmPaymentSupportedAssets&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: AssetManagerConfig&gt; Migration <span class="kw">for </span>XcmPaymentSupportedAssets&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Xcm_Payment_Supported_Assets&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		PopulateSupportedFeePaymentAssets::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">PopulateSupportedFeePaymentAssets</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PopulateSupportedFeePaymentAssets::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PopulateSupportedFeePaymentAssets</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">PopulateSupportedFeePaymentAssets</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		PopulateSupportedFeePaymentAssets::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AuthorSlotFilterEligibleRatioToEligiblityCount</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">AuthorSlotFilterEligibleRatioToEligiblityCount</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">AuthorSlotFilterConfig</span>,
+<span class="kw">pub struct </span>AuthorSlotFilterEligibleRatioToEligiblityCount&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T&gt; Migration <span class="kw">for </span>AuthorSlotFilterEligibleRatioToEligiblityCount&lt;T&gt;
+<span class="kw">where
+	</span>T: AuthorSlotFilterConfig,
 {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_AuthorSlotFilter_EligibleRatioToEligiblityCount&quot;</span>
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_AuthorSlotFilter_EligibleRatioToEligiblityCount&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		EligibleRatioToEligiblityCount::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">EligibleRatioToEligiblityCount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		EligibleRatioToEligiblityCount::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">EligibleRatioToEligiblityCount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">EligibleRatioToEligiblityCount</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
-	}
-}
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SchedulerMigrationV3</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">pallet_scheduler::Config</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">SchedulerMigrationV3</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_SchedulerMigrationV3&quot;</span>
-	}
-
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">pallet_scheduler::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::migrate_v2_to_v3</span>()
-	}
-
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">pallet_scheduler::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_migrate_to_v3</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">pallet_scheduler::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_migrate_to_v3</span>()
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		EligibleRatioToEligiblityCount::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="doccomment">/// BaseFee pallet, set Elasticity to zero.</span>
-<span class="doccomment">/// This migration needs to be applied before or at the same time we introduce:</span>
-<span class="doccomment">/// https://github.com/paritytech/frontier/pull/794</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BaseFeeElasticity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">BaseFeeElasticity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-		<span class="comment">// Elasticity storage value</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-			<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">unwrap_or</span>(<span class="ident">Permill::zero</span>());
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(<span class="ident">value</span>, <span class="string">&quot;elasticity_pre_upgrade&quot;</span>);
+<span class="kw">pub struct </span>SchedulerMigrationV3&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: pallet_scheduler::Config&gt; Migration <span class="kw">for </span>SchedulerMigrationV3&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_SchedulerMigrationV3&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		pallet_scheduler::Pallet::&lt;T&gt;::migrate_v2_to_v3()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		pallet_scheduler::Pallet::&lt;T&gt;::pre_migrate_to_v3()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		pallet_scheduler::Pallet::&lt;T&gt;::post_migrate_to_v3()
+	}
+}
+
+<span class="doccomment">/// BaseFee pallet, set Elasticity to zero.
+/// This migration needs to be applied before or at the same time we introduce:
+/// https://github.com/paritytech/frontier/pull/794
+</span><span class="kw">pub struct </span>BaseFeeElasticity&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: BaseFeeConfig&gt; OnRuntimeUpgrade <span class="kw">for </span>BaseFeeElasticity&lt;T&gt; {
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="comment">// Elasticity storage value
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let </span>value = get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]).unwrap_or(Permill::zero());
+			<span class="self">Self</span>::set_temp_storage(value, <span class="string">&quot;elasticity_pre_upgrade&quot;</span>);
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-		<span class="kw">let</span> <span class="ident">db_weights</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">weight</span>: <span class="ident">Weight</span> <span class="op">=</span> <span class="number">1</span> <span class="op">*</span> <span class="ident">db_weights</span>.<span class="ident">read</span>;
-		<span class="comment">// Elasticity storage value</span>
-		{
-			<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-			<span class="kw">let</span> <span class="ident">current_value</span> <span class="op">=</span>
-				<span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]).<span class="ident">unwrap_or</span>(<span class="ident">Permill::zero</span>());
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">current_value</span>.<span class="ident">is_zero</span>() {
-				<span class="comment">// Set Elasticity to zero, which results in constant BaseFeePerGas</span>
-				<span class="kw">let</span> <span class="ident">write</span> <span class="op">=</span> <span class="ident">pallet_base_fee::Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::set_elasticity_inner</span>(<span class="ident">Permill::zero</span>());
-				<span class="ident">weight</span> <span class="op">=</span> <span class="ident">weight</span>.<span class="ident">saturating_add</span>(<span class="ident">write</span>);
+	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+		<span class="kw">let </span>db_weights = T::DbWeight::get();
+		<span class="kw">let </span><span class="kw-2">mut </span>weight: Weight = db_weights.reads(<span class="number">1</span>);
+		<span class="comment">// Elasticity storage value
+		</span>{
+			<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+			<span class="kw">let </span>current_value =
+				get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]).unwrap_or(Permill::zero());
+			<span class="kw">if </span>!current_value.is_zero() {
+				<span class="comment">// Set Elasticity to zero, which results in constant BaseFeePerGas
+				</span><span class="kw">let </span>write = pallet_base_fee::Pallet::&lt;T&gt;::set_elasticity_inner(Permill::zero());
+				weight = weight.saturating_add(write);
 			}
 		}
-		<span class="ident">weight</span>
+		weight
 	}
 
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">pre_value</span> <span class="op">=</span>
-			<span class="ident"><span class="self">Self</span>::get_temp_storage</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="string">&quot;elasticity_pre_upgrade&quot;</span>).<span class="ident">unwrap_or</span>(<span class="ident">Permill::zero</span>());
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">pre_value</span>.<span class="ident">is_zero</span>() {
-			<span class="comment">// Verify the storage after the upgrade is Permill::zero</span>
-			<span class="kw">let</span> <span class="ident">module</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;BaseFee&quot;</span>;
-			<span class="comment">// Elasticity storage value</span>
-			{
-				<span class="kw">let</span> <span class="ident">item</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="string">b&quot;Elasticity&quot;</span>;
-				<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">get_storage_value</span>::<span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span>(<span class="ident">module</span>, <span class="ident">item</span>, <span class="kw-2">&amp;</span>[]);
-				<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="ident">Permill::zero</span>()));
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>pre_value =
+			<span class="self">Self</span>::get_temp_storage::&lt;Permill&gt;(<span class="string">&quot;elasticity_pre_upgrade&quot;</span>).unwrap_or(Permill::zero());
+		<span class="kw">if </span>!pre_value.is_zero() {
+			<span class="comment">// Verify the storage after the upgrade is Permill::zero
+			</span><span class="kw">let </span>module: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;BaseFee&quot;</span>;
+			<span class="comment">// Elasticity storage value
+			</span>{
+				<span class="kw">let </span>item: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;Elasticity&quot;</span>;
+				<span class="kw">let </span>value = get_storage_value::&lt;Permill&gt;(module, item, <span class="kw-2">&amp;</span>[]);
+				<span class="macro">assert_eq!</span>(value, <span class="prelude-val">Some</span>(Permill::zero()));
 			}
 		}
 
@@ -1382,137 +1377,136 @@
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MigrateBaseFeeElasticity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="comment">// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy</span>
-<span class="comment">// proposal to set this values through an extrinsic.</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">BaseFeeConfig</span><span class="op">&gt;</span> <span class="ident">Migration</span> <span class="kw">for</span> <span class="ident">MigrateBaseFeeElasticity</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">friendly_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
-		<span class="string">&quot;MM_Base_Fee_Elasticity&quot;</span>
+<span class="kw">pub struct </span>MigrateBaseFeeElasticity&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="comment">// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
+// proposal to set this values through an extrinsic.
+</span><span class="kw">impl</span>&lt;T: BaseFeeConfig&gt; Migration <span class="kw">for </span>MigrateBaseFeeElasticity&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Base_Fee_Elasticity&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		BaseFeeElasticity::&lt;T&gt;::on_runtime_upgrade()
 	}
 
-	<span class="kw">fn</span> <span class="ident">migrate</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_available_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="ident">BaseFeeElasticity</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::on_runtime_upgrade</span>()
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		BaseFeeElasticity::&lt;T&gt;::pre_upgrade()
 	}
 
-	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">BaseFeeElasticity</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::pre_upgrade</span>()
-	}
-
-	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.</span>
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="ident">BaseFeeElasticity</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::post_upgrade</span>()
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		BaseFeeElasticity::&lt;T&gt;::post_upgrade()
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CommonMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span>)<span class="op">&gt;</span>);
+<span class="kw">pub struct </span>CommonMigrations&lt;Runtime, Council, Tech&gt;(PhantomData&lt;(Runtime, Council, Tech)&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span> <span class="ident">GetMigrations</span> <span class="kw">for</span> <span class="ident">CommonMigrations</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Council</span>, <span class="ident">Tech</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_author_mapping::Config</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_parachain_staking::Config</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_scheduler::Config</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_base_fee::Config</span>,
-	<span class="ident">Runtime</span>: <span class="ident">AuthorSlotFilterConfig</span>,
-	<span class="ident">Council</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">Tech</span>: <span class="ident">GetStorageVersion</span> <span class="op">+</span> <span class="ident">PalletInfoAccess</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;Runtime, Council, Tech&gt; GetMigrations <span class="kw">for </span>CommonMigrations&lt;Runtime, Council, Tech&gt;
+<span class="kw">where
+	</span>Runtime: pallet_author_mapping::Config,
+	Runtime: pallet_parachain_staking::Config,
+	Runtime: pallet_scheduler::Config,
+	Runtime: pallet_base_fee::Config,
+	Runtime: AuthorSlotFilterConfig,
+	Council: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
+	Tech: GetStorageVersion + PalletInfoAccess + <span class="lifetime">&#39;static</span>,
 {
-	<span class="kw">fn</span> <span class="ident">get_migrations</span>() -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Migration</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="comment">// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::&lt;Runtime&gt; {</span>
-		<span class="comment">// 	0: Default::default(),</span>
-		<span class="comment">// };</span>
+	<span class="kw">fn </span>get_migrations() -&gt; Vec&lt;Box&lt;<span class="kw">dyn </span>Migration&gt;&gt; {
+		<span class="comment">// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::&lt;Runtime&gt; {
+		// 	0: Default::default(),
+		// };
 
-		<span class="comment">// let migration_parachain_staking_purge_stale_storage =</span>
-		<span class="comment">// 	ParachainStakingPurgeStaleStorage::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let migration_parachain_staking_manual_exits =</span>
-		<span class="comment">// 	ParachainStakingManualExits::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let migration_parachain_staking_increase_max_delegations_per_candidate =</span>
-		<span class="comment">// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let migration_parachain_staking_split_candidate_state =</span>
-		<span class="comment">// 	ParachainStakingSplitCandidateState::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let migration_parachain_staking_patch_incorrect_delegation_sums =</span>
-		<span class="comment">//	ParachainStakingPatchIncorrectDelegationSums::&lt;Runtime&gt;(Default::default());</span>
+		// let migration_parachain_staking_purge_stale_storage =
+		// 	ParachainStakingPurgeStaleStorage::&lt;Runtime&gt;(Default::default());
+		// let migration_parachain_staking_manual_exits =
+		// 	ParachainStakingManualExits::&lt;Runtime&gt;(Default::default());
+		// let migration_parachain_staking_increase_max_delegations_per_candidate =
+		// 	ParachainStakingIncreaseMaxDelegationsPerCandidate::&lt;Runtime&gt;(Default::default());
+		// let migration_parachain_staking_split_candidate_state =
+		// 	ParachainStakingSplitCandidateState::&lt;Runtime&gt;(Default::default());
+		// let migration_parachain_staking_patch_incorrect_delegation_sums =
+		//	ParachainStakingPatchIncorrectDelegationSums::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let migration_scheduler_v3 = SchedulerMigrationV3::&lt;Runtime&gt;(Default::default());</span>
+		// let migration_scheduler_v3 = SchedulerMigrationV3::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let migration_base_fee = MigrateBaseFeePerGas::&lt;Runtime&gt;(Default::default());</span>
+		// let migration_base_fee = MigrateBaseFeePerGas::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided</span>
-		<span class="comment">// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review</span>
+		// TODO: this is a lot of allocation to do upon every get() call. this *should* be avoided
+		// except when pallet_migrations undergoes a runtime upgrade -- but TODO: review
 
-		<span class="comment">// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =</span>
-		<span class="comment">// 	AuthorSlotFilterEligibleRatioToEligiblityCount::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let migration_author_mapping_add_keys_to_registration_info =</span>
-		<span class="comment">// 	AuthorMappingAddKeysToRegistrationInfo::&lt;Runtime&gt;(Default::default());</span>
-		<span class="comment">// let staking_delegator_state_requests =</span>
-		<span class="comment">// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::&lt;Runtime&gt;(</span>
-		<span class="comment">// 		Default::default(),</span>
-		<span class="comment">// 	);</span>
-		<span class="comment">// let migration_author_mapping_add_account_id_to_nimbus_lookup =</span>
-		<span class="comment">//	AuthorMappingAddAccountIdToNimbusLookup::&lt;Runtime&gt;(Default::default());</span>
+		// let migration_author_slot_filter_eligible_ratio_to_eligibility_count =
+		// 	AuthorSlotFilterEligibleRatioToEligiblityCount::&lt;Runtime&gt;(Default::default());
+		// let migration_author_mapping_add_keys_to_registration_info =
+		// 	AuthorMappingAddKeysToRegistrationInfo::&lt;Runtime&gt;(Default::default());
+		// let staking_delegator_state_requests =
+		// 	ParachainStakingSplitDelegatorStateIntoDelegationScheduledRequests::&lt;Runtime&gt;(
+		// 		Default::default(),
+		// 	);
+		// let migration_author_mapping_add_account_id_to_nimbus_lookup =
+		//	AuthorMappingAddAccountIdToNimbusLookup::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let xcm_transactor_max_weight =</span>
-		<span class="comment">// 	XcmTransactorMaxTransactWeight::&lt;Runtime&gt;(Default::default());</span>
+		// let xcm_transactor_max_weight =
+		// 	XcmTransactorMaxTransactWeight::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let asset_manager_units_with_asset_type =</span>
-		<span class="comment">// 	AssetManagerUnitsWithAssetType::&lt;Runtime&gt;(Default::default());</span>
+		// let asset_manager_units_with_asset_type =
+		// 	AssetManagerUnitsWithAssetType::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let asset_manager_populate_asset_type_id_storage =</span>
-		<span class="comment">// 	AssetManagerPopulateAssetTypeIdStorage::&lt;Runtime&gt;(Default::default());</span>
+		// let asset_manager_populate_asset_type_id_storage =
+		// 	AssetManagerPopulateAssetTypeIdStorage::&lt;Runtime&gt;(Default::default());
 
-		<span class="comment">// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::&lt;</span>
-		<span class="comment">// 	Runtime,</span>
-		<span class="comment">// 	StatemineParaIdInfo,</span>
-		<span class="comment">// 	StatemineAssetsInstanceInfo,</span>
-		<span class="comment">// &gt;(Default::default());</span>
+		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::&lt;
+		// 	Runtime,
+		// 	StatemineParaIdInfo,
+		// 	StatemineAssetsInstanceInfo,
+		// &gt;(Default::default());
 
-		<span class="comment">// let xcm_supported_assets = XcmPaymentSupportedAssets::&lt;Runtime&gt;(Default::default());</span>
+		// let xcm_supported_assets = XcmPaymentSupportedAssets::&lt;Runtime&gt;(Default::default());
 
-		<span class="kw">let</span> <span class="ident">migration_elasticity</span> <span class="op">=</span> <span class="ident">MigrateBaseFeeElasticity</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">Default::default</span>());
+		</span><span class="kw">let </span>migration_elasticity = MigrateBaseFeeElasticity::&lt;Runtime&gt;(Default::default());
 
 		<span class="macro">vec!</span>[
-			<span class="comment">// completed in runtime 800</span>
-			<span class="comment">// Box::new(migration_author_mapping_twox_to_blake),</span>
-			<span class="comment">// completed in runtime 900</span>
-			<span class="comment">// completed in runtime 1000</span>
-			<span class="comment">// Box::new(migration_parachain_staking_purge_stale_storage),</span>
-			<span class="comment">// completed in runtime 1000</span>
-			<span class="comment">// Box::new(migration_parachain_staking_manual_exits),</span>
-			<span class="comment">// completed in runtime 1101</span>
-			<span class="comment">// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),</span>
-			<span class="comment">// completed in runtime 1201</span>
-			<span class="comment">// Box::new(migration_parachain_staking_split_candidate_state),</span>
-			<span class="comment">// completed in runtime 1201</span>
-			<span class="comment">// Box::new(xcm_transactor_max_weight),</span>
-			<span class="comment">// completed in runtime 1201</span>
-			<span class="comment">// Box::new(asset_manager_units_with_asset_type),</span>
-			<span class="comment">// completed in runtime 1201</span>
-			<span class="comment">// Box::new(asset_manager_change_statemine_prefixes),</span>
-			<span class="comment">// completed in runtime 1201</span>
-			<span class="comment">// Box::new(asset_manager_populate_asset_type_id_storage),</span>
-			<span class="comment">// completed in runtime 1300</span>
-			<span class="comment">// Box::new(migration_scheduler_v3),</span>
-			<span class="comment">// completed in runtime 1300</span>
-			<span class="comment">// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),</span>
-			<span class="comment">// completed in runtime 1300</span>
-			<span class="comment">// Box::new(migration_base_fee),</span>
-			<span class="comment">// completed in runtime 1300</span>
-			<span class="comment">// Box::new(xcm_supported_assets),</span>
-			<span class="comment">// completed in runtime 1500</span>
-			<span class="comment">// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),</span>
-			<span class="comment">// Box::new(migration_author_mapping_add_keys_to_registration_info),</span>
-			<span class="comment">// Box::new(staking_delegator_state_requests),</span>
+			<span class="comment">// completed in runtime 800
+			// Box::new(migration_author_mapping_twox_to_blake),
+			// completed in runtime 900
+			// completed in runtime 1000
+			// Box::new(migration_parachain_staking_purge_stale_storage),
+			// completed in runtime 1000
+			// Box::new(migration_parachain_staking_manual_exits),
+			// completed in runtime 1101
+			// Box::new(migration_parachain_staking_increase_max_delegations_per_candidate),
+			// completed in runtime 1201
+			// Box::new(migration_parachain_staking_split_candidate_state),
+			// completed in runtime 1201
+			// Box::new(xcm_transactor_max_weight),
+			// completed in runtime 1201
+			// Box::new(asset_manager_units_with_asset_type),
+			// completed in runtime 1201
+			// Box::new(asset_manager_change_statemine_prefixes),
+			// completed in runtime 1201
+			// Box::new(asset_manager_populate_asset_type_id_storage),
+			// completed in runtime 1300
+			// Box::new(migration_scheduler_v3),
+			// completed in runtime 1300
+			// Box::new(migration_parachain_staking_patch_incorrect_delegation_sums),
+			// completed in runtime 1300
+			// Box::new(migration_base_fee),
+			// completed in runtime 1300
+			// Box::new(xcm_supported_assets),
+			// completed in runtime 1500
+			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
+			// Box::new(migration_author_mapping_add_keys_to_registration_info),
+			// Box::new(staking_delegator_state_requests),
 
-			<span class="comment">// completed in runtime 1600</span>
-			<span class="comment">// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),</span>
-			<span class="comment">// completed in runtime 1600</span>
-			<span class="comment">// Box::new(xcm_transactor_transact_signed),</span>
-			<span class="ident">Box::new</span>(<span class="ident">migration_elasticity</span>),
+			// completed in runtime 1600
+			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
+			// completed in runtime 1600
+			// Box::new(xcm_transactor_transact_signed),
+			</span>Box::new(migration_elasticity),
 		]
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/precompile_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>precompile_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/precompile_set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>precompile_set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -551,554 +546,553 @@
 <span id="546">546</span>
 <span id="547">547</span>
 <span id="548">548</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Provide utils assemble precompiles and precompilesets into a</span>
-<span class="doccomment">//! final precompile set with security checks. All security checks are enabled by</span>
-<span class="doccomment">//! default and must be disabled explicely throught type annotations.</span>
+</span><span class="doccomment">//! Provide utils assemble precompiles and precompilesets into a
+//! final precompile set with security checks. All security checks are enabled by
+//! default and must be disabled explicely throught type annotations.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">revert</span>, <span class="ident">StatefulPrecompile</span>};
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Precompile</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>};
-<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude::Get</span>;
-<span class="kw">use</span> <span class="ident">impl_trait_for_tuples::impl_for_tuples</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">sp_core::H160</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{
-	<span class="ident">cell::RefCell</span>, <span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">ops::RangeInclusive</span>, <span class="ident">vec</span>,
-	<span class="ident">vec::Vec</span>,
+</span><span class="kw">use crate</span>::{revert, StatefulPrecompile};
+<span class="kw">use </span>fp_evm::{Precompile, PrecompileHandle, PrecompileResult, PrecompileSet};
+<span class="kw">use </span>frame_support::pallet_prelude::Get;
+<span class="kw">use </span>impl_trait_for_tuples::impl_for_tuples;
+<span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>sp_core::H160;
+<span class="kw">use </span>sp_std::{
+	cell::RefCell, collections::btree_map::BTreeMap, marker::PhantomData, ops::RangeInclusive, vec,
+	vec::Vec,
 };
 
-<span class="comment">// CONFIGURATION TYPES</span>
+<span class="comment">// CONFIGURATION TYPES
 
-<span class="kw">mod</span> <span class="ident">sealed</span> {
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
+</span><span class="kw">mod </span>sealed {
+	<span class="kw">pub trait </span>Sealed {}
 }
 
-<span class="doccomment">/// How much recursion is allows for a precompile.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RecursionLimit</span>: <span class="ident">sealed::Sealed</span> {
-	<span class="kw">fn</span> <span class="ident">recursion_limit</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>;
+<span class="doccomment">/// How much recursion is allows for a precompile.
+</span><span class="kw">pub trait </span>RecursionLimit: sealed::Sealed {
+	<span class="kw">fn </span>recursion_limit() -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt;;
 }
 
-<span class="doccomment">/// There is no limit to the amount times a precompiles can</span>
-<span class="doccomment">/// call itself recursively.</span>
-<span class="doccomment">/// Should be used with care as it could cause stack overflows.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">UnlimitedRecursion</span>;
-<span class="kw">impl</span> <span class="ident">sealed::Sealed</span> <span class="kw">for</span> <span class="ident">UnlimitedRecursion</span> {}
-<span class="kw">impl</span> <span class="ident">RecursionLimit</span> <span class="kw">for</span> <span class="ident">UnlimitedRecursion</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">recursion_limit</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
-		<span class="prelude-val">None</span>
+<span class="doccomment">/// There is no limit to the amount times a precompiles can
+/// call itself recursively.
+/// Should be used with care as it could cause stack overflows.
+</span><span class="kw">pub struct </span>UnlimitedRecursion;
+<span class="kw">impl </span>sealed::Sealed <span class="kw">for </span>UnlimitedRecursion {}
+<span class="kw">impl </span>RecursionLimit <span class="kw">for </span>UnlimitedRecursion {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>recursion_limit() -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt; {
+		<span class="prelude-val">None
+	</span>}
+}
+
+<span class="doccomment">/// A precompile can (even indirectly) call itself with N levels of nesting.
+/// 0 = anyone can call the precompile but a subcall of the precompile will not be able to call it
+/// back (re-entrancy protection).
+</span><span class="kw">pub struct </span>LimitRecursionTo&lt;<span class="kw">const </span>N: u16&gt;;
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: u16&gt; sealed::Sealed <span class="kw">for </span>LimitRecursionTo&lt;N&gt; {}
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: u16&gt; RecursionLimit <span class="kw">for </span>LimitRecursionTo&lt;N&gt; {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>recursion_limit() -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt; {
+		<span class="prelude-val">Some</span>(N)
 	}
 }
 
-<span class="doccomment">/// A precompile can (even indirectly) call itself with N levels of nesting.</span>
-<span class="doccomment">/// 0 = anyone can call the precompile but a subcall of the precompile will not be able to call it</span>
-<span class="doccomment">/// back (re-entrancy protection).</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">u16</span><span class="op">&gt;</span>;
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">u16</span><span class="op">&gt;</span> <span class="ident">sealed::Sealed</span> <span class="kw">for</span> <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {}
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">u16</span><span class="op">&gt;</span> <span class="ident">RecursionLimit</span> <span class="kw">for</span> <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">recursion_limit</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Some</span>(<span class="ident">N</span>)
+<span class="kw">pub type </span>ForbidRecursion = LimitRecursionTo&lt;<span class="number">0</span>&gt;;
+
+<span class="doccomment">/// Is DELEGATECALL allowed to use for a precompile.
+</span><span class="kw">pub trait </span>DelegateCallSupport: sealed::Sealed {
+	<span class="kw">fn </span>allow_delegate_call() -&gt; bool;
+}
+
+<span class="doccomment">/// DELEGATECALL is forbiden.
+</span><span class="kw">pub struct </span>ForbidDelegateCall;
+<span class="kw">impl </span>sealed::Sealed <span class="kw">for </span>ForbidDelegateCall {}
+<span class="kw">impl </span>DelegateCallSupport <span class="kw">for </span>ForbidDelegateCall {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>allow_delegate_call() -&gt; bool {
+		<span class="bool-val">false
+	</span>}
+}
+
+<span class="doccomment">/// DELEGATECALL is allowed.
+/// Should be used with care if the precompile use
+/// custom storage, as the caller could impersonate its own caller.
+</span><span class="kw">pub struct </span>AllowDelegateCall;
+<span class="kw">impl </span>sealed::Sealed <span class="kw">for </span>AllowDelegateCall {}
+<span class="kw">impl </span>DelegateCallSupport <span class="kw">for </span>AllowDelegateCall {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>allow_delegate_call() -&gt; bool {
+		<span class="bool-val">true
+	</span>}
+}
+
+<span class="kw">pub struct </span>AddressU64&lt;<span class="kw">const </span>N: u64&gt;;
+<span class="kw">impl</span>&lt;<span class="kw">const </span>N: u64&gt; Get&lt;H160&gt; <span class="kw">for </span>AddressU64&lt;N&gt; {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>get() -&gt; H160 {
+		H160::from_low_u64_be(N)
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ForbidRecursion</span> <span class="op">=</span> <span class="ident">LimitRecursionTo</span><span class="op">&lt;</span><span class="number">0</span><span class="op">&gt;</span>;
+<span class="comment">// INDIVIDUAL PRECOMPILE(SET)
 
-<span class="doccomment">/// Is DELEGATECALL allowed to use for a precompile.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DelegateCallSupport</span>: <span class="ident">sealed::Sealed</span> {
-	<span class="kw">fn</span> <span class="ident">allow_delegate_call</span>() -&gt; <span class="ident">bool</span>;
+</span><span class="doccomment">/// A fragment of a PrecompileSet. Should be implemented as is it
+/// was a PrecompileSet containing only the precompile(set) it wraps.
+/// They can be combined into a real PrecompileSet using `PrecompileSetBuilder`.
+</span><span class="kw">pub trait </span>PrecompileSetFragment {
+	<span class="doccomment">/// Instanciate the fragment.
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
+
+	<span class="doccomment">/// Execute the fragment.
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt;;
+
+	<span class="doccomment">/// Is the provided address a precompile in this fragment?
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool;
+
+	<span class="doccomment">/// Return the list of addresses covered by this fragment.
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt;;
 }
 
-<span class="doccomment">/// DELEGATECALL is forbiden.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForbidDelegateCall</span>;
-<span class="kw">impl</span> <span class="ident">sealed::Sealed</span> <span class="kw">for</span> <span class="ident">ForbidDelegateCall</span> {}
-<span class="kw">impl</span> <span class="ident">DelegateCallSupport</span> <span class="kw">for</span> <span class="ident">ForbidDelegateCall</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">allow_delegate_call</span>() -&gt; <span class="ident">bool</span> {
-		<span class="bool-val">false</span>
-	}
+<span class="doccomment">/// Wraps a stateless precompile: a type implementing the `Precompile` trait.
+/// Type parameters allow to define:
+/// - A: The address of the precompile
+/// - R: The recursion limit (defaults to 1)
+/// - D: If DELEGATECALL is supported (default to no)
+</span><span class="kw">pub struct </span>PrecompileAt&lt;A, P, R = ForbidRecursion, D = ForbidDelegateCall&gt; {
+	current_recursion_level: RefCell&lt;u16&gt;,
+	_phantom: PhantomData&lt;(A, P, R, D)&gt;,
 }
 
-<span class="doccomment">/// DELEGATECALL is allowed.</span>
-<span class="doccomment">/// Should be used with care if the precompile use</span>
-<span class="doccomment">/// custom storage, as the caller could impersonate its own caller.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AllowDelegateCall</span>;
-<span class="kw">impl</span> <span class="ident">sealed::Sealed</span> <span class="kw">for</span> <span class="ident">AllowDelegateCall</span> {}
-<span class="kw">impl</span> <span class="ident">DelegateCallSupport</span> <span class="kw">for</span> <span class="ident">AllowDelegateCall</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">allow_delegate_call</span>() -&gt; <span class="ident">bool</span> {
-		<span class="bool-val">true</span>
-	}
-}
-
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddressU64</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">u64</span><span class="op">&gt;</span>;
-<span class="kw">impl</span><span class="op">&lt;</span><span class="kw">const</span> <span class="ident">N</span>: <span class="ident">u64</span><span class="op">&gt;</span> <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">AddressU64</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">get</span>() -&gt; <span class="ident">H160</span> {
-		<span class="ident">H160::from_low_u64_be</span>(<span class="ident">N</span>)
-	}
-}
-
-<span class="comment">// INDIVIDUAL PRECOMPILE(SET)</span>
-
-<span class="doccomment">/// A fragment of a PrecompileSet. Should be implemented as is it</span>
-<span class="doccomment">/// was a PrecompileSet containing only the precompile(set) it wraps.</span>
-<span class="doccomment">/// They can be combined into a real PrecompileSet using `PrecompileSetBuilder`.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PrecompileSetFragment</span> {
-	<span class="doccomment">/// Instanciate the fragment.</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
-
-	<span class="doccomment">/// Execute the fragment.</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span>;
-
-	<span class="doccomment">/// Is the provided address a precompile in this fragment?</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span>;
-
-	<span class="doccomment">/// Return the list of addresses covered by this fragment.</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>;
-}
-
-<span class="doccomment">/// Wraps a stateless precompile: a type implementing the `Precompile` trait.</span>
-<span class="doccomment">/// Type parameters allow to define:</span>
-<span class="doccomment">/// - A: The address of the precompile</span>
-<span class="doccomment">/// - R: The recursion limit (defaults to 1)</span>
-<span class="doccomment">/// - D: If DELEGATECALL is supported (default to no)</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span> <span class="op">=</span> <span class="ident">ForbidRecursion</span>, <span class="ident">D</span> <span class="op">=</span> <span class="ident">ForbidDelegateCall</span><span class="op">&gt;</span> {
-	<span class="ident">current_recursion_level</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span>)<span class="op">&gt;</span>,
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">PrecompileAt</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">A</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">P</span>: <span class="ident">Precompile</span>,
-	<span class="ident">R</span>: <span class="ident">RecursionLimit</span>,
-	<span class="ident">D</span>: <span class="ident">DelegateCallSupport</span>,
+<span class="kw">impl</span>&lt;A, P, R, D&gt; PrecompileSetFragment <span class="kw">for </span>PrecompileAt&lt;A, P, R, D&gt;
+<span class="kw">where
+	</span>A: Get&lt;H160&gt;,
+	P: Precompile,
+	R: RecursionLimit,
+	D: DelegateCallSupport,
 {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">current_recursion_level</span>: <span class="ident">RefCell::new</span>(<span class="number">0</span>),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			current_recursion_level: RefCell::new(<span class="number">0</span>),
+			_phantom: PhantomData,
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">code_address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">code_address</span>();
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">let </span>code_address = handle.code_address();
 
-		<span class="comment">// Check if this is the address of the precompile.</span>
-		<span class="kw">if</span> <span class="ident">A::get</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">code_address</span> {
-			<span class="kw">return</span> <span class="prelude-val">None</span>;
+		<span class="comment">// Check if this is the address of the precompile.
+		</span><span class="kw">if </span>A::get() != code_address {
+			<span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 
-		<span class="comment">// Check DELEGATECALL config.</span>
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">D::allow_delegate_call</span>() <span class="op">&amp;&amp;</span> <span class="ident">code_address</span> <span class="op">!</span><span class="op">=</span> <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span> {
-			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+		<span class="comment">// Check DELEGATECALL config.
+		</span><span class="kw">if </span>!D::allow_delegate_call() &amp;&amp; code_address != handle.context().address {
+			<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(
 				<span class="string">&quot;Cannot be called with DELEGATECALL or CALLCODE&quot;</span>,
 			)));
 		}
 
-		<span class="comment">// Check and increase recursion level if needed.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_recursion_level</span>) <span class="op">=</span> <span class="ident">R::recursion_limit</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level</span>) =&gt; {
-					<span class="kw">if</span> <span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">&gt;</span> <span class="ident">max_recursion_level</span> {
-						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
-							<span class="ident">revert</span>(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>).<span class="ident">into</span>()
+		<span class="comment">// Check and increase recursion level if needed.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_recursion_level) = R::recursion_limit() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
+					<span class="kw">if </span><span class="kw-2">*</span>recursion_level &gt; max_recursion_level {
+						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
+							revert(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>).into()
 						));
 					}
 
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw-2">*</span>recursion_level += <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).<span class="ident">into</span>())),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).into())),
 			}
 		}
 
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">P::execute</span>(<span class="ident">handle</span>);
+		<span class="kw">let </span>res = P::execute(handle);
 
-		<span class="comment">// Decrease recursion level if needed.</span>
-		<span class="kw">if</span> <span class="ident">R::recursion_limit</span>().<span class="ident">is_some</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level</span>) =&gt; {
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="comment">// Decrease recursion level if needed.
+		</span><span class="kw">if </span>R::recursion_limit().is_some() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
+					<span class="kw-2">*</span>recursion_level -= <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).<span class="ident">into</span>())),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).into())),
 			}
 		}
 
-		<span class="prelude-val">Some</span>(<span class="ident">res</span>)
+		<span class="prelude-val">Some</span>(res)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="ident">address</span> <span class="op">==</span> <span class="ident">A::get</span>()
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		address == A::get()
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="macro">vec!</span>[<span class="ident">A::get</span>()]
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="macro">vec!</span>[A::get()]
 	}
 }
 
-<span class="doccomment">/// Wraps a stateful precompile: a type implementing the `StatefulPrecompile` trait.</span>
-<span class="doccomment">/// Type parameters allow to define:</span>
-<span class="doccomment">/// - A: The address of the precompile</span>
-<span class="doccomment">/// - R: The recursion limit (defaults to 1)</span>
-<span class="doccomment">/// - D: If DELEGATECALL is supported (default to no)</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatefulPrecompileAt</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span> <span class="op">=</span> <span class="ident">ForbidRecursion</span>, <span class="ident">D</span> <span class="op">=</span> <span class="ident">ForbidDelegateCall</span><span class="op">&gt;</span> {
-	<span class="ident">precompile</span>: <span class="ident">P</span>,
-	<span class="ident">current_recursion_level</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">R</span>, <span class="ident">D</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Wraps a stateful precompile: a type implementing the `StatefulPrecompile` trait.
+/// Type parameters allow to define:
+/// - A: The address of the precompile
+/// - R: The recursion limit (defaults to 1)
+/// - D: If DELEGATECALL is supported (default to no)
+</span><span class="kw">pub struct </span>StatefulPrecompileAt&lt;A, P, R = ForbidRecursion, D = ForbidDelegateCall&gt; {
+	precompile: P,
+	current_recursion_level: RefCell&lt;u16&gt;,
+	_phantom: PhantomData&lt;(A, R, D)&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">StatefulPrecompileAt</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">A</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">P</span>: <span class="ident">StatefulPrecompile</span>,
-	<span class="ident">R</span>: <span class="ident">RecursionLimit</span>,
-	<span class="ident">D</span>: <span class="ident">DelegateCallSupport</span>,
+<span class="kw">impl</span>&lt;A, P, R, D&gt; PrecompileSetFragment <span class="kw">for </span>StatefulPrecompileAt&lt;A, P, R, D&gt;
+<span class="kw">where
+	</span>A: Get&lt;H160&gt;,
+	P: StatefulPrecompile,
+	R: RecursionLimit,
+	D: DelegateCallSupport,
 {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">precompile</span>: <span class="ident">P::new</span>(),
-			<span class="ident">current_recursion_level</span>: <span class="ident">RefCell::new</span>(<span class="number">0</span>),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			precompile: P::new(),
+			current_recursion_level: RefCell::new(<span class="number">0</span>),
+			_phantom: PhantomData,
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">code_address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">code_address</span>();
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">let </span>code_address = handle.code_address();
 
-		<span class="comment">// Check if this is the address of the precompile.</span>
-		<span class="kw">if</span> <span class="ident">A::get</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">code_address</span> {
-			<span class="kw">return</span> <span class="prelude-val">None</span>;
+		<span class="comment">// Check if this is the address of the precompile.
+		</span><span class="kw">if </span>A::get() != code_address {
+			<span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 
-		<span class="comment">// Check DELEGATECALL config.</span>
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">D::allow_delegate_call</span>() <span class="op">&amp;&amp;</span> <span class="ident">code_address</span> <span class="op">!</span><span class="op">=</span> <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span> {
-			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+		<span class="comment">// Check DELEGATECALL config.
+		</span><span class="kw">if </span>!D::allow_delegate_call() &amp;&amp; code_address != handle.context().address {
+			<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(
 				<span class="string">&quot;Cannot be called with DELEGATECALL or CALLCODE&quot;</span>,
 			)
-			.<span class="ident">into</span>()));
+			.into()));
 		}
 
-		<span class="comment">// Check and increase recursion level if needed.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_recursion_level</span>) <span class="op">=</span> <span class="ident">R::recursion_limit</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level</span>) =&gt; {
-					<span class="kw">if</span> <span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">&gt;</span> <span class="ident">max_recursion_level</span> {
-						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
-							<span class="ident">revert</span>(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>).<span class="ident">into</span>()
+		<span class="comment">// Check and increase recursion level if needed.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_recursion_level) = R::recursion_limit() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
+					<span class="kw">if </span><span class="kw-2">*</span>recursion_level &gt; max_recursion_level {
+						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(
+							revert(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>).into()
 						));
 					}
 
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw-2">*</span>recursion_level += <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).<span class="ident">into</span>())),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>).into())),
 			}
 		}
 
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">precompile</span>.<span class="ident">execute</span>(<span class="ident">handle</span>);
+		<span class="kw">let </span>res = <span class="self">self</span>.precompile.execute(handle);
 
-		<span class="comment">// Decrease recursion level if needed.</span>
-		<span class="kw">if</span> <span class="ident">R::recursion_limit</span>().<span class="ident">is_some</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level</span>) =&gt; {
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="comment">// Decrease recursion level if needed.
+		</span><span class="kw">if </span>R::recursion_limit().is_some() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level) =&gt; {
+					<span class="kw-2">*</span>recursion_level -= <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
 			}
 		}
 
-		<span class="prelude-val">Some</span>(<span class="ident">res</span>)
+		<span class="prelude-val">Some</span>(res)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="ident">address</span> <span class="op">==</span> <span class="ident">A::get</span>()
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		address == A::get()
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="macro">vec!</span>[<span class="ident">A::get</span>()]
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="macro">vec!</span>[A::get()]
 	}
 }
 
-<span class="doccomment">/// Wraps an inner PrecompileSet with all its addresses starting with</span>
-<span class="doccomment">/// a common prefix.</span>
-<span class="doccomment">/// Type parameters allow to define:</span>
-<span class="doccomment">/// - A: The common prefix</span>
-<span class="doccomment">/// - D: If DELEGATECALL is supported (default to no)</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecompileSetStartingWith</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span> <span class="op">=</span> <span class="ident">ForbidRecursion</span>, <span class="ident">D</span> <span class="op">=</span> <span class="ident">ForbidDelegateCall</span><span class="op">&gt;</span> {
-	<span class="ident">precompile_set</span>: <span class="ident">P</span>,
-	<span class="ident">current_recursion_level</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">H160</span>, <span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">A</span>, <span class="ident">R</span>, <span class="ident">D</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// Wraps an inner PrecompileSet with all its addresses starting with
+/// a common prefix.
+/// Type parameters allow to define:
+/// - A: The common prefix
+/// - D: If DELEGATECALL is supported (default to no)
+</span><span class="kw">pub struct </span>PrecompileSetStartingWith&lt;A, P, R = ForbidRecursion, D = ForbidDelegateCall&gt; {
+	precompile_set: P,
+	current_recursion_level: RefCell&lt;BTreeMap&lt;H160, u16&gt;&gt;,
+	_phantom: PhantomData&lt;(A, R, D)&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">PrecompileSetStartingWith</span><span class="op">&lt;</span><span class="ident">A</span>, <span class="ident">P</span>, <span class="ident">R</span>, <span class="ident">D</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">A</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>,
-	<span class="ident">P</span>: <span class="ident">PrecompileSet</span> <span class="op">+</span> <span class="ident">Default</span>,
-	<span class="ident">R</span>: <span class="ident">RecursionLimit</span>,
-	<span class="ident">D</span>: <span class="ident">DelegateCallSupport</span>,
+<span class="kw">impl</span>&lt;A, P, R, D&gt; PrecompileSetFragment <span class="kw">for </span>PrecompileSetStartingWith&lt;A, P, R, D&gt;
+<span class="kw">where
+	</span>A: Get&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8]&gt;,
+	P: PrecompileSet + Default,
+	R: RecursionLimit,
+	D: DelegateCallSupport,
 {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">precompile_set</span>: <span class="ident">P::default</span>(),
-			<span class="ident">current_recursion_level</span>: <span class="ident">RefCell::new</span>(<span class="ident">BTreeMap::new</span>()),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			precompile_set: P::default(),
+			current_recursion_level: RefCell::new(BTreeMap::new()),
+			_phantom: PhantomData,
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">code_address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">code_address</span>();
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">let </span>code_address = handle.code_address();
 
-		<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_precompile</span>(<span class="ident">code_address</span>) {
-			<span class="kw">return</span> <span class="prelude-val">None</span>;
+		<span class="kw">if </span>!<span class="self">self</span>.is_precompile(code_address) {
+			<span class="kw">return </span><span class="prelude-val">None</span>;
 		}
 
-		<span class="comment">// Check DELEGATECALL config.</span>
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">D::allow_delegate_call</span>() <span class="op">&amp;&amp;</span> <span class="ident">code_address</span> <span class="op">!</span><span class="op">=</span> <span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span> {
-			<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(
+		<span class="comment">// Check DELEGATECALL config.
+		</span><span class="kw">if </span>!D::allow_delegate_call() &amp;&amp; code_address != handle.context().address {
+			<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(
 				<span class="string">&quot;Cannot be called with DELEGATECALL or CALLCODE&quot;</span>,
 			)));
 		}
 
-		<span class="comment">// Check and increase recursion level if needed.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">max_recursion_level</span>) <span class="op">=</span> <span class="ident">R::recursion_limit</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level_map</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">recursion_level</span> <span class="op">=</span> <span class="ident">recursion_level_map</span>.<span class="ident">entry</span>(<span class="ident">code_address</span>).<span class="ident">or_insert</span>(<span class="number">0</span>);
+		<span class="comment">// Check and increase recursion level if needed.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(max_recursion_level) = R::recursion_limit() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level_map) =&gt; {
+					<span class="kw">let </span>recursion_level = recursion_level_map.entry(code_address).or_insert(<span class="number">0</span>);
 
-					<span class="kw">if</span> <span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">&gt;</span> <span class="ident">max_recursion_level</span> {
-						<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>)));
+					<span class="kw">if </span><span class="kw-2">*</span>recursion_level &gt; max_recursion_level {
+						<span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Precompile is called with too high nesting&quot;</span>)));
 					}
 
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw-2">*</span>recursion_level += <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
 			}
 		}
 
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">precompile_set</span>.<span class="ident">execute</span>(<span class="ident">handle</span>);
+		<span class="kw">let </span>res = <span class="self">self</span>.precompile_set.execute(handle);
 
-		<span class="comment">// Decrease recursion level if needed.</span>
-		<span class="kw">if</span> <span class="ident">R::recursion_limit</span>().<span class="ident">is_some</span>() {
-			<span class="kw">match</span> <span class="self">self</span>.<span class="ident">current_recursion_level</span>.<span class="ident">try_borrow_mut</span>() {
-				<span class="prelude-val">Ok</span>(<span class="kw-2">mut</span> <span class="ident">recursion_level_map</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">recursion_level</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">recursion_level_map</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">code_address</span>) {
-						<span class="prelude-val">Some</span>(<span class="ident">recursion_level</span>) =&gt; <span class="ident">recursion_level</span>,
-						<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t retreive precompile nesting&quot;</span>))),
+		<span class="comment">// Decrease recursion level if needed.
+		</span><span class="kw">if </span>R::recursion_limit().is_some() {
+			<span class="kw">match </span><span class="self">self</span>.current_recursion_level.try_borrow_mut() {
+				<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>recursion_level_map) =&gt; {
+					<span class="kw">let </span>recursion_level = <span class="kw">match </span>recursion_level_map.get_mut(<span class="kw-2">&amp;</span>code_address) {
+						<span class="prelude-val">Some</span>(recursion_level) =&gt; recursion_level,
+						<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t retreive precompile nesting&quot;</span>))),
 					};
 
-					<span class="kw-2">*</span><span class="ident">recursion_level</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+					<span class="kw-2">*</span>recursion_level -= <span class="number">1</span>;
 				}
-				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should</span>
-				<span class="comment">// not be able to fail borrowing in nested calls.</span>
-				<span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
+				<span class="comment">// We don&#39;t hold the borrow and are in single-threaded code, thus we should
+				// not be able to fail borrowing in nested calls.
+				</span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Couldn&#39;t check precompile nesting&quot;</span>))),
 			}
 		}
 
-		<span class="ident">res</span>
+		res
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="ident">address</span>.<span class="ident">as_bytes</span>().<span class="ident">starts_with</span>(<span class="ident">A::get</span>()) <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">precompile_set</span>.<span class="ident">is_precompile</span>(<span class="ident">address</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		address.as_bytes().starts_with(A::get()) &amp;&amp; <span class="self">self</span>.precompile_set.is_precompile(address)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="comment">// TODO: We currently can&#39;t get the list of used addresses.</span>
-		<span class="macro">vec!</span>[]
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="comment">// TODO: We currently can&#39;t get the list of used addresses.
+		</span><span class="macro">vec!</span>[]
 	}
 }
 
-<span class="doccomment">/// Make a precompile that always revert.</span>
-<span class="doccomment">/// Can be useful when writing tests.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RevertPrecompile</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Make a precompile that always revert.
+/// Can be useful when writing tests.
+</span><span class="kw">pub struct </span>RevertPrecompile&lt;A&gt;(PhantomData&lt;A&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">RevertPrecompile</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">A</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;A&gt; PrecompileSetFragment <span class="kw">for </span>RevertPrecompile&lt;A&gt;
+<span class="kw">where
+	</span>A: Get&lt;H160&gt;,
 {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span>(<span class="ident">PhantomData</span>)
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self</span>(PhantomData)
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident">A::get</span>() <span class="op">==</span> <span class="ident">handle</span>.<span class="ident">code_address</span>() {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;revert&quot;</span>)))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">if </span>A::get() == handle.code_address() {
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(revert(<span class="string">&quot;revert&quot;</span>)))
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="ident">address</span> <span class="op">==</span> <span class="ident">A::get</span>()
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		address == A::get()
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="macro">vec!</span>[<span class="ident">A::get</span>()]
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="macro">vec!</span>[A::get()]
 	}
 }
 
-<span class="comment">// COMPOSITION OF PARTS</span>
-<span class="attribute">#[<span class="ident">impl_for_tuples</span>(<span class="number">1</span>, <span class="number">100</span>)]</span>
-<span class="kw">impl</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">Tuple</span> {
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+<span class="comment">// COMPOSITION OF PARTS
+</span><span class="attribute">#[impl_for_tuples(<span class="number">1</span>, <span class="number">100</span>)]
+</span><span class="kw">impl </span>PrecompileSetFragment <span class="kw">for </span>Tuple {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
 		(<span class="macro">for_tuples!</span>(#(
-			<span class="ident">Tuple::new</span>()
+			Tuple::new()
 		),<span class="kw-2">*</span>))
 	}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
 		<span class="macro">for_tuples!</span>(#(
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">res</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">Tuple</span>.<span class="ident">execute</span>(<span class="ident">handle</span>) {
-				<span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="ident">res</span>);
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(res) = <span class="self">self</span>.Tuple.execute(handle) {
+				<span class="kw">return </span><span class="prelude-val">Some</span>(res);
 			}
 		)<span class="kw-2">*</span>);
 
-		<span class="prelude-val">None</span>
-	}
+		<span class="prelude-val">None
+	</span>}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
 		<span class="macro">for_tuples!</span>(#(
-			<span class="kw">if</span> <span class="self">self</span>.<span class="ident">Tuple</span>.<span class="ident">is_precompile</span>(<span class="ident">address</span>) {
-				<span class="kw">return</span> <span class="bool-val">true</span>;
+			<span class="kw">if </span><span class="self">self</span>.Tuple.is_precompile(address) {
+				<span class="kw">return </span><span class="bool-val">true</span>;
 			}
 		)<span class="kw-2">*</span>);
 
-		<span class="bool-val">false</span>
-	}
+		<span class="bool-val">false
+	</span>}
 
-	<span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used_addresses</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+	<span class="attribute">#[inline(always)]
+	</span><span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>used_addresses = <span class="macro">vec!</span>[];
 
 		<span class="macro">for_tuples!</span>(#(
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">Tuple</span>.<span class="ident">used_addresses</span>();
-			<span class="ident">used_addresses</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">inner</span>);
+			<span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">self</span>.Tuple.used_addresses();
+			used_addresses.append(<span class="kw-2">&amp;mut </span>inner);
 		)<span class="kw-2">*</span>);
 
-		<span class="ident">used_addresses</span>
+		used_addresses
 	}
 }
 
-<span class="doccomment">/// Wraps a precompileset fragment into a range, and will skip processing it if the address</span>
-<span class="doccomment">/// is out of the range.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecompilesInRangeInclusive</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="ident">inner</span>: <span class="ident">P</span>,
-	<span class="ident">range</span>: <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Wraps a precompileset fragment into a range, and will skip processing it if the address
+/// is out of the range.
+</span><span class="kw">pub struct </span>PrecompilesInRangeInclusive&lt;R, P&gt; {
+	inner: P,
+	range: RangeInclusive&lt;H160&gt;,
+	_phantom: PhantomData&lt;R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">S</span>, <span class="ident">E</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">PrecompileSetFragment</span> <span class="kw">for</span> <span class="ident">PrecompilesInRangeInclusive</span><span class="op">&lt;</span>(<span class="ident">S</span>, <span class="ident">E</span>), <span class="ident">P</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">S</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">E</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">P</span>: <span class="ident">PrecompileSetFragment</span>,
+<span class="kw">impl</span>&lt;S, E, P&gt; PrecompileSetFragment <span class="kw">for </span>PrecompilesInRangeInclusive&lt;(S, E), P&gt;
+<span class="kw">where
+	</span>S: Get&lt;H160&gt;,
+	E: Get&lt;H160&gt;,
+	P: PrecompileSetFragment,
 {
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">inner</span>: <span class="ident">P::new</span>(),
-			<span class="ident">range</span>: <span class="ident">RangeInclusive::new</span>(<span class="ident">S::get</span>(), <span class="ident">E::get</span>()),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+	<span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			inner: P::new(),
+			range: RangeInclusive::new(S::get(), E::get()),
+			_phantom: PhantomData,
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">handle</span>.<span class="ident">code_address</span>()) {
-			<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">execute</span>(<span class="ident">handle</span>)
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+	<span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">if </span><span class="self">self</span>.range.contains(<span class="kw-2">&amp;</span>handle.code_address()) {
+			<span class="self">self</span>.inner.execute(handle)
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">range</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>) {
-			<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_precompile</span>(<span class="ident">address</span>)
-		} <span class="kw">else</span> {
-			<span class="bool-val">false</span>
-		}
+	<span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		<span class="kw">if </span><span class="self">self</span>.range.contains(<span class="kw-2">&amp;</span>address) {
+			<span class="self">self</span>.inner.is_precompile(address)
+		} <span class="kw">else </span>{
+			<span class="bool-val">false
+		</span>}
 	}
 
-	<span class="kw">fn</span> <span class="ident">used_addresses</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">used_addresses</span>()
+	<span class="kw">fn </span>used_addresses(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;H160&gt; {
+		<span class="self">self</span>.inner.used_addresses()
 	}
 }
 
-<span class="doccomment">/// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecompileSetBuilder</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="ident">inner</span>: <span class="ident">P</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Wraps a tuple of `PrecompileSetFragment` to make a real `PrecompileSet`.
+</span><span class="kw">pub struct </span>PrecompileSetBuilder&lt;R, P&gt; {
+	inner: P,
+	_phantom: PhantomData&lt;R&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">P</span>: <span class="ident">PrecompileSetFragment</span><span class="op">&gt;</span> <span class="ident">PrecompileSet</span> <span class="kw">for</span> <span class="ident">PrecompileSetBuilder</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">execute</span>(<span class="ident">handle</span>)
+<span class="kw">impl</span>&lt;R, P: PrecompileSetFragment&gt; PrecompileSet <span class="kw">for </span>PrecompileSetBuilder&lt;R, P&gt; {
+	<span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="self">self</span>.inner.execute(handle)
 	}
 
-	<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_precompile</span>(<span class="ident">address</span>)
+	<span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+		<span class="self">self</span>.inner.is_precompile(address)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">pallet_evm::Config</span>, <span class="ident">P</span>: <span class="ident">PrecompileSetFragment</span><span class="op">&gt;</span> <span class="ident">PrecompileSetBuilder</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// Create a new instance of the PrecompileSet.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">inner</span>: <span class="ident">P::new</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;R: pallet_evm::Config, P: PrecompileSetFragment&gt; PrecompileSetBuilder&lt;R, P&gt; {
+	<span class="doccomment">/// Create a new instance of the PrecompileSet.
+	</span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			inner: P::new(),
+			_phantom: PhantomData,
 		}
 	}
 
-	<span class="doccomment">/// Return the list of addresses contained in this PrecompileSet.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">used_addresses</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">R::AccountId</span><span class="op">&gt;</span> {
-		<span class="ident"><span class="self">Self</span>::new</span>()
-			.<span class="ident">inner</span>
-			.<span class="ident">used_addresses</span>()
-			.<span class="ident">into_iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">R::AddressMapping::into_account_id</span>(<span class="ident">x</span>))
+	<span class="doccomment">/// Return the list of addresses contained in this PrecompileSet.
+	</span><span class="kw">pub fn </span>used_addresses() -&gt; <span class="kw">impl </span>Iterator&lt;Item = R::AccountId&gt; {
+		<span class="self">Self</span>::new()
+			.inner
+			.used_addresses()
+			.into_iter()
+			.map(|x| R::AddressMapping::into_account_id(x))
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

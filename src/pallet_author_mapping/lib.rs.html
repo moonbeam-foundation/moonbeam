@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -406,409 +401,408 @@
 <span id="401">401</span>
 <span id="402">402</span>
 <span id="403">403</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Maps Author Ids as used in nimbus consensus layer to account ids as used in the runtime.</span>
-<span class="doccomment">//! This should likely be moved to nimbus eventually.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This pallet maps NimbusId =&gt; AccountId which is most useful when using propositional style</span>
-<span class="doccomment">//! queries. This mapping will likely need to go the other way if using exhaustive authority sets.</span>
-<span class="doccomment">//! That could either be a separate pallet, or this pallet could implement a two-way mapping. But</span>
-<span class="doccomment">//! for now it it one-way</span>
+</span><span class="doccomment">//! Maps Author Ids as used in nimbus consensus layer to account ids as used in the runtime.
+//! This should likely be moved to nimbus eventually.
+//!
+//! This pallet maps NimbusId =&gt; AccountId which is most useful when using propositional style
+//! queries. This mapping will likely need to go the other way if using exhaustive authority sets.
+//! That could either be a separate pallet, or this pallet could implement a two-way mapping. But
+//! for now it it one-way
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-<span class="kw">use</span> <span class="ident">frame_support::pallet</span>;
+</span><span class="kw">use </span>frame_support::pallet;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
-<span class="kw">use</span> <span class="ident">weights::WeightInfo</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">benchmarks</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="kw">pub mod </span>weights;
+<span class="kw">use </span>weights::WeightInfo;
+<span class="attribute">#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+</span><span class="kw">mod </span>benchmarks;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">migrations</span>;
+<span class="kw">pub mod </span>migrations;
 
-<span class="attribute">#[<span class="ident">pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::WeightInfo</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">ReservableCurrency</span>};
-	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">AccountLookup</span>, <span class="ident">NimbusId</span>};
-	<span class="kw">use</span> <span class="ident">session_keys_primitives::KeysLookup</span>;
-	<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">mem::size_of</span>, <span class="ident">vec::Vec</span>};
+<span class="attribute">#[pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use </span><span class="kw">crate</span>::WeightInfo;
+	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::traits::{Currency, ReservableCurrency};
+	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>nimbus_primitives::{AccountLookup, NimbusId};
+	<span class="kw">use </span>session_keys_primitives::KeysLookup;
+	<span class="kw">use </span>sp_std::{mem::size_of, vec::Vec};
 
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span>
-		<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
-	<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
+	<span class="kw">pub type </span>BalanceOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::DepositCurrency <span class="kw">as </span>Currency&lt;
+		&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+	&gt;&gt;::Balance;
 
-	<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-	<span class="attribute">#[<span class="ident">scale_info</span>(<span class="ident">skip_type_params</span>(<span class="ident">T</span>))]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">account</span>: <span class="ident">T::AccountId</span>,
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">deposit</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">keys</span>: <span class="ident">T::Keys</span>,
+	<span class="attribute">#[derive(Clone, Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+	#[scale_info(skip_type_params(T))]
+	</span><span class="kw">pub struct </span>RegistrationInfo&lt;T: Config&gt; {
+		<span class="kw">pub</span>(<span class="kw">crate</span>) account: T::AccountId,
+		<span class="kw">pub</span>(<span class="kw">crate</span>) deposit: BalanceOf&lt;T&gt;,
+		<span class="kw">pub</span>(<span class="kw">crate</span>) keys: T::Keys,
 	}
 
-	<span class="doccomment">/// Wrapper to form the input to `set_keys` from NimbusId + keys</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys_wrapper</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>, <span class="ident">keys</span>: <span class="ident">T::Keys</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">nimbus_id</span>.<span class="ident">encode</span>();
-		<span class="ident">r</span>.<span class="ident">extend</span>(<span class="kw-2">&amp;</span><span class="ident">keys</span>.<span class="ident">encode</span>());
-		<span class="ident">r</span>
+	<span class="doccomment">/// Wrapper to form the input to `set_keys` from NimbusId + keys
+	</span><span class="kw">pub fn </span>keys_wrapper&lt;T: Config&gt;(nimbus_id: NimbusId, keys: T::Keys) -&gt; Vec&lt;u8&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>r = nimbus_id.encode();
+		r.extend(<span class="kw-2">&amp;</span>keys.encode());
+		r
 	}
 
-	<span class="doccomment">/// Size of NimbusId + T::Keys to check size of `set_keys` input before trying to decode</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys_size</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>() -&gt; <span class="ident">usize</span> {
-		<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">T::Keys</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">usize</span>
+	<span class="doccomment">/// Size of NimbusId + T::Keys to check size of `set_keys` input before trying to decode
+	</span><span class="kw">pub fn </span>keys_size&lt;T: Config&gt;() -&gt; usize {
+		size_of::&lt;NimbusId&gt;() <span class="kw">as </span>usize + size_of::&lt;T::Keys&gt;() <span class="kw">as </span>usize
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(PhantomData&lt;T&gt;);
 
-	<span class="doccomment">/// Configuration trait of this pallet</span>
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> {
-		<span class="doccomment">/// Overarching event type</span>
-		<span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Currency in which the security deposit will be taken.</span>
-		<span class="kw">type</span> <span class="ident">DepositCurrency</span>: <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ReservableCurrency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// The amount that should be taken as a security deposit when registering a NimbusId.</span>
-		<span class="kw">type</span> <span class="ident">DepositAmount</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::DepositCurrency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Additional keys</span>
-		<span class="doccomment">/// Convertible From&lt;NimbusId&gt; to get default keys for each mapping (for the migration)</span>
-		<span class="kw">type</span> <span class="ident">Keys</span>: <span class="ident">Parameter</span> <span class="op">+</span> <span class="ident">Member</span> <span class="op">+</span> <span class="ident">MaybeSerializeDeserialize</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
-		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
+	<span class="doccomment">/// Configuration trait of this pallet
+	</span><span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config {
+		<span class="doccomment">/// Overarching event type
+		</span><span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		<span class="doccomment">/// Currency in which the security deposit will be taken.
+		</span><span class="kw">type </span>DepositCurrency: Currency&lt;<span class="self">Self</span>::AccountId&gt; + ReservableCurrency&lt;<span class="self">Self</span>::AccountId&gt;;
+		<span class="doccomment">/// The amount that should be taken as a security deposit when registering a NimbusId.
+		</span><span class="kw">type </span>DepositAmount: Get&lt;&lt;<span class="self">Self</span>::DepositCurrency <span class="kw">as </span>Currency&lt;<span class="self">Self</span>::AccountId&gt;&gt;::Balance&gt;;
+		<span class="doccomment">/// Additional keys
+		/// Convertible From&lt;NimbusId&gt; to get default keys for each mapping (for the migration)
+		</span><span class="kw">type </span>Keys: Parameter + Member + MaybeSerializeDeserialize + From&lt;NimbusId&gt;;
+		<span class="doccomment">/// Weight information for extrinsics in this pallet.
+		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
-	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.</span>
-	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// The association can&#39;t be cleared because it is not found.</span>
-		<span class="ident">AssociationNotFound</span>,
-		<span class="doccomment">/// The association can&#39;t be cleared because it belongs to another account.</span>
-		<span class="ident">NotYourAssociation</span>,
-		<span class="doccomment">/// This account cannot set an author because it cannon afford the security deposit</span>
-		<span class="ident">CannotAffordSecurityDeposit</span>,
-		<span class="doccomment">/// The NimbusId in question is already associated and cannot be overwritten</span>
-		<span class="ident">AlreadyAssociated</span>,
-		<span class="doccomment">/// No existing NimbusId can be found for the account</span>
-		<span class="ident">OldAuthorIdNotFound</span>,
-		<span class="doccomment">/// Keys have wrong size</span>
-		<span class="ident">WrongKeySize</span>,
-		<span class="doccomment">/// Failed to decode NimbusId for `set_keys`</span>
-		<span class="ident">DecodeNimbusFailed</span>,
-		<span class="doccomment">/// Failed to decode T::Keys for `set_keys`</span>
-		<span class="ident">DecodeKeysFailed</span>,
+	<span class="doccomment">/// An error that can occur while executing the mapping pallet&#39;s logic.
+	</span><span class="attribute">#[pallet::error]
+	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
+		<span class="doccomment">/// The association can&#39;t be cleared because it is not found.
+		</span>AssociationNotFound,
+		<span class="doccomment">/// The association can&#39;t be cleared because it belongs to another account.
+		</span>NotYourAssociation,
+		<span class="doccomment">/// This account cannot set an author because it cannon afford the security deposit
+		</span>CannotAffordSecurityDeposit,
+		<span class="doccomment">/// The NimbusId in question is already associated and cannot be overwritten
+		</span>AlreadyAssociated,
+		<span class="doccomment">/// No existing NimbusId can be found for the account
+		</span>OldAuthorIdNotFound,
+		<span class="doccomment">/// Keys have wrong size
+		</span>WrongKeySize,
+		<span class="doccomment">/// Failed to decode NimbusId for `set_keys`
+		</span>DecodeNimbusFailed,
+		<span class="doccomment">/// Failed to decode T::Keys for `set_keys`
+		</span>DecodeKeysFailed,
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// A NimbusId has been registered and mapped to an AccountId.</span>
-		<span class="ident">KeysRegistered</span> {
-			<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">keys</span>: <span class="ident">T::Keys</span>,
+	<span class="attribute">#[pallet::event]
+	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deposit_event)]
+	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
+		<span class="doccomment">/// A NimbusId has been registered and mapped to an AccountId.
+		</span>KeysRegistered {
+			nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			keys: T::Keys,
 		},
-		<span class="doccomment">/// An NimbusId has been de-registered, and its AccountId mapping removed.</span>
-		<span class="ident">KeysRemoved</span> {
-			<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">keys</span>: <span class="ident">T::Keys</span>,
+		<span class="doccomment">/// An NimbusId has been de-registered, and its AccountId mapping removed.
+		</span>KeysRemoved {
+			nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			keys: T::Keys,
 		},
-		<span class="doccomment">/// An NimbusId has been registered, replacing a previous registration and its mapping.</span>
-		<span class="ident">KeysRotated</span> {
-			<span class="ident">new_nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">new_keys</span>: <span class="ident">T::Keys</span>,
+		<span class="doccomment">/// An NimbusId has been registered, replacing a previous registration and its mapping.
+		</span>KeysRotated {
+			new_nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			new_keys: T::Keys,
 		},
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Register your NimbusId onchain so blocks you author are associated with your account.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// Users who have been (or will soon be) elected active collators in staking,</span>
-		<span class="doccomment">/// should submit this extrinsic to have their blocks accepted and earn rewards.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::add_association</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_association</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="doccomment">/// Register your NimbusId onchain so blocks you author are associated with your account.
+		///
+		/// Users who have been (or will soon be) elected active collators in staking,
+		/// should submit this extrinsic to have their blocks accepted and earn rewards.
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::add_association())]
+		</span><span class="kw">pub fn </span>add_association(origin: OriginFor&lt;T&gt;, nimbus_id: NimbusId) -&gt; DispatchResult {
+			<span class="kw">let </span>account_id = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::register_keys</span>(<span class="ident">nimbus_id</span>.<span class="ident">clone</span>(), <span class="ident">account_id</span>, <span class="ident">nimbus_id</span>.<span class="ident">into</span>())
+			<span class="self">Self</span>::register_keys(nimbus_id.clone(), account_id, nimbus_id.into())
 		}
 
-		<span class="doccomment">/// Change your Mapping.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// This is useful for normal key rotation or for when switching from one physical collator</span>
-		<span class="doccomment">/// machine to another. No new security deposit is required.</span>
-		<span class="doccomment">/// This sets keys to new_nimbus_id.into() by default.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::update_association</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">update_association</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">old_nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">new_nimbus_id</span>: <span class="ident">NimbusId</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Change your Mapping.
+		///
+		/// This is useful for normal key rotation or for when switching from one physical collator
+		/// machine to another. No new security deposit is required.
+		/// This sets keys to new_nimbus_id.into() by default.
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::update_association())]
+		</span><span class="kw">pub fn </span>update_association(
+			origin: OriginFor&lt;T&gt;,
+			old_nimbus_id: NimbusId,
+			new_nimbus_id: NimbusId,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>account_id = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::rotate_keys</span>(
-				<span class="ident">old_nimbus_id</span>,
-				<span class="ident">new_nimbus_id</span>.<span class="ident">clone</span>(),
-				<span class="ident">account_id</span>,
-				<span class="ident">new_nimbus_id</span>.<span class="ident">into</span>(),
+			<span class="self">Self</span>::rotate_keys(
+				old_nimbus_id,
+				new_nimbus_id.clone(),
+				account_id,
+				new_nimbus_id.into(),
 			)
 		}
 
-		<span class="doccomment">/// Clear your Mapping.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// This is useful when you are no longer an author and would like to re-claim your security</span>
-		<span class="doccomment">/// deposit.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::clear_association</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">clear_association</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Clear your Mapping.
+		///
+		/// This is useful when you are no longer an author and would like to re-claim your security
+		/// deposit.
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::clear_association())]
+		</span><span class="kw">pub fn </span>clear_association(origin: OriginFor&lt;T&gt;, nimbus_id: NimbusId) -&gt; DispatchResult {
+			<span class="kw">let </span>account_id = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::rm_keys</span>(<span class="ident">nimbus_id</span>, <span class="ident">account_id</span>)
+			<span class="self">Self</span>::rm_keys(nimbus_id, account_id)
 		}
 
-		<span class="doccomment">/// Remove your Mapping.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// This is useful when you are no longer an author and would like to re-claim your security</span>
-		<span class="doccomment">/// deposit.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::remove_keys</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_keys</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">nimbus_id</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::nimbus_id_of</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::OldAuthorIdNotFound</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove your Mapping.
+		///
+		/// This is useful when you are no longer an author and would like to re-claim your security
+		/// deposit.
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::remove_keys())]
+		</span><span class="kw">pub fn </span>remove_keys(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
+			<span class="kw">let </span>account_id = ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>nimbus_id =
+				<span class="self">Self</span>::nimbus_id_of(<span class="kw-2">&amp;</span>account_id).ok_or(Error::&lt;T&gt;::OldAuthorIdNotFound)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::rm_keys</span>(<span class="ident">nimbus_id</span>, <span class="ident">account_id</span>)
+			<span class="self">Self</span>::rm_keys(nimbus_id, account_id)
 		}
 
-		<span class="doccomment">/// Set association and session keys at once.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// This is useful for key rotation to update Nimbus and VRF keys in one call.</span>
-		<span class="doccomment">/// No new security deposit is required. Will replace `update_association` which is kept</span>
-		<span class="doccomment">/// now for backwards compatibility reasons.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::WeightInfo::set_keys</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_keys</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="macro">ensure!</span>(<span class="ident">keys</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">keys_size</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(), <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::WrongKeySize</span>);
-			<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">keys</span>.<span class="ident">as_slice</span>();
-			<span class="kw">let</span> <span class="ident">new_nimbus_id</span> <span class="op">=</span>
-				<span class="ident">NimbusId::decode</span>(<span class="ident">encoded</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DecodeNimbusFailed</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">T::Keys::decode</span>(<span class="ident">encoded</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::DecodeKeysFailed</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Set association and session keys at once.
+		///
+		/// This is useful for key rotation to update Nimbus and VRF keys in one call.
+		/// No new security deposit is required. Will replace `update_association` which is kept
+		/// now for backwards compatibility reasons.
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::set_keys())]
+		</span><span class="kw">pub fn </span>set_keys(origin: OriginFor&lt;T&gt;, keys: Vec&lt;u8&gt;) -&gt; DispatchResult {
+			<span class="kw">let </span>account_id = ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="macro">ensure!</span>(keys.len() == keys_size::&lt;T&gt;(), Error::&lt;T&gt;::WrongKeySize);
+			<span class="kw">let </span>encoded = <span class="kw-2">&amp;mut </span>keys.as_slice();
+			<span class="kw">let </span>new_nimbus_id =
+				NimbusId::decode(encoded).map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::DecodeNimbusFailed)<span class="question-mark">?</span>;
+			<span class="kw">let </span>keys = T::Keys::decode(encoded).map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::DecodeKeysFailed)<span class="question-mark">?</span>;
 
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">old_nimbus_id</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::nimbus_id_of</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>) {
-				<span class="ident"><span class="self">Self</span>::rotate_keys</span>(<span class="ident">old_nimbus_id</span>, <span class="ident">new_nimbus_id</span>, <span class="ident">account_id</span>, <span class="ident">keys</span>)
-			} <span class="kw">else</span> {
-				<span class="ident"><span class="self">Self</span>::register_keys</span>(<span class="ident">new_nimbus_id</span>, <span class="ident">account_id</span>, <span class="ident">keys</span>)
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(old_nimbus_id) = <span class="self">Self</span>::nimbus_id_of(<span class="kw-2">&amp;</span>account_id) {
+				<span class="self">Self</span>::rotate_keys(old_nimbus_id, new_nimbus_id, account_id, keys)
+			} <span class="kw">else </span>{
+				<span class="self">Self</span>::register_keys(new_nimbus_id, account_id, keys)
 			}
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">rm_keys</span>(<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>, <span class="ident">account_id</span>: <span class="ident">T::AccountId</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">stored_info</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::try_get</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssociationNotFound</span>)<span class="question-mark">?</span>;
+	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="kw">fn </span>rm_keys(nimbus_id: NimbusId, account_id: T::AccountId) -&gt; DispatchResult {
+			<span class="kw">let </span>stored_info = MappingWithDeposit::&lt;T&gt;::try_get(<span class="kw-2">&amp;</span>nimbus_id)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::AssociationNotFound)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">account_id</span> <span class="op">==</span> <span class="ident">stored_info</span>.<span class="ident">account</span>,
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotYourAssociation</span>
+				account_id == stored_info.account,
+				Error::&lt;T&gt;::NotYourAssociation
 			);
 
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>);
-			<span class="ident">NimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>);
+			MappingWithDeposit::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>nimbus_id);
+			NimbusLookup::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>account_id);
 
-			<span class="ident">T::DepositCurrency::unreserve</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>, <span class="ident">stored_info</span>.<span class="ident">deposit</span>);
+			T::DepositCurrency::unreserve(<span class="kw-2">&amp;</span>account_id, stored_info.deposit);
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::KeysRemoved</span> {
-				<span class="ident">nimbus_id</span>,
-				<span class="ident">account_id</span>,
-				<span class="ident">keys</span>: <span class="ident">stored_info</span>.<span class="ident">keys</span>,
+			&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::KeysRemoved {
+				nimbus_id,
+				account_id,
+				keys: stored_info.keys,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">fn</span> <span class="ident">register_keys</span>(
-			<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">keys</span>: <span class="ident">T::Keys</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
+		<span class="kw">fn </span>register_keys(
+			nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			keys: T::Keys,
+		) -&gt; DispatchResult {
 			<span class="macro">ensure!</span>(
-				<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>).<span class="ident">is_none</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AlreadyAssociated</span>
+				MappingWithDeposit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>nimbus_id).is_none(),
+				Error::&lt;T&gt;::AlreadyAssociated
 			);
-			<span class="ident"><span class="self">Self</span>::enact_registration</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>, <span class="kw-2">&amp;</span><span class="ident">account_id</span>, <span class="ident">keys</span>.<span class="ident">clone</span>())<span class="question-mark">?</span>;
+			<span class="self">Self</span>::enact_registration(<span class="kw-2">&amp;</span>nimbus_id, <span class="kw-2">&amp;</span>account_id, keys.clone())<span class="question-mark">?</span>;
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::KeysRegistered</span> {
-				<span class="ident">nimbus_id</span>,
-				<span class="ident">account_id</span>,
-				<span class="ident">keys</span>,
+			&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::KeysRegistered {
+				nimbus_id,
+				account_id,
+				keys,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">fn</span> <span class="ident">rotate_keys</span>(
-			<span class="ident">old_nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">new_nimbus_id</span>: <span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">new_keys</span>: <span class="ident">T::Keys</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">stored_info</span> <span class="op">=</span> <span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::try_get</span>(<span class="kw-2">&amp;</span><span class="ident">old_nimbus_id</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AssociationNotFound</span>)<span class="question-mark">?</span>;
+		<span class="kw">fn </span>rotate_keys(
+			old_nimbus_id: NimbusId,
+			new_nimbus_id: NimbusId,
+			account_id: T::AccountId,
+			new_keys: T::Keys,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>stored_info = MappingWithDeposit::&lt;T&gt;::try_get(<span class="kw-2">&amp;</span>old_nimbus_id)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::AssociationNotFound)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">account_id</span> <span class="op">==</span> <span class="ident">stored_info</span>.<span class="ident">account</span>,
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::NotYourAssociation</span>
+				account_id == stored_info.account,
+				Error::&lt;T&gt;::NotYourAssociation
 			);
-			<span class="kw">if</span> <span class="ident">old_nimbus_id</span> <span class="op">!</span><span class="op">=</span> <span class="ident">new_nimbus_id</span> {
-				<span class="comment">// cannot overwrite a NimbusId if it is not yours</span>
-				<span class="macro">ensure!</span>(
-					<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">new_nimbus_id</span>).<span class="ident">is_none</span>(),
-					<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::AlreadyAssociated</span>
+			<span class="kw">if </span>old_nimbus_id != new_nimbus_id {
+				<span class="comment">// cannot overwrite a NimbusId if it is not yours
+				</span><span class="macro">ensure!</span>(
+					MappingWithDeposit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>new_nimbus_id).is_none(),
+					Error::&lt;T&gt;::AlreadyAssociated
 				);
 			}
 
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">old_nimbus_id</span>);
-			<span class="kw">let</span> <span class="ident">new_stored_info</span> <span class="op">=</span> <span class="ident">RegistrationInfo</span> {
-				<span class="ident">keys</span>: <span class="ident">new_keys</span>.<span class="ident">clone</span>(),
-				..<span class="ident">stored_info</span>
+			MappingWithDeposit::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>old_nimbus_id);
+			<span class="kw">let </span>new_stored_info = RegistrationInfo {
+				keys: new_keys.clone(),
+				..stored_info
 			};
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">new_nimbus_id</span>, <span class="kw-2">&amp;</span><span class="ident">new_stored_info</span>);
-			<span class="ident">NimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>, <span class="kw-2">&amp;</span><span class="ident">new_nimbus_id</span>);
+			MappingWithDeposit::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>new_nimbus_id, <span class="kw-2">&amp;</span>new_stored_info);
+			NimbusLookup::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>account_id, <span class="kw-2">&amp;</span>new_nimbus_id);
 
-			<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::KeysRotated</span> {
-				<span class="ident">new_nimbus_id</span>,
-				<span class="ident">account_id</span>,
-				<span class="ident">new_keys</span>,
+			&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::KeysRotated {
+				new_nimbus_id,
+				account_id,
+				new_keys,
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">enact_registration</span>(
-			<span class="ident">nimbus_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>,
-			<span class="ident">account_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>,
-			<span class="ident">keys</span>: <span class="ident">T::Keys</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">deposit</span> <span class="op">=</span> <span class="ident">T::DepositAmount::get</span>();
+		<span class="kw">pub fn </span>enact_registration(
+			nimbus_id: <span class="kw-2">&amp;</span>NimbusId,
+			account_id: <span class="kw-2">&amp;</span>T::AccountId,
+			keys: T::Keys,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>deposit = T::DepositAmount::get();
 
-			<span class="ident">T::DepositCurrency::reserve</span>(<span class="ident">account_id</span>, <span class="ident">deposit</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CannotAffordSecurityDeposit</span>)<span class="question-mark">?</span>;
+			T::DepositCurrency::reserve(account_id, deposit)
+				.map_err(|<span class="kw">_</span>| Error::&lt;T&gt;::CannotAffordSecurityDeposit)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">info</span> <span class="op">=</span> <span class="ident">RegistrationInfo</span> {
-				<span class="ident">account</span>: <span class="ident">account_id</span>.<span class="ident">clone</span>(),
-				<span class="ident">deposit</span>,
-				<span class="ident">keys</span>,
+			<span class="kw">let </span>info = RegistrationInfo {
+				account: account_id.clone(),
+				deposit,
+				keys,
 			};
 
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">nimbus_id</span>, <span class="ident">info</span>);
-			<span class="ident">NimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">account_id</span>, <span class="ident">nimbus_id</span>);
+			MappingWithDeposit::&lt;T&gt;::insert(nimbus_id, info);
+			NimbusLookup::&lt;T&gt;::insert(account_id, nimbus_id);
 
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">account_and_deposit_of</span>)]</span>
-	<span class="doccomment">/// We maintain a mapping from the NimbusIds used in the consensus layer</span>
-	<span class="doccomment">/// to the AccountIds runtime.</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">NimbusId</span>, <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>account_and_deposit_of)]
+	</span><span class="doccomment">/// We maintain a mapping from the NimbusIds used in the consensus layer
+	/// to the AccountIds runtime.
+	</span><span class="kw">pub type </span>MappingWithDeposit&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, NimbusId, RegistrationInfo&lt;T&gt;, OptionQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">nimbus_lookup</span>)]</span>
-	<span class="doccomment">/// We maintain a reverse mapping from AccountIds to NimbusIDS</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T::AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>nimbus_lookup)]
+	</span><span class="doccomment">/// We maintain a reverse mapping from AccountIds to NimbusIDS
+	</span><span class="kw">pub type </span>NimbusLookup&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, T::AccountId, NimbusId, OptionQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::genesis_config</span>]</span>
-	<span class="doccomment">/// Genesis config for author mapping pallet</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// The associations that should exist at chain genesis</span>
-		<span class="kw">pub</span> <span class="ident">mappings</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">NimbusId</span>, <span class="ident">T::AccountId</span>)<span class="op">&gt;</span>,
+	<span class="attribute">#[pallet::genesis_config]
+	</span><span class="doccomment">/// Genesis config for author mapping pallet
+	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
+		<span class="doccomment">/// The associations that should exist at chain genesis
+		</span><span class="kw">pub </span>mappings: Vec&lt;(NimbusId, T::AccountId)&gt;,
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-			<span class="self">Self</span> { <span class="ident">mappings</span>: <span class="macro">vec!</span>[] }
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{ mappings: <span class="macro">vec!</span>[] }
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::genesis_build</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">GenesisBuild</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-			<span class="kw">for</span> (<span class="ident">nimbus_id</span>, <span class="ident">account_id</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">mappings</span> {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::enact_registration</span>(
-					<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>,
-					<span class="kw-2">&amp;</span><span class="ident">account_id</span>,
-					<span class="ident">nimbus_id</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+	<span class="attribute">#[pallet::genesis_build]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+			<span class="kw">for </span>(nimbus_id, account_id) <span class="kw">in </span><span class="kw-2">&amp;</span><span class="self">self</span>.mappings {
+				<span class="kw">if let </span><span class="prelude-val">Err</span>(e) = Pallet::&lt;T&gt;::enact_registration(
+					<span class="kw-2">&amp;</span>nimbus_id,
+					<span class="kw-2">&amp;</span>account_id,
+					nimbus_id.clone().into(),
 				) {
-					<span class="macro">log::warn!</span>(<span class="string">&quot;Error with genesis author mapping registration: {:?}&quot;</span>, <span class="ident">e</span>);
+					<span class="macro">log::warn!</span>(<span class="string">&quot;Error with genesis author mapping registration: {:?}&quot;</span>, e);
 				}
 			}
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">lookup_account</span>(<span class="ident">author</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
-			<span class="ident"><span class="self">Self</span>::account_id_of</span>(<span class="ident">author</span>)
+	<span class="kw">impl</span>&lt;T: Config&gt; AccountLookup&lt;T::AccountId&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+		<span class="kw">fn </span>lookup_account(author: <span class="kw-2">&amp;</span>NimbusId) -&gt; <span class="prelude-ty">Option</span>&lt;T::AccountId&gt; {
+			<span class="self">Self</span>::account_id_of(author)
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">KeysLookup</span><span class="op">&lt;</span><span class="ident">NimbusId</span>, <span class="ident">T::Keys</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
-		<span class="kw">type</span> <span class="ident">Account</span> <span class="op">=</span> <span class="ident">T::AccountId</span>;
-		<span class="kw">fn</span> <span class="ident">lookup_keys</span>(<span class="ident">author</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::Keys</span><span class="op">&gt;</span> {
-			<span class="ident"><span class="self">Self</span>::keys_of</span>(<span class="ident">author</span>)
+	<span class="kw">impl</span>&lt;T: Config&gt; KeysLookup&lt;NimbusId, T::Keys&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+		<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+		</span><span class="kw">type </span>Account = T::AccountId;
+		<span class="kw">fn </span>lookup_keys(author: <span class="kw-2">&amp;</span>NimbusId) -&gt; <span class="prelude-ty">Option</span>&lt;T::Keys&gt; {
+			<span class="self">Self</span>::keys_of(author)
 		}
-		<span class="doccomment">/// Sets keys WITHOUT reserving deposit, for benchmarking purposes only</span>
-		<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
-		<span class="kw">fn</span> <span class="ident">set_keys</span>(<span class="ident">id</span>: <span class="ident">NimbusId</span>, <span class="ident">account</span>: <span class="ident">T::AccountId</span>, <span class="ident">keys</span>: <span class="ident">T::Keys</span>) {
-			<span class="kw">use</span> <span class="ident">sp_runtime::traits::Zero</span>;
-			<span class="ident">MappingWithDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-				<span class="ident">id</span>,
-				<span class="ident">RegistrationInfo</span> {
-					<span class="ident">account</span>,
-					<span class="ident">deposit</span>: <span class="ident">Zero::zero</span>(),
-					<span class="ident">keys</span>,
+		<span class="doccomment">/// Sets keys WITHOUT reserving deposit, for benchmarking purposes only
+		</span><span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+		</span><span class="kw">fn </span>set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
+			<span class="kw">use </span>sp_runtime::traits::Zero;
+			MappingWithDeposit::&lt;T&gt;::insert(
+				id,
+				RegistrationInfo {
+					account,
+					deposit: Zero::zero(),
+					keys,
 				},
 			);
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// A helper function to lookup the account id associated with the given author id. This is</span>
-		<span class="doccomment">/// the primary lookup that this pallet is responsible for.</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">account_id_of</span>(<span class="ident">nimbus_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
-			<span class="ident"><span class="self">Self</span>::account_and_deposit_of</span>(<span class="ident">nimbus_id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">account</span>)
+	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="doccomment">/// A helper function to lookup the account id associated with the given author id. This is
+		/// the primary lookup that this pallet is responsible for.
+		</span><span class="kw">pub fn </span>account_id_of(nimbus_id: <span class="kw-2">&amp;</span>NimbusId) -&gt; <span class="prelude-ty">Option</span>&lt;T::AccountId&gt; {
+			<span class="self">Self</span>::account_and_deposit_of(nimbus_id).map(|info| info.account)
 		}
-		<span class="doccomment">/// A helper function to lookup the keys associated with the given author id.</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">keys_of</span>(<span class="ident">nimbus_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::Keys</span><span class="op">&gt;</span> {
-			<span class="ident"><span class="self">Self</span>::account_and_deposit_of</span>(<span class="ident">nimbus_id</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">keys</span>)
+		<span class="doccomment">/// A helper function to lookup the keys associated with the given author id.
+		</span><span class="kw">pub fn </span>keys_of(nimbus_id: <span class="kw-2">&amp;</span>NimbusId) -&gt; <span class="prelude-ty">Option</span>&lt;T::Keys&gt; {
+			<span class="self">Self</span>::account_and_deposit_of(nimbus_id).map(|info| info.keys)
 		}
-		<span class="doccomment">/// A helper function to lookup NimbusId associated with a given AccountId</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">nimbus_id_of</span>(<span class="ident">account_id</span>: <span class="kw-2">&amp;</span><span class="ident">T::AccountId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span> {
-			<span class="ident">NimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">account_id</span>)
+		<span class="doccomment">/// A helper function to lookup NimbusId associated with a given AccountId
+		</span><span class="kw">pub fn </span>nimbus_id_of(account_id: <span class="kw-2">&amp;</span>T::AccountId) -&gt; <span class="prelude-ty">Option</span>&lt;NimbusId&gt; {
+			NimbusLookup::&lt;T&gt;::get(account_id)
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

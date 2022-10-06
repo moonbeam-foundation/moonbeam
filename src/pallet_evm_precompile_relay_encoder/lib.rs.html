@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/relay-encoder/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_relay_encoder/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_relay_encoder/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_relay_encoder/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/relay-encoder/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_relay_encoder/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_relay_encoder/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_relay_encoder/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -363,366 +358,365 @@
 <span id="358">358</span>
 <span id="359">359</span>
 <span id="360">360</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Precompile to encode relay staking calls via the EVM</span>
+</span><span class="doccomment">//! Precompile to encode relay staking calls via the EVM
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">assert_matches</span>))]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![cfg_attr(test, feature(assert_matches))]
 
-<span class="kw">use</span> <span class="ident">cumulus_primitives_core::relay_chain</span>;
-<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
-	<span class="ident">ensure</span>,
-	<span class="ident">traits::ConstU32</span>,
+</span><span class="kw">use </span>cumulus_primitives_core::relay_chain;
+<span class="kw">use </span>fp_evm::PrecompileHandle;
+<span class="kw">use </span>frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	ensure,
+	traits::ConstU32,
 };
-<span class="kw">use</span> <span class="ident">pallet_staking::RewardDestination</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">data::String</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime::AccountId32</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::Perbill</span>;
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">marker::PhantomData</span>};
+<span class="kw">use </span>pallet_staking::RewardDestination;
+<span class="kw">use </span>precompile_utils::{data::String, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>sp_core::{H256, U256};
+<span class="kw">use </span>sp_runtime::AccountId32;
+<span class="kw">use </span>sp_runtime::Perbill;
+<span class="kw">use </span>sp_std::vec::Vec;
+<span class="kw">use </span>sp_std::{convert::TryInto, marker::PhantomData};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">test_relay_runtime</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>test_relay_runtime;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AvailableStakeCalls</span> {
-	<span class="ident">Bond</span>(
-		<span class="ident">relay_chain::AccountId</span>,
-		<span class="ident">relay_chain::Balance</span>,
-		<span class="ident">pallet_staking::RewardDestination</span><span class="op">&lt;</span><span class="ident">relay_chain::AccountId</span><span class="op">&gt;</span>,
+<span class="kw">pub enum </span>AvailableStakeCalls {
+	Bond(
+		relay_chain::AccountId,
+		relay_chain::Balance,
+		pallet_staking::RewardDestination&lt;relay_chain::AccountId&gt;,
 	),
-	<span class="ident">BondExtra</span>(<span class="ident">relay_chain::Balance</span>),
-	<span class="ident">Unbond</span>(<span class="ident">relay_chain::Balance</span>),
-	<span class="ident">WithdrawUnbonded</span>(<span class="ident">u32</span>),
-	<span class="ident">Validate</span>(<span class="ident">pallet_staking::ValidatorPrefs</span>),
-	<span class="ident">Nominate</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">relay_chain::AccountId</span><span class="op">&gt;</span>),
-	<span class="ident">Chill</span>,
-	<span class="ident">SetPayee</span>(<span class="ident">pallet_staking::RewardDestination</span><span class="op">&lt;</span><span class="ident">relay_chain::AccountId</span><span class="op">&gt;</span>),
-	<span class="ident">SetController</span>(<span class="ident">relay_chain::AccountId</span>),
-	<span class="ident">Rebond</span>(<span class="ident">relay_chain::Balance</span>),
+	BondExtra(relay_chain::Balance),
+	Unbond(relay_chain::Balance),
+	WithdrawUnbonded(u32),
+	Validate(pallet_staking::ValidatorPrefs),
+	Nominate(Vec&lt;relay_chain::AccountId&gt;),
+	Chill,
+	SetPayee(pallet_staking::RewardDestination&lt;relay_chain::AccountId&gt;),
+	SetController(relay_chain::AccountId),
+	Rebond(relay_chain::Balance),
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StakeEncodeCall</span> {
-	<span class="doccomment">/// Encode call from the relay.</span>
-	<span class="kw">fn</span> <span class="ident">encode_call</span>(<span class="ident">call</span>: <span class="ident">AvailableStakeCalls</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>;
+<span class="kw">pub trait </span>StakeEncodeCall {
+	<span class="doccomment">/// Encode call from the relay.
+	</span><span class="kw">fn </span>encode_call(call: AvailableStakeCalls) -&gt; Vec&lt;u8&gt;;
 }
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REWARD_DESTINATION_SIZE_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ARRAY_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">512</span>;
-<span class="kw">type</span> <span class="ident">GetArrayLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">ARRAY_LIMIT</span><span class="op">&gt;</span>;
-<span class="kw">type</span> <span class="ident">GetRewardDestinationSizeLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">REWARD_DESTINATION_SIZE_LIMIT</span><span class="op">&gt;</span>;
+<span class="kw">pub const </span>REWARD_DESTINATION_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
+<span class="kw">pub const </span>ARRAY_LIMIT: u32 = <span class="number">512</span>;
+<span class="kw">type </span>GetArrayLimit = ConstU32&lt;ARRAY_LIMIT&gt;;
+<span class="kw">type </span>GetRewardDestinationSizeLimit = ConstU32&lt;REWARD_DESTINATION_SIZE_LIMIT&gt;;
 
-<span class="doccomment">/// A precompile to provide relay stake calls encoding through evm</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RelayEncoderPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">RelayRuntime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">RelayRuntime</span>)<span class="op">&gt;</span>);
+<span class="doccomment">/// A precompile to provide relay stake calls encoding through evm
+</span><span class="kw">pub struct </span>RelayEncoderPrecompile&lt;Runtime, RelayRuntime&gt;(PhantomData&lt;(Runtime, RelayRuntime)&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">RelayRuntime</span><span class="op">&gt;</span> <span class="ident">RelayEncoderPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">RelayRuntime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">RelayRuntime</span>: <span class="ident">StakeEncodeCall</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime, RelayRuntime&gt; RelayEncoderPrecompile&lt;Runtime, RelayRuntime&gt;
+<span class="kw">where
+	</span>RelayRuntime: StakeEncodeCall,
+	Runtime: pallet_evm::Config,
+	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeBond(uint256,uint256,bytes)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_bond(uint256,uint256,bytes)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_bond</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">controller_address</span>: <span class="ident">U256</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-		<span class="ident">reward_destination</span>: <span class="ident">RewardDestinationWrapper</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeBond(uint256,uint256,bytes)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_bond(uint256,uint256,bytes)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_bond(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		controller_address: U256,
+		amount: U256,
+		reward_destination: RewardDestinationWrapper,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">address</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">controller_address</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>address: [u8; <span class="number">32</span>] = controller_address.into();
+		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
+		<span class="kw">let </span>reward_destination = reward_destination.into();
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Bond</span>(
-			<span class="ident">address</span>.<span class="ident">into</span>(),
-			<span class="ident">relay_amount</span>,
-			<span class="ident">reward_destination</span>,
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Bond(
+			address.into(),
+			relay_amount,
+			reward_destination,
 		))
-		.<span class="ident">as_slice</span>()
-		.<span class="ident">into</span>();
+		.as_slice()
+		.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeBondExtra(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_bond_extra(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_bond_extra</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeBondExtra(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_bond_extra(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_bond_extra(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		amount: U256,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::BondExtra</span>(<span class="ident">relay_amount</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::BondExtra(relay_amount))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeUnbond(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_unbond(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_unbond</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeUnbond(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_unbond(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_unbond(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		amount: U256,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Unbond</span>(<span class="ident">relay_amount</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Unbond(relay_amount))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeWithdrawUnbonded(uint32)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_withdraw_unbonded(uint32)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_withdraw_unbonded</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">slashes</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeWithdrawUnbonded(uint32)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_withdraw_unbonded(uint32)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_withdraw_unbonded(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		slashes: u32,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::WithdrawUnbonded</span>(<span class="ident">slashes</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::WithdrawUnbonded(slashes))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeValidate(uint256,bool)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_validate(uint256,bool)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_validate</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">comission</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="ident">blocked</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeValidate(uint256,bool)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_validate(uint256,bool)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_validate(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		comission: SolidityConvert&lt;U256, u32&gt;,
+		blocked: bool,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">fraction</span> <span class="op">=</span> <span class="ident">Perbill::from_parts</span>(<span class="ident">comission</span>.<span class="ident">converted</span>());
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Validate</span>(
-			<span class="ident">pallet_staking::ValidatorPrefs</span> {
-				<span class="ident">commission</span>: <span class="ident">fraction</span>,
-				<span class="ident">blocked</span>: <span class="ident">blocked</span>,
+		<span class="kw">let </span>fraction = Perbill::from_parts(comission.converted());
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Validate(
+			pallet_staking::ValidatorPrefs {
+				commission: fraction,
+				blocked: blocked,
 			},
 		))
-		.<span class="ident">as_slice</span>()
-		.<span class="ident">into</span>();
+		.as_slice()
+		.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeNominate(uint256[])&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_nominate(uint256[])&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_nominate</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">nominees</span>: <span class="ident">BoundedVec</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">GetArrayLimit</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeNominate(uint256[])&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_nominate(uint256[])&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_nominate(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		nominees: BoundedVec&lt;U256, GetArrayLimit&gt;,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">nominees</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">nominees</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">nominated</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">nominees</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">add</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">as_bytes</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">add</span>.<span class="ident">into</span>();
-				<span class="ident">as_bytes</span>.<span class="ident">into</span>()
+		<span class="kw">let </span>nominees: Vec&lt;<span class="kw">_</span>&gt; = nominees.into();
+		<span class="kw">let </span>nominated: Vec&lt;AccountId32&gt; = nominees
+			.iter()
+			.map(|<span class="kw-2">&amp;</span>add| {
+				<span class="kw">let </span>as_bytes: [u8; <span class="number">32</span>] = add.into();
+				as_bytes.into()
 			})
-			.<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Nominate</span>(<span class="ident">nominated</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+			.collect();
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Nominate(nominated))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeChill()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_chill()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_chill</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeChill()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_chill()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_chill(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Chill</span>)
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Chill)
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeSetPayee(bytes)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_set_payee(bytes)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_set_payee</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">reward_destination</span>: <span class="ident">RewardDestinationWrapper</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeSetPayee(bytes)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_set_payee(bytes)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_set_payee(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		reward_destination: RewardDestinationWrapper,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>reward_destination = reward_destination.into();
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::SetPayee</span>(<span class="ident">reward_destination</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::SetPayee(reward_destination))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeSetController(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_set_controller(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_set_controller</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">controller</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeSetController(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_set_controller(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_set_controller(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		controller: U256,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">controller</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">controller</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>controller: [u8; <span class="number">32</span>] = controller.into();
 
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span>
-			<span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::SetController</span>(<span class="ident">controller</span>.<span class="ident">into</span>()))
-				.<span class="ident">as_slice</span>()
-				.<span class="ident">into</span>();
+		<span class="kw">let </span>encoded =
+			RelayRuntime::encode_call(AvailableStakeCalls::SetController(controller.into()))
+				.as_slice()
+				.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encodeRebond(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;encode_rebond(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">encode_rebond</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeRebond(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;encode_rebond(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>encode_rebond(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		amount: U256,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">relay_amount</span> <span class="op">=</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">amount</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">RelayRuntime::encode_call</span>(<span class="ident">AvailableStakeCalls::Rebond</span>(<span class="ident">relay_amount</span>))
-			.<span class="ident">as_slice</span>()
-			.<span class="ident">into</span>();
+		<span class="kw">let </span>relay_amount = u256_to_relay_amount(amount)<span class="question-mark">?</span>;
+		<span class="kw">let </span>encoded = RelayRuntime::encode_call(AvailableStakeCalls::Rebond(relay_amount))
+			.as_slice()
+			.into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">encoded</span>)
-	}
-}
-
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">u256_to_relay_amount</span>(<span class="ident">value</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">relay_chain::Balance</span><span class="op">&gt;</span> {
-	<span class="ident">value</span>
-		.<span class="ident">try_into</span>()
-		.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))
-}
-
-<span class="comment">// A wrapper to be able to implement here the EvmData reader</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span>);
-
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RewardDestination</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RewardDestinationWrapper</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">reward_dest</span>: <span class="ident">RewardDestination</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">RewardDestinationWrapper</span>(<span class="ident">reward_dest</span>)
+		<span class="prelude-val">Ok</span>(encoded)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">RewardDestination</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">RewardDestinationWrapper</span> {
-	<span class="kw">fn</span> <span class="ident">into</span>(<span class="self">self</span>) -&gt; <span class="ident">RewardDestination</span><span class="op">&lt;</span><span class="ident">AccountId32</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="number">0</span>
+<span class="kw">pub fn </span>u256_to_relay_amount(value: U256) -&gt; EvmResult&lt;relay_chain::Balance&gt; {
+	value
+		.try_into()
+		.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))
+}
+
+<span class="comment">// A wrapper to be able to implement here the EvmData reader
+</span><span class="attribute">#[derive(Clone, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>RewardDestinationWrapper(RewardDestination&lt;AccountId32&gt;);
+
+<span class="kw">impl </span>From&lt;RewardDestination&lt;AccountId32&gt;&gt; <span class="kw">for </span>RewardDestinationWrapper {
+	<span class="kw">fn </span>from(reward_dest: RewardDestination&lt;AccountId32&gt;) -&gt; <span class="self">Self </span>{
+		RewardDestinationWrapper(reward_dest)
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">RewardDestinationWrapper</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">reward_destination</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetRewardDestinationSizeLimit</span><span class="op">&gt;</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">reward_destination_bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">reward_destination</span>.<span class="ident">into</span>();
+<span class="kw">impl </span>Into&lt;RewardDestination&lt;AccountId32&gt;&gt; <span class="kw">for </span>RewardDestinationWrapper {
+	<span class="kw">fn </span>into(<span class="self">self</span>) -&gt; RewardDestination&lt;AccountId32&gt; {
+		<span class="self">self</span>.<span class="number">0
+	</span>}
+}
+
+<span class="kw">impl </span>EvmData <span class="kw">for </span>RewardDestinationWrapper {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span>reward_destination = reader.read::&lt;BoundedBytes&lt;GetRewardDestinationSizeLimit&gt;&gt;()<span class="question-mark">?</span>;
+		<span class="kw">let </span>reward_destination_bytes: Vec&lt;<span class="kw">_</span>&gt; = reward_destination.into();
 		<span class="macro">ensure!</span>(
-			<span class="ident">reward_destination_bytes</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="number">0</span>,
-			<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Reward destinations cannot be empty&quot;</span>)
+			reward_destination_bytes.len() &gt; <span class="number">0</span>,
+			RevertReason::custom(<span class="string">&quot;Reward destinations cannot be empty&quot;</span>)
 		);
-		<span class="comment">// For simplicity we use an EvmReader here</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded_reward_destination</span> <span class="op">=</span> <span class="ident">EvmDataReader::new</span>(<span class="kw-2">&amp;</span><span class="ident">reward_destination_bytes</span>);
+		<span class="comment">// For simplicity we use an EvmReader here
+		</span><span class="kw">let </span><span class="kw-2">mut </span>encoded_reward_destination = EvmDataReader::new(<span class="kw-2">&amp;</span>reward_destination_bytes);
 
-		<span class="comment">// We take the first byte</span>
-		<span class="kw">let</span> <span class="ident">enum_selector</span> <span class="op">=</span> <span class="ident">encoded_reward_destination</span>.<span class="ident">read_raw_bytes</span>(<span class="number">1</span>)<span class="question-mark">?</span>;
-		<span class="comment">// The firs byte selects the enum variant</span>
-		<span class="kw">match</span> <span class="ident">enum_selector</span>[<span class="number">0</span>] {
-			<span class="number">0u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::Staked</span>)),
-			<span class="number">1u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::Stash</span>)),
-			<span class="number">2u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::Controller</span>)),
-			<span class="number">3u8</span> =&gt; {
-				<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">encoded_reward_destination</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-				<span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::Account</span>(
-					<span class="ident">address</span>.<span class="ident">as_fixed_bytes</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
+		<span class="comment">// We take the first byte
+		</span><span class="kw">let </span>enum_selector = encoded_reward_destination.read_raw_bytes(<span class="number">1</span>)<span class="question-mark">?</span>;
+		<span class="comment">// The firs byte selects the enum variant
+		</span><span class="kw">match </span>enum_selector[<span class="number">0</span>] {
+			<span class="number">0u8 </span>=&gt; <span class="prelude-val">Ok</span>(RewardDestinationWrapper(RewardDestination::Staked)),
+			<span class="number">1u8 </span>=&gt; <span class="prelude-val">Ok</span>(RewardDestinationWrapper(RewardDestination::Stash)),
+			<span class="number">2u8 </span>=&gt; <span class="prelude-val">Ok</span>(RewardDestinationWrapper(RewardDestination::Controller)),
+			<span class="number">3u8 </span>=&gt; {
+				<span class="kw">let </span>address = encoded_reward_destination.read::&lt;H256&gt;()<span class="question-mark">?</span>;
+				<span class="prelude-val">Ok</span>(RewardDestinationWrapper(RewardDestination::Account(
+					address.as_fixed_bytes().clone().into(),
 				)))
 			}
-			<span class="number">4u8</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">RewardDestinationWrapper</span>(<span class="ident">RewardDestination::None</span>)),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Unknown reward destination&quot;</span>).<span class="ident">into</span>()),
+			<span class="number">4u8 </span>=&gt; <span class="prelude-val">Ok</span>(RewardDestinationWrapper(RewardDestination::None)),
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::custom(<span class="string">&quot;Unknown reward destination&quot;</span>).into()),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">let</span> <span class="ident">encoded_bytes</span>: <span class="ident">UnboundedBytes</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">value</span>.<span class="number">0</span> {
-			<span class="ident">RewardDestination::Staked</span> =&gt; {
-				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">0</span>);
-				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+		<span class="kw">let </span><span class="kw-2">mut </span>encoded: Vec&lt;u8&gt; = Vec::new();
+		<span class="kw">let </span>encoded_bytes: UnboundedBytes = <span class="kw">match </span>value.<span class="number">0 </span>{
+			RewardDestination::Staked =&gt; {
+				encoded.push(<span class="number">0</span>);
+				encoded.as_slice().into()
 			}
-			<span class="ident">RewardDestination::Stash</span> =&gt; {
-				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">1</span>);
-				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
+			RewardDestination::Stash =&gt; {
+				encoded.push(<span class="number">1</span>);
+				encoded.as_slice().into()
 			}
-			<span class="ident">RewardDestination::Controller</span> =&gt; {
-				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">2</span>);
-				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
+			RewardDestination::Controller =&gt; {
+				encoded.push(<span class="number">2</span>);
+				encoded.as_slice().into()
 			}
-			<span class="ident">RewardDestination::Account</span>(<span class="ident">address</span>) =&gt; {
-				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">3</span>);
-				<span class="kw">let</span> <span class="ident">address_bytes</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="ident">address</span>.<span class="ident">into</span>();
-				<span class="ident">encoded</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">address_bytes</span>.<span class="ident">to_vec</span>());
-				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
+			RewardDestination::Account(address) =&gt; {
+				encoded.push(<span class="number">3</span>);
+				<span class="kw">let </span>address_bytes: [u8; <span class="number">32</span>] = address.into();
+				encoded.append(<span class="kw-2">&amp;mut </span>address_bytes.to_vec());
+				encoded.as_slice().into()
 			}
-			<span class="ident">RewardDestination::None</span> =&gt; {
-				<span class="ident">encoded</span>.<span class="ident">push</span>(<span class="number">4</span>);
-				<span class="ident">encoded</span>.<span class="ident">as_slice</span>().<span class="ident">into</span>()
+			RewardDestination::None =&gt; {
+				encoded.push(<span class="number">4</span>);
+				encoded.as_slice().into()
 			}
 		};
-		<span class="ident">EvmData::write</span>(<span class="ident">writer</span>, <span class="ident">encoded_bytes</span>);
+		EvmData::write(writer, encoded_bytes);
 	}
 
-	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
-		<span class="bool-val">false</span>
-	}
+	<span class="kw">fn </span>has_static_size() -&gt; bool {
+		<span class="bool-val">false
+	</span>}
 
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
-		<span class="ident">UnboundedBytes::solidity_type</span>()
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		UnboundedBytes::solidity_type()
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_relay_encoder" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_relay_encoder" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

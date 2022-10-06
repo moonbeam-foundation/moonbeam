@@ -1,3 +1,3 @@
-(function() {var implementors = {};
-implementors["xcm_primitives"] = [{"text":"impl&lt;T:&nbsp;Contains&lt;MultiLocation&gt;&gt; ShouldExecute for <a class=\"struct\" href=\"xcm_primitives/struct.AllowTopLevelPaidExecutionDescendOriginFirst.html\" title=\"struct xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst\">AllowTopLevelPaidExecutionDescendOriginFirst</a>&lt;T&gt;","synthetic":false,"types":["xcm_primitives::barriers::AllowTopLevelPaidExecutionDescendOriginFirst"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"xcm_primitives":[["impl&lt;T:&nbsp;Contains&lt;MultiLocation&gt;&gt; ShouldExecute for <a class=\"struct\" href=\"xcm_primitives/struct.AllowTopLevelPaidExecutionDescendOriginFirst.html\" title=\"struct xcm_primitives::AllowTopLevelPaidExecutionDescendOriginFirst\">AllowTopLevelPaidExecutionDescendOriginFirst</a>&lt;T&gt;"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

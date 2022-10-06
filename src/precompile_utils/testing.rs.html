@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/testing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>testing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/testing.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>testing.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -474,477 +469,476 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> {
-	<span class="kw">crate</span>::{<span class="ident">EvmData</span>, <span class="ident">EvmDataWriter</span>},
-	<span class="ident">fp_evm</span>::{
-		<span class="ident">Context</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>, <span class="ident">Log</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>,
-		<span class="ident">PrecompileOutput</span>, <span class="ident">PrecompileResult</span>, <span class="ident">PrecompileSet</span>, <span class="ident">Transfer</span>,
+</span><span class="kw">use </span>{
+	<span class="kw">crate</span>::{EvmData, EvmDataWriter},
+	fp_evm::{
+		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
+		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
 	},
-	<span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>},
-	<span class="ident">sp_std::boxed::Box</span>,
+	sp_core::{H160, H256, U256},
+	sp_std::boxed::Box,
 };
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Subcall</span> {
-	<span class="kw">pub</span> <span class="ident">address</span>: <span class="ident">H160</span>,
-	<span class="kw">pub</span> <span class="ident">transfer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Transfer</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">is_static</span>: <span class="ident">bool</span>,
-	<span class="kw">pub</span> <span class="ident">context</span>: <span class="ident">Context</span>,
+<span class="kw">pub struct </span>Subcall {
+	<span class="kw">pub </span>address: H160,
+	<span class="kw">pub </span>transfer: <span class="prelude-ty">Option</span>&lt;Transfer&gt;,
+	<span class="kw">pub </span>input: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>target_gas: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+	<span class="kw">pub </span>is_static: bool,
+	<span class="kw">pub </span>context: Context,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubcallOutput</span> {
-	<span class="kw">pub</span> <span class="ident">reason</span>: <span class="ident">ExitReason</span>,
-	<span class="kw">pub</span> <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">cost</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">logs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Log</span><span class="op">&gt;</span>,
+<span class="kw">pub struct </span>SubcallOutput {
+	<span class="kw">pub </span>reason: ExitReason,
+	<span class="kw">pub </span>output: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>cost: u64,
+	<span class="kw">pub </span>logs: Vec&lt;Log&gt;,
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">SubcallTrait</span>: <span class="ident">FnMut</span>(<span class="ident">Subcall</span>) -&gt; <span class="ident">SubcallOutput</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {}
+<span class="kw">pub trait </span>SubcallTrait: FnMut(Subcall) -&gt; SubcallOutput + <span class="lifetime">&#39;static </span>{}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">FnMut</span>(<span class="ident">Subcall</span>) -&gt; <span class="ident">SubcallOutput</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">SubcallTrait</span> <span class="kw">for</span> <span class="ident">T</span> {}
+<span class="kw">impl</span>&lt;T: FnMut(Subcall) -&gt; SubcallOutput + <span class="lifetime">&#39;static</span>&gt; SubcallTrait <span class="kw">for </span>T {}
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">SubcallHandle</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">SubcallTrait</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>SubcallHandle = Box&lt;<span class="kw">dyn </span>SubcallTrait&gt;;
 
-<span class="doccomment">/// Mock handle to write tests for precompiles.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MockHandle</span> {
-	<span class="kw">pub</span> <span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">gas_used</span>: <span class="ident">u64</span>,
-	<span class="kw">pub</span> <span class="ident">logs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PrettyLog</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">subcall_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SubcallHandle</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">code_address</span>: <span class="ident">H160</span>,
-	<span class="kw">pub</span> <span class="ident">input</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">context</span>: <span class="ident">Context</span>,
-	<span class="kw">pub</span> <span class="ident">is_static</span>: <span class="ident">bool</span>,
+<span class="doccomment">/// Mock handle to write tests for precompiles.
+</span><span class="kw">pub struct </span>MockHandle {
+	<span class="kw">pub </span>gas_limit: u64,
+	<span class="kw">pub </span>gas_used: u64,
+	<span class="kw">pub </span>logs: Vec&lt;PrettyLog&gt;,
+	<span class="kw">pub </span>subcall_handle: <span class="prelude-ty">Option</span>&lt;SubcallHandle&gt;,
+	<span class="kw">pub </span>code_address: H160,
+	<span class="kw">pub </span>input: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>context: Context,
+	<span class="kw">pub </span>is_static: bool,
 }
 
-<span class="kw">impl</span> <span class="ident">MockHandle</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">code_address</span>: <span class="ident">H160</span>, <span class="ident">context</span>: <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">gas_limit</span>: <span class="ident">u64::MAX</span>,
-			<span class="ident">gas_used</span>: <span class="number">0</span>,
-			<span class="ident">logs</span>: <span class="macro">vec!</span>[],
-			<span class="ident">subcall_handle</span>: <span class="prelude-val">None</span>,
-			<span class="ident">code_address</span>,
-			<span class="ident">input</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">context</span>,
-			<span class="ident">is_static</span>: <span class="bool-val">false</span>,
+<span class="kw">impl </span>MockHandle {
+	<span class="kw">pub fn </span>new(code_address: H160, context: Context) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			gas_limit: u64::MAX,
+			gas_used: <span class="number">0</span>,
+			logs: <span class="macro">vec!</span>[],
+			subcall_handle: <span class="prelude-val">None</span>,
+			code_address,
+			input: Vec::new(),
+			context,
+			is_static: <span class="bool-val">false</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">PrecompileHandle</span> <span class="kw">for</span> <span class="ident">MockHandle</span> {
-	<span class="doccomment">/// Perform subcall in provided context.</span>
-	<span class="doccomment">/// Precompile specifies in which context the subcall is executed.</span>
-	<span class="kw">fn</span> <span class="ident">call</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">transfer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Transfer</span><span class="op">&gt;</span>,
-		<span class="ident">input</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-		<span class="ident">is_static</span>: <span class="ident">bool</span>,
-		<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="ident">Context</span>,
-	) -&gt; (<span class="ident">ExitReason</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
-		<span class="kw">if</span> <span class="self">self</span>
-			.<span class="ident">record_cost</span>(<span class="ident"><span class="kw">crate</span>::costs::call_cost</span>(
-				<span class="ident">context</span>.<span class="ident">apparent_value</span>,
-				<span class="kw-2">&amp;</span><span class="ident">evm::Config::london</span>(),
+<span class="kw">impl </span>PrecompileHandle <span class="kw">for </span>MockHandle {
+	<span class="doccomment">/// Perform subcall in provided context.
+	/// Precompile specifies in which context the subcall is executed.
+	</span><span class="kw">fn </span>call(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		address: H160,
+		transfer: <span class="prelude-ty">Option</span>&lt;Transfer&gt;,
+		input: Vec&lt;u8&gt;,
+		target_gas: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+		is_static: bool,
+		context: <span class="kw-2">&amp;</span>Context,
+	) -&gt; (ExitReason, Vec&lt;u8&gt;) {
+		<span class="kw">if </span><span class="self">self
+			</span>.record_cost(<span class="kw">crate</span>::costs::call_cost(
+				context.apparent_value,
+				<span class="kw-2">&amp;</span>evm::Config::london(),
 			))
-			.<span class="ident">is_err</span>()
+			.is_err()
 		{
-			<span class="kw">return</span> (<span class="ident">ExitReason::Error</span>(<span class="ident">ExitError::OutOfGas</span>), <span class="macro">vec!</span>[]);
+			<span class="kw">return </span>(ExitReason::Error(ExitError::OutOfGas), <span class="macro">vec!</span>[]);
 		}
 
-		<span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">subcall_handle</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">handle</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">SubcallOutput</span> {
-					<span class="ident">reason</span>,
-					<span class="ident">output</span>,
-					<span class="ident">cost</span>,
-					<span class="ident">logs</span>,
-				} <span class="op">=</span> <span class="ident">handle</span>(<span class="ident">Subcall</span> {
-					<span class="ident">address</span>,
-					<span class="ident">transfer</span>,
-					<span class="ident">input</span>,
-					<span class="ident">target_gas</span>,
-					<span class="ident">is_static</span>,
-					<span class="ident">context</span>: <span class="ident">context</span>.<span class="ident">clone</span>(),
+		<span class="kw">match </span><span class="kw-2">&amp;mut </span><span class="self">self</span>.subcall_handle {
+			<span class="prelude-val">Some</span>(handle) =&gt; {
+				<span class="kw">let </span>SubcallOutput {
+					reason,
+					output,
+					cost,
+					logs,
+				} = handle(Subcall {
+					address,
+					transfer,
+					input,
+					target_gas,
+					is_static,
+					context: context.clone(),
 				});
 
-				<span class="kw">if</span> <span class="self">self</span>.<span class="ident">record_cost</span>(<span class="ident">cost</span>).<span class="ident">is_err</span>() {
-					<span class="kw">return</span> (<span class="ident">ExitReason::Error</span>(<span class="ident">ExitError::OutOfGas</span>), <span class="macro">vec!</span>[]);
+				<span class="kw">if </span><span class="self">self</span>.record_cost(cost).is_err() {
+					<span class="kw">return </span>(ExitReason::Error(ExitError::OutOfGas), <span class="macro">vec!</span>[]);
 				}
 
-				<span class="kw">for</span> <span class="ident">log</span> <span class="kw">in</span> <span class="ident">logs</span> {
-					<span class="self">self</span>.<span class="ident">log</span>(<span class="ident">log</span>.<span class="ident">address</span>, <span class="ident">log</span>.<span class="ident">topics</span>, <span class="ident">log</span>.<span class="ident">data</span>)
-						.<span class="ident">expect</span>(<span class="string">&quot;cannot fail&quot;</span>);
+				<span class="kw">for </span>log <span class="kw">in </span>logs {
+					<span class="self">self</span>.log(log.address, log.topics, log.data)
+						.expect(<span class="string">&quot;cannot fail&quot;</span>);
 				}
 
-				(<span class="ident">reason</span>, <span class="ident">output</span>)
+				(reason, output)
 			}
-			<span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;no subcall handle registered&quot;</span>),
+			<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;no subcall handle registered&quot;</span>),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">record_cost</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">cost</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">gas_used</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cost</span>;
+	<span class="kw">fn </span>record_cost(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cost: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), ExitError&gt; {
+		<span class="self">self</span>.gas_used += cost;
 
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">gas_used</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">gas_limit</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">ExitError::OutOfGas</span>)
-		} <span class="kw">else</span> {
+		<span class="kw">if </span><span class="self">self</span>.gas_used &gt; <span class="self">self</span>.gas_limit {
+			<span class="prelude-val">Err</span>(ExitError::OutOfGas)
+		} <span class="kw">else </span>{
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">remaining_gas</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-		<span class="self">self</span>.<span class="ident">gas_limit</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">gas_used</span>
+	<span class="kw">fn </span>remaining_gas(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u64 {
+		<span class="self">self</span>.gas_limit - <span class="self">self</span>.gas_used
 	}
 
-	<span class="kw">fn</span> <span class="ident">log</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">topics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>, <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ExitError</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">logs</span>.<span class="ident">push</span>(<span class="ident">PrettyLog</span>(<span class="ident">Log</span> {
-			<span class="ident">address</span>,
-			<span class="ident">topics</span>,
-			<span class="ident">data</span>,
+	<span class="kw">fn </span>log(<span class="kw-2">&amp;mut </span><span class="self">self</span>, address: H160, topics: Vec&lt;H256&gt;, data: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), ExitError&gt; {
+		<span class="self">self</span>.logs.push(PrettyLog(Log {
+			address,
+			topics,
+			data,
 		}));
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Retreive the code address (what is the address of the precompile being called).</span>
-	<span class="kw">fn</span> <span class="ident">code_address</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">H160</span> {
-		<span class="self">self</span>.<span class="ident">code_address</span>
+	<span class="doccomment">/// Retreive the code address (what is the address of the precompile being called).
+	</span><span class="kw">fn </span>code_address(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; H160 {
+		<span class="self">self</span>.code_address
 	}
 
-	<span class="doccomment">/// Retreive the input data the precompile is called with.</span>
-	<span class="kw">fn</span> <span class="ident">input</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">input</span>
+	<span class="doccomment">/// Retreive the input data the precompile is called with.
+	</span><span class="kw">fn </span>input(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.input
 	}
 
-	<span class="doccomment">/// Retreive the context in which the precompile is executed.</span>
-	<span class="kw">fn</span> <span class="ident">context</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Context</span> {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">context</span>
+	<span class="doccomment">/// Retreive the context in which the precompile is executed.
+	</span><span class="kw">fn </span>context(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>Context {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.context
 	}
 
-	<span class="doccomment">/// Is the precompile call is done statically.</span>
-	<span class="kw">fn</span> <span class="ident">is_static</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">is_static</span>
+	<span class="doccomment">/// Is the precompile call is done statically.
+	</span><span class="kw">fn </span>is_static(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+		<span class="self">self</span>.is_static
 	}
 
-	<span class="doccomment">/// Retreive the gas limit of this call.</span>
-	<span class="kw">fn</span> <span class="ident">gas_limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-		<span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">gas_limit</span>)
+	<span class="doccomment">/// Retreive the gas limit of this call.
+	</span><span class="kw">fn </span>gas_limit(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u64&gt; {
+		<span class="prelude-val">Some</span>(<span class="self">self</span>.gas_limit)
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="ident">precompiles</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>,
-	<span class="ident">handle</span>: <span class="ident">MockHandle</span>,
+<span class="kw">pub struct </span>PrecompilesTester&lt;<span class="lifetime">&#39;p</span>, P&gt; {
+	precompiles: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>P,
+	handle: MockHandle,
 
-	<span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	<span class="ident">subcall_handle</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SubcallHandle</span><span class="op">&gt;</span>,
+	target_gas: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+	subcall_handle: <span class="prelude-ty">Option</span>&lt;SubcallHandle&gt;,
 
-	<span class="ident">expected_cost</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
-	<span class="ident">expected_logs</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PrettyLog</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">static_call</span>: <span class="ident">bool</span>,
+	expected_cost: <span class="prelude-ty">Option</span>&lt;u64&gt;,
+	expected_logs: <span class="prelude-ty">Option</span>&lt;Vec&lt;PrettyLog&gt;&gt;,
+	static_call: bool,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span>: <span class="ident">PrecompileSet</span><span class="op">&gt;</span> <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="lifetime">&#39;p</span>, <span class="ident">P</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(
-		<span class="ident">precompiles</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p</span> <span class="ident">P</span>,
-		<span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">to</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">handle</span> <span class="op">=</span> <span class="ident">MockHandle::new</span>(
-			<span class="ident">to</span>.<span class="ident">clone</span>(),
-			<span class="ident">Context</span> {
-				<span class="ident">address</span>: <span class="ident">to</span>,
-				<span class="ident">caller</span>: <span class="ident">from</span>.<span class="ident">into</span>(),
-				<span class="ident">apparent_value</span>: <span class="ident">U256::zero</span>(),
+<span class="kw">impl</span>&lt;<span class="lifetime">&#39;p</span>, P: PrecompileSet&gt; PrecompilesTester&lt;<span class="lifetime">&#39;p</span>, P&gt; {
+	<span class="kw">pub fn </span>new(
+		precompiles: <span class="kw-2">&amp;</span><span class="lifetime">&#39;p </span>P,
+		from: <span class="kw">impl </span>Into&lt;H160&gt;,
+		to: <span class="kw">impl </span>Into&lt;H160&gt;,
+		data: Vec&lt;u8&gt;,
+	) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>to = to.into();
+		<span class="kw">let </span><span class="kw-2">mut </span>handle = MockHandle::new(
+			to.clone(),
+			Context {
+				address: to,
+				caller: from.into(),
+				apparent_value: U256::zero(),
 			},
 		);
 
-		<span class="ident">handle</span>.<span class="ident">input</span> <span class="op">=</span> <span class="ident">data</span>;
+		handle.input = data;
 
-		<span class="self">Self</span> {
-			<span class="ident">precompiles</span>,
-			<span class="ident">handle</span>,
+		<span class="self">Self </span>{
+			precompiles,
+			handle,
 
-			<span class="ident">target_gas</span>: <span class="prelude-val">None</span>,
-			<span class="ident">subcall_handle</span>: <span class="prelude-val">None</span>,
+			target_gas: <span class="prelude-val">None</span>,
+			subcall_handle: <span class="prelude-val">None</span>,
 
-			<span class="ident">expected_cost</span>: <span class="prelude-val">None</span>,
-			<span class="ident">expected_logs</span>: <span class="prelude-val">None</span>,
-			<span class="ident">static_call</span>: <span class="bool-val">false</span>,
+			expected_cost: <span class="prelude-val">None</span>,
+			expected_logs: <span class="prelude-val">None</span>,
+			static_call: <span class="bool-val">false</span>,
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_value</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">context</span>.<span class="ident">apparent_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into</span>();
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>with_value(<span class="kw-2">mut </span><span class="self">self</span>, value: <span class="kw">impl </span>Into&lt;U256&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.handle.context.apparent_value = value.into();
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_subcall_handle</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">subcall_handle</span>: <span class="kw">impl</span> <span class="ident">SubcallTrait</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">subcall_handle</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">subcall_handle</span>));
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>with_subcall_handle(<span class="kw-2">mut </span><span class="self">self</span>, subcall_handle: <span class="kw">impl </span>SubcallTrait) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.subcall_handle = <span class="prelude-val">Some</span>(Box::new(subcall_handle));
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_target_gas</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">target_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">target_gas</span> <span class="op">=</span> <span class="ident">target_gas</span>;
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>with_target_gas(<span class="kw-2">mut </span><span class="self">self</span>, target_gas: <span class="prelude-ty">Option</span>&lt;u64&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.target_gas = target_gas;
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_static_call</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">static_call</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">static_call</span> <span class="op">=</span> <span class="ident">static_call</span>;
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>with_static_call(<span class="kw-2">mut </span><span class="self">self</span>, static_call: bool) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.static_call = static_call;
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_cost</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cost</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">expected_cost</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">cost</span>);
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>expect_cost(<span class="kw-2">mut </span><span class="self">self</span>, cost: u64) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.expected_cost = <span class="prelude-val">Some</span>(cost);
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_no_logs</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">expected_logs</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[]);
-		<span class="self">self</span>
-	}
+	<span class="kw">pub fn </span>expect_no_logs(<span class="kw-2">mut </span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.expected_logs = <span class="prelude-val">Some</span>(<span class="macro">vec!</span>[]);
+		<span class="self">self
+	</span>}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expect_log</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">log</span>: <span class="ident">Log</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">self</span>.<span class="ident">expected_logs</span> <span class="op">=</span> <span class="prelude-val">Some</span>({
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">logs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expected_logs</span>.<span class="ident">unwrap_or_else</span>(<span class="ident">Vec::new</span>);
-			<span class="ident">logs</span>.<span class="ident">push</span>(<span class="ident">PrettyLog</span>(<span class="ident">log</span>));
-			<span class="ident">logs</span>
+	<span class="kw">pub fn </span>expect_log(<span class="kw-2">mut </span><span class="self">self</span>, log: Log) -&gt; <span class="self">Self </span>{
+		<span class="self">self</span>.expected_logs = <span class="prelude-val">Some</span>({
+			<span class="kw">let </span><span class="kw-2">mut </span>logs = <span class="self">self</span>.expected_logs.unwrap_or_else(Vec::new);
+			logs.push(PrettyLog(log));
+			logs
 		});
-		<span class="self">self</span>
-	}
+		<span class="self">self
+	</span>}
 
-	<span class="kw">fn</span> <span class="ident">assert_optionals</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">cost</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">expected_cost</span> {
-			<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">gas_used</span>, <span class="ident">cost</span>);
+	<span class="kw">fn </span>assert_optionals(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(cost) = <span class="kw-2">&amp;</span><span class="self">self</span>.expected_cost {
+			<span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.handle.gas_used, cost);
 		}
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">logs</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">expected_logs</span> {
-			<span class="macro">similar_asserts::assert_eq!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">handle</span>.<span class="ident">logs</span>, <span class="ident">logs</span>);
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(logs) = <span class="kw-2">&amp;</span><span class="self">self</span>.expected_logs {
+			<span class="macro">similar_asserts::assert_eq!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.handle.logs, logs);
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PrecompileResult</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">handle</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">handle</span>;
-		<span class="ident">handle</span>.<span class="ident">subcall_handle</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">subcall_handle</span>.<span class="ident">take</span>();
-		<span class="ident">handle</span>.<span class="ident">is_static</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">static_call</span>;
+	<span class="kw">fn </span>execute(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PrecompileResult&gt; {
+		<span class="kw">let </span>handle = <span class="kw-2">&amp;mut </span><span class="self">self</span>.handle;
+		handle.subcall_handle = <span class="self">self</span>.subcall_handle.take();
+		handle.is_static = <span class="self">self</span>.static_call;
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">target_gas</span> {
-			<span class="ident">handle</span>.<span class="ident">gas_limit</span> <span class="op">=</span> <span class="ident">gas_limit</span>;
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(gas_limit) = <span class="self">self</span>.target_gas {
+			handle.gas_limit = gas_limit;
 		}
 
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">precompiles</span>.<span class="ident">execute</span>(<span class="ident">handle</span>);
+		<span class="kw">let </span>res = <span class="self">self</span>.precompiles.execute(handle);
 
-		<span class="self">self</span>.<span class="ident">subcall_handle</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">subcall_handle</span>.<span class="ident">take</span>();
+		<span class="self">self</span>.subcall_handle = handle.subcall_handle.take();
 
-		<span class="ident">res</span>
+		res
 	}
 
-	<span class="kw">fn</span> <span class="ident">decode_revert_message</span>(<span class="ident">encoded</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-		<span class="kw">let</span> <span class="ident">encoded_len</span> <span class="op">=</span> <span class="ident">encoded</span>.<span class="ident">len</span>();
-		<span class="comment">// selector 4 + offset 32 + string length 32</span>
-		<span class="kw">if</span> <span class="ident">encoded_len</span> <span class="op">&gt;</span> <span class="number">68</span> {
-			<span class="kw">let</span> <span class="ident">message_len</span> <span class="op">=</span> <span class="ident">encoded</span>[<span class="number">36</span>..<span class="number">68</span>].<span class="ident">iter</span>().<span class="ident">sum</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>();
-			<span class="kw">if</span> <span class="ident">encoded_len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">68</span> <span class="op">+</span> <span class="ident">message_len</span> <span class="kw">as</span> <span class="ident">usize</span> {
-				<span class="kw">return</span> <span class="kw-2">&amp;</span><span class="ident">encoded</span>[<span class="number">68</span>..<span class="number">68</span> <span class="op">+</span> <span class="ident">message_len</span> <span class="kw">as</span> <span class="ident">usize</span>];
+	<span class="kw">fn </span>decode_revert_message(encoded: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>[u8] {
+		<span class="kw">let </span>encoded_len = encoded.len();
+		<span class="comment">// selector 4 + offset 32 + string length 32
+		</span><span class="kw">if </span>encoded_len &gt; <span class="number">68 </span>{
+			<span class="kw">let </span>message_len = encoded[<span class="number">36</span>..<span class="number">68</span>].iter().sum::&lt;u8&gt;();
+			<span class="kw">if </span>encoded_len &gt;= <span class="number">68 </span>+ message_len <span class="kw">as </span>usize {
+				<span class="kw">return </span><span class="kw-2">&amp;</span>encoded[<span class="number">68</span>..<span class="number">68 </span>+ message_len <span class="kw">as </span>usize];
 			}
 		}
-		<span class="string">b&quot;decode_revert_message: error&quot;</span>
+		<span class="string">b&quot;decode_revert_message: error&quot;
+	</span>}
+
+	<span class="doccomment">/// Execute the precompile set and expect some precompile to have been executed, regardless of the
+	/// result.
+	</span><span class="kw">pub fn </span>execute_some(<span class="kw-2">mut </span><span class="self">self</span>) {
+		<span class="kw">let </span>res = <span class="self">self</span>.execute();
+		<span class="macro">assert!</span>(res.is_some());
+		<span class="self">self</span>.assert_optionals();
 	}
 
-	<span class="doccomment">/// Execute the precompile set and expect some precompile to have been executed, regardless of the</span>
-	<span class="doccomment">/// result.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_some</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>();
-		<span class="macro">assert!</span>(<span class="ident">res</span>.<span class="ident">is_some</span>());
-		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
+	<span class="doccomment">/// Execute the precompile set and expect no precompile to have been executed.
+	</span><span class="kw">pub fn </span>execute_none(<span class="kw-2">mut </span><span class="self">self</span>) {
+		<span class="kw">let </span>res = <span class="self">self</span>.execute();
+		<span class="macro">assert!</span>(res.is_some());
+		<span class="self">self</span>.assert_optionals();
 	}
 
-	<span class="doccomment">/// Execute the precompile set and expect no precompile to have been executed.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_none</span>(<span class="kw-2">mut</span> <span class="self">self</span>) {
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>();
-		<span class="macro">assert!</span>(<span class="ident">res</span>.<span class="ident">is_some</span>());
-		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
-	}
+	<span class="doccomment">/// Execute the precompile set and check it returns provided output.
+	</span><span class="kw">pub fn </span>execute_returns(<span class="kw-2">mut </span><span class="self">self</span>, output: Vec&lt;u8&gt;) {
+		<span class="kw">let </span>res = <span class="self">self</span>.execute();
 
-	<span class="doccomment">/// Execute the precompile set and check it returns provided output.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_returns</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) {
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>();
-
-		<span class="kw">match</span> <span class="ident">res</span> {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> { <span class="ident">output</span>, .. })) =&gt; {
-				<span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::decode_revert_message</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>);
+		<span class="kw">match </span>res {
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
+				<span class="kw">let </span>decoded = <span class="self">Self</span>::decode_revert_message(<span class="kw-2">&amp;</span>output);
 				<span class="macro">eprintln!</span>(
 					<span class="string">&quot;Revert message (bytes): {:?}&quot;</span>,
-					<span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="ident">decoded</span>)
+					sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>decoded)
 				);
 				<span class="macro">eprintln!</span>(
 					<span class="string">&quot;Revert message (string): {:?}&quot;</span>,
-					<span class="ident">core::str::from_utf8</span>(<span class="ident">decoded</span>).<span class="ident">ok</span>()
+					core::str::from_utf8(decoded).ok()
 				);
 				<span class="macro">panic!</span>(<span class="string">&quot;Shouldn&#39;t have reverted&quot;</span>);
 			}
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-				<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-				<span class="ident">output</span>: <span class="ident">execution_output</span>,
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(PrecompileOutput {
+				exit_status: ExitSucceed::Returned,
+				output: execution_output,
 			})) =&gt; {
-				<span class="kw">if</span> <span class="ident">execution_output</span> <span class="op">!</span><span class="op">=</span> <span class="ident">output</span> {
+				<span class="kw">if </span>execution_output != output {
 					<span class="macro">eprintln!</span>(
 						<span class="string">&quot;Output (bytes): {:?}&quot;</span>,
-						<span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="ident">execution_output</span>)
+						sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>execution_output)
 					);
 					<span class="macro">eprintln!</span>(
 						<span class="string">&quot;Output (string): {:?}&quot;</span>,
-						<span class="ident">core::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">execution_output</span>).<span class="ident">ok</span>()
+						core::str::from_utf8(<span class="kw-2">&amp;</span>execution_output).ok()
 					);
 					<span class="macro">panic!</span>(<span class="string">&quot;Output doesn&#39;t match&quot;</span>);
 				}
 			}
-			<span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, <span class="ident">other</span>),
+			other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Unexpected result: {:?}&quot;</span>, other),
 		}
 
-		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
+		<span class="self">self</span>.assert_optionals();
 	}
 
-	<span class="doccomment">/// Execute the precompile set and check it returns provided Solidity encoded output.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_returns_encoded</span>(<span class="self">self</span>, <span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">EvmData</span>) {
-		<span class="self">self</span>.<span class="ident">execute_returns</span>(<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">output</span>).<span class="ident">build</span>())
+	<span class="doccomment">/// Execute the precompile set and check it returns provided Solidity encoded output.
+	</span><span class="kw">pub fn </span>execute_returns_encoded(<span class="self">self</span>, output: <span class="kw">impl </span>EvmData) {
+		<span class="self">self</span>.execute_returns(EvmDataWriter::new().write(output).build())
 	}
 
-	<span class="doccomment">/// Execute the precompile set and check if it reverts.</span>
-	<span class="doccomment">/// Take a closure allowing to perform custom matching on the output.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_reverts</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">check</span>: <span class="kw">impl</span> <span class="ident">Fn</span>(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">bool</span>) {
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>();
+	<span class="doccomment">/// Execute the precompile set and check if it reverts.
+	/// Take a closure allowing to perform custom matching on the output.
+	</span><span class="kw">pub fn </span>execute_reverts(<span class="kw-2">mut </span><span class="self">self</span>, check: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>[u8]) -&gt; bool) {
+		<span class="kw">let </span>res = <span class="self">self</span>.execute();
 
-		<span class="kw">match</span> <span class="ident">res</span> {
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> { <span class="ident">output</span>, .. })) =&gt; {
-				<span class="kw">let</span> <span class="ident">decoded</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::decode_revert_message</span>(<span class="kw-2">&amp;</span><span class="ident">output</span>);
-				<span class="kw">if</span> <span class="op">!</span><span class="ident">check</span>(<span class="ident">decoded</span>) {
+		<span class="kw">match </span>res {
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
+				<span class="kw">let </span>decoded = <span class="self">Self</span>::decode_revert_message(<span class="kw-2">&amp;</span>output);
+				<span class="kw">if </span>!check(decoded) {
 					<span class="macro">eprintln!</span>(
 						<span class="string">&quot;Revert message (bytes): {:?}&quot;</span>,
-						<span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="ident">decoded</span>)
+						sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>decoded)
 					);
 					<span class="macro">eprintln!</span>(
 						<span class="string">&quot;Revert message (string): {:?}&quot;</span>,
-						<span class="ident">core::str::from_utf8</span>(<span class="ident">decoded</span>).<span class="ident">ok</span>()
+						core::str::from_utf8(decoded).ok()
 					);
 					<span class="macro">panic!</span>(<span class="string">&quot;Revert reason doesn&#39;t match !&quot;</span>);
 				}
 			}
-			<span class="ident">other</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Didn&#39;t revert, instead returned {:?}&quot;</span>, <span class="ident">other</span>),
+			other =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Didn&#39;t revert, instead returned {:?}&quot;</span>, other),
 		}
 
-		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
+		<span class="self">self</span>.assert_optionals();
 	}
 
-	<span class="doccomment">/// Execute the precompile set and check it returns provided output.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute_error</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">error</span>: <span class="ident">ExitError</span>) {
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">execute</span>();
+	<span class="doccomment">/// Execute the precompile set and check it returns provided output.
+	</span><span class="kw">pub fn </span>execute_error(<span class="kw-2">mut </span><span class="self">self</span>, error: ExitError) {
+		<span class="kw">let </span>res = <span class="self">self</span>.execute();
 		<span class="macro">assert_eq!</span>(
-			<span class="ident">res</span>,
-			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> { <span class="ident">exit_status</span>: <span class="ident">error</span> }))
+			res,
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Error { exit_status: error }))
 		);
-		<span class="self">self</span>.<span class="ident">assert_optionals</span>();
+		<span class="self">self</span>.assert_optionals();
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PrecompileTesterExt</span>: <span class="ident">PrecompileSet</span> <span class="op">+</span> <span class="ident">Sized</span> {
-	<span class="kw">fn</span> <span class="ident">prepare_test</span>(
+<span class="kw">pub trait </span>PrecompileTesterExt: PrecompileSet + Sized {
+	<span class="kw">fn </span>prepare_test(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">to</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+		from: <span class="kw">impl </span>Into&lt;H160&gt;,
+		to: <span class="kw">impl </span>Into&lt;H160&gt;,
+		data: <span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;,
+	) -&gt; PrecompilesTester&lt;<span class="self">Self</span>&gt;;
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">PrecompileSet</span><span class="op">&gt;</span> <span class="ident">PrecompileTesterExt</span> <span class="kw">for</span> <span class="ident">T</span> {
-	<span class="kw">fn</span> <span class="ident">prepare_test</span>(
+<span class="kw">impl</span>&lt;T: PrecompileSet&gt; PrecompileTesterExt <span class="kw">for </span>T {
+	<span class="kw">fn </span>prepare_test(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">from</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">to</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-		<span class="ident">data</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">PrecompilesTester</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="ident">PrecompilesTester::new</span>(<span class="self">self</span>, <span class="ident">from</span>, <span class="ident">to</span>, <span class="ident">data</span>.<span class="ident">into</span>())
+		from: <span class="kw">impl </span>Into&lt;H160&gt;,
+		to: <span class="kw">impl </span>Into&lt;H160&gt;,
+		data: <span class="kw">impl </span>Into&lt;Vec&lt;u8&gt;&gt;,
+	) -&gt; PrecompilesTester&lt;<span class="self">Self</span>&gt; {
+		PrecompilesTester::new(<span class="self">self</span>, from, to, data.into())
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PrettyLog</span>(<span class="ident">Log</span>);
+<span class="attribute">#[derive(Clone, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>PrettyLog(Log);
 
-<span class="kw">impl</span> <span class="ident">core::fmt::Debug</span> <span class="kw">for</span> <span class="ident">PrettyLog</span> {
-	<span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">core::fmt::Error</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="number">0</span>
-			.<span class="ident">data</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;{:02X}&quot;</span>, <span class="ident">b</span>))
-			.<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-			.<span class="ident">join</span>(<span class="string">&quot;&quot;</span>);
+<span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>PrettyLog {
+	<span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">&#39;_</span>&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), core::fmt::Error&gt; {
+		<span class="kw">let </span>bytes = <span class="self">self
+			</span>.<span class="number">0
+			</span>.data
+			.iter()
+			.map(|b| <span class="macro">format!</span>(<span class="string">&quot;{:02X}&quot;</span>, b))
+			.collect::&lt;Vec&lt;String&gt;&gt;()
+			.join(<span class="string">&quot;&quot;</span>);
 
-		<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">data</span>.<span class="ident">clone</span>()).<span class="ident">ok</span>();
+		<span class="kw">let </span>message = String::from_utf8(<span class="self">self</span>.<span class="number">0</span>.data.clone()).ok();
 
-		<span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;Log&quot;</span>)
-			.<span class="ident">field</span>(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">address</span>)
-			.<span class="ident">field</span>(<span class="string">&quot;topics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">topics</span>)
-			.<span class="ident">field</span>(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">bytes</span>)
-			.<span class="ident">field</span>(<span class="string">&quot;data_utf8&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">message</span>)
-			.<span class="ident">finish</span>()
+		f.debug_struct(<span class="string">&quot;Log&quot;</span>)
+			.field(<span class="string">&quot;address&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.address)
+			.field(<span class="string">&quot;topics&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>.topics)
+			.field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span>bytes)
+			.field(<span class="string">&quot;data_utf8&quot;</span>, <span class="kw-2">&amp;</span>message)
+			.finish()
 	}
 }
 
-<span class="doccomment">/// Panics if an event is not found in the system log of events</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">assert_event_emitted</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">event</span>:<span class="ident">expr</span>) =&gt; {
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">event</span> {
-			<span class="ident">e</span> =&gt; {
+<span class="doccomment">/// Panics if an event is not found in the system log of events
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>assert_event_emitted {
+	(<span class="macro-nonterminal">$event</span>:expr) =&gt; {
+		<span class="kw">match </span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$event </span>{
+			e =&gt; {
 				<span class="macro">assert!</span>(
-					<span class="ident"><span class="kw">crate</span>::mock::events</span>().<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="ident">e</span>).<span class="ident">is_some</span>(),
+					<span class="kw">crate</span>::mock::events().iter().find(|x| <span class="kw-2">*</span>x == e).is_some(),
 					<span class="string">&quot;Event {:?} was not found in events: \n {:?}&quot;</span>,
-					<span class="ident">e</span>,
-					<span class="ident"><span class="kw">crate</span>::mock::events</span>()
+					e,
+					<span class="kw">crate</span>::mock::events()
 				);
 			}
 		}
 	};
 }
 
-<span class="comment">// Panics if an event is found in the system log of events</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">assert_event_not_emitted</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">event</span>:<span class="ident">expr</span>) =&gt; {
-		<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">event</span> {
-			<span class="ident">e</span> =&gt; {
+<span class="comment">// Panics if an event is found in the system log of events
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>assert_event_not_emitted {
+	(<span class="macro-nonterminal">$event</span>:expr) =&gt; {
+		<span class="kw">match </span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$event </span>{
+			e =&gt; {
 				<span class="macro">assert!</span>(
-					<span class="ident"><span class="kw">crate</span>::mock::events</span>().<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="ident">e</span>).<span class="ident">is_none</span>(),
+					<span class="kw">crate</span>::mock::events().iter().find(|x| <span class="kw-2">*</span>x == e).is_none(),
 					<span class="string">&quot;Event {:?} was found in events: \n {:?}&quot;</span>,
-					<span class="ident">e</span>,
-					<span class="ident"><span class="kw">crate</span>::mock::events</span>()
+					e,
+					<span class="kw">crate</span>::mock::events()
 				);
 			}
 		}
 	};
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

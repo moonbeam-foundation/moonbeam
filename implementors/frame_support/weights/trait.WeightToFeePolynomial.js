@@ -1,5 +1,5 @@
-(function() {var implementors = {};
-implementors["moonbase_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbase_runtime/struct.LengthToFee.html\" title=\"struct moonbase_runtime::LengthToFee\">LengthToFee</a>","synthetic":false,"types":["moonbase_runtime::LengthToFee"]}];
-implementors["moonbeam_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbeam_runtime/struct.LengthToFee.html\" title=\"struct moonbeam_runtime::LengthToFee\">LengthToFee</a>","synthetic":false,"types":["moonbeam_runtime::LengthToFee"]}];
-implementors["moonriver_runtime"] = [{"text":"impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonriver_runtime/struct.LengthToFee.html\" title=\"struct moonriver_runtime::LengthToFee\">LengthToFee</a>","synthetic":false,"types":["moonriver_runtime::LengthToFee"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbase_runtime":[["impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbase_runtime/struct.LengthToFee.html\" title=\"struct moonbase_runtime::LengthToFee\">LengthToFee</a>"]],
+"moonbeam_runtime":[["impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonbeam_runtime/struct.LengthToFee.html\" title=\"struct moonbeam_runtime::LengthToFee\">LengthToFee</a>"]],
+"moonriver_runtime":[["impl WeightToFeePolynomial for <a class=\"struct\" href=\"moonriver_runtime/struct.LengthToFee.html\" title=\"struct moonriver_runtime::LengthToFee\">LengthToFee</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

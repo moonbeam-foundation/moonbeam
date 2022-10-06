@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -109,112 +104,111 @@
 <span id="104">104</span>
 <span id="105">105</span>
 <span id="106">106</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![feature(assert_matches)]
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+</span><span class="kw">extern crate </span>alloc;
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">costs</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">handle</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">logs</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">modifier</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">precompile_set</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">revert</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">substrate</span>;
+<span class="kw">pub mod </span>costs;
+<span class="kw">pub mod </span>handle;
+<span class="kw">pub mod </span>logs;
+<span class="kw">pub mod </span>modifier;
+<span class="kw">pub mod </span>precompile_set;
+<span class="kw">pub mod </span>revert;
+<span class="kw">pub mod </span>substrate;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;testing&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">solidity</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;testing&quot;</span>)]
+</span><span class="kw">pub mod </span>solidity;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;testing&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">testing</span>;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;testing&quot;</span>)]
+</span><span class="kw">pub mod </span>testing;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::alloc</span>::{<span class="ident">borrow::ToOwned</span>, <span class="ident">vec::Vec</span>};
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">ExitRevert</span>, <span class="ident">ExitSucceed</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>};
+<span class="kw">use </span><span class="kw">crate</span>::alloc::{borrow::ToOwned, vec::Vec};
+<span class="kw">use </span>fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, PrecompileOutput};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">data</span>;
+<span class="kw">pub mod </span>data;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">data</span>::{<span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>, <span class="ident">EvmDataWriter</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_evm::Precompile</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>, <span class="ident">precompile</span>};
+<span class="kw">pub use </span>data::{EvmData, EvmDataReader, EvmDataWriter};
+<span class="kw">pub use </span>fp_evm::Precompile;
+<span class="kw">pub use </span>precompile_utils_macro::{generate_function_selector, keccak256, precompile};
 
-<span class="doccomment">/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.</span>
-<span class="doccomment">/// If the revert needs improved formatting such as backtraces, `Revert` type should</span>
-<span class="doccomment">/// be used instead.</span>
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">revert</span>(<span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">PrecompileFailure</span> {
-	<span class="ident">PrecompileFailure::Revert</span> {
-		<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
-		<span class="ident">output</span>: <span class="ident">encoded_revert</span>(<span class="ident">output</span>),
+<span class="doccomment">/// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
+/// If the revert needs improved formatting such as backtraces, `Revert` type should
+/// be used instead.
+</span><span class="attribute">#[must_use]
+</span><span class="kw">pub fn </span>revert(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; PrecompileFailure {
+	PrecompileFailure::Revert {
+		exit_status: ExitRevert::Reverted,
+		output: encoded_revert(output),
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encoded_revert</span>(<span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-	<span class="ident">EvmDataWriter::new_with_selector</span>(<span class="ident">revert::RevertSelector::Generic</span>)
-		.<span class="ident">write</span>::<span class="op">&lt;</span><span class="ident">data::UnboundedBytes</span><span class="op">&gt;</span>(<span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>().<span class="ident">into</span>())
-		.<span class="ident">build</span>()
+<span class="kw">pub fn </span>encoded_revert(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; Vec&lt;u8&gt; {
+	EvmDataWriter::new_with_selector(revert::RevertSelector::Generic)
+		.write::&lt;data::UnboundedBytes&gt;(output.as_ref().to_owned().into())
+		.build()
 }
 
-<span class="attribute">#[<span class="ident">must_use</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">succeed</span>(<span class="ident">output</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>) -&gt; <span class="ident">PrecompileOutput</span> {
-	<span class="ident">PrecompileOutput</span> {
-		<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-		<span class="ident">output</span>: <span class="ident">output</span>.<span class="ident">as_ref</span>().<span class="ident">to_owned</span>(),
+<span class="attribute">#[must_use]
+</span><span class="kw">pub fn </span>succeed(output: <span class="kw">impl </span>AsRef&lt;[u8]&gt;) -&gt; PrecompileOutput {
+	PrecompileOutput {
+		exit_status: ExitSucceed::Returned,
+		output: output.as_ref().to_owned(),
 	}
 }
 
-<span class="doccomment">/// Alias for Result returning an EVM precompile error.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">T</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PrecompileFailure</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Alias for Result returning an EVM precompile error.
+</span><span class="kw">pub type </span>EvmResult&lt;T = ()&gt; = <span class="prelude-ty">Result</span>&lt;T, PrecompileFailure&gt;;
 
-<span class="doccomment">/// Trait similar to `fp_evm::Precompile` but with a `&amp;self` parameter to manage some</span>
-<span class="doccomment">/// state (this state is only kept in a single transaction and is lost afterward).</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">StatefulPrecompile</span> {
-	<span class="doccomment">/// Instanciate the precompile.</span>
-	<span class="doccomment">/// Will be called once when building the PrecompileSet at the start of each</span>
-	<span class="doccomment">/// Ethereum transaction.</span>
-	<span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span>;
+<span class="doccomment">/// Trait similar to `fp_evm::Precompile` but with a `&amp;self` parameter to manage some
+/// state (this state is only kept in a single transaction and is lost afterward).
+</span><span class="kw">pub trait </span>StatefulPrecompile {
+	<span class="doccomment">/// Instanciate the precompile.
+	/// Will be called once when building the PrecompileSet at the start of each
+	/// Ethereum transaction.
+	</span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
 
-	<span class="doccomment">/// Execute the precompile with a reference to its state.</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">PrecompileOutput</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Execute the precompile with a reference to its state.
+	</span><span class="kw">fn </span>execute(<span class="kw-2">&amp;</span><span class="self">self</span>, handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;PrecompileOutput&gt;;
 }
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
-	<span class="kw">pub</span> <span class="kw">use</span> {
+<span class="kw">pub mod </span>prelude {
+	<span class="kw">pub use </span>{
 		<span class="kw">crate</span>::{
-			<span class="ident">data</span>::{
-				<span class="ident">Address</span>, <span class="ident">BoundedBytes</span>, <span class="ident">BoundedString</span>, <span class="ident">BoundedVec</span>, <span class="ident">EvmData</span>, <span class="ident">EvmDataReader</span>,
-				<span class="ident">EvmDataWriter</span>, <span class="ident">SolidityConvert</span>, <span class="ident">UnboundedBytes</span>, <span class="ident">UnboundedString</span>,
+			data::{
+				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
+				EvmDataWriter, SolidityConvert, UnboundedBytes, UnboundedString,
 			},
-			<span class="ident">handle::PrecompileHandleExt</span>,
-			<span class="ident">logs</span>::{<span class="ident">log0</span>, <span class="ident">log1</span>, <span class="ident">log2</span>, <span class="ident">log3</span>, <span class="ident">log4</span>, <span class="ident">LogExt</span>},
-			<span class="ident">modifier</span>::{<span class="ident">check_function_modifier</span>, <span class="ident">FunctionModifier</span>},
-			<span class="ident">read_args</span>, <span class="ident">read_struct</span>, <span class="ident">revert</span>,
-			<span class="ident">revert</span>::{<span class="ident">BacktraceExt</span>, <span class="ident">InjectBacktrace</span>, <span class="ident">MayRevert</span>, <span class="ident">Revert</span>, <span class="ident">RevertExt</span>, <span class="ident">RevertReason</span>},
-			<span class="ident">substrate</span>::{<span class="ident">RuntimeHelper</span>, <span class="ident">TryDispatchError</span>},
-			<span class="ident">succeed</span>, <span class="ident">EvmResult</span>, <span class="ident">StatefulPrecompile</span>,
+			handle::PrecompileHandleExt,
+			logs::{log0, log1, log2, log3, log4, LogExt},
+			modifier::{check_function_modifier, FunctionModifier},
+			read_args, read_struct, revert,
+			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
+			substrate::{RuntimeHelper, TryDispatchError},
+			succeed, EvmResult, StatefulPrecompile,
 		},
-		<span class="ident">pallet_evm</span>::{<span class="ident">PrecompileHandle</span>, <span class="ident">PrecompileOutput</span>},
-		<span class="ident">precompile_utils_macro</span>::{<span class="ident">generate_function_selector</span>, <span class="ident">keccak256</span>, <span class="ident">precompile</span>},
+		pallet_evm::{PrecompileHandle, PrecompileOutput},
+		precompile_utils_macro::{generate_function_selector, keccak256, precompile},
 	};
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `runtime/common/src/apis.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>apis.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_runtime_common/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_runtime_common/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -647,664 +642,649 @@
 <span id="642">642</span>
 <span id="643">643</span>
 <span id="644">644</span>
-<span id="645">645</span>
-<span id="646">646</span>
-<span id="647">647</span>
-<span id="648">648</span>
-<span id="649">649</span>
-<span id="650">650</span>
-<span id="651">651</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_runtime_apis_plus_common</span> {
-	{$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">custom</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>} =&gt; {
-		<span class="macro">impl_runtime_apis!</span> {
-			$(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">custom</span>)<span class="op">*</span>
+</span><span class="attribute">#[macro_export]
+</span><span class="macro">macro_rules! </span>impl_runtime_apis_plus_common {
+	{$(<span class="macro-nonterminal">$custom</span>:tt)<span class="kw-2">*</span>} =&gt; {
+		<span class="macro">impl_runtime_apis! </span>{
+			$(<span class="macro-nonterminal">$custom</span>)*
 
-			<span class="kw">impl</span> <span class="ident">sp_api::Core</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">version</span>() -&gt; <span class="ident">RuntimeVersion</span> {
-					<span class="ident">VERSION</span>
+			<span class="kw">impl </span>sp_api::Core&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>version() -&gt; RuntimeVersion {
+					VERSION
 				}
 
-				<span class="kw">fn</span> <span class="ident">execute_block</span>(<span class="ident">block</span>: <span class="ident">Block</span>) {
-					<span class="ident">Executive::execute_block</span>(<span class="ident">block</span>)
+				<span class="kw">fn </span>execute_block(block: Block) {
+					Executive::execute_block(block)
 				}
 
-				<span class="kw">fn</span> <span class="ident">initialize_block</span>(<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>) {
-					<span class="ident">Executive::initialize_block</span>(<span class="ident">header</span>)
+				<span class="kw">fn </span>initialize_block(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
+					Executive::initialize_block(header)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">sp_api::Metadata</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">metadata</span>() -&gt; <span class="ident">OpaqueMetadata</span> {
-					<span class="ident">OpaqueMetadata::new</span>(<span class="ident">Runtime::metadata</span>().<span class="ident">into</span>())
+			<span class="kw">impl </span>sp_api::Metadata&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>metadata() -&gt; OpaqueMetadata {
+					OpaqueMetadata::new(Runtime::metadata().into())
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">sp_block_builder::BlockBuilder</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">apply_extrinsic</span>(<span class="ident">extrinsic</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>) -&gt; <span class="ident">ApplyExtrinsicResult</span> {
-					<span class="ident">Executive::apply_extrinsic</span>(<span class="ident">extrinsic</span>)
+			<span class="kw">impl </span>sp_block_builder::BlockBuilder&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>apply_extrinsic(extrinsic: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic) -&gt; ApplyExtrinsicResult {
+					Executive::apply_extrinsic(extrinsic)
 				}
 
-				<span class="kw">fn</span> <span class="ident">finalize_block</span>() -&gt; <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span> {
-					<span class="ident">Executive::finalize_block</span>()
+				<span class="kw">fn </span>finalize_block() -&gt; &lt;Block <span class="kw">as </span>BlockT&gt;::Header {
+					Executive::finalize_block()
 				}
 
-				<span class="kw">fn</span> <span class="ident">inherent_extrinsics</span>(
-					<span class="ident">data</span>: <span class="ident">sp_inherents::InherentData</span>,
-				) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span> {
-					<span class="ident">data</span>.<span class="ident">create_extrinsics</span>()
+				<span class="kw">fn </span>inherent_extrinsics(
+					data: sp_inherents::InherentData,
+				) -&gt; Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt; {
+					data.create_extrinsics()
 				}
 
-				<span class="kw">fn</span> <span class="ident">check_inherents</span>(
-					<span class="ident">block</span>: <span class="ident">Block</span>,
-					<span class="ident">data</span>: <span class="ident">sp_inherents::InherentData</span>,
-				) -&gt; <span class="ident">sp_inherents::CheckInherentsResult</span> {
-					<span class="ident">data</span>.<span class="ident">check_extrinsics</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>)
-				}
-			}
-
-			<span class="kw">impl</span> <span class="ident">sp_offchain::OffchainWorkerApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">offchain_worker</span>(<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>) {
-					<span class="ident">Executive::offchain_worker</span>(<span class="ident">header</span>)
+				<span class="kw">fn </span>check_inherents(
+					block: Block,
+					data: sp_inherents::InherentData,
+				) -&gt; sp_inherents::CheckInherentsResult {
+					data.check_extrinsics(<span class="kw-2">&amp;</span>block)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">sp_session::SessionKeys</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">decode_session_keys</span>(
-					<span class="ident">encoded</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-				) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">sp_core::crypto::KeyTypeId</span>)<span class="op">&gt;</span><span class="op">&gt;</span> {
-					<span class="ident">opaque::SessionKeys::decode_into_raw_public_keys</span>(<span class="kw-2">&amp;</span><span class="ident">encoded</span>)
-				}
-
-				<span class="kw">fn</span> <span class="ident">generate_session_keys</span>(<span class="ident">seed</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-					<span class="ident">opaque::SessionKeys::generate</span>(<span class="ident">seed</span>)
+			<span class="kw">impl </span>sp_offchain::OffchainWorkerApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>offchain_worker(header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header) {
+					Executive::offchain_worker(header)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">frame_system_rpc_runtime_api::AccountNonceApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">AccountId</span>, <span class="ident">Index</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">account_nonce</span>(<span class="ident">account</span>: <span class="ident">AccountId</span>) -&gt; <span class="ident">Index</span> {
-					<span class="ident">System::account_nonce</span>(<span class="ident">account</span>)
+			<span class="kw">impl </span>sp_session::SessionKeys&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>decode_session_keys(
+					encoded: Vec&lt;u8&gt;,
+				) -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;(Vec&lt;u8&gt;, sp_core::crypto::KeyTypeId)&gt;&gt; {
+					opaque::SessionKeys::decode_into_raw_public_keys(<span class="kw-2">&amp;</span>encoded)
+				}
+
+				<span class="kw">fn </span>generate_session_keys(seed: <span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;) -&gt; Vec&lt;u8&gt; {
+					opaque::SessionKeys::generate(seed)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">moonbeam_rpc_primitives_debug::DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">trace_transaction</span>(
-					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-					<span class="ident">traced_transaction</span>: <span class="kw-2">&amp;</span><span class="ident">EthereumTransaction</span>,
-				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+			<span class="kw">impl </span>frame_system_rpc_runtime_api::AccountNonceApi&lt;Block, AccountId, Index&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>account_nonce(account: AccountId) -&gt; Index {
+					System::account_nonce(account)
+				}
+			}
+
+			<span class="kw">impl </span>moonbeam_rpc_primitives_debug::DebugRuntimeApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>trace_transaction(
+					extrinsics: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
+					traced_transaction: <span class="kw-2">&amp;</span>EthereumTransaction,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;
 					(),
-					<span class="ident">sp_runtime::DispatchError</span>,
-				<span class="op">&gt;</span> {
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-					{
-						<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
-						<span class="kw">use</span> <span class="ident">xcm_primitives</span>::{
-							<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
-							<span class="ident">EthereumXcmTracingStatus</span>
+					sp_runtime::DispatchError,
+				&gt; {
+					<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					</span>{
+						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
+						<span class="kw">use </span>xcm_primitives::{
+							ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							EthereumXcmTracingStatus
 						};
-						<span class="kw">use</span> <span class="ident">frame_support::storage::unhashed</span>;
+						<span class="kw">use </span>frame_support::storage::unhashed;
 
-						<span class="comment">// Tell the CallDispatcher we are tracing a specific Transaction.</span>
-						<span class="ident">unhashed::put</span>::<span class="op">&lt;</span><span class="ident">EthereumXcmTracingStatus</span><span class="op">&gt;</span>(
-							<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
-							<span class="kw-2">&amp;</span><span class="ident">EthereumXcmTracingStatus::Transaction</span>(<span class="ident">traced_transaction</span>.<span class="ident">hash</span>()),
+						<span class="comment">// Tell the CallDispatcher we are tracing a specific Transaction.
+						</span>unhashed::put::&lt;EthereumXcmTracingStatus&gt;(
+							ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							<span class="kw-2">&amp;</span>EthereumXcmTracingStatus::Transaction(traced_transaction.hash()),
 						);
 
-						<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum</span>
-						<span class="comment">// transactions that preceded the requested transaction.</span>
-						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
-							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; {
-									<span class="kw">if</span> <span class="ident">transaction</span> <span class="op">==</span> <span class="ident">traced_transaction</span> {
-										<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
-										<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
-									} <span class="kw">else</span> {
-										<span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>)
+						<span class="comment">// Apply the a subset of extrinsics: all the substrate-specific or ethereum
+						// transactions that preceded the requested transaction.
+						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
+							<span class="kw">let _ </span>= <span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
+								Call::Ethereum(transact { transaction }) =&gt; {
+									<span class="kw">if </span>transaction == traced_transaction {
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+										<span class="kw">return </span><span class="prelude-val">Ok</span>(());
+									} <span class="kw">else </span>{
+										Executive::apply_extrinsic(ext)
 									}
 								}
-								<span class="kw">_</span> =&gt; <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>),
+								<span class="kw">_ </span>=&gt; Executive::apply_extrinsic(ext),
 							};
-							<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">EthereumXcmTracingStatus::TransactionExited</span>) <span class="op">=</span> <span class="ident">unhashed::get</span>(
-								<span class="ident">ETHEREUM_XCM_TRACING_STORAGE_KEY</span>
+							<span class="kw">if let </span><span class="prelude-val">Some</span>(EthereumXcmTracingStatus::TransactionExited) = unhashed::get(
+								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							) {
-								<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+								<span class="kw">return </span><span class="prelude-val">Ok</span>(());
 							}
 						}
-						<span class="prelude-val">Err</span>(<span class="ident">sp_runtime::DispatchError::Other</span>(
+						<span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
 							<span class="string">&quot;Failed to find Ethereum transaction among the extrinsics.&quot;</span>,
 						))
 					}
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>))]</span>
-					<span class="prelude-val">Err</span>(<span class="ident">sp_runtime::DispatchError::Other</span>(
+					<span class="attribute">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
 						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
 					))
 				}
 
-				<span class="kw">fn</span> <span class="ident">trace_block</span>(
-					<span class="ident">extrinsics</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-					<span class="ident">known_transactions</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>
+				<span class="kw">fn </span>trace_block(
+					extrinsics: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
+					known_transactions: Vec&lt;H256&gt;,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;
 					(),
-					<span class="ident">sp_runtime::DispatchError</span>,
-				<span class="op">&gt;</span> {
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-					{
-						<span class="kw">use</span> <span class="ident">moonbeam_evm_tracer::tracer::EvmTracer</span>;
-						<span class="kw">use</span> <span class="ident">xcm_primitives::EthereumXcmTracingStatus</span>;
+					sp_runtime::DispatchError,
+				&gt; {
+					<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+					</span>{
+						<span class="kw">use </span>moonbeam_evm_tracer::tracer::EvmTracer;
+						<span class="kw">use </span>xcm_primitives::EthereumXcmTracingStatus;
 
-						<span class="comment">// Tell the CallDispatcher we are tracing a full Block.</span>
-						<span class="ident">frame_support::storage::unhashed::put</span>::<span class="op">&lt;</span><span class="ident">EthereumXcmTracingStatus</span><span class="op">&gt;</span>(
-							<span class="ident">xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY</span>,
-							<span class="kw-2">&amp;</span><span class="ident">EthereumXcmTracingStatus::Block</span>,
+						<span class="comment">// Tell the CallDispatcher we are tracing a full Block.
+						</span>frame_support::storage::unhashed::put::&lt;EthereumXcmTracingStatus&gt;(
+							xcm_primitives::ETHEREUM_XCM_TRACING_STORAGE_KEY,
+							<span class="kw-2">&amp;</span>EthereumXcmTracingStatus::Block,
 						);
 
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
-						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
+						<span class="kw">let </span><span class="kw-2">mut </span>config = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config().clone();
+						config.estimate = <span class="bool-val">true</span>;
 
-						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.</span>
-						<span class="kw">for</span> <span class="ident">ext</span> <span class="kw">in</span> <span class="ident">extrinsics</span>.<span class="ident">into_iter</span>() {
-							<span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">ext</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; {
-									<span class="kw">if</span> <span class="ident">known_transactions</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">transaction</span>.<span class="ident">hash</span>()) {
-										<span class="comment">// Each known extrinsic is a new call stack.</span>
-										<span class="ident">EvmTracer::emit_new</span>();
-										<span class="ident">EvmTracer::new</span>().<span class="ident">trace</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>));
-									} <span class="kw">else</span> {
-										<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);
+						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.
+						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
+							<span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
+								Call::Ethereum(transact { transaction }) =&gt; {
+									<span class="kw">if </span>known_transactions.contains(<span class="kw-2">&amp;</span>transaction.hash()) {
+										<span class="comment">// Each known extrinsic is a new call stack.
+										</span>EvmTracer::emit_new();
+										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
+									} <span class="kw">else </span>{
+										<span class="kw">let _ </span>= Executive::apply_extrinsic(ext);
 									}
 								}
-								<span class="kw">_</span> =&gt; {
-									<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">Executive::apply_extrinsic</span>(<span class="ident">ext</span>);
+								<span class="kw">_ </span>=&gt; {
+									<span class="kw">let _ </span>= Executive::apply_extrinsic(ext);
 								}
 							};
 						}
 
 						<span class="prelude-val">Ok</span>(())
 					}
-					<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>))]</span>
-					<span class="prelude-val">Err</span>(<span class="ident">sp_runtime::DispatchError::Other</span>(
+					<span class="attribute">#[cfg(not(feature = <span class="string">&quot;evm-tracing&quot;</span>))]
+					</span><span class="prelude-val">Err</span>(sp_runtime::DispatchError::Other(
 						<span class="string">&quot;Missing `evm-tracing` compile time feature flag.&quot;</span>,
 					))
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
-					<span class="ident">xts_ready</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-					<span class="ident">xts_future</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-				) -&gt; <span class="ident">TxPoolResponse</span> {
-					<span class="ident">TxPoolResponse</span> {
-						<span class="ident">ready</span>: <span class="ident">xts_ready</span>
-							.<span class="ident">into_iter</span>()
-							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-								<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+			<span class="kw">impl </span>moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>extrinsic_filter(
+					xts_ready: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
+					xts_future: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
+				) -&gt; TxPoolResponse {
+					TxPoolResponse {
+						ready: xts_ready
+							.into_iter()
+							.filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
+								Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+								<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 							})
-							.<span class="ident">collect</span>(),
-						<span class="ident">future</span>: <span class="ident">xts_future</span>
-							.<span class="ident">into_iter</span>()
-							.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-								<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-								<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+							.collect(),
+						future: xts_future
+							.into_iter()
+							.filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
+								Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+								<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 							})
-							.<span class="ident">collect</span>(),
+							.collect(),
 					}
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">chain_id</span>() -&gt; <span class="ident">u64</span> {
-					<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::ChainId::get</span>()
+			<span class="kw">impl </span>fp_rpc::EthereumRuntimeRPCApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>chain_id() -&gt; u64 {
+					&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get()
 				}
 
-				<span class="kw">fn</span> <span class="ident">account_basic</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">EVMAccount</span> {
-					<span class="kw">let</span> (<span class="ident">account</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">EVM::account_basic</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>);
-					<span class="ident">account</span>
+				<span class="kw">fn </span>account_basic(address: H160) -&gt; EVMAccount {
+					<span class="kw">let </span>(account, <span class="kw">_</span>) = EVM::account_basic(<span class="kw-2">&amp;</span>address);
+					account
 				}
 
-				<span class="kw">fn</span> <span class="ident">gas_price</span>() -&gt; <span class="ident">U256</span> {
-					<span class="kw">let</span> (<span class="ident">gas_price</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::FeeCalculator::min_gas_price</span>();
-					<span class="ident">gas_price</span>
+				<span class="kw">fn </span>gas_price() -&gt; U256 {
+					<span class="kw">let </span>(gas_price, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
+					gas_price
 				}
 
-				<span class="kw">fn</span> <span class="ident">account_code_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-					<span class="ident">EVM::account_codes</span>(<span class="ident">address</span>)
+				<span class="kw">fn </span>account_code_at(address: H160) -&gt; Vec&lt;u8&gt; {
+					EVM::account_codes(address)
 				}
 
-				<span class="kw">fn</span> <span class="ident">author</span>() -&gt; <span class="ident">H160</span> {
-					<span class="op">&lt;</span><span class="ident">pallet_evm::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::find_author</span>()
+				<span class="kw">fn </span>author() -&gt; H160 {
+					&lt;pallet_evm::Pallet&lt;Runtime&gt;&gt;::find_author()
 				}
 
-				<span class="kw">fn</span> <span class="ident">storage_at</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">index</span>: <span class="ident">U256</span>) -&gt; <span class="ident">H256</span> {
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tmp</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
-					<span class="ident">index</span>.<span class="ident">to_big_endian</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tmp</span>);
-					<span class="ident">EVM::account_storages</span>(<span class="ident">address</span>, <span class="ident">H256::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">tmp</span>[..]))
+				<span class="kw">fn </span>storage_at(address: H160, index: U256) -&gt; H256 {
+					<span class="kw">let </span><span class="kw-2">mut </span>tmp = [<span class="number">0u8</span>; <span class="number">32</span>];
+					index.to_big_endian(<span class="kw-2">&amp;mut </span>tmp);
+					EVM::account_storages(address, H256::from_slice(<span class="kw-2">&amp;</span>tmp[..]))
 				}
 
-				<span class="kw">fn</span> <span class="ident">call</span>(
-					<span class="ident">from</span>: <span class="ident">H160</span>,
-					<span class="ident">to</span>: <span class="ident">H160</span>,
-					<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-					<span class="ident">value</span>: <span class="ident">U256</span>,
-					<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-					<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">estimate</span>: <span class="ident">bool</span>,
-					<span class="ident">access_list</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">H160</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CallInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
-					<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">estimate</span> {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
-						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
-						<span class="prelude-val">Some</span>(<span class="ident">config</span>)
-					} <span class="kw">else</span> {
-						<span class="prelude-val">None</span>
-					};
-					<span class="kw">let</span> <span class="ident">is_transactional</span> <span class="op">=</span> <span class="bool-val">false</span>;
-					<span class="kw">let</span> <span class="ident">validate</span> <span class="op">=</span> <span class="bool-val">true</span>;
-					<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::Runner::call</span>(
-						<span class="ident">from</span>,
-						<span class="ident">to</span>,
-						<span class="ident">data</span>,
-						<span class="ident">value</span>,
-						<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
-						<span class="ident">max_fee_per_gas</span>,
-						<span class="ident">max_priority_fee_per_gas</span>,
-						<span class="ident">nonce</span>,
-						<span class="ident">access_list</span>.<span class="ident">unwrap_or_default</span>(),
-						<span class="ident">is_transactional</span>,
-						<span class="ident">validate</span>,
-						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
-					).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">error</span>.<span class="ident">into</span>())
+				<span class="kw">fn </span>call(
+					from: H160,
+					to: H160,
+					data: Vec&lt;u8&gt;,
+					value: U256,
+					gas_limit: U256,
+					max_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					max_priority_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					estimate: bool,
+					access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;pallet_evm::CallInfo, sp_runtime::DispatchError&gt; {
+					<span class="kw">let </span>config = <span class="kw">if </span>estimate {
+						<span class="kw">let </span><span class="kw-2">mut </span>config = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config().clone();
+						config.estimate = <span class="bool-val">true</span>;
+						<span class="prelude-val">Some</span>(config)
+					} <span class="kw">else </span>{
+						<span class="prelude-val">None
+					</span>};
+					<span class="kw">let </span>is_transactional = <span class="bool-val">false</span>;
+					<span class="kw">let </span>validate = <span class="bool-val">true</span>;
+					&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Runner::call(
+						from,
+						to,
+						data,
+						value,
+						gas_limit.low_u64(),
+						max_fee_per_gas,
+						max_priority_fee_per_gas,
+						nonce,
+						access_list.unwrap_or_default(),
+						is_transactional,
+						validate,
+						config.as_ref().unwrap_or(&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config()),
+					).map_err(|err| err.error.into())
 				}
 
-				<span class="kw">fn</span> <span class="ident">create</span>(
-					<span class="ident">from</span>: <span class="ident">H160</span>,
-					<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-					<span class="ident">value</span>: <span class="ident">U256</span>,
-					<span class="ident">gas_limit</span>: <span class="ident">U256</span>,
-					<span class="ident">max_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">max_priority_fee_per_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">nonce</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-					<span class="ident">estimate</span>: <span class="ident">bool</span>,
-					<span class="ident">access_list</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">H160</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>)<span class="op">&gt;</span><span class="op">&gt;</span>,
-				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">pallet_evm::CreateInfo</span>, <span class="ident">sp_runtime::DispatchError</span><span class="op">&gt;</span> {
-					<span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">estimate</span> {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">config</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>().<span class="ident">clone</span>();
-						<span class="ident">config</span>.<span class="ident">estimate</span> <span class="op">=</span> <span class="bool-val">true</span>;
-						<span class="prelude-val">Some</span>(<span class="ident">config</span>)
-					} <span class="kw">else</span> {
-						<span class="prelude-val">None</span>
-					};
-					<span class="kw">let</span> <span class="ident">is_transactional</span> <span class="op">=</span> <span class="bool-val">false</span>;
-					<span class="kw">let</span> <span class="ident">validate</span> <span class="op">=</span> <span class="bool-val">true</span>;
-					<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::or_fun_call</span>)]</span> <span class="comment">// suggestion not helpful here</span>
-					<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::Runner::create</span>(
-						<span class="ident">from</span>,
-						<span class="ident">data</span>,
-						<span class="ident">value</span>,
-						<span class="ident">gas_limit</span>.<span class="ident">low_u64</span>(),
-						<span class="ident">max_fee_per_gas</span>,
-						<span class="ident">max_priority_fee_per_gas</span>,
-						<span class="ident">nonce</span>,
-						<span class="ident">access_list</span>.<span class="ident">unwrap_or_default</span>(),
-						<span class="ident">is_transactional</span>,
-						<span class="ident">validate</span>,
-						<span class="ident">config</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap_or</span>(<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>()),
-					).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">error</span>.<span class="ident">into</span>())
+				<span class="kw">fn </span>create(
+					from: H160,
+					data: Vec&lt;u8&gt;,
+					value: U256,
+					gas_limit: U256,
+					max_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					max_priority_fee_per_gas: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					nonce: <span class="prelude-ty">Option</span>&lt;U256&gt;,
+					estimate: bool,
+					access_list: <span class="prelude-ty">Option</span>&lt;Vec&lt;(H160, Vec&lt;H256&gt;)&gt;&gt;,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;pallet_evm::CreateInfo, sp_runtime::DispatchError&gt; {
+					<span class="kw">let </span>config = <span class="kw">if </span>estimate {
+						<span class="kw">let </span><span class="kw-2">mut </span>config = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config().clone();
+						config.estimate = <span class="bool-val">true</span>;
+						<span class="prelude-val">Some</span>(config)
+					} <span class="kw">else </span>{
+						<span class="prelude-val">None
+					</span>};
+					<span class="kw">let </span>is_transactional = <span class="bool-val">false</span>;
+					<span class="kw">let </span>validate = <span class="bool-val">true</span>;
+					<span class="attribute">#[allow(clippy::or_fun_call)] </span><span class="comment">// suggestion not helpful here
+					</span>&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::Runner::create(
+						from,
+						data,
+						value,
+						gas_limit.low_u64(),
+						max_fee_per_gas,
+						max_priority_fee_per_gas,
+						nonce,
+						access_list.unwrap_or_default(),
+						is_transactional,
+						validate,
+						config.as_ref().unwrap_or(&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config()),
+					).map_err(|err| err.error.into())
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_transaction_statuses</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionStatus</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-					<span class="ident">Ethereum::current_transaction_statuses</span>()
+				<span class="kw">fn </span>current_transaction_statuses() -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;TransactionStatus&gt;&gt; {
+					Ethereum::current_transaction_statuses()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_block</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Block</span><span class="op">&gt;</span> {
-					<span class="ident">Ethereum::current_block</span>()
+				<span class="kw">fn </span>current_block() -&gt; <span class="prelude-ty">Option</span>&lt;pallet_ethereum::Block&gt; {
+					Ethereum::current_block()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_receipts</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Receipt</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-					<span class="ident">Ethereum::current_receipts</span>()
+				<span class="kw">fn </span>current_receipts() -&gt; <span class="prelude-ty">Option</span>&lt;Vec&lt;pallet_ethereum::Receipt&gt;&gt; {
+					Ethereum::current_receipts()
 				}
 
-				<span class="kw">fn</span> <span class="ident">current_all</span>() -&gt; (
-					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Block</span><span class="op">&gt;</span>,
-					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">pallet_ethereum::Receipt</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-					<span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionStatus</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+				<span class="kw">fn </span>current_all() -&gt; (
+					<span class="prelude-ty">Option</span>&lt;pallet_ethereum::Block&gt;,
+					<span class="prelude-ty">Option</span>&lt;Vec&lt;pallet_ethereum::Receipt&gt;&gt;,
+					<span class="prelude-ty">Option</span>&lt;Vec&lt;TransactionStatus&gt;&gt;,
 				) {
 					(
-						<span class="ident">Ethereum::current_block</span>(),
-						<span class="ident">Ethereum::current_receipts</span>(),
-						<span class="ident">Ethereum::current_transaction_statuses</span>(),
+						Ethereum::current_block(),
+						Ethereum::current_receipts(),
+						Ethereum::current_transaction_statuses(),
 					)
 				}
 
-				<span class="kw">fn</span> <span class="ident">extrinsic_filter</span>(
-					<span class="ident">xts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span><span class="op">&gt;</span>,
-				) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span> {
-					<span class="ident">xts</span>.<span class="ident">into_iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">xt</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">xt</span>.<span class="number">0</span>.<span class="ident">function</span> {
-						<span class="ident">Call::Ethereum</span>(<span class="ident">transact</span> { <span class="ident">transaction</span> }) =&gt; <span class="prelude-val">Some</span>(<span class="ident">transaction</span>),
-						<span class="kw">_</span> =&gt; <span class="prelude-val">None</span>
-					}).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">EthereumTransaction</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+				<span class="kw">fn </span>extrinsic_filter(
+					xts: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
+				) -&gt; Vec&lt;EthereumTransaction&gt; {
+					xts.into_iter().filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
+						Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+						<span class="kw">_ </span>=&gt; <span class="prelude-val">None
+					</span>}).collect::&lt;Vec&lt;EthereumTransaction&gt;&gt;()
 				}
 
-				<span class="kw">fn</span> <span class="ident">elasticity</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Permill</span><span class="op">&gt;</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">BaseFee::elasticity</span>())
+				<span class="kw">fn </span>elasticity() -&gt; <span class="prelude-ty">Option</span>&lt;Permill&gt; {
+					<span class="prelude-val">Some</span>(BaseFee::elasticity())
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">fp_rpc::ConvertTransactionRuntimeApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">convert_transaction</span>(
-					<span class="ident">transaction</span>: <span class="ident">pallet_ethereum::Transaction</span>
-				) -&gt; <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span> {
-					<span class="ident">UncheckedExtrinsic::new_unsigned</span>(
-						<span class="ident">pallet_ethereum::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::transact</span> { <span class="ident">transaction</span> }.<span class="ident">into</span>(),
+			<span class="kw">impl </span>fp_rpc::ConvertTransactionRuntimeApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>convert_transaction(
+					transaction: pallet_ethereum::Transaction
+				) -&gt; &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic {
+					UncheckedExtrinsic::new_unsigned(
+						pallet_ethereum::Call::&lt;Runtime&gt;::transact { transaction }.into(),
 					)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">Balance</span><span class="op">&gt;</span>
-			<span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">query_info</span>(
-					<span class="ident">uxt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
-					<span class="ident">len</span>: <span class="ident">u32</span>,
-				) -&gt; <span class="ident">pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-					<span class="ident">TransactionPayment::query_info</span>(<span class="ident">uxt</span>, <span class="ident">len</span>)
+			<span class="kw">impl </span>pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi&lt;Block, Balance&gt;
+			<span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>query_info(
+					uxt: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic,
+					len: u32,
+				) -&gt; pallet_transaction_payment_rpc_runtime_api::RuntimeDispatchInfo&lt;Balance&gt; {
+					TransactionPayment::query_info(uxt, len)
 				}
 
-				<span class="kw">fn</span> <span class="ident">query_fee_details</span>(
-					<span class="ident">uxt</span>: <span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Extrinsic</span>,
-					<span class="ident">len</span>: <span class="ident">u32</span>,
-				) -&gt; <span class="ident">pallet_transaction_payment::FeeDetails</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-					<span class="ident">TransactionPayment::query_fee_details</span>(<span class="ident">uxt</span>, <span class="ident">len</span>)
+				<span class="kw">fn </span>query_fee_details(
+					uxt: &lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic,
+					len: u32,
+				) -&gt; pallet_transaction_payment::FeeDetails&lt;Balance&gt; {
+					TransactionPayment::query_fee_details(uxt, len)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">nimbus_primitives::NimbusApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">can_author</span>(
-					<span class="ident">author</span>: <span class="ident">nimbus_primitives::NimbusId</span>,
-					<span class="ident">slot</span>: <span class="ident">u32</span>,
-					<span class="ident">parent_header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>
-				) -&gt; <span class="ident">bool</span> {
-					<span class="kw">let</span> <span class="ident">block_number</span> <span class="op">=</span> <span class="ident">parent_header</span>.<span class="ident">number</span> <span class="op">+</span> <span class="number">1</span>;
+			<span class="kw">impl </span>nimbus_primitives::NimbusApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>can_author(
+					author: nimbus_primitives::NimbusId,
+					slot: u32,
+					parent_header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header
+				) -&gt; bool {
+					<span class="kw">let </span>block_number = parent_header.number + <span class="number">1</span>;
 
-					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting</span>
-					<span class="comment">// work during block initialization. Therefore we initialize it here to match</span>
-					<span class="comment">// the state it will be in when the next block is being executed.</span>
-					<span class="kw">use</span> <span class="ident">frame_support::traits::OnInitialize</span>;
-					<span class="ident">System::initialize</span>(
-						<span class="kw-2">&amp;</span><span class="ident">block_number</span>,
-						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">hash</span>(),
-						<span class="kw-2">&amp;</span><span class="ident">parent_header</span>.<span class="ident">digest</span>,
+					<span class="comment">// The Moonbeam runtimes use an entropy source that needs to do some accounting
+					// work during block initialization. Therefore we initialize it here to match
+					// the state it will be in when the next block is being executed.
+					</span><span class="kw">use </span>frame_support::traits::OnInitialize;
+					System::initialize(
+						<span class="kw-2">&amp;</span>block_number,
+						<span class="kw-2">&amp;</span>parent_header.hash(),
+						<span class="kw-2">&amp;</span>parent_header.digest,
 					);
-					<span class="ident">RandomnessCollectiveFlip::on_initialize</span>(<span class="ident">block_number</span>);
+					RandomnessCollectiveFlip::on_initialize(block_number);
 
-					<span class="comment">// Because the staking solution calculates the next staking set at the beginning</span>
-					<span class="comment">// of the first block in the new round, the only way to accurately predict the</span>
-					<span class="comment">// authors is to compute the selection during prediction.</span>
-					<span class="kw">if</span> <span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">should_update</span>(<span class="ident">block_number</span>) {
-						<span class="comment">// get author account id</span>
-						<span class="kw">use</span> <span class="ident">nimbus_primitives::AccountLookup</span>;
-						<span class="kw">let</span> <span class="ident">author_account_id</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">account</span>) <span class="op">=</span>
-							<span class="ident">pallet_author_mapping::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::lookup_account</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>) {
-							<span class="ident">account</span>
-						} <span class="kw">else</span> {
-							<span class="comment">// return false if author mapping not registered like in can_author impl</span>
-							<span class="kw">return</span> <span class="bool-val">false</span>
-						};
-						<span class="comment">// predict eligibility post-selection by computing selection results now</span>
-						<span class="kw">let</span> (<span class="ident">eligible</span>, <span class="kw">_</span>) <span class="op">=</span>
-							<span class="ident">pallet_author_slot_filter::compute_pseudo_random_subset</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>(
-								<span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::compute_top_candidates</span>(),
-								<span class="kw-2">&amp;</span><span class="ident">slot</span>
+					<span class="comment">// Because the staking solution calculates the next staking set at the beginning
+					// of the first block in the new round, the only way to accurately predict the
+					// authors is to compute the selection during prediction.
+					</span><span class="kw">if </span>pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::round().should_update(block_number) {
+						<span class="comment">// get author account id
+						</span><span class="kw">use </span>nimbus_primitives::AccountLookup;
+						<span class="kw">let </span>author_account_id = <span class="kw">if let </span><span class="prelude-val">Some</span>(account) =
+							pallet_author_mapping::Pallet::&lt;<span class="self">Self</span>&gt;::lookup_account(<span class="kw-2">&amp;</span>author) {
+							account
+						} <span class="kw">else </span>{
+							<span class="comment">// return false if author mapping not registered like in can_author impl
+							</span><span class="kw">return </span><span class="bool-val">false
+						</span>};
+						<span class="comment">// predict eligibility post-selection by computing selection results now
+						</span><span class="kw">let </span>(eligible, <span class="kw">_</span>) =
+							pallet_author_slot_filter::compute_pseudo_random_subset::&lt;<span class="self">Self</span>&gt;(
+								pallet_parachain_staking::Pallet::&lt;<span class="self">Self</span>&gt;::compute_top_candidates(),
+								<span class="kw-2">&amp;</span>slot
 							);
-						<span class="ident">eligible</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">author_account_id</span>)
-					} <span class="kw">else</span> {
-						<span class="ident">AuthorInherent::can_author</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>, <span class="kw-2">&amp;</span><span class="ident">slot</span>)
+						eligible.contains(<span class="kw-2">&amp;</span>author_account_id)
+					} <span class="kw">else </span>{
+						AuthorInherent::can_author(<span class="kw-2">&amp;</span>author, <span class="kw-2">&amp;</span>slot)
 					}
 				}
 			}
 
-			<span class="comment">// We also implement the old AuthorFilterAPI to meet the trait bounds on the client side.</span>
-			<span class="kw">impl</span> <span class="ident">nimbus_primitives::AuthorFilterAPI</span><span class="op">&lt;</span><span class="ident">Block</span>, <span class="ident">NimbusId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">can_author</span>(<span class="kw">_</span>: <span class="ident">NimbusId</span>, <span class="kw">_</span>: <span class="ident">u32</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>) -&gt; <span class="ident">bool</span> {
-					<span class="macro">panic!</span>(<span class="string">&quot;AuthorFilterAPI is no longer supported. Please update your client.&quot;</span>)
+			<span class="kw">impl </span>cumulus_primitives_core::CollectCollationInfo&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>collect_collation_info(
+					header: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Header
+				) -&gt; cumulus_primitives_core::CollationInfo {
+					ParachainSystem::collect_collation_info(header)
 				}
 			}
 
-			<span class="kw">impl</span> <span class="ident">cumulus_primitives_core::CollectCollationInfo</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">collect_collation_info</span>(
-					<span class="ident">header</span>: <span class="kw-2">&amp;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Header</span>
-				) -&gt; <span class="ident">cumulus_primitives_core::CollationInfo</span> {
-					<span class="ident">ParachainSystem::collect_collation_info</span>(<span class="ident">header</span>)
-				}
-			}
-
-			<span class="kw">impl</span> <span class="ident">session_keys_primitives::VrfApi</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">get_last_vrf_output</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span> {
-					<span class="comment">// TODO: remove in future runtime upgrade along with storage item</span>
-					<span class="kw">if</span> <span class="ident">pallet_randomness::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::not_first_block</span>().<span class="ident">is_none</span>() {
-						<span class="kw">return</span> <span class="prelude-val">None</span>;
+			<span class="kw">impl </span>session_keys_primitives::VrfApi&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>get_last_vrf_output() -&gt; <span class="prelude-ty">Option</span>&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt; {
+					<span class="comment">// TODO: remove in future runtime upgrade along with storage item
+					</span><span class="kw">if </span>pallet_randomness::Pallet::&lt;<span class="self">Self</span>&gt;::not_first_block().is_none() {
+						<span class="kw">return </span><span class="prelude-val">None</span>;
 					}
-					<span class="ident">pallet_randomness::Pallet</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="ident">::local_vrf_output</span>()
+					pallet_randomness::Pallet::&lt;<span class="self">Self</span>&gt;::local_vrf_output()
 				}
-				<span class="kw">fn</span> <span class="ident">vrf_key_lookup</span>(
-					<span class="ident">nimbus_id</span>: <span class="ident">nimbus_primitives::NimbusId</span>
-				) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">session_keys_primitives::VrfId</span><span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">session_keys_primitives::KeysLookup</span>;
-					<span class="ident">AuthorMapping::lookup_keys</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>)
+				<span class="kw">fn </span>vrf_key_lookup(
+					nimbus_id: nimbus_primitives::NimbusId
+				) -&gt; <span class="prelude-ty">Option</span>&lt;session_keys_primitives::VrfId&gt; {
+					<span class="kw">use </span>session_keys_primitives::KeysLookup;
+					AuthorMapping::lookup_keys(<span class="kw-2">&amp;</span>nimbus_id)
 				}
 			}
 
-			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
-			<span class="kw">impl</span> <span class="ident">frame_benchmarking::Benchmark</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
+			<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+			</span><span class="kw">impl </span>frame_benchmarking::Benchmark&lt;Block&gt; <span class="kw">for </span>Runtime {
 
-				<span class="kw">fn</span> <span class="ident">benchmark_metadata</span>(<span class="ident">extra</span>: <span class="ident">bool</span>) -&gt; (
-					<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_benchmarking::BenchmarkList</span><span class="op">&gt;</span>,
-					<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_support::traits::StorageInfo</span><span class="op">&gt;</span>,
+				<span class="kw">fn </span>benchmark_metadata(extra: bool) -&gt; (
+					Vec&lt;frame_benchmarking::BenchmarkList&gt;,
+					Vec&lt;frame_support::traits::StorageInfo&gt;,
 				) {
-					<span class="kw">use</span> <span class="ident">frame_benchmarking</span>::{<span class="ident">list_benchmark</span>, <span class="ident">Benchmarking</span>, <span class="ident">BenchmarkList</span>};
-					<span class="kw">use</span> <span class="ident">frame_support::traits::StorageInfoTrait</span>;
-					<span class="kw">use</span> <span class="ident">frame_system_benchmarking::Pallet</span> <span class="kw">as</span> <span class="ident">SystemBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_crowdloan_rewards::Pallet</span> <span class="kw">as</span> <span class="ident">PalletCrowdloanRewardsBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_parachain_staking::Pallet</span> <span class="kw">as</span> <span class="ident">ParachainStakingBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_mapping::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorMappingBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorSlotFilter</span>;
-					<span class="kw">use</span> <span class="ident">pallet_moonbeam_orbiters::Pallet</span> <span class="kw">as</span> <span class="ident">PalletMoonbeamOrbiters</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_inherent::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorInherent</span>;
-					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_xcm_transactor::Pallet</span> <span class="kw">as</span> <span class="ident">XcmTransactorBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_randomness::Pallet</span> <span class="kw">as</span> <span class="ident">RandomnessBench</span>;
+					<span class="kw">use </span>frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
+					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
+					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
+					<span class="kw">use </span>pallet_parachain_staking::Pallet <span class="kw">as </span>ParachainStakingBench;
+					<span class="kw">use </span>pallet_author_mapping::Pallet <span class="kw">as </span>PalletAuthorMappingBench;
+					<span class="kw">use </span>pallet_author_slot_filter::Pallet <span class="kw">as </span>PalletAuthorSlotFilter;
+					<span class="kw">use </span>pallet_moonbeam_orbiters::Pallet <span class="kw">as </span>PalletMoonbeamOrbiters;
+					<span class="kw">use </span>pallet_author_inherent::Pallet <span class="kw">as </span>PalletAuthorInherent;
+					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
+					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
+					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
 
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BenchmarkList</span><span class="op">&gt;</span><span class="ident">::new</span>();
+					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
 
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">frame_system</span>, <span class="ident">SystemBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">parachain_staking</span>, <span class="ident">ParachainStakingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_crowdloan_rewards</span>, <span class="ident">PalletCrowdloanRewardsBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_mapping</span>, <span class="ident">PalletAuthorMappingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_slot_filter</span>, <span class="ident">PalletAuthorSlotFilter</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_moonbeam_orbiters</span>, <span class="ident">PalletMoonbeamOrbiters</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_author_inherent</span>, <span class="ident">PalletAuthorInherent</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_asset_manager</span>, <span class="ident">PalletAssetManagerBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">xcm_transactor</span>, <span class="ident">XcmTransactorBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
-					<span class="macro">list_benchmark!</span>(<span class="ident">list</span>, <span class="ident">extra</span>, <span class="ident">pallet_randomness</span>, <span class="ident">RandomnessBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+					<span class="macro">list_benchmark!</span>(list, extra, frame_system, SystemBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, parachain_staking, ParachainStakingBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_mapping, PalletAuthorMappingBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_slot_filter, PalletAuthorSlotFilter::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_moonbeam_orbiters, PalletMoonbeamOrbiters::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_author_inherent, PalletAuthorInherent::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_asset_manager, PalletAssetManagerBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, xcm_transactor, XcmTransactorBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_randomness, RandomnessBench::&lt;Runtime&gt;);
 
-					<span class="kw">let</span> <span class="ident">storage_info</span> <span class="op">=</span> <span class="ident">AllPalletsWithSystem::storage_info</span>();
+					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
 
-					<span class="kw">return</span> (<span class="ident">list</span>, <span class="ident">storage_info</span>)
+					<span class="kw">return </span>(list, storage_info)
 				}
 
-				<span class="kw">fn</span> <span class="ident">dispatch_benchmark</span>(
-					<span class="ident">config</span>: <span class="ident">frame_benchmarking::BenchmarkConfig</span>,
-				) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">frame_benchmarking::BenchmarkBatch</span><span class="op">&gt;</span>, <span class="ident">sp_runtime::RuntimeString</span><span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">frame_benchmarking</span>::{
-						<span class="ident">add_benchmark</span>, <span class="ident">BenchmarkBatch</span>, <span class="ident">Benchmarking</span>, <span class="ident">TrackedStorageKey</span>,
+				<span class="kw">fn </span>dispatch_benchmark(
+					config: frame_benchmarking::BenchmarkConfig,
+				) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;frame_benchmarking::BenchmarkBatch&gt;, sp_runtime::RuntimeString&gt; {
+					<span class="kw">use </span>frame_benchmarking::{
+						add_benchmark, BenchmarkBatch, Benchmarking, TrackedStorageKey,
 					};
 
-					<span class="kw">use</span> <span class="ident">frame_system_benchmarking::Pallet</span> <span class="kw">as</span> <span class="ident">SystemBench</span>;
-					<span class="kw">impl</span> <span class="ident">frame_system_benchmarking::Config</span> <span class="kw">for</span> <span class="ident">Runtime</span> {}
+					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
+					<span class="kw">impl </span>frame_system_benchmarking::Config <span class="kw">for </span>Runtime {}
 
-					<span class="kw">use</span> <span class="ident">pallet_crowdloan_rewards::Pallet</span> <span class="kw">as</span> <span class="ident">PalletCrowdloanRewardsBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_parachain_staking::Pallet</span> <span class="kw">as</span> <span class="ident">ParachainStakingBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_mapping::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorMappingBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_slot_filter::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorSlotFilter</span>;
-					<span class="kw">use</span> <span class="ident">pallet_moonbeam_orbiters::Pallet</span> <span class="kw">as</span> <span class="ident">PalletMoonbeamOrbiters</span>;
-					<span class="kw">use</span> <span class="ident">pallet_author_inherent::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAuthorInherent</span>;
-					<span class="kw">use</span> <span class="ident">pallet_asset_manager::Pallet</span> <span class="kw">as</span> <span class="ident">PalletAssetManagerBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_xcm_transactor::Pallet</span> <span class="kw">as</span> <span class="ident">XcmTransactorBench</span>;
-					<span class="kw">use</span> <span class="ident">pallet_randomness::Pallet</span> <span class="kw">as</span> <span class="ident">RandomnessBench</span>;
+					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
+					<span class="kw">use </span>pallet_parachain_staking::Pallet <span class="kw">as </span>ParachainStakingBench;
+					<span class="kw">use </span>pallet_author_mapping::Pallet <span class="kw">as </span>PalletAuthorMappingBench;
+					<span class="kw">use </span>pallet_author_slot_filter::Pallet <span class="kw">as </span>PalletAuthorSlotFilter;
+					<span class="kw">use </span>pallet_moonbeam_orbiters::Pallet <span class="kw">as </span>PalletMoonbeamOrbiters;
+					<span class="kw">use </span>pallet_author_inherent::Pallet <span class="kw">as </span>PalletAuthorInherent;
+					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
+					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
+					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
 
-					<span class="kw">let</span> <span class="ident">whitelist</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TrackedStorageKey</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[
-						<span class="comment">// Block Number</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;02a5c1b19ab7a04f536c519aca4983ac&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// Total Issuance</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f&quot;</span>
-											<span class="string">&quot;57c875e4cff74148e4628f264b974c80&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// Execution Phase</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;ff553b5a9862a516939d82b3d3d8661a&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// Event Count</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;0a98fdbe9ce6c55837576c60c7af3850&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// System Events</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;80d41e5e16056765bc8461851072c9d7&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// System BlockWeight</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;34abf5cb34d6244378cddbf18e849d96&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// ParachainStaking Round</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;</span>
-											<span class="string">&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// Treasury Account (py/trsry)</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;b99d880ec681799c0cf30e8886371da9&quot;</span>
-											<span class="string">&quot;7be2919ac397ba499ea5e57132180ec6&quot;</span>
-											<span class="string">&quot;6d6f646c70792f747273727900000000&quot;</span>
-											<span class="string">&quot;00000000&quot;</span>
-						).<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// Treasury Account (pc/trsry)</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;</span>
-											<span class="string">&quot;b99d880ec681799c0cf30e8886371da9&quot;</span>
-											<span class="string">&quot;7be2919ac397ba499ea5e57132180ec6&quot;</span>
-											<span class="string">&quot;6d6f646c70632f747273727900000000&quot;</span>
-											<span class="string">&quot;00000000&quot;</span>
-						).<span class="ident">to_vec</span>().<span class="ident">into</span>(),
-						<span class="comment">// ParachainInfo ParachainId</span>
-						<span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;0d715f2646c8f85767b5d2764bb27826&quot;</span>
-											<span class="string">&quot;04a74d81251e398fd8a0a4d55023bb3f&quot;</span>)
-							.<span class="ident">to_vec</span>().<span class="ident">into</span>(),
+					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
+						<span class="comment">// Block Number
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;02a5c1b19ab7a04f536c519aca4983ac&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// Total Issuance
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;c2261276cc9d1f8598ea4b6a74b15c2f&quot;
+											&quot;57c875e4cff74148e4628f264b974c80&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// Execution Phase
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;ff553b5a9862a516939d82b3d3d8661a&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// Event Count
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;0a98fdbe9ce6c55837576c60c7af3850&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// System Events
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;80d41e5e16056765bc8461851072c9d7&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// System BlockWeight
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;34abf5cb34d6244378cddbf18e849d96&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// ParachainStaking Round
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;a686a3043d0adcf2fa655e57bc595a78&quot;
+											&quot;13792e785168f725b60e2969c7fc2552&quot;</span>)
+							.to_vec().into(),
+						<span class="comment">// Treasury Account (py/trsry)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;b99d880ec681799c0cf30e8886371da9&quot;
+											&quot;7be2919ac397ba499ea5e57132180ec6&quot;
+											&quot;6d6f646c70792f747273727900000000&quot;
+											&quot;00000000&quot;
+						</span>).to_vec().into(),
+						<span class="comment">// Treasury Account (pc/trsry)
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;26aa394eea5630e07c48ae0c9558cef7&quot;
+											&quot;b99d880ec681799c0cf30e8886371da9&quot;
+											&quot;7be2919ac397ba499ea5e57132180ec6&quot;
+											&quot;6d6f646c70632f747273727900000000&quot;
+											&quot;00000000&quot;
+						</span>).to_vec().into(),
+						<span class="comment">// ParachainInfo ParachainId
+						</span><span class="macro">hex_literal::hex!</span>(  <span class="string">&quot;0d715f2646c8f85767b5d2764bb27826&quot;
+											&quot;04a74d81251e398fd8a0a4d55023bb3f&quot;</span>)
+							.to_vec().into(),
 
 					];
 
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">batches</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">BenchmarkBatch</span><span class="op">&gt;</span><span class="ident">::new</span>();
-					<span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">config</span>, <span class="kw-2">&amp;</span><span class="ident">whitelist</span>);
+					<span class="kw">let </span><span class="kw-2">mut </span>batches = Vec::&lt;BenchmarkBatch&gt;::new();
+					<span class="kw">let </span>params = (<span class="kw-2">&amp;</span>config, <span class="kw-2">&amp;</span>whitelist);
 
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">parachain_staking</span>,
-						<span class="ident">ParachainStakingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						parachain_staking,
+						ParachainStakingBench::&lt;Runtime&gt;
 					);
 					<span class="macro">add_benchmark!</span>(
-					<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_crowdloan_rewards</span>,
-						<span class="ident">PalletCrowdloanRewardsBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+					params,
+						batches,
+						pallet_crowdloan_rewards,
+						PalletCrowdloanRewardsBench::&lt;Runtime&gt;
 					);
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_author_mapping</span>,
-						<span class="ident">PalletAuthorMappingBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_author_mapping,
+						PalletAuthorMappingBench::&lt;Runtime&gt;
 					);
-					<span class="macro">add_benchmark!</span>(<span class="ident">params</span>, <span class="ident">batches</span>, <span class="ident">frame_system</span>, <span class="ident">SystemBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+					<span class="macro">add_benchmark!</span>(params, batches, frame_system, SystemBench::&lt;Runtime&gt;);
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_author_slot_filter</span>,
-						<span class="ident">PalletAuthorSlotFilter</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-					);
-					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_moonbeam_orbiters</span>,
-						<span class="ident">PalletMoonbeamOrbiters</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_author_slot_filter,
+						PalletAuthorSlotFilter::&lt;Runtime&gt;
 					);
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_author_inherent</span>,
-						<span class="ident">PalletAuthorInherent</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_moonbeam_orbiters,
+						PalletMoonbeamOrbiters::&lt;Runtime&gt;
 					);
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_asset_manager</span>,
-						<span class="ident">PalletAssetManagerBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_author_inherent,
+						PalletAuthorInherent::&lt;Runtime&gt;
 					);
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">xcm_transactor</span>,
-						<span class="ident">XcmTransactorBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_asset_manager,
+						PalletAssetManagerBench::&lt;Runtime&gt;
+					);
+					<span class="macro">add_benchmark!</span>(
+						params,
+						batches,
+						xcm_transactor,
+						XcmTransactorBench::&lt;Runtime&gt;
 					);
 
 					<span class="macro">add_benchmark!</span>(
-						<span class="ident">params</span>,
-						<span class="ident">batches</span>,
-						<span class="ident">pallet_randomness</span>,
-						<span class="ident">RandomnessBench</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
+						params,
+						batches,
+						pallet_randomness,
+						RandomnessBench::&lt;Runtime&gt;
 					);
 
-					<span class="kw">if</span> <span class="ident">batches</span>.<span class="ident">is_empty</span>() {
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="string">&quot;Benchmark not found for this pallet.&quot;</span>.<span class="ident">into</span>());
+					<span class="kw">if </span>batches.is_empty() {
+						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="string">&quot;Benchmark not found for this pallet.&quot;</span>.into());
 					}
-					<span class="prelude-val">Ok</span>(<span class="ident">batches</span>)
+					<span class="prelude-val">Ok</span>(batches)
 				}
 			}
 
-			<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-			<span class="kw">impl</span> <span class="ident">frame_try_runtime::TryRuntime</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Runtime</span> {
-				<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; (<span class="ident">Weight</span>, <span class="ident">Weight</span>) {
+			<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+			</span><span class="kw">impl </span>frame_try_runtime::TryRuntime&lt;Block&gt; <span class="kw">for </span>Runtime {
+				<span class="kw">fn </span>on_runtime_upgrade() -&gt; (Weight, Weight) {
 					<span class="macro">log::info!</span>(<span class="string">&quot;try-runtime::on_runtime_upgrade()&quot;</span>);
-					<span class="comment">// NOTE: intentional expect: we don&#39;t want to propagate the error backwards,</span>
-					<span class="comment">// and want to have a backtrace here. If any of the pre/post migration checks</span>
-					<span class="comment">// fail, we shall stop right here and right now.</span>
-					<span class="kw">let</span> <span class="ident">weight</span> <span class="op">=</span> <span class="ident">Executive::try_runtime_upgrade</span>()
-						.<span class="ident">expect</span>(<span class="string">&quot;runtime upgrade logic *must* be infallible&quot;</span>);
-					(<span class="ident">weight</span>, <span class="ident">BlockWeights::get</span>().<span class="ident">max_block</span>)
+					<span class="comment">// NOTE: intentional expect: we don&#39;t want to propagate the error backwards,
+					// and want to have a backtrace here. If any of the pre/post migration checks
+					// fail, we shall stop right here and right now.
+					</span><span class="kw">let </span>weight = Executive::try_runtime_upgrade()
+						.expect(<span class="string">&quot;runtime upgrade logic *must* be infallible&quot;</span>);
+					(weight, BlockWeights::get().max_block)
 				}
 
-				<span class="kw">fn</span> <span class="ident">execute_block_no_check</span>(<span class="ident">block</span>: <span class="ident">Block</span>) -&gt; <span class="ident">Weight</span> {
-					<span class="ident">Executive::execute_block_no_check</span>(<span class="ident">block</span>)
+				<span class="kw">fn </span>execute_block_no_check(block: Block) -&gt; Weight {
+					Executive::execute_block_no_check(block)
 				}
 			}
 		}
 	};
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_runtime_common" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

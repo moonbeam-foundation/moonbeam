@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/listeners/call_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_client_evm_tracing/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_client_evm_tracing/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_client_evm_tracing/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/evm-tracing/src/listeners/call_list.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>call_list.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_client_evm_tracing/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_client_evm_tracing/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_client_evm_tracing/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1133,1136 +1128,1135 @@
 <span id="1128">1128</span>
 <span id="1129">1129</span>
 <span id="1130">1130</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::formatters::blockscout::BlockscoutCall</span> <span class="kw">as</span> <span class="ident">Call</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::formatters::blockscout::BlockscoutCallInner</span> <span class="kw">as</span> <span class="ident">CallInner</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::types</span>::{<span class="ident">CallResult</span>, <span class="ident">CallType</span>, <span class="ident">ContextType</span>, <span class="ident">CreateResult</span>};
-<span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">evm_tracing_events</span>::{
-	<span class="ident">runtime</span>::{<span class="ident">Capture</span>, <span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>},
-	<span class="ident">Event</span>, <span class="ident">EvmEvent</span>, <span class="ident">GasometerEvent</span>, <span class="ident">Listener</span> <span class="kw">as</span> <span class="ident">ListenerT</span>, <span class="ident">RuntimeEvent</span>, <span class="ident">StepEventFilter</span>,
+</span><span class="kw">use </span><span class="kw">crate</span>::formatters::blockscout::BlockscoutCall <span class="kw">as </span>Call;
+<span class="kw">use </span><span class="kw">crate</span>::formatters::blockscout::BlockscoutCallInner <span class="kw">as </span>CallInner;
+<span class="kw">use </span><span class="kw">crate</span>::types::{CallResult, CallType, ContextType, CreateResult};
+<span class="kw">use </span>ethereum_types::{H160, U256};
+<span class="kw">use </span>evm_tracing_events::{
+	runtime::{Capture, ExitError, ExitReason, ExitSucceed},
+	Event, EvmEvent, GasometerEvent, Listener <span class="kw">as </span>ListenerT, RuntimeEvent, StepEventFilter,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::btree_map::BTreeMap</span>, <span class="ident">vec</span>, <span class="ident">vec::Vec</span>};
+<span class="kw">use </span>std::{collections::btree_map::BTreeMap, vec, vec::Vec};
 
-<span class="doccomment">/// Enum of the different &quot;modes&quot; of tracer for multiple runtime versions and</span>
-<span class="doccomment">/// the kind of EVM events that are emitted.</span>
-<span class="kw">enum</span> <span class="ident">TracingVersion</span> {
-	<span class="doccomment">/// The first event of the transaction is `EvmEvent::TransactX`. It goes along other events</span>
-	<span class="doccomment">/// such as `EvmEvent::Exit`. All contexts should have clear start/end boundaries.</span>
-	<span class="ident">EarlyTransact</span>,
-	<span class="doccomment">/// Older version in which the events above didn&#39;t existed.</span>
-	<span class="doccomment">/// It means that we cannot rely on those events to perform any task, and must rely only</span>
-	<span class="doccomment">/// on other events.</span>
-	<span class="ident">Legacy</span>,
+<span class="doccomment">/// Enum of the different &quot;modes&quot; of tracer for multiple runtime versions and
+/// the kind of EVM events that are emitted.
+</span><span class="kw">enum </span>TracingVersion {
+	<span class="doccomment">/// The first event of the transaction is `EvmEvent::TransactX`. It goes along other events
+	/// such as `EvmEvent::Exit`. All contexts should have clear start/end boundaries.
+	</span>EarlyTransact,
+	<span class="doccomment">/// Older version in which the events above didn&#39;t existed.
+	/// It means that we cannot rely on those events to perform any task, and must rely only
+	/// on other events.
+	</span>Legacy,
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Listener</span> {
-	<span class="doccomment">/// Version of the tracing.</span>
-	<span class="doccomment">/// Defaults to legacy, and switch to a more modern version if recently added events are</span>
-	<span class="doccomment">/// received.</span>
-	<span class="ident">version</span>: <span class="ident">TracingVersion</span>,
+<span class="kw">pub struct </span>Listener {
+	<span class="doccomment">/// Version of the tracing.
+	/// Defaults to legacy, and switch to a more modern version if recently added events are
+	/// received.
+	</span>version: TracingVersion,
 
-	<span class="comment">// Transaction cost that must be added to the first context cost.</span>
-	<span class="ident">transaction_cost</span>: <span class="ident">u64</span>,
+	<span class="comment">// Transaction cost that must be added to the first context cost.
+	</span>transaction_cost: u64,
 
-	<span class="comment">// Final logs.</span>
-	<span class="kw">pub</span> <span class="ident">entries</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Call</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="comment">// Next index to use.</span>
-	<span class="ident">entries_next_index</span>: <span class="ident">u32</span>,
-	<span class="comment">// Stack of contexts with data to keep between events.</span>
-	<span class="ident">context_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Context</span><span class="op">&gt;</span>,
+	<span class="comment">// Final logs.
+	</span><span class="kw">pub </span>entries: Vec&lt;BTreeMap&lt;u32, Call&gt;&gt;,
+	<span class="comment">// Next index to use.
+	</span>entries_next_index: u32,
+	<span class="comment">// Stack of contexts with data to keep between events.
+	</span>context_stack: Vec&lt;Context&gt;,
 
-	<span class="comment">// Type of the next call.</span>
-	<span class="comment">// By default is None and corresponds to the root call, which</span>
-	<span class="comment">// can be determined using the `is_static` field of the `Call` event.</span>
-	<span class="comment">// Then by looking at call traps events we can set this value to the correct</span>
-	<span class="comment">// call type, to be used when the following `Call` event is received.</span>
-	<span class="ident">call_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CallType</span><span class="op">&gt;</span>,
+	<span class="comment">// Type of the next call.
+	// By default is None and corresponds to the root call, which
+	// can be determined using the `is_static` field of the `Call` event.
+	// Then by looking at call traps events we can set this value to the correct
+	// call type, to be used when the following `Call` event is received.
+	</span>call_type: <span class="prelude-ty">Option</span>&lt;CallType&gt;,
 
-	<span class="doccomment">/// When `EvmEvent::TransactX` is received it creates its own context. However it will usually</span>
-	<span class="doccomment">/// be followed by an `EvmEvent::Call/Create` that will also create a context, which must be</span>
-	<span class="doccomment">/// prevented. It must however not be skipped if `EvmEvent::TransactX` was not received</span>
-	<span class="doccomment">/// (in legacy mode).</span>
-	<span class="ident">skip_next_context</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// When `EvmEvent::TransactX` is received it creates its own context. However it will usually
+	/// be followed by an `EvmEvent::Call/Create` that will also create a context, which must be
+	/// prevented. It must however not be skipped if `EvmEvent::TransactX` was not received
+	/// (in legacy mode).
+	</span>skip_next_context: bool,
 
-	<span class="comment">// /// To handle EvmEvent::Exit no emitted by previous runtimes versions,</span>
-	<span class="comment">// /// entries are not inserted directly in `self.entries`.</span>
-	<span class="comment">// pending_entries: Vec&lt;(u32, Call)&gt;,</span>
-	<span class="doccomment">/// See `RuntimeEvent::StepResult` event explanatioins.</span>
-	<span class="ident">step_result_entry</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">Call</span>)<span class="op">&gt;</span>,
+	<span class="comment">// /// To handle EvmEvent::Exit no emitted by previous runtimes versions,
+	// /// entries are not inserted directly in `self.entries`.
+	// pending_entries: Vec&lt;(u32, Call)&gt;,
+	</span><span class="doccomment">/// See `RuntimeEvent::StepResult` event explanatioins.
+	</span>step_result_entry: <span class="prelude-ty">Option</span>&lt;(u32, Call)&gt;,
 
-	<span class="doccomment">/// When tracing a block `Event::CallListNew` is emitted before each Ethereum transaction is</span>
-	<span class="doccomment">/// processed. Since we use that event to **finish** the transaction, we must ignore the first</span>
-	<span class="doccomment">/// one.</span>
-	<span class="ident">call_list_first_transaction</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// When tracing a block `Event::CallListNew` is emitted before each Ethereum transaction is
+	/// processed. Since we use that event to **finish** the transaction, we must ignore the first
+	/// one.
+	</span>call_list_first_transaction: bool,
 
-	<span class="doccomment">/// True if only the `GasometerEvent::RecordTransaction` event has been received.</span>
-	<span class="doccomment">/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.</span>
-	<span class="ident">record_transaction_event_only</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// True if only the `GasometerEvent::RecordTransaction` event has been received.
+	/// Allow to correctly handle transactions that cannot pay for the tx data in Legacy mode.
+	</span>record_transaction_event_only: bool,
 }
 
-<span class="kw">struct</span> <span class="ident">Context</span> {
-	<span class="ident">entries_index</span>: <span class="ident">u32</span>,
+<span class="kw">struct </span>Context {
+	entries_index: u32,
 
-	<span class="ident">context_type</span>: <span class="ident">ContextType</span>,
+	context_type: ContextType,
 
-	<span class="ident">from</span>: <span class="ident">H160</span>,
-	<span class="ident">trace_address</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">subtraces</span>: <span class="ident">u32</span>,
-	<span class="ident">value</span>: <span class="ident">U256</span>,
+	from: H160,
+	trace_address: Vec&lt;u32&gt;,
+	subtraces: u32,
+	value: U256,
 
-	<span class="ident">gas</span>: <span class="ident">u64</span>,
-	<span class="ident">start_gas</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
+	gas: u64,
+	start_gas: <span class="prelude-ty">Option</span>&lt;u64&gt;,
 
-	<span class="comment">// input / data</span>
-	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="comment">// to / create address</span>
-	<span class="ident">to</span>: <span class="ident">H160</span>,
+	<span class="comment">// input / data
+	</span>data: Vec&lt;u8&gt;,
+	<span class="comment">// to / create address
+	</span>to: H160,
 }
 
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Listener</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">version</span>: <span class="ident">TracingVersion::Legacy</span>,
-			<span class="ident">transaction_cost</span>: <span class="number">0</span>,
+<span class="kw">impl </span>Default <span class="kw">for </span>Listener {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			version: TracingVersion::Legacy,
+			transaction_cost: <span class="number">0</span>,
 
-			<span class="ident">entries</span>: <span class="macro">vec!</span>[],
-			<span class="ident">entries_next_index</span>: <span class="number">0</span>,
+			entries: <span class="macro">vec!</span>[],
+			entries_next_index: <span class="number">0</span>,
 
-			<span class="ident">context_stack</span>: <span class="macro">vec!</span>[],
+			context_stack: <span class="macro">vec!</span>[],
 
-			<span class="ident">call_type</span>: <span class="prelude-val">None</span>,
-			<span class="ident">step_result_entry</span>: <span class="prelude-val">None</span>,
-			<span class="ident">skip_next_context</span>: <span class="bool-val">false</span>,
-			<span class="ident">call_list_first_transaction</span>: <span class="bool-val">true</span>,
-			<span class="ident">record_transaction_event_only</span>: <span class="bool-val">false</span>,
+			call_type: <span class="prelude-val">None</span>,
+			step_result_entry: <span class="prelude-val">None</span>,
+			skip_next_context: <span class="bool-val">false</span>,
+			call_list_first_transaction: <span class="bool-val">true</span>,
+			record_transaction_event_only: <span class="bool-val">false</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span> <span class="ident">Listener</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">using</span><span class="op">&lt;</span><span class="ident">R</span>, <span class="ident">F</span>: <span class="ident">FnOnce</span>() -&gt; <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">R</span> {
-		<span class="ident">evm_tracing_events::using</span>(<span class="self">self</span>, <span class="ident">f</span>)
+<span class="kw">impl </span>Listener {
+	<span class="kw">pub fn </span>using&lt;R, F: FnOnce() -&gt; R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, f: F) -&gt; R {
+		evm_tracing_events::using(<span class="self">self</span>, f)
 	}
 
-	<span class="doccomment">/// Called at the end of each transaction when tracing.</span>
-	<span class="doccomment">/// Allow to insert the pending entries regardless of which runtime version</span>
-	<span class="doccomment">/// is used (with or without EvmEvent::Exit).</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">finish_transaction</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-		<span class="comment">// remove any leftover context</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context_stack</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-		<span class="ident">core::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">context_stack</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context_stack</span>);
+	<span class="doccomment">/// Called at the end of each transaction when tracing.
+	/// Allow to insert the pending entries regardless of which runtime version
+	/// is used (with or without EvmEvent::Exit).
+	</span><span class="kw">pub fn </span>finish_transaction(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+		<span class="comment">// remove any leftover context
+		</span><span class="kw">let </span><span class="kw-2">mut </span>context_stack = <span class="macro">vec!</span>[];
+		core::mem::swap(<span class="kw-2">&amp;mut </span><span class="self">self</span>.context_stack, <span class="kw-2">&amp;mut </span>context_stack);
 
-		<span class="comment">// if there is a left over there have been an early exit.</span>
-		<span class="comment">// we generate an entry from it and discord any inner context.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="ident">context_stack</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>() {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gas_used</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">start_gas</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">-</span> <span class="ident">context</span>.<span class="ident">gas</span>;
-			<span class="kw">if</span> <span class="ident">context</span>.<span class="ident">entries_index</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="ident">gas_used</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">transaction_cost</span>;
+		<span class="comment">// if there is a left over there have been an early exit.
+		// we generate an entry from it and discord any inner context.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(context) = context_stack.into_iter().next() {
+			<span class="kw">let </span><span class="kw-2">mut </span>gas_used = context.start_gas.unwrap_or(<span class="number">0</span>) - context.gas;
+			<span class="kw">if </span>context.entries_index == <span class="number">0 </span>{
+				gas_used += <span class="self">self</span>.transaction_cost;
 			}
 
-			<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">context_type</span> {
-				<span class="ident">ContextType::Call</span>(<span class="ident">call_type</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CallResult::Error</span>(
-						<span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;</span>
-							.<span class="ident">to_vec</span>(),
+			<span class="kw">let </span>entry = <span class="kw">match </span>context.context_type {
+				ContextType::Call(call_type) =&gt; {
+					<span class="kw">let </span>res = CallResult::Error(
+						<span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;
+							</span>.to_vec(),
 					);
-					<span class="ident">Call</span> {
-						<span class="ident">from</span>: <span class="ident">context</span>.<span class="ident">from</span>,
-						<span class="ident">trace_address</span>: <span class="ident">context</span>.<span class="ident">trace_address</span>,
-						<span class="ident">subtraces</span>: <span class="ident">context</span>.<span class="ident">subtraces</span>,
-						<span class="ident">value</span>: <span class="ident">context</span>.<span class="ident">value</span>,
-						<span class="ident">gas</span>: <span class="ident">context</span>.<span class="ident">gas</span>.<span class="ident">into</span>(),
-						<span class="ident">gas_used</span>: <span class="ident">gas_used</span>.<span class="ident">into</span>(),
-						<span class="ident">inner</span>: <span class="ident">CallInner::Call</span> {
-							<span class="ident">call_type</span>,
-							<span class="ident">to</span>: <span class="ident">context</span>.<span class="ident">to</span>,
-							<span class="ident">input</span>: <span class="ident">context</span>.<span class="ident">data</span>,
-							<span class="ident">res</span>,
+					Call {
+						from: context.from,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						value: context.value,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						inner: CallInner::Call {
+							call_type,
+							to: context.to,
+							input: context.data,
+							res,
 						},
 					}
 				}
-				<span class="ident">ContextType::Create</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CreateResult::Error</span> {
-							<span class="ident">error</span>: <span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;</span>.<span class="ident">to_vec</span>(),
+				ContextType::Create =&gt; {
+					<span class="kw">let </span>res = CreateResult::Error {
+							error: <span class="string">b&quot;early exit (out of gas, stack overflow, direct call to precompile, ...)&quot;</span>.to_vec(),
 						};
 
-					<span class="ident">Call</span> {
-						<span class="ident">value</span>: <span class="ident">context</span>.<span class="ident">value</span>,
-						<span class="ident">trace_address</span>: <span class="ident">context</span>.<span class="ident">trace_address</span>,
-						<span class="ident">subtraces</span>: <span class="ident">context</span>.<span class="ident">subtraces</span>,
-						<span class="ident">gas</span>: <span class="ident">context</span>.<span class="ident">gas</span>.<span class="ident">into</span>(),
-						<span class="ident">gas_used</span>: <span class="ident">gas_used</span>.<span class="ident">into</span>(),
-						<span class="ident">from</span>: <span class="ident">context</span>.<span class="ident">from</span>,
-						<span class="ident">inner</span>: <span class="ident">CallInner::Create</span> {
-							<span class="ident">init</span>: <span class="ident">context</span>.<span class="ident">data</span>,
-							<span class="ident">res</span>,
+					Call {
+						value: context.value,
+						trace_address: context.trace_address,
+						subtraces: context.subtraces,
+						gas: context.gas.into(),
+						gas_used: gas_used.into(),
+						from: context.from,
+						inner: CallInner::Create {
+							init: context.data,
+							res,
 						},
 					}
 				}
 			};
 
-			<span class="self">self</span>.<span class="ident">insert_entry</span>(<span class="ident">context</span>.<span class="ident">entries_index</span>, <span class="ident">entry</span>);
-			<span class="comment">// Since only this context/entry is kept, we need update entries_next_index too.</span>
-			<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">entries_index</span> <span class="op">+</span> <span class="number">1</span>;
+			<span class="self">self</span>.insert_entry(context.entries_index, entry);
+			<span class="comment">// Since only this context/entry is kept, we need update entries_next_index too.
+			</span><span class="self">self</span>.entries_next_index = context.entries_index + <span class="number">1</span>;
 		}
-		<span class="comment">// However if the transaction had a too low gas limit to pay for the data cost itself,</span>
-		<span class="comment">// and `EvmEvent::Exit` is not emitted in **Legacy mode**, then it has never produced any</span>
-		<span class="comment">// context (and exited **early in the transaction**).</span>
-		<span class="kw">else</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">record_transaction_event_only</span> {
-			<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">CallResult::Error</span>(
-				<span class="string">b&quot;transaction could not pay its own data cost (impossible to gather more info)&quot;</span>
-					.<span class="ident">to_vec</span>(),
+		<span class="comment">// However if the transaction had a too low gas limit to pay for the data cost itself,
+		// and `EvmEvent::Exit` is not emitted in **Legacy mode**, then it has never produced any
+		// context (and exited **early in the transaction**).
+		</span><span class="kw">else if </span><span class="self">self</span>.record_transaction_event_only {
+			<span class="kw">let </span>res = CallResult::Error(
+				<span class="string">b&quot;transaction could not pay its own data cost (impossible to gather more info)&quot;
+					</span>.to_vec(),
 			);
 
-			<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="ident">Call</span> {
-				<span class="ident">from</span>: <span class="ident">H160::repeat_byte</span>(<span class="number">0</span>),
-				<span class="ident">trace_address</span>: <span class="macro">vec!</span>[],
-				<span class="ident">subtraces</span>: <span class="number">0</span>,
-				<span class="ident">value</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-				<span class="ident">gas</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-				<span class="ident">gas_used</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-				<span class="ident">inner</span>: <span class="ident">CallInner::Call</span> {
-					<span class="ident">call_type</span>: <span class="ident">CallType::Call</span>,
-					<span class="ident">to</span>: <span class="ident">H160::repeat_byte</span>(<span class="number">0</span>),
-					<span class="ident">input</span>: <span class="macro">vec!</span>[],
-					<span class="ident">res</span>,
+			<span class="kw">let </span>entry = Call {
+				from: H160::repeat_byte(<span class="number">0</span>),
+				trace_address: <span class="macro">vec!</span>[],
+				subtraces: <span class="number">0</span>,
+				value: <span class="number">0</span>.into(),
+				gas: <span class="number">0</span>.into(),
+				gas_used: <span class="number">0</span>.into(),
+				inner: CallInner::Call {
+					call_type: CallType::Call,
+					to: H160::repeat_byte(<span class="number">0</span>),
+					input: <span class="macro">vec!</span>[],
+					res,
 				},
 			};
 
-			<span class="self">self</span>.<span class="ident">insert_entry</span>(<span class="self">self</span>.<span class="ident">entries_next_index</span>, <span class="ident">entry</span>);
-			<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+			<span class="self">self</span>.insert_entry(<span class="self">self</span>.entries_next_index, entry);
+			<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">GasometerEvent</span>) {
-		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">GasometerEvent::RecordCost</span> { <span class="ident">snapshot</span>, .. }
-			<span class="op">|</span> <span class="ident">GasometerEvent::RecordDynamicCost</span> { <span class="ident">snapshot</span>, .. }
-			<span class="op">|</span> <span class="ident">GasometerEvent::RecordStipend</span> { <span class="ident">snapshot</span>, .. } =&gt; {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
-					<span class="kw">if</span> <span class="ident">context</span>.<span class="ident">start_gas</span>.<span class="ident">is_none</span>() {
-						<span class="ident">context</span>.<span class="ident">start_gas</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">snapshot</span>.<span class="ident">gas</span>());
+	<span class="kw">pub fn </span>gasometer_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: GasometerEvent) {
+		<span class="kw">match </span>event {
+			GasometerEvent::RecordCost { snapshot, .. }
+			| GasometerEvent::RecordDynamicCost { snapshot, .. }
+			| GasometerEvent::RecordStipend { snapshot, .. } =&gt; {
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(context) = <span class="self">self</span>.context_stack.last_mut() {
+					<span class="kw">if </span>context.start_gas.is_none() {
+						context.start_gas = <span class="prelude-val">Some</span>(snapshot.gas());
 					}
-					<span class="ident">context</span>.<span class="ident">gas</span> <span class="op">=</span> <span class="ident">snapshot</span>.<span class="ident">gas</span>();
+					context.gas = snapshot.gas();
 				}
 			}
-			<span class="ident">GasometerEvent::RecordTransaction</span> { <span class="ident">cost</span>, .. } =&gt; {
-				<span class="self">self</span>.<span class="ident">transaction_cost</span> <span class="op">=</span> <span class="ident">cost</span>;
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">true</span>;
+			GasometerEvent::RecordTransaction { cost, .. } =&gt; {
+				<span class="self">self</span>.transaction_cost = cost;
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">true</span>;
 			}
-			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-			<span class="kw">_</span> =&gt; (),
+			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).
+			</span><span class="attribute">#[allow(unreachable_patterns)]
+			</span><span class="kw">_ </span>=&gt; (),
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">runtime_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">RuntimeEvent</span>) {
-		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">RuntimeEvent::StepResult</span> {
-				<span class="ident">result</span>: <span class="prelude-val">Err</span>(<span class="ident">Capture::Trap</span>(<span class="ident">opcode</span>)),
+	<span class="kw">pub fn </span>runtime_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: RuntimeEvent) {
+		<span class="kw">match </span>event {
+			RuntimeEvent::StepResult {
+				result: <span class="prelude-val">Err</span>(Capture::Trap(opcode)),
 				..
 			} =&gt; {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextType::Call</span>(<span class="ident">call_type</span>)) <span class="op">=</span> <span class="ident">ContextType::from</span>(<span class="ident">opcode</span>) {
-					<span class="self">self</span>.<span class="ident">call_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">call_type</span>)
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(ContextType::Call(call_type)) = ContextType::from(opcode) {
+					<span class="self">self</span>.call_type = <span class="prelude-val">Some</span>(call_type)
 				}
 			}
-			<span class="ident">RuntimeEvent::StepResult</span> {
-				<span class="ident">result</span>: <span class="prelude-val">Err</span>(<span class="ident">Capture::Exit</span>(<span class="ident">reason</span>)),
-				<span class="ident">return_value</span>,
+			RuntimeEvent::StepResult {
+				result: <span class="prelude-val">Err</span>(Capture::Exit(reason)),
+				return_value,
 			} =&gt; {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">entry</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop_context_to_entry</span>(<span class="ident">reason</span>, <span class="ident">return_value</span>) {
-					<span class="kw">match</span> <span class="self">self</span>.<span class="ident">version</span> {
-						<span class="ident">TracingVersion::Legacy</span> =&gt; {
-							<span class="comment">// In Legacy mode we directly insert the entry.</span>
-							<span class="self">self</span>.<span class="ident">insert_entry</span>(<span class="ident">key</span>, <span class="ident">entry</span>);
+				<span class="kw">if let </span><span class="prelude-val">Some</span>((key, entry)) = <span class="self">self</span>.pop_context_to_entry(reason, return_value) {
+					<span class="kw">match </span><span class="self">self</span>.version {
+						TracingVersion::Legacy =&gt; {
+							<span class="comment">// In Legacy mode we directly insert the entry.
+							</span><span class="self">self</span>.insert_entry(key, entry);
 						}
-						<span class="ident">TracingVersion::EarlyTransact</span> =&gt; {
-							<span class="comment">// In EarlyTransact mode this context must be used if this event is</span>
-							<span class="comment">// emitted. However the context of `EvmEvent::Exit` must be used if</span>
-							<span class="comment">// `StepResult` is skipped. For that reason we store this generated</span>
-							<span class="comment">// entry in a temporary value, and deal with it in `EvmEvent::Exit` that</span>
-							<span class="comment">// will be called in all cases.</span>
-							<span class="self">self</span>.<span class="ident">step_result_entry</span> <span class="op">=</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">entry</span>));
+						TracingVersion::EarlyTransact =&gt; {
+							<span class="comment">// In EarlyTransact mode this context must be used if this event is
+							// emitted. However the context of `EvmEvent::Exit` must be used if
+							// `StepResult` is skipped. For that reason we store this generated
+							// entry in a temporary value, and deal with it in `EvmEvent::Exit` that
+							// will be called in all cases.
+							</span><span class="self">self</span>.step_result_entry = <span class="prelude-val">Some</span>((key, entry));
 						}
 					}
 				}
 			}
-			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-			<span class="kw">_</span> =&gt; (),
+			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).
+			</span><span class="attribute">#[allow(unreachable_patterns)]
+			</span><span class="kw">_ </span>=&gt; (),
 		}
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">evm_event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">EvmEvent</span>) {
-		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">EvmEvent::TransactCall</span> {
-				<span class="ident">caller</span>,
-				<span class="ident">address</span>,
-				<span class="ident">value</span>,
-				<span class="ident">data</span>,
+	<span class="kw">pub fn </span>evm_event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: EvmEvent) {
+		<span class="kw">match </span>event {
+			EvmEvent::TransactCall {
+				caller,
+				address,
+				value,
+				data,
 				..
 			} =&gt; {
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
-				<span class="self">self</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">TracingVersion::EarlyTransact</span>;
-				<span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push</span>(<span class="ident">Context</span> {
-					<span class="ident">entries_index</span>: <span class="self">self</span>.<span class="ident">entries_next_index</span>,
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
+				<span class="self">self</span>.version = TracingVersion::EarlyTransact;
+				<span class="self">self</span>.context_stack.push(Context {
+					entries_index: <span class="self">self</span>.entries_next_index,
 
-					<span class="ident">context_type</span>: <span class="ident">ContextType::Call</span>(<span class="ident">CallType::Call</span>),
+					context_type: ContextType::Call(CallType::Call),
 
-					<span class="ident">from</span>: <span class="ident">caller</span>,
-					<span class="ident">trace_address</span>: <span class="macro">vec!</span>[],
-					<span class="ident">subtraces</span>: <span class="number">0</span>,
-					<span class="ident">value</span>,
+					from: caller,
+					trace_address: <span class="macro">vec!</span>[],
+					subtraces: <span class="number">0</span>,
+					value,
 
-					<span class="ident">gas</span>: <span class="number">0</span>,
-					<span class="ident">start_gas</span>: <span class="prelude-val">None</span>,
+					gas: <span class="number">0</span>,
+					start_gas: <span class="prelude-val">None</span>,
 
-					<span class="ident">data</span>,
-					<span class="ident">to</span>: <span class="ident">address</span>,
+					data,
+					to: address,
 				});
 
-				<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
+				<span class="self">self</span>.skip_next_context = <span class="bool-val">true</span>;
 			}
 
-			<span class="ident">EvmEvent::TransactCreate</span> {
-				<span class="ident">caller</span>,
-				<span class="ident">value</span>,
-				<span class="ident">init_code</span>,
-				<span class="ident">address</span>,
+			EvmEvent::TransactCreate {
+				caller,
+				value,
+				init_code,
+				address,
 				..
 			} =&gt; {
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
-				<span class="self">self</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">TracingVersion::EarlyTransact</span>;
-				<span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push</span>(<span class="ident">Context</span> {
-					<span class="ident">entries_index</span>: <span class="self">self</span>.<span class="ident">entries_next_index</span>,
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
+				<span class="self">self</span>.version = TracingVersion::EarlyTransact;
+				<span class="self">self</span>.context_stack.push(Context {
+					entries_index: <span class="self">self</span>.entries_next_index,
 
-					<span class="ident">context_type</span>: <span class="ident">ContextType::Create</span>,
+					context_type: ContextType::Create,
 
-					<span class="ident">from</span>: <span class="ident">caller</span>,
-					<span class="ident">trace_address</span>: <span class="macro">vec!</span>[],
-					<span class="ident">subtraces</span>: <span class="number">0</span>,
-					<span class="ident">value</span>,
+					from: caller,
+					trace_address: <span class="macro">vec!</span>[],
+					subtraces: <span class="number">0</span>,
+					value,
 
-					<span class="ident">gas</span>: <span class="number">0</span>,
-					<span class="ident">start_gas</span>: <span class="prelude-val">None</span>,
+					gas: <span class="number">0</span>,
+					start_gas: <span class="prelude-val">None</span>,
 
-					<span class="ident">data</span>: <span class="ident">init_code</span>,
-					<span class="ident">to</span>: <span class="ident">address</span>,
+					data: init_code,
+					to: address,
 				});
 
-				<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
+				<span class="self">self</span>.skip_next_context = <span class="bool-val">true</span>;
 			}
 
-			<span class="ident">EvmEvent::TransactCreate2</span> {
-				<span class="ident">caller</span>,
-				<span class="ident">value</span>,
-				<span class="ident">init_code</span>,
-				<span class="ident">address</span>,
+			EvmEvent::TransactCreate2 {
+				caller,
+				value,
+				init_code,
+				address,
 				..
 			} =&gt; {
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
-				<span class="self">self</span>.<span class="ident">version</span> <span class="op">=</span> <span class="ident">TracingVersion::EarlyTransact</span>;
-				<span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push</span>(<span class="ident">Context</span> {
-					<span class="ident">entries_index</span>: <span class="self">self</span>.<span class="ident">entries_next_index</span>,
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
+				<span class="self">self</span>.version = TracingVersion::EarlyTransact;
+				<span class="self">self</span>.context_stack.push(Context {
+					entries_index: <span class="self">self</span>.entries_next_index,
 
-					<span class="ident">context_type</span>: <span class="ident">ContextType::Create</span>,
+					context_type: ContextType::Create,
 
-					<span class="ident">from</span>: <span class="ident">caller</span>,
-					<span class="ident">trace_address</span>: <span class="macro">vec!</span>[],
-					<span class="ident">subtraces</span>: <span class="number">0</span>,
-					<span class="ident">value</span>,
+					from: caller,
+					trace_address: <span class="macro">vec!</span>[],
+					subtraces: <span class="number">0</span>,
+					value,
 
-					<span class="ident">gas</span>: <span class="number">0</span>,
-					<span class="ident">start_gas</span>: <span class="prelude-val">None</span>,
+					gas: <span class="number">0</span>,
+					start_gas: <span class="prelude-val">None</span>,
 
-					<span class="ident">data</span>: <span class="ident">init_code</span>,
-					<span class="ident">to</span>: <span class="ident">address</span>,
+					data: init_code,
+					to: address,
 				});
 
-				<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
+				<span class="self">self</span>.skip_next_context = <span class="bool-val">true</span>;
 			}
 
-			<span class="ident">EvmEvent::Call</span> {
-				<span class="ident">code_address</span>,
-				<span class="ident">input</span>,
-				<span class="ident">is_static</span>,
-				<span class="ident">context</span>,
+			EvmEvent::Call {
+				code_address,
+				input,
+				is_static,
+				context,
 				..
 			} =&gt; {
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
 
-				<span class="kw">let</span> <span class="ident">call_type</span> <span class="op">=</span> <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">call_type</span>, <span class="ident">is_static</span>) {
-					(<span class="prelude-val">None</span>, <span class="bool-val">true</span>) =&gt; <span class="ident">CallType::StaticCall</span>,
-					(<span class="prelude-val">None</span>, <span class="bool-val">false</span>) =&gt; <span class="ident">CallType::Call</span>,
-					(<span class="prelude-val">Some</span>(<span class="ident">call_type</span>), <span class="kw">_</span>) =&gt; <span class="ident">call_type</span>,
+				<span class="kw">let </span>call_type = <span class="kw">match </span>(<span class="self">self</span>.call_type, is_static) {
+					(<span class="prelude-val">None</span>, <span class="bool-val">true</span>) =&gt; CallType::StaticCall,
+					(<span class="prelude-val">None</span>, <span class="bool-val">false</span>) =&gt; CallType::Call,
+					(<span class="prelude-val">Some</span>(call_type), <span class="kw">_</span>) =&gt; call_type,
 				};
 
-				<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">skip_next_context</span> {
-					<span class="kw">let</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>();
-						<span class="ident">trace_address</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">subtraces</span>);
-						<span class="ident">context</span>.<span class="ident">subtraces</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-						<span class="ident">trace_address</span>
-					} <span class="kw">else</span> {
+				<span class="kw">if </span>!<span class="self">self</span>.skip_next_context {
+					<span class="kw">let </span>trace_address = <span class="kw">if let </span><span class="prelude-val">Some</span>(context) = <span class="self">self</span>.context_stack.last_mut() {
+						<span class="kw">let </span><span class="kw-2">mut </span>trace_address = context.trace_address.clone();
+						trace_address.push(context.subtraces);
+						context.subtraces += <span class="number">1</span>;
+						trace_address
+					} <span class="kw">else </span>{
 						<span class="macro">vec!</span>[]
 					};
 
-					<span class="comment">// For subcalls we want to have &quot;from&quot; always be the parent context address</span>
-					<span class="comment">// instead of `context.caller`, since the latter will not have the correct</span>
-					<span class="comment">// value inside a DelegateCall.</span>
-					<span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent_context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last</span>() {
-						<span class="ident">parent_context</span>.<span class="ident">to</span>.<span class="ident">clone</span>()
-					} <span class="kw">else</span> {
-						<span class="ident">context</span>.<span class="ident">caller</span>
+					<span class="comment">// For subcalls we want to have &quot;from&quot; always be the parent context address
+					// instead of `context.caller`, since the latter will not have the correct
+					// value inside a DelegateCall.
+					</span><span class="kw">let </span>from = <span class="kw">if let </span><span class="prelude-val">Some</span>(parent_context) = <span class="self">self</span>.context_stack.last() {
+						parent_context.to.clone()
+					} <span class="kw">else </span>{
+						context.caller
 					};
 
-					<span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push</span>(<span class="ident">Context</span> {
-						<span class="ident">entries_index</span>: <span class="self">self</span>.<span class="ident">entries_next_index</span>,
+					<span class="self">self</span>.context_stack.push(Context {
+						entries_index: <span class="self">self</span>.entries_next_index,
 
-						<span class="ident">context_type</span>: <span class="ident">ContextType::Call</span>(<span class="ident">call_type</span>),
+						context_type: ContextType::Call(call_type),
 
-						<span class="ident">from</span>,
-						<span class="ident">trace_address</span>,
-						<span class="ident">subtraces</span>: <span class="number">0</span>,
-						<span class="ident">value</span>: <span class="ident">context</span>.<span class="ident">apparent_value</span>,
+						from,
+						trace_address,
+						subtraces: <span class="number">0</span>,
+						value: context.apparent_value,
 
-						<span class="ident">gas</span>: <span class="number">0</span>,
-						<span class="ident">start_gas</span>: <span class="prelude-val">None</span>,
+						gas: <span class="number">0</span>,
+						start_gas: <span class="prelude-val">None</span>,
 
-						<span class="ident">data</span>: <span class="ident">input</span>.<span class="ident">to_vec</span>(),
-						<span class="ident">to</span>: <span class="ident">code_address</span>,
+						data: input.to_vec(),
+						to: code_address,
 					});
 
-					<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				} <span class="kw">else</span> {
-					<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">false</span>;
+					<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
+				} <span class="kw">else </span>{
+					<span class="self">self</span>.skip_next_context = <span class="bool-val">false</span>;
 				}
 			}
 
-			<span class="ident">EvmEvent::Create</span> {
-				<span class="ident">caller</span>,
-				<span class="ident">address</span>,
-				<span class="comment">// scheme,</span>
-				<span class="ident">value</span>,
-				<span class="ident">init_code</span>,
+			EvmEvent::Create {
+				caller,
+				address,
+				<span class="comment">// scheme,
+				</span>value,
+				init_code,
 				..
 			} =&gt; {
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
+				<span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
 
-				<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">skip_next_context</span> {
-					<span class="kw">let</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>();
-						<span class="ident">trace_address</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">subtraces</span>);
-						<span class="ident">context</span>.<span class="ident">subtraces</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-						<span class="ident">trace_address</span>
-					} <span class="kw">else</span> {
+				<span class="kw">if </span>!<span class="self">self</span>.skip_next_context {
+					<span class="kw">let </span>trace_address = <span class="kw">if let </span><span class="prelude-val">Some</span>(context) = <span class="self">self</span>.context_stack.last_mut() {
+						<span class="kw">let </span><span class="kw-2">mut </span>trace_address = context.trace_address.clone();
+						trace_address.push(context.subtraces);
+						context.subtraces += <span class="number">1</span>;
+						trace_address
+					} <span class="kw">else </span>{
 						<span class="macro">vec!</span>[]
 					};
 
-					<span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">push</span>(<span class="ident">Context</span> {
-						<span class="ident">entries_index</span>: <span class="self">self</span>.<span class="ident">entries_next_index</span>,
+					<span class="self">self</span>.context_stack.push(Context {
+						entries_index: <span class="self">self</span>.entries_next_index,
 
-						<span class="ident">context_type</span>: <span class="ident">ContextType::Create</span>,
+						context_type: ContextType::Create,
 
-						<span class="ident">from</span>: <span class="ident">caller</span>,
-						<span class="ident">trace_address</span>,
-						<span class="ident">subtraces</span>: <span class="number">0</span>,
-						<span class="ident">value</span>,
+						from: caller,
+						trace_address,
+						subtraces: <span class="number">0</span>,
+						value,
 
-						<span class="ident">gas</span>: <span class="number">0</span>,
-						<span class="ident">start_gas</span>: <span class="prelude-val">None</span>,
+						gas: <span class="number">0</span>,
+						start_gas: <span class="prelude-val">None</span>,
 
-						<span class="ident">data</span>: <span class="ident">init_code</span>.<span class="ident">to_vec</span>(),
-						<span class="ident">to</span>: <span class="ident">address</span>,
+						data: init_code.to_vec(),
+						to: address,
 					});
 
-					<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				} <span class="kw">else</span> {
-					<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">false</span>;
+					<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
+				} <span class="kw">else </span>{
+					<span class="self">self</span>.skip_next_context = <span class="bool-val">false</span>;
 				}
 			}
-			<span class="ident">EvmEvent::Suicide</span> {
-				<span class="ident">address</span>,
-				<span class="ident">target</span>,
-				<span class="ident">balance</span>,
+			EvmEvent::Suicide {
+				address,
+				target,
+				balance,
 			} =&gt; {
-				<span class="kw">let</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">last_mut</span>() {
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trace_address</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">trace_address</span>.<span class="ident">clone</span>();
-					<span class="ident">trace_address</span>.<span class="ident">push</span>(<span class="ident">context</span>.<span class="ident">subtraces</span>);
-					<span class="ident">context</span>.<span class="ident">subtraces</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-					<span class="ident">trace_address</span>
-				} <span class="kw">else</span> {
+				<span class="kw">let </span>trace_address = <span class="kw">if let </span><span class="prelude-val">Some</span>(context) = <span class="self">self</span>.context_stack.last_mut() {
+					<span class="kw">let </span><span class="kw-2">mut </span>trace_address = context.trace_address.clone();
+					trace_address.push(context.subtraces);
+					context.subtraces += <span class="number">1</span>;
+					trace_address
+				} <span class="kw">else </span>{
 					<span class="macro">vec!</span>[]
 				};
 
-				<span class="self">self</span>.<span class="ident">insert_entry</span>(
-					<span class="self">self</span>.<span class="ident">entries_next_index</span>,
-					<span class="ident">Call</span> {
-						<span class="ident">from</span>: <span class="ident">address</span>, <span class="comment">// this contract is self destructing</span>
-						<span class="ident">trace_address</span>,
-						<span class="ident">subtraces</span>: <span class="number">0</span>,
-						<span class="ident">value</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-						<span class="ident">gas</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-						<span class="ident">gas_used</span>: <span class="number">0</span>.<span class="ident">into</span>(),
-						<span class="ident">inner</span>: <span class="ident">CallInner::SelfDestruct</span> {
-							<span class="ident">to</span>: <span class="ident">target</span>,
-							<span class="ident">balance</span>,
+				<span class="self">self</span>.insert_entry(
+					<span class="self">self</span>.entries_next_index,
+					Call {
+						from: address, <span class="comment">// this contract is self destructing
+						</span>trace_address,
+						subtraces: <span class="number">0</span>,
+						value: <span class="number">0</span>.into(),
+						gas: <span class="number">0</span>.into(),
+						gas_used: <span class="number">0</span>.into(),
+						inner: CallInner::SelfDestruct {
+							to: target,
+							balance,
 						},
 					},
 				);
-				<span class="self">self</span>.<span class="ident">entries_next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+				<span class="self">self</span>.entries_next_index += <span class="number">1</span>;
 			}
-			<span class="ident">EvmEvent::Exit</span> {
-				<span class="ident">reason</span>,
-				<span class="ident">return_value</span>,
+			EvmEvent::Exit {
+				reason,
+				return_value,
 			} =&gt; {
-				<span class="comment">// We know we&#39;re in `TracingVersion::EarlyTransact` mode.</span>
+				<span class="comment">// We know we&#39;re in `TracingVersion::EarlyTransact` mode.
 
-				<span class="self">self</span>.<span class="ident">record_transaction_event_only</span> <span class="op">=</span> <span class="bool-val">false</span>;
+				</span><span class="self">self</span>.record_transaction_event_only = <span class="bool-val">false</span>;
 
-				<span class="kw">let</span> <span class="ident">entry</span> <span class="op">=</span> <span class="self">self</span>
-					.<span class="ident">step_result_entry</span>
-					.<span class="ident">take</span>()
-					.<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">pop_context_to_entry</span>(<span class="ident">reason</span>, <span class="ident">return_value</span>));
+				<span class="kw">let </span>entry = <span class="self">self
+					</span>.step_result_entry
+					.take()
+					.or_else(|| <span class="self">self</span>.pop_context_to_entry(reason, return_value));
 
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">entry</span>)) <span class="op">=</span> <span class="ident">entry</span> {
-					<span class="self">self</span>.<span class="ident">insert_entry</span>(<span class="ident">key</span>, <span class="ident">entry</span>);
+				<span class="kw">if let </span><span class="prelude-val">Some</span>((key, entry)) = entry {
+					<span class="self">self</span>.insert_entry(key, entry);
 				}
 			}
-			<span class="ident">EvmEvent::PrecompileSubcall</span> { .. } =&gt; {
-				<span class="comment">// In a precompile subcall there is no CALL opcode result to observe, thus</span>
-				<span class="comment">// we need this new event. Precompile subcall might use non-standard call</span>
-				<span class="comment">// behavior (like batch precompile does) thus we simply consider this a call.</span>
-				<span class="self">self</span>.<span class="ident">call_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CallType::Call</span>);
+			EvmEvent::PrecompileSubcall { .. } =&gt; {
+				<span class="comment">// In a precompile subcall there is no CALL opcode result to observe, thus
+				// we need this new event. Precompile subcall might use non-standard call
+				// behavior (like batch precompile does) thus we simply consider this a call.
+				</span><span class="self">self</span>.call_type = <span class="prelude-val">Some</span>(CallType::Call);
 			}
 
-			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).</span>
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unreachable_patterns</span>)]</span>
-			<span class="kw">_</span> =&gt; (),
+			<span class="comment">// We ignore other kinds of message if any (new ones may be added in the future).
+			</span><span class="attribute">#[allow(unreachable_patterns)]
+			</span><span class="kw">_ </span>=&gt; (),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">insert_entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">u32</span>, <span class="ident">entry</span>: <span class="ident">Call</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">last</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">last_mut</span>() {
-			<span class="ident">last</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">entry</span>);
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">btree_map</span> <span class="op">=</span> <span class="ident">BTreeMap::new</span>();
-			<span class="ident">btree_map</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">entry</span>);
-			<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">btree_map</span>);
+	<span class="kw">fn </span>insert_entry(<span class="kw-2">&amp;mut </span><span class="self">self</span>, key: u32, entry: Call) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>last) = <span class="self">self</span>.entries.last_mut() {
+			last.insert(key, entry);
+		} <span class="kw">else </span>{
+			<span class="kw">let </span><span class="kw-2">mut </span>btree_map = BTreeMap::new();
+			btree_map.insert(key, entry);
+			<span class="self">self</span>.entries.push(btree_map);
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">pop_context_to_entry</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">reason</span>: <span class="ident">ExitReason</span>,
-		<span class="ident">return_value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">Call</span>)<span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">context</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context_stack</span>.<span class="ident">pop</span>() {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">gas_used</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">start_gas</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">-</span> <span class="ident">context</span>.<span class="ident">gas</span>;
-			<span class="kw">if</span> <span class="ident">context</span>.<span class="ident">entries_index</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="ident">gas_used</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">transaction_cost</span>;
+	<span class="kw">fn </span>pop_context_to_entry(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		reason: ExitReason,
+		return_value: Vec&lt;u8&gt;,
+	) -&gt; <span class="prelude-ty">Option</span>&lt;(u32, Call)&gt; {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(context) = <span class="self">self</span>.context_stack.pop() {
+			<span class="kw">let </span><span class="kw-2">mut </span>gas_used = context.start_gas.unwrap_or(<span class="number">0</span>) - context.gas;
+			<span class="kw">if </span>context.entries_index == <span class="number">0 </span>{
+				gas_used += <span class="self">self</span>.transaction_cost;
 			}
 
 			<span class="prelude-val">Some</span>((
-				<span class="ident">context</span>.<span class="ident">entries_index</span>,
-				<span class="kw">match</span> <span class="ident">context</span>.<span class="ident">context_type</span> {
-					<span class="ident">ContextType::Call</span>(<span class="ident">call_type</span>) =&gt; {
-						<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">reason</span> {
-							<span class="ident">ExitReason::Succeed</span>(<span class="ident">ExitSucceed::Returned</span>) =&gt; {
-								<span class="ident">CallResult::Output</span>(<span class="ident">return_value</span>.<span class="ident">to_vec</span>())
+				context.entries_index,
+				<span class="kw">match </span>context.context_type {
+					ContextType::Call(call_type) =&gt; {
+						<span class="kw">let </span>res = <span class="kw">match </span><span class="kw-2">&amp;</span>reason {
+							ExitReason::Succeed(ExitSucceed::Returned) =&gt; {
+								CallResult::Output(return_value.to_vec())
 							}
-							<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; <span class="ident">CallResult::Output</span>(<span class="macro">vec!</span>[]),
-							<span class="ident">ExitReason::Error</span>(<span class="ident">error</span>) =&gt; <span class="ident">CallResult::Error</span>(<span class="ident">error_message</span>(<span class="ident">error</span>)),
+							ExitReason::Succeed(<span class="kw">_</span>) =&gt; CallResult::Output(<span class="macro">vec!</span>[]),
+							ExitReason::Error(error) =&gt; CallResult::Error(error_message(error)),
 
-							<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) =&gt; {
-								<span class="ident">CallResult::Error</span>(<span class="string">b&quot;execution reverted&quot;</span>.<span class="ident">to_vec</span>())
+							ExitReason::Revert(<span class="kw">_</span>) =&gt; {
+								CallResult::Error(<span class="string">b&quot;execution reverted&quot;</span>.to_vec())
 							}
-							<span class="ident">ExitReason::Fatal</span>(<span class="kw">_</span>) =&gt; <span class="ident">CallResult::Error</span>(<span class="macro">vec!</span>[]),
+							ExitReason::Fatal(<span class="kw">_</span>) =&gt; CallResult::Error(<span class="macro">vec!</span>[]),
 						};
 
-						<span class="ident">Call</span> {
-							<span class="ident">from</span>: <span class="ident">context</span>.<span class="ident">from</span>,
-							<span class="ident">trace_address</span>: <span class="ident">context</span>.<span class="ident">trace_address</span>,
-							<span class="ident">subtraces</span>: <span class="ident">context</span>.<span class="ident">subtraces</span>,
-							<span class="ident">value</span>: <span class="ident">context</span>.<span class="ident">value</span>,
-							<span class="ident">gas</span>: <span class="ident">context</span>.<span class="ident">gas</span>.<span class="ident">into</span>(),
-							<span class="ident">gas_used</span>: <span class="ident">gas_used</span>.<span class="ident">into</span>(),
-							<span class="ident">inner</span>: <span class="ident">CallInner::Call</span> {
-								<span class="ident">call_type</span>,
-								<span class="ident">to</span>: <span class="ident">context</span>.<span class="ident">to</span>,
-								<span class="ident">input</span>: <span class="ident">context</span>.<span class="ident">data</span>,
-								<span class="ident">res</span>,
+						Call {
+							from: context.from,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							value: context.value,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							inner: CallInner::Call {
+								call_type,
+								to: context.to,
+								input: context.data,
+								res,
 							},
 						}
 					}
-					<span class="ident">ContextType::Create</span> =&gt; {
-						<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">reason</span> {
-							<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; <span class="ident">CreateResult::Success</span> {
-								<span class="ident">created_contract_address_hash</span>: <span class="ident">context</span>.<span class="ident">to</span>,
-								<span class="ident">created_contract_code</span>: <span class="ident">return_value</span>.<span class="ident">to_vec</span>(),
+					ContextType::Create =&gt; {
+						<span class="kw">let </span>res = <span class="kw">match </span><span class="kw-2">&amp;</span>reason {
+							ExitReason::Succeed(<span class="kw">_</span>) =&gt; CreateResult::Success {
+								created_contract_address_hash: context.to,
+								created_contract_code: return_value.to_vec(),
 							},
-							<span class="ident">ExitReason::Error</span>(<span class="ident">error</span>) =&gt; <span class="ident">CreateResult::Error</span> {
-								<span class="ident">error</span>: <span class="ident">error_message</span>(<span class="ident">error</span>),
+							ExitReason::Error(error) =&gt; CreateResult::Error {
+								error: error_message(error),
 							},
-							<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) =&gt; <span class="ident">CreateResult::Error</span> {
-								<span class="ident">error</span>: <span class="string">b&quot;execution reverted&quot;</span>.<span class="ident">to_vec</span>(),
+							ExitReason::Revert(<span class="kw">_</span>) =&gt; CreateResult::Error {
+								error: <span class="string">b&quot;execution reverted&quot;</span>.to_vec(),
 							},
-							<span class="ident">ExitReason::Fatal</span>(<span class="kw">_</span>) =&gt; <span class="ident">CreateResult::Error</span> { <span class="ident">error</span>: <span class="macro">vec!</span>[] },
+							ExitReason::Fatal(<span class="kw">_</span>) =&gt; CreateResult::Error { error: <span class="macro">vec!</span>[] },
 						};
 
-						<span class="ident">Call</span> {
-							<span class="ident">value</span>: <span class="ident">context</span>.<span class="ident">value</span>,
-							<span class="ident">trace_address</span>: <span class="ident">context</span>.<span class="ident">trace_address</span>,
-							<span class="ident">subtraces</span>: <span class="ident">context</span>.<span class="ident">subtraces</span>,
-							<span class="ident">gas</span>: <span class="ident">context</span>.<span class="ident">gas</span>.<span class="ident">into</span>(),
-							<span class="ident">gas_used</span>: <span class="ident">gas_used</span>.<span class="ident">into</span>(),
-							<span class="ident">from</span>: <span class="ident">context</span>.<span class="ident">from</span>,
-							<span class="ident">inner</span>: <span class="ident">CallInner::Create</span> {
-								<span class="ident">init</span>: <span class="ident">context</span>.<span class="ident">data</span>,
-								<span class="ident">res</span>,
+						Call {
+							value: context.value,
+							trace_address: context.trace_address,
+							subtraces: context.subtraces,
+							gas: context.gas.into(),
+							gas_used: gas_used.into(),
+							from: context.from,
+							inner: CallInner::Create {
+								init: context.data,
+								res,
 							},
 						}
 					}
 				},
 			))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">None</span>
-		}
+		} <span class="kw">else </span>{
+			<span class="prelude-val">None
+		</span>}
 	}
 }
 
-<span class="kw">fn</span> <span class="ident">error_message</span>(<span class="ident">error</span>: <span class="kw-2">&amp;</span><span class="ident">ExitError</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-	<span class="kw">match</span> <span class="ident">error</span> {
-		<span class="ident">ExitError::StackUnderflow</span> =&gt; <span class="string">&quot;stack underflow&quot;</span>,
-		<span class="ident">ExitError::StackOverflow</span> =&gt; <span class="string">&quot;stack overflow&quot;</span>,
-		<span class="ident">ExitError::InvalidJump</span> =&gt; <span class="string">&quot;invalid jump&quot;</span>,
-		<span class="ident">ExitError::InvalidRange</span> =&gt; <span class="string">&quot;invalid range&quot;</span>,
-		<span class="ident">ExitError::DesignatedInvalid</span> =&gt; <span class="string">&quot;designated invalid&quot;</span>,
-		<span class="ident">ExitError::CallTooDeep</span> =&gt; <span class="string">&quot;call too deep&quot;</span>,
-		<span class="ident">ExitError::CreateCollision</span> =&gt; <span class="string">&quot;create collision&quot;</span>,
-		<span class="ident">ExitError::CreateContractLimit</span> =&gt; <span class="string">&quot;create contract limit&quot;</span>,
-		<span class="ident">ExitError::OutOfOffset</span> =&gt; <span class="string">&quot;out of offset&quot;</span>,
-		<span class="ident">ExitError::OutOfGas</span> =&gt; <span class="string">&quot;out of gas&quot;</span>,
-		<span class="ident">ExitError::OutOfFund</span> =&gt; <span class="string">&quot;out of funds&quot;</span>,
-		<span class="ident">ExitError::Other</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>,
-		<span class="kw">_</span> =&gt; <span class="string">&quot;unexpected error&quot;</span>,
+<span class="kw">fn </span>error_message(error: <span class="kw-2">&amp;</span>ExitError) -&gt; Vec&lt;u8&gt; {
+	<span class="kw">match </span>error {
+		ExitError::StackUnderflow =&gt; <span class="string">&quot;stack underflow&quot;</span>,
+		ExitError::StackOverflow =&gt; <span class="string">&quot;stack overflow&quot;</span>,
+		ExitError::InvalidJump =&gt; <span class="string">&quot;invalid jump&quot;</span>,
+		ExitError::InvalidRange =&gt; <span class="string">&quot;invalid range&quot;</span>,
+		ExitError::DesignatedInvalid =&gt; <span class="string">&quot;designated invalid&quot;</span>,
+		ExitError::CallTooDeep =&gt; <span class="string">&quot;call too deep&quot;</span>,
+		ExitError::CreateCollision =&gt; <span class="string">&quot;create collision&quot;</span>,
+		ExitError::CreateContractLimit =&gt; <span class="string">&quot;create contract limit&quot;</span>,
+		ExitError::OutOfOffset =&gt; <span class="string">&quot;out of offset&quot;</span>,
+		ExitError::OutOfGas =&gt; <span class="string">&quot;out of gas&quot;</span>,
+		ExitError::OutOfFund =&gt; <span class="string">&quot;out of funds&quot;</span>,
+		ExitError::Other(err) =&gt; err,
+		<span class="kw">_ </span>=&gt; <span class="string">&quot;unexpected error&quot;</span>,
 	}
-	.<span class="ident">as_bytes</span>()
-	.<span class="ident">to_vec</span>()
+	.as_bytes()
+	.to_vec()
 }
 
-<span class="kw">impl</span> <span class="ident">ListenerT</span> <span class="kw">for</span> <span class="ident">Listener</span> {
-	<span class="kw">fn</span> <span class="ident">event</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">event</span>: <span class="ident">Event</span>) {
-		<span class="kw">match</span> <span class="ident">event</span> {
-			<span class="ident">Event::Gasometer</span>(<span class="ident">gasometer_event</span>) =&gt; <span class="self">self</span>.<span class="ident">gasometer_event</span>(<span class="ident">gasometer_event</span>),
-			<span class="ident">Event::Runtime</span>(<span class="ident">runtime_event</span>) =&gt; <span class="self">self</span>.<span class="ident">runtime_event</span>(<span class="ident">runtime_event</span>),
-			<span class="ident">Event::Evm</span>(<span class="ident">evm_event</span>) =&gt; <span class="self">self</span>.<span class="ident">evm_event</span>(<span class="ident">evm_event</span>),
-			<span class="ident">Event::CallListNew</span>() =&gt; {
-				<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">call_list_first_transaction</span> {
-					<span class="self">self</span>.<span class="ident">finish_transaction</span>();
-					<span class="self">self</span>.<span class="ident">skip_next_context</span> <span class="op">=</span> <span class="bool-val">false</span>;
-					<span class="self">self</span>.<span class="ident">entries</span>.<span class="ident">push</span>(<span class="ident">BTreeMap::new</span>());
-				} <span class="kw">else</span> {
-					<span class="self">self</span>.<span class="ident">call_list_first_transaction</span> <span class="op">=</span> <span class="bool-val">false</span>;
+<span class="kw">impl </span>ListenerT <span class="kw">for </span>Listener {
+	<span class="kw">fn </span>event(<span class="kw-2">&amp;mut </span><span class="self">self</span>, event: Event) {
+		<span class="kw">match </span>event {
+			Event::Gasometer(gasometer_event) =&gt; <span class="self">self</span>.gasometer_event(gasometer_event),
+			Event::Runtime(runtime_event) =&gt; <span class="self">self</span>.runtime_event(runtime_event),
+			Event::Evm(evm_event) =&gt; <span class="self">self</span>.evm_event(evm_event),
+			Event::CallListNew() =&gt; {
+				<span class="kw">if </span>!<span class="self">self</span>.call_list_first_transaction {
+					<span class="self">self</span>.finish_transaction();
+					<span class="self">self</span>.skip_next_context = <span class="bool-val">false</span>;
+					<span class="self">self</span>.entries.push(BTreeMap::new());
+				} <span class="kw">else </span>{
+					<span class="self">self</span>.call_list_first_transaction = <span class="bool-val">false</span>;
 				}
 			}
 		};
 	}
 
-	<span class="kw">fn</span> <span class="ident">step_event_filter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">StepEventFilter</span> {
-		<span class="ident">StepEventFilter</span> {
-			<span class="ident">enable_memory</span>: <span class="bool-val">false</span>,
-			<span class="ident">enable_stack</span>: <span class="bool-val">false</span>,
+	<span class="kw">fn </span>step_event_filter(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; StepEventFilter {
+		StepEventFilter {
+			enable_memory: <span class="bool-val">false</span>,
+			enable_stack: <span class="bool-val">false</span>,
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
-	<span class="kw">use</span> <span class="ident">evm_tracing_events</span>::{
-		<span class="ident">evm::CreateScheme</span>,
-		<span class="ident">gasometer::Snapshot</span>,
-		<span class="ident">runtime</span>::{<span class="ident">Memory</span>, <span class="ident">Stack</span>},
-		<span class="ident">Context</span> <span class="kw">as</span> <span class="ident">EvmContext</span>,
+<span class="attribute">#[cfg(test)]
+#[allow(unused)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>ethereum_types::H256;
+	<span class="kw">use </span>evm_tracing_events::{
+		evm::CreateScheme,
+		gasometer::Snapshot,
+		runtime::{Memory, Stack},
+		Context <span class="kw">as </span>EvmContext,
 	};
 
-	<span class="kw">enum</span> <span class="ident">TestEvmEvent</span> {
-		<span class="ident">Call</span>,
-		<span class="ident">Create</span>,
-		<span class="ident">Suicide</span>,
-		<span class="ident">Exit</span>,
-		<span class="ident">TransactCall</span>,
-		<span class="ident">TransactCreate</span>,
-		<span class="ident">TransactCreate2</span>,
+	<span class="kw">enum </span>TestEvmEvent {
+		Call,
+		Create,
+		Suicide,
+		Exit,
+		TransactCall,
+		TransactCreate,
+		TransactCreate2,
 	}
 
-	<span class="kw">enum</span> <span class="ident">TestRuntimeEvent</span> {
-		<span class="ident">Step</span>,
-		<span class="ident">StepResult</span>,
-		<span class="ident">SLoad</span>,
-		<span class="ident">SStore</span>,
+	<span class="kw">enum </span>TestRuntimeEvent {
+		Step,
+		StepResult,
+		SLoad,
+		SStore,
 	}
 
-	<span class="kw">enum</span> <span class="ident">TestGasometerEvent</span> {
-		<span class="ident">RecordCost</span>,
-		<span class="ident">RecordRefund</span>,
-		<span class="ident">RecordStipend</span>,
-		<span class="ident">RecordDynamicCost</span>,
-		<span class="ident">RecordTransaction</span>,
+	<span class="kw">enum </span>TestGasometerEvent {
+		RecordCost,
+		RecordRefund,
+		RecordStipend,
+		RecordDynamicCost,
+		RecordTransaction,
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_context</span>() -&gt; <span class="ident">EvmContext</span> {
-		<span class="ident">EvmContext</span> {
-			<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-			<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
-			<span class="ident">apparent_value</span>: <span class="ident">U256::zero</span>(),
+	<span class="kw">fn </span>test_context() -&gt; EvmContext {
+		EvmContext {
+			address: H160::default(),
+			caller: H160::default(),
+			apparent_value: U256::zero(),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_create_scheme</span>() -&gt; <span class="ident">CreateScheme</span> {
-		<span class="ident">CreateScheme::Legacy</span> {
-			<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
+	<span class="kw">fn </span>test_create_scheme() -&gt; CreateScheme {
+		CreateScheme::Legacy {
+			caller: H160::default(),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_stack</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&gt;</span> {
-		<span class="prelude-val">None</span>
-	}
+	<span class="kw">fn </span>test_stack() -&gt; <span class="prelude-ty">Option</span>&lt;Stack&gt; {
+		<span class="prelude-val">None
+	</span>}
 
-	<span class="kw">fn</span> <span class="ident">test_memory</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Memory</span><span class="op">&gt;</span> {
-		<span class="prelude-val">None</span>
-	}
+	<span class="kw">fn </span>test_memory() -&gt; <span class="prelude-ty">Option</span>&lt;Memory&gt; {
+		<span class="prelude-val">None
+	</span>}
 
-	<span class="kw">fn</span> <span class="ident">test_snapshot</span>() -&gt; <span class="ident">Snapshot</span> {
-		<span class="ident">Snapshot</span> {
-			<span class="ident">gas_limit</span>: <span class="number">0u64</span>,
-			<span class="ident">memory_gas</span>: <span class="number">0u64</span>,
-			<span class="ident">used_gas</span>: <span class="number">0u64</span>,
-			<span class="ident">refunded_gas</span>: <span class="number">0i64</span>,
+	<span class="kw">fn </span>test_snapshot() -&gt; Snapshot {
+		Snapshot {
+			gas_limit: <span class="number">0u64</span>,
+			memory_gas: <span class="number">0u64</span>,
+			used_gas: <span class="number">0u64</span>,
+			refunded_gas: <span class="number">0i64</span>,
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_emit_evm_event</span>(
-		<span class="ident">event_type</span>: <span class="ident">TestEvmEvent</span>,
-		<span class="ident">is_static</span>: <span class="ident">bool</span>,
-		<span class="ident">exit_reason</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ExitReason</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmEvent</span> {
-		<span class="kw">match</span> <span class="ident">event_type</span> {
-			<span class="ident">TestEvmEvent::Call</span> =&gt; <span class="ident">EvmEvent::Call</span> {
-				<span class="ident">code_address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">transfer</span>: <span class="prelude-val">None</span>,
-				<span class="ident">input</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">target_gas</span>: <span class="prelude-val">None</span>,
-				<span class="ident">is_static</span>,
-				<span class="ident">context</span>: <span class="ident">test_context</span>(),
+	<span class="kw">fn </span>test_emit_evm_event(
+		event_type: TestEvmEvent,
+		is_static: bool,
+		exit_reason: <span class="prelude-ty">Option</span>&lt;ExitReason&gt;,
+	) -&gt; EvmEvent {
+		<span class="kw">match </span>event_type {
+			TestEvmEvent::Call =&gt; EvmEvent::Call {
+				code_address: H160::default(),
+				transfer: <span class="prelude-val">None</span>,
+				input: Vec::new(),
+				target_gas: <span class="prelude-val">None</span>,
+				is_static,
+				context: test_context(),
 			},
-			<span class="ident">TestEvmEvent::Create</span> =&gt; <span class="ident">EvmEvent::Create</span> {
-				<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">scheme</span>: <span class="ident">test_create_scheme</span>(),
-				<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-				<span class="ident">init_code</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">target_gas</span>: <span class="prelude-val">None</span>,
+			TestEvmEvent::Create =&gt; EvmEvent::Create {
+				caller: H160::default(),
+				address: H160::default(),
+				scheme: test_create_scheme(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				target_gas: <span class="prelude-val">None</span>,
 			},
-			<span class="ident">TestEvmEvent::Suicide</span> =&gt; <span class="ident">EvmEvent::Suicide</span> {
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">target</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">balance</span>: <span class="ident">U256::zero</span>(),
+			TestEvmEvent::Suicide =&gt; EvmEvent::Suicide {
+				address: H160::default(),
+				target: H160::default(),
+				balance: U256::zero(),
 			},
-			<span class="ident">TestEvmEvent::Exit</span> =&gt; <span class="ident">EvmEvent::Exit</span> {
-				<span class="ident">reason</span>: <span class="ident">exit_reason</span>.<span class="ident">unwrap</span>(),
-				<span class="ident">return_value</span>: <span class="ident">Vec::new</span>(),
+			TestEvmEvent::Exit =&gt; EvmEvent::Exit {
+				reason: exit_reason.unwrap(),
+				return_value: Vec::new(),
 			},
-			<span class="ident">TestEvmEvent::TransactCall</span> =&gt; <span class="ident">EvmEvent::TransactCall</span> {
-				<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-				<span class="ident">data</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">gas_limit</span>: <span class="number">0u64</span>,
+			TestEvmEvent::TransactCall =&gt; EvmEvent::TransactCall {
+				caller: H160::default(),
+				address: H160::default(),
+				value: U256::zero(),
+				data: Vec::new(),
+				gas_limit: <span class="number">0u64</span>,
 			},
-			<span class="ident">TestEvmEvent::TransactCreate</span> =&gt; <span class="ident">EvmEvent::TransactCreate</span> {
-				<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-				<span class="ident">init_code</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">gas_limit</span>: <span class="number">0u64</span>,
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
+			TestEvmEvent::TransactCreate =&gt; EvmEvent::TransactCreate {
+				caller: H160::default(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				gas_limit: <span class="number">0u64</span>,
+				address: H160::default(),
 			},
-			<span class="ident">TestEvmEvent::TransactCreate2</span> =&gt; <span class="ident">EvmEvent::TransactCreate2</span> {
-				<span class="ident">caller</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">value</span>: <span class="ident">U256::zero</span>(),
-				<span class="ident">init_code</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">salt</span>: <span class="ident">H256::default</span>(),
-				<span class="ident">gas_limit</span>: <span class="number">0u64</span>,
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-			},
-		}
-	}
-
-	<span class="kw">fn</span> <span class="ident">test_emit_runtime_event</span>(<span class="ident">event_type</span>: <span class="ident">TestRuntimeEvent</span>) -&gt; <span class="ident">RuntimeEvent</span> {
-		<span class="kw">match</span> <span class="ident">event_type</span> {
-			<span class="ident">TestRuntimeEvent::Step</span> =&gt; <span class="ident">RuntimeEvent::Step</span> {
-				<span class="ident">context</span>: <span class="ident">test_context</span>(),
-				<span class="ident">opcode</span>: <span class="ident">Vec::new</span>(),
-				<span class="ident">position</span>: <span class="prelude-val">Ok</span>(<span class="number">0u64</span>),
-				<span class="ident">stack</span>: <span class="ident">test_stack</span>(),
-				<span class="ident">memory</span>: <span class="ident">test_memory</span>(),
-			},
-			<span class="ident">TestRuntimeEvent::StepResult</span> =&gt; <span class="ident">RuntimeEvent::StepResult</span> {
-				<span class="ident">result</span>: <span class="prelude-val">Ok</span>(()),
-				<span class="ident">return_value</span>: <span class="ident">Vec::new</span>(),
-			},
-			<span class="ident">TestRuntimeEvent::SLoad</span> =&gt; <span class="ident">RuntimeEvent::SLoad</span> {
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">index</span>: <span class="ident">H256::default</span>(),
-				<span class="ident">value</span>: <span class="ident">H256::default</span>(),
-			},
-			<span class="ident">TestRuntimeEvent::SStore</span> =&gt; <span class="ident">RuntimeEvent::SStore</span> {
-				<span class="ident">address</span>: <span class="ident">H160::default</span>(),
-				<span class="ident">index</span>: <span class="ident">H256::default</span>(),
-				<span class="ident">value</span>: <span class="ident">H256::default</span>(),
+			TestEvmEvent::TransactCreate2 =&gt; EvmEvent::TransactCreate2 {
+				caller: H160::default(),
+				value: U256::zero(),
+				init_code: Vec::new(),
+				salt: H256::default(),
+				gas_limit: <span class="number">0u64</span>,
+				address: H160::default(),
 			},
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">test_emit_gasometer_event</span>(<span class="ident">event_type</span>: <span class="ident">TestGasometerEvent</span>) -&gt; <span class="ident">GasometerEvent</span> {
-		<span class="kw">match</span> <span class="ident">event_type</span> {
-			<span class="ident">TestGasometerEvent::RecordCost</span> =&gt; <span class="ident">GasometerEvent::RecordCost</span> {
-				<span class="ident">cost</span>: <span class="number">0u64</span>,
-				<span class="ident">snapshot</span>: <span class="ident">test_snapshot</span>(),
+	<span class="kw">fn </span>test_emit_runtime_event(event_type: TestRuntimeEvent) -&gt; RuntimeEvent {
+		<span class="kw">match </span>event_type {
+			TestRuntimeEvent::Step =&gt; RuntimeEvent::Step {
+				context: test_context(),
+				opcode: Vec::new(),
+				position: <span class="prelude-val">Ok</span>(<span class="number">0u64</span>),
+				stack: test_stack(),
+				memory: test_memory(),
 			},
-			<span class="ident">TestGasometerEvent::RecordRefund</span> =&gt; <span class="ident">GasometerEvent::RecordRefund</span> {
-				<span class="ident">refund</span>: <span class="number">0i64</span>,
-				<span class="ident">snapshot</span>: <span class="ident">test_snapshot</span>(),
+			TestRuntimeEvent::StepResult =&gt; RuntimeEvent::StepResult {
+				result: <span class="prelude-val">Ok</span>(()),
+				return_value: Vec::new(),
 			},
-			<span class="ident">TestGasometerEvent::RecordStipend</span> =&gt; <span class="ident">GasometerEvent::RecordStipend</span> {
-				<span class="ident">stipend</span>: <span class="number">0u64</span>,
-				<span class="ident">snapshot</span>: <span class="ident">test_snapshot</span>(),
+			TestRuntimeEvent::SLoad =&gt; RuntimeEvent::SLoad {
+				address: H160::default(),
+				index: H256::default(),
+				value: H256::default(),
 			},
-			<span class="ident">TestGasometerEvent::RecordDynamicCost</span> =&gt; <span class="ident">GasometerEvent::RecordDynamicCost</span> {
-				<span class="ident">gas_cost</span>: <span class="number">0u64</span>,
-				<span class="ident">memory_gas</span>: <span class="number">0u64</span>,
-				<span class="ident">gas_refund</span>: <span class="number">0i64</span>,
-				<span class="ident">snapshot</span>: <span class="ident">test_snapshot</span>(),
-			},
-			<span class="ident">TestGasometerEvent::RecordTransaction</span> =&gt; <span class="ident">GasometerEvent::RecordTransaction</span> {
-				<span class="ident">cost</span>: <span class="number">0u64</span>,
-				<span class="ident">snapshot</span>: <span class="ident">test_snapshot</span>(),
+			TestRuntimeEvent::SStore =&gt; RuntimeEvent::SStore {
+				address: H160::default(),
+				index: H256::default(),
+				value: H256::default(),
 			},
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_transact_call_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(<span class="ident">TestEvmEvent::TransactCall</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	<span class="kw">fn </span>test_emit_gasometer_event(event_type: TestGasometerEvent) -&gt; GasometerEvent {
+		<span class="kw">match </span>event_type {
+			TestGasometerEvent::RecordCost =&gt; GasometerEvent::RecordCost {
+				cost: <span class="number">0u64</span>,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordRefund =&gt; GasometerEvent::RecordRefund {
+				refund: <span class="number">0i64</span>,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordStipend =&gt; GasometerEvent::RecordStipend {
+				stipend: <span class="number">0u64</span>,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordDynamicCost =&gt; GasometerEvent::RecordDynamicCost {
+				gas_cost: <span class="number">0u64</span>,
+				memory_gas: <span class="number">0u64</span>,
+				gas_refund: <span class="number">0i64</span>,
+				snapshot: test_snapshot(),
+			},
+			TestGasometerEvent::RecordTransaction =&gt; GasometerEvent::RecordTransaction {
+				cost: <span class="number">0u64</span>,
+				snapshot: test_snapshot(),
+			},
+		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_transact_create_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(
-			<span class="ident">TestEvmEvent::TransactCreate</span>,
+	<span class="kw">fn </span>do_transact_call_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::TransactCall, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	}
+
+	<span class="kw">fn </span>do_transact_create_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(
+			TestEvmEvent::TransactCreate,
 			<span class="bool-val">false</span>,
 			<span class="prelude-val">None</span>,
 		));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_gasometer_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">gasometer_event</span>(<span class="ident">test_emit_gasometer_event</span>(
-			<span class="ident">TestGasometerEvent::RecordTransaction</span>,
+	<span class="kw">fn </span>do_gasometer_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.gasometer_event(test_emit_gasometer_event(
+			TestGasometerEvent::RecordTransaction,
 		));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_exit_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(
-			<span class="ident">TestEvmEvent::Exit</span>,
+	<span class="kw">fn </span>do_exit_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(
+			TestEvmEvent::Exit,
 			<span class="bool-val">false</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">ExitReason::Error</span>(<span class="ident">ExitError::OutOfGas</span>)),
+			<span class="prelude-val">Some</span>(ExitReason::Error(ExitError::OutOfGas)),
 		));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_evm_call_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(<span class="ident">TestEvmEvent::Call</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	<span class="kw">fn </span>do_evm_call_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Call, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_evm_create_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(<span class="ident">TestEvmEvent::Create</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	<span class="kw">fn </span>do_evm_create_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Create, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_evm_suicide_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">evm_event</span>(<span class="ident">test_emit_evm_event</span>(<span class="ident">TestEvmEvent::Suicide</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
+	<span class="kw">fn </span>do_evm_suicide_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.evm_event(test_emit_evm_event(TestEvmEvent::Suicide, <span class="bool-val">false</span>, <span class="prelude-val">None</span>));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_runtime_step_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">runtime_event</span>(<span class="ident">test_emit_runtime_event</span>(<span class="ident">TestRuntimeEvent::Step</span>));
+	<span class="kw">fn </span>do_runtime_step_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.runtime_event(test_emit_runtime_event(TestRuntimeEvent::Step));
 	}
 
-	<span class="kw">fn</span> <span class="ident">do_runtime_step_result_event</span>(<span class="ident">listener</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Listener</span>) {
-		<span class="ident">listener</span>.<span class="ident">runtime_event</span>(<span class="ident">test_emit_runtime_event</span>(<span class="ident">TestRuntimeEvent::StepResult</span>));
+	<span class="kw">fn </span>do_runtime_step_result_event(listener: <span class="kw-2">&amp;mut </span>Listener) {
+		listener.runtime_event(test_emit_runtime_event(TestRuntimeEvent::StepResult));
 	}
 
-	<span class="comment">// Call context</span>
+	<span class="comment">// Call context
 
-	<span class="comment">// Early exit on TransactionCost.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">call_early_exit_tx_cost</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	// Early exit on TransactionCost.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>call_early_exit_tx_cost() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Early exit somewhere between the first callstack event and stepping the bytecode.</span>
-	<span class="comment">// I.e. precompile call.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">call_early_exit_before_runtime</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Early exit somewhere between the first callstack event and stepping the bytecode.
+	// I.e. precompile call.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>call_early_exit_before_runtime() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Exit after Step without StepResult.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">call_step_without_step_result</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Exit after Step without StepResult.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>call_step_without_step_result() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Exit after StepResult.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">call_step_result</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Exit after StepResult.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>call_step_result() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Suicide.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">call_suicide</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_suicide_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">2</span>);
+	<span class="comment">// Suicide.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>call_suicide() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_suicide_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">2</span>);
 	}
 
-	<span class="comment">// Create context</span>
+	<span class="comment">// Create context
 
-	<span class="comment">// Early exit on TransactionCost.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_early_exit_tx_cost</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	// Early exit on TransactionCost.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>create_early_exit_tx_cost() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Early exit somewhere between the first callstack event and stepping the bytecode</span>
-	<span class="comment">// I.e. precompile call..</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_early_exit_before_runtime</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Early exit somewhere between the first callstack event and stepping the bytecode
+	// I.e. precompile call..
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>create_early_exit_before_runtime() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Exit after Step without StepResult.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_step_without_step_result</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Exit after Step without StepResult.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>create_step_without_step_result() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Exit after StepResult.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">create_step_result</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="ident">do_transact_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">1</span>);
+	<span class="comment">// Exit after StepResult.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>create_step_result() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		do_transact_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">1</span>);
 	}
 
-	<span class="comment">// Call Context Nested</span>
+	<span class="comment">// Call Context Nested
 
-	<span class="comment">// Nested call early exit before stepping.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">nested_call_early_exit_before_runtime</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="comment">// Main</span>
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// Nested</span>
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// Main exit</span>
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">2</span>);
+	// Nested call early exit before stepping.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>nested_call_early_exit_before_runtime() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		<span class="comment">// Main
+		</span>do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// Nested
+		</span>do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// Main exit
+		</span>do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">2</span>);
 	}
 
-	<span class="comment">// Nested exit before step result.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">nested_call_without_step_result</span>() {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="comment">// Main</span>
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// Nested</span>
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// Main exit</span>
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="number">2</span>);
+	<span class="comment">// Nested exit before step result.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>nested_call_without_step_result() {
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		<span class="comment">// Main
+		</span>do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// Nested
+		</span>do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// Main exit
+		</span>do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), <span class="number">2</span>);
 	}
 
-	<span class="comment">// Nested exit.</span>
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">nested_call_step_result</span>() {
-		<span class="kw">let</span> <span class="ident">depth</span> <span class="op">=</span> <span class="number">5</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="comment">// Main</span>
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// 5 nested calls</span>
-		<span class="kw">for</span> <span class="ident">d</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">depth</span> {
-			<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+	<span class="comment">// Nested exit.
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>nested_call_step_result() {
+		<span class="kw">let </span>depth = <span class="number">5</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		<span class="comment">// Main
+		</span>do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// 5 nested calls
+		</span><span class="kw">for </span>d <span class="kw">in </span><span class="number">0</span>..depth {
+			do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+			do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+			do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+			do_exit_event(<span class="kw-2">&amp;mut </span>listener);
 		}
-		<span class="comment">// Main exit</span>
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), <span class="ident">depth</span> <span class="op">+</span> <span class="number">1</span>);
+		<span class="comment">// Main exit
+		</span>do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), depth + <span class="number">1</span>);
 	}
 
-	<span class="comment">// Call + Create mixed subnesting.</span>
+	<span class="comment">// Call + Create mixed subnesting.
 
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">subnested_call_and_create_mixbag</span>() {
-		<span class="kw">let</span> <span class="ident">depth</span> <span class="op">=</span> <span class="number">5</span>;
-		<span class="kw">let</span> <span class="ident">subdepth</span> <span class="op">=</span> <span class="number">10</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">listener</span> <span class="op">=</span> <span class="ident">Listener::default</span>();
-		<span class="comment">// Main</span>
-		<span class="ident">do_transact_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_gasometer_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="comment">// 5 nested call/creates, each with 10 nested call/creates</span>
-		<span class="kw">for</span> <span class="ident">d</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">depth</span> {
-			<span class="kw">if</span> <span class="ident">d</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			} <span class="kw">else</span> {
-				<span class="ident">do_evm_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+	</span><span class="attribute">#[test]
+	</span><span class="kw">fn </span>subnested_call_and_create_mixbag() {
+		<span class="kw">let </span>depth = <span class="number">5</span>;
+		<span class="kw">let </span>subdepth = <span class="number">10</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>listener = Listener::default();
+		<span class="comment">// Main
+		</span>do_transact_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_gasometer_event(<span class="kw-2">&amp;mut </span>listener);
+		do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+		do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+		<span class="comment">// 5 nested call/creates, each with 10 nested call/creates
+		</span><span class="kw">for </span>d <span class="kw">in </span><span class="number">0</span>..depth {
+			<span class="kw">if </span>d % <span class="number">2 </span>== <span class="number">0 </span>{
+				do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+			} <span class="kw">else </span>{
+				do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
 			}
-			<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-			<span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">subdepth</span> {
-				<span class="comment">// Some mixed call/create and early exits.</span>
-				<span class="kw">if</span> <span class="ident">s</span> <span class="op">%</span> <span class="number">2</span> <span class="op">==</span> <span class="number">0</span> {
-					<span class="ident">do_evm_call_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-				} <span class="kw">else</span> {
-					<span class="ident">do_evm_create_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+			do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+			do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
+			<span class="kw">for </span>s <span class="kw">in </span><span class="number">0</span>..subdepth {
+				<span class="comment">// Some mixed call/create and early exits.
+				</span><span class="kw">if </span>s % <span class="number">2 </span>== <span class="number">0 </span>{
+					do_evm_call_event(<span class="kw-2">&amp;mut </span>listener);
+				} <span class="kw">else </span>{
+					do_evm_create_event(<span class="kw-2">&amp;mut </span>listener);
 				}
-				<span class="kw">if</span> <span class="ident">s</span> <span class="op">%</span> <span class="number">3</span> <span class="op">==</span> <span class="number">0</span> {
-					<span class="ident">do_runtime_step_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-					<span class="ident">do_runtime_step_result_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+				<span class="kw">if </span>s % <span class="number">3 </span>== <span class="number">0 </span>{
+					do_runtime_step_event(<span class="kw-2">&amp;mut </span>listener);
+					do_runtime_step_result_event(<span class="kw-2">&amp;mut </span>listener);
 				}
-				<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+				do_exit_event(<span class="kw-2">&amp;mut </span>listener);
 			}
-			<span class="comment">// Nested exit</span>
-			<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
+			<span class="comment">// Nested exit
+			</span>do_exit_event(<span class="kw-2">&amp;mut </span>listener);
 		}
-		<span class="comment">// Main exit</span>
-		<span class="ident">do_exit_event</span>(<span class="kw-2">&amp;mut</span> <span class="ident">listener</span>);
-		<span class="ident">listener</span>.<span class="ident">finish_transaction</span>();
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>.<span class="ident">len</span>(), <span class="number">1</span>);
-		<span class="comment">// Each nested call contains 11 elements in the callstack (main + 10 subcalls).</span>
-		<span class="comment">// There are 5 main nested calls for a total of 56 elements in the callstack: 1 main + 55 nested.</span>
-		<span class="macro">assert_eq!</span>(<span class="ident">listener</span>.<span class="ident">entries</span>[<span class="number">0</span>].<span class="ident">len</span>(), (<span class="ident">depth</span> <span class="op">*</span> (<span class="ident">subdepth</span> <span class="op">+</span> <span class="number">1</span>)) <span class="op">+</span> <span class="number">1</span>);
+		<span class="comment">// Main exit
+		</span>do_exit_event(<span class="kw-2">&amp;mut </span>listener);
+		listener.finish_transaction();
+		<span class="macro">assert_eq!</span>(listener.entries.len(), <span class="number">1</span>);
+		<span class="comment">// Each nested call contains 11 elements in the callstack (main + 10 subcalls).
+		// There are 5 main nested calls for a total of 56 elements in the callstack: 1 main + 55 nested.
+		</span><span class="macro">assert_eq!</span>(listener.entries[<span class="number">0</span>].len(), (depth * (subdepth + <span class="number">1</span>)) + <span class="number">1</span>);
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_client_evm_tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_client_evm_tracing" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

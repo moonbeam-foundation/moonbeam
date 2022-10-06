@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/chain_spec/moonbeam.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>moonbeam.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_service/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/chain_spec/moonbeam.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>moonbeam.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_service/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -361,364 +356,363 @@
 <span id="356">356</span>
 <span id="357">357</span>
 <span id="358">358</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Moonbeam Chain Specifications and utilities for building them.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Learn more about Substrate chain specifications at</span>
-<span class="doccomment">//! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec</span>
+</span><span class="doccomment">//! Moonbeam Chain Specifications and utilities for building them.
+//!
+//! Learn more about Substrate chain specifications at
+//! https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">derive_bip44_pairs_from_mnemonic</span>, <span class="ident">get_account_id_from_pair</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::chain_spec</span>::{<span class="ident">generate_accounts</span>, <span class="ident">get_from_seed</span>, <span class="ident">Extensions</span>};
-<span class="kw">use</span> <span class="ident">cumulus_primitives_core::ParaId</span>;
-<span class="kw">use</span> <span class="ident">hex_literal::hex</span>;
-<span class="kw">use</span> <span class="ident">moonbase_runtime::EligibilityValue</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_runtime</span>::{
-	<span class="ident">currency::GLMR</span>, <span class="ident">currency::SUPPLY_FACTOR</span>, <span class="ident">AccountId</span>, <span class="ident">AuthorFilterConfig</span>, <span class="ident">AuthorMappingConfig</span>,
-	<span class="ident">Balance</span>, <span class="ident">BalancesConfig</span>, <span class="ident">CouncilCollectiveConfig</span>, <span class="ident">CrowdloanRewardsConfig</span>, <span class="ident">DemocracyConfig</span>,
-	<span class="ident">EVMConfig</span>, <span class="ident">EthereumChainIdConfig</span>, <span class="ident">EthereumConfig</span>, <span class="ident">GenesisAccount</span>, <span class="ident">GenesisConfig</span>, <span class="ident">InflationInfo</span>,
-	<span class="ident">MaintenanceModeConfig</span>, <span class="ident">ParachainInfoConfig</span>, <span class="ident">ParachainStakingConfig</span>, <span class="ident">PolkadotXcmConfig</span>,
-	<span class="ident">Precompiles</span>, <span class="ident">Range</span>, <span class="ident">SystemConfig</span>, <span class="ident">TechCommitteeCollectiveConfig</span>,
-	<span class="ident">TreasuryCouncilCollectiveConfig</span>, <span class="ident">HOURS</span>, <span class="ident">WASM_BINARY</span>,
+</span><span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span><span class="kw">crate</span>::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
+<span class="kw">use </span><span class="kw">crate</span>::chain_spec::{generate_accounts, get_from_seed, Extensions};
+<span class="kw">use </span>cumulus_primitives_core::ParaId;
+<span class="kw">use </span>hex_literal::hex;
+<span class="kw">use </span>moonbase_runtime::EligibilityValue;
+<span class="kw">use </span>moonbeam_runtime::{
+	currency::GLMR, currency::SUPPLY_FACTOR, AccountId, AuthorFilterConfig, AuthorMappingConfig,
+	Balance, BalancesConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig,
+	EVMConfig, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig,
+	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
-<span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
-<span class="kw">use</span> <span class="ident">sc_service::ChainType</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">use</span> <span class="ident">sp_core::ecdsa</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">Perbill</span>, <span class="ident">Percent</span>};
+<span class="kw">use </span>nimbus_primitives::NimbusId;
+<span class="kw">use </span>sc_service::ChainType;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">use </span>sp_core::ecdsa;
+<span class="kw">use </span>sp_runtime::{Perbill, Percent};
 
-<span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident">sc_service::GenericChainSpec</span><span class="op">&lt;</span><span class="ident">GenesisConfig</span>, <span class="ident">Extensions</span><span class="op">&gt;</span>;
+<span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
+</span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;GenesisConfig, Extensions&gt;;
 
-<span class="doccomment">/// Generate a chain spec for use with the development service.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">development_chain_spec</span>(<span class="ident">mnemonic</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="ident">num_accounts</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="ident">ChainSpec</span> {
-	<span class="comment">// Default mnemonic if none was provided</span>
-	<span class="kw">let</span> <span class="ident">parent_mnemonic</span> <span class="op">=</span> <span class="ident">mnemonic</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-		<span class="string">&quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk&quot;</span>.<span class="ident">to_string</span>()
+<span class="doccomment">/// Generate a chain spec for use with the development service.
+</span><span class="kw">pub fn </span>development_chain_spec(mnemonic: <span class="prelude-ty">Option</span>&lt;String&gt;, num_accounts: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {
+	<span class="comment">// Default mnemonic if none was provided
+	</span><span class="kw">let </span>parent_mnemonic = mnemonic.unwrap_or_else(|| {
+		<span class="string">&quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk&quot;</span>.to_string()
 	});
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="ident">generate_accounts</span>(<span class="ident">parent_mnemonic</span>, <span class="ident">num_accounts</span>.<span class="ident">unwrap_or</span>(<span class="number">10</span>));
-	<span class="comment">// We add Gerald here</span>
-	<span class="ident">accounts</span>.<span class="ident">push</span>(<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(
-		<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;</span>
-	)));
-	<span class="ident">ChainSpec::from_genesis</span>(
+	<span class="kw">let </span><span class="kw-2">mut </span>accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(<span class="number">10</span>));
+	<span class="comment">// We add Gerald here
+	</span>accounts.push(AccountId::from(<span class="macro">hex!</span>(
+		<span class="string">&quot;6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b&quot;
+	</span>)));
+	ChainSpec::from_genesis(
 		<span class="string">&quot;Moonbeam Development Testnet&quot;</span>,
 		<span class="string">&quot;moonbeam_dev&quot;</span>,
-		<span class="ident">ChainType::Development</span>,
-		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Council members: Baltathar, Charleth and Dorothy</span>
-				<span class="macro">vec!</span>[<span class="ident">accounts</span>[<span class="number">1</span>], <span class="ident">accounts</span>[<span class="number">2</span>], <span class="ident">accounts</span>[<span class="number">3</span>]],
-				<span class="comment">// Tech comitee members: Alith and Baltathar</span>
-				<span class="macro">vec!</span>[<span class="ident">accounts</span>[<span class="number">0</span>], <span class="ident">accounts</span>[<span class="number">1</span>]],
-				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy</span>
-				<span class="macro">vec!</span>[<span class="ident">accounts</span>[<span class="number">1</span>], <span class="ident">accounts</span>[<span class="number">2</span>], <span class="ident">accounts</span>[<span class="number">3</span>]],
-				<span class="comment">// Collator Candidate: Alice -&gt; Alith</span>
-				<span class="macro">vec!</span>[(
-					<span class="ident">accounts</span>[<span class="number">0</span>],
-					<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-					<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
+		ChainType::Development,
+		<span class="kw">move </span>|| {
+			testnet_genesis(
+				<span class="comment">// Council members: Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
+				<span class="comment">// Tech comitee members: Alith and Baltathar
+				</span><span class="macro">vec!</span>[accounts[<span class="number">0</span>], accounts[<span class="number">1</span>]],
+				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[accounts[<span class="number">1</span>], accounts[<span class="number">2</span>], accounts[<span class="number">3</span>]],
+				<span class="comment">// Collator Candidate: Alice -&gt; Alith
+				</span><span class="macro">vec!</span>[(
+					accounts[<span class="number">0</span>],
+					get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
+					<span class="number">1_000 </span>* GLMR * SUPPLY_FACTOR,
 				)],
-				<span class="comment">// Delegations</span>
-				<span class="macro">vec!</span>[],
-				<span class="ident">accounts</span>.<span class="ident">clone</span>(),
-				<span class="number">1_500_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
-				<span class="ident">Default::default</span>(), <span class="comment">// para_id</span>
-				<span class="number">1281</span>,               <span class="comment">//ChainId</span>
-			)
+				<span class="comment">// Delegations
+				</span><span class="macro">vec!</span>[],
+				accounts.clone(),
+				<span class="number">1_500_000 </span>* GLMR * SUPPLY_FACTOR,
+				Default::default(), <span class="comment">// para_id
+				</span><span class="number">1281</span>,               <span class="comment">//ChainId
+			</span>)
 		},
-		<span class="comment">// Bootnodes</span>
-		<span class="macro">vec!</span>[],
-		<span class="comment">// Telemetry</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Protocol ID</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Fork ID</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Properties</span>
-		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json::from_str</span>(
+		<span class="comment">// Bootnodes
+		</span><span class="macro">vec!</span>[],
+		<span class="comment">// Telemetry
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Protocol ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Fork ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Properties
+		</span><span class="prelude-val">Some</span>(
+			serde_json::from_str(
 				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;, \&quot;SS58Prefix\&quot;: 1284}&quot;</span>,
 			)
-			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
-		<span class="comment">// Extensions</span>
-		<span class="ident">Extensions</span> {
-			<span class="ident">relay_chain</span>: <span class="string">&quot;dev-service&quot;</span>.<span class="ident">into</span>(),
-			<span class="ident">para_id</span>: <span class="ident">Default::default</span>(),
+		<span class="comment">// Extensions
+		</span>Extensions {
+			relay_chain: <span class="string">&quot;dev-service&quot;</span>.into(),
+			para_id: Default::default(),
 		},
 	)
 }
 
-<span class="doccomment">/// Generate a default spec for the parachain service. Use this as a starting point when launching</span>
-<span class="doccomment">/// a custom chain.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_chain_spec</span>(<span class="ident">para_id</span>: <span class="ident">ParaId</span>) -&gt; <span class="ident">ChainSpec</span> {
-	<span class="ident">ChainSpec::from_genesis</span>(
-		<span class="comment">// TODO Apps depends on this string to determine whether the chain is an ethereum compat</span>
-		<span class="comment">// or not. We should decide the proper strings, and update Apps accordingly.</span>
-		<span class="comment">// Or maybe Apps can be smart enough to say if the string contains &quot;moonbeam&quot; at all...</span>
-		<span class="string">&quot;Moonbeam Local Testnet&quot;</span>,
+<span class="doccomment">/// Generate a default spec for the parachain service. Use this as a starting point when launching
+/// a custom chain.
+</span><span class="kw">pub fn </span>get_chain_spec(para_id: ParaId) -&gt; ChainSpec {
+	ChainSpec::from_genesis(
+		<span class="comment">// TODO Apps depends on this string to determine whether the chain is an ethereum compat
+		// or not. We should decide the proper strings, and update Apps accordingly.
+		// Or maybe Apps can be smart enough to say if the string contains &quot;moonbeam&quot; at all...
+		</span><span class="string">&quot;Moonbeam Local Testnet&quot;</span>,
 		<span class="string">&quot;moonbeam_local&quot;</span>,
-		<span class="ident">ChainType::Local</span>,
-		<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-			<span class="ident">testnet_genesis</span>(
-				<span class="comment">// Council members: Baltathar, Charleth and Dorothy</span>
-				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+		ChainType::Local,
+		<span class="kw">move </span>|| {
+			testnet_genesis(
+				<span class="comment">// Council members: Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
 				],
-				<span class="comment">// Tech comitee members: Alith and Baltathar</span>
-				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+				<span class="comment">// Tech comitee members: Alith and Baltathar
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
 				],
-				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy</span>
-				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+				<span class="comment">// Treasury Council members: Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
 				],
-				<span class="comment">// Collator Candidates</span>
-				<span class="macro">vec!</span>[
-					<span class="comment">// Alice -&gt; Alith</span>
-					(
-						<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Alice&quot;</span>),
-						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
+				<span class="comment">// Collator Candidates
+				</span><span class="macro">vec!</span>[
+					<span class="comment">// Alice -&gt; Alith
+					</span>(
+						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Alice&quot;</span>),
+						<span class="number">1_000 </span>* GLMR * SUPPLY_FACTOR,
 					),
-					<span class="comment">// Bob -&gt; Baltathar</span>
-					(
-						<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-						<span class="ident">get_from_seed</span>::<span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span>(<span class="string">&quot;Bob&quot;</span>),
-						<span class="number">1_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
+					<span class="comment">// Bob -&gt; Baltathar
+					</span>(
+						AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+						get_from_seed::&lt;NimbusId&gt;(<span class="string">&quot;Bob&quot;</span>),
+						<span class="number">1_000 </span>* GLMR * SUPPLY_FACTOR,
 					),
 				],
-				<span class="comment">// Delegations</span>
-				<span class="macro">vec!</span>[],
-				<span class="comment">// Endowed: Alith, Baltathar, Charleth and Dorothy</span>
-				<span class="macro">vec!</span>[
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
-					<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
+				<span class="comment">// Delegations
+				</span><span class="macro">vec!</span>[],
+				<span class="comment">// Endowed: Alith, Baltathar, Charleth and Dorothy
+				</span><span class="macro">vec!</span>[
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc&quot;</span>)),
+					AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;773539d4Ac0e786233D90A233654ccEE26a613D9&quot;</span>)),
 				],
-				<span class="number">1_500_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
-				<span class="ident">para_id</span>,
-				<span class="number">1280</span>, <span class="comment">//ChainId</span>
-			)
+				<span class="number">1_500_000 </span>* GLMR * SUPPLY_FACTOR,
+				para_id,
+				<span class="number">1280</span>, <span class="comment">//ChainId
+			</span>)
 		},
-		<span class="comment">// Bootnodes</span>
-		<span class="macro">vec!</span>[],
-		<span class="comment">// Telemetry</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Protocol ID</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Fork ID</span>
-		<span class="prelude-val">None</span>,
-		<span class="comment">// Properties</span>
-		<span class="prelude-val">Some</span>(
-			<span class="ident">serde_json::from_str</span>(
+		<span class="comment">// Bootnodes
+		</span><span class="macro">vec!</span>[],
+		<span class="comment">// Telemetry
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Protocol ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Fork ID
+		</span><span class="prelude-val">None</span>,
+		<span class="comment">// Properties
+		</span><span class="prelude-val">Some</span>(
+			serde_json::from_str(
 				<span class="string">&quot;{\&quot;tokenDecimals\&quot;: 18, \&quot;tokenSymbol\&quot;: \&quot;GLMR\&quot;, \&quot;SS58Prefix\&quot;: 1284}&quot;</span>,
 			)
-			.<span class="ident">expect</span>(<span class="string">&quot;Provided valid json map&quot;</span>),
+			.expect(<span class="string">&quot;Provided valid json map&quot;</span>),
 		),
-		<span class="comment">// Extensions</span>
-		<span class="ident">Extensions</span> {
-			<span class="ident">relay_chain</span>: <span class="string">&quot;polkadot-local&quot;</span>.<span class="ident">into</span>(),
-			<span class="ident">para_id</span>: <span class="ident">para_id</span>.<span class="ident">into</span>(),
+		<span class="comment">// Extensions
+		</span>Extensions {
+			relay_chain: <span class="string">&quot;polkadot-local&quot;</span>.into(),
+			para_id: para_id.into(),
 		},
 	)
 }
 
-<span class="kw">const</span> <span class="ident">COLLATOR_COMMISSION</span>: <span class="ident">Perbill</span> <span class="op">=</span> <span class="ident">Perbill::from_percent</span>(<span class="number">20</span>);
-<span class="kw">const</span> <span class="ident">PARACHAIN_BOND_RESERVE_PERCENT</span>: <span class="ident">Percent</span> <span class="op">=</span> <span class="ident">Percent::from_percent</span>(<span class="number">30</span>);
-<span class="kw">const</span> <span class="ident">BLOCKS_PER_ROUND</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">6</span> <span class="op">*</span> <span class="ident">HOURS</span>;
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">moonbeam_inflation_config</span>() -&gt; <span class="ident">InflationInfo</span><span class="op">&lt;</span><span class="ident">Balance</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">to_round_inflation</span>(<span class="ident">annual</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">Perbill</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">pallet_parachain_staking::inflation</span>::{
-			<span class="ident">perbill_annual_to_perbill_round</span>, <span class="ident">BLOCKS_PER_YEAR</span>,
+<span class="kw">const </span>COLLATOR_COMMISSION: Perbill = Perbill::from_percent(<span class="number">20</span>);
+<span class="kw">const </span>PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(<span class="number">30</span>);
+<span class="kw">const </span>BLOCKS_PER_ROUND: u32 = <span class="number">6 </span>* HOURS;
+<span class="kw">pub fn </span>moonbeam_inflation_config() -&gt; InflationInfo&lt;Balance&gt; {
+	<span class="kw">fn </span>to_round_inflation(annual: Range&lt;Perbill&gt;) -&gt; Range&lt;Perbill&gt; {
+		<span class="kw">use </span>pallet_parachain_staking::inflation::{
+			perbill_annual_to_perbill_round, BLOCKS_PER_YEAR,
 		};
-		<span class="ident">perbill_annual_to_perbill_round</span>(
-			<span class="ident">annual</span>,
-			<span class="comment">// rounds per year</span>
-			<span class="ident">BLOCKS_PER_YEAR</span> <span class="op">/</span> <span class="ident">BLOCKS_PER_ROUND</span>,
+		perbill_annual_to_perbill_round(
+			annual,
+			<span class="comment">// rounds per year
+			</span>BLOCKS_PER_YEAR / BLOCKS_PER_ROUND,
 		)
 	}
-	<span class="kw">let</span> <span class="ident">annual</span> <span class="op">=</span> <span class="ident">Range</span> {
-		<span class="ident">min</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">4</span>),
-		<span class="ident">ideal</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
-		<span class="ident">max</span>: <span class="ident">Perbill::from_percent</span>(<span class="number">5</span>),
+	<span class="kw">let </span>annual = Range {
+		min: Perbill::from_percent(<span class="number">4</span>),
+		ideal: Perbill::from_percent(<span class="number">5</span>),
+		max: Perbill::from_percent(<span class="number">5</span>),
 	};
-	<span class="ident">InflationInfo</span> {
-		<span class="comment">// staking expectations</span>
-		<span class="ident">expect</span>: <span class="ident">Range</span> {
-			<span class="ident">min</span>: <span class="number">100_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
-			<span class="ident">ideal</span>: <span class="number">200_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
-			<span class="ident">max</span>: <span class="number">500_000</span> <span class="op">*</span> <span class="ident">GLMR</span> <span class="op">*</span> <span class="ident">SUPPLY_FACTOR</span>,
+	InflationInfo {
+		<span class="comment">// staking expectations
+		</span>expect: Range {
+			min: <span class="number">100_000 </span>* GLMR * SUPPLY_FACTOR,
+			ideal: <span class="number">200_000 </span>* GLMR * SUPPLY_FACTOR,
+			max: <span class="number">500_000 </span>* GLMR * SUPPLY_FACTOR,
 		},
-		<span class="comment">// annual inflation</span>
-		<span class="ident">annual</span>,
-		<span class="ident">round</span>: <span class="ident">to_round_inflation</span>(<span class="ident">annual</span>),
+		<span class="comment">// annual inflation
+		</span>annual,
+		round: to_round_inflation(annual),
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">testnet_genesis</span>(
-	<span class="ident">council_members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">tech_comittee_members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">treasury_council_members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">NimbusId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
-	<span class="ident">delegations</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">AccountId</span>, <span class="ident">Balance</span>)<span class="op">&gt;</span>,
-	<span class="ident">endowed_accounts</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">crowdloan_fund_pot</span>: <span class="ident">Balance</span>,
-	<span class="ident">para_id</span>: <span class="ident">ParaId</span>,
-	<span class="ident">chain_id</span>: <span class="ident">u64</span>,
-) -&gt; <span class="ident">GenesisConfig</span> {
-	<span class="comment">// This is the simplest bytecode to revert without returning any data.</span>
-	<span class="comment">// We will pre-deploy it under all of our precompiles to ensure they can be called from</span>
-	<span class="comment">// within contracts.</span>
-	<span class="comment">// (PUSH1 0x00 PUSH1 0x00 REVERT)</span>
-	<span class="kw">let</span> <span class="ident">revert_bytecode</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
+<span class="kw">pub fn </span>testnet_genesis(
+	council_members: Vec&lt;AccountId&gt;,
+	tech_comittee_members: Vec&lt;AccountId&gt;,
+	treasury_council_members: Vec&lt;AccountId&gt;,
+	candidates: Vec&lt;(AccountId, NimbusId, Balance)&gt;,
+	delegations: Vec&lt;(AccountId, AccountId, Balance)&gt;,
+	endowed_accounts: Vec&lt;AccountId&gt;,
+	crowdloan_fund_pot: Balance,
+	para_id: ParaId,
+	chain_id: u64,
+) -&gt; GenesisConfig {
+	<span class="comment">// This is the simplest bytecode to revert without returning any data.
+	// We will pre-deploy it under all of our precompiles to ensure they can be called from
+	// within contracts.
+	// (PUSH1 0x00 PUSH1 0x00 REVERT)
+	</span><span class="kw">let </span>revert_bytecode = <span class="macro">vec!</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xFD</span>];
 
-	<span class="ident">GenesisConfig</span> {
-		<span class="ident">system</span>: <span class="ident">SystemConfig</span> {
-			<span class="ident">code</span>: <span class="ident">WASM_BINARY</span>
-				.<span class="ident">expect</span>(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>)
-				.<span class="ident">to_vec</span>(),
+	GenesisConfig {
+		system: SystemConfig {
+			code: WASM_BINARY
+				.expect(<span class="string">&quot;WASM binary was not build, please build it!&quot;</span>)
+				.to_vec(),
 		},
-		<span class="ident">balances</span>: <span class="ident">BalancesConfig</span> {
-			<span class="ident">balances</span>: <span class="ident">endowed_accounts</span>
-				.<span class="ident">iter</span>()
-				.<span class="ident">cloned</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">k</span><span class="op">|</span> (<span class="ident">k</span>, <span class="number">1</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">80</span>))
-				.<span class="ident">collect</span>(),
+		balances: BalancesConfig {
+			balances: endowed_accounts
+				.iter()
+				.cloned()
+				.map(|k| (k, <span class="number">1 </span>&lt;&lt; <span class="number">80</span>))
+				.collect(),
 		},
-		<span class="ident">crowdloan_rewards</span>: <span class="ident">CrowdloanRewardsConfig</span> {
-			<span class="ident">funded_amount</span>: <span class="ident">crowdloan_fund_pot</span>,
+		crowdloan_rewards: CrowdloanRewardsConfig {
+			funded_amount: crowdloan_fund_pot,
 		},
-		<span class="ident">parachain_info</span>: <span class="ident">ParachainInfoConfig</span> {
-			<span class="ident">parachain_id</span>: <span class="ident">para_id</span>,
+		parachain_info: ParachainInfoConfig {
+			parachain_id: para_id,
 		},
-		<span class="ident">ethereum_chain_id</span>: <span class="ident">EthereumChainIdConfig</span> { <span class="ident">chain_id</span> },
-		<span class="ident">evm</span>: <span class="ident">EVMConfig</span> {
-			<span class="comment">// We need _some_ code inserted at the precompile address so that</span>
-			<span class="comment">// the evm will actually call the address.</span>
-			<span class="ident">accounts</span>: <span class="ident">Precompiles::used_addresses</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">addr</span><span class="op">|</span> {
+		ethereum_chain_id: EthereumChainIdConfig { chain_id },
+		evm: EVMConfig {
+			<span class="comment">// We need _some_ code inserted at the precompile address so that
+			// the evm will actually call the address.
+			</span>accounts: Precompiles::used_addresses()
+				.map(|addr| {
 					(
-						<span class="ident">addr</span>.<span class="ident">into</span>(),
-						<span class="ident">GenesisAccount</span> {
-							<span class="ident">nonce</span>: <span class="ident">Default::default</span>(),
-							<span class="ident">balance</span>: <span class="ident">Default::default</span>(),
-							<span class="ident">storage</span>: <span class="ident">Default::default</span>(),
-							<span class="ident">code</span>: <span class="ident">revert_bytecode</span>.<span class="ident">clone</span>(),
+						addr.into(),
+						GenesisAccount {
+							nonce: Default::default(),
+							balance: Default::default(),
+							storage: Default::default(),
+							code: revert_bytecode.clone(),
 						},
 					)
 				})
-				.<span class="ident">collect</span>(),
+				.collect(),
 		},
-		<span class="ident">ethereum</span>: <span class="ident">EthereumConfig</span> {},
-		<span class="ident">base_fee</span>: <span class="ident">Default::default</span>(),
-		<span class="ident">democracy</span>: <span class="ident">DemocracyConfig::default</span>(),
-		<span class="ident">parachain_staking</span>: <span class="ident">ParachainStakingConfig</span> {
-			<span class="ident">candidates</span>: <span class="ident">candidates</span>
-				.<span class="ident">iter</span>()
-				.<span class="ident">cloned</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">account</span>, <span class="kw">_</span>, <span class="ident">bond</span>)<span class="op">|</span> (<span class="ident">account</span>, <span class="ident">bond</span>))
-				.<span class="ident">collect</span>(),
-			<span class="ident">delegations</span>,
-			<span class="ident">inflation_config</span>: <span class="ident">moonbeam_inflation_config</span>(),
-			<span class="ident">collator_commission</span>: <span class="ident">COLLATOR_COMMISSION</span>,
-			<span class="ident">parachain_bond_reserve_percent</span>: <span class="ident">PARACHAIN_BOND_RESERVE_PERCENT</span>,
-			<span class="ident">blocks_per_round</span>: <span class="ident">BLOCKS_PER_ROUND</span>,
+		ethereum: EthereumConfig {},
+		base_fee: Default::default(),
+		democracy: DemocracyConfig::default(),
+		parachain_staking: ParachainStakingConfig {
+			candidates: candidates
+				.iter()
+				.cloned()
+				.map(|(account, <span class="kw">_</span>, bond)| (account, bond))
+				.collect(),
+			delegations,
+			inflation_config: moonbeam_inflation_config(),
+			collator_commission: COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: BLOCKS_PER_ROUND,
 		},
-		<span class="ident">council_collective</span>: <span class="ident">CouncilCollectiveConfig</span> {
-			<span class="ident">phantom</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">members</span>: <span class="ident">council_members</span>,
+		council_collective: CouncilCollectiveConfig {
+			phantom: Default::default(),
+			members: council_members,
 		},
-		<span class="ident">tech_committee_collective</span>: <span class="ident">TechCommitteeCollectiveConfig</span> {
-			<span class="ident">phantom</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">members</span>: <span class="ident">tech_comittee_members</span>,
+		tech_committee_collective: TechCommitteeCollectiveConfig {
+			phantom: Default::default(),
+			members: tech_comittee_members,
 		},
-		<span class="ident">treasury_council_collective</span>: <span class="ident">TreasuryCouncilCollectiveConfig</span> {
-			<span class="ident">phantom</span>: <span class="ident">Default::default</span>(),
-			<span class="ident">members</span>: <span class="ident">treasury_council_members</span>,
+		treasury_council_collective: TreasuryCouncilCollectiveConfig {
+			phantom: Default::default(),
+			members: treasury_council_members,
 		},
-		<span class="ident">author_filter</span>: <span class="ident">AuthorFilterConfig</span> {
-			<span class="ident">eligible_count</span>: <span class="ident">EligibilityValue::new_unchecked</span>(<span class="number">50</span>),
+		author_filter: AuthorFilterConfig {
+			eligible_count: EligibilityValue::new_unchecked(<span class="number">50</span>),
 		},
-		<span class="ident">author_mapping</span>: <span class="ident">AuthorMappingConfig</span> {
-			<span class="ident">mappings</span>: <span class="ident">candidates</span>
-				.<span class="ident">iter</span>()
-				.<span class="ident">cloned</span>()
-				.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">account_id</span>, <span class="ident">author_id</span>, <span class="kw">_</span>)<span class="op">|</span> (<span class="ident">author_id</span>, <span class="ident">account_id</span>))
-				.<span class="ident">collect</span>(),
+		author_mapping: AuthorMappingConfig {
+			mappings: candidates
+				.iter()
+				.cloned()
+				.map(|(account_id, author_id, <span class="kw">_</span>)| (author_id, account_id))
+				.collect(),
 		},
-		<span class="ident">proxy_genesis_companion</span>: <span class="ident">Default::default</span>(),
-		<span class="ident">treasury</span>: <span class="ident">Default::default</span>(),
-		<span class="ident">migrations</span>: <span class="ident">Default::default</span>(),
-		<span class="ident">maintenance_mode</span>: <span class="ident">MaintenanceModeConfig</span> {
-			<span class="ident">start_in_maintenance_mode</span>: <span class="bool-val">false</span>,
+		proxy_genesis_companion: Default::default(),
+		treasury: Default::default(),
+		migrations: Default::default(),
+		maintenance_mode: MaintenanceModeConfig {
+			start_in_maintenance_mode: <span class="bool-val">false</span>,
 		},
-		<span class="comment">// This should initialize it to whatever we have set in the pallet</span>
-		<span class="ident">polkadot_xcm</span>: <span class="ident">PolkadotXcmConfig::default</span>(),
+		<span class="comment">// This should initialize it to whatever we have set in the pallet
+		</span>polkadot_xcm: PolkadotXcmConfig::default(),
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_derived_pairs_1</span>() {
-		<span class="kw">let</span> <span class="ident">mnemonic</span> <span class="op">=</span>
-			<span class="string">&quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk&quot;</span>.<span class="ident">to_string</span>();
-		<span class="kw">let</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="number">10</span>;
-		<span class="kw">let</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">mnemonic</span>, <span class="ident">accounts</span>);
-		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_derived_pairs_1() {
+		<span class="kw">let </span>mnemonic =
+			<span class="string">&quot;bottom drive obey lake curtain smoke basket hold race lonely fit walk&quot;</span>.to_string();
+		<span class="kw">let </span>accounts = <span class="number">10</span>;
+		<span class="kw">let </span>pairs = derive_bip44_pairs_from_mnemonic::&lt;ecdsa::Public&gt;(<span class="kw-2">&amp;</span>mnemonic, accounts);
+		<span class="kw">let </span>first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		<span class="kw">let </span>last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
-		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>));
-		<span class="kw">let</span> <span class="ident">expected_last_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423&quot;</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">first_account</span>, <span class="ident">expected_first_account</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">last_account</span>, <span class="ident">expected_last_account</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">pairs</span>.<span class="ident">len</span>(), <span class="number">10</span>);
+		<span class="kw">let </span>expected_first_account =
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac&quot;</span>));
+		<span class="kw">let </span>expected_last_account =
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;2898FE7a42Be376C8BC7AF536A940F7Fd5aDd423&quot;</span>));
+		<span class="macro">assert_eq!</span>(first_account, expected_first_account);
+		<span class="macro">assert_eq!</span>(last_account, expected_last_account);
+		<span class="macro">assert_eq!</span>(pairs.len(), <span class="number">10</span>);
 	}
-	<span class="attribute">#[<span class="ident">test</span>]</span>
-	<span class="kw">fn</span> <span class="ident">test_derived_pairs_2</span>() {
-		<span class="kw">let</span> <span class="ident">mnemonic</span> <span class="op">=</span>
-			<span class="string">&quot;slab nerve salon plastic filter inherit valve ozone crash thumb quality whale&quot;</span>
-				.<span class="ident">to_string</span>();
-		<span class="kw">let</span> <span class="ident">accounts</span> <span class="op">=</span> <span class="number">20</span>;
-		<span class="kw">let</span> <span class="ident">pairs</span> <span class="op">=</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">mnemonic</span>, <span class="ident">accounts</span>);
-		<span class="kw">let</span> <span class="ident">first_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">first</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
-		<span class="kw">let</span> <span class="ident">last_account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pairs</span>.<span class="ident">last</span>().<span class="ident">unwrap</span>().<span class="ident">clone</span>()).<span class="ident">unwrap</span>();
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_derived_pairs_2() {
+		<span class="kw">let </span>mnemonic =
+			<span class="string">&quot;slab nerve salon plastic filter inherit valve ozone crash thumb quality whale&quot;
+				</span>.to_string();
+		<span class="kw">let </span>accounts = <span class="number">20</span>;
+		<span class="kw">let </span>pairs = derive_bip44_pairs_from_mnemonic::&lt;ecdsa::Public&gt;(<span class="kw-2">&amp;</span>mnemonic, accounts);
+		<span class="kw">let </span>first_account = get_account_id_from_pair(pairs.first().unwrap().clone()).unwrap();
+		<span class="kw">let </span>last_account = get_account_id_from_pair(pairs.last().unwrap().clone()).unwrap();
 
-		<span class="kw">let</span> <span class="ident">expected_first_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;1e56ca71b596f2b784a27a2fdffef053dbdeff83&quot;</span>));
-		<span class="kw">let</span> <span class="ident">expected_last_account</span> <span class="op">=</span>
-			<span class="ident">AccountId::from</span>(<span class="macro">hex!</span>(<span class="string">&quot;4148202BF0c0Ad7697Cff87EbB83340C80c947f8&quot;</span>));
-		<span class="macro">assert_eq!</span>(<span class="ident">first_account</span>, <span class="ident">expected_first_account</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">last_account</span>, <span class="ident">expected_last_account</span>);
-		<span class="macro">assert_eq!</span>(<span class="ident">pairs</span>.<span class="ident">len</span>(), <span class="number">20</span>);
+		<span class="kw">let </span>expected_first_account =
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;1e56ca71b596f2b784a27a2fdffef053dbdeff83&quot;</span>));
+		<span class="kw">let </span>expected_last_account =
+			AccountId::from(<span class="macro">hex!</span>(<span class="string">&quot;4148202BF0c0Ad7697Cff87EbB83340C80c947f8&quot;</span>));
+		<span class="macro">assert_eq!</span>(first_account, expected_first_account);
+		<span class="macro">assert_eq!</span>(last_account, expected_last_account);
+		<span class="macro">assert_eq!</span>(pairs.len(), <span class="number">20</span>);
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

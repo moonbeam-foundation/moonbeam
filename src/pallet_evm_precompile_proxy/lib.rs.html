@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/proxy/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_proxy/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_proxy/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_proxy/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/proxy/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_proxy/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_proxy/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_proxy/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -195,198 +190,205 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">assert_matches</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![feature(assert_matches)]
 
-<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
-<span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">pallet_proxy::Call</span> <span class="kw">as</span> <span class="ident">ProxyCall</span>;
-<span class="kw">use</span> <span class="ident">pallet_proxy::Pallet</span> <span class="kw">as</span> <span class="ident">ProxyPallet</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::data::Address</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime::codec::Decode</span>;
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+</span><span class="kw">use </span>fp_evm::PrecompileHandle;
+<span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>pallet_proxy::Call <span class="kw">as </span>ProxyCall;
+<span class="kw">use </span>pallet_proxy::Pallet <span class="kw">as </span>ProxyPallet;
+<span class="kw">use </span>precompile_utils::data::Address;
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>sp_runtime::{codec::Decode, traits::StaticLookup};
+<span class="kw">use </span>sp_std::marker::PhantomData;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// A precompile to wrap the functionality from pallet-proxy.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ProxyPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A precompile to wrap the functionality from pallet-proxy.
+</span><span class="kw">pub struct </span>ProxyPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">ProxyPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_proxy::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">frame_system::Config</span>,
-	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_proxy::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>:
-		<span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_proxy::Config</span><span class="op">&gt;</span><span class="ident">::ProxyType</span>: <span class="ident">Decode</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span>:
-		<span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>:
-		<span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ProxyCall</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime&gt; ProxyPrecompile&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
+	&lt;&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::Call <span class="kw">as </span>Dispatchable&gt;::Origin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_proxy::Config&gt;::ProxyType: Decode,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Call:
+		Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Call <span class="kw">as </span>Dispatchable&gt;::Origin:
+		From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Call: From&lt;ProxyCall&lt;Runtime&gt;&gt;,
 {
-	<span class="attribute">#[<span class="ident">precompile::pre_check</span>]</span>
-	<span class="kw">fn</span> <span class="ident">pre_check</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">caller_code</span> <span class="op">=</span> <span class="ident">pallet_evm::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::account_codes</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into</span>
-		<span class="comment">// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit</span>
-		<span class="kw">if</span> <span class="op">!</span>(<span class="ident">caller_code</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">caller_code</span> <span class="op">==</span> <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
-			<span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Batch not callable by smart contracts&quot;</span>))
-		} <span class="kw">else</span> {
+	<span class="attribute">#[precompile::pre_check]
+	</span><span class="kw">fn </span>pre_check(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>caller_code = pallet_evm::Pallet::&lt;Runtime&gt;::account_codes(handle.context().caller);
+		<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into
+		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
+		</span><span class="kw">if </span>!(caller_code.is_empty() || <span class="kw-2">&amp;</span>caller_code == <span class="kw-2">&amp;</span>[<span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0x60</span>, <span class="number">0x00</span>, <span class="number">0xfd</span>]) {
+			<span class="prelude-val">Err</span>(revert(<span class="string">&quot;Batch not callable by smart contracts&quot;</span>))
+		} <span class="kw">else </span>{
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 
-	<span class="doccomment">/// Register a proxy account for the sender that is able to make calls on its behalf.</span>
-	<span class="doccomment">/// The dispatch origin for this call must be Signed.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Parameters:</span>
-	<span class="doccomment">/// * delegate: The account that the caller would like to make a proxy.</span>
-	<span class="doccomment">/// * proxy_type: The permissions allowed for this proxy account.</span>
-	<span class="doccomment">/// * delay: The announcement period required of the initial proxy. Will generally be zero.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;addProxy(address,uint8,uint32)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">add_proxy</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegate</span>: <span class="ident">Address</span>,
-		<span class="ident">proxy_type</span>: <span class="ident">u8</span>,
-		<span class="ident">delay</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">delegate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegate</span>.<span class="ident">into</span>());
-		<span class="kw">let</span> <span class="ident">proxy_type</span> <span class="op">=</span> <span class="ident">Runtime::ProxyType::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">proxy_type</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_slice</span>())
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-				<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;proxyType&quot;</span>)
+	<span class="doccomment">/// Register a proxy account for the sender that is able to make calls on its behalf.
+	/// The dispatch origin for this call must be Signed.
+	///
+	/// Parameters:
+	/// * delegate: The account that the caller would like to make a proxy.
+	/// * proxy_type: The permissions allowed for this proxy account.
+	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;addProxy(address,uint8,uint32)&quot;</span>)]
+	</span><span class="kw">fn </span>add_proxy(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegate: Address,
+		proxy_type: u8,
+		delay: u32,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		<span class="kw">let </span>proxy_type = Runtime::ProxyType::decode(<span class="kw-2">&amp;mut </span>proxy_type.to_le_bytes().as_slice())
+			.map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).in_field(<span class="string">&quot;proxyType&quot;</span>)
 			})<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">delay</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>delay = delay.into();
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		<span class="comment">// Disallow re-adding proxy via precompile to prevent re-entrancy.</span>
-		<span class="comment">// See: https://github.com/PureStake/sr-moonbeam/issues/30</span>
-		<span class="comment">// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and</span>
-		<span class="comment">// filtered via CallFilter</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">if</span> <span class="ident">ProxyPallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::proxies</span>(<span class="kw-2">&amp;</span><span class="ident">origin</span>)
-			.<span class="number">0</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">any</span>(<span class="op">|</span><span class="ident">pd</span><span class="op">|</span> <span class="ident">pd</span>.<span class="ident">delegate</span> <span class="op">==</span> <span class="ident">delegate</span>)
+		<span class="comment">// Disallow re-adding proxy via precompile to prevent re-entrancy.
+		// See: https://github.com/PureStake/sr-moonbeam/issues/30
+		// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` and
+		// filtered via CallFilter
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">if </span>ProxyPallet::&lt;Runtime&gt;::proxies(<span class="kw-2">&amp;</span>origin)
+			.<span class="number">0
+			</span>.iter()
+			.any(|pd| pd.delegate == delegate)
 		{
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Cannot add more than one proxy&quot;</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Cannot add more than one proxy&quot;</span>));
 		}
 
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">ProxyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::add_proxy</span> {
-			<span class="ident">delegate</span>,
-			<span class="ident">proxy_type</span>,
-			<span class="ident">delay</span>,
+		<span class="kw">let </span>delegate: &lt;Runtime::Lookup <span class="kw">as </span>StaticLookup&gt;::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
+		<span class="kw">let </span>call = ProxyCall::&lt;Runtime&gt;::add_proxy {
+			delegate,
+			proxy_type,
+			delay,
 		}
-		.<span class="ident">into</span>();
+		.into();
 
-		<span class="op">&lt;</span><span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Unregister a proxy account for the sender.</span>
-	<span class="doccomment">/// The dispatch origin for this call must be Signed.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Parameters:</span>
-	<span class="doccomment">/// * delegate: The account that the caller would like to remove as a proxy.</span>
-	<span class="doccomment">/// * proxy_type: The permissions currently enabled for the removed proxy account.</span>
-	<span class="doccomment">/// * delay: The announcement period required of the initial proxy. Will generally be zero.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;removeProxy(address,uint8,uint32)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">remove_proxy</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegate</span>: <span class="ident">Address</span>,
-		<span class="ident">proxy_type</span>: <span class="ident">u8</span>,
-		<span class="ident">delay</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">delegate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegate</span>.<span class="ident">into</span>());
-		<span class="kw">let</span> <span class="ident">proxy_type</span> <span class="op">=</span> <span class="ident">Runtime::ProxyType::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">proxy_type</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_slice</span>())
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-				<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;proxyType&quot;</span>)
+	<span class="doccomment">/// Unregister a proxy account for the sender.
+	/// The dispatch origin for this call must be Signed.
+	///
+	/// Parameters:
+	/// * delegate: The account that the caller would like to remove as a proxy.
+	/// * proxy_type: The permissions currently enabled for the removed proxy account.
+	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;removeProxy(address,uint8,uint32)&quot;</span>)]
+	</span><span class="kw">fn </span>remove_proxy(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegate: Address,
+		proxy_type: u8,
+		delay: u32,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		<span class="kw">let </span>proxy_type = Runtime::ProxyType::decode(<span class="kw-2">&amp;mut </span>proxy_type.to_le_bytes().as_slice())
+			.map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).in_field(<span class="string">&quot;proxyType&quot;</span>)
 			})<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">delay</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>delay = delay.into();
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">ProxyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_proxy</span> {
-			<span class="ident">delegate</span>,
-			<span class="ident">proxy_type</span>,
-			<span class="ident">delay</span>,
+		<span class="kw">let </span>delegate: &lt;Runtime::Lookup <span class="kw">as </span>StaticLookup&gt;::Source =
+			Runtime::Lookup::unlookup(delegate.clone());
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = ProxyCall::&lt;Runtime&gt;::remove_proxy {
+			delegate,
+			proxy_type,
+			delay,
 		}
-		.<span class="ident">into</span>();
+		.into();
 
-		<span class="op">&lt;</span><span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="doccomment">/// Unregister all proxy accounts for the sender.</span>
-	<span class="doccomment">/// The dispatch origin for this call must be Signed.</span>
-	<span class="doccomment">/// WARNING: This may be called on accounts created by anonymous, however if done, then the</span>
-	<span class="doccomment">/// unreserved fees will be inaccessible. All access to this account will be lost.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;removeProxies()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">remove_proxies</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">ProxyCall</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::remove_proxies</span> {}.<span class="ident">into</span>();
-
-		<span class="op">&lt;</span><span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Checks if the caller has an account proxied with a given proxy type</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Parameters:</span>
-	<span class="doccomment">/// * delegate: The account that the caller has maybe proxied</span>
-	<span class="doccomment">/// * proxyType: The permissions allowed for the proxy</span>
-	<span class="doccomment">/// * delay: The announcement period required of the initial proxy. Will generally be zero.</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;isProxy(address,address,uint8,uint32)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">is_proxy</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">real</span>: <span class="ident">Address</span>,
-		<span class="ident">delegate</span>: <span class="ident">Address</span>,
-		<span class="ident">proxy_type</span>: <span class="ident">u8</span>,
-		<span class="ident">delay</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">delegate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegate</span>.<span class="ident">into</span>());
-		<span class="kw">let</span> <span class="ident">proxy_type</span> <span class="op">=</span> <span class="ident">Runtime::ProxyType::decode</span>(<span class="kw-2">&amp;mut</span> <span class="ident">proxy_type</span>.<span class="ident">to_le_bytes</span>().<span class="ident">as_slice</span>())
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-				<span class="ident">RevertReason::custom</span>(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;proxyType&quot;</span>)
+	<span class="doccomment">/// Unregister all proxy accounts for the sender.
+	/// The dispatch origin for this call must be Signed.
+	/// WARNING: This may be called on accounts created by anonymous, however if done, then the
+	/// unreserved fees will be inaccessible. All access to this account will be lost.
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;removeProxies()&quot;</span>)]
+	</span><span class="kw">fn </span>remove_proxies(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = ProxyCall::&lt;Runtime&gt;::remove_proxies {}.into();
+
+		&lt;RuntimeHelper&lt;Runtime&gt;&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="doccomment">/// Checks if the caller has an account proxied with a given proxy type
+	///
+	/// Parameters:
+	/// * delegate: The account that the caller has maybe proxied
+	/// * proxyType: The permissions allowed for the proxy
+	/// * delay: The announcement period required of the initial proxy. Will generally be zero.
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;isProxy(address,address,uint8,uint32)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>is_proxy(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		real: Address,
+		delegate: Address,
+		proxy_type: u8,
+		delay: u32,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>delegate = Runtime::AddressMapping::into_account_id(delegate.into());
+		<span class="kw">let </span>proxy_type = Runtime::ProxyType::decode(<span class="kw-2">&amp;mut </span>proxy_type.to_le_bytes().as_slice())
+			.map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">&quot;Failed decoding value to ProxyType&quot;</span>).in_field(<span class="string">&quot;proxyType&quot;</span>)
 			})<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">delay</span> <span class="op">=</span> <span class="ident">delay</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>delay = delay.into();
 
-		<span class="kw">let</span> <span class="ident">real</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">real</span>.<span class="ident">into</span>());
+		<span class="kw">let </span>real = Runtime::AddressMapping::into_account_id(real.into());
 
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">is_proxy</span> <span class="op">=</span> <span class="ident">ProxyPallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::proxies</span>(<span class="ident">real</span>)
-			.<span class="number">0</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">any</span>(<span class="op">|</span><span class="ident">pd</span><span class="op">|</span> <span class="ident">pd</span>.<span class="ident">delegate</span> <span class="op">==</span> <span class="ident">delegate</span> <span class="op">&amp;&amp;</span> <span class="ident">pd</span>.<span class="ident">proxy_type</span> <span class="op">==</span> <span class="ident">proxy_type</span> <span class="op">&amp;&amp;</span> <span class="ident">pd</span>.<span class="ident">delay</span> <span class="op">==</span> <span class="ident">delay</span>);
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>is_proxy = ProxyPallet::&lt;Runtime&gt;::proxies(real)
+			.<span class="number">0
+			</span>.iter()
+			.any(|pd| pd.delegate == delegate &amp;&amp; pd.proxy_type == proxy_type &amp;&amp; pd.delay == delay);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">is_proxy</span>)
+		<span class="prelude-val">Ok</span>(is_proxy)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_proxy" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_proxy" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

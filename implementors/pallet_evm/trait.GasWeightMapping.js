@@ -1,5 +1,5 @@
-(function() {var implementors = {};
-implementors["moonbase_runtime"] = [{"text":"impl GasWeightMapping for <a class=\"struct\" href=\"moonbase_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbase_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>","synthetic":false,"types":["moonbase_runtime::MoonbeamGasWeightMapping"]}];
-implementors["moonbeam_runtime"] = [{"text":"impl GasWeightMapping for <a class=\"struct\" href=\"moonbeam_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbeam_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>","synthetic":false,"types":["moonbeam_runtime::MoonbeamGasWeightMapping"]}];
-implementors["moonriver_runtime"] = [{"text":"impl GasWeightMapping for <a class=\"struct\" href=\"moonriver_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonriver_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>","synthetic":false,"types":["moonriver_runtime::MoonbeamGasWeightMapping"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbase_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonbase_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbase_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]],
+"moonbeam_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonbeam_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbeam_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]],
+"moonriver_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonriver_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonriver_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

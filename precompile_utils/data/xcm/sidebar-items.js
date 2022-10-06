@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["JUNCTION_SIZE_LIMIT",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["JUNCTION_SIZE_LIMIT",""]]};

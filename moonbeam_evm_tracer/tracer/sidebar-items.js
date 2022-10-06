@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["EvmTracer",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["EvmTracer",""]]};

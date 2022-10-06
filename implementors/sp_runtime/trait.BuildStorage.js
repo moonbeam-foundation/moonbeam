@@ -1,3 +1,6 @@
-(function() {var implementors = {};
-implementors["moonbeam_service"] = [{"text":"impl BuildStorage for <a class=\"enum\" href=\"moonbeam_service/chain_spec/fake_spec/enum.FakeSpec.html\" title=\"enum moonbeam_service::chain_spec::fake_spec::FakeSpec\">FakeSpec</a>","synthetic":false,"types":["moonbeam_service::chain_spec::fake_spec::FakeSpec"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbase_runtime":[["impl <a class=\"trait\" href=\"moonbase_runtime/trait.BuildStorage.html\" title=\"trait moonbase_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"moonbase_runtime/struct.GenesisConfig.html\" title=\"struct moonbase_runtime::GenesisConfig\">GenesisConfig</a>"]],
+"moonbeam_runtime":[["impl <a class=\"trait\" href=\"moonbeam_runtime/trait.BuildStorage.html\" title=\"trait moonbeam_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"moonbeam_runtime/struct.GenesisConfig.html\" title=\"struct moonbeam_runtime::GenesisConfig\">GenesisConfig</a>"]],
+"moonbeam_service":[["impl BuildStorage for <a class=\"enum\" href=\"moonbeam_service/chain_spec/fake_spec/enum.FakeSpec.html\" title=\"enum moonbeam_service::chain_spec::fake_spec::FakeSpec\">FakeSpec</a>"]],
+"moonriver_runtime":[["impl <a class=\"trait\" href=\"moonriver_runtime/trait.BuildStorage.html\" title=\"trait moonriver_runtime::BuildStorage\">BuildStorage</a> for <a class=\"struct\" href=\"moonriver_runtime/struct.GenesisConfig.html\" title=\"struct moonriver_runtime::GenesisConfig\">GenesisConfig</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/migrations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migrations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/migrations.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>migrations.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -180,183 +175,192 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">BalanceOf</span>, <span class="ident">Config</span>, <span class="ident">Event</span>, <span class="ident">MappingWithDeposit</span>, <span class="ident">NimbusLookup</span>, <span class="ident">Pallet</span>, <span class="ident">RegistrationInfo</span>};
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">pallet_prelude::PhantomData</span>,
-	<span class="ident">traits</span>::{<span class="ident">Get</span>, <span class="ident">OnRuntimeUpgrade</span>, <span class="ident">ReservableCurrency</span>},
-	<span class="ident">weights::Weight</span>,
+</span><span class="kw">use crate</span>::{BalanceOf, Config, Event, MappingWithDeposit, NimbusLookup, Pallet, RegistrationInfo};
+<span class="kw">use </span>frame_support::{
+	pallet_prelude::PhantomData,
+	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
+	weights::Weight,
 };
-<span class="kw">use</span> <span class="ident">nimbus_primitives::NimbusId</span>;
-<span class="kw">use</span> <span class="ident">parity_scale_codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">scale_info::prelude::format</span>;
+<span class="kw">use </span>nimbus_primitives::NimbusId;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>scale_info::prelude::format;
 
-<span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,</span>
-<span class="doccomment">/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up</span>
-<span class="doccomment">/// via NimbusId.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddAccountIdToNimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">AddAccountIdToNimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;AddAccountIdToNimbusLookup&quot;</span>, <span class="string">&quot;running migration&quot;</span>);
+<span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
+/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
+/// via NimbusId.
+</span><span class="kw">pub struct </span>AddAccountIdToNimbusLookup&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>AddAccountIdToNimbusLookup&lt;T&gt; {
+	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="macro">log::info!</span>(target: <span class="string">&quot;AddAccountIdToNimbusLookup&quot;</span>, <span class="string">&quot;running migration&quot;</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_write_count</span> <span class="op">=</span> <span class="number">0u64</span>;
-		<span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::translate</span>(<span class="op">|</span><span class="ident">nimbus_id</span>, <span class="ident">registration_info</span>: <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">|</span> {
-			<span class="ident">read_write_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">2u64</span>;
-			<span class="kw">if</span> <span class="ident">NimbusLookup</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">registration_info</span>.<span class="ident">account</span>).<span class="ident">is_none</span>() {
-				<span class="op">&lt;</span><span class="ident">NimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">registration_info</span>.<span class="ident">account</span>, <span class="ident">nimbus_id</span>);
-				<span class="prelude-val">Some</span>(<span class="ident">registration_info</span>)
-			} <span class="kw">else</span> {
-				<span class="comment">// revoke the additional association and return the funds</span>
-				<span class="ident">T::DepositCurrency::unreserve</span>(
-					<span class="kw-2">&amp;</span><span class="ident">registration_info</span>.<span class="ident">account</span>,
-					<span class="ident">registration_info</span>.<span class="ident">deposit</span>,
+		<span class="kw">let </span><span class="kw-2">mut </span>read_write_count = <span class="number">0u64</span>;
+		&lt;MappingWithDeposit&lt;T&gt;&gt;::translate(|nimbus_id, registration_info: RegistrationInfo&lt;T&gt;| {
+			read_write_count += <span class="number">2u64</span>;
+			<span class="kw">if </span>NimbusLookup::&lt;T&gt;::get(<span class="kw-2">&amp;</span>registration_info.account).is_none() {
+				&lt;NimbusLookup&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>registration_info.account, nimbus_id);
+				<span class="prelude-val">Some</span>(registration_info)
+			} <span class="kw">else </span>{
+				<span class="comment">// revoke the additional association and return the funds
+				</span>T::DepositCurrency::unreserve(
+					<span class="kw-2">&amp;</span>registration_info.account,
+					registration_info.deposit,
 				);
 
-				<span class="op">&lt;</span><span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::deposit_event</span>(<span class="ident">Event::KeysRemoved</span> {
-					<span class="ident">nimbus_id</span>,
-					<span class="ident">account_id</span>: <span class="ident">registration_info</span>.<span class="ident">account</span>,
-					<span class="ident">keys</span>: <span class="ident">registration_info</span>.<span class="ident">keys</span>,
+				&lt;Pallet&lt;T&gt;&gt;::deposit_event(Event::KeysRemoved {
+					nimbus_id,
+					account_id: registration_info.account,
+					keys: registration_info.keys,
 				});
-				<span class="prelude-val">None</span>
-			}
+				<span class="prelude-val">None
+			</span>}
 		});
-		<span class="comment">// return weight</span>
-		<span class="ident">read_write_count</span>.<span class="ident">saturating_mul</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">read</span> <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>)
-	}
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-		<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+		<span class="comment">// return weight
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">nimbus_set</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">NimbusId</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-		<span class="kw">for</span> (<span class="ident">nimbus_id</span>, <span class="ident">info</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">nimbus_set</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">nimbus_id</span>) {
-				<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
-					<span class="ident">info</span>.<span class="ident">account</span>,
-					<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, <span class="ident">nimbus_id</span>)[..],
+		</span>T::DbWeight::get()
+			.reads(read_write_count)
+			.saturating_add(T::DbWeight::get().writes(read_write_count))
+	}
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		<span class="kw">use </span>sp_std::vec::Vec;
+
+		<span class="kw">let </span><span class="kw-2">mut </span>nimbus_set: Vec&lt;NimbusId&gt; = Vec::new();
+		<span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
+			<span class="kw">if </span>!nimbus_set.contains(<span class="kw-2">&amp;</span>nimbus_id) {
+				<span class="self">Self</span>::set_temp_storage(
+					info.account,
+					<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..],
 				);
-				<span class="ident">nimbus_set</span>.<span class="ident">push</span>(<span class="ident">nimbus_id</span>);
+				nimbus_set.push(nimbus_id);
 			}
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-		<span class="kw">for</span> (<span class="ident">nimbus_id</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="kw">let</span> <span class="ident">old_account</span>: <span class="ident">T::AccountId</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, <span class="ident">nimbus_id</span>)[..])
-					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">maybe_account_of_nimbus</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">NimbusLookup</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">old_account</span>);
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		<span class="kw">for </span>(nimbus_id, <span class="kw">_</span>) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
+			<span class="kw">let </span>old_account: T::AccountId =
+				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..])
+					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>maybe_account_of_nimbus = &lt;NimbusLookup&lt;T&gt;&gt;::get(old_account);
 			<span class="macro">assert_eq!</span>(
-				<span class="prelude-val">Some</span>(<span class="ident">nimbus_id</span>),
-				<span class="ident">maybe_account_of_nimbus</span>,
-				<span class="string">&quot;New NimbusLookup dne expected NimbusID&quot;</span>
-			);
+				<span class="prelude-val">Some</span>(nimbus_id),
+				maybe_account_of_nimbus,
+				<span class="string">&quot;New NimbusLookup dne expected NimbusID&quot;
+			</span>);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 
-<span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,</span>
-<span class="doccomment">/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up</span>
-<span class="doccomment">/// via NimbusId.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AddKeysToRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">scale_info::TypeInfo</span>)]</span>
-<span class="kw">struct</span> <span class="ident">OldRegistrationInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span>, <span class="ident">Balance</span><span class="op">&gt;</span> {
-	<span class="ident">account</span>: <span class="ident">AccountId</span>,
-	<span class="ident">deposit</span>: <span class="ident">Balance</span>,
+<span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
+/// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
+/// via NimbusId.
+</span><span class="kw">pub struct </span>AddKeysToRegistrationInfo&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="attribute">#[derive(Encode, Decode, PartialEq, Eq, Debug, scale_info::TypeInfo)]
+</span><span class="kw">struct </span>OldRegistrationInfo&lt;AccountId, Balance&gt; {
+	account: AccountId,
+	deposit: Balance,
 }
-<span class="kw">fn</span> <span class="ident">migrate_registration_info</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span>(
-	<span class="ident">nimbus_id</span>: <span class="ident">NimbusId</span>,
-	<span class="ident">old</span>: <span class="ident">OldRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-) -&gt; <span class="ident">RegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="ident">RegistrationInfo</span> {
-		<span class="ident">account</span>: <span class="ident">old</span>.<span class="ident">account</span>,
-		<span class="ident">deposit</span>: <span class="ident">old</span>.<span class="ident">deposit</span>,
-		<span class="ident">keys</span>: <span class="ident">nimbus_id</span>.<span class="ident">into</span>(),
+<span class="kw">fn </span>migrate_registration_info&lt;T: Config&gt;(
+	nimbus_id: NimbusId,
+	old: OldRegistrationInfo&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
+) -&gt; RegistrationInfo&lt;T&gt; {
+	RegistrationInfo {
+		account: old.account,
+		deposit: old.deposit,
+		keys: nimbus_id.into(),
 	}
 }
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">AddKeysToRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="macro">log::info!</span>(<span class="ident">target</span>: <span class="string">&quot;AddKeysToRegistrationInfo&quot;</span>, <span class="string">&quot;running migration&quot;</span>);
+<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>AddKeysToRegistrationInfo&lt;T&gt; {
+	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="macro">log::info!</span>(target: <span class="string">&quot;AddKeysToRegistrationInfo&quot;</span>, <span class="string">&quot;running migration&quot;</span>);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">read_write_count</span> <span class="op">=</span> <span class="number">0u64</span>;
-		<span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::translate</span>(
-			<span class="op">|</span><span class="ident">nimbus_id</span>, <span class="ident">old_registration_info</span>: <span class="ident">OldRegistrationInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">|</span> {
-				<span class="ident">read_write_count</span> <span class="op">=</span> <span class="ident">read_write_count</span>.<span class="ident">saturating_add</span>(<span class="number">1u64</span>);
-				<span class="prelude-val">Some</span>(<span class="ident">migrate_registration_info</span>(<span class="ident">nimbus_id</span>, <span class="ident">old_registration_info</span>))
+		<span class="kw">let </span><span class="kw-2">mut </span>read_write_count = <span class="number">0u64</span>;
+		&lt;MappingWithDeposit&lt;T&gt;&gt;::translate(
+			|nimbus_id, old_registration_info: OldRegistrationInfo&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| {
+				read_write_count = read_write_count.saturating_add(<span class="number">1u64</span>);
+				<span class="prelude-val">Some</span>(migrate_registration_info(nimbus_id, old_registration_info))
 			},
 		);
-		<span class="comment">// return weight</span>
-		<span class="ident">read_write_count</span>.<span class="ident">saturating_mul</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">read</span> <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>)
+		<span class="comment">// return weight
+		</span>T::DbWeight::get()
+			.reads(read_write_count)
+			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-		<span class="comment">// get total deposited and account for all nimbus_keys</span>
-		<span class="kw">for</span> (<span class="ident">nimbus_id</span>, <span class="ident">info</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
-				<span class="ident">info</span>.<span class="ident">account</span>,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, <span class="ident">nimbus_id</span>)[..],
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		<span class="comment">// get total deposited and account for all nimbus_keys
+		</span><span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
+			<span class="self">Self</span>::set_temp_storage(
+				info.account,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..],
 			);
-			<span class="ident"><span class="self">Self</span>::set_temp_storage</span>(
-				<span class="ident">info</span>.<span class="ident">deposit</span>,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, <span class="ident">nimbus_id</span>)[..],
+			<span class="self">Self</span>::set_temp_storage(
+				info.deposit,
+				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, nimbus_id)[..],
 			);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-		<span class="comment">// ensure new deposit and account are the same as the old ones</span>
-		<span class="comment">// ensure new keys are equal to nimbus_id</span>
-		<span class="kw">for</span> (<span class="ident">nimbus_id</span>, <span class="ident">info</span>) <span class="kw">in</span> <span class="op">&lt;</span><span class="ident">MappingWithDeposit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::iter</span>() {
-			<span class="kw">let</span> <span class="ident">old_account</span>: <span class="ident">T::AccountId</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, <span class="ident">nimbus_id</span>)[..])
-					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">new_account</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">account</span>;
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		<span class="comment">// ensure new deposit and account are the same as the old ones
+		// ensure new keys are equal to nimbus_id
+		</span><span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
+			<span class="kw">let </span>old_account: T::AccountId =
+				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..])
+					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>new_account = info.account;
 			<span class="macro">assert_eq!</span>(
-				<span class="ident">old_account</span>, <span class="ident">new_account</span>,
+				old_account, new_account,
 				<span class="string">&quot;Old Account {:?} dne New Account {:?} for NimbusID {:?}&quot;</span>,
-				<span class="ident">old_account</span>, <span class="ident">new_account</span>, <span class="ident">nimbus_id</span>
+				old_account, new_account, nimbus_id
 			);
-			<span class="kw">let</span> <span class="ident">old_deposit</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span>
-				<span class="ident"><span class="self">Self</span>::get_temp_storage</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, <span class="ident">nimbus_id</span>)[..])
-					.<span class="ident">expect</span>(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let</span> <span class="ident">new_deposit</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">deposit</span>;
+			<span class="kw">let </span>old_deposit: BalanceOf&lt;T&gt; =
+				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, nimbus_id)[..])
+					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>new_deposit = info.deposit;
 			<span class="macro">assert_eq!</span>(
-				<span class="ident">old_deposit</span>, <span class="ident">new_deposit</span>,
+				old_deposit, new_deposit,
 				<span class="string">&quot;Old Deposit {:?} dne New Deposit {:?} for NimbusID {:?}&quot;</span>,
-				<span class="ident">old_deposit</span>, <span class="ident">new_deposit</span>, <span class="ident">nimbus_id</span>
+				old_deposit, new_deposit, nimbus_id
 			);
-			<span class="kw">let</span> <span class="ident">nimbus_id_as_keys</span>: <span class="ident">T::Keys</span> <span class="op">=</span> <span class="ident">nimbus_id</span>.<span class="ident">into</span>();
+			<span class="kw">let </span>nimbus_id_as_keys: T::Keys = nimbus_id.into();
 			<span class="macro">assert_eq!</span>(
-				<span class="ident">nimbus_id_as_keys</span>, <span class="ident">info</span>.<span class="ident">keys</span>,
+				nimbus_id_as_keys, info.keys,
 				<span class="string">&quot;Old NimbusID {:?} dne New Keys {:?}&quot;</span>,
-				<span class="ident">nimbus_id_as_keys</span>, <span class="ident">info</span>.<span class="ident">keys</span>,
+				nimbus_id_as_keys, info.keys,
 			);
 		}
 		<span class="prelude-val">Ok</span>(())
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

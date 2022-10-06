@@ -1,5 +1,5 @@
-(function() {var implementors = {};
-implementors["moonbase_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"moonbase_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonbase_runtime::opaque::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["moonbase_runtime::opaque::SessionKeys"]}];
-implementors["moonbeam_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"moonbeam_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonbeam_runtime::opaque::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["moonbeam_runtime::opaque::SessionKeys"]}];
-implementors["moonriver_runtime"] = [{"text":"impl OpaqueKeys for <a class=\"struct\" href=\"moonriver_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonriver_runtime::opaque::SessionKeys\">SessionKeys</a>","synthetic":false,"types":["moonriver_runtime::opaque::SessionKeys"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
+(function() {var implementors = {
+"moonbase_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"moonbase_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonbase_runtime::opaque::SessionKeys\">SessionKeys</a>"]],
+"moonbeam_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"moonbeam_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonbeam_runtime::opaque::SessionKeys\">SessionKeys</a>"]],
+"moonriver_runtime":[["impl OpaqueKeys for <a class=\"struct\" href=\"moonriver_runtime/opaque/struct.SessionKeys.html\" title=\"struct moonriver_runtime::opaque::SessionKeys\">SessionKeys</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

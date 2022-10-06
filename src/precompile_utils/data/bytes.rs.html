@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/data/bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/data/bytes.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>bytes.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -222,225 +217,224 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">type</span> <span class="ident">ConstU32Max</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="ident">u32::MAX</span> }<span class="op">&gt;</span>;
+<span class="kw">type </span>ConstU32Max = ConstU32&lt;{ u32::MAX }&gt;;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UnboundedBytes</span> <span class="op">=</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">BytesKind</span>, <span class="ident">ConstU32Max</span><span class="op">&gt;</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">BytesKind</span>, <span class="ident">S</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>UnboundedBytes = BoundedBytesString&lt;BytesKind, ConstU32Max&gt;;
+<span class="kw">pub type </span>BoundedBytes&lt;S&gt; = BoundedBytesString&lt;BytesKind, S&gt;;
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">UnboundedString</span> <span class="op">=</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">StringKind</span>, <span class="ident">ConstU32Max</span><span class="op">&gt;</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BoundedString</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">StringKind</span>, <span class="ident">S</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>UnboundedString = BoundedBytesString&lt;StringKind, ConstU32Max&gt;;
+<span class="kw">pub type </span>BoundedString&lt;S&gt; = BoundedBytesString&lt;StringKind, S&gt;;
 
-<span class="kw">trait</span> <span class="ident">Kind</span> {
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span>;
+<span class="kw">trait </span>Kind {
+	<span class="kw">fn </span>solidity_type() -&gt; String;
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BytesKind</span>;
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>BytesKind;
 
-<span class="kw">impl</span> <span class="ident">Kind</span> <span class="kw">for</span> <span class="ident">BytesKind</span> {
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
-		<span class="ident">String::from</span>(<span class="string">&quot;bytes&quot;</span>)
+<span class="kw">impl </span>Kind <span class="kw">for </span>BytesKind {
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		String::from(<span class="string">&quot;bytes&quot;</span>)
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StringKind</span>;
+<span class="attribute">#[derive(Clone, Debug, Eq, PartialEq)]
+</span><span class="kw">pub struct </span>StringKind;
 
-<span class="kw">impl</span> <span class="ident">Kind</span> <span class="kw">for</span> <span class="ident">StringKind</span> {
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
-		<span class="ident">String::from</span>(<span class="string">&quot;string&quot;</span>)
+<span class="kw">impl </span>Kind <span class="kw">for </span>StringKind {
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		String::from(<span class="string">&quot;string&quot;</span>)
 	}
 }
 
-<span class="doccomment">/// The `bytes/string` type of Solidity.</span>
-<span class="doccomment">/// It is different from `Vec&lt;u8&gt;` which will be serialized with padding for each `u8` element</span>
-<span class="doccomment">/// of the array, while `Bytes` is tightly packed.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">K</span>, <span class="ident">S</span>)<span class="op">&gt;</span>,
+<span class="doccomment">/// The `bytes/string` type of Solidity.
+/// It is different from `Vec&lt;u8&gt;` which will be serialized with padding for each `u8` element
+/// of the array, while `Bytes` is tightly packed.
+</span><span class="attribute">#[derive(Debug)]
+</span><span class="kw">pub struct </span>BoundedBytesString&lt;K, S&gt; {
+	data: Vec&lt;u8&gt;,
+	_phantom: PhantomData&lt;(K, S)&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Kind</span>, <span class="ident">S</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">clone</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K: Kind, S: Get&lt;u32&gt;&gt; Clone <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: <span class="self">self</span>.data.clone(),
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K1</span>, <span class="ident">S1</span>, <span class="ident">K2</span>, <span class="ident">S2</span><span class="op">&gt;</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K2</span>, <span class="ident">S2</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K1</span>, <span class="ident">S1</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K2</span>, <span class="ident">S2</span><span class="op">&gt;</span>) -&gt; <span class="ident">bool</span> {
-		<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">data</span>)
+<span class="kw">impl</span>&lt;K1, S1, K2, S2&gt; PartialEq&lt;BoundedBytesString&lt;K2, S2&gt;&gt; <span class="kw">for </span>BoundedBytesString&lt;K1, S1&gt; {
+	<span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span>BoundedBytesString&lt;K2, S2&gt;) -&gt; bool {
+		<span class="self">self</span>.data.eq(<span class="kw-2">&amp;</span>other.data)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {}
+<span class="kw">impl</span>&lt;K, S&gt; Eq <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>
+<span class="kw">impl</span>&lt;K, S: Get&lt;u32&gt;&gt; BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">pub fn </span>as_bytes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[u8] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.data
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">sp_std::str::Utf8Error</span><span class="op">&gt;</span> {
-		<span class="ident">sp_std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>)
+	<span class="kw">pub fn </span>as_str(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw-2">&amp;</span>str, sp_std::str::Utf8Error&gt; {
+		sp_std::str::from_utf8(<span class="kw-2">&amp;</span><span class="self">self</span>.data)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">Kind</span>, <span class="ident">S</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">EvmData</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">read</span>(<span class="ident">reader</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataReader</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_reader</span> <span class="op">=</span> <span class="ident">reader</span>.<span class="ident">read_pointer</span>()<span class="question-mark">?</span>;
+<span class="kw">impl</span>&lt;K: Kind, S: Get&lt;u32&gt;&gt; EvmData <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>read(reader: <span class="kw-2">&amp;mut </span>EvmDataReader) -&gt; MayRevert&lt;<span class="self">Self</span>&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>inner_reader = reader.read_pointer()<span class="question-mark">?</span>;
 
-		<span class="comment">// Read bytes/string size.</span>
-		<span class="kw">let</span> <span class="ident">array_size</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">inner_reader</span>
-			.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;length&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;length&quot;</span>))<span class="question-mark">?</span>;
+		<span class="comment">// Read bytes/string size.
+		</span><span class="kw">let </span>array_size: usize = inner_reader
+			.read::&lt;U256&gt;()
+			.map_err(|<span class="kw">_</span>| RevertReason::read_out_of_bounds(<span class="string">&quot;length&quot;</span>))<span class="question-mark">?
+			</span>.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;length&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">if</span> <span class="ident">array_size</span> <span class="op">&gt;</span> <span class="ident">S::get</span>() <span class="kw">as</span> <span class="ident">usize</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;length&quot;</span>).<span class="ident">into</span>());
+		<span class="kw">if </span>array_size &gt; S::get() <span class="kw">as </span>usize {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(RevertReason::value_is_too_large(<span class="string">&quot;length&quot;</span>).into());
 		}
 
-		<span class="comment">// Get valid range over the bytes data.</span>
-		<span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="ident">inner_reader</span>.<span class="ident">move_cursor</span>(<span class="ident">array_size</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Get valid range over the bytes data.
+		</span><span class="kw">let </span>range = inner_reader.move_cursor(array_size)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">inner_reader</span>
-			.<span class="ident">input</span>
-			.<span class="ident">get</span>(<span class="ident">range</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">RevertReason::read_out_of_bounds</span>(<span class="ident">K::solidity_type</span>()))<span class="question-mark">?</span>;
+		<span class="kw">let </span>data = inner_reader
+			.input
+			.get(range)
+			.ok_or_else(|| RevertReason::read_out_of_bounds(K::solidity_type()))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">data</span>.<span class="ident">to_owned</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+		<span class="kw">let </span>bytes = <span class="self">Self </span>{
+			data: data.to_owned(),
+			_phantom: PhantomData,
 		};
 
-		<span class="prelude-val">Ok</span>(<span class="ident">bytes</span>)
+		<span class="prelude-val">Ok</span>(bytes)
 	}
 
-	<span class="kw">fn</span> <span class="ident">write</span>(<span class="ident">writer</span>: <span class="kw-2">&amp;mut</span> <span class="ident">EvmDataWriter</span>, <span class="ident">value</span>: <span class="self">Self</span>) {
-		<span class="kw">let</span> <span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">len</span>();
+	<span class="kw">fn </span>write(writer: <span class="kw-2">&amp;mut </span>EvmDataWriter, value: <span class="self">Self</span>) {
+		<span class="kw">let </span>value: Vec&lt;<span class="kw">_</span>&gt; = value.into();
+		<span class="kw">let </span>length = value.len();
 
-		<span class="comment">// Pad the data.</span>
-		<span class="comment">// Leave it as is if a multiple of 32, otherwise pad to next</span>
-		<span class="comment">// multiple or 32.</span>
-		<span class="kw">let</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">length</span> <span class="op">/</span> <span class="number">32</span>;
-		<span class="kw">let</span> <span class="ident">padded_size</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">length</span> <span class="op">%</span> <span class="number">32</span> {
-			<span class="number">0</span> =&gt; <span class="ident">chunks</span> <span class="op">*</span> <span class="number">32</span>,
-			<span class="kw">_</span> =&gt; (<span class="ident">chunks</span> <span class="op">+</span> <span class="number">1</span>) <span class="op">*</span> <span class="number">32</span>,
+		<span class="comment">// Pad the data.
+		// Leave it as is if a multiple of 32, otherwise pad to next
+		// multiple or 32.
+		</span><span class="kw">let </span>chunks = length / <span class="number">32</span>;
+		<span class="kw">let </span>padded_size = <span class="kw">match </span>length % <span class="number">32 </span>{
+			<span class="number">0 </span>=&gt; chunks * <span class="number">32</span>,
+			<span class="kw">_ </span>=&gt; (chunks + <span class="number">1</span>) * <span class="number">32</span>,
 		};
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_vec</span>();
-		<span class="ident">value</span>.<span class="ident">resize</span>(<span class="ident">padded_size</span>, <span class="number">0</span>);
+		<span class="kw">let </span><span class="kw-2">mut </span>value = value.to_vec();
+		value.resize(padded_size, <span class="number">0</span>);
 
-		<span class="ident">writer</span>.<span class="ident">write_pointer</span>(
-			<span class="ident">EvmDataWriter::new</span>()
-				.<span class="ident">write</span>(<span class="ident">U256::from</span>(<span class="ident">length</span>))
-				.<span class="ident">write_raw_bytes</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)
-				.<span class="ident">build</span>(),
+		writer.write_pointer(
+			EvmDataWriter::new()
+				.write(U256::from(length))
+				.write_raw_bytes(<span class="kw-2">&amp;</span>value)
+				.build(),
 		);
 	}
 
-	<span class="kw">fn</span> <span class="ident">has_static_size</span>() -&gt; <span class="ident">bool</span> {
-		<span class="bool-val">false</span>
-	}
+	<span class="kw">fn </span>has_static_size() -&gt; bool {
+		<span class="bool-val">false
+	</span>}
 
-	<span class="kw">fn</span> <span class="ident">solidity_type</span>() -&gt; <span class="ident">String</span> {
-		<span class="ident">K::solidity_type</span>()
-	}
-}
-
-<span class="comment">// BytesString &lt;=&gt; Vec/&amp;[u8]</span>
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="ident">value</span>.<span class="ident">data</span>
+	<span class="kw">fn </span>solidity_type() -&gt; String {
+		K::solidity_type()
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>,
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="comment">// BytesString &lt;=&gt; Vec/&amp;[u8]
+
+</span><span class="kw">impl</span>&lt;K, S&gt; From&lt;BoundedBytesString&lt;K, S&gt;&gt; <span class="kw">for </span>Vec&lt;u8&gt; {
+	<span class="kw">fn </span>from(value: BoundedBytesString&lt;K, S&gt;) -&gt; <span class="self">Self </span>{
+		value.data
+	}
+}
+
+<span class="kw">impl</span>&lt;K, S&gt; From&lt;Vec&lt;u8&gt;&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: Vec&lt;u8&gt;) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value,
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K, S&gt; From&lt;<span class="kw-2">&amp;</span>[u8]&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value.to_vec(),
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">u8</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: [<span class="ident">u8</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K, S, <span class="kw">const </span>N: usize&gt; From&lt;[u8; N]&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: [u8; N]) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value.to_vec(),
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>.<span class="ident">to_vec</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K, S, <span class="kw">const </span>N: usize&gt; From&lt;<span class="kw-2">&amp;</span>[u8; N]&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>[u8; N]) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value.to_vec(),
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="comment">// BytesString &lt;=&gt; String/str</span>
+<span class="comment">// BytesString &lt;=&gt; String/str
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">String</span> {
-	<span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">alloc::string::FromUtf8Error</span>;
+</span><span class="kw">impl</span>&lt;K, S&gt; TryFrom&lt;BoundedBytesString&lt;K, S&gt;&gt; <span class="kw">for </span>String {
+	<span class="kw">type </span>Error = alloc::string::FromUtf8Error;
 
-	<span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">value</span>: <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-		<span class="ident">alloc::string::String::from_utf8</span>(<span class="ident">value</span>.<span class="ident">data</span>)
+	<span class="kw">fn </span>try_from(value: BoundedBytesString&lt;K, S&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, <span class="self">Self</span>::Error&gt; {
+		alloc::string::String::from_utf8(value.data)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>.<span class="ident">as_bytes</span>().<span class="ident">into</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K, S&gt; From&lt;<span class="kw-2">&amp;</span>str&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value.as_bytes().into(),
+			_phantom: PhantomData,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">BoundedBytesString</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">S</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">String</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">value</span>.<span class="ident">as_bytes</span>().<span class="ident">into</span>(),
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData</span>,
+<span class="kw">impl</span>&lt;K, S&gt; From&lt;String&gt; <span class="kw">for </span>BoundedBytesString&lt;K, S&gt; {
+	<span class="kw">fn </span>from(value: String) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: value.as_bytes().into(),
+			_phantom: PhantomData,
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

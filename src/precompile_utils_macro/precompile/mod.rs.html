@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -137,140 +132,139 @@
 <span id="132">132</span>
 <span id="133">133</span>
 <span id="134">134</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../../docs/precompile_macro.md&quot;</span>)]</span>
+</span><span class="attribute">#![doc = <span class="macro">include_str!</span>(<span class="string">&quot;../../docs/precompile_macro.md&quot;</span>)]
 
-<span class="kw">use</span> <span class="ident">proc_macro::TokenStream</span>;
-<span class="kw">use</span> <span class="ident">proc_macro2::Span</span>;
-<span class="kw">use</span> <span class="ident">quote</span>::{<span class="ident">format_ident</span>, <span class="ident">quote</span>, <span class="ident">quote_spanned</span>, <span class="ident">ToTokens</span>};
-<span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
-<span class="kw">use</span> <span class="ident">std::collections::BTreeMap</span>;
-<span class="kw">use</span> <span class="ident">syn</span>::{<span class="ident">parse_macro_input</span>, <span class="ident">spanned::Spanned</span>};
+</span><span class="kw">use </span>proc_macro::TokenStream;
+<span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>quote::{format_ident, quote, quote_spanned, ToTokens};
+<span class="kw">use </span>sha3::{Digest, Keccak256};
+<span class="kw">use </span>std::collections::BTreeMap;
+<span class="kw">use </span>syn::{parse_macro_input, spanned::Spanned};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">attr</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">expand</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">parse</span>;
+<span class="kw">pub mod </span>attr;
+<span class="kw">pub mod </span>expand;
+<span class="kw">pub mod </span>parse;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">main</span>(<span class="ident">_attr</span>: <span class="ident">TokenStream</span>, <span class="ident">item</span>: <span class="ident">TokenStream</span>) -&gt; <span class="ident">TokenStream</span> {
-	<span class="comment">// Macro must be used on `impl` block.</span>
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">impl_item</span> <span class="op">=</span> <span class="macro">parse_macro_input!</span>(<span class="ident">item</span> <span class="kw">as</span> <span class="ident">syn::ItemImpl</span>);
+<span class="kw">pub fn </span>main(_attr: TokenStream, item: TokenStream) -&gt; TokenStream {
+	<span class="comment">// Macro must be used on `impl` block.
+	</span><span class="kw">let </span><span class="kw-2">mut </span>impl_item = <span class="macro">parse_macro_input!</span>(item <span class="kw">as </span>syn::ItemImpl);
 
-	<span class="comment">// We inspect the block to collect all the data we need for the</span>
-	<span class="comment">// expansion, and make various checks.</span>
-	<span class="kw">let</span> <span class="ident">precompile</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Precompile::try_from</span>(<span class="kw-2">&amp;mut</span> <span class="ident">impl_item</span>) {
-		<span class="prelude-val">Ok</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>,
-		<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">e</span>.<span class="ident">into_compile_error</span>().<span class="ident">into</span>(),
+	<span class="comment">// We inspect the block to collect all the data we need for the
+	// expansion, and make various checks.
+	</span><span class="kw">let </span>precompile = <span class="kw">match </span>Precompile::try_from(<span class="kw-2">&amp;mut </span>impl_item) {
+		<span class="prelude-val">Ok</span>(p) =&gt; p,
+		<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span>e.into_compile_error().into(),
 	};
 
-	<span class="comment">// We generate additional code based on the collected data.</span>
-	<span class="kw">let</span> <span class="ident">new_items</span> <span class="op">=</span> <span class="ident">precompile</span>.<span class="ident">expand</span>();
-	<span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="macro">quote!</span>(
-		#<span class="ident">impl_item</span>
-		#<span class="ident">new_items</span>
+	<span class="comment">// We generate additional code based on the collected data.
+	</span><span class="kw">let </span>new_items = precompile.expand();
+	<span class="kw">let </span>output = <span class="macro">quote!</span>(
+		#impl_item
+		#new_items
 	);
 
-	<span class="ident">output</span>.<span class="ident">into</span>()
+	output.into()
 }
 
-<span class="kw">struct</span> <span class="ident">Precompile</span> {
-	<span class="doccomment">/// Impl struct type.</span>
-	<span class="ident">impl_type</span>: <span class="ident">syn::Type</span>,
+<span class="kw">struct </span>Precompile {
+	<span class="doccomment">/// Impl struct type.
+	</span>impl_type: syn::Type,
 
-	<span class="doccomment">/// Impl struct ident.</span>
-	<span class="ident">impl_ident</span>: <span class="ident">syn::Ident</span>,
+	<span class="doccomment">/// Impl struct ident.
+	</span>impl_ident: syn::Ident,
 
-	<span class="doccomment">/// New parsing enum ident.</span>
-	<span class="ident">enum_ident</span>: <span class="ident">syn::Ident</span>,
+	<span class="doccomment">/// New parsing enum ident.
+	</span>enum_ident: syn::Ident,
 
-	<span class="doccomment">/// Generic part that needs to also be used by the input enum.</span>
-	<span class="ident">generics</span>: <span class="ident">syn::Generics</span>,
+	<span class="doccomment">/// Generic part that needs to also be used by the input enum.
+	</span>generics: syn::Generics,
 
-	<span class="doccomment">/// Which selector corresponds to which variant of the input enum.</span>
-	<span class="ident">selector_to_variant</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">syn::Ident</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Which selector corresponds to which variant of the input enum.
+	</span>selector_to_variant: BTreeMap&lt;u32, syn::Ident&gt;,
 
-	<span class="doccomment">/// Optional fallback function if no selector matches.</span>
-	<span class="ident">fallback_to_variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Ident</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Optional fallback function if no selector matches.
+	</span>fallback_to_variant: <span class="prelude-ty">Option</span>&lt;syn::Ident&gt;,
 
-	<span class="doccomment">/// Describes the content of each variant based on the precompile methods.</span>
-	<span class="ident">variants_content</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">syn::Ident</span>, <span class="ident">Variant</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Describes the content of each variant based on the precompile methods.
+	</span>variants_content: BTreeMap&lt;syn::Ident, Variant&gt;,
 
-	<span class="doccomment">/// Since being a precompile set implies lots of changes, we must know it early</span>
-	<span class="doccomment">/// in the form of an attribute on the impl block itself.</span>
-	<span class="ident">tagged_as_precompile_set</span>: <span class="ident">bool</span>,
+	<span class="doccomment">/// Since being a precompile set implies lots of changes, we must know it early
+	/// in the form of an attribute on the impl block itself.
+	</span>tagged_as_precompile_set: bool,
 
-	<span class="doccomment">/// Ident of the function returning the PrecompileSet discriminant.</span>
-	<span class="ident">precompile_set_discriminant_fn</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Ident</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Ident of the function returning the PrecompileSet discriminant.
+	</span>precompile_set_discriminant_fn: <span class="prelude-ty">Option</span>&lt;syn::Ident&gt;,
 
-	<span class="doccomment">/// Type of the PrecompileSet discriminant.</span>
-	<span class="ident">precompile_set_discriminant_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Type of the PrecompileSet discriminant.
+	</span>precompile_set_discriminant_type: <span class="prelude-ty">Option</span>&lt;syn::Type&gt;,
 
-	<span class="doccomment">/// When generating the selector test the data types might depend on type parameters.</span>
-	<span class="doccomment">/// The test thus need to be written using concrete types.</span>
-	<span class="ident">test_concrete_types</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Type</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// When generating the selector test the data types might depend on type parameters.
+	/// The test thus need to be written using concrete types.
+	</span>test_concrete_types: <span class="prelude-ty">Option</span>&lt;Vec&lt;syn::Type&gt;&gt;,
 
-	<span class="doccomment">/// Ident of a function that performs a check before the call is dispatched to the proper</span>
-	<span class="doccomment">/// function.</span>
-	<span class="ident">pre_check</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">syn::Ident</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Ident of a function that performs a check before the call is dispatched to the proper
+	/// function.
+	</span>pre_check: <span class="prelude-ty">Option</span>&lt;syn::Ident&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">enum</span> <span class="ident">Modifier</span> {
-	<span class="ident">NonPayable</span>,
-	<span class="ident">Payable</span>,
-	<span class="ident">View</span>,
+<span class="attribute">#[derive(Debug, PartialEq, Eq)]
+</span><span class="kw">enum </span>Modifier {
+	NonPayable,
+	Payable,
+	View,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Variant</span> {
-	<span class="doccomment">/// Description of the arguments of this method, which will also</span>
-	<span class="doccomment">/// be members of a struct variant.</span>
-	<span class="ident">arguments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Argument</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Variant {
+	<span class="doccomment">/// Description of the arguments of this method, which will also
+	/// be members of a struct variant.
+	</span>arguments: Vec&lt;Argument&gt;,
 
-	<span class="doccomment">/// String extracted from the selector attribute.</span>
-	<span class="doccomment">/// A unit test will be generated to check that this selector matches</span>
-	<span class="doccomment">/// the Rust arguments.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// &gt; EvmData trait allows to generate this string at runtime only. Thus</span>
-	<span class="doccomment">/// &gt; it is required to write it manually in the selector attribute, and</span>
-	<span class="doccomment">/// &gt; a unit test is generated to check it matches.</span>
-	<span class="ident">solidity_arguments_type</span>: <span class="ident">String</span>,
+	<span class="doccomment">/// String extracted from the selector attribute.
+	/// A unit test will be generated to check that this selector matches
+	/// the Rust arguments.
+	///
+	/// &gt; EvmData trait allows to generate this string at runtime only. Thus
+	/// &gt; it is required to write it manually in the selector attribute, and
+	/// &gt; a unit test is generated to check it matches.
+	</span>solidity_arguments_type: String,
 
-	<span class="doccomment">/// Modifier of the function. They are all exclusive and defaults to</span>
-	<span class="doccomment">/// `NonPayable`.</span>
-	<span class="ident">modifier</span>: <span class="ident">Modifier</span>,
+	<span class="doccomment">/// Modifier of the function. They are all exclusive and defaults to
+	/// `NonPayable`.
+	</span>modifier: Modifier,
 
-	<span class="doccomment">/// Selectors of this function to be able to encode back the data.</span>
-	<span class="doccomment">/// Empty if it only the fallback function.</span>
-	<span class="ident">selectors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Selectors of this function to be able to encode back the data.
+	/// Empty if it only the fallback function.
+	</span>selectors: Vec&lt;u32&gt;,
 
-	<span class="doccomment">/// Output of the variant fn (for better error messages).</span>
-	<span class="ident">fn_output</span>: <span class="ident">syn::Type</span>,
+	<span class="doccomment">/// Output of the variant fn (for better error messages).
+	</span>fn_output: syn::Type,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">struct</span> <span class="ident">Argument</span> {
-	<span class="doccomment">/// Identifier of the argument, which will be used in the struct variant.</span>
-	<span class="ident">ident</span>: <span class="ident">syn::Ident</span>,
+<span class="attribute">#[derive(Debug)]
+</span><span class="kw">struct </span>Argument {
+	<span class="doccomment">/// Identifier of the argument, which will be used in the struct variant.
+	</span>ident: syn::Ident,
 
-	<span class="doccomment">/// Type of the argument, which will be used in the struct variant and</span>
-	<span class="doccomment">/// to parse the input.</span>
-	<span class="ident">ty</span>: <span class="ident">syn::Type</span>,
+	<span class="doccomment">/// Type of the argument, which will be used in the struct variant and
+	/// to parse the input.
+	</span>ty: syn::Type,
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

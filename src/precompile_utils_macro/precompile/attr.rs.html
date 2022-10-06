@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/attr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>attr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -144,147 +139,146 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="ident">proc_macro2::Span</span>;
-<span class="kw">use</span> <span class="ident">quote::ToTokens</span>;
-<span class="kw">use</span> <span class="ident">syn::spanned::Spanned</span>;
+</span><span class="kw">use </span>proc_macro2::Span;
+<span class="kw">use </span>quote::ToTokens;
+<span class="kw">use </span>syn::spanned::Spanned;
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">take_attributes</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">attributes</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Attribute</span><span class="op">&gt;</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">A</span>: <span class="ident">syn::parse::Parse</span>,
+<span class="kw">pub fn </span>take_attributes&lt;A&gt;(attributes: <span class="kw-2">&amp;mut </span>Vec&lt;syn::Attribute&gt;) -&gt; syn::Result&lt;Vec&lt;A&gt;&gt;
+<span class="kw">where
+	</span>A: syn::parse::Parse,
 {
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-	<span class="kw">let</span> <span class="ident">pred</span> <span class="op">=</span> <span class="op">|</span><span class="ident">attr</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Attribute</span><span class="op">|</span> {
-		<span class="ident">attr</span>.<span class="ident">path</span>
-			.<span class="ident">segments</span>
-			.<span class="ident">first</span>()
-			.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">segment</span><span class="op">|</span> <span class="ident">segment</span>.<span class="ident">ident</span> <span class="op">==</span> <span class="string">&quot;precompile&quot;</span>)
+	<span class="kw">let </span><span class="kw-2">mut </span>output = <span class="macro">vec!</span>[];
+	<span class="kw">let </span>pred = |attr: <span class="kw-2">&amp;</span>syn::Attribute| {
+		attr.path
+			.segments
+			.first()
+			.map_or(<span class="bool-val">false</span>, |segment| segment.ident == <span class="string">&quot;precompile&quot;</span>)
 	};
 
-	<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">attributes</span>.<span class="ident">iter</span>().<span class="ident">position</span>(<span class="ident">pred</span>) {
-		<span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="ident">attributes</span>.<span class="ident">remove</span>(<span class="ident">index</span>);
-		<span class="kw">let</span> <span class="ident">attr</span> <span class="op">=</span> <span class="ident">syn::parse2</span>(<span class="ident">attr</span>.<span class="ident">into_token_stream</span>())<span class="question-mark">?</span>;
-		<span class="ident">output</span>.<span class="ident">push</span>(<span class="ident">attr</span>)
+	<span class="kw">while let </span><span class="prelude-val">Some</span>(index) = attributes.iter().position(pred) {
+		<span class="kw">let </span>attr = attributes.remove(index);
+		<span class="kw">let </span>attr = syn::parse2(attr.into_token_stream())<span class="question-mark">?</span>;
+		output.push(attr)
 	}
-	<span class="prelude-val">Ok</span>(<span class="ident">output</span>)
+	<span class="prelude-val">Ok</span>(output)
 }
 
-<span class="doccomment">/// List of additional token to be used for parsing.</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">keyword</span> {
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">precompile</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">public</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">fallback</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">payable</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">view</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">discriminant</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">precompile_set</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">test_concrete_types</span>);
-	<span class="macro">syn::custom_keyword!</span>(<span class="ident">pre_check</span>);
+<span class="doccomment">/// List of additional token to be used for parsing.
+</span><span class="kw">pub mod </span>keyword {
+	<span class="macro">syn::custom_keyword!</span>(precompile);
+	<span class="macro">syn::custom_keyword!</span>(public);
+	<span class="macro">syn::custom_keyword!</span>(fallback);
+	<span class="macro">syn::custom_keyword!</span>(payable);
+	<span class="macro">syn::custom_keyword!</span>(view);
+	<span class="macro">syn::custom_keyword!</span>(discriminant);
+	<span class="macro">syn::custom_keyword!</span>(precompile_set);
+	<span class="macro">syn::custom_keyword!</span>(test_concrete_types);
+	<span class="macro">syn::custom_keyword!</span>(pre_check);
 }
 
-<span class="doccomment">/// Attributes for methods.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">MethodAttr</span> {
-	<span class="ident">Public</span>(<span class="ident">Span</span>, <span class="ident">syn::LitStr</span>),
-	<span class="ident">Fallback</span>(<span class="ident">Span</span>),
-	<span class="ident">Payable</span>(<span class="ident">Span</span>),
-	<span class="ident">View</span>(<span class="ident">Span</span>),
-	<span class="ident">Discriminant</span>(<span class="ident">Span</span>),
-	<span class="ident">PreCheck</span>(<span class="ident">Span</span>),
+<span class="doccomment">/// Attributes for methods.
+</span><span class="kw">pub enum </span>MethodAttr {
+	Public(Span, syn::LitStr),
+	Fallback(Span),
+	Payable(Span),
+	View(Span),
+	Discriminant(Span),
+	PreCheck(Span),
 }
 
-<span class="kw">impl</span> <span class="ident">syn::parse::Parse</span> <span class="kw">for</span> <span class="ident">MethodAttr</span> {
-	<span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">syn::parse::ParseStream</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">syn::Token!</span>[#]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">content</span>;
-		<span class="macro">syn::bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-		<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::precompile</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">syn::Token!</span>[::]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+<span class="kw">impl </span>syn::parse::Parse <span class="kw">for </span>MethodAttr {
+	<span class="kw">fn </span>parse(input: syn::parse::ParseStream) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
+		input.parse::&lt;<span class="macro">syn::Token!</span>[#]&gt;()<span class="question-mark">?</span>;
+		<span class="kw">let </span>content;
+		<span class="macro">syn::bracketed!</span>(content <span class="kw">in </span>input);
+		content.parse::&lt;keyword::precompile&gt;()<span class="question-mark">?</span>;
+		content.parse::&lt;<span class="macro">syn::Token!</span>[::]&gt;()<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">lookahead1</span>();
+		<span class="kw">let </span>lookahead = content.lookahead1();
 
-		<span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::public</span>) {
-			<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::public</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>();
+		<span class="kw">if </span>lookahead.peek(keyword::public) {
+			<span class="kw">let </span>span = content.parse::&lt;keyword::public&gt;()<span class="question-mark">?</span>.span();
 
-			<span class="kw">let</span> <span class="ident">inner</span>;
-			<span class="macro">syn::parenthesized!</span>(<span class="ident">inner</span> <span class="kw">in</span> <span class="ident">content</span>);
-			<span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">syn::LitStr</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+			<span class="kw">let </span>inner;
+			<span class="macro">syn::parenthesized!</span>(inner <span class="kw">in </span>content);
+			<span class="kw">let </span>signature = inner.parse::&lt;syn::LitStr&gt;()<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::Public</span>(<span class="ident">span</span>, <span class="ident">signature</span>))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::fallback</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::Fallback</span>(
-				<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::fallback</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>(),
+			<span class="prelude-val">Ok</span>(MethodAttr::Public(span, signature))
+		} <span class="kw">else if </span>lookahead.peek(keyword::fallback) {
+			<span class="prelude-val">Ok</span>(MethodAttr::Fallback(
+				content.parse::&lt;keyword::fallback&gt;()<span class="question-mark">?</span>.span(),
 			))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::payable</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::Payable</span>(
-				<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::payable</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>(),
+		} <span class="kw">else if </span>lookahead.peek(keyword::payable) {
+			<span class="prelude-val">Ok</span>(MethodAttr::Payable(
+				content.parse::&lt;keyword::payable&gt;()<span class="question-mark">?</span>.span(),
 			))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::view</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::View</span>(<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::view</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>()))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::discriminant</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::Discriminant</span>(
-				<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::discriminant</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>(),
+		} <span class="kw">else if </span>lookahead.peek(keyword::view) {
+			<span class="prelude-val">Ok</span>(MethodAttr::View(content.parse::&lt;keyword::view&gt;()<span class="question-mark">?</span>.span()))
+		} <span class="kw">else if </span>lookahead.peek(keyword::discriminant) {
+			<span class="prelude-val">Ok</span>(MethodAttr::Discriminant(
+				content.parse::&lt;keyword::discriminant&gt;()<span class="question-mark">?</span>.span(),
 			))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::pre_check</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">MethodAttr::PreCheck</span>(
-				<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::pre_check</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>(),
+		} <span class="kw">else if </span>lookahead.peek(keyword::pre_check) {
+			<span class="prelude-val">Ok</span>(MethodAttr::PreCheck(
+				content.parse::&lt;keyword::pre_check&gt;()<span class="question-mark">?</span>.span(),
 			))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(lookahead.error())
 		}
 	}
 }
 
-<span class="doccomment">/// Attributes for the main impl Block.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ImplAttr</span> {
-	<span class="ident">PrecompileSet</span>(<span class="ident">Span</span>),
-	<span class="ident">TestConcreteTypes</span>(<span class="ident">Span</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">syn::Type</span><span class="op">&gt;</span>),
+<span class="doccomment">/// Attributes for the main impl Block.
+</span><span class="kw">pub enum </span>ImplAttr {
+	PrecompileSet(Span),
+	TestConcreteTypes(Span, Vec&lt;syn::Type&gt;),
 }
 
-<span class="kw">impl</span> <span class="ident">syn::parse::Parse</span> <span class="kw">for</span> <span class="ident">ImplAttr</span> {
-	<span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">syn::parse::ParseStream</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">syn::Token!</span>[#]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">content</span>;
-		<span class="macro">syn::bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-		<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::precompile</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
-		<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="macro">syn::Token!</span>[::]<span class="op">&gt;</span>()<span class="question-mark">?</span>;
+<span class="kw">impl </span>syn::parse::Parse <span class="kw">for </span>ImplAttr {
+	<span class="kw">fn </span>parse(input: syn::parse::ParseStream) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
+		input.parse::&lt;<span class="macro">syn::Token!</span>[#]&gt;()<span class="question-mark">?</span>;
+		<span class="kw">let </span>content;
+		<span class="macro">syn::bracketed!</span>(content <span class="kw">in </span>input);
+		content.parse::&lt;keyword::precompile&gt;()<span class="question-mark">?</span>;
+		content.parse::&lt;<span class="macro">syn::Token!</span>[::]&gt;()<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">lookahead</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">lookahead1</span>();
+		<span class="kw">let </span>lookahead = content.lookahead1();
 
-		<span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::precompile_set</span>) {
-			<span class="prelude-val">Ok</span>(<span class="ident">ImplAttr::PrecompileSet</span>(
-				<span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::precompile_set</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>(),
+		<span class="kw">if </span>lookahead.peek(keyword::precompile_set) {
+			<span class="prelude-val">Ok</span>(ImplAttr::PrecompileSet(
+				content.parse::&lt;keyword::precompile_set&gt;()<span class="question-mark">?</span>.span(),
 			))
-		} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">lookahead</span>.<span class="ident">peek</span>(<span class="ident">keyword::test_concrete_types</span>) {
-			<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">keyword::test_concrete_types</span><span class="op">&gt;</span>()<span class="question-mark">?</span>.<span class="ident">span</span>();
+		} <span class="kw">else if </span>lookahead.peek(keyword::test_concrete_types) {
+			<span class="kw">let </span>span = content.parse::&lt;keyword::test_concrete_types&gt;()<span class="question-mark">?</span>.span();
 
-			<span class="kw">let</span> <span class="ident">inner</span>;
-			<span class="macro">syn::parenthesized!</span>(<span class="ident">inner</span> <span class="kw">in</span> <span class="ident">content</span>);
-			<span class="kw">let</span> <span class="ident">types</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">parse_terminated</span>::<span class="op">&lt;</span><span class="kw">_</span>, <span class="macro">syn::Token!</span>[,]<span class="op">&gt;</span>(<span class="ident">syn::Type::parse</span>)<span class="question-mark">?</span>;
+			<span class="kw">let </span>inner;
+			<span class="macro">syn::parenthesized!</span>(inner <span class="kw">in </span>content);
+			<span class="kw">let </span>types = inner.parse_terminated::&lt;<span class="kw">_</span>, <span class="macro">syn::Token!</span>[,]&gt;(syn::Type::parse)<span class="question-mark">?</span>;
 
-			<span class="prelude-val">Ok</span>(<span class="ident">ImplAttr::TestConcreteTypes</span>(
-				<span class="ident">span</span>,
-				<span class="ident">types</span>.<span class="ident">into_iter</span>().<span class="ident">collect</span>(),
+			<span class="prelude-val">Ok</span>(ImplAttr::TestConcreteTypes(
+				span,
+				types.into_iter().collect(),
 			))
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">lookahead</span>.<span class="ident">error</span>())
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(lookahead.error())
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

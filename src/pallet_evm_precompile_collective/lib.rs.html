@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/collective/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_collective/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_collective/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_collective/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/collective/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_collective/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_collective/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_collective/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -327,330 +322,329 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Precompile to interact with pallet_collective instances.</span>
+</span><span class="doccomment">//! Precompile to interact with pallet_collective instances.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">fp_evm::Log</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">dispatch::Dispatchable</span>,
-	<span class="ident">sp_runtime::traits::Hash</span>,
-	<span class="ident">traits::ConstU32</span>,
-	<span class="ident">weights</span>::{<span class="ident">GetDispatchInfo</span>, <span class="ident">Pays</span>, <span class="ident">PostDispatchInfo</span>},
+</span><span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>fp_evm::Log;
+<span class="kw">use </span>frame_support::{
+	dispatch::Dispatchable,
+	sp_runtime::traits::Hash,
+	traits::ConstU32,
+	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
 };
-<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">Decode</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">boxed::Box</span>, <span class="ident">vec::Vec</span>};
+<span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>sp_core::{Decode, H160, H256};
+<span class="kw">use </span>sp_std::{boxed::Box, vec::Vec};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// Solidity selector of the Executed log.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_EXECUTED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Executed(bytes32)&quot;</span>);
+<span class="doccomment">/// Solidity selector of the Executed log.
+</span><span class="kw">pub const </span>SELECTOR_LOG_EXECUTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Executed(bytes32)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the Proposed log.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_PROPOSED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Proposed(address,uint32,bytes32,uint32)&quot;</span>);
+<span class="doccomment">/// Solidity selector of the Proposed log.
+</span><span class="kw">pub const </span>SELECTOR_LOG_PROPOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Proposed(address,uint32,bytes32,uint32)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the Voted log.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_VOTED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Voted(address,bytes32,bool)&quot;</span>);
+<span class="doccomment">/// Solidity selector of the Voted log.
+</span><span class="kw">pub const </span>SELECTOR_LOG_VOTED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Voted(address,bytes32,bool)&quot;</span>);
 
-<span class="doccomment">/// Solidity selector of the Closed log.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SELECTOR_LOG_CLOSED</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;Closed(bytes32)&quot;</span>);
+<span class="doccomment">/// Solidity selector of the Closed log.
+</span><span class="kw">pub const </span>SELECTOR_LOG_CLOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Closed(bytes32)&quot;</span>);
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_executed</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">hash</span>: <span class="ident">H256</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log2</span>(<span class="ident">address</span>.<span class="ident">into</span>(), <span class="ident">SELECTOR_LOG_EXECUTED</span>, <span class="ident">hash</span>, <span class="ident">Vec::new</span>())
+<span class="kw">pub fn </span>log_executed(address: <span class="kw">impl </span>Into&lt;H160&gt;, hash: H256) -&gt; Log {
+	log2(address.into(), SELECTOR_LOG_EXECUTED, hash, Vec::new())
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_proposed</span>(
-	<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">who</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">index</span>: <span class="ident">u32</span>,
-	<span class="ident">hash</span>: <span class="ident">H256</span>,
-	<span class="ident">threshold</span>: <span class="ident">u32</span>,
-) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log4</span>(
-		<span class="ident">address</span>.<span class="ident">into</span>(),
-		<span class="ident">SELECTOR_LOG_PROPOSED</span>,
-		<span class="ident">who</span>.<span class="ident">into</span>(),
-		<span class="ident">H256::from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">index</span>).<span class="ident">build</span>()),
-		<span class="ident">hash</span>,
-		<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">threshold</span>).<span class="ident">build</span>(),
+<span class="kw">pub fn </span>log_proposed(
+	address: <span class="kw">impl </span>Into&lt;H160&gt;,
+	who: <span class="kw">impl </span>Into&lt;H160&gt;,
+	index: u32,
+	hash: H256,
+	threshold: u32,
+) -&gt; Log {
+	log4(
+		address.into(),
+		SELECTOR_LOG_PROPOSED,
+		who.into(),
+		H256::from_slice(<span class="kw-2">&amp;</span>EvmDataWriter::new().write(index).build()),
+		hash,
+		EvmDataWriter::new().write(threshold).build(),
 	)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_voted</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">who</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">hash</span>: <span class="ident">H256</span>, <span class="ident">voted</span>: <span class="ident">bool</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log3</span>(
-		<span class="ident">address</span>.<span class="ident">into</span>(),
-		<span class="ident">SELECTOR_LOG_VOTED</span>,
-		<span class="ident">who</span>.<span class="ident">into</span>(),
-		<span class="ident">hash</span>,
-		<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">voted</span>).<span class="ident">build</span>(),
+<span class="kw">pub fn </span>log_voted(address: <span class="kw">impl </span>Into&lt;H160&gt;, who: <span class="kw">impl </span>Into&lt;H160&gt;, hash: H256, voted: bool) -&gt; Log {
+	log3(
+		address.into(),
+		SELECTOR_LOG_VOTED,
+		who.into(),
+		hash,
+		EvmDataWriter::new().write(voted).build(),
 	)
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">log_closed</span>(<span class="ident">address</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>, <span class="ident">hash</span>: <span class="ident">H256</span>) -&gt; <span class="ident">Log</span> {
-	<span class="ident">log2</span>(<span class="ident">address</span>.<span class="ident">into</span>(), <span class="ident">SELECTOR_LOG_CLOSED</span>, <span class="ident">hash</span>, <span class="ident">Vec::new</span>())
+<span class="kw">pub fn </span>log_closed(address: <span class="kw">impl </span>Into&lt;H160&gt;, hash: H256) -&gt; Log {
+	log2(address.into(), SELECTOR_LOG_CLOSED, hash, Vec::new())
 }
 
-<span class="kw">type</span> <span class="ident">GetProposalLimit</span> <span class="op">=</span> <span class="ident">ConstU32</span><span class="op">&lt;</span>{ <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>) }<span class="op">&gt;</span>;
+<span class="kw">type </span>GetProposalLimit = ConstU32&lt;{ <span class="number">2u32</span>.pow(<span class="number">16</span>) }&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollectivePrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">Instance</span>)<span class="op">&gt;</span>);
+<span class="kw">pub struct </span>CollectivePrecompile&lt;Runtime, Instance: <span class="lifetime">&#39;static</span>&gt;(PhantomData&lt;(Runtime, Instance)&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">CollectivePrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Instance</span>: <span class="lifetime">&#39;static</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_collective::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span> <span class="op">+</span> <span class="ident">Decode</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_collective::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_collective::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Proposal</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Runtime::Call</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::AccountId</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">H256</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span>
-		<span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime, Instance&gt; CollectivePrecompile&lt;Runtime, Instance&gt;
+<span class="kw">where
+	</span>Instance: <span class="lifetime">&#39;static</span>,
+	Runtime: pallet_collective::Config&lt;Instance&gt; + pallet_evm::Config,
+	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo + Decode,
+	Runtime::Call: From&lt;pallet_collective::Call&lt;Runtime, Instance&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::Proposal: From&lt;Runtime::Call&gt;,
+	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::AccountId: Into&lt;H160&gt;,
+	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
+		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
 {
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;execute(bytes)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetProposalLimit</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">proposal</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">proposal_hash</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">hash</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">proposal</span>);
-		<span class="kw">let</span> <span class="ident">proposal_length</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">proposal</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;uint32&quot;</span>)
-				.<span class="ident">in_field</span>(<span class="string">&quot;length&quot;</span>)
-				.<span class="ident">in_field</span>(<span class="string">&quot;proposal&quot;</span>)
+	<span class="attribute">#[precompile::public(<span class="string">&quot;execute(bytes)&quot;</span>)]
+	</span><span class="kw">fn </span>execute(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		proposal: BoundedBytes&lt;GetProposalLimit&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
+		<span class="kw">let </span>proposal_hash: H256 = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
+			RevertReason::value_is_too_large(<span class="string">&quot;uint32&quot;</span>)
+				.in_field(<span class="string">&quot;length&quot;</span>)
+				.in_field(<span class="string">&quot;proposal&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">Runtime::Call::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">proposal</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::custom</span>(<span class="string">&quot;Failed to decode proposal&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">proposal</span>);
+		<span class="kw">let </span>proposal = Runtime::Call::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
+			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
+			</span>.into();
+		<span class="kw">let </span>proposal = Box::new(proposal);
 
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
-			<span class="ident">handle</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-			<span class="ident">pallet_collective::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::execute</span> {
-				<span class="ident">proposal</span>,
-				<span class="ident">length_bound</span>: <span class="ident">proposal_length</span>,
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
+			handle,
+			<span class="prelude-val">Some</span>(origin).into(),
+			pallet_collective::Call::&lt;Runtime, Instance&gt;::execute {
+				proposal,
+				length_bound: proposal_length,
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="ident">log_executed</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>, <span class="ident">proposal_hash</span>);
+		<span class="kw">let </span>log = log_executed(handle.context().address, proposal_hash);
 
-		<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-		<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;propose(uint32,bytes)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">propose</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">threshold</span>: <span class="ident">u32</span>,
-		<span class="ident">proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetProposalLimit</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;propose(uint32,bytes)&quot;</span>)]
+	</span><span class="kw">fn </span>propose(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		threshold: u32,
+		proposal: BoundedBytes&lt;GetProposalLimit&gt;,
+	) -&gt; EvmResult&lt;u32&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">proposal</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">proposal_length</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">proposal</span>.<span class="ident">len</span>().<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-			<span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;uint32&quot;</span>)
-				.<span class="ident">in_field</span>(<span class="string">&quot;length&quot;</span>)
-				.<span class="ident">in_field</span>(<span class="string">&quot;proposal&quot;</span>)
+		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
+		<span class="kw">let </span>proposal_length: u32 = proposal.len().try_into().map_err(|<span class="kw">_</span>| {
+			RevertReason::value_is_too_large(<span class="string">&quot;uint32&quot;</span>)
+				.in_field(<span class="string">&quot;length&quot;</span>)
+				.in_field(<span class="string">&quot;proposal&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposal_index</span> <span class="op">=</span> <span class="ident">pallet_collective::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::proposal_count</span>();
-		<span class="kw">let</span> <span class="ident">proposal_hash</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">hash</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">proposal</span>);
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">Runtime::Call::decode</span>(<span class="kw-2">&amp;mut</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">proposal</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::custom</span>(<span class="string">&quot;Failed to decode proposal&quot;</span>).<span class="ident">in_field</span>(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?</span>
-			.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">proposal</span> <span class="op">=</span> <span class="ident">Box::new</span>(<span class="ident">proposal</span>);
+		<span class="kw">let </span>proposal_index = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposal_count();
+		<span class="kw">let </span>proposal_hash: H256 = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
+		<span class="kw">let </span>proposal = Runtime::Call::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
+			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
+			</span>.into();
+		<span class="kw">let </span>proposal = Box::new(proposal);
 
 		{
-			<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-			<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
-				<span class="ident">handle</span>,
-				<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-				<span class="ident">pallet_collective::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::propose</span> {
-					<span class="ident">threshold</span>,
-					<span class="ident">proposal</span>,
-					<span class="ident">length_bound</span>: <span class="ident">proposal_length</span>,
+			<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+			RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
+				handle,
+				<span class="prelude-val">Some</span>(origin).into(),
+				pallet_collective::Call::&lt;Runtime, Instance&gt;::propose {
+					threshold,
+					proposal,
+					length_bound: proposal_length,
 				},
 			)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// In pallet_collective a threshold &lt; 2 means the proposal has been</span>
-		<span class="comment">// executed directly.</span>
-		<span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">threshold</span> <span class="op">&lt;</span> <span class="number">2</span> {
-			<span class="ident">log_executed</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>, <span class="ident">proposal_hash</span>)
-		} <span class="kw">else</span> {
-			<span class="ident">log_proposed</span>(
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
-				<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-				<span class="ident">proposal_index</span>,
-				<span class="ident">proposal_hash</span>,
-				<span class="ident">threshold</span>,
+		<span class="comment">// In pallet_collective a threshold &lt; 2 means the proposal has been
+		// executed directly.
+		</span><span class="kw">let </span>log = <span class="kw">if </span>threshold &lt; <span class="number">2 </span>{
+			log_executed(handle.context().address, proposal_hash)
+		} <span class="kw">else </span>{
+			log_proposed(
+				handle.context().address,
+				handle.context().caller,
+				proposal_index,
+				proposal_hash,
+				threshold,
 			)
 		};
 
-		<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-		<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+		log.record(handle)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">proposal_index</span>)
+		<span class="prelude-val">Ok</span>(proposal_index)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;vote(bytes32,uint32,bool)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">vote</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">proposal_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">proposal_index</span>: <span class="ident">u32</span>,
-		<span class="ident">approve</span>: <span class="ident">bool</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
-			<span class="ident">handle</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-			<span class="ident">pallet_collective::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::vote</span> {
-				<span class="ident">proposal</span>: <span class="ident">proposal_hash</span>.<span class="ident">into</span>(),
-				<span class="ident">index</span>: <span class="ident">proposal_index</span>,
-				<span class="ident">approve</span>,
+	<span class="attribute">#[precompile::public(<span class="string">&quot;vote(bytes32,uint32,bool)&quot;</span>)]
+	</span><span class="kw">fn </span>vote(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		approve: bool,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
+			handle,
+			<span class="prelude-val">Some</span>(origin).into(),
+			pallet_collective::Call::&lt;Runtime, Instance&gt;::vote {
+				proposal: proposal_hash.into(),
+				index: proposal_index,
+				approve,
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// TODO: Since we cannot access ayes/nays of a proposal we cannot</span>
-		<span class="comment">// include it in the EVM events to mirror Substrate events.</span>
+		<span class="comment">// TODO: Since we cannot access ayes/nays of a proposal we cannot
+		// include it in the EVM events to mirror Substrate events.
 
-		<span class="kw">let</span> <span class="ident">log</span> <span class="op">=</span> <span class="ident">log_voted</span>(
-			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
-			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>,
-			<span class="ident">proposal_hash</span>,
-			<span class="ident">approve</span>,
+		</span><span class="kw">let </span>log = log_voted(
+			handle.context().address,
+			handle.context().caller,
+			proposal_hash,
+			approve,
 		);
-		<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-		<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+		log.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;close(bytes32,uint32,uint64,uint32)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">close</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">proposal_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">proposal_index</span>: <span class="ident">u32</span>,
-		<span class="ident">proposal_weight_bound</span>: <span class="ident">u64</span>,
-		<span class="ident">length_bound</span>: <span class="ident">u32</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">post_dispatch_info</span> <span class="op">=</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(
-			<span class="ident">handle</span>,
-			<span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(),
-			<span class="ident">pallet_collective::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::close</span> {
-				<span class="ident">proposal_hash</span>: <span class="ident">proposal_hash</span>.<span class="ident">into</span>(),
-				<span class="ident">index</span>: <span class="ident">proposal_index</span>,
-				<span class="ident">proposal_weight_bound</span>,
-				<span class="ident">length_bound</span>,
+	<span class="attribute">#[precompile::public(<span class="string">&quot;close(bytes32,uint32,uint64,uint32)&quot;</span>)]
+	</span><span class="kw">fn </span>close(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		proposal_weight_bound: u64,
+		length_bound: u32,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>post_dispatch_info = RuntimeHelper::&lt;Runtime&gt;::try_dispatch(
+			handle,
+			<span class="prelude-val">Some</span>(origin).into(),
+			pallet_collective::Call::&lt;Runtime, Instance&gt;::close {
+				proposal_hash: proposal_hash.into(),
+				index: proposal_index,
+				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
+				length_bound,
 			},
 		)<span class="question-mark">?</span>;
 
-		<span class="comment">// We can know if the proposal was executed or not based on the `pays_fee` in</span>
-		<span class="comment">// `PostDispatchInfo`.</span>
-		<span class="kw">let</span> (<span class="ident">executed</span>, <span class="ident">log</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">post_dispatch_info</span>.<span class="ident">pays_fee</span> {
-			<span class="ident">Pays::Yes</span> =&gt; (<span class="bool-val">true</span>, <span class="ident">log_executed</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>, <span class="ident">proposal_hash</span>)),
-			<span class="ident">Pays::No</span> =&gt; (<span class="bool-val">false</span>, <span class="ident">log_closed</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>, <span class="ident">proposal_hash</span>)),
+		<span class="comment">// We can know if the proposal was executed or not based on the `pays_fee` in
+		// `PostDispatchInfo`.
+		</span><span class="kw">let </span>(executed, log) = <span class="kw">match </span>post_dispatch_info.pays_fee {
+			Pays::Yes =&gt; (<span class="bool-val">true</span>, log_executed(handle.context().address, proposal_hash)),
+			Pays::No =&gt; (<span class="bool-val">false</span>, log_closed(handle.context().address, proposal_hash)),
 		};
-		<span class="ident">handle</span>.<span class="ident">record_log_costs</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">log</span>])<span class="question-mark">?</span>;
-		<span class="ident">log</span>.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		handle.record_log_costs(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>log])<span class="question-mark">?</span>;
+		log.record(handle)<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">executed</span>)
+		<span class="prelude-val">Ok</span>(executed)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;proposalHash(bytes)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">proposal_hash</span>(
-		<span class="ident">_handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">proposal</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">GetProposalLimit</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">proposal</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">proposal</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">hash</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">proposal</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;proposalHash(bytes)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>proposal_hash(
+		_handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		proposal: BoundedBytes&lt;GetProposalLimit&gt;,
+	) -&gt; EvmResult&lt;H256&gt; {
+		<span class="kw">let </span>proposal: Vec&lt;<span class="kw">_</span>&gt; = proposal.into();
+		<span class="kw">let </span>hash = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">hash</span>)
+		<span class="prelude-val">Ok</span>(hash)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;proposals()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">proposals</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;proposals()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>proposals(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;H256&gt;&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">proposals</span> <span class="op">=</span> <span class="ident">pallet_collective::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::proposals</span>();
-		<span class="kw">let</span> <span class="ident">proposals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">proposals</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">hash</span><span class="op">|</span> <span class="ident">hash</span>.<span class="ident">into</span>()).<span class="ident">collect</span>();
+		<span class="kw">let </span>proposals = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposals();
+		<span class="kw">let </span>proposals: Vec&lt;<span class="kw">_</span>&gt; = proposals.into_iter().map(|hash| hash.into()).collect();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">proposals</span>)
+		<span class="prelude-val">Ok</span>(proposals)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;members()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">members</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;members()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>members(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">members</span> <span class="op">=</span> <span class="ident">pallet_collective::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::members</span>();
-		<span class="kw">let</span> <span class="ident">members</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">members</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">Address</span>(<span class="ident">id</span>.<span class="ident">into</span>())).<span class="ident">collect</span>();
+		<span class="kw">let </span>members = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::members();
+		<span class="kw">let </span>members: Vec&lt;<span class="kw">_</span>&gt; = members.into_iter().map(|id| Address(id.into())).collect();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">members</span>)
+		<span class="prelude-val">Ok</span>(members)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;isMember(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">is_member</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">account</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;isMember(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>is_member(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, account: Address) -&gt; EvmResult&lt;bool&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">account</span>.<span class="ident">into</span>());
+		<span class="kw">let </span>account = Runtime::AddressMapping::into_account_id(account.into());
 
-		<span class="kw">let</span> <span class="ident">is_member</span> <span class="op">=</span> <span class="ident">pallet_collective::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::is_member</span>(<span class="kw-2">&amp;</span><span class="ident">account</span>);
+		<span class="kw">let </span>is_member = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::is_member(<span class="kw-2">&amp;</span>account);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">is_member</span>)
+		<span class="prelude-val">Ok</span>(is_member)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;prime()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">prime</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;prime()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>prime(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Address&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">prime</span> <span class="op">=</span> <span class="ident">pallet_collective::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::prime</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">prime</span><span class="op">|</span> <span class="ident">prime</span>.<span class="ident">into</span>())
-			.<span class="ident">unwrap_or</span>(<span class="ident">H160::zero</span>());
+		<span class="kw">let </span>prime = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::prime()
+			.map(|prime| prime.into())
+			.unwrap_or(H160::zero());
 
-		<span class="prelude-val">Ok</span>(<span class="ident">Address</span>(<span class="ident">prime</span>))
+		<span class="prelude-val">Ok</span>(Address(prime))
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">H256</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">frame_system::Config</span>,
-	<span class="ident">H256</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hash</span><span class="op">&gt;</span>,
+<span class="kw">pub fn </span>hash&lt;Runtime&gt;(data: <span class="kw-2">&amp;</span>[u8]) -&gt; H256
+<span class="kw">where
+	</span>Runtime: frame_system::Config,
+	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
 {
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Hashing::hash</span>(<span class="ident">data</span>).<span class="ident">into</span>()
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(data).into()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_collective" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_collective" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

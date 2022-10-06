@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SessionKeys",""],["UncheckedExtrinsic","Simple blob to hold an extrinsic without committing to its format and ensure it is serialized correctly."]],"type":[["Block",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["SessionKeys",""],["UncheckedExtrinsic","Simple blob to hold an extrinsic without committing to its format and ensure it is serialized correctly."]],"type":[["Block",""]]};

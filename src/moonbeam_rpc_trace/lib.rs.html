@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/trace/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_rpc_trace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_rpc_trace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_rpc_trace/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/trace/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_rpc_trace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_rpc_trace/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_rpc_trace/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -895,898 +890,897 @@
 <span id="890">890</span>
 <span id="891">891</span>
 <span id="892">892</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! `trace_filter` RPC handler and its associated service task.</span>
-<span class="doccomment">//! The RPC handler rely on `CacheTask` which provides a future that must be run inside a tokio</span>
-<span class="doccomment">//! executor.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The implementation is composed of multiple tasks :</span>
-<span class="doccomment">//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.</span>
-<span class="doccomment">//! - A main `CacheTask` managing the cache and the communication between tasks.</span>
-<span class="doccomment">//! - For each traced block an async task responsible to wait for a permit, spawn a blocking</span>
-<span class="doccomment">//!   task and waiting for the result, then send it to the main `CacheTask`.</span>
+</span><span class="doccomment">//! `trace_filter` RPC handler and its associated service task.
+//! The RPC handler rely on `CacheTask` which provides a future that must be run inside a tokio
+//! executor.
+//!
+//! The implementation is composed of multiple tasks :
+//! - Many calls the the RPC handler `Trace::filter`, communicating with the main task.
+//! - A main `CacheTask` managing the cache and the communication between tasks.
+//! - For each traced block an async task responsible to wait for a permit, spawn a blocking
+//!   task and waiting for the result, then send it to the main `CacheTask`.
 
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">select</span>, <span class="ident">stream::FuturesUnordered</span>, <span class="ident">FutureExt</span>, <span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::BTreeMap</span>, <span class="ident">future::Future</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">sync::Arc</span>, <span class="ident">time::Duration</span>};
-<span class="kw">use</span> <span class="ident">tokio</span>::{
-	<span class="ident">sync</span>::{<span class="ident">mpsc</span>, <span class="ident">oneshot</span>, <span class="ident">Semaphore</span>},
-	<span class="ident">time::sleep</span>,
+</span><span class="kw">use </span>futures::{select, stream::FuturesUnordered, FutureExt, SinkExt, StreamExt};
+<span class="kw">use </span>std::{collections::BTreeMap, future::Future, marker::PhantomData, sync::Arc, time::Duration};
+<span class="kw">use </span>tokio::{
+	sync::{mpsc, oneshot, Semaphore},
+	time::sleep,
 };
-<span class="kw">use</span> <span class="ident">tracing</span>::{<span class="ident">instrument</span>, <span class="ident">Instrument</span>};
+<span class="kw">use </span>tracing::{instrument, Instrument};
 
-<span class="kw">use</span> <span class="ident">sc_client_api::backend</span>::{<span class="ident">Backend</span>, <span class="ident">StateBackend</span>, <span class="ident">StorageProvider</span>};
-<span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
-<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
-<span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
-<span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
-	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
+<span class="kw">use </span>sc_client_api::backend::{Backend, StateBackend, StorageProvider};
+<span class="kw">use </span>sc_utils::mpsc::TracingUnboundedSender;
+<span class="kw">use </span>sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_block_builder::BlockBuilder;
+<span class="kw">use </span>sp_blockchain::{
+	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>};
+<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT};
 
-<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
-<span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">frontier_backend_client</span>, <span class="ident">OverrideHandle</span>};
-<span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
+<span class="kw">use </span>ethereum_types::H256;
+<span class="kw">use </span>fc_rpc::{frontier_backend_client, OverrideHandle};
+<span class="kw">use </span>fp_rpc::EthereumRuntimeRPCApi;
 
-<span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing</span>::{
-	<span class="ident">formatters::ResponseFormatter</span>,
-	<span class="ident">types::block</span>::{<span class="self">self</span>, <span class="ident">TransactionTrace</span>},
+<span class="kw">use </span>moonbeam_client_evm_tracing::{
+	formatters::ResponseFormatter,
+	types::block::{<span class="self">self</span>, TransactionTrace},
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_trace</span>::{<span class="ident">FilterRequest</span>, <span class="ident">TraceServer</span>};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types</span>::{<span class="ident">RequestBlockId</span>, <span class="ident">RequestBlockTag</span>};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug::DebugRuntimeApi</span>;
+<span class="kw">pub use </span>moonbeam_rpc_core_trace::{FilterRequest, TraceServer};
+<span class="kw">use </span>moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
+<span class="kw">use </span>moonbeam_rpc_primitives_debug::DebugRuntimeApi;
 
-<span class="kw">type</span> <span class="ident">TxsTraceRes</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span>, <span class="ident">String</span><span class="op">&gt;</span>;
+<span class="kw">type </span>TxsTraceRes = <span class="prelude-ty">Result</span>&lt;Vec&lt;TransactionTrace&gt;, String&gt;;
 
-<span class="doccomment">/// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Trace</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-	<span class="ident">requester</span>: <span class="ident">CacheRequester</span>,
-	<span class="ident">max_count</span>: <span class="ident">u32</span>,
+<span class="doccomment">/// RPC handler. Will communicate with a `CacheTask` through a `CacheRequester`.
+</span><span class="kw">pub struct </span>Trace&lt;B, C&gt; {
+	_phantom: PhantomData&lt;B&gt;,
+	client: Arc&lt;C&gt;,
+	requester: CacheRequester,
+	max_count: u32,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">Trace</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData::default</span>(),
-			<span class="ident">client</span>: <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>),
-			<span class="ident">requester</span>: <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">clone</span>(),
-			<span class="ident">max_count</span>: <span class="self">self</span>.<span class="ident">max_count</span>,
+<span class="kw">impl</span>&lt;B, C&gt; Clone <span class="kw">for </span>Trace&lt;B, C&gt; {
+	<span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			_phantom: PhantomData::default(),
+			client: Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.client),
+			requester: <span class="self">self</span>.requester.clone(),
+			max_count: <span class="self">self</span>.max_count,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">Trace</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">B::Header</span>: <span class="ident">HeaderT</span><span class="op">&lt;</span><span class="ident">Number</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="kw">impl</span>&lt;B, C&gt; Trace&lt;B, C&gt;
+<span class="kw">where
+	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	B::Header: HeaderT&lt;Number = u32&gt;,
+	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
+	C: Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-	<span class="doccomment">/// Create a new RPC handler.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>, <span class="ident">requester</span>: <span class="ident">CacheRequester</span>, <span class="ident">max_count</span>: <span class="ident">u32</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">client</span>,
-			<span class="ident">requester</span>,
-			<span class="ident">max_count</span>,
-			<span class="ident">_phantom</span>: <span class="ident">PhantomData::default</span>(),
+	<span class="doccomment">/// Create a new RPC handler.
+	</span><span class="kw">pub fn </span>new(client: Arc&lt;C&gt;, requester: CacheRequester, max_count: u32) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			client,
+			requester,
+			max_count,
+			_phantom: PhantomData::default(),
 		}
 	}
 
-	<span class="doccomment">/// Convert an optional block ID (number or tag) to a block height.</span>
-	<span class="kw">fn</span> <span class="ident">block_id</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">RequestBlockId</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">match</span> <span class="ident">id</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Number</span>(<span class="ident">n</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">n</span>),
-			<span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Latest</span>)) =&gt; {
-				<span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_number</span>)
+	<span class="doccomment">/// Convert an optional block ID (number or tag) to a block height.
+	</span><span class="kw">fn </span>block_id(<span class="kw-2">&amp;</span><span class="self">self</span>, id: <span class="prelude-ty">Option</span>&lt;RequestBlockId&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;u32, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">match </span>id {
+			<span class="prelude-val">Some</span>(RequestBlockId::Number(n)) =&gt; <span class="prelude-val">Ok</span>(n),
+			<span class="prelude-val">None </span>| <span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Latest)) =&gt; {
+				<span class="prelude-val">Ok</span>(<span class="self">self</span>.client.info().best_number)
 			}
-			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Earliest</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
-			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Pending</span>)) =&gt; {
+			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Earliest)) =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
+			<span class="prelude-val">Some</span>(RequestBlockId::Tag(RequestBlockTag::Pending)) =&gt; {
 				<span class="prelude-val">Err</span>(<span class="string">&quot;&#39;pending&#39; is not supported&quot;</span>)
 			}
-			<span class="prelude-val">Some</span>(<span class="ident">RequestBlockId::Hash</span>(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Block hash not supported&quot;</span>),
+			<span class="prelude-val">Some</span>(RequestBlockId::Hash(<span class="kw">_</span>)) =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;Block hash not supported&quot;</span>),
 		}
 	}
 
-	<span class="doccomment">/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibilty)</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">filter</span>(<span class="self">self</span>, <span class="ident">req</span>: <span class="ident">FilterRequest</span>) -&gt; <span class="ident">TxsTraceRes</span> {
-		<span class="kw">let</span> <span class="ident">from_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block_id</span>(<span class="ident">req</span>.<span class="ident">from_block</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">to_block</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">block_id</span>(<span class="ident">req</span>.<span class="ident">to_block</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">block_heights</span> <span class="op">=</span> <span class="ident">from_block</span>..<span class="op">=</span><span class="ident">to_block</span>;
+	<span class="doccomment">/// `trace_filter` endpoint (wrapped in the trait implementation with futures compatibilty)
+	</span><span class="kw">async fn </span>filter(<span class="self">self</span>, req: FilterRequest) -&gt; TxsTraceRes {
+		<span class="kw">let </span>from_block = <span class="self">self</span>.block_id(req.from_block)<span class="question-mark">?</span>;
+		<span class="kw">let </span>to_block = <span class="self">self</span>.block_id(req.to_block)<span class="question-mark">?</span>;
+		<span class="kw">let </span>block_heights = from_block..=to_block;
 
-		<span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">count</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>.<span class="ident">max_count</span>);
-		<span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">max_count</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+		<span class="kw">let </span>count = req.count.unwrap_or(<span class="self">self</span>.max_count);
+		<span class="kw">if </span>count &gt; <span class="self">self</span>.max_count {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
 				<span class="string">&quot;count ({}) can&#39;t be greater than maximum ({})&quot;</span>,
-				<span class="ident">count</span>, <span class="self">self</span>.<span class="ident">max_count</span>
+				count, <span class="self">self</span>.max_count
 			));
 		}
 
-		<span class="comment">// Build a list of all the Substrate block hashes that need to be traced.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_hashes</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-		<span class="kw">for</span> <span class="ident">block_height</span> <span class="kw">in</span> <span class="ident">block_heights</span> {
-			<span class="kw">if</span> <span class="ident">block_height</span> <span class="op">==</span> <span class="number">0</span> {
-				<span class="kw">continue</span>; <span class="comment">// no traces for genesis block.</span>
-			}
+		<span class="comment">// Build a list of all the Substrate block hashes that need to be traced.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>block_hashes = <span class="macro">vec!</span>[];
+		<span class="kw">for </span>block_height <span class="kw">in </span>block_heights {
+			<span class="kw">if </span>block_height == <span class="number">0 </span>{
+				<span class="kw">continue</span>; <span class="comment">// no traces for genesis block.
+			</span>}
 
-			<span class="kw">let</span> <span class="ident">block_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::Number</span>(<span class="ident">block_height</span>);
-			<span class="kw">let</span> <span class="ident">block_header</span> <span class="op">=</span> <span class="self">self</span>
-				.<span class="ident">client</span>
-				.<span class="ident">header</span>(<span class="ident">block_id</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+			<span class="kw">let </span>block_id = BlockId::&lt;B&gt;::Number(block_height);
+			<span class="kw">let </span>block_header = <span class="self">self
+				</span>.client
+				.header(block_id)
+				.map_err(|e| {
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Error when fetching block {} header : {:?}&quot;</span>,
-						<span class="ident">block_height</span>, <span class="ident">e</span>
+						block_height, e
 					)
-				})<span class="question-mark">?</span>
-				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Block with height {} don&#39;t exist&quot;</span>, <span class="ident">block_height</span>))<span class="question-mark">?</span>;
+				})<span class="question-mark">?
+				</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Block with height {} don&#39;t exist&quot;</span>, block_height))<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">block_hash</span> <span class="op">=</span> <span class="ident">block_header</span>.<span class="ident">hash</span>();
+			<span class="kw">let </span>block_hash = block_header.hash();
 
-			<span class="ident">block_hashes</span>.<span class="ident">push</span>(<span class="ident">block_hash</span>);
+			block_hashes.push(block_hash);
 		}
 
-		<span class="comment">// Start a batch with these blocks.</span>
-		<span class="kw">let</span> <span class="ident">batch_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">start_batch</span>(<span class="ident">block_hashes</span>.<span class="ident">clone</span>()).<span class="kw">await</span><span class="question-mark">?</span>;
-		<span class="comment">// Fetch all the traces. It is done in another function to simplify error handling and allow</span>
-		<span class="comment">// to call the following `stop_batch` regardless of the result. This is important for the</span>
-		<span class="comment">// cache cleanup to work properly.</span>
-		<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">fetch_traces</span>(<span class="ident">req</span>, <span class="kw-2">&amp;</span><span class="ident">block_hashes</span>, <span class="ident">count</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="kw">await</span>;
-		<span class="comment">// Stop the batch, allowing the cache task to remove useless non-started block traces and</span>
-		<span class="comment">// start the expiration delay.</span>
-		<span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">stop_batch</span>(<span class="ident">batch_id</span>).<span class="kw">await</span>;
+		<span class="comment">// Start a batch with these blocks.
+		</span><span class="kw">let </span>batch_id = <span class="self">self</span>.requester.start_batch(block_hashes.clone()).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="comment">// Fetch all the traces. It is done in another function to simplify error handling and allow
+		// to call the following `stop_batch` regardless of the result. This is important for the
+		// cache cleanup to work properly.
+		</span><span class="kw">let </span>res = <span class="self">self</span>.fetch_traces(req, <span class="kw-2">&amp;</span>block_hashes, count <span class="kw">as </span>usize).<span class="kw">await</span>;
+		<span class="comment">// Stop the batch, allowing the cache task to remove useless non-started block traces and
+		// start the expiration delay.
+		</span><span class="self">self</span>.requester.stop_batch(batch_id).<span class="kw">await</span>;
 
-		<span class="ident">res</span>
+		res
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">fetch_traces</span>(
+	<span class="kw">async fn </span>fetch_traces(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">req</span>: <span class="ident">FilterRequest</span>,
-		<span class="ident">block_hashes</span>: <span class="kw-2">&amp;</span>[<span class="ident">H256</span>],
-		<span class="ident">count</span>: <span class="ident">usize</span>,
-	) -&gt; <span class="ident">TxsTraceRes</span> {
-		<span class="kw">let</span> <span class="ident">from_address</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">from_address</span>.<span class="ident">unwrap_or_default</span>();
-		<span class="kw">let</span> <span class="ident">to_address</span> <span class="op">=</span> <span class="ident">req</span>.<span class="ident">to_address</span>.<span class="ident">unwrap_or_default</span>();
+		req: FilterRequest,
+		block_hashes: <span class="kw-2">&amp;</span>[H256],
+		count: usize,
+	) -&gt; TxsTraceRes {
+		<span class="kw">let </span>from_address = req.from_address.unwrap_or_default();
+		<span class="kw">let </span>to_address = req.to_address.unwrap_or_default();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces_amount</span>: <span class="ident">i64</span> <span class="op">=</span> <span class="op">-</span>(<span class="ident">req</span>.<span class="ident">after</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="kw">as</span> <span class="ident">i64</span>);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+		<span class="kw">let </span><span class="kw-2">mut </span>traces_amount: i64 = -(req.after.unwrap_or(<span class="number">0</span>) <span class="kw">as </span>i64);
+		<span class="kw">let </span><span class="kw-2">mut </span>traces = <span class="macro">vec!</span>[];
 
-		<span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">block_hash</span> <span class="kw">in</span> <span class="ident">block_hashes</span> {
-			<span class="comment">// Request the traces of this block to the cache service.</span>
-			<span class="comment">// This will resolve quickly if the block is already cached, or wait until the block</span>
-			<span class="comment">// has finished tracing.</span>
-			<span class="kw">let</span> <span class="ident">block_traces</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">get_traces</span>(<span class="ident">block_hash</span>).<span class="kw">await</span><span class="question-mark">?</span>;
+		<span class="kw">for </span><span class="kw-2">&amp;</span>block_hash <span class="kw">in </span>block_hashes {
+			<span class="comment">// Request the traces of this block to the cache service.
+			// This will resolve quickly if the block is already cached, or wait until the block
+			// has finished tracing.
+			</span><span class="kw">let </span>block_traces = <span class="self">self</span>.requester.get_traces(block_hash).<span class="kw">await</span><span class="question-mark">?</span>;
 
-			<span class="comment">// Filter addresses.</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">block_traces</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">block_traces</span>
-				.<span class="ident">iter</span>()
-				.<span class="ident">filter</span>(<span class="op">|</span><span class="ident">trace</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">trace</span>.<span class="ident">action</span> {
-					<span class="ident">block::TransactionTraceAction::Call</span> { <span class="ident">from</span>, <span class="ident">to</span>, .. } =&gt; {
-						(<span class="ident">from_address</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">from_address</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">from</span>))
-							<span class="op">&amp;&amp;</span> (<span class="ident">to_address</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">to_address</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">to</span>))
+			<span class="comment">// Filter addresses.
+			</span><span class="kw">let </span><span class="kw-2">mut </span>block_traces: Vec&lt;<span class="kw">_</span>&gt; = block_traces
+				.iter()
+				.filter(|trace| <span class="kw">match </span>trace.action {
+					block::TransactionTraceAction::Call { from, to, .. } =&gt; {
+						(from_address.is_empty() || from_address.contains(<span class="kw-2">&amp;</span>from))
+							&amp;&amp; (to_address.is_empty() || to_address.contains(<span class="kw-2">&amp;</span>to))
 					}
-					<span class="ident">block::TransactionTraceAction::Create</span> { <span class="ident">from</span>, .. } =&gt; {
-						(<span class="ident">from_address</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">from_address</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">from</span>))
-							<span class="op">&amp;&amp;</span> <span class="ident">to_address</span>.<span class="ident">is_empty</span>()
+					block::TransactionTraceAction::Create { from, .. } =&gt; {
+						(from_address.is_empty() || from_address.contains(<span class="kw-2">&amp;</span>from))
+							&amp;&amp; to_address.is_empty()
 					}
-					<span class="ident">block::TransactionTraceAction::Suicide</span> { <span class="ident">address</span>, .. } =&gt; {
-						(<span class="ident">from_address</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">from_address</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">address</span>))
-							<span class="op">&amp;&amp;</span> <span class="ident">to_address</span>.<span class="ident">is_empty</span>()
+					block::TransactionTraceAction::Suicide { address, .. } =&gt; {
+						(from_address.is_empty() || from_address.contains(<span class="kw-2">&amp;</span>address))
+							&amp;&amp; to_address.is_empty()
 					}
 				})
-				.<span class="ident">cloned</span>()
-				.<span class="ident">collect</span>();
+				.cloned()
+				.collect();
 
-			<span class="comment">// Don&#39;t insert anything if we&#39;re still before &quot;after&quot;</span>
-			<span class="ident">traces_amount</span> <span class="op">+</span><span class="op">=</span> <span class="ident">block_traces</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
-			<span class="kw">if</span> <span class="ident">traces_amount</span> <span class="op">&gt;</span> <span class="number">0</span> {
-				<span class="kw">let</span> <span class="ident">traces_amount</span> <span class="op">=</span> <span class="ident">traces_amount</span> <span class="kw">as</span> <span class="ident">usize</span>;
-				<span class="comment">// If the current Vec of traces is across the &quot;after&quot; marker,</span>
-				<span class="comment">// we skip some elements of it.</span>
-				<span class="kw">if</span> <span class="ident">traces_amount</span> <span class="op">&lt;</span> <span class="ident">block_traces</span>.<span class="ident">len</span>() {
-					<span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">block_traces</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">traces_amount</span>;
-					<span class="ident">block_traces</span> <span class="op">=</span> <span class="ident">block_traces</span>.<span class="ident">into_iter</span>().<span class="ident">skip</span>(<span class="ident">skip</span>).<span class="ident">collect</span>();
+			<span class="comment">// Don&#39;t insert anything if we&#39;re still before &quot;after&quot;
+			</span>traces_amount += block_traces.len() <span class="kw">as </span>i64;
+			<span class="kw">if </span>traces_amount &gt; <span class="number">0 </span>{
+				<span class="kw">let </span>traces_amount = traces_amount <span class="kw">as </span>usize;
+				<span class="comment">// If the current Vec of traces is across the &quot;after&quot; marker,
+				// we skip some elements of it.
+				</span><span class="kw">if </span>traces_amount &lt; block_traces.len() {
+					<span class="kw">let </span>skip = block_traces.len() - traces_amount;
+					block_traces = block_traces.into_iter().skip(skip).collect();
 				}
 
-				<span class="ident">traces</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">block_traces</span>);
+				traces.append(<span class="kw-2">&amp;mut </span>block_traces);
 
-				<span class="comment">// If we go over &quot;count&quot; (the limit), we trim and exit the loop,</span>
-				<span class="comment">// unless we used the default maximum, in which case we return an error.</span>
-				<span class="kw">if</span> <span class="ident">traces_amount</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">count</span> {
-					<span class="kw">if</span> <span class="ident">req</span>.<span class="ident">count</span>.<span class="ident">is_none</span>() {
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+				<span class="comment">// If we go over &quot;count&quot; (the limit), we trim and exit the loop,
+				// unless we used the default maximum, in which case we return an error.
+				</span><span class="kw">if </span>traces_amount &gt;= count {
+					<span class="kw">if </span>req.count.is_none() {
+						<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
 							<span class="string">&quot;the amount of traces goes over the maximum ({}), please use &#39;after&#39; \
 							and &#39;count&#39; in your request&quot;</span>,
-							<span class="self">self</span>.<span class="ident">max_count</span>
+							<span class="self">self</span>.max_count
 						));
 					}
 
-					<span class="ident">traces</span> <span class="op">=</span> <span class="ident">traces</span>.<span class="ident">into_iter</span>().<span class="ident">take</span>(<span class="ident">count</span>).<span class="ident">collect</span>();
+					traces = traces.into_iter().take(count).collect();
 					<span class="kw">break</span>;
 				}
 			}
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="ident">traces</span>)
+		<span class="prelude-val">Ok</span>(traces)
 	}
 }
 
-<span class="attribute">#[<span class="ident">jsonrpsee::core::async_trait</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">TraceServer</span> <span class="kw">for</span> <span class="ident">Trace</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">B::Header</span>: <span class="ident">HeaderT</span><span class="op">&lt;</span><span class="ident">Number</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+<span class="attribute">#[jsonrpsee::core::async_trait]
+</span><span class="kw">impl</span>&lt;B, C&gt; TraceServer <span class="kw">for </span>Trace&lt;B, C&gt;
+<span class="kw">where
+	</span>B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	B::Header: HeaderT&lt;Number = u32&gt;,
+	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
+	C: Send + Sync + <span class="lifetime">&#39;static</span>,
 {
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">filter</span>(
+	<span class="kw">async fn </span>filter(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">filter</span>: <span class="ident">FilterRequest</span>,
-	) -&gt; <span class="ident">jsonrpsee::core::RpcResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="self">self</span>.<span class="ident">clone</span>()
-			.<span class="ident">filter</span>(<span class="ident">filter</span>)
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">fc_rpc::internal_err</span>(<span class="ident">e</span>))
+		filter: FilterRequest,
+	) -&gt; jsonrpsee::core::RpcResult&lt;Vec&lt;TransactionTrace&gt;&gt; {
+		<span class="self">self</span>.clone()
+			.filter(filter)
+			.<span class="kw">await
+			</span>.map_err(|e| fc_rpc::internal_err(e))
 	}
 }
 
-<span class="doccomment">/// An opaque batch ID.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CacheBatchId</span>(<span class="ident">u64</span>);
+<span class="doccomment">/// An opaque batch ID.
+</span><span class="attribute">#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="kw">pub struct </span>CacheBatchId(u64);
 
-<span class="doccomment">/// Requests the cache task can accept.</span>
-<span class="kw">enum</span> <span class="ident">CacheRequest</span> {
-	<span class="doccomment">/// Request to start caching the provided range of blocks.</span>
-	<span class="doccomment">/// The task will add to blocks to its pool and immediately return a new batch ID.</span>
-	<span class="ident">StartBatch</span> {
-		<span class="doccomment">/// Returns the ID of the batch for cancellation.</span>
-		<span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">CacheBatchId</span><span class="op">&gt;</span>,
-		<span class="doccomment">/// List of block hash to trace.</span>
-		<span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Requests the cache task can accept.
+</span><span class="kw">enum </span>CacheRequest {
+	<span class="doccomment">/// Request to start caching the provided range of blocks.
+	/// The task will add to blocks to its pool and immediately return a new batch ID.
+	</span>StartBatch {
+		<span class="doccomment">/// Returns the ID of the batch for cancellation.
+		</span>sender: oneshot::Sender&lt;CacheBatchId&gt;,
+		<span class="doccomment">/// List of block hash to trace.
+		</span>blocks: Vec&lt;H256&gt;,
 	},
-	<span class="doccomment">/// Fetch the traces for given block hash.</span>
-	<span class="doccomment">/// The task will answer only when it has processed this block.</span>
-	<span class="ident">GetTraces</span> {
-		<span class="doccomment">/// Returns the array of traces or an error.</span>
-		<span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">TxsTraceRes</span><span class="op">&gt;</span>,
-		<span class="doccomment">/// Hash of the block.</span>
-		<span class="ident">block</span>: <span class="ident">H256</span>,
+	<span class="doccomment">/// Fetch the traces for given block hash.
+	/// The task will answer only when it has processed this block.
+	</span>GetTraces {
+		<span class="doccomment">/// Returns the array of traces or an error.
+		</span>sender: oneshot::Sender&lt;TxsTraceRes&gt;,
+		<span class="doccomment">/// Hash of the block.
+		</span>block: H256,
 	},
-	<span class="doccomment">/// Notify the cache that it can stop the batch with that ID. Any block contained only in</span>
-	<span class="doccomment">/// this batch and still not started will be discarded.</span>
-	<span class="ident">StopBatch</span> { <span class="ident">batch_id</span>: <span class="ident">CacheBatchId</span> },
+	<span class="doccomment">/// Notify the cache that it can stop the batch with that ID. Any block contained only in
+	/// this batch and still not started will be discarded.
+	</span>StopBatch { batch_id: CacheBatchId },
 }
 
-<span class="doccomment">/// Allows to interact with the cache task.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CacheRequester</span>(<span class="ident">TracingUnboundedSender</span><span class="op">&lt;</span><span class="ident">CacheRequest</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Allows to interact with the cache task.
+</span><span class="attribute">#[derive(Clone)]
+</span><span class="kw">pub struct </span>CacheRequester(TracingUnboundedSender&lt;CacheRequest&gt;);
 
-<span class="kw">impl</span> <span class="ident">CacheRequester</span> {
-	<span class="doccomment">/// Request to start caching the provided range of blocks.</span>
-	<span class="doccomment">/// The task will add to blocks to its pool and immediately return the batch ID.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">start_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">CacheBatchId</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">response_tx</span>, <span class="ident">response_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
+<span class="kw">impl </span>CacheRequester {
+	<span class="doccomment">/// Request to start caching the provided range of blocks.
+	/// The task will add to blocks to its pool and immediately return the batch ID.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">pub async fn </span>start_batch(<span class="kw-2">&amp;</span><span class="self">self</span>, blocks: Vec&lt;H256&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;CacheBatchId, String&gt; {
+		<span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
+		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
-		<span class="ident">sender</span>
-			.<span class="ident">send</span>(<span class="ident">CacheRequest::StartBatch</span> {
-				<span class="ident">sender</span>: <span class="ident">response_tx</span>,
-				<span class="ident">blocks</span>,
+		sender
+			.send(CacheRequest::StartBatch {
+				sender: response_tx,
+				blocks,
 			})
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+			.<span class="kw">await
+			</span>.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
-					<span class="ident">e</span>
+					e
 				)
 			})<span class="question-mark">?</span>;
 
-		<span class="ident">response_rx</span>.<span class="kw">await</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+		response_rx.<span class="kw">await</span>.map_err(|e| {
 			<span class="macro">format!</span>(
 				<span class="string">&quot;Trace cache task closed the response channel. Error : {:?}&quot;</span>,
-				<span class="ident">e</span>
+				e
 			)
 		})
 	}
 
-	<span class="doccomment">/// Fetch the traces for given block hash.</span>
-	<span class="doccomment">/// The task will answer only when it has processed this block.</span>
-	<span class="doccomment">/// The block should be part of a batch first. If no batch has requested the block it will</span>
-	<span class="doccomment">/// return an error.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">get_traces</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">block</span>: <span class="ident">H256</span>) -&gt; <span class="ident">TxsTraceRes</span> {
-		<span class="kw">let</span> (<span class="ident">response_tx</span>, <span class="ident">response_rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
+	<span class="doccomment">/// Fetch the traces for given block hash.
+	/// The task will answer only when it has processed this block.
+	/// The block should be part of a batch first. If no batch has requested the block it will
+	/// return an error.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">pub async fn </span>get_traces(<span class="kw-2">&amp;</span><span class="self">self</span>, block: H256) -&gt; TxsTraceRes {
+		<span class="kw">let </span>(response_tx, response_rx) = oneshot::channel();
+		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
-		<span class="ident">sender</span>
-			.<span class="ident">send</span>(<span class="ident">CacheRequest::GetTraces</span> {
-				<span class="ident">sender</span>: <span class="ident">response_tx</span>,
-				<span class="ident">block</span>,
+		sender
+			.send(CacheRequest::GetTraces {
+				sender: response_tx,
+				block,
 			})
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+			.<span class="kw">await
+			</span>.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
-					<span class="ident">e</span>
+					e
 				)
 			})<span class="question-mark">?</span>;
 
-		<span class="ident">response_rx</span>
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+		response_rx
+			.<span class="kw">await
+			</span>.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Trace cache task closed the response channel. Error : {:?}&quot;</span>,
-					<span class="ident">e</span>
+					e
 				)
-			})<span class="question-mark">?</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Failed to replay block. Error : {:?}&quot;</span>, <span class="ident">e</span>))
+			})<span class="question-mark">?
+			</span>.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Failed to replay block. Error : {:?}&quot;</span>, e))
 	}
 
-	<span class="doccomment">/// Notify the cache that it can stop the batch with that ID. Any block contained only in</span>
-	<span class="doccomment">/// this batch and still in the waiting pool will be discarded.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">pub</span> <span class="kw">async</span> <span class="kw">fn</span> <span class="ident">stop_batch</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">batch_id</span>: <span class="ident">CacheBatchId</span>) {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sender</span> <span class="op">=</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>();
+	<span class="doccomment">/// Notify the cache that it can stop the batch with that ID. Any block contained only in
+	/// this batch and still in the waiting pool will be discarded.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">pub async fn </span>stop_batch(<span class="kw-2">&amp;</span><span class="self">self</span>, batch_id: CacheBatchId) {
+		<span class="kw">let </span><span class="kw-2">mut </span>sender = <span class="self">self</span>.<span class="number">0</span>.clone();
 
-		<span class="comment">// Here we don&#39;t care if the request has been accepted or refused, the caller can&#39;t</span>
-		<span class="comment">// do anything with it.</span>
-		<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sender</span>
-			.<span class="ident">send</span>(<span class="ident">CacheRequest::StopBatch</span> { <span class="ident">batch_id</span> })
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+		<span class="comment">// Here we don&#39;t care if the request has been accepted or refused, the caller can&#39;t
+		// do anything with it.
+		</span><span class="kw">let _ </span>= sender
+			.send(CacheRequest::StopBatch { batch_id })
+			.<span class="kw">await
+			</span>.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Failed to send request to the trace cache task. Error : {:?}&quot;</span>,
-					<span class="ident">e</span>
+					e
 				)
 			});
 	}
 }
 
-<span class="doccomment">/// Data stored for each block in the cache.</span>
-<span class="doccomment">/// `active_batch_count` represents the number of batches using this</span>
-<span class="doccomment">/// block. It will increase immediatly when a batch is created, but will be</span>
-<span class="doccomment">/// decrease only after the batch ends and its expiration delay passes.</span>
-<span class="doccomment">/// It allows to keep the data in the cache for following requests that would use</span>
-<span class="doccomment">/// this block, which is important to handle pagination efficiently.</span>
-<span class="kw">struct</span> <span class="ident">CacheBlock</span> {
-	<span class="ident">active_batch_count</span>: <span class="ident">usize</span>,
-	<span class="ident">state</span>: <span class="ident">CacheBlockState</span>,
+<span class="doccomment">/// Data stored for each block in the cache.
+/// `active_batch_count` represents the number of batches using this
+/// block. It will increase immediatly when a batch is created, but will be
+/// decrease only after the batch ends and its expiration delay passes.
+/// It allows to keep the data in the cache for following requests that would use
+/// this block, which is important to handle pagination efficiently.
+</span><span class="kw">struct </span>CacheBlock {
+	active_batch_count: usize,
+	state: CacheBlockState,
 }
 
-<span class="doccomment">/// State of a cached block. It can either be polled to be traced or cached.</span>
-<span class="kw">enum</span> <span class="ident">CacheBlockState</span> {
-	<span class="doccomment">/// Block has been added to the pool blocks to be replayed.</span>
-	<span class="doccomment">/// It may be currently waiting to be replayed or being replayed.</span>
-	<span class="ident">Pooled</span> {
-		<span class="ident">started</span>: <span class="ident">bool</span>,
-		<span class="doccomment">/// Multiple requests might query the same block while it is pooled to be</span>
-		<span class="doccomment">/// traced. They response channel is stored here, and the result will be</span>
-		<span class="doccomment">/// sent in all of them when the tracing is finished.</span>
-		<span class="ident">waiting_requests</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">TxsTraceRes</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="doccomment">/// Channel used to unqueue a tracing that has not yet started.</span>
-		<span class="doccomment">/// A tracing will be unqueued if it has not yet been started and the last batch</span>
-		<span class="doccomment">/// needing this block is ended (ignoring the expiration delay).</span>
-		<span class="doccomment">/// It is not used directly, but dropping will wake up the receiver.</span>
-		<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
-		<span class="ident">unqueue_sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span>()<span class="op">&gt;</span>,
+<span class="doccomment">/// State of a cached block. It can either be polled to be traced or cached.
+</span><span class="kw">enum </span>CacheBlockState {
+	<span class="doccomment">/// Block has been added to the pool blocks to be replayed.
+	/// It may be currently waiting to be replayed or being replayed.
+	</span>Pooled {
+		started: bool,
+		<span class="doccomment">/// Multiple requests might query the same block while it is pooled to be
+		/// traced. They response channel is stored here, and the result will be
+		/// sent in all of them when the tracing is finished.
+		</span>waiting_requests: Vec&lt;oneshot::Sender&lt;TxsTraceRes&gt;&gt;,
+		<span class="doccomment">/// Channel used to unqueue a tracing that has not yet started.
+		/// A tracing will be unqueued if it has not yet been started and the last batch
+		/// needing this block is ended (ignoring the expiration delay).
+		/// It is not used directly, but dropping will wake up the receiver.
+		</span><span class="attribute">#[allow(dead_code)]
+		</span>unqueue_sender: oneshot::Sender&lt;()&gt;,
 	},
-	<span class="doccomment">/// Tracing has completed and the result is available. No Runtime API call</span>
-	<span class="doccomment">/// will be needed until this block cache is removed.</span>
-	<span class="ident">Cached</span> { <span class="ident">traces</span>: <span class="ident">TxsTraceRes</span> },
+	<span class="doccomment">/// Tracing has completed and the result is available. No Runtime API call
+	/// will be needed until this block cache is removed.
+	</span>Cached { traces: TxsTraceRes },
 }
 
-<span class="doccomment">/// Tracing a block is done in a separate tokio blocking task to avoid clogging the async threads.</span>
-<span class="doccomment">/// For this reason a channel using this type is used by the blocking task to communicate with the</span>
-<span class="doccomment">/// main cache task.</span>
-<span class="kw">enum</span> <span class="ident">BlockingTaskMessage</span> {
-	<span class="doccomment">/// Notify the tracing for this block has started as the blocking task got a permit from</span>
-	<span class="doccomment">/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has</span>
-	<span class="doccomment">/// started being traced.</span>
-	<span class="ident">Started</span> { <span class="ident">block_hash</span>: <span class="ident">H256</span> },
-	<span class="doccomment">/// The tracing is finished and the result is send to the main task.</span>
-	<span class="ident">Finished</span> {
-		<span class="ident">block_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">result</span>: <span class="ident">TxsTraceRes</span>,
+<span class="doccomment">/// Tracing a block is done in a separate tokio blocking task to avoid clogging the async threads.
+/// For this reason a channel using this type is used by the blocking task to communicate with the
+/// main cache task.
+</span><span class="kw">enum </span>BlockingTaskMessage {
+	<span class="doccomment">/// Notify the tracing for this block has started as the blocking task got a permit from
+	/// the semaphore. This is used to prevent the deletion of a cache entry for a block that has
+	/// started being traced.
+	</span>Started { block_hash: H256 },
+	<span class="doccomment">/// The tracing is finished and the result is send to the main task.
+	</span>Finished {
+		block_hash: H256,
+		result: TxsTraceRes,
 	},
 }
 
-<span class="doccomment">/// Type wrapper for the cache task, generic over the Client, Block and Backend types.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CacheTask</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span> {
-	<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-	<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-	<span class="ident">blocking_permits</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Semaphore</span><span class="op">&gt;</span>,
-	<span class="ident">cached_blocks</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">H256</span>, <span class="ident">CacheBlock</span><span class="op">&gt;</span>,
-	<span class="ident">batches</span>: <span class="ident">BTreeMap</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">next_batch_id</span>: <span class="ident">u64</span>,
-	<span class="ident">_phantom</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+<span class="doccomment">/// Type wrapper for the cache task, generic over the Client, Block and Backend types.
+</span><span class="kw">pub struct </span>CacheTask&lt;B, C, BE&gt; {
+	client: Arc&lt;C&gt;,
+	backend: Arc&lt;BE&gt;,
+	blocking_permits: Arc&lt;Semaphore&gt;,
+	cached_blocks: BTreeMap&lt;H256, CacheBlock&gt;,
+	batches: BTreeMap&lt;u64, Vec&lt;H256&gt;&gt;,
+	next_batch_id: u64,
+	_phantom: PhantomData&lt;B&gt;,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="ident">CacheTask</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">BE::State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">B::Header</span>: <span class="ident">HeaderT</span><span class="op">&lt;</span><span class="ident">Number</span> <span class="op">=</span> <span class="ident">u32</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;B, C, BE&gt; CacheTask&lt;B, C, BE&gt;
+<span class="kw">where
+	</span>BE: Backend&lt;B&gt; + <span class="lifetime">&#39;static</span>,
+	BE::State: StateBackend&lt;BlakeTwo256&gt;,
+	C: ProvideRuntimeApi&lt;B&gt;,
+	C: StorageProvider&lt;B, BE&gt;,
+	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
+	C: Send + Sync + <span class="lifetime">&#39;static</span>,
+	B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	B::Header: HeaderT&lt;Number = u32&gt;,
+	C::Api: BlockBuilder&lt;B&gt;,
+	C::Api: DebugRuntimeApi&lt;B&gt;,
+	C::Api: EthereumRuntimeRPCApi&lt;B&gt;,
+	C::Api: ApiExt&lt;B&gt;,
 {
-	<span class="doccomment">/// Create a new cache task.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Returns a Future that needs to be added to a tokio executor, and an handle allowing to</span>
-	<span class="doccomment">/// send requests to the task.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create</span>(
-		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-		<span class="ident">cache_duration</span>: <span class="ident">Duration</span>,
-		<span class="ident">blocking_permits</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Semaphore</span><span class="op">&gt;</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>, <span class="ident">CacheRequester</span>) {
-		<span class="comment">// Communication with the outside world :</span>
-		<span class="kw">let</span> (<span class="ident">requester_tx</span>, <span class="kw-2">mut</span> <span class="ident">requester_rx</span>) <span class="op">=</span>
-			<span class="ident">sc_utils::mpsc::tracing_unbounded</span>(<span class="string">&quot;trace-filter-cache&quot;</span>);
+	<span class="doccomment">/// Create a new cache task.
+	///
+	/// Returns a Future that needs to be added to a tokio executor, and an handle allowing to
+	/// send requests to the task.
+	</span><span class="kw">pub fn </span>create(
+		client: Arc&lt;C&gt;,
+		backend: Arc&lt;BE&gt;,
+		cache_duration: Duration,
+		blocking_permits: Arc&lt;Semaphore&gt;,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+	) -&gt; (<span class="kw">impl </span>Future&lt;Output = ()&gt;, CacheRequester) {
+		<span class="comment">// Communication with the outside world :
+		</span><span class="kw">let </span>(requester_tx, <span class="kw-2">mut </span>requester_rx) =
+			sc_utils::mpsc::tracing_unbounded(<span class="string">&quot;trace-filter-cache&quot;</span>);
 
-		<span class="comment">// Task running in the service.</span>
-		<span class="kw">let</span> <span class="ident">task</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-			<span class="comment">// The following variables are polled by the select! macro, and thus cannot be</span>
-			<span class="comment">// part of Self without introducing borrowing issues.</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">batch_expirations</span> <span class="op">=</span> <span class="ident">FuturesUnordered::new</span>();
-			<span class="kw">let</span> (<span class="ident">blocking_tx</span>, <span class="kw-2">mut</span> <span class="ident">blocking_rx</span>) <span class="op">=</span>
-				<span class="ident">mpsc::channel</span>(<span class="ident">blocking_permits</span>.<span class="ident">available_permits</span>() <span class="op">*</span> <span class="number">2</span>);
+		<span class="comment">// Task running in the service.
+		</span><span class="kw">let </span>task = <span class="kw">async move </span>{
+			<span class="comment">// The following variables are polled by the select! macro, and thus cannot be
+			// part of Self without introducing borrowing issues.
+			</span><span class="kw">let </span><span class="kw-2">mut </span>batch_expirations = FuturesUnordered::new();
+			<span class="kw">let </span>(blocking_tx, <span class="kw-2">mut </span>blocking_rx) =
+				mpsc::channel(blocking_permits.available_permits() * <span class="number">2</span>);
 
-			<span class="comment">// Contains the inner state of the cache task, excluding the pooled futures/channels.</span>
-			<span class="comment">// Having this object allow to refactor each event into its own function, simplifying</span>
-			<span class="comment">// the main loop.</span>
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner</span> <span class="op">=</span> <span class="self">Self</span> {
-				<span class="ident">client</span>,
-				<span class="ident">backend</span>,
-				<span class="ident">blocking_permits</span>,
-				<span class="ident">cached_blocks</span>: <span class="ident">BTreeMap::new</span>(),
-				<span class="ident">batches</span>: <span class="ident">BTreeMap::new</span>(),
-				<span class="ident">next_batch_id</span>: <span class="number">0</span>,
-				<span class="ident">_phantom</span>: <span class="ident">Default::default</span>(),
+			<span class="comment">// Contains the inner state of the cache task, excluding the pooled futures/channels.
+			// Having this object allow to refactor each event into its own function, simplifying
+			// the main loop.
+			</span><span class="kw">let </span><span class="kw-2">mut </span>inner = <span class="self">Self </span>{
+				client,
+				backend,
+				blocking_permits,
+				cached_blocks: BTreeMap::new(),
+				batches: BTreeMap::new(),
+				next_batch_id: <span class="number">0</span>,
+				_phantom: Default::default(),
 			};
 
-			<span class="comment">// Main event loop. This loop must not contain any direct .await, as we want to</span>
-			<span class="comment">// react to events as fast as possible.</span>
-			<span class="kw">loop</span> {
-				<span class="macro">select!</span> {
-					<span class="ident">request</span> <span class="op">=</span> <span class="ident">requester_rx</span>.<span class="ident">next</span>() =&gt; {
-						<span class="kw">match</span> <span class="ident">request</span> {
-							<span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
-							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::StartBatch</span> {<span class="ident">sender</span>, <span class="ident">blocks</span>})
-								=&gt; <span class="ident">inner</span>.<span class="ident">request_start_batch</span>(<span class="kw-2">&amp;</span><span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>, <span class="ident">overrides</span>.<span class="ident">clone</span>()),
-							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::GetTraces</span> {<span class="ident">sender</span>, <span class="ident">block</span>})
-								=&gt; <span class="ident">inner</span>.<span class="ident">request_get_traces</span>(<span class="ident">sender</span>, <span class="ident">block</span>),
-							<span class="prelude-val">Some</span>(<span class="ident">CacheRequest::StopBatch</span> {<span class="ident">batch_id</span>}) =&gt; {
-								<span class="comment">// Cannot be refactored inside `request_stop_batch` because</span>
-								<span class="comment">// it has an unnamable type :C</span>
-								<span class="ident">batch_expirations</span>.<span class="ident">push</span>(<span class="kw">async</span> <span class="kw">move</span> {
-									<span class="ident">sleep</span>(<span class="ident">cache_duration</span>).<span class="kw">await</span>;
-									<span class="ident">batch_id</span>
+			<span class="comment">// Main event loop. This loop must not contain any direct .await, as we want to
+			// react to events as fast as possible.
+			</span><span class="kw">loop </span>{
+				<span class="macro">select! </span>{
+					request = requester_rx.next() =&gt; {
+						<span class="kw">match </span>request {
+							<span class="prelude-val">None </span>=&gt; <span class="kw">break</span>,
+							<span class="prelude-val">Some</span>(CacheRequest::StartBatch {sender, blocks})
+								=&gt; inner.request_start_batch(<span class="kw-2">&amp;</span>blocking_tx, sender, blocks, overrides.clone()),
+							<span class="prelude-val">Some</span>(CacheRequest::GetTraces {sender, block})
+								=&gt; inner.request_get_traces(sender, block),
+							<span class="prelude-val">Some</span>(CacheRequest::StopBatch {batch_id}) =&gt; {
+								<span class="comment">// Cannot be refactored inside `request_stop_batch` because
+								// it has an unnamable type :C
+								</span>batch_expirations.push(<span class="kw">async move </span>{
+									sleep(cache_duration).<span class="kw">await</span>;
+									batch_id
 								});
 
-								<span class="ident">inner</span>.<span class="ident">request_stop_batch</span>(<span class="ident">batch_id</span>);
+								inner.request_stop_batch(batch_id);
 							},
 						}
 					},
-					<span class="ident">message</span> <span class="op">=</span> <span class="ident">blocking_rx</span>.<span class="ident">recv</span>().<span class="ident">fuse</span>() =&gt; {
-						<span class="kw">match</span> <span class="ident">message</span> {
-							<span class="prelude-val">None</span> =&gt; (),
-							<span class="prelude-val">Some</span>(<span class="ident">BlockingTaskMessage::Started</span> { <span class="ident">block_hash</span> })
-								=&gt; <span class="ident">inner</span>.<span class="ident">blocking_started</span>(<span class="ident">block_hash</span>),
-							<span class="prelude-val">Some</span>(<span class="ident">BlockingTaskMessage::Finished</span> { <span class="ident">block_hash</span>, <span class="ident">result</span> })
-								=&gt; <span class="ident">inner</span>.<span class="ident">blocking_finished</span>(<span class="ident">block_hash</span>, <span class="ident">result</span>),
+					message = blocking_rx.recv().fuse() =&gt; {
+						<span class="kw">match </span>message {
+							<span class="prelude-val">None </span>=&gt; (),
+							<span class="prelude-val">Some</span>(BlockingTaskMessage::Started { block_hash })
+								=&gt; inner.blocking_started(block_hash),
+							<span class="prelude-val">Some</span>(BlockingTaskMessage::Finished { block_hash, result })
+								=&gt; inner.blocking_finished(block_hash, result),
 						}
 					},
-					<span class="ident">batch_id</span> <span class="op">=</span> <span class="ident">batch_expirations</span>.<span class="ident">next</span>() =&gt; {
-						<span class="kw">match</span> <span class="ident">batch_id</span> {
-							<span class="prelude-val">None</span> =&gt; (),
-							<span class="prelude-val">Some</span>(<span class="ident">batch_id</span>) =&gt; <span class="ident">inner</span>.<span class="ident">expired_batch</span>(<span class="ident">batch_id</span>),
+					batch_id = batch_expirations.next() =&gt; {
+						<span class="kw">match </span>batch_id {
+							<span class="prelude-val">None </span>=&gt; (),
+							<span class="prelude-val">Some</span>(batch_id) =&gt; inner.expired_batch(batch_id),
 						}
 					}
 				}
 			}
 		}
-		.<span class="ident">instrument</span>(<span class="macro">tracing::debug_span!</span>(<span class="string">&quot;trace_filter_cache&quot;</span>));
+		.instrument(<span class="macro">tracing::debug_span!</span>(<span class="string">&quot;trace_filter_cache&quot;</span>));
 
-		(<span class="ident">task</span>, <span class="ident">CacheRequester</span>(<span class="ident">requester_tx</span>))
+		(task, CacheRequester(requester_tx))
 	}
 
-	<span class="doccomment">/// Handle the creation of a batch.</span>
-	<span class="doccomment">/// Will start the tracing process for blocks that are not already in the cache.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">blocking_tx</span>, <span class="ident">sender</span>, <span class="ident">blocks</span>, <span class="ident">overrides</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">request_start_batch</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">blocking_tx</span>: <span class="kw-2">&amp;</span><span class="ident">mpsc::Sender</span><span class="op">&lt;</span><span class="ident">BlockingTaskMessage</span><span class="op">&gt;</span>,
-		<span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">CacheBatchId</span><span class="op">&gt;</span>,
-		<span class="ident">blocks</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Handle the creation of a batch.
+	/// Will start the tracing process for blocks that are not already in the cache.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>, blocking_tx, sender, blocks, overrides))]
+	</span><span class="kw">fn </span>request_start_batch(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		blocking_tx: <span class="kw-2">&amp;</span>mpsc::Sender&lt;BlockingTaskMessage&gt;,
+		sender: oneshot::Sender&lt;CacheBatchId&gt;,
+		blocks: Vec&lt;H256&gt;,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
 	) {
-		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Starting batch {}&quot;</span>, <span class="self">self</span>.<span class="ident">next_batch_id</span>);
-		<span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">next_batch_id</span>, <span class="ident">blocks</span>.<span class="ident">clone</span>());
+		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Starting batch {}&quot;</span>, <span class="self">self</span>.next_batch_id);
+		<span class="self">self</span>.batches.insert(<span class="self">self</span>.next_batch_id, blocks.clone());
 
-		<span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">blocks</span> {
-			<span class="comment">// The block is already in the cache, awesome !</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>) {
-				<span class="ident">block_cache</span>.<span class="ident">active_batch_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="kw">for </span>block <span class="kw">in </span>blocks {
+			<span class="comment">// The block is already in the cache, awesome !
+			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block) {
+				block_cache.active_batch_count += <span class="number">1</span>;
 				<span class="macro">tracing::trace!</span>(
 					<span class="string">&quot;Cache hit for block {}, now used by {} batches.&quot;</span>,
-					<span class="ident">block</span>,
-					<span class="ident">block_cache</span>.<span class="ident">active_batch_count</span>
+					block,
+					block_cache.active_batch_count
 				);
 			}
-			<span class="comment">// Otherwise we need to queue this block for tracing.</span>
-			<span class="kw">else</span> {
-				<span class="macro">tracing::trace!</span>(<span class="string">&quot;Cache miss for block {}, pooling it for tracing.&quot;</span>, <span class="ident">block</span>);
+			<span class="comment">// Otherwise we need to queue this block for tracing.
+			</span><span class="kw">else </span>{
+				<span class="macro">tracing::trace!</span>(<span class="string">&quot;Cache miss for block {}, pooling it for tracing.&quot;</span>, block);
 
-				<span class="kw">let</span> <span class="ident">blocking_permits</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">blocking_permits</span>);
-				<span class="kw">let</span> (<span class="ident">unqueue_sender</span>, <span class="ident">unqueue_receiver</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-				<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">client</span>);
-				<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">Arc::clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">backend</span>);
-				<span class="kw">let</span> <span class="ident">blocking_tx</span> <span class="op">=</span> <span class="ident">blocking_tx</span>.<span class="ident">clone</span>();
-				<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">overrides</span>.<span class="ident">clone</span>();
+				<span class="kw">let </span>blocking_permits = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.blocking_permits);
+				<span class="kw">let </span>(unqueue_sender, unqueue_receiver) = oneshot::channel();
+				<span class="kw">let </span>client = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.client);
+				<span class="kw">let </span>backend = Arc::clone(<span class="kw-2">&amp;</span><span class="self">self</span>.backend);
+				<span class="kw">let </span>blocking_tx = blocking_tx.clone();
+				<span class="kw">let </span>overrides = overrides.clone();
 
-				<span class="comment">// Spawn all block caching asynchronously.</span>
-				<span class="comment">// It will wait to obtain a permit, then spawn a blocking task.</span>
-				<span class="comment">// When the blocking task returns its result, it is send</span>
-				<span class="comment">// thought a channel to the main task loop.</span>
-				<span class="ident">tokio::spawn</span>(
-					<span class="kw">async</span> <span class="kw">move</span> {
+				<span class="comment">// Spawn all block caching asynchronously.
+				// It will wait to obtain a permit, then spawn a blocking task.
+				// When the blocking task returns its result, it is send
+				// thought a channel to the main task loop.
+				</span>tokio::spawn(
+					<span class="kw">async move </span>{
 						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Waiting for blocking permit or task cancellation&quot;</span>);
-						<span class="kw">let</span> <span class="ident">_permit</span> <span class="op">=</span> <span class="macro">select!</span>(
-							<span class="kw">_</span> <span class="op">=</span> <span class="ident">unqueue_receiver</span>.<span class="ident">fuse</span>() =&gt; {
+						<span class="kw">let </span>_permit = <span class="macro">select!</span>(
+							<span class="kw">_ </span>= unqueue_receiver.fuse() =&gt; {
 							<span class="macro">tracing::trace!</span>(<span class="string">&quot;Tracing of the block has been cancelled.&quot;</span>);
 								<span class="kw">return</span>;
 							},
-							<span class="ident">permit</span> <span class="op">=</span> <span class="ident">blocking_permits</span>.<span class="ident">acquire</span>().<span class="ident">fuse</span>() =&gt; <span class="ident">permit</span>,
+							permit = blocking_permits.acquire().fuse() =&gt; permit,
 						);
 
-						<span class="comment">// Warn the main task that block tracing as started, and</span>
-						<span class="comment">// this block cache entry should not be removed.</span>
-						<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">blocking_tx</span>
-							.<span class="ident">send</span>(<span class="ident">BlockingTaskMessage::Started</span> { <span class="ident">block_hash</span>: <span class="ident">block</span> })
+						<span class="comment">// Warn the main task that block tracing as started, and
+						// this block cache entry should not be removed.
+						</span><span class="kw">let _ </span>= blocking_tx
+							.send(BlockingTaskMessage::Started { block_hash: block })
 							.<span class="kw">await</span>;
 
 						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Start block tracing in a blocking task.&quot;</span>);
 
-						<span class="comment">// Perform block tracing in a tokio blocking task.</span>
-						<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">async</span> {
-							<span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-								<span class="ident"><span class="self">Self</span>::cache_block</span>(<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">block</span>, <span class="ident">overrides</span>.<span class="ident">clone</span>())
+						<span class="comment">// Perform block tracing in a tokio blocking task.
+						</span><span class="kw">let </span>result = <span class="kw">async </span>{
+							tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+								<span class="self">Self</span>::cache_block(client, backend, block, overrides.clone())
 							})
-							.<span class="kw">await</span>
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-								<span class="macro">format!</span>(<span class="string">&quot;Tracing Substrate block {} panicked : {:?}&quot;</span>, <span class="ident">block</span>, <span class="ident">e</span>)
-							})<span class="question-mark">?</span>
-						}
-						.<span class="kw">await</span>
-						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_string</span>());
+							.<span class="kw">await
+							</span>.map_err(|e| {
+								<span class="macro">format!</span>(<span class="string">&quot;Tracing Substrate block {} panicked : {:?}&quot;</span>, block, e)
+							})<span class="question-mark">?
+						</span>}
+						.<span class="kw">await
+						</span>.map_err(|e| e.to_string());
 
 						<span class="macro">tracing::trace!</span>(<span class="string">&quot;Block tracing finished, sending result to main task.&quot;</span>);
 
-						<span class="comment">// Send response to main task.</span>
-						<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">blocking_tx</span>
-							.<span class="ident">send</span>(<span class="ident">BlockingTaskMessage::Finished</span> {
-								<span class="ident">block_hash</span>: <span class="ident">block</span>,
-								<span class="ident">result</span>,
+						<span class="comment">// Send response to main task.
+						</span><span class="kw">let _ </span>= blocking_tx
+							.send(BlockingTaskMessage::Finished {
+								block_hash: block,
+								result,
 							})
 							.<span class="kw">await</span>;
 					}
-					.<span class="ident">instrument</span>(<span class="macro">tracing::trace_span!</span>(<span class="string">&quot;Block tracing&quot;</span>, <span class="ident">block</span> <span class="op">=</span> <span class="op">%</span><span class="ident">block</span>)),
+					.instrument(<span class="macro">tracing::trace_span!</span>(<span class="string">&quot;Block tracing&quot;</span>, block = %block)),
 				);
 
-				<span class="comment">// Insert the block in the cache.</span>
-				<span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">insert</span>(
-					<span class="ident">block</span>,
-					<span class="ident">CacheBlock</span> {
-						<span class="ident">active_batch_count</span>: <span class="number">1</span>,
-						<span class="ident">state</span>: <span class="ident">CacheBlockState::Pooled</span> {
-							<span class="ident">started</span>: <span class="bool-val">false</span>,
-							<span class="ident">waiting_requests</span>: <span class="macro">vec!</span>[],
-							<span class="ident">unqueue_sender</span>,
+				<span class="comment">// Insert the block in the cache.
+				</span><span class="self">self</span>.cached_blocks.insert(
+					block,
+					CacheBlock {
+						active_batch_count: <span class="number">1</span>,
+						state: CacheBlockState::Pooled {
+							started: <span class="bool-val">false</span>,
+							waiting_requests: <span class="macro">vec!</span>[],
+							unqueue_sender,
 						},
 					},
 				);
 			}
 		}
 
-		<span class="comment">// Respond with the batch ID.</span>
-		<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">CacheBatchId</span>(<span class="self">self</span>.<span class="ident">next_batch_id</span>));
+		<span class="comment">// Respond with the batch ID.
+		</span><span class="kw">let _ </span>= sender.send(CacheBatchId(<span class="self">self</span>.next_batch_id));
 
-		<span class="comment">// Increase batch ID for next request.</span>
-		<span class="self">self</span>.<span class="ident">next_batch_id</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_batch_id</span>.<span class="ident">overflowing_add</span>(<span class="number">1</span>).<span class="number">0</span>;
+		<span class="comment">// Increase batch ID for next request.
+		</span><span class="self">self</span>.next_batch_id = <span class="self">self</span>.next_batch_id.overflowing_add(<span class="number">1</span>).<span class="number">0</span>;
 	}
 
-	<span class="doccomment">/// Handle a request to get the traces of the provided block.</span>
-	<span class="doccomment">/// - If the result is stored in the cache, it sends it immediatly.</span>
-	<span class="doccomment">/// - If the block is currently being pooled, it is added in this block cache waiting list,</span>
-	<span class="doccomment">///   and all requests concerning this block will be satisfied when the tracing for this block</span>
-	<span class="doccomment">///   is finished.</span>
-	<span class="doccomment">/// - If this block is missing from the cache, it means no batch asked for it. All requested</span>
-	<span class="doccomment">///   blocks should be contained in a batch beforehand, and thus an error is returned.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">request_get_traces</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">sender</span>: <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">TxsTraceRes</span><span class="op">&gt;</span>, <span class="ident">block</span>: <span class="ident">H256</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>) {
-			<span class="kw">match</span> <span class="kw-2">&amp;mut</span> <span class="ident">block_cache</span>.<span class="ident">state</span> {
-				<span class="ident">CacheBlockState::Pooled</span> {
-					<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">waiting_requests</span>,
+	<span class="doccomment">/// Handle a request to get the traces of the provided block.
+	/// - If the result is stored in the cache, it sends it immediatly.
+	/// - If the block is currently being pooled, it is added in this block cache waiting list,
+	///   and all requests concerning this block will be satisfied when the tracing for this block
+	///   is finished.
+	/// - If this block is missing from the cache, it means no batch asked for it. All requested
+	///   blocks should be contained in a batch beforehand, and thus an error is returned.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">fn </span>request_get_traces(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sender: oneshot::Sender&lt;TxsTraceRes&gt;, block: H256) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block) {
+			<span class="kw">match </span><span class="kw-2">&amp;mut </span>block_cache.state {
+				CacheBlockState::Pooled {
+					<span class="kw-2">ref mut </span>waiting_requests,
 					..
 				} =&gt; {
 					<span class="macro">tracing::warn!</span>(
 						<span class="string">&quot;A request asked a pooled block ({}), adding it to the list of \
 						waiting requests.&quot;</span>,
-						<span class="ident">block</span>
+						block
 					);
-					<span class="ident">waiting_requests</span>.<span class="ident">push</span>(<span class="ident">sender</span>);
+					waiting_requests.push(sender);
 				}
-				<span class="ident">CacheBlockState::Cached</span> { <span class="ident">traces</span>, .. } =&gt; {
+				CacheBlockState::Cached { traces, .. } =&gt; {
 					<span class="macro">tracing::warn!</span>(
 						<span class="string">&quot;A request asked a cached block ({}), sending the traces directly.&quot;</span>,
-						<span class="ident">block</span>
+						block
 					);
-					<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sender</span>.<span class="ident">send</span>(<span class="ident">traces</span>.<span class="ident">clone</span>());
+					<span class="kw">let _ </span>= sender.send(traces.clone());
 				}
 			}
-		} <span class="kw">else</span> {
+		} <span class="kw">else </span>{
 			<span class="macro">tracing::warn!</span>(
 				<span class="string">&quot;An RPC request asked to get a block ({}) which was not batched.&quot;</span>,
-				<span class="ident">block</span>
+				block
 			);
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">sender</span>.<span class="ident">send</span>(<span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+			<span class="kw">let _ </span>= sender.send(<span class="prelude-val">Err</span>(<span class="macro">format!</span>(
 				<span class="string">&quot;RPC request asked a block ({}) that was not batched&quot;</span>,
-				<span class="ident">block</span>
+				block
 			)));
 		}
 	}
 
-	<span class="doccomment">/// Handle a request to stop a batch.</span>
-	<span class="doccomment">/// For all blocks that needed to be traced, are only in this batch and not yet started, their</span>
-	<span class="doccomment">/// tracing is cancelled to save CPU-time and avoid attacks requesting large amount of blocks.</span>
-	<span class="doccomment">/// This batch data is not yet removed however. Instead a expiration delay timer is started</span>
-	<span class="doccomment">/// after which the data will indeed be cleared. (the code for that is in the main loop code</span>
-	<span class="doccomment">/// as it involved an unnamable type :C)</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">request_stop_batch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">batch_id</span>: <span class="ident">CacheBatchId</span>) {
-		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Stopping batch {}&quot;</span>, <span class="ident">batch_id</span>.<span class="number">0</span>);
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">blocks</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">batch_id</span>.<span class="number">0</span>) {
-			<span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">blocks</span> {
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remove</span> <span class="op">=</span> <span class="bool-val">false</span>;
+	<span class="doccomment">/// Handle a request to stop a batch.
+	/// For all blocks that needed to be traced, are only in this batch and not yet started, their
+	/// tracing is cancelled to save CPU-time and avoid attacks requesting large amount of blocks.
+	/// This batch data is not yet removed however. Instead a expiration delay timer is started
+	/// after which the data will indeed be cleared. (the code for that is in the main loop code
+	/// as it involved an unnamable type :C)
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">fn </span>request_stop_batch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, batch_id: CacheBatchId) {
+		<span class="macro">tracing::trace!</span>(<span class="string">&quot;Stopping batch {}&quot;</span>, batch_id.<span class="number">0</span>);
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(blocks) = <span class="self">self</span>.batches.get(<span class="kw-2">&amp;</span>batch_id.<span class="number">0</span>) {
+			<span class="kw">for </span>block <span class="kw">in </span>blocks {
+				<span class="kw">let </span><span class="kw-2">mut </span>remove = <span class="bool-val">false</span>;
 
-				<span class="comment">// We remove early the block cache if this batch is the last</span>
-				<span class="comment">// pooling this block.</span>
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="ident">block</span>) {
-					<span class="kw">if</span> <span class="ident">block_cache</span>.<span class="ident">active_batch_count</span> <span class="op">==</span> <span class="number">1</span>
-						<span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-							<span class="ident">block_cache</span>.<span class="ident">state</span>,
-							<span class="ident">CacheBlockState::Pooled</span> { <span class="ident">started</span>: <span class="bool-val">false</span>, .. }
+				<span class="comment">// We remove early the block cache if this batch is the last
+				// pooling this block.
+				</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(block) {
+					<span class="kw">if </span>block_cache.active_batch_count == <span class="number">1
+						</span>&amp;&amp; <span class="macro">matches!</span>(
+							block_cache.state,
+							CacheBlockState::Pooled { started: <span class="bool-val">false</span>, .. }
 						) {
-						<span class="ident">remove</span> <span class="op">=</span> <span class="bool-val">true</span>;
+						remove = <span class="bool-val">true</span>;
 					}
 				}
 
-				<span class="kw">if</span> <span class="ident">remove</span> {
-					<span class="macro">tracing::trace!</span>(<span class="string">&quot;Pooled block {} is no longer requested.&quot;</span>, <span class="ident">block</span>);
-					<span class="comment">// Remove block from the cache. Drops the value,</span>
-					<span class="comment">// closing all the channels contained in it.</span>
-					<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>);
+				<span class="kw">if </span>remove {
+					<span class="macro">tracing::trace!</span>(<span class="string">&quot;Pooled block {} is no longer requested.&quot;</span>, block);
+					<span class="comment">// Remove block from the cache. Drops the value,
+					// closing all the channels contained in it.
+					</span><span class="kw">let _ </span>= <span class="self">self</span>.cached_blocks.remove(<span class="kw-2">&amp;</span>block);
 				}
 			}
 		}
 	}
 
-	<span class="doccomment">/// A tracing blocking task notifies it got a permit and is starting the tracing.</span>
-	<span class="doccomment">/// This started status is stored to avoid removing this block entry.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">blocking_started</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block_hash</span>: <span class="ident">H256</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">block_hash</span>) {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">CacheBlockState::Pooled</span> {
-				<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">started</span>, ..
-			} <span class="op">=</span> <span class="ident">block_cache</span>.<span class="ident">state</span>
+	<span class="doccomment">/// A tracing blocking task notifies it got a permit and is starting the tracing.
+	/// This started status is stored to avoid removing this block entry.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">fn </span>blocking_started(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_hash: H256) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block_hash) {
+			<span class="kw">if let </span>CacheBlockState::Pooled {
+				<span class="kw-2">ref mut </span>started, ..
+			} = block_cache.state
 			{
-				<span class="kw-2">*</span><span class="ident">started</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				<span class="kw-2">*</span>started = <span class="bool-val">true</span>;
 			}
 		}
 	}
 
-	<span class="doccomment">/// A tracing blocking task notifies it has finished the tracing and provide the result.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>, <span class="ident">result</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">blocking_finished</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">block_hash</span>: <span class="ident">H256</span>, <span class="ident">result</span>: <span class="ident">TxsTraceRes</span>) {
-		<span class="comment">// In some cases it might be possible to receive traces of a block</span>
-		<span class="comment">// that has no entry in the cache because it was removed of the pool</span>
-		<span class="comment">// and received a permit concurrently. We just ignore it.</span>
-		<span class="comment">//</span>
-		<span class="comment">// TODO : Should we add it back ? Should it have an active_batch_count</span>
-		<span class="comment">// of 1 then ?</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">block_hash</span>) {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">CacheBlockState::Pooled</span> {
-				<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">waiting_requests</span>,
+	<span class="doccomment">/// A tracing blocking task notifies it has finished the tracing and provide the result.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>, result))]
+	</span><span class="kw">fn </span>blocking_finished(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block_hash: H256, result: TxsTraceRes) {
+		<span class="comment">// In some cases it might be possible to receive traces of a block
+		// that has no entry in the cache because it was removed of the pool
+		// and received a permit concurrently. We just ignore it.
+		//
+		// TODO : Should we add it back ? Should it have an active_batch_count
+		// of 1 then ?
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block_hash) {
+			<span class="kw">if let </span>CacheBlockState::Pooled {
+				<span class="kw-2">ref mut </span>waiting_requests,
 				..
-			} <span class="op">=</span> <span class="ident">block_cache</span>.<span class="ident">state</span>
+			} = block_cache.state
 			{
 				<span class="macro">tracing::trace!</span>(
 					<span class="string">&quot;A new block ({}) has been traced, adding it to the cache and responding to \
 					{} waiting requests.&quot;</span>,
-					<span class="ident">block_hash</span>,
-					<span class="ident">waiting_requests</span>.<span class="ident">len</span>()
+					block_hash,
+					waiting_requests.len()
 				);
-				<span class="comment">// Send result in waiting channels</span>
-				<span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">channel</span>) <span class="op">=</span> <span class="ident">waiting_requests</span>.<span class="ident">pop</span>() {
-					<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">channel</span>.<span class="ident">send</span>(<span class="ident">result</span>.<span class="ident">clone</span>());
+				<span class="comment">// Send result in waiting channels
+				</span><span class="kw">while let </span><span class="prelude-val">Some</span>(channel) = waiting_requests.pop() {
+					<span class="kw">let _ </span>= channel.send(result.clone());
 				}
 
-				<span class="comment">// Update cache entry</span>
-				<span class="ident">block_cache</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">CacheBlockState::Cached</span> { <span class="ident">traces</span>: <span class="ident">result</span> };
+				<span class="comment">// Update cache entry
+				</span>block_cache.state = CacheBlockState::Cached { traces: result };
 			}
 		}
 	}
 
-	<span class="doccomment">/// A batch expiration delay timer has completed. It performs the cache cleaning for blocks</span>
-	<span class="doccomment">/// not longer used by other batches.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="self">self</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">expired_batch</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">batch_id</span>: <span class="ident">CacheBatchId</span>) {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">batch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">batches</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">batch_id</span>.<span class="number">0</span>) {
-			<span class="kw">for</span> <span class="ident">block</span> <span class="kw">in</span> <span class="ident">batch</span> {
-				<span class="comment">// For each block of the batch, we remove it if it was the</span>
-				<span class="comment">// last batch containing it.</span>
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remove</span> <span class="op">=</span> <span class="bool-val">false</span>;
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block_cache</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>) {
-					<span class="ident">block_cache</span>.<span class="ident">active_batch_count</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+	<span class="doccomment">/// A batch expiration delay timer has completed. It performs the cache cleaning for blocks
+	/// not longer used by other batches.
+	</span><span class="attribute">#[instrument(skip(<span class="self">self</span>))]
+	</span><span class="kw">fn </span>expired_batch(<span class="kw-2">&amp;mut </span><span class="self">self</span>, batch_id: CacheBatchId) {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(batch) = <span class="self">self</span>.batches.remove(<span class="kw-2">&amp;</span>batch_id.<span class="number">0</span>) {
+			<span class="kw">for </span>block <span class="kw">in </span>batch {
+				<span class="comment">// For each block of the batch, we remove it if it was the
+				// last batch containing it.
+				</span><span class="kw">let </span><span class="kw-2">mut </span>remove = <span class="bool-val">false</span>;
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(block_cache) = <span class="self">self</span>.cached_blocks.get_mut(<span class="kw-2">&amp;</span>block) {
+					block_cache.active_batch_count -= <span class="number">1</span>;
 
-					<span class="kw">if</span> <span class="ident">block_cache</span>.<span class="ident">active_batch_count</span> <span class="op">==</span> <span class="number">0</span> {
-						<span class="ident">remove</span> <span class="op">=</span> <span class="bool-val">true</span>;
+					<span class="kw">if </span>block_cache.active_batch_count == <span class="number">0 </span>{
+						remove = <span class="bool-val">true</span>;
 					}
 				}
 
-				<span class="kw">if</span> <span class="ident">remove</span> {
-					<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">cached_blocks</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">block</span>);
+				<span class="kw">if </span>remove {
+					<span class="kw">let _ </span>= <span class="self">self</span>.cached_blocks.remove(<span class="kw-2">&amp;</span>block);
 				}
 			}
 		}
 	}
 
-	<span class="doccomment">/// (In blocking task) Use the Runtime API to trace the block.</span>
-	<span class="attribute">#[<span class="ident">instrument</span>(<span class="ident">skip</span>(<span class="ident">client</span>, <span class="ident">backend</span>, <span class="ident">overrides</span>))]</span>
-	<span class="kw">fn</span> <span class="ident">cache_block</span>(
-		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-		<span class="ident">substrate_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">TxsTraceRes</span> {
-		<span class="kw">let</span> <span class="ident">substrate_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="ident">substrate_hash</span>);
+	<span class="doccomment">/// (In blocking task) Use the Runtime API to trace the block.
+	</span><span class="attribute">#[instrument(skip(client, backend, overrides))]
+	</span><span class="kw">fn </span>cache_block(
+		client: Arc&lt;C&gt;,
+		backend: Arc&lt;BE&gt;,
+		substrate_hash: H256,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+	) -&gt; TxsTraceRes {
+		<span class="kw">let </span>substrate_block_id = BlockId::Hash(substrate_hash);
 
-		<span class="comment">// Get Subtrate block data.</span>
-		<span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">runtime_api</span>();
-		<span class="kw">let</span> <span class="ident">block_header</span> <span class="op">=</span> <span class="ident">client</span>
-			.<span class="ident">header</span>(<span class="ident">substrate_block_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+		<span class="comment">// Get Subtrate block data.
+		</span><span class="kw">let </span>api = client.runtime_api();
+		<span class="kw">let </span>block_header = client
+			.header(substrate_block_id)
+			.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Error when fetching substrate block {} header : {:?}&quot;</span>,
-					<span class="ident">substrate_hash</span>, <span class="ident">e</span>
+					substrate_hash, e
 				)
-			})<span class="question-mark">?</span>
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, <span class="ident">substrate_block_id</span>))<span class="question-mark">?</span>;
+			})<span class="question-mark">?
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Subtrate block {} don&#39;t exist&quot;</span>, substrate_block_id))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">number</span>();
-		<span class="kw">let</span> <span class="ident">substrate_parent_id</span> <span class="op">=</span> <span class="ident">BlockId</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="ident">::Hash</span>(<span class="kw-2">*</span><span class="ident">block_header</span>.<span class="ident">parent_hash</span>());
+		<span class="kw">let </span>height = <span class="kw-2">*</span>block_header.number();
+		<span class="kw">let </span>substrate_parent_id = BlockId::&lt;B&gt;::Hash(<span class="kw-2">*</span>block_header.parent_hash());
 
-		<span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">frontier_backend_client::onchain_storage_schema</span>::<span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(
-			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
-			<span class="ident">substrate_block_id</span>,
+		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
+			client.as_ref(),
+			substrate_block_id,
 		);
 
-		<span class="comment">// Get Ethereum block data.</span>
-		<span class="kw">let</span> (<span class="ident">eth_block</span>, <span class="ident">eth_transactions</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">overrides</span>.<span class="ident">schemas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">schema</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="kw">match</span> (
-				<span class="ident">schema</span>.<span class="ident">current_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>),
-				<span class="ident">schema</span>.<span class="ident">current_transaction_statuses</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_block_id</span>),
+		<span class="comment">// Get Ethereum block data.
+		</span><span class="kw">let </span>(eth_block, eth_transactions) = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
+			<span class="prelude-val">Some</span>(schema) =&gt; <span class="kw">match </span>(
+				schema.current_block(<span class="kw-2">&amp;</span>substrate_block_id),
+				schema.current_transaction_statuses(<span class="kw-2">&amp;</span>substrate_block_id),
 			) {
-				(<span class="prelude-val">Some</span>(<span class="ident">a</span>), <span class="prelude-val">Some</span>(<span class="ident">b</span>)) =&gt; (<span class="ident">a</span>, <span class="ident">b</span>),
-				<span class="kw">_</span> =&gt; {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+				(<span class="prelude-val">Some</span>(a), <span class="prelude-val">Some</span>(b)) =&gt; (a, b),
+				<span class="kw">_ </span>=&gt; {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(
 						<span class="string">&quot;Failed to get Ethereum block data for Substrate block {}&quot;</span>,
-						<span class="ident">substrate_block_id</span>
+						substrate_block_id
 					))
 				}
 			},
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No storage override at {:?}&quot;</span>, <span class="ident">substrate_block_id</span>)),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;No storage override at {:?}&quot;</span>, substrate_block_id)),
 		};
 
-		<span class="kw">let</span> <span class="ident">eth_block_hash</span> <span class="op">=</span> <span class="ident">eth_block</span>.<span class="ident">header</span>.<span class="ident">hash</span>();
-		<span class="kw">let</span> <span class="ident">eth_tx_hashes</span> <span class="op">=</span> <span class="ident">eth_transactions</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">transaction_hash</span>)
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>eth_block_hash = eth_block.header.hash();
+		<span class="kw">let </span>eth_tx_hashes = eth_transactions
+			.iter()
+			.map(|t| t.transaction_hash)
+			.collect();
 
-		<span class="comment">// Get extrinsics (containing Ethereum ones)</span>
-		<span class="kw">let</span> <span class="ident">extrinsics</span> <span class="op">=</span> <span class="ident">backend</span>
-			.<span class="ident">blockchain</span>()
-			.<span class="ident">body</span>(<span class="ident">substrate_block_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+		<span class="comment">// Get extrinsics (containing Ethereum ones)
+		</span><span class="kw">let </span>extrinsics = backend
+			.blockchain()
+			.body(substrate_block_id)
+			.map_err(|e| {
 				<span class="macro">format!</span>(
 					<span class="string">&quot;Blockchain error when fetching extrinsics of block {} : {:?}&quot;</span>,
-					<span class="ident">height</span>, <span class="ident">e</span>
+					height, e
 				)
-			})<span class="question-mark">?</span>
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Could not find block {} when fetching extrinsics.&quot;</span>, <span class="ident">height</span>))<span class="question-mark">?</span>;
+			})<span class="question-mark">?
+			</span>.ok_or_else(|| <span class="macro">format!</span>(<span class="string">&quot;Could not find block {} when fetching extrinsics.&quot;</span>, height))<span class="question-mark">?</span>;
 
-		<span class="comment">// Trace the block.</span>
-		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">String</span><span class="op">&gt;</span> {
-			<span class="ident">api</span>.<span class="ident">initialize_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_parent_id</span>, <span class="kw-2">&amp;</span><span class="ident">block_header</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>))<span class="question-mark">?</span>;
+		<span class="comment">// Trace the block.
+		</span><span class="kw">let </span>f = || -&gt; <span class="prelude-ty">Result</span>&lt;<span class="kw">_</span>, String&gt; {
+			api.initialize_block(<span class="kw-2">&amp;</span>substrate_parent_id, <span class="kw-2">&amp;</span>block_header)
+				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e))<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-				.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">substrate_parent_id</span>, <span class="ident">extrinsics</span>, <span class="ident">eth_tx_hashes</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>, <span class="ident">height</span>, <span class="ident">e</span>))<span class="question-mark">?</span>
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+			<span class="kw">let </span>_result = api
+				.trace_block(<span class="kw-2">&amp;</span>substrate_parent_id, extrinsics, eth_tx_hashes)
+				.map_err(|e| <span class="macro">format!</span>(<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>, height, e))<span class="question-mark">?
+				</span>.map_err(|e| {
 					<span class="macro">tracing::warn!</span>(
 						<span class="string">&quot;Internal runtime error when replaying block {} : {:?}&quot;</span>,
-						<span class="ident">height</span>,
-						<span class="ident">e</span>
+						height,
+						e
 					);
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Internal runtime error when replaying block {} : {:?}&quot;</span>,
-						<span class="ident">height</span>, <span class="ident">e</span>
+						height, e
 					)
 				})<span class="question-mark">?</span>;
-			<span class="prelude-val">Ok</span>(<span class="ident">moonbeam_rpc_primitives_debug::Response::Block</span>)
+			<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">moonbeam_client_evm_tracing::listeners::CallList::default</span>();
-		<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">traces</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">moonbeam_client_evm_tracing::formatters::TraceFilter::format</span>(<span class="ident">proxy</span>)
-				.<span class="ident">ok_or</span>(<span class="string">&quot;Fail to format proxy&quot;</span>)<span class="question-mark">?</span>;
-		<span class="comment">// Fill missing data.</span>
-		<span class="kw">for</span> <span class="ident">trace</span> <span class="kw">in</span> <span class="ident">traces</span>.<span class="ident">iter_mut</span>() {
-			<span class="ident">trace</span>.<span class="ident">block_hash</span> <span class="op">=</span> <span class="ident">eth_block_hash</span>;
-			<span class="ident">trace</span>.<span class="ident">block_number</span> <span class="op">=</span> <span class="ident">height</span>;
-			<span class="ident">trace</span>.<span class="ident">transaction_hash</span> <span class="op">=</span> <span class="ident">eth_transactions</span>
-				.<span class="ident">get</span>(<span class="ident">trace</span>.<span class="ident">transaction_position</span> <span class="kw">as</span> <span class="ident">usize</span>)
-				.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+		<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+		proxy.using(f)<span class="question-mark">?</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>traces: Vec&lt;<span class="kw">_</span>&gt; =
+			moonbeam_client_evm_tracing::formatters::TraceFilter::format(proxy)
+				.ok_or(<span class="string">&quot;Fail to format proxy&quot;</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Fill missing data.
+		</span><span class="kw">for </span>trace <span class="kw">in </span>traces.iter_mut() {
+			trace.block_hash = eth_block_hash;
+			trace.block_number = height;
+			trace.transaction_hash = eth_transactions
+				.get(trace.transaction_position <span class="kw">as </span>usize)
+				.ok_or_else(|| {
 					<span class="macro">tracing::warn!</span>(
 						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
-						<span class="ident">height</span>
+						height
 					);
 
 					<span class="macro">format!</span>(
 						<span class="string">&quot;Bug: A transaction has been replayed while it shouldn&#39;t (in block {}).&quot;</span>,
-						<span class="ident">height</span>
+						height
 					)
-				})<span class="question-mark">?</span>
-				.<span class="ident">transaction_hash</span>;
+				})<span class="question-mark">?
+				</span>.transaction_hash;
 
-			<span class="comment">// Reformat error messages.</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">block::TransactionTraceOutput::Error</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">error</span>) <span class="op">=</span> <span class="ident">trace</span>.<span class="ident">output</span> {
-				<span class="kw">if</span> <span class="ident">error</span>.<span class="ident">as_slice</span>() <span class="op">==</span> <span class="string">b&quot;execution reverted&quot;</span> {
-					<span class="kw-2">*</span><span class="ident">error</span> <span class="op">=</span> <span class="string">b&quot;Reverted&quot;</span>.<span class="ident">to_vec</span>();
+			<span class="comment">// Reformat error messages.
+			</span><span class="kw">if let </span>block::TransactionTraceOutput::Error(<span class="kw-2">ref mut </span>error) = trace.output {
+				<span class="kw">if </span>error.as_slice() == <span class="string">b&quot;execution reverted&quot; </span>{
+					<span class="kw-2">*</span>error = <span class="string">b&quot;Reverted&quot;</span>.to_vec();
 				}
 			}
 		}
-		<span class="prelude-val">Ok</span>(<span class="ident">traces</span>)
+		<span class="prelude-val">Ok</span>(traces)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_trace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_trace" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

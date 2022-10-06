@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["GasometerEvent",""]],"struct":[["Snapshot",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["GasometerEvent",""]],"struct":[["Snapshot",""]]};

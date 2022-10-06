@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/rpc/evm-tracing-events/src/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../evm_tracing_events/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `primitives/rpc/evm-tracing-events/src/runtime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>runtime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../evm_tracing_events/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../evm_tracing_events/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -329,332 +324,331 @@
 <span id="324">324</span>
 <span id="325">325</span>
 <span id="326">326</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+</span><span class="kw">extern crate </span>alloc;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Context</span>;
-<span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
-<span class="kw">use</span> <span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>};
-<span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">evm</span>::{<span class="ident">ExitError</span>, <span class="ident">ExitReason</span>, <span class="ident">ExitSucceed</span>, <span class="ident">Opcode</span>};
+<span class="kw">use </span><span class="kw">super</span>::Context;
+<span class="kw">use </span>alloc::vec::Vec;
+<span class="kw">use </span>codec::{Decode, Encode};
+<span class="kw">use </span>ethereum_types::{H160, H256, U256};
+<span class="kw">pub use </span>evm::{ExitError, ExitReason, ExitSucceed, Opcode};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Stack</span> {
-	<span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">limit</span>: <span class="ident">u64</span>,
+<span class="attribute">#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Stack {
+	<span class="kw">pub </span>data: Vec&lt;H256&gt;,
+	<span class="kw">pub </span>limit: u64,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">evm::Stack</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Stack</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">evm::Stack</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">i</span>.<span class="ident">data</span>().<span class="ident">clone</span>(),
-			<span class="ident">limit</span>: <span class="ident">i</span>.<span class="ident">limit</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>evm::Stack&gt; <span class="kw">for </span>Stack {
+	<span class="kw">fn </span>from(i: <span class="kw-2">&amp;</span>evm::Stack) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: i.data().clone(),
+			limit: i.limit() <span class="kw">as </span>u64,
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Memory</span> {
-	<span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">effective_len</span>: <span class="ident">U256</span>,
-	<span class="kw">pub</span> <span class="ident">limit</span>: <span class="ident">u64</span>,
+<span class="attribute">#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+</span><span class="kw">pub struct </span>Memory {
+	<span class="kw">pub </span>data: Vec&lt;u8&gt;,
+	<span class="kw">pub </span>effective_len: U256,
+	<span class="kw">pub </span>limit: u64,
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">evm::Memory</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Memory</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="kw-2">&amp;</span><span class="ident">evm::Memory</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">i</span>.<span class="ident">data</span>().<span class="ident">clone</span>(),
-			<span class="ident">effective_len</span>: <span class="ident">i</span>.<span class="ident">effective_len</span>(),
-			<span class="ident">limit</span>: <span class="ident">i</span>.<span class="ident">limit</span>() <span class="kw">as</span> <span class="ident">u64</span>,
+<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>evm::Memory&gt; <span class="kw">for </span>Memory {
+	<span class="kw">fn </span>from(i: <span class="kw-2">&amp;</span>evm::Memory) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: i.data().clone(),
+			effective_len: i.effective_len(),
+			limit: i.limit() <span class="kw">as </span>u64,
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Capture</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="doccomment">/// The machine has exited. It cannot be executed again.</span>
-	<span class="ident">Exit</span>(<span class="ident">E</span>),
-	<span class="doccomment">/// The machine has trapped. It is waiting for external information, and can</span>
-	<span class="doccomment">/// be executed again.</span>
-	<span class="ident">Trap</span>(<span class="ident">T</span>),
+<span class="attribute">#[derive(Clone, Copy, Debug, Eq, PartialEq, Encode, Decode)]
+</span><span class="kw">pub enum </span>Capture&lt;E, T&gt; {
+	<span class="doccomment">/// The machine has exited. It cannot be executed again.
+	</span>Exit(E),
+	<span class="doccomment">/// The machine has trapped. It is waiting for external information, and can
+	/// be executed again.
+	</span>Trap(T),
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Trap</span> <span class="op">=</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>; <span class="comment">// Should hold the marshalled Opcode.</span>
+<span class="kw">pub type </span>Trap = Vec&lt;u8&gt;; <span class="comment">// Should hold the marshalled Opcode.
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RuntimeEvent</span> {
-	<span class="ident">Step</span> {
-		<span class="ident">context</span>: <span class="ident">Context</span>,
-		<span class="comment">// This needs to be marshalled in the runtime no matter what.</span>
-		<span class="ident">opcode</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="comment">// We can use ExitReason with `with-codec` feature,</span>
-		<span class="ident">position</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, <span class="ident">ExitReason</span><span class="op">&gt;</span>,
-		<span class="ident">stack</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Stack</span><span class="op">&gt;</span>,
-		<span class="ident">memory</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Memory</span><span class="op">&gt;</span>,
+</span><span class="attribute">#[derive(Debug, Clone, Encode, Decode, PartialEq, Eq)]
+</span><span class="kw">pub enum </span>RuntimeEvent {
+	Step {
+		context: Context,
+		<span class="comment">// This needs to be marshalled in the runtime no matter what.
+		</span>opcode: Vec&lt;u8&gt;,
+		<span class="comment">// We can use ExitReason with `with-codec` feature,
+		</span>position: <span class="prelude-ty">Result</span>&lt;u64, ExitReason&gt;,
+		stack: <span class="prelude-ty">Option</span>&lt;Stack&gt;,
+		memory: <span class="prelude-ty">Option</span>&lt;Memory&gt;,
 	},
-	<span class="ident">StepResult</span> {
-		<span class="ident">result</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Capture</span><span class="op">&lt;</span><span class="ident">ExitReason</span>, <span class="ident">Trap</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">return_value</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
+	StepResult {
+		result: <span class="prelude-ty">Result</span>&lt;(), Capture&lt;ExitReason, Trap&gt;&gt;,
+		return_value: Vec&lt;u8&gt;,
 	},
-	<span class="ident">SLoad</span> {
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">index</span>: <span class="ident">H256</span>,
-		<span class="ident">value</span>: <span class="ident">H256</span>,
+	SLoad {
+		address: H160,
+		index: H256,
+		value: H256,
 	},
-	<span class="ident">SStore</span> {
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">index</span>: <span class="ident">H256</span>,
-		<span class="ident">value</span>: <span class="ident">H256</span>,
+	SStore {
+		address: H160,
+		index: H256,
+		value: H256,
 	},
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-<span class="kw">impl</span> <span class="ident">RuntimeEvent</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_evm_event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-		<span class="ident">i</span>: <span class="ident">evm_runtime::tracing::Event</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-		<span class="ident">filter</span>: <span class="ident"><span class="kw">crate</span>::StepEventFilter</span>,
-	) -&gt; <span class="self">Self</span> {
-		<span class="kw">match</span> <span class="ident">i</span> {
-			<span class="ident">evm_runtime::tracing::Event::Step</span> {
-				<span class="ident">context</span>,
-				<span class="ident">opcode</span>,
-				<span class="ident">position</span>,
-				<span class="ident">stack</span>,
-				<span class="ident">memory</span>,
-			} =&gt; <span class="ident"><span class="self">Self</span>::Step</span> {
-				<span class="ident">context</span>: <span class="ident">context</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-				<span class="ident">opcode</span>: <span class="ident">opcodes_string</span>(<span class="ident">opcode</span>),
-				<span class="ident">position</span>: <span class="kw">match</span> <span class="ident">position</span> {
-					<span class="prelude-val">Ok</span>(<span class="ident">position</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">position</span> <span class="kw">as</span> <span class="ident">u64</span>),
-					<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>.<span class="ident">clone</span>()),
+<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+</span><span class="kw">impl </span>RuntimeEvent {
+	<span class="kw">pub fn </span>from_evm_event&lt;<span class="lifetime">&#39;a</span>&gt;(
+		i: evm_runtime::tracing::Event&lt;<span class="lifetime">&#39;a</span>&gt;,
+		filter: <span class="kw">crate</span>::StepEventFilter,
+	) -&gt; <span class="self">Self </span>{
+		<span class="kw">match </span>i {
+			evm_runtime::tracing::Event::Step {
+				context,
+				opcode,
+				position,
+				stack,
+				memory,
+			} =&gt; <span class="self">Self</span>::Step {
+				context: context.clone().into(),
+				opcode: opcodes_string(opcode),
+				position: <span class="kw">match </span>position {
+					<span class="prelude-val">Ok</span>(position) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span>position <span class="kw">as </span>u64),
+					<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e.clone()),
 				},
-				<span class="ident">stack</span>: <span class="kw">if</span> <span class="ident">filter</span>.<span class="ident">enable_stack</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">stack</span>.<span class="ident">into</span>())
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				},
-				<span class="ident">memory</span>: <span class="kw">if</span> <span class="ident">filter</span>.<span class="ident">enable_memory</span> {
-					<span class="prelude-val">Some</span>(<span class="ident">memory</span>.<span class="ident">into</span>())
-				} <span class="kw">else</span> {
-					<span class="prelude-val">None</span>
-				},
+				stack: <span class="kw">if </span>filter.enable_stack {
+					<span class="prelude-val">Some</span>(stack.into())
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>},
+				memory: <span class="kw">if </span>filter.enable_memory {
+					<span class="prelude-val">Some</span>(memory.into())
+				} <span class="kw">else </span>{
+					<span class="prelude-val">None
+				</span>},
 			},
-			<span class="ident">evm_runtime::tracing::Event::StepResult</span> {
-				<span class="ident">result</span>,
-				<span class="ident">return_value</span>,
-			} =&gt; <span class="ident"><span class="self">Self</span>::StepResult</span> {
-				<span class="ident">result</span>: <span class="kw">match</span> <span class="ident">result</span> {
+			evm_runtime::tracing::Event::StepResult {
+				result,
+				return_value,
+			} =&gt; <span class="self">Self</span>::StepResult {
+				result: <span class="kw">match </span>result {
 					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(()),
-					<span class="prelude-val">Err</span>(<span class="ident">capture</span>) =&gt; <span class="kw">match</span> <span class="ident">capture</span> {
-						<span class="ident">evm::Capture::Exit</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Capture::Exit</span>(<span class="ident">e</span>.<span class="ident">clone</span>())),
-						<span class="ident">evm::Capture::Trap</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Capture::Trap</span>(<span class="ident">opcodes_string</span>(<span class="kw-2">*</span><span class="ident">t</span>))),
+					<span class="prelude-val">Err</span>(capture) =&gt; <span class="kw">match </span>capture {
+						evm::Capture::Exit(e) =&gt; <span class="prelude-val">Err</span>(Capture::Exit(e.clone())),
+						evm::Capture::Trap(t) =&gt; <span class="prelude-val">Err</span>(Capture::Trap(opcodes_string(<span class="kw-2">*</span>t))),
 					},
 				},
-				<span class="ident">return_value</span>: <span class="ident">return_value</span>.<span class="ident">to_vec</span>(),
+				return_value: return_value.to_vec(),
 			},
-			<span class="ident">evm_runtime::tracing::Event::SLoad</span> {
-				<span class="ident">address</span>,
-				<span class="ident">index</span>,
-				<span class="ident">value</span>,
-			} =&gt; <span class="ident"><span class="self">Self</span>::SLoad</span> {
-				<span class="ident">address</span>,
-				<span class="ident">index</span>,
-				<span class="ident">value</span>,
+			evm_runtime::tracing::Event::SLoad {
+				address,
+				index,
+				value,
+			} =&gt; <span class="self">Self</span>::SLoad {
+				address,
+				index,
+				value,
 			},
-			<span class="ident">evm_runtime::tracing::Event::SStore</span> {
-				<span class="ident">address</span>,
-				<span class="ident">index</span>,
-				<span class="ident">value</span>,
-			} =&gt; <span class="ident"><span class="self">Self</span>::SStore</span> {
-				<span class="ident">address</span>,
-				<span class="ident">index</span>,
-				<span class="ident">value</span>,
+			evm_runtime::tracing::Event::SStore {
+				address,
+				index,
+				value,
+			} =&gt; <span class="self">Self</span>::SStore {
+				address,
+				index,
+				value,
 			},
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;evm-tracing&quot;</span>)]</span>
-<span class="doccomment">/// Converts an Opcode into its name, stored in a `Vec&lt;u8&gt;`.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">opcodes_string</span>(<span class="ident">opcode</span>: <span class="ident">Opcode</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">tmp</span>;
-	<span class="kw">let</span> <span class="ident">out</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">opcode</span> {
-		<span class="ident">Opcode</span>(<span class="number">0</span>) =&gt; <span class="string">&quot;Stop&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">1</span>) =&gt; <span class="string">&quot;Add&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">2</span>) =&gt; <span class="string">&quot;Mul&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">3</span>) =&gt; <span class="string">&quot;Sub&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">4</span>) =&gt; <span class="string">&quot;Div&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">5</span>) =&gt; <span class="string">&quot;SDiv&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">6</span>) =&gt; <span class="string">&quot;Mod&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">7</span>) =&gt; <span class="string">&quot;SMod&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">8</span>) =&gt; <span class="string">&quot;AddMod&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">9</span>) =&gt; <span class="string">&quot;MulMod&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">10</span>) =&gt; <span class="string">&quot;Exp&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">11</span>) =&gt; <span class="string">&quot;SignExtend&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">16</span>) =&gt; <span class="string">&quot;Lt&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">17</span>) =&gt; <span class="string">&quot;Gt&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">18</span>) =&gt; <span class="string">&quot;Slt&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">19</span>) =&gt; <span class="string">&quot;Sgt&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">20</span>) =&gt; <span class="string">&quot;Eq&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">21</span>) =&gt; <span class="string">&quot;IsZero&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">22</span>) =&gt; <span class="string">&quot;And&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">23</span>) =&gt; <span class="string">&quot;Or&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">24</span>) =&gt; <span class="string">&quot;Xor&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">25</span>) =&gt; <span class="string">&quot;Not&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">26</span>) =&gt; <span class="string">&quot;Byte&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">27</span>) =&gt; <span class="string">&quot;Shl&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">28</span>) =&gt; <span class="string">&quot;Shr&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">29</span>) =&gt; <span class="string">&quot;Sar&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">32</span>) =&gt; <span class="string">&quot;Keccak256&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">48</span>) =&gt; <span class="string">&quot;Address&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">49</span>) =&gt; <span class="string">&quot;Balance&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">50</span>) =&gt; <span class="string">&quot;Origin&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">51</span>) =&gt; <span class="string">&quot;Caller&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">52</span>) =&gt; <span class="string">&quot;CallValue&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">53</span>) =&gt; <span class="string">&quot;CallDataLoad&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">54</span>) =&gt; <span class="string">&quot;CallDataSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">55</span>) =&gt; <span class="string">&quot;CallDataCopy&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">56</span>) =&gt; <span class="string">&quot;CodeSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">57</span>) =&gt; <span class="string">&quot;CodeCopy&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">58</span>) =&gt; <span class="string">&quot;GasPrice&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">59</span>) =&gt; <span class="string">&quot;ExtCodeSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">60</span>) =&gt; <span class="string">&quot;ExtCodeCopy&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">61</span>) =&gt; <span class="string">&quot;ReturnDataSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">62</span>) =&gt; <span class="string">&quot;ReturnDataCopy&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">63</span>) =&gt; <span class="string">&quot;ExtCodeHash&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">64</span>) =&gt; <span class="string">&quot;BlockHash&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">65</span>) =&gt; <span class="string">&quot;Coinbase&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">66</span>) =&gt; <span class="string">&quot;Timestamp&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">67</span>) =&gt; <span class="string">&quot;Number&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">68</span>) =&gt; <span class="string">&quot;Difficulty&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">69</span>) =&gt; <span class="string">&quot;GasLimit&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">70</span>) =&gt; <span class="string">&quot;ChainId&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">80</span>) =&gt; <span class="string">&quot;Pop&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">81</span>) =&gt; <span class="string">&quot;MLoad&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">82</span>) =&gt; <span class="string">&quot;MStore&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">83</span>) =&gt; <span class="string">&quot;MStore8&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">84</span>) =&gt; <span class="string">&quot;SLoad&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">85</span>) =&gt; <span class="string">&quot;SStore&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">86</span>) =&gt; <span class="string">&quot;Jump&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">87</span>) =&gt; <span class="string">&quot;JumpI&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">88</span>) =&gt; <span class="string">&quot;GetPc&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">89</span>) =&gt; <span class="string">&quot;MSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">90</span>) =&gt; <span class="string">&quot;Gas&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">91</span>) =&gt; <span class="string">&quot;JumpDest&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">96</span>) =&gt; <span class="string">&quot;Push1&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">97</span>) =&gt; <span class="string">&quot;Push2&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">98</span>) =&gt; <span class="string">&quot;Push3&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">99</span>) =&gt; <span class="string">&quot;Push4&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">100</span>) =&gt; <span class="string">&quot;Push5&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">101</span>) =&gt; <span class="string">&quot;Push6&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">102</span>) =&gt; <span class="string">&quot;Push7&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">103</span>) =&gt; <span class="string">&quot;Push8&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">104</span>) =&gt; <span class="string">&quot;Push9&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">105</span>) =&gt; <span class="string">&quot;Push10&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">106</span>) =&gt; <span class="string">&quot;Push11&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">107</span>) =&gt; <span class="string">&quot;Push12&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">108</span>) =&gt; <span class="string">&quot;Push13&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">109</span>) =&gt; <span class="string">&quot;Push14&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">110</span>) =&gt; <span class="string">&quot;Push15&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">111</span>) =&gt; <span class="string">&quot;Push16&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">112</span>) =&gt; <span class="string">&quot;Push17&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">113</span>) =&gt; <span class="string">&quot;Push18&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">114</span>) =&gt; <span class="string">&quot;Push19&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">115</span>) =&gt; <span class="string">&quot;Push20&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">116</span>) =&gt; <span class="string">&quot;Push21&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">117</span>) =&gt; <span class="string">&quot;Push22&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">118</span>) =&gt; <span class="string">&quot;Push23&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">119</span>) =&gt; <span class="string">&quot;Push24&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">120</span>) =&gt; <span class="string">&quot;Push25&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">121</span>) =&gt; <span class="string">&quot;Push26&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">122</span>) =&gt; <span class="string">&quot;Push27&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">123</span>) =&gt; <span class="string">&quot;Push28&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">124</span>) =&gt; <span class="string">&quot;Push29&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">125</span>) =&gt; <span class="string">&quot;Push30&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">126</span>) =&gt; <span class="string">&quot;Push31&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">127</span>) =&gt; <span class="string">&quot;Push32&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">128</span>) =&gt; <span class="string">&quot;Dup1&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">129</span>) =&gt; <span class="string">&quot;Dup2&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">130</span>) =&gt; <span class="string">&quot;Dup3&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">131</span>) =&gt; <span class="string">&quot;Dup4&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">132</span>) =&gt; <span class="string">&quot;Dup5&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">133</span>) =&gt; <span class="string">&quot;Dup6&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">134</span>) =&gt; <span class="string">&quot;Dup7&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">135</span>) =&gt; <span class="string">&quot;Dup8&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">136</span>) =&gt; <span class="string">&quot;Dup9&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">137</span>) =&gt; <span class="string">&quot;Dup10&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">138</span>) =&gt; <span class="string">&quot;Dup11&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">139</span>) =&gt; <span class="string">&quot;Dup12&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">140</span>) =&gt; <span class="string">&quot;Dup13&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">141</span>) =&gt; <span class="string">&quot;Dup14&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">142</span>) =&gt; <span class="string">&quot;Dup15&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">143</span>) =&gt; <span class="string">&quot;Dup16&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">144</span>) =&gt; <span class="string">&quot;Swap1&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">145</span>) =&gt; <span class="string">&quot;Swap2&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">146</span>) =&gt; <span class="string">&quot;Swap3&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">147</span>) =&gt; <span class="string">&quot;Swap4&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">148</span>) =&gt; <span class="string">&quot;Swap5&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">149</span>) =&gt; <span class="string">&quot;Swap6&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">150</span>) =&gt; <span class="string">&quot;Swap7&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">151</span>) =&gt; <span class="string">&quot;Swap8&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">152</span>) =&gt; <span class="string">&quot;Swap9&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">153</span>) =&gt; <span class="string">&quot;Swap10&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">154</span>) =&gt; <span class="string">&quot;Swap11&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">155</span>) =&gt; <span class="string">&quot;Swap12&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">156</span>) =&gt; <span class="string">&quot;Swap13&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">157</span>) =&gt; <span class="string">&quot;Swap14&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">158</span>) =&gt; <span class="string">&quot;Swap15&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">159</span>) =&gt; <span class="string">&quot;Swap16&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">160</span>) =&gt; <span class="string">&quot;Log0&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">161</span>) =&gt; <span class="string">&quot;Log1&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">162</span>) =&gt; <span class="string">&quot;Log2&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">163</span>) =&gt; <span class="string">&quot;Log3&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">164</span>) =&gt; <span class="string">&quot;Log4&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">176</span>) =&gt; <span class="string">&quot;JumpTo&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">177</span>) =&gt; <span class="string">&quot;JumpIf&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">178</span>) =&gt; <span class="string">&quot;JumpSub&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">180</span>) =&gt; <span class="string">&quot;JumpSubv&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">181</span>) =&gt; <span class="string">&quot;BeginSub&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">182</span>) =&gt; <span class="string">&quot;BeginData&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">184</span>) =&gt; <span class="string">&quot;ReturnSub&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">185</span>) =&gt; <span class="string">&quot;PutLocal&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">186</span>) =&gt; <span class="string">&quot;GetLocal&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">225</span>) =&gt; <span class="string">&quot;SLoadBytes&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">226</span>) =&gt; <span class="string">&quot;SStoreBytes&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">227</span>) =&gt; <span class="string">&quot;SSize&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">240</span>) =&gt; <span class="string">&quot;Create&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">241</span>) =&gt; <span class="string">&quot;Call&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">242</span>) =&gt; <span class="string">&quot;CallCode&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">243</span>) =&gt; <span class="string">&quot;Return&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">244</span>) =&gt; <span class="string">&quot;DelegateCall&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">245</span>) =&gt; <span class="string">&quot;Create2&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">250</span>) =&gt; <span class="string">&quot;StaticCall&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">252</span>) =&gt; <span class="string">&quot;TxExecGas&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">253</span>) =&gt; <span class="string">&quot;Revert&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">254</span>) =&gt; <span class="string">&quot;Invalid&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="number">255</span>) =&gt; <span class="string">&quot;SelfDestruct&quot;</span>,
-		<span class="ident">Opcode</span>(<span class="ident">n</span>) =&gt; {
-			<span class="ident">tmp</span> <span class="op">=</span> <span class="macro">alloc::format!</span>(<span class="string">&quot;Unknown({})&quot;</span>, <span class="ident">n</span>);
-			<span class="kw-2">&amp;</span><span class="ident">tmp</span>
+<span class="attribute">#[cfg(feature = <span class="string">&quot;evm-tracing&quot;</span>)]
+</span><span class="doccomment">/// Converts an Opcode into its name, stored in a `Vec&lt;u8&gt;`.
+</span><span class="kw">pub fn </span>opcodes_string(opcode: Opcode) -&gt; Vec&lt;u8&gt; {
+	<span class="kw">let </span>tmp;
+	<span class="kw">let </span>out = <span class="kw">match </span>opcode {
+		Opcode(<span class="number">0</span>) =&gt; <span class="string">&quot;Stop&quot;</span>,
+		Opcode(<span class="number">1</span>) =&gt; <span class="string">&quot;Add&quot;</span>,
+		Opcode(<span class="number">2</span>) =&gt; <span class="string">&quot;Mul&quot;</span>,
+		Opcode(<span class="number">3</span>) =&gt; <span class="string">&quot;Sub&quot;</span>,
+		Opcode(<span class="number">4</span>) =&gt; <span class="string">&quot;Div&quot;</span>,
+		Opcode(<span class="number">5</span>) =&gt; <span class="string">&quot;SDiv&quot;</span>,
+		Opcode(<span class="number">6</span>) =&gt; <span class="string">&quot;Mod&quot;</span>,
+		Opcode(<span class="number">7</span>) =&gt; <span class="string">&quot;SMod&quot;</span>,
+		Opcode(<span class="number">8</span>) =&gt; <span class="string">&quot;AddMod&quot;</span>,
+		Opcode(<span class="number">9</span>) =&gt; <span class="string">&quot;MulMod&quot;</span>,
+		Opcode(<span class="number">10</span>) =&gt; <span class="string">&quot;Exp&quot;</span>,
+		Opcode(<span class="number">11</span>) =&gt; <span class="string">&quot;SignExtend&quot;</span>,
+		Opcode(<span class="number">16</span>) =&gt; <span class="string">&quot;Lt&quot;</span>,
+		Opcode(<span class="number">17</span>) =&gt; <span class="string">&quot;Gt&quot;</span>,
+		Opcode(<span class="number">18</span>) =&gt; <span class="string">&quot;Slt&quot;</span>,
+		Opcode(<span class="number">19</span>) =&gt; <span class="string">&quot;Sgt&quot;</span>,
+		Opcode(<span class="number">20</span>) =&gt; <span class="string">&quot;Eq&quot;</span>,
+		Opcode(<span class="number">21</span>) =&gt; <span class="string">&quot;IsZero&quot;</span>,
+		Opcode(<span class="number">22</span>) =&gt; <span class="string">&quot;And&quot;</span>,
+		Opcode(<span class="number">23</span>) =&gt; <span class="string">&quot;Or&quot;</span>,
+		Opcode(<span class="number">24</span>) =&gt; <span class="string">&quot;Xor&quot;</span>,
+		Opcode(<span class="number">25</span>) =&gt; <span class="string">&quot;Not&quot;</span>,
+		Opcode(<span class="number">26</span>) =&gt; <span class="string">&quot;Byte&quot;</span>,
+		Opcode(<span class="number">27</span>) =&gt; <span class="string">&quot;Shl&quot;</span>,
+		Opcode(<span class="number">28</span>) =&gt; <span class="string">&quot;Shr&quot;</span>,
+		Opcode(<span class="number">29</span>) =&gt; <span class="string">&quot;Sar&quot;</span>,
+		Opcode(<span class="number">32</span>) =&gt; <span class="string">&quot;Keccak256&quot;</span>,
+		Opcode(<span class="number">48</span>) =&gt; <span class="string">&quot;Address&quot;</span>,
+		Opcode(<span class="number">49</span>) =&gt; <span class="string">&quot;Balance&quot;</span>,
+		Opcode(<span class="number">50</span>) =&gt; <span class="string">&quot;Origin&quot;</span>,
+		Opcode(<span class="number">51</span>) =&gt; <span class="string">&quot;Caller&quot;</span>,
+		Opcode(<span class="number">52</span>) =&gt; <span class="string">&quot;CallValue&quot;</span>,
+		Opcode(<span class="number">53</span>) =&gt; <span class="string">&quot;CallDataLoad&quot;</span>,
+		Opcode(<span class="number">54</span>) =&gt; <span class="string">&quot;CallDataSize&quot;</span>,
+		Opcode(<span class="number">55</span>) =&gt; <span class="string">&quot;CallDataCopy&quot;</span>,
+		Opcode(<span class="number">56</span>) =&gt; <span class="string">&quot;CodeSize&quot;</span>,
+		Opcode(<span class="number">57</span>) =&gt; <span class="string">&quot;CodeCopy&quot;</span>,
+		Opcode(<span class="number">58</span>) =&gt; <span class="string">&quot;GasPrice&quot;</span>,
+		Opcode(<span class="number">59</span>) =&gt; <span class="string">&quot;ExtCodeSize&quot;</span>,
+		Opcode(<span class="number">60</span>) =&gt; <span class="string">&quot;ExtCodeCopy&quot;</span>,
+		Opcode(<span class="number">61</span>) =&gt; <span class="string">&quot;ReturnDataSize&quot;</span>,
+		Opcode(<span class="number">62</span>) =&gt; <span class="string">&quot;ReturnDataCopy&quot;</span>,
+		Opcode(<span class="number">63</span>) =&gt; <span class="string">&quot;ExtCodeHash&quot;</span>,
+		Opcode(<span class="number">64</span>) =&gt; <span class="string">&quot;BlockHash&quot;</span>,
+		Opcode(<span class="number">65</span>) =&gt; <span class="string">&quot;Coinbase&quot;</span>,
+		Opcode(<span class="number">66</span>) =&gt; <span class="string">&quot;Timestamp&quot;</span>,
+		Opcode(<span class="number">67</span>) =&gt; <span class="string">&quot;Number&quot;</span>,
+		Opcode(<span class="number">68</span>) =&gt; <span class="string">&quot;Difficulty&quot;</span>,
+		Opcode(<span class="number">69</span>) =&gt; <span class="string">&quot;GasLimit&quot;</span>,
+		Opcode(<span class="number">70</span>) =&gt; <span class="string">&quot;ChainId&quot;</span>,
+		Opcode(<span class="number">80</span>) =&gt; <span class="string">&quot;Pop&quot;</span>,
+		Opcode(<span class="number">81</span>) =&gt; <span class="string">&quot;MLoad&quot;</span>,
+		Opcode(<span class="number">82</span>) =&gt; <span class="string">&quot;MStore&quot;</span>,
+		Opcode(<span class="number">83</span>) =&gt; <span class="string">&quot;MStore8&quot;</span>,
+		Opcode(<span class="number">84</span>) =&gt; <span class="string">&quot;SLoad&quot;</span>,
+		Opcode(<span class="number">85</span>) =&gt; <span class="string">&quot;SStore&quot;</span>,
+		Opcode(<span class="number">86</span>) =&gt; <span class="string">&quot;Jump&quot;</span>,
+		Opcode(<span class="number">87</span>) =&gt; <span class="string">&quot;JumpI&quot;</span>,
+		Opcode(<span class="number">88</span>) =&gt; <span class="string">&quot;GetPc&quot;</span>,
+		Opcode(<span class="number">89</span>) =&gt; <span class="string">&quot;MSize&quot;</span>,
+		Opcode(<span class="number">90</span>) =&gt; <span class="string">&quot;Gas&quot;</span>,
+		Opcode(<span class="number">91</span>) =&gt; <span class="string">&quot;JumpDest&quot;</span>,
+		Opcode(<span class="number">96</span>) =&gt; <span class="string">&quot;Push1&quot;</span>,
+		Opcode(<span class="number">97</span>) =&gt; <span class="string">&quot;Push2&quot;</span>,
+		Opcode(<span class="number">98</span>) =&gt; <span class="string">&quot;Push3&quot;</span>,
+		Opcode(<span class="number">99</span>) =&gt; <span class="string">&quot;Push4&quot;</span>,
+		Opcode(<span class="number">100</span>) =&gt; <span class="string">&quot;Push5&quot;</span>,
+		Opcode(<span class="number">101</span>) =&gt; <span class="string">&quot;Push6&quot;</span>,
+		Opcode(<span class="number">102</span>) =&gt; <span class="string">&quot;Push7&quot;</span>,
+		Opcode(<span class="number">103</span>) =&gt; <span class="string">&quot;Push8&quot;</span>,
+		Opcode(<span class="number">104</span>) =&gt; <span class="string">&quot;Push9&quot;</span>,
+		Opcode(<span class="number">105</span>) =&gt; <span class="string">&quot;Push10&quot;</span>,
+		Opcode(<span class="number">106</span>) =&gt; <span class="string">&quot;Push11&quot;</span>,
+		Opcode(<span class="number">107</span>) =&gt; <span class="string">&quot;Push12&quot;</span>,
+		Opcode(<span class="number">108</span>) =&gt; <span class="string">&quot;Push13&quot;</span>,
+		Opcode(<span class="number">109</span>) =&gt; <span class="string">&quot;Push14&quot;</span>,
+		Opcode(<span class="number">110</span>) =&gt; <span class="string">&quot;Push15&quot;</span>,
+		Opcode(<span class="number">111</span>) =&gt; <span class="string">&quot;Push16&quot;</span>,
+		Opcode(<span class="number">112</span>) =&gt; <span class="string">&quot;Push17&quot;</span>,
+		Opcode(<span class="number">113</span>) =&gt; <span class="string">&quot;Push18&quot;</span>,
+		Opcode(<span class="number">114</span>) =&gt; <span class="string">&quot;Push19&quot;</span>,
+		Opcode(<span class="number">115</span>) =&gt; <span class="string">&quot;Push20&quot;</span>,
+		Opcode(<span class="number">116</span>) =&gt; <span class="string">&quot;Push21&quot;</span>,
+		Opcode(<span class="number">117</span>) =&gt; <span class="string">&quot;Push22&quot;</span>,
+		Opcode(<span class="number">118</span>) =&gt; <span class="string">&quot;Push23&quot;</span>,
+		Opcode(<span class="number">119</span>) =&gt; <span class="string">&quot;Push24&quot;</span>,
+		Opcode(<span class="number">120</span>) =&gt; <span class="string">&quot;Push25&quot;</span>,
+		Opcode(<span class="number">121</span>) =&gt; <span class="string">&quot;Push26&quot;</span>,
+		Opcode(<span class="number">122</span>) =&gt; <span class="string">&quot;Push27&quot;</span>,
+		Opcode(<span class="number">123</span>) =&gt; <span class="string">&quot;Push28&quot;</span>,
+		Opcode(<span class="number">124</span>) =&gt; <span class="string">&quot;Push29&quot;</span>,
+		Opcode(<span class="number">125</span>) =&gt; <span class="string">&quot;Push30&quot;</span>,
+		Opcode(<span class="number">126</span>) =&gt; <span class="string">&quot;Push31&quot;</span>,
+		Opcode(<span class="number">127</span>) =&gt; <span class="string">&quot;Push32&quot;</span>,
+		Opcode(<span class="number">128</span>) =&gt; <span class="string">&quot;Dup1&quot;</span>,
+		Opcode(<span class="number">129</span>) =&gt; <span class="string">&quot;Dup2&quot;</span>,
+		Opcode(<span class="number">130</span>) =&gt; <span class="string">&quot;Dup3&quot;</span>,
+		Opcode(<span class="number">131</span>) =&gt; <span class="string">&quot;Dup4&quot;</span>,
+		Opcode(<span class="number">132</span>) =&gt; <span class="string">&quot;Dup5&quot;</span>,
+		Opcode(<span class="number">133</span>) =&gt; <span class="string">&quot;Dup6&quot;</span>,
+		Opcode(<span class="number">134</span>) =&gt; <span class="string">&quot;Dup7&quot;</span>,
+		Opcode(<span class="number">135</span>) =&gt; <span class="string">&quot;Dup8&quot;</span>,
+		Opcode(<span class="number">136</span>) =&gt; <span class="string">&quot;Dup9&quot;</span>,
+		Opcode(<span class="number">137</span>) =&gt; <span class="string">&quot;Dup10&quot;</span>,
+		Opcode(<span class="number">138</span>) =&gt; <span class="string">&quot;Dup11&quot;</span>,
+		Opcode(<span class="number">139</span>) =&gt; <span class="string">&quot;Dup12&quot;</span>,
+		Opcode(<span class="number">140</span>) =&gt; <span class="string">&quot;Dup13&quot;</span>,
+		Opcode(<span class="number">141</span>) =&gt; <span class="string">&quot;Dup14&quot;</span>,
+		Opcode(<span class="number">142</span>) =&gt; <span class="string">&quot;Dup15&quot;</span>,
+		Opcode(<span class="number">143</span>) =&gt; <span class="string">&quot;Dup16&quot;</span>,
+		Opcode(<span class="number">144</span>) =&gt; <span class="string">&quot;Swap1&quot;</span>,
+		Opcode(<span class="number">145</span>) =&gt; <span class="string">&quot;Swap2&quot;</span>,
+		Opcode(<span class="number">146</span>) =&gt; <span class="string">&quot;Swap3&quot;</span>,
+		Opcode(<span class="number">147</span>) =&gt; <span class="string">&quot;Swap4&quot;</span>,
+		Opcode(<span class="number">148</span>) =&gt; <span class="string">&quot;Swap5&quot;</span>,
+		Opcode(<span class="number">149</span>) =&gt; <span class="string">&quot;Swap6&quot;</span>,
+		Opcode(<span class="number">150</span>) =&gt; <span class="string">&quot;Swap7&quot;</span>,
+		Opcode(<span class="number">151</span>) =&gt; <span class="string">&quot;Swap8&quot;</span>,
+		Opcode(<span class="number">152</span>) =&gt; <span class="string">&quot;Swap9&quot;</span>,
+		Opcode(<span class="number">153</span>) =&gt; <span class="string">&quot;Swap10&quot;</span>,
+		Opcode(<span class="number">154</span>) =&gt; <span class="string">&quot;Swap11&quot;</span>,
+		Opcode(<span class="number">155</span>) =&gt; <span class="string">&quot;Swap12&quot;</span>,
+		Opcode(<span class="number">156</span>) =&gt; <span class="string">&quot;Swap13&quot;</span>,
+		Opcode(<span class="number">157</span>) =&gt; <span class="string">&quot;Swap14&quot;</span>,
+		Opcode(<span class="number">158</span>) =&gt; <span class="string">&quot;Swap15&quot;</span>,
+		Opcode(<span class="number">159</span>) =&gt; <span class="string">&quot;Swap16&quot;</span>,
+		Opcode(<span class="number">160</span>) =&gt; <span class="string">&quot;Log0&quot;</span>,
+		Opcode(<span class="number">161</span>) =&gt; <span class="string">&quot;Log1&quot;</span>,
+		Opcode(<span class="number">162</span>) =&gt; <span class="string">&quot;Log2&quot;</span>,
+		Opcode(<span class="number">163</span>) =&gt; <span class="string">&quot;Log3&quot;</span>,
+		Opcode(<span class="number">164</span>) =&gt; <span class="string">&quot;Log4&quot;</span>,
+		Opcode(<span class="number">176</span>) =&gt; <span class="string">&quot;JumpTo&quot;</span>,
+		Opcode(<span class="number">177</span>) =&gt; <span class="string">&quot;JumpIf&quot;</span>,
+		Opcode(<span class="number">178</span>) =&gt; <span class="string">&quot;JumpSub&quot;</span>,
+		Opcode(<span class="number">180</span>) =&gt; <span class="string">&quot;JumpSubv&quot;</span>,
+		Opcode(<span class="number">181</span>) =&gt; <span class="string">&quot;BeginSub&quot;</span>,
+		Opcode(<span class="number">182</span>) =&gt; <span class="string">&quot;BeginData&quot;</span>,
+		Opcode(<span class="number">184</span>) =&gt; <span class="string">&quot;ReturnSub&quot;</span>,
+		Opcode(<span class="number">185</span>) =&gt; <span class="string">&quot;PutLocal&quot;</span>,
+		Opcode(<span class="number">186</span>) =&gt; <span class="string">&quot;GetLocal&quot;</span>,
+		Opcode(<span class="number">225</span>) =&gt; <span class="string">&quot;SLoadBytes&quot;</span>,
+		Opcode(<span class="number">226</span>) =&gt; <span class="string">&quot;SStoreBytes&quot;</span>,
+		Opcode(<span class="number">227</span>) =&gt; <span class="string">&quot;SSize&quot;</span>,
+		Opcode(<span class="number">240</span>) =&gt; <span class="string">&quot;Create&quot;</span>,
+		Opcode(<span class="number">241</span>) =&gt; <span class="string">&quot;Call&quot;</span>,
+		Opcode(<span class="number">242</span>) =&gt; <span class="string">&quot;CallCode&quot;</span>,
+		Opcode(<span class="number">243</span>) =&gt; <span class="string">&quot;Return&quot;</span>,
+		Opcode(<span class="number">244</span>) =&gt; <span class="string">&quot;DelegateCall&quot;</span>,
+		Opcode(<span class="number">245</span>) =&gt; <span class="string">&quot;Create2&quot;</span>,
+		Opcode(<span class="number">250</span>) =&gt; <span class="string">&quot;StaticCall&quot;</span>,
+		Opcode(<span class="number">252</span>) =&gt; <span class="string">&quot;TxExecGas&quot;</span>,
+		Opcode(<span class="number">253</span>) =&gt; <span class="string">&quot;Revert&quot;</span>,
+		Opcode(<span class="number">254</span>) =&gt; <span class="string">&quot;Invalid&quot;</span>,
+		Opcode(<span class="number">255</span>) =&gt; <span class="string">&quot;SelfDestruct&quot;</span>,
+		Opcode(n) =&gt; {
+			tmp = <span class="macro">alloc::format!</span>(<span class="string">&quot;Unknown({})&quot;</span>, n);
+			<span class="kw-2">&amp;</span>tmp
 		}
 	};
-	<span class="ident">out</span>.<span class="ident">as_bytes</span>().<span class="ident">to_vec</span>()
+	out.as_bytes().to_vec()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="evm_tracing_events" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="evm_tracing_events" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

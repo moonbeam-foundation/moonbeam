@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["v1","Precompile to xcm transactor runtime methods via the EVM"],["v2","Precompile to xcm transactor runtime methods via the EVM"]]});
+window.SIDEBAR_ITEMS = {"mod":[["v1","Precompile to xcm transactor runtime methods via the EVM"],["v2","Precompile to xcm transactor runtime methods via the EVM"]]};

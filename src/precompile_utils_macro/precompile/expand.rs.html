@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -511,514 +506,513 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">impl</span> <span class="ident">Precompile</span> {
-	<span class="doccomment">/// Main expand function, which expands everything else.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">enum_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_enum_decl</span>();
-		<span class="kw">let</span> <span class="ident">enum_impl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_enum_impl</span>();
-		<span class="kw">let</span> <span class="ident">precomp_impl</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_precompile_impl</span>();
-		<span class="kw">let</span> <span class="ident">test_signature</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_test_solidity_signature</span>();
+<span class="kw">impl </span>Precompile {
+	<span class="doccomment">/// Main expand function, which expands everything else.
+	</span><span class="kw">pub fn </span>expand(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>enum_ = <span class="self">self</span>.expand_enum_decl();
+		<span class="kw">let </span>enum_impl = <span class="self">self</span>.expand_enum_impl();
+		<span class="kw">let </span>precomp_impl = <span class="self">self</span>.expand_precompile_impl();
+		<span class="kw">let </span>test_signature = <span class="self">self</span>.expand_test_solidity_signature();
 
-		<span class="macro">quote!</span> {
-			#<span class="ident">enum_</span>
-			#<span class="ident">enum_impl</span>
-			#<span class="ident">precomp_impl</span>
-			#<span class="ident">test_signature</span>
+		<span class="macro">quote! </span>{
+			#enum_
+			#enum_impl
+			#precomp_impl
+			#test_signature
 		}
 	}
 
-	<span class="doccomment">/// Expands the call enum declaration.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_enum_decl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">enum_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">enum_ident</span>;
-		<span class="kw">let</span> (<span class="ident">_impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
+	<span class="doccomment">/// Expands the call enum declaration.
+	</span><span class="kw">pub fn </span>expand_enum_decl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+		<span class="kw">let </span>(_impl_generics, ty_generics, where_clause) = <span class="self">self</span>.generics.split_for_impl();
 
-		<span class="kw">let</span> <span class="ident">type_parameters</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">type_params</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">ident</span>);
+		<span class="kw">let </span>type_parameters = <span class="self">self</span>.generics.type_params().map(|p| <span class="kw-2">&amp;</span>p.ident);
 
-		<span class="kw">let</span> <span class="ident">variants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants_content</span>.<span class="ident">keys</span>().<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">idents</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">ident</span>).<span class="ident">collect</span>())
-			.<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">types</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">ty</span>).<span class="ident">collect</span>())
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>variants: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.variants_content.keys().collect();
+		<span class="kw">let </span>idents: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(|v| v.arguments.iter().map(|a| <span class="kw-2">&amp;</span>a.ident).collect())
+			.collect();
+		<span class="kw">let </span>types: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(|v| v.arguments.iter().map(|a| <span class="kw-2">&amp;</span>a.ty).collect())
+			.collect();
 
 		<span class="macro">quote!</span>(
-			<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
-			<span class="kw">pub</span> <span class="kw">enum</span> #<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
+			<span class="attribute">#[allow(non_camel_case_types)]
+			</span><span class="kw">pub enum </span>#enum_ident #ty_generics #where_clause {
 				#(
-					#<span class="ident">variants</span> {
+					#variants {
 						#(
-							#<span class="ident">idents</span>: #<span class="ident">types</span>
-						),<span class="op">*</span>
+							#idents: #types
+						),*
 					},
-				)<span class="op">*</span>
+				)*
 
-				<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-				<span class="ident">__phantom</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>( #( #<span class="ident">type_parameters</span> ),<span class="op">*</span> )<span class="op">&gt;</span>, <span class="ident">::core::convert::Infallible</span>),
+				<span class="attribute">#[doc(hidden)]
+				</span>__phantom(PhantomData&lt;( #( #type_parameters ),* )&gt;, ::core::convert::Infallible),
 			}
 		)
 	}
 
-	<span class="doccomment">/// Expands the parse function for each variants.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_variants_parse_fn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">Span::call_site</span>();
+	<span class="doccomment">/// Expands the parse function for each variants.
+	</span><span class="kw">pub fn </span>expand_variants_parse_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>span = Span::call_site();
 
-		<span class="kw">let</span> <span class="ident">fn_parse</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">keys</span>()
-			.<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::variant_ident_to_parse_fn</span>);
+		<span class="kw">let </span>fn_parse = <span class="self">self
+			</span>.variants_content
+			.keys()
+			.map(<span class="self">Self</span>::variant_ident_to_parse_fn);
 
-		<span class="kw">let</span> <span class="ident">modifier_check</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants_content</span>.<span class="ident">values</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">modifier</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">variant</span>.<span class="ident">modifier</span> {
-				<span class="ident">Modifier::NonPayable</span> =&gt; <span class="string">&quot;NonPayable&quot;</span>,
-				<span class="ident">Modifier::Payable</span> =&gt; <span class="string">&quot;Payable&quot;</span>,
-				<span class="ident">Modifier::View</span> =&gt; <span class="string">&quot;View&quot;</span>,
+		<span class="kw">let </span>modifier_check = <span class="self">self</span>.variants_content.values().map(|variant| {
+			<span class="kw">let </span>modifier = <span class="kw">match </span>variant.modifier {
+				Modifier::NonPayable =&gt; <span class="string">&quot;NonPayable&quot;</span>,
+				Modifier::Payable =&gt; <span class="string">&quot;Payable&quot;</span>,
+				Modifier::View =&gt; <span class="string">&quot;View&quot;</span>,
 			};
 
-			<span class="kw">let</span> <span class="ident">modifier</span> <span class="op">=</span> <span class="ident">syn::Ident::new</span>(<span class="ident">modifier</span>, <span class="ident">span</span>);
+			<span class="kw">let </span>modifier = syn::Ident::new(modifier, span);
 
 			<span class="macro">quote!</span>(
-				<span class="kw">use</span> <span class="ident">::precompile_utils::modifier::FunctionModifier</span>;
-				<span class="kw">use</span> <span class="ident">::precompile_utils::handle::PrecompileHandleExt</span>;
-				<span class="ident">handle</span>.<span class="ident">check_function_modifier</span>(<span class="ident">FunctionModifier</span>::#<span class="ident">modifier</span>)<span class="question-mark">?</span>;
+				<span class="kw">use </span>::precompile_utils::modifier::FunctionModifier;
+				<span class="kw">use </span>::precompile_utils::handle::PrecompileHandleExt;
+				handle.check_function_modifier(FunctionModifier::#modifier)<span class="question-mark">?</span>;
 			)
 		});
 
-		<span class="kw">let</span> <span class="ident">variant_parsing</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">variant_ident</span>, <span class="ident">variant</span>)<span class="op">|</span> {
-				<span class="ident"><span class="self">Self</span>::expand_variant_parsing_from_handle</span>(<span class="ident">variant_ident</span>, <span class="ident">variant</span>)
+		<span class="kw">let </span>variant_parsing = <span class="self">self
+			</span>.variants_content
+			.iter()
+			.map(|(variant_ident, variant)| {
+				<span class="self">Self</span>::expand_variant_parsing_from_handle(variant_ident, variant)
 			});
 
 		<span class="macro">quote!</span>(
 			#(
-				<span class="kw">fn</span> #<span class="ident">fn_parse</span>(
-					<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>
-				) -&gt; <span class="ident">::precompile_utils::EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">::precompile_utils::revert::InjectBacktrace</span>;
+				<span class="kw">fn </span>#fn_parse(
+					handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
+				) -&gt; ::precompile_utils::EvmResult&lt;<span class="self">Self</span>&gt; {
+					<span class="kw">use </span>::precompile_utils::revert::InjectBacktrace;
 
-					#<span class="ident">modifier_check</span>
-					#<span class="ident">variant_parsing</span>
+					#modifier_check
+					#variant_parsing
 				}
-			)<span class="op">*</span>
+			)*
 		)
 	}
 
-	<span class="doccomment">/// Generates the parsing code for a variant, reading the input from the handle and</span>
-	<span class="doccomment">/// parsing it using EvmDataReader.</span>
-	<span class="kw">fn</span> <span class="ident">expand_variant_parsing_from_handle</span>(
-		<span class="ident">variant_ident</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Ident</span>,
-		<span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">Variant</span>,
-	) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">if</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">is_empty</span>() {
-			<span class="macro">quote!</span>( <span class="prelude-val">Ok</span>(<span class="self">Self</span>::#<span class="ident">variant_ident</span> {})).<span class="ident">to_token_stream</span>()
-		} <span class="kw">else</span> {
-			<span class="kw">use</span> <span class="ident">case::CaseExt</span>;
+	<span class="doccomment">/// Generates the parsing code for a variant, reading the input from the handle and
+	/// parsing it using EvmDataReader.
+	</span><span class="kw">fn </span>expand_variant_parsing_from_handle(
+		variant_ident: <span class="kw-2">&amp;</span>syn::Ident,
+		variant: <span class="kw-2">&amp;</span>Variant,
+	) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">if </span>variant.arguments.is_empty() {
+			<span class="macro">quote!</span>( <span class="prelude-val">Ok</span>(<span class="self">Self</span>::#variant_ident {})).to_token_stream()
+		} <span class="kw">else </span>{
+			<span class="kw">use </span>case::CaseExt;
 
-			<span class="kw">let</span> <span class="ident">args_parse</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ident</span>;
-				<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">span</span>();
-				<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">to_string</span>().<span class="ident">to_camel_lowercase</span>();
+			<span class="kw">let </span>args_parse = variant.arguments.iter().map(|arg| {
+				<span class="kw">let </span>ident = <span class="kw-2">&amp;</span>arg.ident;
+				<span class="kw">let </span>span = ident.span();
+				<span class="kw">let </span>name = ident.to_string().to_camel_lowercase();
 
-				<span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt; #<span class="ident">ident</span>: <span class="ident">input</span>.<span class="ident">read</span>().<span class="ident">in_field</span>(#<span class="ident">name</span>)<span class="question-mark">?</span>,)
+				<span class="macro">quote_spanned!</span>(span=&gt; #ident: input.read().in_field(#name)<span class="question-mark">?</span>,)
 			});
-			<span class="kw">let</span> <span class="ident">args_count</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">len</span>();
+			<span class="kw">let </span>args_count = variant.arguments.len();
 
 			<span class="macro">quote!</span>(
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">read_after_selector</span>()<span class="question-mark">?</span>;
-				<span class="ident">input</span>.<span class="ident">expect_arguments</span>(#<span class="ident">args_count</span>)<span class="question-mark">?</span>;
+				<span class="kw">let </span><span class="kw-2">mut </span>input = handle.read_after_selector()<span class="question-mark">?</span>;
+				input.expect_arguments(#args_count)<span class="question-mark">?</span>;
 
-				<span class="prelude-val">Ok</span>(<span class="self">Self</span>::#<span class="ident">variant_ident</span> {
-					#(#<span class="ident">args_parse</span>)<span class="op">*</span>
+				<span class="prelude-val">Ok</span>(<span class="self">Self</span>::#variant_ident {
+					#(#args_parse)*
 				})
 			)
-			.<span class="ident">to_token_stream</span>()
+			.to_token_stream()
 		}
 	}
 
-	<span class="doccomment">/// Expands the call enum impl block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_enum_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">enum_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">enum_ident</span>;
-		<span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
+	<span class="doccomment">/// Expands the call enum impl block.
+	</span><span class="kw">pub fn </span>expand_enum_impl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+		<span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <span class="self">self</span>.generics.split_for_impl();
 
-		<span class="kw">let</span> <span class="ident">match_selectors</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">selector_to_variant</span>.<span class="ident">keys</span>();
-		<span class="kw">let</span> <span class="ident">match_selectors2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">selector_to_variant</span>.<span class="ident">keys</span>();
+		<span class="kw">let </span>match_selectors = <span class="self">self</span>.selector_to_variant.keys();
+		<span class="kw">let </span>match_selectors2 = <span class="self">self</span>.selector_to_variant.keys();
 
-		<span class="kw">let</span> <span class="ident">variants_parsing</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_variants_parse_fn</span>();
+		<span class="kw">let </span>variants_parsing = <span class="self">self</span>.expand_variants_parse_fn();
 
-		<span class="kw">let</span> <span class="ident">variants_ident2</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants_content</span>.<span class="ident">keys</span>().<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">variants_selectors_fn</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">keys</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">name</span><span class="op">|</span> <span class="macro">format_ident!</span>(<span class="string">&quot;{}_selectors&quot;</span>, <span class="ident">name</span>))
-			.<span class="ident">collect</span>();
-		<span class="kw">let</span> <span class="ident">variants_selectors</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">selectors</span>)
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>variants_ident2: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.variants_content.keys().collect();
+		<span class="kw">let </span>variants_selectors_fn: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+			</span>.variants_content
+			.keys()
+			.map(|name| <span class="macro">format_ident!</span>(<span class="string">&quot;{}_selectors&quot;</span>, name))
+			.collect();
+		<span class="kw">let </span>variants_selectors: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(|variant| <span class="kw-2">&amp;</span>variant.selectors)
+			.collect();
 
-		<span class="kw">let</span> <span class="ident">variants_list</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ident</span>).<span class="ident">collect</span>())
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>variants_list: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(|variant| variant.arguments.iter().map(|arg| <span class="kw-2">&amp;</span>arg.ident).collect())
+			.collect();
 
-		<span class="kw">let</span> <span class="ident">variants_encode</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::expand_variant_encoding</span>)
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>variants_encode: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(<span class="self">Self</span>::expand_variant_encoding)
+			.collect();
 
-		<span class="kw">let</span> <span class="ident">parse_call_data_fn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_enum_parse_call_data</span>();
-		<span class="kw">let</span> <span class="ident">execute_fn</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">expand_enum_execute_fn</span>();
+		<span class="kw">let </span>parse_call_data_fn = <span class="self">self</span>.expand_enum_parse_call_data();
+		<span class="kw">let </span>execute_fn = <span class="self">self</span>.expand_enum_execute_fn();
 
 		<span class="macro">quote!</span>(
-			<span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span> #<span class="ident">where_clause</span> {
-				#<span class="ident">parse_call_data_fn</span>
+			<span class="kw">impl </span>#impl_generics #enum_ident #ty_generics #where_clause {
+				#parse_call_data_fn
 
-				#<span class="ident">variants_parsing</span>
+				#variants_parsing
 
-				#<span class="ident">execute_fn</span>
+				#execute_fn
 
-				<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">supports_selector</span>(<span class="ident">selector</span>: <span class="ident">u32</span>) -&gt; <span class="ident">bool</span> {
-					<span class="kw">match</span> <span class="ident">selector</span> {
+				<span class="kw">pub fn </span>supports_selector(selector: u32) -&gt; bool {
+					<span class="kw">match </span>selector {
 						#(
-							#<span class="ident">match_selectors</span> =&gt; <span class="bool-val">true</span>,
-						)<span class="op">*</span>
-						<span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+							#match_selectors =&gt; <span class="bool-val">true</span>,
+						)*
+						<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 					}
 				}
 
-				<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">selectors</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u32</span>] {
+				<span class="kw">pub fn </span>selectors() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u32] {
 					<span class="kw-2">&amp;</span>[#(
-						#<span class="ident">match_selectors2</span>
+						#match_selectors2
 					),<span class="kw-2">*</span>]
 				}
 
 				#(
-					<span class="kw">pub</span> <span class="kw">fn</span> #<span class="ident">variants_selectors_fn</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u32</span>] {
+					<span class="kw">pub fn </span>#variants_selectors_fn() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u32] {
 						<span class="kw-2">&amp;</span>[#(
-							#<span class="ident">variants_selectors</span>
+							#variants_selectors
 						),<span class="kw-2">*</span>]
 					}
-				)<span class="op">*</span>
+				)*
 
-				<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">encode</span>(<span class="self">self</span>) -&gt; <span class="ident">::sp_std::vec::Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-					<span class="kw">use</span> <span class="ident">::precompile_utils::EvmDataWriter</span>;
-					<span class="kw">match</span> <span class="self">self</span> {
+				<span class="kw">pub fn </span>encode(<span class="self">self</span>) -&gt; ::sp_std::vec::Vec&lt;u8&gt; {
+					<span class="kw">use </span>::precompile_utils::EvmDataWriter;
+					<span class="kw">match </span><span class="self">self </span>{
 						#(
-							<span class="self">Self</span>::#<span class="ident">variants_ident2</span> { #(#<span class="ident">variants_list</span>),<span class="op">*</span> } =&gt; {
-								#<span class="ident">variants_encode</span>
+							<span class="self">Self</span>::#variants_ident2 { #(#variants_list),* } =&gt; {
+								#variants_encode
 							},
-						)<span class="op">*</span>
-						<span class="ident"><span class="self">Self</span>::__phantom</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
+						)*
+						<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
 					}
 				}
 			}
 
-			<span class="kw">impl</span> #<span class="ident">impl_generics</span> <span class="ident">From</span><span class="op">&lt;</span>#<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">::sp_std::vec::Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>
-			#<span class="ident">where_clause</span>
+			<span class="kw">impl </span>#impl_generics From&lt;#enum_ident #ty_generics&gt; <span class="kw">for </span>::sp_std::vec::Vec&lt;u8&gt;
+			#where_clause
 			{
-				<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">a</span>: #<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span>) -&gt; <span class="ident">::sp_std::vec::Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> {
-					<span class="ident">a</span>.<span class="ident">encode</span>()
+				<span class="kw">fn </span>from(a: #enum_ident #ty_generics) -&gt; ::sp_std::vec::Vec&lt;u8&gt; {
+					a.encode()
 				}
 			}
 		)
 	}
 
-	<span class="doccomment">/// Expand the execute fn of the enum.</span>
-	<span class="kw">fn</span> <span class="ident">expand_enum_execute_fn</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">impl_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">impl_type</span>;
+	<span class="doccomment">/// Expand the execute fn of the enum.
+	</span><span class="kw">fn </span>expand_enum_execute_fn(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>impl_type = <span class="kw-2">&amp;</span><span class="self">self</span>.impl_type;
 
-		<span class="kw">let</span> <span class="ident">variants_ident</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants_content</span>.<span class="ident">keys</span>().<span class="ident">collect</span>();
+		<span class="kw">let </span>variants_ident: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self</span>.variants_content.keys().collect();
 
-		<span class="kw">let</span> <span class="ident">variants_arguments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ident</span>).<span class="ident">collect</span>())
-			.<span class="ident">collect</span>();
+		<span class="kw">let </span>variants_arguments: Vec&lt;Vec&lt;<span class="kw">_</span>&gt;&gt; = <span class="self">self
+			</span>.variants_content
+			.values()
+			.map(|variant| variant.arguments.iter().map(|arg| <span class="kw-2">&amp;</span>arg.ident).collect())
+			.collect();
 
-		<span class="comment">// If there is no precompile set there is no discriminant.</span>
-		<span class="kw">let</span> <span class="ident">opt_discriminant_arg</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">precompile_set_discriminant_type</span>
-			.<span class="ident">as_ref</span>()
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">ty</span><span class="op">|</span> <span class="macro">quote!</span>( <span class="ident">discriminant</span>: #<span class="ident">ty</span>,));
+		<span class="comment">// If there is no precompile set there is no discriminant.
+		</span><span class="kw">let </span>opt_discriminant_arg = <span class="self">self
+			</span>.precompile_set_discriminant_type
+			.as_ref()
+			.map(|ty| <span class="macro">quote!</span>( discriminant: #ty,));
 
-		<span class="kw">let</span> <span class="ident">variants_call</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">variant_ident</span>, <span class="ident">variant</span>)<span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ident</span>);
+		<span class="kw">let </span>variants_call = <span class="self">self
+			</span>.variants_content
+			.iter()
+			.map(|(variant_ident, variant)| {
+				<span class="kw">let </span>arguments = variant.arguments.iter().map(|arg| <span class="kw-2">&amp;</span>arg.ident);
 
-				<span class="kw">let</span> <span class="ident">output_span</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">fn_output</span>.<span class="ident">span</span>();
-				<span class="kw">let</span> <span class="ident">opt_discriminant_arg</span> <span class="op">=</span> <span class="self">self</span>
-					.<span class="ident">precompile_set_discriminant_fn</span>
-					.<span class="ident">as_ref</span>()
-					.<span class="ident">map</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="macro">quote!</span>(<span class="ident">discriminant</span>,));
+				<span class="kw">let </span>output_span = variant.fn_output.span();
+				<span class="kw">let </span>opt_discriminant_arg = <span class="self">self
+					</span>.precompile_set_discriminant_fn
+					.as_ref()
+					.map(|<span class="kw">_</span>| <span class="macro">quote!</span>(discriminant,));
 
-				<span class="kw">let</span> <span class="ident">write_output</span> <span class="op">=</span>
-					<span class="macro">quote_spanned!</span>(<span class="ident">output_span</span>=&gt; <span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">output</span><span class="question-mark">?</span>).<span class="ident">build</span>());
+				<span class="kw">let </span>write_output =
+					<span class="macro">quote_spanned!</span>(output_span=&gt; EvmDataWriter::new().write(output<span class="question-mark">?</span>).build());
 
 				<span class="macro">quote!</span>(
-					<span class="kw">use</span> <span class="ident">::precompile_utils::EvmDataWriter</span>;
-					<span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="op">&lt;</span>#<span class="ident">impl_type</span><span class="op">&gt;</span>::#<span class="ident">variant_ident</span>(
-						#<span class="ident">opt_discriminant_arg</span>
-						<span class="ident">handle</span>,
-						#(#<span class="ident">arguments</span>),<span class="op">*</span>
+					<span class="kw">use </span>::precompile_utils::EvmDataWriter;
+					<span class="kw">let </span>output = &lt;#impl_type&gt;::#variant_ident(
+						#opt_discriminant_arg
+						handle,
+						#(#arguments),*
 					);
-					#<span class="ident">write_output</span>
+					#write_output
 				)
 			});
 
 		<span class="macro">quote!</span>(
-			<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(
+			<span class="kw">pub fn </span>execute(
 				<span class="self">self</span>,
-				#<span class="ident">opt_discriminant_arg</span>
-				<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>
-			) -&gt; <span class="ident">::precompile_utils::EvmResult</span><span class="op">&lt;</span><span class="ident">::fp_evm::PrecompileOutput</span><span class="op">&gt;</span> {
-				<span class="kw">use</span> <span class="ident">::precompile_utils::data::EvmDataWriter</span>;
-				<span class="kw">use</span> <span class="ident">::fp_evm</span>::{<span class="ident">PrecompileOutput</span>, <span class="ident">ExitSucceed</span>};
+				#opt_discriminant_arg
+				handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
+			) -&gt; ::precompile_utils::EvmResult&lt;::fp_evm::PrecompileOutput&gt; {
+				<span class="kw">use </span>::precompile_utils::data::EvmDataWriter;
+				<span class="kw">use </span>::fp_evm::{PrecompileOutput, ExitSucceed};
 
-				<span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
+				<span class="kw">let </span>output = <span class="kw">match </span><span class="self">self </span>{
 					#(
-						<span class="self">Self</span>::#<span class="ident">variants_ident</span> { #(#<span class="ident">variants_arguments</span>),<span class="op">*</span> } =&gt; {
-							#<span class="ident">variants_call</span>
+						<span class="self">Self</span>::#variants_ident { #(#variants_arguments),* } =&gt; {
+							#variants_call
 						},
-					)<span class="op">*</span>
-					<span class="ident"><span class="self">Self</span>::__phantom</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
+					)*
+					<span class="self">Self</span>::__phantom(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;__phantom variant should not be used&quot;</span>),
 				};
 
-				<span class="prelude-val">Ok</span>(<span class="ident">PrecompileOutput</span> {
-					<span class="ident">exit_status</span>: <span class="ident">ExitSucceed::Returned</span>,
-					<span class="ident">output</span>
+				<span class="prelude-val">Ok</span>(PrecompileOutput {
+					exit_status: ExitSucceed::Returned,
+					output
 				})
 			}
 		)
 	}
 
-	<span class="doccomment">/// Expand how a variant can be Solidity encoded.</span>
-	<span class="kw">fn</span> <span class="ident">expand_variant_encoding</span>(<span class="ident">variant</span>: <span class="kw-2">&amp;</span><span class="ident">Variant</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">match</span> <span class="ident">variant</span>.<span class="ident">selectors</span>.<span class="ident">first</span>() {
-			<span class="prelude-val">Some</span>(<span class="ident">selector</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">write_arguments</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> {
-					<span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ident</span>;
-					<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">span</span>();
-					<span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt; .<span class="ident">write</span>(#<span class="ident">ident</span>))
+	<span class="doccomment">/// Expand how a variant can be Solidity encoded.
+	</span><span class="kw">fn </span>expand_variant_encoding(variant: <span class="kw-2">&amp;</span>Variant) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">match </span>variant.selectors.first() {
+			<span class="prelude-val">Some</span>(selector) =&gt; {
+				<span class="kw">let </span>write_arguments = variant.arguments.iter().map(|arg| {
+					<span class="kw">let </span>ident = <span class="kw-2">&amp;</span>arg.ident;
+					<span class="kw">let </span>span = ident.span();
+					<span class="macro">quote_spanned!</span>(span=&gt; .write(#ident))
 				});
 
 				<span class="macro">quote!</span>(
-					<span class="ident">EvmDataWriter::new_with_selector</span>(#<span class="ident">selector</span>)
-					#(#<span class="ident">write_arguments</span>)<span class="op">*</span>
-					.<span class="ident">build</span>()
+					EvmDataWriter::new_with_selector(#selector)
+					#(#write_arguments)*
+					.build()
 				)
-				.<span class="ident">to_token_stream</span>()
+				.to_token_stream()
 			}
-			<span class="prelude-val">None</span> =&gt; <span class="macro">quote!</span>(<span class="ident">Default::default</span>()).<span class="ident">to_token_stream</span>(),
+			<span class="prelude-val">None </span>=&gt; <span class="macro">quote!</span>(Default::default()).to_token_stream(),
 		}
 	}
 
-	<span class="doccomment">/// Expand the main parsing function that, based on the selector in the</span>
-	<span class="doccomment">/// input, dispatch the decoding to one of the variants parsing function.</span>
-	<span class="kw">fn</span> <span class="ident">expand_enum_parse_call_data</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">selectors</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">selector_to_variant</span>.<span class="ident">keys</span>();
-		<span class="kw">let</span> <span class="ident">parse_fn</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">selector_to_variant</span>
-			.<span class="ident">values</span>()
-			.<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::variant_ident_to_parse_fn</span>);
+	<span class="doccomment">/// Expand the main parsing function that, based on the selector in the
+	/// input, dispatch the decoding to one of the variants parsing function.
+	</span><span class="kw">fn </span>expand_enum_parse_call_data(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>selectors = <span class="self">self</span>.selector_to_variant.keys();
+		<span class="kw">let </span>parse_fn = <span class="self">self
+			</span>.selector_to_variant
+			.values()
+			.map(<span class="self">Self</span>::variant_ident_to_parse_fn);
 
-		<span class="kw">let</span> <span class="ident">match_fallback</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">fallback_to_variant</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">variant</span>) =&gt; {
-				<span class="kw">let</span> <span class="ident">parse_fn</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::variant_ident_to_parse_fn</span>(<span class="ident">variant</span>);
-				<span class="macro">quote!</span>(<span class="kw">_</span> =&gt; <span class="self">Self</span>::#<span class="ident">parse_fn</span>(<span class="ident">handle</span>),).<span class="ident">to_token_stream</span>()
+		<span class="kw">let </span>match_fallback = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.fallback_to_variant {
+			<span class="prelude-val">Some</span>(variant) =&gt; {
+				<span class="kw">let </span>parse_fn = <span class="self">Self</span>::variant_ident_to_parse_fn(variant);
+				<span class="macro">quote!</span>(<span class="kw">_ </span>=&gt; <span class="self">Self</span>::#parse_fn(handle),).to_token_stream()
 			}
-			<span class="prelude-val">None</span> =&gt; <span class="macro">quote!</span>(
-				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">RevertReason::UnknownSelector</span>.<span class="ident">into</span>()),
-				<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">RevertReason::read_out_of_bounds</span>(<span class="string">&quot;selector&quot;</span>).<span class="ident">into</span>()),
+			<span class="prelude-val">None </span>=&gt; <span class="macro">quote!</span>(
+				<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(RevertReason::UnknownSelector.into()),
+				<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Err</span>(RevertReason::read_out_of_bounds(<span class="string">&quot;selector&quot;</span>).into()),
 			)
-			.<span class="ident">to_token_stream</span>(),
+			.to_token_stream(),
 		};
 
 		<span class="macro">quote!</span>(
-			<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_call_data</span>(
-				<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>
-			) -&gt; <span class="ident">::precompile_utils::EvmResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-				<span class="kw">use</span> <span class="ident">::precompile_utils::revert::RevertReason</span>;
+			<span class="kw">pub fn </span>parse_call_data(
+				handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
+			) -&gt; ::precompile_utils::EvmResult&lt;<span class="self">Self</span>&gt; {
+				<span class="kw">use </span>::precompile_utils::revert::RevertReason;
 
-				<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">input</span>();
+				<span class="kw">let </span>input = handle.input();
 
-				<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="number">0</span>..<span class="number">4</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
-					<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buffer</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">4</span>];
-					<span class="ident">buffer</span>.<span class="ident">copy_from_slice</span>(<span class="ident">s</span>);
-					<span class="ident">u32::from_be_bytes</span>(<span class="ident">buffer</span>)
+				<span class="kw">let </span>selector = input.get(<span class="number">0</span>..<span class="number">4</span>).map(|s| {
+					<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
+					buffer.copy_from_slice(s);
+					u32::from_be_bytes(buffer)
 				});
 
-				<span class="kw">match</span> <span class="ident">selector</span> {
+				<span class="kw">match </span>selector {
 					#(
-						<span class="prelude-val">Some</span>(#<span class="ident">selectors</span>) =&gt; <span class="self">Self</span>::#<span class="ident">parse_fn</span>(<span class="ident">handle</span>),
-					)<span class="op">*</span>
-					#<span class="ident">match_fallback</span>
+						<span class="prelude-val">Some</span>(#selectors) =&gt; <span class="self">Self</span>::#parse_fn(handle),
+					)*
+					#match_fallback
 				}
 			}
 		)
 	}
 
-	<span class="kw">fn</span> <span class="ident">variant_ident_to_parse_fn</span>(<span class="ident">ident</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Ident</span>) -&gt; <span class="ident">syn::Ident</span> {
-		<span class="macro">format_ident!</span>(<span class="string">&quot;_parse_{}&quot;</span>, <span class="ident">ident</span>)
+	<span class="kw">fn </span>variant_ident_to_parse_fn(ident: <span class="kw-2">&amp;</span>syn::Ident) -&gt; syn::Ident {
+		<span class="macro">format_ident!</span>(<span class="string">&quot;_parse_{}&quot;</span>, ident)
 	}
 
-	<span class="doccomment">/// Expands the impl of the Precomile(Set) trait.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_precompile_impl</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">impl_type</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">impl_type</span>;
-		<span class="kw">let</span> <span class="ident">enum_ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">enum_ident</span>;
-		<span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
+	<span class="doccomment">/// Expands the impl of the Precomile(Set) trait.
+	</span><span class="kw">pub fn </span>expand_precompile_impl(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>impl_type = <span class="kw-2">&amp;</span><span class="self">self</span>.impl_type;
+		<span class="kw">let </span>enum_ident = <span class="kw-2">&amp;</span><span class="self">self</span>.enum_ident;
+		<span class="kw">let </span>(impl_generics, ty_generics, where_clause) = <span class="self">self</span>.generics.split_for_impl();
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">discriminant_fn</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">precompile_set_discriminant_fn</span> {
-			<span class="kw">let</span> <span class="ident">opt_pre_check</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pre_check</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">span</span>();
-				<span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt;
-					<span class="kw">let</span> <span class="kw">_</span>: () <span class="op">=</span> <span class="op">&lt;</span>#<span class="ident">impl_type</span><span class="op">&gt;</span>::#<span class="ident">ident</span>(<span class="ident">discriminant</span>, <span class="ident">handle</span>)
-						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">err</span>))<span class="question-mark">?</span>;
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(discriminant_fn) = <span class="kw-2">&amp;</span><span class="self">self</span>.precompile_set_discriminant_fn {
+			<span class="kw">let </span>opt_pre_check = <span class="self">self</span>.pre_check.as_ref().map(|ident| {
+				<span class="kw">let </span>span = ident.span();
+				<span class="macro">quote_spanned!</span>(span=&gt;
+					<span class="kw">let _</span>: () = &lt;#impl_type&gt;::#ident(discriminant, handle)
+						.map_err(|err| <span class="prelude-val">Some</span>(err))<span class="question-mark">?</span>;
 				)
 			});
 
 			<span class="macro">quote!</span>(
-				<span class="kw">impl</span> #<span class="ident">impl_generics</span> <span class="ident">::fp_evm::PrecompileSet</span> <span class="kw">for</span> #<span class="ident">impl_type</span> #<span class="ident">where_clause</span> {
-					<span class="kw">fn</span> <span class="ident">execute</span>(
+				<span class="kw">impl </span>#impl_generics ::fp_evm::PrecompileSet <span class="kw">for </span>#impl_type #where_clause {
+					<span class="kw">fn </span>execute(
 						<span class="kw-2">&amp;</span><span class="self">self</span>,
-						<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>
-					) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">::precompile_utils::EvmResult</span><span class="op">&lt;</span><span class="ident">::fp_evm::PrecompileOutput</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-						<span class="kw">let</span> <span class="ident">discriminant</span> <span class="op">=</span> <span class="kw">match</span> <span class="op">&lt;</span>#<span class="ident">impl_type</span><span class="op">&gt;</span>::#<span class="ident">discriminant_fn</span>(
-							<span class="ident">handle</span>.<span class="ident">code_address</span>()
+						handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
+					) -&gt; <span class="prelude-ty">Option</span>&lt;::precompile_utils::EvmResult&lt;::fp_evm::PrecompileOutput&gt;&gt; {
+						<span class="kw">let </span>discriminant = <span class="kw">match </span>&lt;#impl_type&gt;::#discriminant_fn(
+							handle.code_address()
 						) {
-							<span class="prelude-val">Some</span>(<span class="ident">d</span>) =&gt; <span class="ident">d</span>,
-							<span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+							<span class="prelude-val">Some</span>(d) =&gt; d,
+							<span class="prelude-val">None </span>=&gt; <span class="kw">return </span><span class="prelude-val">None</span>,
 						};
 
-						#<span class="ident">opt_pre_check</span>
+						#opt_pre_check
 
 						<span class="prelude-val">Some</span>(
-							<span class="op">&lt;</span>#<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span><span class="op">&gt;</span><span class="ident">::parse_call_data</span>(<span class="ident">handle</span>)
-								.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">call</span><span class="op">|</span> <span class="ident">call</span>.<span class="ident">execute</span>(<span class="ident">discriminant</span>, <span class="ident">handle</span>))
+							&lt;#enum_ident #ty_generics&gt;::parse_call_data(handle)
+								.and_then(|call| call.execute(discriminant, handle))
 						)
 					}
 
-					<span class="kw">fn</span> <span class="ident">is_precompile</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">address</span>: <span class="ident">H160</span>) -&gt; <span class="ident">bool</span> {
-						<span class="op">&lt;</span>#<span class="ident">impl_type</span><span class="op">&gt;</span>::#<span class="ident">discriminant_fn</span>(<span class="ident">address</span>).<span class="ident">is_some</span>()
+					<span class="kw">fn </span>is_precompile(<span class="kw-2">&amp;</span><span class="self">self</span>, address: H160) -&gt; bool {
+						&lt;#impl_type&gt;::#discriminant_fn(address).is_some()
 					}
 				}
 			)
-			.<span class="ident">to_token_stream</span>()
-		} <span class="kw">else</span> {
-			<span class="kw">let</span> <span class="ident">opt_pre_check</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pre_check</span>.<span class="ident">as_ref</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">ident</span><span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">span</span>();
-				<span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt;<span class="kw">let</span> <span class="kw">_</span>: () <span class="op">=</span> <span class="op">&lt;</span>#<span class="ident">impl_type</span><span class="op">&gt;</span>::#<span class="ident">ident</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;)
+			.to_token_stream()
+		} <span class="kw">else </span>{
+			<span class="kw">let </span>opt_pre_check = <span class="self">self</span>.pre_check.as_ref().map(|ident| {
+				<span class="kw">let </span>span = ident.span();
+				<span class="macro">quote_spanned!</span>(span=&gt;<span class="kw">let _</span>: () = &lt;#impl_type&gt;::#ident(handle)<span class="question-mark">?</span>;)
 			});
 
 			<span class="macro">quote!</span>(
-				<span class="kw">impl</span> #<span class="ident">impl_generics</span> <span class="ident">::fp_evm::Precompile</span> <span class="kw">for</span> #<span class="ident">impl_type</span> #<span class="ident">where_clause</span> {
-					<span class="kw">fn</span> <span class="ident">execute</span>(
-						<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>
-					) -&gt; <span class="ident">::precompile_utils::EvmResult</span><span class="op">&lt;</span><span class="ident">::fp_evm::PrecompileOutput</span><span class="op">&gt;</span> {
-						#<span class="ident">opt_pre_check</span>
+				<span class="kw">impl </span>#impl_generics ::fp_evm::Precompile <span class="kw">for </span>#impl_type #where_clause {
+					<span class="kw">fn </span>execute(
+						handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle
+					) -&gt; ::precompile_utils::EvmResult&lt;::fp_evm::PrecompileOutput&gt; {
+						#opt_pre_check
 
-						<span class="op">&lt;</span>#<span class="ident">enum_ident</span> #<span class="ident">ty_generics</span><span class="op">&gt;</span><span class="ident">::parse_call_data</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>.<span class="ident">execute</span>(<span class="ident">handle</span>)
+						&lt;#enum_ident #ty_generics&gt;::parse_call_data(handle)<span class="question-mark">?</span>.execute(handle)
 					}
 				}
 			)
-			.<span class="ident">to_token_stream</span>()
+			.to_token_stream()
 		}
 	}
 
-	<span class="doccomment">/// Expands the Solidity signature test.</span>
-	<span class="doccomment">/// The macro expands an &quot;inner&quot; function in all build profiles, which is</span>
-	<span class="doccomment">/// then called by a test in test profile. This allows to display errors that occurs in</span>
-	<span class="doccomment">/// the expansion of the test without having to build in test profile, which is usually</span>
-	<span class="doccomment">/// related to the use of a type parameter in one of the parsed parameters of a method.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expand_test_solidity_signature</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">ToTokens</span> {
-		<span class="kw">let</span> <span class="ident">variant_test</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">variants_content</span>
-			.<span class="ident">iter</span>()
-			.<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">ident</span>, <span class="ident">variant</span>)<span class="op">|</span> {
-				<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">span</span>();
+	<span class="doccomment">/// Expands the Solidity signature test.
+	/// The macro expands an &quot;inner&quot; function in all build profiles, which is
+	/// then called by a test in test profile. This allows to display errors that occurs in
+	/// the expansion of the test without having to build in test profile, which is usually
+	/// related to the use of a type parameter in one of the parsed parameters of a method.
+	</span><span class="kw">pub fn </span>expand_test_solidity_signature(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>ToTokens {
+		<span class="kw">let </span>variant_test: Vec&lt;<span class="kw">_</span>&gt; = <span class="self">self
+			</span>.variants_content
+			.iter()
+			.map(|(ident, variant)| {
+				<span class="kw">let </span>span = ident.span();
 
-				<span class="kw">let</span> <span class="ident">solidity</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">solidity_arguments_type</span>;
-				<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">ident</span>.<span class="ident">to_string</span>();
-				<span class="kw">let</span> <span class="ident">types</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">variant</span>.<span class="ident">arguments</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">ty</span>).<span class="ident">collect</span>();
+				<span class="kw">let </span>solidity = <span class="kw-2">&amp;</span>variant.solidity_arguments_type;
+				<span class="kw">let </span>name = ident.to_string();
+				<span class="kw">let </span>types: Vec&lt;<span class="kw">_</span>&gt; = variant.arguments.iter().map(|arg| <span class="kw-2">&amp;</span>arg.ty).collect();
 
-				<span class="macro">quote_spanned!</span>(<span class="ident">span</span>=&gt;
+				<span class="macro">quote_spanned!</span>(span=&gt;
 					<span class="macro">assert_eq!</span>(
-						#<span class="ident">solidity</span>,
-						<span class="op">&lt;</span>(#(#<span class="ident">types</span>,)<span class="kw-2">*</span>) <span class="kw">as</span> <span class="ident">EvmData</span><span class="op">&gt;</span><span class="ident">::solidity_type</span>(),
+						#solidity,
+						&lt;(#(#types,)<span class="kw-2">*</span>) <span class="kw">as </span>EvmData&gt;::solidity_type(),
 						<span class="string">&quot;{} function signature doesn&#39;t match (left: attribute, right: computed \
 						from Rust types)&quot;</span>,
-						#<span class="ident">name</span>
+						#name
 					);
 				)
 			})
-			.<span class="ident">collect</span>();
+			.collect();
 
-		<span class="kw">let</span> <span class="ident">test_name</span> <span class="op">=</span> <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures&quot;</span>, <span class="self">self</span>.<span class="ident">impl_ident</span>);
-		<span class="kw">let</span> <span class="ident">inner_name</span> <span class="op">=</span> <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures_inner&quot;</span>, <span class="self">self</span>.<span class="ident">impl_ident</span>);
+		<span class="kw">let </span>test_name = <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures&quot;</span>, <span class="self">self</span>.impl_ident);
+		<span class="kw">let </span>inner_name = <span class="macro">format_ident!</span>(<span class="string">&quot;__{}_test_solidity_signatures_inner&quot;</span>, <span class="self">self</span>.impl_ident);
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">test_types</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">test_concrete_types</span> {
-			<span class="kw">let</span> (<span class="ident">impl_generics</span>, <span class="ident">_ty_generics</span>, <span class="ident">where_clause</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">split_for_impl</span>();
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(test_types) = <span class="kw-2">&amp;</span><span class="self">self</span>.test_concrete_types {
+			<span class="kw">let </span>(impl_generics, _ty_generics, where_clause) = <span class="self">self</span>.generics.split_for_impl();
 
 			<span class="macro">quote!</span>(
-				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-				<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> #<span class="ident">inner_name</span> #<span class="ident">impl_generics</span> () #<span class="ident">where_clause</span> {
-					<span class="kw">use</span> <span class="ident">::precompile_utils::data::EvmData</span>;
-					#(#<span class="ident">variant_test</span>)<span class="op">*</span>
+				<span class="attribute">#[allow(non_snake_case)]
+				</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>#inner_name #impl_generics () #where_clause {
+					<span class="kw">use </span>::precompile_utils::data::EvmData;
+					#(#variant_test)*
 				}
 
-				<span class="attribute">#[<span class="ident">test</span>]</span>
-				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-				<span class="kw">fn</span> #<span class="ident">test_name</span>() {
-					#<span class="ident">inner_name</span>::<span class="op">&lt;</span> #(#<span class="ident">test_types</span>),<span class="op">*</span> <span class="op">&gt;</span>();
+				<span class="attribute">#[test]
+				#[allow(non_snake_case)]
+				</span><span class="kw">fn </span>#test_name() {
+					#inner_name::&lt; #(#test_types),* &gt;();
 				}
 			)
-			.<span class="ident">to_token_stream</span>()
-		} <span class="kw">else</span> {
+			.to_token_stream()
+		} <span class="kw">else </span>{
 			<span class="macro">quote!</span>(
-				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-				<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> #<span class="ident">inner_name</span>() {
-					<span class="kw">use</span> <span class="ident">::precompile_utils::data::EvmData</span>;
-					#(#<span class="ident">variant_test</span>)<span class="op">*</span>
+				<span class="attribute">#[allow(non_snake_case)]
+				</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>#inner_name() {
+					<span class="kw">use </span>::precompile_utils::data::EvmData;
+					#(#variant_test)*
 				}
 
-				<span class="attribute">#[<span class="ident">test</span>]</span>
-				<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_snake_case</span>)]</span>
-				<span class="kw">fn</span> #<span class="ident">test_name</span>() {
-					#<span class="ident">inner_name</span>();
+				<span class="attribute">#[test]
+				#[allow(non_snake_case)]
+				</span><span class="kw">fn </span>#test_name() {
+					#inner_name();
 				}
 			)
-			.<span class="ident">to_token_stream</span>()
+			.to_token_stream()
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["tracer",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["tracer",""]]};

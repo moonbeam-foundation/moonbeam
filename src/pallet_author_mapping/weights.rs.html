@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/weights.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/author-mapping/src/weights.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>weights.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_author_mapping/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_author_mapping/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -162,175 +157,164 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Autogenerated weights for pallet_author_mapping</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev</span>
-<span class="doccomment">//! DATE: 2022-03-14, STEPS: `50`, REPEAT: 20, LOW RANGE: `[]`, HIGH RANGE: `[]`</span>
-<span class="doccomment">//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some(&quot;dev&quot;), DB CACHE: 1024</span>
+</span><span class="doccomment">//! Autogenerated weights for pallet_author_mapping
+//!
+//! THIS FILE WAS AUTO-GENERATED USING THE SUBSTRATE BENCHMARK CLI VERSION 4.0.0-dev
+//! DATE: 2022-09-28, STEPS: `50`, REPEAT: 20, LOW RANGE: `[]`, HIGH RANGE: `[]`
+//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: None, DB CACHE: 1024
 
-<span class="comment">// Executed Command:</span>
-<span class="comment">// ./target/release/moonbeam</span>
-<span class="comment">// benchmark</span>
-<span class="comment">// --chain</span>
-<span class="comment">// dev</span>
-<span class="comment">// --execution=wasm</span>
-<span class="comment">// --wasm-execution=compiled</span>
-<span class="comment">// --pallet</span>
-<span class="comment">// *</span>
-<span class="comment">// --extrinsic</span>
-<span class="comment">// *</span>
-<span class="comment">// --steps</span>
-<span class="comment">// 50</span>
-<span class="comment">// --repeat</span>
-<span class="comment">// 20</span>
-<span class="comment">// --template=./benchmarking/frame-weight-template.hbs</span>
-<span class="comment">// --record-proof</span>
-<span class="comment">// --json-file</span>
-<span class="comment">// raw.json</span>
-<span class="comment">// --output</span>
-<span class="comment">// ./benchmarks/</span>
+</span><span class="comment">// Executed Command:
+// ./target/release/moonbeam
+// benchmark
+// pallet
+// --execution=wasm
+// --wasm-execution=compiled
+// --pallet
+// *
+// --extrinsic
+// *
+// --steps
+// 50
+// --repeat
+// 20
+// --template=./benchmarking/frame-weight-template.hbs
+// --json-file
+// raw.json
+// --output
+// ./tmp/
 
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_parens</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
+</span><span class="attribute">#![allow(unused_parens)]
+#![allow(unused_imports)]
 
-<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">traits::Get</span>,
-	<span class="ident">weights</span>::{<span class="ident">constants::RocksDbWeight</span>, <span class="ident">Weight</span>},
+</span><span class="kw">use </span>frame_support::{
+	traits::Get,
+	weights::{constants::RocksDbWeight, Weight},
 };
-<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+<span class="kw">use </span>sp_std::marker::PhantomData;
 
-<span class="doccomment">/// Weight functions needed for pallet_author_mapping.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">WeightInfo</span> {
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_association</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">update_association</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span>;
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span>;
+<span class="doccomment">/// Weight functions needed for pallet_author_mapping.
+</span><span class="kw">pub trait </span>WeightInfo {
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_association() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>update_association() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>clear_association() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_keys() -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>set_keys() -&gt; Weight;
 }
 
-<span class="doccomment">/// Weights for pallet_author_mapping using the Substrate node and recommended hardware.</span>
-<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">frame_system::Config</span><span class="op">&gt;</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> <span class="ident">SubstrateWeight</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">34_709_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+<span class="doccomment">/// Weights for pallet_author_mapping using the Substrate node and recommended hardware.
+</span><span class="kw">pub struct </span>SubstrateWeight&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: frame_system::Config&gt; WeightInfo <span class="kw">for </span>SubstrateWeight&lt;T&gt; {
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">49_537_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">update_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">29_759_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>update_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">40_530_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">36_180_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>clear_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">53_842_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">41_773_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_keys() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">58_199_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">32_010_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)
+	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>set_keys() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">46_240_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
 }
 
-<span class="comment">// For backwards compatibility and tests</span>
-<span class="kw">impl</span> <span class="ident">WeightInfo</span> <span class="kw">for</span> () {
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">add_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">34_709_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+<span class="comment">// For backwards compatibility and tests
+</span><span class="kw">impl </span>WeightInfo <span class="kw">for </span>() {
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>add_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">49_537_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">update_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">29_759_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>update_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">40_530_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:0 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">clear_association</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">36_180_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	// Storage: AuthorMapping NimbusLookup (r:0 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>clear_association() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">53_842_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">2 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)</span>
-	<span class="comment">// Storage: System Account (r:1 w:1)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">remove_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">41_773_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)
+	// Storage: AuthorMapping MappingWithDeposit (r:1 w:1)
+	// Storage: System Account (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>remove_keys() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">58_199_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
-	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)</span>
-	<span class="comment">// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)</span>
-	<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
-	<span class="kw">fn</span> <span class="ident">set_keys</span>() -&gt; <span class="ident">Weight</span> {
-		(<span class="number">32_010_000</span> <span class="kw">as</span> <span class="ident">Weight</span>)
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">reads</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
-			.<span class="ident">saturating_add</span>(<span class="ident">RocksDbWeight::get</span>().<span class="ident">writes</span>(<span class="number">3</span> <span class="kw">as</span> <span class="ident">Weight</span>))
+	<span class="comment">// Storage: AuthorMapping NimbusLookup (r:1 w:1)
+	// Storage: AuthorMapping MappingWithDeposit (r:2 w:2)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>set_keys() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">46_240_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">3 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_author_mapping" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

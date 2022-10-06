@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TraceParams",""]],"trait":[["DebugServer","Server trait implementation for the `Debug` RPC API."]]});
+window.SIDEBAR_ITEMS = {"struct":[["TraceParams",""]],"trait":[["DebugServer","Server trait implementation for the `Debug` RPC API."]]};

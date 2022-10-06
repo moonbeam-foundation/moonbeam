@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/assets-erc20/src/eip2612.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>eip2612.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompileset_assets_erc20/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompileset_assets_erc20/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompileset_assets_erc20/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/assets-erc20/src/eip2612.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>eip2612.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompileset_assets_erc20/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompileset_assets_erc20/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompileset_assets_erc20/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -276,279 +271,278 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">ensure</span>,
-	<span class="ident">storage::types</span>::{<span class="ident">StorageDoubleMap</span>, <span class="ident">ValueQuery</span>},
-	<span class="ident">traits::StorageInstance</span>,
-	<span class="ident">Blake2_128Concat</span>,
+</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>frame_support::{
+	ensure,
+	storage::types::{StorageDoubleMap, ValueQuery},
+	traits::StorageInstance,
+	Blake2_128Concat,
 };
-<span class="kw">use</span> <span class="ident">pallet_assets::pallet</span>::{
-	<span class="ident">Instance1</span>, <span class="ident">Instance10</span>, <span class="ident">Instance11</span>, <span class="ident">Instance12</span>, <span class="ident">Instance13</span>, <span class="ident">Instance14</span>, <span class="ident">Instance15</span>, <span class="ident">Instance16</span>,
-	<span class="ident">Instance2</span>, <span class="ident">Instance3</span>, <span class="ident">Instance4</span>, <span class="ident">Instance5</span>, <span class="ident">Instance6</span>, <span class="ident">Instance7</span>, <span class="ident">Instance8</span>, <span class="ident">Instance9</span>,
+<span class="kw">use </span>pallet_assets::pallet::{
+	Instance1, Instance10, Instance11, Instance12, Instance13, Instance14, Instance15, Instance16,
+	Instance2, Instance3, Instance4, Instance5, Instance6, Instance7, Instance8, Instance9,
 };
-<span class="kw">use</span> <span class="ident">scale_info::prelude::string::ToString</span>;
-<span class="kw">use</span> <span class="ident">sp_core::H256</span>;
-<span class="kw">use</span> <span class="ident">sp_io::hashing::keccak_256</span>;
+<span class="kw">use </span>scale_info::prelude::string::ToString;
+<span class="kw">use </span>sp_core::H256;
+<span class="kw">use </span>sp_io::hashing::keccak_256;
 
-<span class="doccomment">/// EIP2612 permit typehash.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PERMIT_TYPEHASH</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(
-	<span class="string">&quot;Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)&quot;</span>
-);
+<span class="doccomment">/// EIP2612 permit typehash.
+</span><span class="kw">pub const </span>PERMIT_TYPEHASH: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
+	<span class="string">&quot;Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)&quot;
+</span>);
 
-<span class="doccomment">/// EIP2612 permit domain used to compute an individualized domain separator.</span>
-<span class="kw">const</span> <span class="ident">PERMIT_DOMAIN</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(
-	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;</span>
-);
+<span class="doccomment">/// EIP2612 permit domain used to compute an individualized domain separator.
+</span><span class="kw">const </span>PERMIT_DOMAIN: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
+	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;
+</span>);
 
-<span class="doccomment">/// Associates pallet Instance to a prefix used for the Nonces storage.</span>
-<span class="doccomment">/// This trait is implemented for () and the 16 substrate Instance.</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">InstanceToPrefix</span> {
-	<span class="doccomment">/// Prefix used for the Approves storage.</span>
-	<span class="kw">type</span> <span class="ident">NoncesPrefix</span>: <span class="ident">StorageInstance</span>;
+<span class="doccomment">/// Associates pallet Instance to a prefix used for the Nonces storage.
+/// This trait is implemented for () and the 16 substrate Instance.
+</span><span class="kw">pub trait </span>InstanceToPrefix {
+	<span class="doccomment">/// Prefix used for the Approves storage.
+	</span><span class="kw">type </span>NoncesPrefix: StorageInstance;
 }
 
-<span class="comment">// We use a macro to implement the trait for () and the 16 substrate Instance.</span>
-<span class="macro">macro_rules!</span> <span class="ident">impl_prefix</span> {
-	(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">literal</span>) =&gt; {
-		<span class="comment">// Using `paste!` we generate a dedicated module to avoid collisions</span>
-		<span class="comment">// between each instance `Nonces` struct.</span>
-		<span class="macro">paste::paste!</span> {
-			<span class="kw">mod</span> [<span class="op">&lt;</span><span class="ident">_impl_prefix_</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span>:<span class="ident">snake</span><span class="op">&gt;</span>] {
-				<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="comment">// We use a macro to implement the trait for () and the 16 substrate Instance.
+</span><span class="macro">macro_rules! </span>impl_prefix {
+	(<span class="macro-nonterminal">$instance</span>:ident, <span class="macro-nonterminal">$name</span>:literal) =&gt; {
+		<span class="comment">// Using `paste!` we generate a dedicated module to avoid collisions
+		// between each instance `Nonces` struct.
+		</span><span class="macro">paste::paste! </span>{
+			<span class="kw">mod </span>[&lt;_impl_prefix_ <span class="macro-nonterminal">$instance</span>:snake&gt;] {
+				<span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-				<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Nonces</span>;
+				<span class="kw">pub struct </span>Nonces;
 
-				<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="ident">Nonces</span> {
-					<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Nonces&quot;</span>;
+				<span class="kw">impl </span>StorageInstance <span class="kw">for </span>Nonces {
+					<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Nonces&quot;</span>;
 
-					<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-						<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
-					}
+					<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+						<span class="macro-nonterminal">$name
+					</span>}
 				}
 
-				<span class="kw">impl</span> <span class="ident">InstanceToPrefix</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">instance</span> {
-					<span class="kw">type</span> <span class="ident">NoncesPrefix</span> <span class="op">=</span> <span class="ident">Nonces</span>;
+				<span class="kw">impl </span>InstanceToPrefix <span class="kw">for </span><span class="macro-nonterminal">$instance </span>{
+					<span class="kw">type </span>NoncesPrefix = Nonces;
 				}
 			}
 		}
 	};
 }
 
-<span class="comment">// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.</span>
-<span class="kw">type</span> <span class="ident">Instance0</span> <span class="op">=</span> ();
+<span class="comment">// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
+</span><span class="kw">type </span>Instance0 = ();
 
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance0</span>, <span class="string">&quot;Erc20Instance0Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance1</span>, <span class="string">&quot;Erc20Instance1Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance2</span>, <span class="string">&quot;Erc20Instance2Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance3</span>, <span class="string">&quot;Erc20Instance3Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance4</span>, <span class="string">&quot;Erc20Instance4Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance5</span>, <span class="string">&quot;Erc20Instance5Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance6</span>, <span class="string">&quot;Erc20Instance6Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance7</span>, <span class="string">&quot;Erc20Instance7Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance8</span>, <span class="string">&quot;Erc20Instance8Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance9</span>, <span class="string">&quot;Erc20Instance9Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance10</span>, <span class="string">&quot;Erc20Instance10Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance11</span>, <span class="string">&quot;Erc20Instance11Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance12</span>, <span class="string">&quot;Erc20Instance12Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance13</span>, <span class="string">&quot;Erc20Instance13Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance14</span>, <span class="string">&quot;Erc20Instance14Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance15</span>, <span class="string">&quot;Erc20Instance15Assets&quot;</span>);
-<span class="macro">impl_prefix!</span>(<span class="ident">Instance16</span>, <span class="string">&quot;Erc20Instance16Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance0, <span class="string">&quot;Erc20Instance0Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance1, <span class="string">&quot;Erc20Instance1Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance2, <span class="string">&quot;Erc20Instance2Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance3, <span class="string">&quot;Erc20Instance3Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance4, <span class="string">&quot;Erc20Instance4Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance5, <span class="string">&quot;Erc20Instance5Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance6, <span class="string">&quot;Erc20Instance6Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance7, <span class="string">&quot;Erc20Instance7Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance8, <span class="string">&quot;Erc20Instance8Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance9, <span class="string">&quot;Erc20Instance9Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance10, <span class="string">&quot;Erc20Instance10Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance11, <span class="string">&quot;Erc20Instance11Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance12, <span class="string">&quot;Erc20Instance12Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance13, <span class="string">&quot;Erc20Instance13Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance14, <span class="string">&quot;Erc20Instance14Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance15, <span class="string">&quot;Erc20Instance15Assets&quot;</span>);
+<span class="macro">impl_prefix!</span>(Instance16, <span class="string">&quot;Erc20Instance16Assets&quot;</span>);
 
-<span class="doccomment">/// Storage type used to store EIP2612 nonces.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NoncesStorage</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageDoubleMap</span><span class="op">&lt;</span>
-	<span class="op">&lt;</span><span class="ident">Instance</span> <span class="kw">as</span> <span class="ident">InstanceToPrefix</span><span class="op">&gt;</span><span class="ident">::NoncesPrefix</span>,
-	<span class="comment">// Asset contract address</span>
-	<span class="ident">Blake2_128Concat</span>,
-	<span class="ident">H160</span>,
-	<span class="comment">// Owner</span>
-	<span class="ident">Blake2_128Concat</span>,
-	<span class="ident">H160</span>,
-	<span class="comment">// Nonce</span>
-	<span class="ident">U256</span>,
-	<span class="ident">ValueQuery</span>,
-<span class="op">&gt;</span>;
+<span class="doccomment">/// Storage type used to store EIP2612 nonces.
+</span><span class="kw">pub type </span>NoncesStorage&lt;Instance&gt; = StorageDoubleMap&lt;
+	&lt;Instance <span class="kw">as </span>InstanceToPrefix&gt;::NoncesPrefix,
+	<span class="comment">// Asset contract address
+	</span>Blake2_128Concat,
+	H160,
+	<span class="comment">// Owner
+	</span>Blake2_128Concat,
+	H160,
+	<span class="comment">// Nonce
+	</span>U256,
+	ValueQuery,
+&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Eip2612</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span>: <span class="lifetime">&#39;static</span> <span class="op">=</span> ()<span class="op">&gt;</span>(
-	<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span>)<span class="op">&gt;</span>,
+<span class="kw">pub struct </span>Eip2612&lt;Runtime, IsLocal, Instance: <span class="lifetime">&#39;static </span>= ()&gt;(
+	PhantomData&lt;(Runtime, IsLocal, Instance)&gt;,
 );
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span> <span class="ident">Eip2612</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Instance</span>: <span class="ident">InstanceToPrefix</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">Runtime</span>: <span class="ident">pallet_assets::Config</span><span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span>
-		<span class="op">+</span> <span class="ident">pallet_evm::Config</span>
-		<span class="op">+</span> <span class="ident">frame_system::Config</span>
-		<span class="op">+</span> <span class="ident">pallet_timestamp::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_assets::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">EvmData</span>,
-	<span class="ident">Runtime</span>: <span class="ident">AccountIdAssetIdConversion</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span>, <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">OriginTrait</span>,
-	<span class="ident">IsLocal</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
-	<span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>: <span class="ident">Display</span>,
+<span class="kw">impl</span>&lt;Runtime, IsLocal, Instance&gt; Eip2612&lt;Runtime, IsLocal, Instance&gt;
+<span class="kw">where
+	</span>Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
+	Runtime: pallet_assets::Config&lt;Instance&gt;
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_timestamp::Config,
+	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::Call: From&lt;pallet_assets::Call&lt;Runtime, Instance&gt;&gt;,
+	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + EvmData,
+	Runtime: AccountIdAssetIdConversion&lt;Runtime::AccountId, AssetIdOf&lt;Runtime, Instance&gt;&gt;,
+	&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Call <span class="kw">as </span>Dispatchable&gt;::Origin: OriginTrait,
+	IsLocal: Get&lt;bool&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
+	AssetIdOf&lt;Runtime, Instance&gt;: Display,
 {
-	<span class="kw">fn</span> <span class="ident">compute_domain_separator</span>(<span class="ident">address</span>: <span class="ident">H160</span>, <span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-		<span class="kw">let</span> <span class="ident">asset_name</span> <span class="op">=</span> <span class="ident">pallet_assets::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::name</span>(<span class="ident">asset_id</span>);
+	<span class="kw">fn </span>compute_domain_separator(address: H160, asset_id: AssetIdOf&lt;Runtime, Instance&gt;) -&gt; [u8; <span class="number">32</span>] {
+		<span class="kw">let </span>asset_name = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::name(asset_id);
 
-		<span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">asset_name</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">name</span> <span class="op">=</span> <span class="string">b&quot;Unnamed XC20 #&quot;</span>.<span class="ident">to_vec</span>();
-			<span class="ident">name</span>.<span class="ident">extend_from_slice</span>(<span class="ident">asset_id</span>.<span class="ident">to_string</span>().<span class="ident">as_bytes</span>());
-			<span class="ident">name</span>
-		} <span class="kw">else</span> {
-			<span class="ident">asset_name</span>
+		<span class="kw">let </span>name = <span class="kw">if </span>asset_name.is_empty() {
+			<span class="kw">let </span><span class="kw-2">mut </span>name = <span class="string">b&quot;Unnamed XC20 #&quot;</span>.to_vec();
+			name.extend_from_slice(asset_id.to_string().as_bytes());
+			name
+		} <span class="kw">else </span>{
+			asset_name
 		};
 
-		<span class="kw">let</span> <span class="ident">name</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">version</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">chain_id</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">Runtime::ChainId::get</span>().<span class="ident">into</span>();
+		<span class="kw">let </span>name: H256 = keccak_256(<span class="kw-2">&amp;</span>name).into();
+		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
+		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
-		<span class="kw">let</span> <span class="ident">domain_separator_inner</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
-			.<span class="ident">write</span>(<span class="ident">H256::from</span>(<span class="ident">PERMIT_DOMAIN</span>))
-			.<span class="ident">write</span>(<span class="ident">name</span>)
-			.<span class="ident">write</span>(<span class="ident">version</span>)
-			.<span class="ident">write</span>(<span class="ident">chain_id</span>)
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">address</span>))
-			.<span class="ident">build</span>();
+		<span class="kw">let </span>domain_separator_inner = EvmDataWriter::new()
+			.write(H256::from(PERMIT_DOMAIN))
+			.write(name)
+			.write(version)
+			.write(chain_id)
+			.write(Address(address))
+			.build();
 
-		<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">domain_separator_inner</span>).<span class="ident">into</span>()
+		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_permit</span>(
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">owner</span>: <span class="ident">H160</span>,
-		<span class="ident">spender</span>: <span class="ident">H160</span>,
-		<span class="ident">value</span>: <span class="ident">U256</span>,
-		<span class="ident">nonce</span>: <span class="ident">U256</span>,
-		<span class="ident">deadline</span>: <span class="ident">U256</span>,
-	) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-		<span class="kw">let</span> <span class="ident">domain_separator</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">address</span>, <span class="ident">asset_id</span>);
+	<span class="kw">pub fn </span>generate_permit(
+		address: H160,
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		owner: H160,
+		spender: H160,
+		value: U256,
+		nonce: U256,
+		deadline: U256,
+	) -&gt; [u8; <span class="number">32</span>] {
+		<span class="kw">let </span>domain_separator = <span class="self">Self</span>::compute_domain_separator(address, asset_id);
 
-		<span class="kw">let</span> <span class="ident">permit_content</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
-			.<span class="ident">write</span>(<span class="ident">H256::from</span>(<span class="ident">PERMIT_TYPEHASH</span>))
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">owner</span>))
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">spender</span>))
-			.<span class="ident">write</span>(<span class="ident">value</span>)
-			.<span class="ident">write</span>(<span class="ident">nonce</span>)
-			.<span class="ident">write</span>(<span class="ident">deadline</span>)
-			.<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="ident">permit_content</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">permit_content</span>);
+		<span class="kw">let </span>permit_content = EvmDataWriter::new()
+			.write(H256::from(PERMIT_TYPEHASH))
+			.write(Address(owner))
+			.write(Address(spender))
+			.write(value)
+			.write(nonce)
+			.write(deadline)
+			.build();
+		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pre_digest</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">2</span> <span class="op">+</span> <span class="number">32</span> <span class="op">+</span> <span class="number">32</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\x19\x01&quot;</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">domain_separator</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">permit_content</span>);
-		<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">pre_digest</span>)
+		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
+		pre_digest.extend_from_slice(<span class="string">b&quot;\x19\x01&quot;</span>);
+		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>domain_separator);
+		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>permit_content);
+		keccak_256(<span class="kw-2">&amp;</span>pre_digest)
 	}
 
-	<span class="comment">// Translated from</span>
-	<span class="comment">// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">permit</span>(
-		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">owner</span>: <span class="ident">Address</span>,
-		<span class="ident">spender</span>: <span class="ident">Address</span>,
-		<span class="ident">value</span>: <span class="ident">U256</span>,
-		<span class="ident">deadline</span>: <span class="ident">U256</span>,
-		<span class="ident">v</span>: <span class="ident">u8</span>,
-		<span class="ident">r</span>: <span class="ident">H256</span>,
-		<span class="ident">s</span>: <span class="ident">H256</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="comment">// Translated from
+	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>permit(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -&gt; EvmResult {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">spender</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">spender</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>owner: H160 = owner.into();
+		<span class="kw">let </span>spender: H160 = spender.into();
 
-		<span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">code_address</span>();
+		<span class="kw">let </span>address = handle.code_address();
 
-		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.</span>
-		<span class="kw">let</span> <span class="ident">timestamp</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="ident">pallet_timestamp::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>()).<span class="ident">into</span>() <span class="op">/</span> <span class="number">1000</span>;
+		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.
+		</span><span class="kw">let </span>timestamp: U256 = (pallet_timestamp::Pallet::&lt;Runtime&gt;::get()).into() / <span class="number">1000</span>;
 
-		<span class="macro">ensure!</span>(<span class="ident">deadline</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">timestamp</span>, <span class="ident">revert</span>(<span class="string">&quot;Permit expired&quot;</span>));
+		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 
-		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">address</span>, <span class="ident">owner</span>);
+		<span class="kw">let </span>nonce = NoncesStorage::&lt;Instance&gt;::get(address, owner);
 
-		<span class="kw">let</span> <span class="ident">permit</span> <span class="op">=</span>
-			<span class="ident"><span class="self">Self</span>::generate_permit</span>(<span class="ident">address</span>, <span class="ident">asset_id</span>, <span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">value</span>, <span class="ident">nonce</span>, <span class="ident">deadline</span>);
+		<span class="kw">let </span>permit =
+			<span class="self">Self</span>::generate_permit(address, asset_id, owner, spender, value, nonce, deadline);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">65</span>];
-		<span class="ident">sig</span>[<span class="number">0</span>..<span class="number">32</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>.<span class="ident">as_bytes</span>());
-		<span class="ident">sig</span>[<span class="number">32</span>..<span class="number">64</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">as_bytes</span>());
-		<span class="ident">sig</span>[<span class="number">64</span>] <span class="op">=</span> <span class="ident">v</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>sig = [<span class="number">0u8</span>; <span class="number">65</span>];
+		sig[<span class="number">0</span>..<span class="number">32</span>].copy_from_slice(<span class="kw-2">&amp;</span>r.as_bytes());
+		sig[<span class="number">32</span>..<span class="number">64</span>].copy_from_slice(<span class="kw-2">&amp;</span>s.as_bytes());
+		sig[<span class="number">64</span>] = v;
 
-		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">sp_io::crypto::secp256k1_ecdsa_recover</span>(<span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">permit</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">signer</span>).<span class="ident">as_slice</span>()));
+		<span class="kw">let </span>signer = sp_io::crypto::secp256k1_ecdsa_recover(<span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>permit)
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>signer = H160::from(H256::from_slice(keccak_256(<span class="kw-2">&amp;</span>signer).as_slice()));
 
 		<span class="macro">ensure!</span>(
-			<span class="ident">signer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">H160::zero</span>() <span class="op">&amp;&amp;</span> <span class="ident">signer</span> <span class="op">==</span> <span class="ident">owner</span>,
-			<span class="ident">revert</span>(<span class="string">&quot;Invalid permit&quot;</span>)
+			signer != H160::zero() &amp;&amp; signer == owner,
+			revert(<span class="string">&quot;Invalid permit&quot;</span>)
 		);
 
-		<span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">address</span>, <span class="ident">owner</span>, <span class="ident">nonce</span> <span class="op">+</span> <span class="ident">U256::one</span>());
+		NoncesStorage::&lt;Instance&gt;::insert(address, owner, nonce + U256::one());
 
-		<span class="ident">Erc20AssetsPrecompileSet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">IsLocal</span>, <span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::approve_inner</span>(
-			<span class="ident">asset_id</span>, <span class="ident">handle</span>, <span class="ident">owner</span>, <span class="ident">spender</span>, <span class="ident">value</span>,
+		Erc20AssetsPrecompileSet::&lt;Runtime, IsLocal, Instance&gt;::approve_inner(
+			asset_id, handle, owner, spender, value,
 		)<span class="question-mark">?</span>;
 
-		<span class="ident">log3</span>(
-			<span class="ident">address</span>,
-			<span class="ident">SELECTOR_LOG_APPROVAL</span>,
-			<span class="ident">owner</span>,
-			<span class="ident">spender</span>,
-			<span class="ident">EvmDataWriter::new</span>().<span class="ident">write</span>(<span class="ident">value</span>).<span class="ident">build</span>(),
+		log3(
+			address,
+			SELECTOR_LOG_APPROVAL,
+			owner,
+			spender,
+			EvmDataWriter::new().write(value).build(),
 		)
-		.<span class="ident">record</span>(<span class="ident">handle</span>)<span class="question-mark">?</span>;
+		.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">nonces</span>(
-		<span class="ident">_asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">owner</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>nonces(
+		_asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		owner: Address,
+	) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>owner: H160 = owner.into();
 
-		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage</span>::<span class="op">&lt;</span><span class="ident">Instance</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="ident">owner</span>);
+		<span class="kw">let </span>nonce = NoncesStorage::&lt;Instance&gt;::get(handle.code_address(), owner);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">nonce</span>)
+		<span class="prelude-val">Ok</span>(nonce)
 	}
 
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">domain_separator</span>(
-		<span class="ident">asset_id</span>: <span class="ident">AssetIdOf</span><span class="op">&lt;</span><span class="ident">Runtime</span>, <span class="ident">Instance</span><span class="op">&gt;</span>,
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>domain_separator(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	) -&gt; EvmResult&lt;H256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">domain_separator</span>: <span class="ident">H256</span> <span class="op">=</span>
-			<span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">handle</span>.<span class="ident">code_address</span>(), <span class="ident">asset_id</span>).<span class="ident">into</span>();
+		<span class="kw">let </span>domain_separator: H256 =
+			<span class="self">Self</span>::compute_domain_separator(handle.code_address(), asset_id).into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">domain_separator</span>)
+		<span class="prelude-val">Ok</span>(domain_separator)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompileset_assets_erc20" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompileset_assets_erc20" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

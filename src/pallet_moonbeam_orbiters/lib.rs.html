@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -577,580 +572,579 @@
 <span id="572">572</span>
 <span id="573">573</span>
 <span id="574">574</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! # Pallet moonbeam-orbiters</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This pallet allows authorized collators to share their block creation rights and rewards with</span>
-<span class="doccomment">//! multiple entities named &quot;orbiters&quot;.</span>
-<span class="doccomment">//! Each authorized collator will define a group of orbiters, and each orbiter will replace the</span>
-<span class="doccomment">//! collator in turn with the other orbiters (rotation every `RotatePeriod` rounds).</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This pallet is designed to work with the nimbus consensus.</span>
-<span class="doccomment">//! In order not to impact the other pallets (notably nimbus and parachain-staking) this pallet</span>
-<span class="doccomment">//! simply redefines the lookup NimbusId-&gt; AccountId, in order to replace the collator by its</span>
-<span class="doccomment">//! currently selected orbiter.</span>
+</span><span class="doccomment">//! # Pallet moonbeam-orbiters
+//!
+//! This pallet allows authorized collators to share their block creation rights and rewards with
+//! multiple entities named &quot;orbiters&quot;.
+//! Each authorized collator will define a group of orbiters, and each orbiter will replace the
+//! collator in turn with the other orbiters (rotation every `RotatePeriod` rounds).
+//!
+//! This pallet is designed to work with the nimbus consensus.
+//! In order not to impact the other pallets (notably nimbus and parachain-staking) this pallet
+//! simply redefines the lookup NimbusId-&gt; AccountId, in order to replace the collator by its
+//! currently selected orbiter.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">feature</span>(<span class="ident">step_trait</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![feature(step_trait)]
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">types</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">weights</span>;
+</span><span class="kw">pub mod </span>types;
+<span class="kw">pub mod </span>weights;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">benchmarks</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+</span><span class="kw">mod </span>benchmarks;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pallet</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">types</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">weights::WeightInfo</span>;
+<span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>types::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>weights::WeightInfo;
 
-<span class="kw">use</span> <span class="ident">frame_support::pallet</span>;
-<span class="kw">use</span> <span class="ident">nimbus_primitives</span>::{<span class="ident">AccountLookup</span>, <span class="ident">NimbusId</span>};
+<span class="kw">use </span>frame_support::pallet;
+<span class="kw">use </span>nimbus_primitives::{AccountLookup, NimbusId};
 
-<span class="attribute">#[<span class="ident">pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Imbalance</span>, <span class="ident">NamedReservableCurrency</span>};
-	<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">CheckedSub</span>, <span class="ident">One</span>, <span class="ident">Saturating</span>, <span class="ident">StaticLookup</span>, <span class="ident">Zero</span>};
+<span class="attribute">#[pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
+	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
+	<span class="kw">use </span>sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(PhantomData&lt;T&gt;);
 
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::Currency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
+	<span class="kw">pub type </span>BalanceOf&lt;T&gt; =
+		&lt;&lt;T <span class="kw">as </span>Config&gt;::Currency <span class="kw">as </span>Currency&lt;&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId&gt;&gt;::Balance;
 
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ReserveIdentifierOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Config</span><span class="op">&gt;</span><span class="ident">::Currency</span> <span class="kw">as</span> <span class="ident">NamedReservableCurrency</span><span class="op">&lt;</span>
-		<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
-	<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::ReserveIdentifier</span>;
+	<span class="kw">pub type </span>ReserveIdentifierOf&lt;T&gt; = &lt;&lt;T <span class="kw">as </span>Config&gt;::Currency <span class="kw">as </span>NamedReservableCurrency&lt;
+		&lt;T <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+	&gt;&gt;::ReserveIdentifier;
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> {
-		<span class="doccomment">/// Overarching event type.</span>
-		<span class="kw">type</span> <span class="ident">Event</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Event</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">IsType</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::Event</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config {
+		<span class="doccomment">/// Overarching event type.
+		</span><span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
 
-		<span class="doccomment">/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow</span>
-		<span class="doccomment">/// orbiters authoring.</span>
-		<span class="kw">type</span> <span class="ident">AccountLookup</span>: <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
+		/// orbiters authoring.
+		</span><span class="kw">type </span>AccountLookup: AccountLookup&lt;<span class="self">Self</span>::AccountId&gt;;
 
-		<span class="doccomment">/// Origin that is allowed to add a collator in orbiters program.</span>
-		<span class="kw">type</span> <span class="ident">AddCollatorOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Origin that is allowed to add a collator in orbiters program.
+		</span><span class="kw">type </span>AddCollatorOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
 
-		<span class="doccomment">/// The currency type.</span>
-		<span class="kw">type</span> <span class="ident">Currency</span>: <span class="ident">NamedReservableCurrency</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// The currency type.
+		</span><span class="kw">type </span>Currency: NamedReservableCurrency&lt;<span class="self">Self</span>::AccountId&gt;;
 
-		<span class="doccomment">/// Origin that is allowed to remove a collator from orbiters program.</span>
-		<span class="kw">type</span> <span class="ident">DelCollatorOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Origin that is allowed to remove a collator from orbiters program.
+		</span><span class="kw">type </span>DelCollatorOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
 
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
-		<span class="doccomment">/// Maximum number of orbiters per collator.</span>
-		<span class="kw">type</span> <span class="ident">MaxPoolSize</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>;
+		<span class="attribute">#[pallet::constant]
+		</span><span class="doccomment">/// Maximum number of orbiters per collator.
+		</span><span class="kw">type </span>MaxPoolSize: Get&lt;u32&gt;;
 
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
-		<span class="doccomment">/// Maximum number of round to keep on storage.</span>
-		<span class="kw">type</span> <span class="ident">MaxRoundArchive</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::RoundIndex</span><span class="op">&gt;</span>;
+		<span class="attribute">#[pallet::constant]
+		</span><span class="doccomment">/// Maximum number of round to keep on storage.
+		</span><span class="kw">type </span>MaxRoundArchive: Get&lt;<span class="self">Self</span>::RoundIndex&gt;;
 
-		<span class="doccomment">/// Reserve identifier for this pallet instance.</span>
-		<span class="kw">type</span> <span class="ident">OrbiterReserveIdentifier</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">ReserveIdentifierOf</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+		<span class="doccomment">/// Reserve identifier for this pallet instance.
+		</span><span class="kw">type </span>OrbiterReserveIdentifier: Get&lt;ReserveIdentifierOf&lt;<span class="self">Self</span>&gt;&gt;;
 
-		<span class="attribute">#[<span class="ident">pallet::constant</span>]</span>
-		<span class="doccomment">/// Number of rounds before changing the selected orbiter.</span>
-		<span class="doccomment">/// WARNING: when changing `RotatePeriod`, you need a migration code that sets</span>
-		<span class="doccomment">/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.</span>
-		<span class="kw">type</span> <span class="ident">RotatePeriod</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::RoundIndex</span><span class="op">&gt;</span>;
+		<span class="attribute">#[pallet::constant]
+		</span><span class="doccomment">/// Number of rounds before changing the selected orbiter.
+		/// WARNING: when changing `RotatePeriod`, you need a migration code that sets
+		/// `ForceRotation` to true to avoid holes in `OrbiterPerRound`.
+		</span><span class="kw">type </span>RotatePeriod: Get&lt;<span class="self">Self</span>::RoundIndex&gt;;
 
-		<span class="doccomment">/// Round index type.</span>
-		<span class="kw">type</span> <span class="ident">RoundIndex</span>: <span class="ident">Parameter</span>
-			<span class="op">+</span> <span class="ident">Member</span>
-			<span class="op">+</span> <span class="ident">MaybeSerializeDeserialize</span>
-			<span class="op">+</span> <span class="ident">sp_std::fmt::Debug</span>
-			<span class="op">+</span> <span class="ident">Default</span>
-			<span class="op">+</span> <span class="ident">sp_runtime::traits::MaybeDisplay</span>
-			<span class="op">+</span> <span class="ident">sp_runtime::traits::AtLeast32Bit</span>
-			<span class="op">+</span> <span class="ident">Copy</span>
-			<span class="op">+</span> <span class="ident">core::iter::Step</span>;
+		<span class="doccomment">/// Round index type.
+		</span><span class="kw">type </span>RoundIndex: Parameter
+			+ Member
+			+ MaybeSerializeDeserialize
+			+ sp_std::fmt::Debug
+			+ Default
+			+ sp_runtime::traits::MaybeDisplay
+			+ sp_runtime::traits::AtLeast32Bit
+			+ Copy
+			+ core::iter::Step;
 
-		<span class="doccomment">/// Weight information for extrinsics in this pallet.</span>
-		<span class="kw">type</span> <span class="ident">WeightInfo</span>: <span class="ident">WeightInfo</span>;
+		<span class="doccomment">/// Weight information for extrinsics in this pallet.
+		</span><span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">account_lookup_override</span>)]</span>
-	<span class="doccomment">/// Account lookup override</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">AccountLookupOverride</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T::AccountId</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>account_lookup_override)]
+	</span><span class="doccomment">/// Account lookup override
+	</span><span class="kw">pub type </span>AccountLookupOverride&lt;T: Config&gt; =
+		StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, T::AccountId, <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">collators_pool</span>)]</span>
-	<span class="doccomment">/// Current orbiters, with their &quot;parent&quot; collator</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">CollatorsPool</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span>
-		<span class="ident">CountedStorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T::AccountId</span>, <span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>collators_pool)]
+	</span><span class="doccomment">/// Current orbiters, with their &quot;parent&quot; collator
+	</span><span class="kw">pub type </span>CollatorsPool&lt;T: Config&gt; =
+		CountedStorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, T::AccountId, CollatorPoolInfo&lt;T::AccountId&gt;&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="doccomment">/// Current round index</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">CurrentRound</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">T::RoundIndex</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	</span><span class="doccomment">/// Current round index
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>CurrentRound&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, T::RoundIndex, ValueQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="doccomment">/// If true, it forces the rotation at the next round.</span>
-	<span class="doccomment">/// A use case: when changing RotatePeriod, you need a migration code that sets this value to</span>
-	<span class="doccomment">/// true to avoid holes in OrbiterPerRound.</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">ForceRotation</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bool</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	</span><span class="doccomment">/// If true, it forces the rotation at the next round.
+	/// A use case: when changing RotatePeriod, you need a migration code that sets this value to
+	/// true to avoid holes in OrbiterPerRound.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ForceRotation&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, bool, ValueQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">min_orbiter_deposit</span>)]</span>
-	<span class="doccomment">/// Minimum deposit required to be registered as an orbiter</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">MinOrbiterDeposit</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">OptionQuery</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>min_orbiter_deposit)]
+	</span><span class="doccomment">/// Minimum deposit required to be registered as an orbiter
+	</span><span class="kw">pub type </span>MinOrbiterDeposit&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, BalanceOf&lt;T&gt;, OptionQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="doccomment">/// Store active orbiter per round and per parent collator</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">OrbiterPerRound</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageDoubleMap</span><span class="op">&lt;</span>
+	<span class="attribute">#[pallet::storage]
+	</span><span class="doccomment">/// Store active orbiter per round and per parent collator
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>OrbiterPerRound&lt;T: Config&gt; = StorageDoubleMap&lt;
 		<span class="kw">_</span>,
-		<span class="ident">Twox64Concat</span>,
-		<span class="ident">T::RoundIndex</span>,
-		<span class="ident">Blake2_128Concat</span>,
-		<span class="ident">T::AccountId</span>,
-		<span class="ident">T::AccountId</span>,
-		<span class="ident">OptionQuery</span>,
-	<span class="op">&gt;</span>;
+		Twox64Concat,
+		T::RoundIndex,
+		Blake2_128Concat,
+		T::AccountId,
+		T::AccountId,
+		OptionQuery,
+	&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">orbiter</span>)]</span>
-	<span class="doccomment">/// Check if account is an orbiter</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RegisteredOrbiter</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">Blake2_128Concat</span>, <span class="ident">T::AccountId</span>, <span class="ident">bool</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>orbiter)]
+	</span><span class="doccomment">/// Check if account is an orbiter
+	</span><span class="kw">pub type </span>RegisteredOrbiter&lt;T: Config&gt; = StorageMap&lt;<span class="kw">_</span>, Blake2_128Concat, T::AccountId, bool&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::genesis_config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="kw">pub</span> <span class="ident">min_orbiter_deposit</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+	<span class="attribute">#[pallet::genesis_config]
+	</span><span class="kw">pub struct </span>GenesisConfig&lt;T: Config&gt; {
+		<span class="kw">pub </span>min_orbiter_deposit: BalanceOf&lt;T&gt;,
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-			<span class="self">Self</span> {
-				<span class="ident">min_orbiter_deposit</span>: <span class="ident">One::one</span>(),
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Default <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+			<span class="self">Self </span>{
+				min_orbiter_deposit: One::one(),
 			}
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::genesis_build</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">GenesisBuild</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">GenesisConfig</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+	<span class="attribute">#[pallet::genesis_build]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; GenesisBuild&lt;T&gt; <span class="kw">for </span>GenesisConfig&lt;T&gt; {
+		<span class="kw">fn </span>build(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 			<span class="macro">assert!</span>(
-				<span class="self">self</span>.<span class="ident">min_orbiter_deposit</span> <span class="op">&gt;</span> <span class="ident">Zero::zero</span>(),
-				<span class="string">&quot;Minimal orbiter deposit should be greater than zero&quot;</span>
-			);
-			<span class="ident">MinOrbiterDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="self">self</span>.<span class="ident">min_orbiter_deposit</span>)
+				<span class="self">self</span>.min_orbiter_deposit &gt; Zero::zero(),
+				<span class="string">&quot;Minimal orbiter deposit should be greater than zero&quot;
+			</span>);
+			MinOrbiterDeposit::&lt;T&gt;::put(<span class="self">self</span>.min_orbiter_deposit)
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::hooks</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Hooks</span><span class="op">&lt;</span><span class="ident">BlockNumberFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="kw">_</span>: <span class="ident">T::BlockNumber</span>) -&gt; <span class="ident">Weight</span> {
-			<span class="comment">// Prune old OrbiterPerRound entries</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">round_to_prune</span>) <span class="op">=</span>
-				<span class="ident">CurrentRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>().<span class="ident">checked_sub</span>(<span class="kw-2">&amp;</span><span class="ident">T::MaxRoundArchive::get</span>())
+	<span class="attribute">#[pallet::hooks]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Hooks&lt;BlockNumberFor&lt;T&gt;&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+		<span class="kw">fn </span>on_initialize(<span class="kw">_</span>: T::BlockNumber) -&gt; Weight {
+			<span class="comment">// Prune old OrbiterPerRound entries
+			</span><span class="kw">if let </span><span class="prelude-val">Some</span>(round_to_prune) =
+				CurrentRound::&lt;T&gt;::get().checked_sub(<span class="kw-2">&amp;</span>T::MaxRoundArchive::get())
 			{
-				<span class="comment">// TODO: Find better limit.</span>
-				<span class="comment">// Is it sure to be cleared in a single block? In which case we can probably have</span>
-				<span class="comment">// a lower limit.</span>
-				<span class="comment">// Otherwise, we should still have a lower limit, and implement a multi-block clear</span>
-				<span class="comment">// by using the return value of clear_prefix for subsequent blocks.</span>
-				<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">OrbiterPerRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::clear_prefix</span>(<span class="ident">round_to_prune</span>, <span class="ident">u32::MAX</span>, <span class="prelude-val">None</span>);
-				<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>)
-			} <span class="kw">else</span> {
-				<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span>)
+				<span class="comment">// TODO: Find better limit.
+				// Is it sure to be cleared in a single block? In which case we can probably have
+				// a lower limit.
+				// Otherwise, we should still have a lower limit, and implement a multi-block clear
+				// by using the return value of clear_prefix for subsequent blocks.
+				</span><span class="kw">let </span>_result = OrbiterPerRound::&lt;T&gt;::clear_prefix(round_to_prune, u32::MAX, <span class="prelude-val">None</span>);
+				T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
+			} <span class="kw">else </span>{
+				T::DbWeight::get().reads(<span class="number">1</span>)
 			}
 		}
 	}
 
-	<span class="doccomment">/// An error that can occur while executing this pallet&#39;s extrinsics.</span>
-	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// The collator is already added in orbiters program.</span>
-		<span class="ident">CollatorAlreadyAdded</span>,
-		<span class="doccomment">/// This collator is not in orbiters program.</span>
-		<span class="ident">CollatorNotFound</span>,
-		<span class="doccomment">/// There are already too many orbiters associated with this collator.</span>
-		<span class="ident">CollatorPoolTooLarge</span>,
-		<span class="doccomment">/// There are more collator pools than the number specified in the parameter.</span>
-		<span class="ident">CollatorsPoolCountTooLow</span>,
-		<span class="doccomment">/// The minimum deposit required to register as an orbiter has not yet been included in the</span>
-		<span class="doccomment">/// onchain storage</span>
-		<span class="ident">MinOrbiterDepositNotSet</span>,
-		<span class="doccomment">/// This orbiter is already associated with this collator.</span>
-		<span class="ident">OrbiterAlreadyInPool</span>,
-		<span class="doccomment">/// This orbiter has not made a deposit</span>
-		<span class="ident">OrbiterDepositNotFound</span>,
-		<span class="doccomment">/// This orbiter is not found</span>
-		<span class="ident">OrbiterNotFound</span>,
-		<span class="doccomment">/// The orbiter is still at least in one pool</span>
-		<span class="ident">OrbiterStillInAPool</span>,
+	<span class="doccomment">/// An error that can occur while executing this pallet&#39;s extrinsics.
+	</span><span class="attribute">#[pallet::error]
+	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
+		<span class="doccomment">/// The collator is already added in orbiters program.
+		</span>CollatorAlreadyAdded,
+		<span class="doccomment">/// This collator is not in orbiters program.
+		</span>CollatorNotFound,
+		<span class="doccomment">/// There are already too many orbiters associated with this collator.
+		</span>CollatorPoolTooLarge,
+		<span class="doccomment">/// There are more collator pools than the number specified in the parameter.
+		</span>CollatorsPoolCountTooLow,
+		<span class="doccomment">/// The minimum deposit required to register as an orbiter has not yet been included in the
+		/// onchain storage
+		</span>MinOrbiterDepositNotSet,
+		<span class="doccomment">/// This orbiter is already associated with this collator.
+		</span>OrbiterAlreadyInPool,
+		<span class="doccomment">/// This orbiter has not made a deposit
+		</span>OrbiterDepositNotFound,
+		<span class="doccomment">/// This orbiter is not found
+		</span>OrbiterNotFound,
+		<span class="doccomment">/// The orbiter is still at least in one pool
+		</span>OrbiterStillInAPool,
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::event</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::generate_deposit</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">deposit_event</span>)]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Event</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// An orbiter join a collator pool</span>
-		<span class="ident">OrbiterJoinCollatorPool</span> {
-			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">orbiter</span>: <span class="ident">T::AccountId</span>,
+	<span class="attribute">#[pallet::event]
+	#[pallet::generate_deposit(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>deposit_event)]
+	</span><span class="kw">pub enum </span>Event&lt;T: Config&gt; {
+		<span class="doccomment">/// An orbiter join a collator pool
+		</span>OrbiterJoinCollatorPool {
+			collator: T::AccountId,
+			orbiter: T::AccountId,
 		},
-		<span class="doccomment">/// An orbiter leave a collator pool</span>
-		<span class="ident">OrbiterLeaveCollatorPool</span> {
-			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">orbiter</span>: <span class="ident">T::AccountId</span>,
+		<span class="doccomment">/// An orbiter leave a collator pool
+		</span>OrbiterLeaveCollatorPool {
+			collator: T::AccountId,
+			orbiter: T::AccountId,
 		},
-		<span class="doccomment">/// Paid the orbiter account the balance as liquid rewards.</span>
-		<span class="ident">OrbiterRewarded</span> {
-			<span class="ident">account</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">rewards</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+		<span class="doccomment">/// Paid the orbiter account the balance as liquid rewards.
+		</span>OrbiterRewarded {
+			account: T::AccountId,
+			rewards: BalanceOf&lt;T&gt;,
 		},
-		<span class="ident">OrbiterRotation</span> {
-			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">old_orbiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span>,
-			<span class="ident">new_orbiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span>,
+		OrbiterRotation {
+			collator: T::AccountId,
+			old_orbiter: <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;,
+			new_orbiter: <span class="prelude-ty">Option</span>&lt;T::AccountId&gt;,
 		},
-		<span class="doccomment">/// An orbiter has registered</span>
-		<span class="ident">OrbiterRegistered</span> {
-			<span class="ident">account</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">deposit</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+		<span class="doccomment">/// An orbiter has registered
+		</span>OrbiterRegistered {
+			account: T::AccountId,
+			deposit: BalanceOf&lt;T&gt;,
 		},
-		<span class="doccomment">/// An orbiter has unregistered</span>
-		<span class="ident">OrbiterUnregistered</span> { <span class="ident">account</span>: <span class="ident">T::AccountId</span> },
+		<span class="doccomment">/// An orbiter has unregistered
+		</span>OrbiterUnregistered { account: T::AccountId },
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Add an orbiter in a collator pool</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::collator_add_orbiter</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">collator_add_orbiter</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">orbiter</span>: <span class="op">&lt;</span><span class="ident">T::Lookup</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">orbiter</span> <span class="op">=</span> <span class="ident">T::Lookup::lookup</span>(<span class="ident">orbiter</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="doccomment">/// Add an orbiter in a collator pool
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::collator_add_orbiter())]
+		</span><span class="kw">pub fn </span>collator_add_orbiter(
+			origin: OriginFor&lt;T&gt;,
+			orbiter: &lt;T::Lookup <span class="kw">as </span>StaticLookup&gt;::Source,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>collator = ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>orbiter = T::Lookup::lookup(orbiter)<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collator_pool</span> <span class="op">=</span>
-				<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorNotFound</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">orbiters</span> <span class="op">=</span> <span class="ident">collator_pool</span>.<span class="ident">get_orbiters</span>();
+			<span class="kw">let </span><span class="kw-2">mut </span>collator_pool =
+				CollatorsPool::&lt;T&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CollatorNotFound)<span class="question-mark">?</span>;
+			<span class="kw">let </span>orbiters = collator_pool.get_orbiters();
 			<span class="macro">ensure!</span>(
-				(<span class="ident">orbiters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span> <span class="ident">T::MaxPoolSize::get</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorPoolTooLarge</span>
+				(orbiters.len() <span class="kw">as </span>u32) &lt; T::MaxPoolSize::get(),
+				Error::&lt;T&gt;::CollatorPoolTooLarge
 			);
-			<span class="kw">if</span> <span class="ident">orbiters</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">orbiter_</span><span class="op">|</span> <span class="ident">orbiter_</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">orbiter</span>) {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::OrbiterAlreadyInPool</span>.<span class="ident">into</span>());
+			<span class="kw">if </span>orbiters.iter().any(|orbiter_| orbiter_ == <span class="kw-2">&amp;</span>orbiter) {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::OrbiterAlreadyInPool.into());
 			}
 
-			<span class="comment">// Make sure the orbiter has made a deposit. It can be an old orbiter whose deposit</span>
-			<span class="comment">// is lower than the current minimum (if the minimum was lower in the past), so we just</span>
-			<span class="comment">// have to check that a deposit exists (which means checking that the deposit amount</span>
-			<span class="comment">// is not zero).</span>
-			<span class="kw">let</span> <span class="ident">orbiter_deposit</span> <span class="op">=</span>
-				<span class="ident">T::Currency::reserved_balance_named</span>(<span class="kw-2">&amp;</span><span class="ident">T::OrbiterReserveIdentifier::get</span>(), <span class="kw-2">&amp;</span><span class="ident">orbiter</span>);
+			<span class="comment">// Make sure the orbiter has made a deposit. It can be an old orbiter whose deposit
+			// is lower than the current minimum (if the minimum was lower in the past), so we just
+			// have to check that a deposit exists (which means checking that the deposit amount
+			// is not zero).
+			</span><span class="kw">let </span>orbiter_deposit =
+				T::Currency::reserved_balance_named(<span class="kw-2">&amp;</span>T::OrbiterReserveIdentifier::get(), <span class="kw-2">&amp;</span>orbiter);
 			<span class="macro">ensure!</span>(
-				<span class="ident">orbiter_deposit</span> <span class="op">&gt;</span> <span class="ident">BalanceOf</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::zero</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::OrbiterDepositNotFound</span>
+				orbiter_deposit &gt; BalanceOf::&lt;T&gt;::zero(),
+				Error::&lt;T&gt;::OrbiterDepositNotFound
 			);
 
-			<span class="ident">collator_pool</span>.<span class="ident">add_orbiter</span>(<span class="ident">orbiter</span>.<span class="ident">clone</span>());
-			<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>, <span class="ident">collator_pool</span>);
+			collator_pool.add_orbiter(orbiter.clone());
+			CollatorsPool::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>collator, collator_pool);
 
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterJoinCollatorPool</span> { <span class="ident">collator</span>, <span class="ident">orbiter</span> });
+			<span class="self">Self</span>::deposit_event(Event::OrbiterJoinCollatorPool { collator, orbiter });
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Remove an orbiter from the caller collator pool</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::collator_remove_orbiter</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">collator_remove_orbiter</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">orbiter</span>: <span class="op">&lt;</span><span class="ident">T::Lookup</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">orbiter</span> <span class="op">=</span> <span class="ident">T::Lookup::lookup</span>(<span class="ident">orbiter</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove an orbiter from the caller collator pool
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::collator_remove_orbiter())]
+		</span><span class="kw">pub fn </span>collator_remove_orbiter(
+			origin: OriginFor&lt;T&gt;,
+			orbiter: &lt;T::Lookup <span class="kw">as </span>StaticLookup&gt;::Source,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>collator = ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>orbiter = T::Lookup::lookup(orbiter)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::do_remove_orbiter_from_pool</span>(<span class="ident">collator</span>, <span class="ident">orbiter</span>)
+			<span class="self">Self</span>::do_remove_orbiter_from_pool(collator, orbiter)
 		}
 
-		<span class="doccomment">/// Remove the caller from the specified collator pool</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::orbiter_leave_collator_pool</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">orbiter_leave_collator_pool</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">collator</span>: <span class="op">&lt;</span><span class="ident">T::Lookup</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">orbiter</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">T::Lookup::lookup</span>(<span class="ident">collator</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove the caller from the specified collator pool
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::orbiter_leave_collator_pool())]
+		</span><span class="kw">pub fn </span>orbiter_leave_collator_pool(
+			origin: OriginFor&lt;T&gt;,
+			collator: &lt;T::Lookup <span class="kw">as </span>StaticLookup&gt;::Source,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>orbiter = ensure_signed(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>collator = T::Lookup::lookup(collator)<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::do_remove_orbiter_from_pool</span>(<span class="ident">collator</span>, <span class="ident">orbiter</span>)
+			<span class="self">Self</span>::do_remove_orbiter_from_pool(collator, orbiter)
 		}
 
-		<span class="doccomment">/// Registering as an orbiter</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::orbiter_register</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">orbiter_register</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">orbiter</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Registering as an orbiter
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::orbiter_register())]
+		</span><span class="kw">pub fn </span>orbiter_register(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
+			<span class="kw">let </span>orbiter = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">min_orbiter_deposit</span>) <span class="op">=</span> <span class="ident">MinOrbiterDeposit</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>() {
-				<span class="comment">// The use of `ensure_reserved_named` allows to update the deposit amount in case a</span>
-				<span class="comment">// deposit has already been made.</span>
-				<span class="ident">T::Currency::ensure_reserved_named</span>(
-					<span class="kw-2">&amp;</span><span class="ident">T::OrbiterReserveIdentifier::get</span>(),
-					<span class="kw-2">&amp;</span><span class="ident">orbiter</span>,
-					<span class="ident">min_orbiter_deposit</span>,
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(min_orbiter_deposit) = MinOrbiterDeposit::&lt;T&gt;::get() {
+				<span class="comment">// The use of `ensure_reserved_named` allows to update the deposit amount in case a
+				// deposit has already been made.
+				</span>T::Currency::ensure_reserved_named(
+					<span class="kw-2">&amp;</span>T::OrbiterReserveIdentifier::get(),
+					<span class="kw-2">&amp;</span>orbiter,
+					min_orbiter_deposit,
 				)<span class="question-mark">?</span>;
-				<span class="ident">RegisteredOrbiter</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>, <span class="bool-val">true</span>);
-				<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterRegistered</span> {
-					<span class="ident">account</span>: <span class="ident">orbiter</span>,
-					<span class="ident">deposit</span>: <span class="ident">min_orbiter_deposit</span>,
+				RegisteredOrbiter::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>orbiter, <span class="bool-val">true</span>);
+				<span class="self">Self</span>::deposit_event(Event::OrbiterRegistered {
+					account: orbiter,
+					deposit: min_orbiter_deposit,
 				});
 				<span class="prelude-val">Ok</span>(())
-			} <span class="kw">else</span> {
-				<span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::MinOrbiterDepositNotSet</span>.<span class="ident">into</span>())
+			} <span class="kw">else </span>{
+				<span class="prelude-val">Err</span>(Error::&lt;T&gt;::MinOrbiterDepositNotSet.into())
 			}
 		}
 
-		<span class="doccomment">/// Deregistering from orbiters</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::orbiter_unregister</span>(<span class="kw-2">*</span><span class="ident">collators_pool_count</span>))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">orbiter_unregister</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">collators_pool_count</span>: <span class="ident">u32</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="ident">orbiter</span> <span class="op">=</span> <span class="ident">ensure_signed</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Deregistering from orbiters
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::orbiter_unregister(<span class="kw-2">*</span>collators_pool_count))]
+		</span><span class="kw">pub fn </span>orbiter_unregister(
+			origin: OriginFor&lt;T&gt;,
+			collators_pool_count: u32,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span>orbiter = ensure_signed(origin)<span class="question-mark">?</span>;
 
-			<span class="comment">// We have to make sure that the `collators_pool_count` parameter is large enough,</span>
-			<span class="comment">// because its value is used to calculate the weight of this extrinsic</span>
-			<span class="macro">ensure!</span>(
-				<span class="ident">collators_pool_count</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::count</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorsPoolCountTooLow</span>
+			<span class="comment">// We have to make sure that the `collators_pool_count` parameter is large enough,
+			// because its value is used to calculate the weight of this extrinsic
+			</span><span class="macro">ensure!</span>(
+				collators_pool_count &gt;= CollatorsPool::&lt;T&gt;::count(),
+				Error::&lt;T&gt;::CollatorsPoolCountTooLow
 			);
 
-			<span class="comment">// Ensure that the orbiter is not in any pool</span>
-			<span class="macro">ensure!</span>(
-				<span class="op">!</span><span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::iter_values</span>()
-					.<span class="ident">any</span>(<span class="op">|</span><span class="ident">collator_pool</span><span class="op">|</span> <span class="ident">collator_pool</span>.<span class="ident">contains_orbiter</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>)),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::OrbiterStillInAPool</span>,
+			<span class="comment">// Ensure that the orbiter is not in any pool
+			</span><span class="macro">ensure!</span>(
+				!CollatorsPool::&lt;T&gt;::iter_values()
+					.any(|collator_pool| collator_pool.contains_orbiter(<span class="kw-2">&amp;</span>orbiter)),
+				Error::&lt;T&gt;::OrbiterStillInAPool,
 			);
 
-			<span class="ident">T::Currency::unreserve_all_named</span>(<span class="kw-2">&amp;</span><span class="ident">T::OrbiterReserveIdentifier::get</span>(), <span class="kw-2">&amp;</span><span class="ident">orbiter</span>);
-			<span class="ident">RegisteredOrbiter</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>);
-			<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterUnregistered</span> { <span class="ident">account</span>: <span class="ident">orbiter</span> });
+			T::Currency::unreserve_all_named(<span class="kw-2">&amp;</span>T::OrbiterReserveIdentifier::get(), <span class="kw-2">&amp;</span>orbiter);
+			RegisteredOrbiter::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>orbiter);
+			<span class="self">Self</span>::deposit_event(Event::OrbiterUnregistered { account: orbiter });
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Add a collator to orbiters program.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::add_collator</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_collator</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">collator</span>: <span class="op">&lt;</span><span class="ident">T::Lookup</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::AddCollatorOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">T::Lookup::lookup</span>(<span class="ident">collator</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Add a collator to orbiters program.
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::add_collator())]
+		</span><span class="kw">pub fn </span>add_collator(
+			origin: OriginFor&lt;T&gt;,
+			collator: &lt;T::Lookup <span class="kw">as </span>StaticLookup&gt;::Source,
+		) -&gt; DispatchResult {
+			T::AddCollatorOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>collator = T::Lookup::lookup(collator)<span class="question-mark">?</span>;
 
 			<span class="macro">ensure!</span>(
-				<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">is_none</span>(),
-				<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorAlreadyAdded</span>
+				CollatorsPool::&lt;T&gt;::get(<span class="kw-2">&amp;</span>collator).is_none(),
+				Error::&lt;T&gt;::CollatorAlreadyAdded
 			);
 
-			<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">collator</span>, <span class="ident">CollatorPoolInfo::default</span>());
+			CollatorsPool::&lt;T&gt;::insert(collator, CollatorPoolInfo::default());
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Remove a collator from orbiters program.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="ident">T::WeightInfo::remove_collator</span>())]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove_collator</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">collator</span>: <span class="op">&lt;</span><span class="ident">T::Lookup</span> <span class="kw">as</span> <span class="ident">StaticLookup</span><span class="op">&gt;</span><span class="ident">::Source</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::DelCollatorOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
-			<span class="kw">let</span> <span class="ident">collator</span> <span class="op">=</span> <span class="ident">T::Lookup::lookup</span>(<span class="ident">collator</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Remove a collator from orbiters program.
+		</span><span class="attribute">#[pallet::weight(T::WeightInfo::remove_collator())]
+		</span><span class="kw">pub fn </span>remove_collator(
+			origin: OriginFor&lt;T&gt;,
+			collator: &lt;T::Lookup <span class="kw">as </span>StaticLookup&gt;::Source,
+		) -&gt; DispatchResult {
+			T::DelCollatorOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
+			<span class="kw">let </span>collator = T::Lookup::lookup(collator)<span class="question-mark">?</span>;
 
-			<span class="comment">// Remove the pool associated to this collator</span>
-			<span class="kw">let</span> <span class="ident">collator_pool</span> <span class="op">=</span>
-				<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorNotFound</span>)<span class="question-mark">?</span>;
+			<span class="comment">// Remove the pool associated to this collator
+			</span><span class="kw">let </span>collator_pool =
+				CollatorsPool::&lt;T&gt;::take(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CollatorNotFound)<span class="question-mark">?</span>;
 
-			<span class="comment">// Remove all AccountLookupOverride entries related to this collator</span>
-			<span class="kw">for</span> <span class="ident">orbiter</span> <span class="kw">in</span> <span class="ident">collator_pool</span>.<span class="ident">get_orbiters</span>() {
-				<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>);
+			<span class="comment">// Remove all AccountLookupOverride entries related to this collator
+			</span><span class="kw">for </span>orbiter <span class="kw">in </span>collator_pool.get_orbiters() {
+				AccountLookupOverride::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>orbiter);
 			}
-			<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>);
+			AccountLookupOverride::&lt;T&gt;::remove(<span class="kw-2">&amp;</span>collator);
 
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="kw">fn</span> <span class="ident">do_remove_orbiter_from_pool</span>(
-			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">orbiter</span>: <span class="ident">T::AccountId</span>,
-		) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">collator_pool</span> <span class="op">=</span>
-				<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">collator</span>).<span class="ident">ok_or</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::CollatorNotFound</span>)<span class="question-mark">?</span>;
+	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="kw">fn </span>do_remove_orbiter_from_pool(
+			collator: T::AccountId,
+			orbiter: T::AccountId,
+		) -&gt; DispatchResult {
+			<span class="kw">let </span><span class="kw-2">mut </span>collator_pool =
+				CollatorsPool::&lt;T&gt;::get(<span class="kw-2">&amp;</span>collator).ok_or(Error::&lt;T&gt;::CollatorNotFound)<span class="question-mark">?</span>;
 
-			<span class="kw">match</span> <span class="ident">collator_pool</span>.<span class="ident">remove_orbiter</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>) {
-				<span class="ident">RemoveOrbiterResult::OrbiterNotFound</span> =&gt; {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::OrbiterNotFound</span>.<span class="ident">into</span>())
+			<span class="kw">match </span>collator_pool.remove_orbiter(<span class="kw-2">&amp;</span>orbiter) {
+				RemoveOrbiterResult::OrbiterNotFound =&gt; {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(Error::&lt;T&gt;::OrbiterNotFound.into())
 				}
-				<span class="ident">RemoveOrbiterResult::OrbiterRemoved</span> =&gt; {
-					<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterLeaveCollatorPool</span> {
-						<span class="ident">collator</span>: <span class="ident">collator</span>.<span class="ident">clone</span>(),
-						<span class="ident">orbiter</span>,
+				RemoveOrbiterResult::OrbiterRemoved =&gt; {
+					<span class="self">Self</span>::deposit_event(Event::OrbiterLeaveCollatorPool {
+						collator: collator.clone(),
+						orbiter,
 					});
 				}
-				<span class="ident">RemoveOrbiterResult::OrbiterRemoveScheduled</span> =&gt; (),
+				RemoveOrbiterResult::OrbiterRemoveScheduled =&gt; (),
 			}
 
-			<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(<span class="ident">collator</span>, <span class="ident">collator_pool</span>);
+			CollatorsPool::&lt;T&gt;::insert(collator, collator_pool);
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">fn</span> <span class="ident">on_rotate</span>(<span class="ident">round_index</span>: <span class="ident">T::RoundIndex</span>) -&gt; <span class="ident">Weight</span> {
-			<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">writes</span> <span class="op">=</span> <span class="number">1</span>;
-			<span class="comment">// Update current orbiter for each pool and edit AccountLookupOverride accordingly.</span>
-			<span class="ident">CollatorsPool</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::translate</span>::<span class="op">&lt;</span><span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span>, <span class="kw">_</span><span class="op">&gt;</span>(
-				<span class="op">|</span><span class="ident">collator</span>, <span class="kw-2">mut</span> <span class="ident">pool</span><span class="op">|</span> {
-					<span class="kw">let</span> <span class="ident">RotateOrbiterResult</span> {
-						<span class="ident">maybe_old_orbiter</span>,
-						<span class="ident">maybe_next_orbiter</span>,
-					} <span class="op">=</span> <span class="ident">pool</span>.<span class="ident">rotate_orbiter</span>();
-					<span class="comment">// remove old orbiter, if any.</span>
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">CurrentOrbiter</span> {
-						<span class="ident">account_id</span>: <span class="kw-2">ref</span> <span class="ident">current_orbiter</span>,
-						<span class="ident">removed</span>,
-					}) <span class="op">=</span> <span class="ident">maybe_old_orbiter</span>
+		<span class="kw">fn </span>on_rotate(round_index: T::RoundIndex) -&gt; Weight {
+			<span class="kw">let </span><span class="kw-2">mut </span>writes = <span class="number">1</span>;
+			<span class="comment">// Update current orbiter for each pool and edit AccountLookupOverride accordingly.
+			</span>CollatorsPool::&lt;T&gt;::translate::&lt;CollatorPoolInfo&lt;T::AccountId&gt;, <span class="kw">_</span>&gt;(
+				|collator, <span class="kw-2">mut </span>pool| {
+					<span class="kw">let </span>RotateOrbiterResult {
+						maybe_old_orbiter,
+						maybe_next_orbiter,
+					} = pool.rotate_orbiter();
+					<span class="comment">// remove old orbiter, if any.
+					</span><span class="kw">if let </span><span class="prelude-val">Some</span>(CurrentOrbiter {
+						account_id: <span class="kw-2">ref </span>current_orbiter,
+						removed,
+					}) = maybe_old_orbiter
 					{
-						<span class="kw">if</span> <span class="ident">removed</span> {
-							<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterLeaveCollatorPool</span> {
-								<span class="ident">collator</span>: <span class="ident">collator</span>.<span class="ident">clone</span>(),
-								<span class="ident">orbiter</span>: <span class="ident">current_orbiter</span>.<span class="ident">clone</span>(),
+						<span class="kw">if </span>removed {
+							<span class="self">Self</span>::deposit_event(Event::OrbiterLeaveCollatorPool {
+								collator: collator.clone(),
+								orbiter: current_orbiter.clone(),
 							});
 						}
-						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">current_orbiter</span>.<span class="ident">clone</span>());
-						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+						AccountLookupOverride::&lt;T&gt;::remove(current_orbiter.clone());
+						writes += <span class="number">1</span>;
 					}
-					<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_orbiter</span>) <span class="op">=</span> <span class="ident">maybe_next_orbiter</span> {
-						<span class="comment">// Forbidding the collator to write blocks, it is now up to its orbiters to do it.</span>
-						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-							<span class="ident">collator</span>.<span class="ident">clone</span>(),
-							<span class="prelude-ty">Option</span>::<span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span><span class="ident">::None</span>,
+					<span class="kw">if let </span><span class="prelude-val">Some</span>(next_orbiter) = maybe_next_orbiter {
+						<span class="comment">// Forbidding the collator to write blocks, it is now up to its orbiters to do it.
+						</span>AccountLookupOverride::&lt;T&gt;::insert(
+							collator.clone(),
+							<span class="prelude-ty">Option</span>::&lt;T::AccountId&gt;::None,
 						);
-						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-						<span class="comment">// Insert new current orbiter</span>
-						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-							<span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
-							<span class="prelude-val">Some</span>(<span class="ident">collator</span>.<span class="ident">clone</span>()),
+						writes += <span class="number">1</span>;
+						<span class="comment">// Insert new current orbiter
+						</span>AccountLookupOverride::&lt;T&gt;::insert(
+							next_orbiter.clone(),
+							<span class="prelude-val">Some</span>(collator.clone()),
 						);
-						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-						<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="ident">Zero::zero</span>()..<span class="ident">T::RotatePeriod::get</span>() {
-							<span class="ident">OrbiterPerRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::insert</span>(
-								<span class="ident">round_index</span>.<span class="ident">saturating_add</span>(<span class="ident">i</span>),
-								<span class="ident">collator</span>.<span class="ident">clone</span>(),
-								<span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
+						writes += <span class="number">1</span>;
+						<span class="kw">for </span>i <span class="kw">in </span>Zero::zero()..T::RotatePeriod::get() {
+							OrbiterPerRound::&lt;T&gt;::insert(
+								round_index.saturating_add(i),
+								collator.clone(),
+								next_orbiter.clone(),
 							);
-							<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+							writes += <span class="number">1</span>;
 						}
-						<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterRotation</span> {
-							<span class="ident">collator</span>,
-							<span class="ident">old_orbiter</span>: <span class="ident">maybe_old_orbiter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">orbiter</span><span class="op">|</span> <span class="ident">orbiter</span>.<span class="ident">account_id</span>),
-							<span class="ident">new_orbiter</span>: <span class="prelude-val">Some</span>(<span class="ident">next_orbiter</span>),
+						<span class="self">Self</span>::deposit_event(Event::OrbiterRotation {
+							collator,
+							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
+							new_orbiter: <span class="prelude-val">Some</span>(next_orbiter),
 						});
-					} <span class="kw">else</span> {
-						<span class="comment">// If there is no more active orbiter, you have to remove the collator override.</span>
-						<span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::remove</span>(<span class="ident">collator</span>.<span class="ident">clone</span>());
-						<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-						<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterRotation</span> {
-							<span class="ident">collator</span>,
-							<span class="ident">old_orbiter</span>: <span class="ident">maybe_old_orbiter</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">orbiter</span><span class="op">|</span> <span class="ident">orbiter</span>.<span class="ident">account_id</span>),
-							<span class="ident">new_orbiter</span>: <span class="prelude-val">None</span>,
+					} <span class="kw">else </span>{
+						<span class="comment">// If there is no more active orbiter, you have to remove the collator override.
+						</span>AccountLookupOverride::&lt;T&gt;::remove(collator.clone());
+						writes += <span class="number">1</span>;
+						<span class="self">Self</span>::deposit_event(Event::OrbiterRotation {
+							collator,
+							old_orbiter: maybe_old_orbiter.map(|orbiter| orbiter.account_id),
+							new_orbiter: <span class="prelude-val">None</span>,
 						});
 					}
-					<span class="ident">writes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-					<span class="prelude-val">Some</span>(<span class="ident">pool</span>)
+					writes += <span class="number">1</span>;
+					<span class="prelude-val">Some</span>(pool)
 				},
 			);
-			<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="ident">writes</span>)
+			T::DbWeight::get().reads_writes(<span class="number">1</span>, writes)
 		}
-		<span class="doccomment">/// Notify this pallet that a new round begin</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">on_new_round</span>(<span class="ident">round_index</span>: <span class="ident">T::RoundIndex</span>) -&gt; <span class="ident">Weight</span> {
-			<span class="ident">CurrentRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">round_index</span>);
+		<span class="doccomment">/// Notify this pallet that a new round begin
+		</span><span class="kw">pub fn </span>on_new_round(round_index: T::RoundIndex) -&gt; Weight {
+			CurrentRound::&lt;T&gt;::put(round_index);
 
-			<span class="kw">if</span> <span class="ident">ForceRotation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>() {
-				<span class="ident">ForceRotation</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">false</span>);
-				<span class="ident"><span class="self">Self</span>::on_rotate</span>(<span class="ident">round_index</span>) <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">2</span>)
-			} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">round_index</span> <span class="op">%</span> <span class="ident">T::RotatePeriod::get</span>() <span class="op">==</span> <span class="ident">Zero::zero</span>() {
-				<span class="ident"><span class="self">Self</span>::on_rotate</span>(<span class="ident">round_index</span>) <span class="op">+</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>
-			} <span class="kw">else</span> {
-				<span class="ident">T::DbWeight::get</span>().<span class="ident">write</span>
+			<span class="kw">if </span>ForceRotation::&lt;T&gt;::get() {
+				ForceRotation::&lt;T&gt;::put(<span class="bool-val">false</span>);
+				<span class="self">Self</span>::on_rotate(round_index) + T::DbWeight::get().writes(<span class="number">2</span>)
+			} <span class="kw">else if </span>round_index % T::RotatePeriod::get() == Zero::zero() {
+				<span class="self">Self</span>::on_rotate(round_index).saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
+			} <span class="kw">else </span>{
+				T::DbWeight::get().writes(<span class="number">1</span>)
 			}
 		}
-		<span class="doccomment">/// Notify this pallet that a collator received rewards</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">distribute_rewards</span>(
-			<span class="ident">pay_for_round</span>: <span class="ident">T::RoundIndex</span>,
-			<span class="ident">collator</span>: <span class="ident">T::AccountId</span>,
-			<span class="ident">amount</span>: <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-		) -&gt; <span class="ident">Weight</span> {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">orbiter</span>) <span class="op">=</span> <span class="ident">OrbiterPerRound</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::take</span>(<span class="ident">pay_for_round</span>, <span class="kw-2">&amp;</span><span class="ident">collator</span>) {
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">amount_to_transfer</span>) <span class="op">=</span> <span class="ident">T::Currency::withdraw</span>(
-					<span class="kw-2">&amp;</span><span class="ident">collator</span>,
-					<span class="ident">amount</span>,
-					<span class="ident">frame_support::traits::WithdrawReasons::TRANSFER</span>,
-					<span class="ident">frame_support::traits::ExistenceRequirement::KeepAlive</span>,
+		<span class="doccomment">/// Notify this pallet that a collator received rewards
+		</span><span class="kw">pub fn </span>distribute_rewards(
+			pay_for_round: T::RoundIndex,
+			collator: T::AccountId,
+			amount: BalanceOf&lt;T&gt;,
+		) -&gt; Weight {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(orbiter) = OrbiterPerRound::&lt;T&gt;::take(pay_for_round, <span class="kw-2">&amp;</span>collator) {
+				<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_to_transfer) = T::Currency::withdraw(
+					<span class="kw-2">&amp;</span>collator,
+					amount,
+					frame_support::traits::WithdrawReasons::TRANSFER,
+					frame_support::traits::ExistenceRequirement::KeepAlive,
 				) {
-					<span class="kw">let</span> <span class="ident">real_reward</span> <span class="op">=</span> <span class="ident">amount_to_transfer</span>.<span class="ident">peek</span>();
-					<span class="kw">if</span> <span class="ident">T::Currency::resolve_into_existing</span>(<span class="kw-2">&amp;</span><span class="ident">orbiter</span>, <span class="ident">amount_to_transfer</span>).<span class="ident">is_ok</span>() {
-						<span class="ident"><span class="self">Self</span>::deposit_event</span>(<span class="ident">Event::OrbiterRewarded</span> {
-							<span class="ident">account</span>: <span class="ident">orbiter</span>,
-							<span class="ident">rewards</span>: <span class="ident">real_reward</span>,
+					<span class="kw">let </span>real_reward = amount_to_transfer.peek();
+					<span class="kw">if </span>T::Currency::resolve_into_existing(<span class="kw-2">&amp;</span>orbiter, amount_to_transfer).is_ok() {
+						<span class="self">Self</span>::deposit_event(Event::OrbiterRewarded {
+							account: orbiter,
+							rewards: real_reward,
 						});
-						<span class="comment">// reads: withdraw + resolve_into_existing</span>
-						<span class="comment">// writes: take + withdraw + resolve_into_existing</span>
-						<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">2</span>, <span class="number">3</span>)
-					} <span class="kw">else</span> {
-						<span class="comment">// reads: withdraw + resolve_into_existing</span>
-						<span class="comment">// writes: take + withdraw</span>
-						<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">2</span>, <span class="number">2</span>)
+						<span class="comment">// reads: withdraw + resolve_into_existing
+						// writes: take + withdraw + resolve_into_existing
+						</span>T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">3</span>)
+					} <span class="kw">else </span>{
+						<span class="comment">// reads: withdraw + resolve_into_existing
+						// writes: take + withdraw
+						</span>T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">2</span>)
 					}
-				} <span class="kw">else</span> {
-					<span class="comment">// reads: withdraw</span>
-					<span class="comment">// writes: take</span>
-					<span class="ident">T::DbWeight::get</span>().<span class="ident">reads_writes</span>(<span class="number">1</span>, <span class="number">1</span>)
+				} <span class="kw">else </span>{
+					<span class="comment">// reads: withdraw
+					// writes: take
+					</span>T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
 				}
-			} <span class="kw">else</span> {
-				<span class="comment">// writes: take</span>
-				<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>)
+			} <span class="kw">else </span>{
+				<span class="comment">// writes: take
+				</span>T::DbWeight::get().writes(<span class="number">1</span>)
 			}
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">AccountLookup</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">lookup_account</span>(<span class="ident">nimbus_id</span>: <span class="kw-2">&amp;</span><span class="ident">NimbusId</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T::AccountId</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">account_id</span> <span class="op">=</span> <span class="ident">T::AccountLookup::lookup_account</span>(<span class="ident">nimbus_id</span>)<span class="question-mark">?</span>;
-		<span class="kw">match</span> <span class="ident">AccountLookupOverride</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(<span class="kw-2">&amp;</span><span class="ident">account_id</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">override_</span>) =&gt; <span class="ident">override_</span>,
-			<span class="prelude-val">None</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">account_id</span>),
+<span class="kw">impl</span>&lt;T: Config&gt; AccountLookup&lt;T::AccountId&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+	<span class="kw">fn </span>lookup_account(nimbus_id: <span class="kw-2">&amp;</span>NimbusId) -&gt; <span class="prelude-ty">Option</span>&lt;T::AccountId&gt; {
+		<span class="kw">let </span>account_id = T::AccountLookup::lookup_account(nimbus_id)<span class="question-mark">?</span>;
+		<span class="kw">match </span>AccountLookupOverride::&lt;T&gt;::get(<span class="kw-2">&amp;</span>account_id) {
+			<span class="prelude-val">Some</span>(override_) =&gt; override_,
+			<span class="prelude-val">None </span>=&gt; <span class="prelude-val">Some</span>(account_id),
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

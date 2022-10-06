@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Formatter",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Formatter",""]]};

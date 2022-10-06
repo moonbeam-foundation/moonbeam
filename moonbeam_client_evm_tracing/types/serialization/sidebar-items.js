@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["bytes_0x_serialize",""],["h256_0x_serialize",""],["h256_serialize",""],["opcode_serialize",""],["option_bytes_0x_serialize",""],["option_string_serialize",""],["seq_h256_serialize",""],["string_serialize",""],["u256_serialize",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["bytes_0x_serialize",""],["h256_0x_serialize",""],["h256_serialize",""],["opcode_serialize",""],["option_bytes_0x_serialize",""],["option_string_serialize",""],["seq_h256_serialize",""],["string_serialize",""],["u256_serialize",""]]};

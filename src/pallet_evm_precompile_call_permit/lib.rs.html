@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/call-permit/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_call_permit/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_call_permit/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_call_permit/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/call-permit/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_call_permit/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_call_permit/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_call_permit/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -259,262 +254,261 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">evm::ExitReason</span>;
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">Context</span>, <span class="ident">ExitRevert</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>, <span class="ident">Transfer</span>};
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">ensure</span>,
-	<span class="ident">storage::types</span>::{<span class="ident">StorageMap</span>, <span class="ident">ValueQuery</span>},
-	<span class="ident">traits</span>::{<span class="ident">ConstU32</span>, <span class="ident">Get</span>, <span class="ident">StorageInstance</span>},
-	<span class="ident">Blake2_128Concat</span>,
+</span><span class="kw">use </span>core::marker::PhantomData;
+<span class="kw">use </span>evm::ExitReason;
+<span class="kw">use </span>fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer};
+<span class="kw">use </span>frame_support::{
+	ensure,
+	storage::types::{StorageMap, ValueQuery},
+	traits::{ConstU32, Get, StorageInstance},
+	Blake2_128Concat,
 };
-<span class="kw">use</span> <span class="ident">precompile_utils</span>::{<span class="ident">costs::call_cost</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">H256</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_io::hashing::keccak_256</span>;
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+<span class="kw">use </span>precompile_utils::{costs::call_cost, prelude::<span class="kw-2">*</span>};
+<span class="kw">use </span>sp_core::{H160, H256, U256};
+<span class="kw">use </span>sp_io::hashing::keccak_256;
+<span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="doccomment">/// Storage prefix for nonces.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Nonces</span>;
+<span class="doccomment">/// Storage prefix for nonces.
+</span><span class="kw">pub struct </span>Nonces;
 
-<span class="kw">impl</span> <span class="ident">StorageInstance</span> <span class="kw">for</span> <span class="ident">Nonces</span> {
-	<span class="kw">const</span> <span class="ident">STORAGE_PREFIX</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Nonces&quot;</span>;
+<span class="kw">impl </span>StorageInstance <span class="kw">for </span>Nonces {
+	<span class="kw">const </span>STORAGE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str = <span class="string">&quot;Nonces&quot;</span>;
 
-	<span class="kw">fn</span> <span class="ident">pallet_prefix</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
-		<span class="string">&quot;PrecompileCallPermit&quot;</span>
-	}
+	<span class="kw">fn </span>pallet_prefix() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str {
+		<span class="string">&quot;PrecompileCallPermit&quot;
+	</span>}
 }
 
-<span class="doccomment">/// Storage type used to store EIP2612 nonces.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">NoncesStorage</span> <span class="op">=</span> <span class="ident">StorageMap</span><span class="op">&lt;</span>
-	<span class="ident">Nonces</span>,
-	<span class="comment">// From</span>
-	<span class="ident">Blake2_128Concat</span>,
-	<span class="ident">H160</span>,
-	<span class="comment">// Nonce</span>
-	<span class="ident">U256</span>,
-	<span class="ident">ValueQuery</span>,
-<span class="op">&gt;</span>;
+<span class="doccomment">/// Storage type used to store EIP2612 nonces.
+</span><span class="kw">pub type </span>NoncesStorage = StorageMap&lt;
+	Nonces,
+	<span class="comment">// From
+	</span>Blake2_128Concat,
+	H160,
+	<span class="comment">// Nonce
+	</span>U256,
+	ValueQuery,
+&gt;;
 
-<span class="doccomment">/// EIP712 permit typehash.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PERMIT_TYPEHASH</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(
+<span class="doccomment">/// EIP712 permit typehash.
+</span><span class="kw">pub const </span>PERMIT_TYPEHASH: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
 	<span class="string">&quot;CallPermit(address from,address to,uint256 value,bytes data,uint64 gaslimit\
-,uint256 nonce,uint256 deadline)&quot;</span>
-);
+,uint256 nonce,uint256 deadline)&quot;
+</span>);
 
-<span class="doccomment">/// EIP712 permit domain used to compute an individualized domain separator.</span>
-<span class="kw">const</span> <span class="ident">PERMIT_DOMAIN</span>: [<span class="ident">u8</span>; <span class="number">32</span>] <span class="op">=</span> <span class="macro">keccak256!</span>(
-	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;</span>
-);
+<span class="doccomment">/// EIP712 permit domain used to compute an individualized domain separator.
+</span><span class="kw">const </span>PERMIT_DOMAIN: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(
+	<span class="string">&quot;EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)&quot;
+</span>);
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CALL_DATA_LIMIT</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">2u32</span>.<span class="ident">pow</span>(<span class="number">16</span>);
+<span class="kw">pub const </span>CALL_DATA_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 
-<span class="doccomment">/// Precompile allowing to issue and dispatch call permits for gasless transactions.</span>
-<span class="doccomment">/// A user can sign a permit for a call that can be dispatched and paid by another user or</span>
-<span class="doccomment">/// smart contract.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Precompile allowing to issue and dispatch call permits for gasless transactions.
+/// A user can sign a permit for a call that can be dispatched and paid by another user or
+/// smart contract.
+</span><span class="kw">pub struct </span>CallPermitPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">CallPermitPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span> <span class="op">+</span> <span class="ident">pallet_timestamp::Config</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_timestamp::Config</span><span class="op">&gt;</span><span class="ident">::Moment</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime&gt; CallPermitPrecompile&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_evm::Config + pallet_timestamp::Config,
+	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 {
-	<span class="kw">fn</span> <span class="ident">compute_domain_separator</span>(<span class="ident">address</span>: <span class="ident">H160</span>) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-		<span class="kw">let</span> <span class="ident">name</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="string">b&quot;Call Permit Precompile&quot;</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">version</span>: <span class="ident">H256</span> <span class="op">=</span> <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">chain_id</span>: <span class="ident">U256</span> <span class="op">=</span> <span class="ident">Runtime::ChainId::get</span>().<span class="ident">into</span>();
+	<span class="kw">fn </span>compute_domain_separator(address: H160) -&gt; [u8; <span class="number">32</span>] {
+		<span class="kw">let </span>name: H256 = keccak_256(<span class="string">b&quot;Call Permit Precompile&quot;</span>).into();
+		<span class="kw">let </span>version: H256 = <span class="macro">keccak256!</span>(<span class="string">&quot;1&quot;</span>).into();
+		<span class="kw">let </span>chain_id: U256 = Runtime::ChainId::get().into();
 
-		<span class="kw">let</span> <span class="ident">domain_separator_inner</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
-			.<span class="ident">write</span>(<span class="ident">H256::from</span>(<span class="ident">PERMIT_DOMAIN</span>))
-			.<span class="ident">write</span>(<span class="ident">name</span>)
-			.<span class="ident">write</span>(<span class="ident">version</span>)
-			.<span class="ident">write</span>(<span class="ident">chain_id</span>)
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">address</span>))
-			.<span class="ident">build</span>();
+		<span class="kw">let </span>domain_separator_inner = EvmDataWriter::new()
+			.write(H256::from(PERMIT_DOMAIN))
+			.write(name)
+			.write(version)
+			.write(chain_id)
+			.write(Address(address))
+			.build();
 
-		<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">domain_separator_inner</span>).<span class="ident">into</span>()
+		keccak_256(<span class="kw-2">&amp;</span>domain_separator_inner).into()
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_permit</span>(
-		<span class="ident">address</span>: <span class="ident">H160</span>,
-		<span class="ident">from</span>: <span class="ident">H160</span>,
-		<span class="ident">to</span>: <span class="ident">H160</span>,
-		<span class="ident">value</span>: <span class="ident">U256</span>,
-		<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>,
-		<span class="ident">gaslimit</span>: <span class="ident">u64</span>,
-		<span class="ident">nonce</span>: <span class="ident">U256</span>,
-		<span class="ident">deadline</span>: <span class="ident">U256</span>,
-	) -&gt; [<span class="ident">u8</span>; <span class="number">32</span>] {
-		<span class="kw">let</span> <span class="ident">domain_separator</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">address</span>);
+	<span class="kw">pub fn </span>generate_permit(
+		address: H160,
+		from: H160,
+		to: H160,
+		value: U256,
+		data: Vec&lt;u8&gt;,
+		gaslimit: u64,
+		nonce: U256,
+		deadline: U256,
+	) -&gt; [u8; <span class="number">32</span>] {
+		<span class="kw">let </span>domain_separator = <span class="self">Self</span>::compute_domain_separator(address);
 
-		<span class="kw">let</span> <span class="ident">permit_content</span> <span class="op">=</span> <span class="ident">EvmDataWriter::new</span>()
-			.<span class="ident">write</span>(<span class="ident">H256::from</span>(<span class="ident">PERMIT_TYPEHASH</span>))
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">from</span>))
-			.<span class="ident">write</span>(<span class="ident">Address</span>(<span class="ident">to</span>))
-			.<span class="ident">write</span>(<span class="ident">value</span>)
-			<span class="comment">// bytes are encoded as the keccak_256 of the content</span>
-			.<span class="ident">write</span>(<span class="ident">H256::from</span>(<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)))
-			.<span class="ident">write</span>(<span class="ident">gaslimit</span>)
-			.<span class="ident">write</span>(<span class="ident">nonce</span>)
-			.<span class="ident">write</span>(<span class="ident">deadline</span>)
-			.<span class="ident">build</span>();
-		<span class="kw">let</span> <span class="ident">permit_content</span> <span class="op">=</span> <span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">permit_content</span>);
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pre_digest</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">2</span> <span class="op">+</span> <span class="number">32</span> <span class="op">+</span> <span class="number">32</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="string">b&quot;\x19\x01&quot;</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">domain_separator</span>);
-		<span class="ident">pre_digest</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">permit_content</span>);
-		<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">pre_digest</span>)
+		<span class="kw">let </span>permit_content = EvmDataWriter::new()
+			.write(H256::from(PERMIT_TYPEHASH))
+			.write(Address(from))
+			.write(Address(to))
+			.write(value)
+			<span class="comment">// bytes are encoded as the keccak_256 of the content
+			</span>.write(H256::from(keccak_256(<span class="kw-2">&amp;</span>data)))
+			.write(gaslimit)
+			.write(nonce)
+			.write(deadline)
+			.build();
+		<span class="kw">let </span>permit_content = keccak_256(<span class="kw-2">&amp;</span>permit_content);
+		<span class="kw">let </span><span class="kw-2">mut </span>pre_digest = Vec::with_capacity(<span class="number">2 </span>+ <span class="number">32 </span>+ <span class="number">32</span>);
+		pre_digest.extend_from_slice(<span class="string">b&quot;\x19\x01&quot;</span>);
+		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>domain_separator);
+		pre_digest.extend_from_slice(<span class="kw-2">&amp;</span>permit_content);
+		keccak_256(<span class="kw-2">&amp;</span>pre_digest)
 	}
 
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">dispatch_inherent_cost</span>() -&gt; <span class="ident">u64</span> {
-		<span class="number">3_000</span> <span class="comment">// cost of ECRecover precompile for reference</span>
-			<span class="op">+</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>() <span class="op">*</span> <span class="number">2</span> <span class="comment">// we read nonce and timestamp</span>
-			<span class="op">+</span> <span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_write_gas_cost</span>() <span class="comment">// we write nonce</span>
-	}
+	<span class="kw">pub fn </span>dispatch_inherent_cost() -&gt; u64 {
+		<span class="number">3_000 </span><span class="comment">// cost of ECRecover precompile for reference
+			</span>+ RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost() * <span class="number">2 </span><span class="comment">// we read nonce and timestamp
+			</span>+ RuntimeHelper::&lt;Runtime&gt;::db_write_gas_cost() <span class="comment">// we write nonce
+	</span>}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(
-		<span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;</span>
-	)]</span>
-	<span class="kw">fn</span> <span class="ident">dispatch</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">from</span>: <span class="ident">Address</span>,
-		<span class="ident">to</span>: <span class="ident">Address</span>,
-		<span class="ident">value</span>: <span class="ident">U256</span>,
-		<span class="ident">data</span>: <span class="ident">BoundedBytes</span><span class="op">&lt;</span><span class="ident">ConstU32</span><span class="op">&lt;</span><span class="ident">CALL_DATA_LIMIT</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">gas_limit</span>: <span class="ident">u64</span>,
-		<span class="ident">deadline</span>: <span class="ident">U256</span>,
-		<span class="ident">v</span>: <span class="ident">u8</span>,
-		<span class="ident">r</span>: <span class="ident">H256</span>,
-		<span class="ident">s</span>: <span class="ident">H256</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">UnboundedBytes</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident"><span class="self">Self</span>::dispatch_inherent_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(
+		<span class="string">&quot;dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)&quot;
+	</span>)]
+	</span><span class="kw">fn </span>dispatch(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		from: Address,
+		to: Address,
+		value: U256,
+		data: BoundedBytes&lt;ConstU32&lt;CALL_DATA_LIMIT&gt;&gt;,
+		gas_limit: u64,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -&gt; EvmResult&lt;UnboundedBytes&gt; {
+		handle.record_cost(<span class="self">Self</span>::dispatch_inherent_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">from</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">to</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">to</span>.<span class="ident">into</span>();
-		<span class="kw">let</span> <span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>from: H160 = from.into();
+		<span class="kw">let </span>to: H160 = to.into();
+		<span class="kw">let </span>data: Vec&lt;u8&gt; = data.into();
 
-		<span class="comment">// ENSURE GASLIMIT IS SUFFICIENT</span>
-		<span class="kw">let</span> <span class="ident">call_cost</span> <span class="op">=</span> <span class="ident">call_cost</span>(<span class="ident">value</span>, <span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::config</span>());
+		<span class="comment">// ENSURE GASLIMIT IS SUFFICIENT
+		</span><span class="kw">let </span>call_cost = call_cost(value, &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::config());
 
-		<span class="kw">let</span> <span class="ident">total_cost</span> <span class="op">=</span> <span class="ident">gas_limit</span>
-			.<span class="ident">checked_add</span>(<span class="ident">call_cost</span>)
-			.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Call require too much gas (uint64 overflow)&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>total_cost = gas_limit
+			.checked_add(call_cost)
+			.ok_or_else(|| revert(<span class="string">&quot;Call require too much gas (uint64 overflow)&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="kw">if</span> <span class="ident">total_cost</span> <span class="op">&gt;</span> <span class="ident">handle</span>.<span class="ident">remaining_gas</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">revert</span>(<span class="string">&quot;Gaslimit is too low to dispatch provided call&quot;</span>));
+		<span class="kw">if </span>total_cost &gt; handle.remaining_gas() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;Gaslimit is too low to dispatch provided call&quot;</span>));
 		}
 
-		<span class="comment">// VERIFY PERMIT</span>
+		<span class="comment">// VERIFY PERMIT
 
-		<span class="comment">// pallet_timestamp is in ms while Ethereum use second timestamps.</span>
-		<span class="kw">let</span> <span class="ident">timestamp</span>: <span class="ident">U256</span> <span class="op">=</span> (<span class="ident">pallet_timestamp::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::get</span>()).<span class="ident">into</span>() <span class="op">/</span> <span class="number">1000</span>;
-		<span class="macro">ensure!</span>(<span class="ident">deadline</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">timestamp</span>, <span class="ident">revert</span>(<span class="string">&quot;Permit expired&quot;</span>));
+		// pallet_timestamp is in ms while Ethereum use second timestamps.
+		</span><span class="kw">let </span>timestamp: U256 = (pallet_timestamp::Pallet::&lt;Runtime&gt;::get()).into() / <span class="number">1000</span>;
+		<span class="macro">ensure!</span>(deadline &gt;= timestamp, revert(<span class="string">&quot;Permit expired&quot;</span>));
 
-		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage::get</span>(<span class="ident">from</span>);
+		<span class="kw">let </span>nonce = NoncesStorage::get(from);
 
-		<span class="kw">let</span> <span class="ident">permit</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::generate_permit</span>(
-			<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>,
-			<span class="ident">from</span>,
-			<span class="ident">to</span>,
-			<span class="ident">value</span>,
-			<span class="ident">data</span>.<span class="ident">clone</span>(),
-			<span class="ident">gas_limit</span>,
-			<span class="ident">nonce</span>,
-			<span class="ident">deadline</span>,
+		<span class="kw">let </span>permit = <span class="self">Self</span>::generate_permit(
+			handle.context().address,
+			from,
+			to,
+			value,
+			data.clone(),
+			gas_limit,
+			nonce,
+			deadline,
 		);
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sig</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">65</span>];
-		<span class="ident">sig</span>[<span class="number">0</span>..<span class="number">32</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>.<span class="ident">as_bytes</span>());
-		<span class="ident">sig</span>[<span class="number">32</span>..<span class="number">64</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">as_bytes</span>());
-		<span class="ident">sig</span>[<span class="number">64</span>] <span class="op">=</span> <span class="ident">v</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>sig = [<span class="number">0u8</span>; <span class="number">65</span>];
+		sig[<span class="number">0</span>..<span class="number">32</span>].copy_from_slice(<span class="kw-2">&amp;</span>r.as_bytes());
+		sig[<span class="number">32</span>..<span class="number">64</span>].copy_from_slice(<span class="kw-2">&amp;</span>s.as_bytes());
+		sig[<span class="number">64</span>] = v;
 
-		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">sp_io::crypto::secp256k1_ecdsa_recover</span>(<span class="kw-2">&amp;</span><span class="ident">sig</span>, <span class="kw-2">&amp;</span><span class="ident">permit</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">signer</span> <span class="op">=</span> <span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">keccak_256</span>(<span class="kw-2">&amp;</span><span class="ident">signer</span>).<span class="ident">as_slice</span>()));
+		<span class="kw">let </span>signer = sp_io::crypto::secp256k1_ecdsa_recover(<span class="kw-2">&amp;</span>sig, <span class="kw-2">&amp;</span>permit)
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Invalid permit&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span>signer = H160::from(H256::from_slice(keccak_256(<span class="kw-2">&amp;</span>signer).as_slice()));
 
 		<span class="macro">ensure!</span>(
-			<span class="ident">signer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">H160::zero</span>() <span class="op">&amp;&amp;</span> <span class="ident">signer</span> <span class="op">==</span> <span class="ident">from</span>,
-			<span class="ident">revert</span>(<span class="string">&quot;Invalid permit&quot;</span>)
+			signer != H160::zero() &amp;&amp; signer == from,
+			revert(<span class="string">&quot;Invalid permit&quot;</span>)
 		);
 
-		<span class="ident">NoncesStorage::insert</span>(<span class="ident">from</span>, <span class="ident">nonce</span> <span class="op">+</span> <span class="ident">U256::one</span>());
+		NoncesStorage::insert(from, nonce + U256::one());
 
-		<span class="comment">// DISPATCH CALL</span>
-		<span class="kw">let</span> <span class="ident">sub_context</span> <span class="op">=</span> <span class="ident">Context</span> {
-			<span class="ident">caller</span>: <span class="ident">from</span>,
-			<span class="ident">address</span>: <span class="ident">to</span>.<span class="ident">clone</span>(),
-			<span class="ident">apparent_value</span>: <span class="ident">value</span>,
+		<span class="comment">// DISPATCH CALL
+		</span><span class="kw">let </span>sub_context = Context {
+			caller: from,
+			address: to.clone(),
+			apparent_value: value,
 		};
 
-		<span class="kw">let</span> <span class="ident">transfer</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_zero</span>() {
-			<span class="prelude-val">None</span>
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">Transfer</span> {
-				<span class="ident">source</span>: <span class="ident">from</span>,
-				<span class="ident">target</span>: <span class="ident">to</span>.<span class="ident">clone</span>(),
-				<span class="ident">value</span>,
+		<span class="kw">let </span>transfer = <span class="kw">if </span>value.is_zero() {
+			<span class="prelude-val">None
+		</span>} <span class="kw">else </span>{
+			<span class="prelude-val">Some</span>(Transfer {
+				source: from,
+				target: to.clone(),
+				value,
 			})
 		};
 
-		<span class="kw">let</span> (<span class="ident">reason</span>, <span class="ident">output</span>) <span class="op">=</span>
-			<span class="ident">handle</span>.<span class="ident">call</span>(<span class="ident">to</span>, <span class="ident">transfer</span>, <span class="ident">data</span>, <span class="prelude-val">Some</span>(<span class="ident">gas_limit</span>), <span class="bool-val">false</span>, <span class="kw-2">&amp;</span><span class="ident">sub_context</span>);
-		<span class="kw">match</span> <span class="ident">reason</span> {
-			<span class="ident">ExitReason::Error</span>(<span class="ident">exit_status</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Error</span> { <span class="ident">exit_status</span> }),
-			<span class="ident">ExitReason::Fatal</span>(<span class="ident">exit_status</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Fatal</span> { <span class="ident">exit_status</span> }),
-			<span class="ident">ExitReason::Revert</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">PrecompileFailure::Revert</span> {
-				<span class="ident">exit_status</span>: <span class="ident">ExitRevert::Reverted</span>,
-				<span class="ident">output</span>,
+		<span class="kw">let </span>(reason, output) =
+			handle.call(to, transfer, data, <span class="prelude-val">Some</span>(gas_limit), <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>sub_context);
+		<span class="kw">match </span>reason {
+			ExitReason::Error(exit_status) =&gt; <span class="prelude-val">Err</span>(PrecompileFailure::Error { exit_status }),
+			ExitReason::Fatal(exit_status) =&gt; <span class="prelude-val">Err</span>(PrecompileFailure::Fatal { exit_status }),
+			ExitReason::Revert(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
 			}),
-			<span class="ident">ExitReason::Succeed</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">output</span>.<span class="ident">into</span>()),
+			ExitReason::Succeed(<span class="kw">_</span>) =&gt; <span class="prelude-val">Ok</span>(output.into()),
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;nonces(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">nonces</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">owner</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;nonces(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>nonces(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, owner: Address) -&gt; EvmResult&lt;U256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">owner</span>: <span class="ident">H160</span> <span class="op">=</span> <span class="ident">owner</span>.<span class="ident">into</span>();
+		<span class="kw">let </span>owner: H160 = owner.into();
 
-		<span class="kw">let</span> <span class="ident">nonce</span> <span class="op">=</span> <span class="ident">NoncesStorage::get</span>(<span class="ident">owner</span>);
+		<span class="kw">let </span>nonce = NoncesStorage::get(owner);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">nonce</span>)
+		<span class="prelude-val">Ok</span>(nonce)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">domain_separator</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">H256</span><span class="op">&gt;</span> {
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;DOMAIN_SEPARATOR()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>domain_separator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;H256&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">domain_separator</span>: <span class="ident">H256</span> <span class="op">=</span>
-			<span class="ident"><span class="self">Self</span>::compute_domain_separator</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">address</span>).<span class="ident">into</span>();
+		<span class="kw">let </span>domain_separator: H256 =
+			<span class="self">Self</span>::compute_domain_separator(handle.context().address).into();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">domain_separator</span>)
+		<span class="prelude-val">Ok</span>(domain_separator)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_call_permit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_call_permit" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

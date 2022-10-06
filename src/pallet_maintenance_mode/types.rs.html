@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/maintenance-mode/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_maintenance_mode/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_maintenance_mode/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_maintenance_mode/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/maintenance-mode/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_maintenance_mode/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_maintenance_mode/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_maintenance_mode/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -114,117 +109,116 @@
 <span id="109">109</span>
 <span id="110">110</span>
 <span id="111">111</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="comment">// This file contains the ExecutiveHooks type which is intended to be used</span>
-<span class="comment">// with frame_executive::Executive. This instructs which pallets execute</span>
-<span class="comment">// hooks in each of the normal and maintenance modes.</span>
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">traits</span>::{<span class="ident">OffchainWorker</span>, <span class="ident">OnFinalize</span>, <span class="ident">OnIdle</span>, <span class="ident">OnInitialize</span>, <span class="ident">OnRuntimeUpgrade</span>},
-	<span class="ident">weights::Weight</span>,
+// This file contains the ExecutiveHooks type which is intended to be used
+// with frame_executive::Executive. This instructs which pallets execute
+// hooks in each of the normal and maintenance modes.
+</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
+<span class="kw">use </span>frame_support::{
+	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
+	weights::Weight,
 };
-<span class="kw">use</span> <span class="ident">sp_std::marker::PhantomData</span>;
+<span class="kw">use </span>sp_std::marker::PhantomData;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
-<span class="kw">type</span> <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::BlockNumber</span>;
+<span class="kw">pub struct </span>ExecutiveHooks&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">type </span>BlockNumberOf&lt;T&gt; = &lt;T <span class="kw">as </span>frame_system::Config&gt;::BlockNumber;
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnIdle</span><span class="op">&lt;</span><span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">Config</span>,
+<span class="kw">impl</span>&lt;T&gt; OnIdle&lt;BlockNumberOf&lt;T&gt;&gt; <span class="kw">for </span>ExecutiveHooks&lt;T&gt;
+<span class="kw">where
+	</span>T: Config,
 {
-	<span class="kw">fn</span> <span class="ident">on_idle</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">remaining_weight</span>: <span class="ident">Weight</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::on_idle</span>(<span class="ident">n</span>, <span class="ident">remaining_weight</span>)
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::on_idle</span>(<span class="ident">n</span>, <span class="ident">remaining_weight</span>)
+	<span class="kw">fn </span>on_idle(n: BlockNumberOf&lt;T&gt;, remaining_weight: Weight) -&gt; Weight {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::on_idle(n, remaining_weight)
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::on_idle(n, remaining_weight)
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnInitialize</span><span class="op">&lt;</span><span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">Config</span>,
+<span class="kw">impl</span>&lt;T&gt; OnInitialize&lt;BlockNumberOf&lt;T&gt;&gt; <span class="kw">for </span>ExecutiveHooks&lt;T&gt;
+<span class="kw">where
+	</span>T: Config,
 {
-	<span class="kw">fn</span> <span class="ident">on_initialize</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Weight</span> {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::on_initialize</span>(<span class="ident">n</span>)
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::on_initialize</span>(<span class="ident">n</span>)
+	<span class="kw">fn </span>on_initialize(n: BlockNumberOf&lt;T&gt;) -&gt; Weight {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::on_initialize(n)
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::on_initialize(n)
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnFinalize</span><span class="op">&lt;</span><span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">Config</span>,
+<span class="kw">impl</span>&lt;T&gt; OnFinalize&lt;BlockNumberOf&lt;T&gt;&gt; <span class="kw">for </span>ExecutiveHooks&lt;T&gt;
+<span class="kw">where
+	</span>T: Config,
 {
-	<span class="kw">fn</span> <span class="ident">on_finalize</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::on_finalize</span>(<span class="ident">n</span>)
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::on_finalize</span>(<span class="ident">n</span>)
+	<span class="kw">fn </span>on_finalize(n: BlockNumberOf&lt;T&gt;) {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::on_finalize(n)
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::on_finalize(n)
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OffchainWorker</span><span class="op">&lt;</span><span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">Config</span>,
+<span class="kw">impl</span>&lt;T&gt; OffchainWorker&lt;BlockNumberOf&lt;T&gt;&gt; <span class="kw">for </span>ExecutiveHooks&lt;T&gt;
+<span class="kw">where
+	</span>T: Config,
 {
-	<span class="kw">fn</span> <span class="ident">offchain_worker</span>(<span class="ident">n</span>: <span class="ident">BlockNumberOf</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::offchain_worker</span>(<span class="ident">n</span>)
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::offchain_worker</span>(<span class="ident">n</span>)
+	<span class="kw">fn </span>offchain_worker(n: BlockNumberOf&lt;T&gt;) {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::offchain_worker(n)
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::offchain_worker(n)
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnRuntimeUpgrade</span> <span class="kw">for</span> <span class="ident">ExecutiveHooks</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">T</span>: <span class="ident">Config</span>,
+<span class="kw">impl</span>&lt;T&gt; OnRuntimeUpgrade <span class="kw">for </span>ExecutiveHooks&lt;T&gt;
+<span class="kw">where
+	</span>T: Config,
 {
-	<span class="kw">fn</span> <span class="ident">on_runtime_upgrade</span>() -&gt; <span class="ident">Weight</span> {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::on_runtime_upgrade</span>()
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::on_runtime_upgrade</span>()
+	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::on_runtime_upgrade()
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::on_runtime_upgrade()
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">pre_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::pre_upgrade</span>()
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::pre_upgrade</span>()
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::pre_upgrade()
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::pre_upgrade()
 		}
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">post_upgrade</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="ident">Pallet</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::maintenance_mode</span>() {
-			<span class="ident">T::MaintenanceExecutiveHooks::post_upgrade</span>()
-		} <span class="kw">else</span> {
-			<span class="ident">T::NormalExecutiveHooks::post_upgrade</span>()
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">if </span>Pallet::&lt;T&gt;::maintenance_mode() {
+			T::MaintenanceExecutiveHooks::post_upgrade()
+		} <span class="kw">else </span>{
+			T::NormalExecutiveHooks::post_upgrade()
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_maintenance_mode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_maintenance_mode" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/parachain-staking/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_parachain_staking/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/parachain-staking/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_evm_precompile_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_evm_precompile_parachain_staking/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_evm_precompile_parachain_staking/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -695,698 +690,697 @@
 <span id="690">690</span>
 <span id="691">691</span>
 <span id="692">692</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Precompile to call parachain-staking runtime methods via the EVM</span>
+</span><span class="doccomment">//! Precompile to call parachain-staking runtime methods via the EVM
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">test</span>, <span class="ident">feature</span>(<span class="ident">assert_matches</span>))]</span>
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![cfg_attr(test, feature(assert_matches))]
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident">fp_evm::PrecompileHandle</span>;
-<span class="kw">use</span> <span class="ident">frame_support::dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>};
-<span class="kw">use</span> <span class="ident">frame_support::traits</span>::{<span class="ident">Currency</span>, <span class="ident">Get</span>};
-<span class="kw">use</span> <span class="ident">pallet_evm::AddressMapping</span>;
-<span class="kw">use</span> <span class="ident">precompile_utils::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">vec::Vec</span>};
+<span class="kw">use </span>fp_evm::PrecompileHandle;
+<span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+<span class="kw">use </span>frame_support::traits::{Currency, Get};
+<span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
+<span class="kw">use </span>sp_core::{H160, U256};
+<span class="kw">use </span>sp_std::{convert::TryInto, marker::PhantomData, vec::Vec};
 
-<span class="kw">type</span> <span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="op">=</span> <span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::Currency</span> <span class="kw">as</span> <span class="ident">Currency</span><span class="op">&lt;</span>
-	<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::AccountId</span>,
-<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::Balance</span>;
+<span class="kw">type </span>BalanceOf&lt;Runtime&gt; = &lt;&lt;Runtime <span class="kw">as </span>pallet_parachain_staking::Config&gt;::Currency <span class="kw">as </span>Currency&lt;
+	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::AccountId,
+&gt;&gt;::Balance;
 
-<span class="doccomment">/// A precompile to wrap the functionality from parachain_staking.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// EXAMPLE USECASE:</span>
-<span class="doccomment">/// A simple example usecase is a contract that allows donors to donate, and stakes all the funds</span>
-<span class="doccomment">/// toward one fixed address chosen by the deployer.</span>
-<span class="doccomment">/// Such a contract could be deployed by a collator candidate, and the deploy address distributed to</span>
-<span class="doccomment">/// supporters who want to donate toward a perpetual nomination fund.</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParachainStakingPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="doccomment">/// A precompile to wrap the functionality from parachain_staking.
+///
+/// EXAMPLE USECASE:
+/// A simple example usecase is a contract that allows donors to donate, and stakes all the funds
+/// toward one fixed address chosen by the deployer.
+/// Such a contract could be deployed by a collator candidate, and the deploy address distributed to
+/// supporters who want to donate toward a perpetual nomination fund.
+</span><span class="kw">pub struct </span>ParachainStakingPrecompile&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
-<span class="attribute">#[<span class="ident">precompile_utils::precompile</span>]</span>
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">ParachainStakingPrecompile</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_parachain_staking::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::AccountId</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">H160</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
-	<span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Runtime::AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Call</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>: <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">U256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">EvmData</span>,
+<span class="attribute">#[precompile_utils::precompile]
+</span><span class="kw">impl</span>&lt;Runtime&gt; ParachainStakingPrecompile&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
+	Runtime::AccountId: Into&lt;H160&gt;,
+	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::Call: From&lt;pallet_parachain_staking::Call&lt;Runtime&gt;&gt;,
+	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt; + EvmData,
 {
-	<span class="comment">// Constants</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;minDelegation()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;min_delegation()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">min_delegation</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> {
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">min_nomination</span>: <span class="ident">u128</span> <span class="op">=</span>
-			<span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_parachain_staking::Config</span><span class="op">&gt;</span><span class="ident">::MinDelegation</span> <span class="kw">as</span> <span class="ident">Get</span><span class="op">&lt;</span>
-				<span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>,
-			<span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::get</span>()
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">revert</span>(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
+	<span class="comment">// Constants
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;minDelegation()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;min_delegation()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>min_delegation(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u128&gt; {
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>min_nomination: u128 =
+			&lt;&lt;Runtime <span class="kw">as </span>pallet_parachain_staking::Config&gt;::MinDelegation <span class="kw">as </span>Get&lt;
+				BalanceOf&lt;Runtime&gt;,
+			&gt;&gt;::get()
+			.try_into()
+			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">min_nomination</span>)
+		<span class="prelude-val">Ok</span>(min_nomination)
 	}
 
-	<span class="comment">// Storage Getters</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;points(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">points</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">round</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">round</span> <span class="op">=</span> <span class="ident">round</span>.<span class="ident">converted</span>();
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">points</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::points</span>(<span class="ident">round</span>);
+	<span class="comment">// Storage Getters
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;points(uint256)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>points(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		round: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="kw">let </span>round = round.converted();
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>points: u32 = pallet_parachain_staking::Pallet::&lt;Runtime&gt;::points(round);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">points</span>)
+		<span class="prelude-val">Ok</span>(points)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidateCount()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidate_count()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">candidate_count</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_count</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_pool</span>()
-			.<span class="number">0</span>
-			.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;candidateCount()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;candidate_count()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>candidate_count(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>candidate_count: u32 = &lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::candidate_pool()
+			.<span class="number">0
+			</span>.len() <span class="kw">as </span>u32;
 
-		<span class="comment">// Build output.</span>
-		<span class="prelude-val">Ok</span>(<span class="ident">candidate_count</span>)
+		<span class="comment">// Build output.
+		</span><span class="prelude-val">Ok</span>(candidate_count)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;round()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">round</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">round</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::round</span>().<span class="ident">current</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;round()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>round(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;u32&gt; {
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>round: u32 = &lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::round().current;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">round</span>)
+		<span class="prelude-val">Ok</span>(round)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidateDelegationCount(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidate_delegation_count(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">candidate_delegation_count</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;candidateDelegationCount(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;candidate_delegation_count(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>candidate_delegation_count(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_info</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>)
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(state) =
+			&lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::candidate_info(<span class="kw-2">&amp;</span>candidate)
 		{
-			<span class="kw">let</span> <span class="ident">candidate_delegation_count</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegation_count</span>;
+			<span class="kw">let </span>candidate_delegation_count: u32 = state.delegation_count;
 
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Result from pallet is {:?}&quot;</span>,
-				<span class="ident">candidate_delegation_count</span>
+				candidate_delegation_count
 			);
-			<span class="ident">candidate_delegation_count</span>
-		} <span class="kw">else</span> {
+			candidate_delegation_count
+		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Candidate {:?} not found, so delegation count is 0&quot;</span>,
-				<span class="ident">candidate</span>
+				candidate
 			);
-			<span class="number">0u32</span>
-		};
+			<span class="number">0u32
+		</span>};
 
-		<span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+		<span class="prelude-val">Ok</span>(result)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegatorDelegationCount(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegator_delegation_count(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">delegator_delegation_count</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegator</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;delegatorDelegationCount(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;delegator_delegation_count(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>delegator_delegation_count(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegator: Address,
+	) -&gt; EvmResult&lt;u32&gt; {
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::delegator_state</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>)
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>result = <span class="kw">if let </span><span class="prelude-val">Some</span>(state) =
+			&lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::delegator_state(<span class="kw-2">&amp;</span>delegator)
 		{
-			<span class="kw">let</span> <span class="ident">delegator_delegation_count</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">delegations</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+			<span class="kw">let </span>delegator_delegation_count: u32 = state.delegations.<span class="number">0</span>.len() <span class="kw">as </span>u32;
 
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Result from pallet is {:?}&quot;</span>,
-				<span class="ident">delegator_delegation_count</span>
+				delegator_delegation_count
 			);
 
-			<span class="ident">delegator_delegation_count</span>
-		} <span class="kw">else</span> {
+			delegator_delegation_count
+		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Delegator {:?} not found, so delegation count is 0&quot;</span>,
-				<span class="ident">delegator</span>
+				delegator
 			);
-			<span class="number">0u32</span>
-		};
+			<span class="number">0u32
+		</span>};
 
-		<span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+		<span class="prelude-val">Ok</span>(result)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;selectedCandidates()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;selected_candidates()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">selected_candidates</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">selected_candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Address</span><span class="op">&gt;</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::selected_candidates</span>()
-				.<span class="ident">into_iter</span>()
-				.<span class="ident">map</span>(<span class="op">|</span><span class="ident">address</span><span class="op">|</span> <span class="ident">Address</span>(<span class="ident">address</span>.<span class="ident">into</span>()))
-				.<span class="ident">collect</span>();
+	<span class="attribute">#[precompile::public(<span class="string">&quot;selectedCandidates()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;selected_candidates()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>selected_candidates(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult&lt;Vec&lt;Address&gt;&gt; {
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>selected_candidates: Vec&lt;Address&gt; =
+			pallet_parachain_staking::Pallet::&lt;Runtime&gt;::selected_candidates()
+				.into_iter()
+				.map(|address| Address(address.into()))
+				.collect();
 
-		<span class="prelude-val">Ok</span>(<span class="ident">selected_candidates</span>)
+		<span class="prelude-val">Ok</span>(selected_candidates)
 	}
 
-	<span class="comment">// Role Verifiers</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;isDelegator(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;is_delegator(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">is_delegator</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">delegator</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>.<span class="number">0</span>);
+	<span class="comment">// Role Verifiers
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;isDelegator(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;is_delegator(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>is_delegator(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, delegator: Address) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">is_delegator</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_delegator</span>(<span class="kw-2">&amp;</span><span class="ident">delegator</span>);
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>is_delegator = pallet_parachain_staking::Pallet::&lt;Runtime&gt;::is_delegator(<span class="kw-2">&amp;</span>delegator);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">is_delegator</span>)
+		<span class="prelude-val">Ok</span>(is_delegator)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;isCandidate(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;is_candidate(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">is_candidate</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">candidate</span>: <span class="ident">Address</span>) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;isCandidate(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;is_candidate(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>is_candidate(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, candidate: Address) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">is_candidate</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>);
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>is_candidate = pallet_parachain_staking::Pallet::&lt;Runtime&gt;::is_candidate(<span class="kw-2">&amp;</span>candidate);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">is_candidate</span>)
+		<span class="prelude-val">Ok</span>(is_candidate)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;isSelectedCandidate(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;is_selected_candidate(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">is_selected_candidate</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;isSelectedCandidate(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;is_selected_candidate(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>is_selected_candidate(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">is_selected</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Pallet</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::is_selected_candidate</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>);
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>is_selected =
+			pallet_parachain_staking::Pallet::&lt;Runtime&gt;::is_selected_candidate(<span class="kw-2">&amp;</span>candidate);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">is_selected</span>)
+		<span class="prelude-val">Ok</span>(is_selected)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegationRequestIsPending(address,address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegation_request_is_pending(address,address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">delegation_request_is_pending</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegator</span>: <span class="ident">Address</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;delegationRequestIsPending(address,address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;delegation_request_is_pending(address,address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>delegation_request_is_pending(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="comment">// If we are not able to get delegator state, we return false</span>
-		<span class="comment">// Users can call `is_delegator` to determine when this happens</span>
-		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::delegation_request_exists</span>(
-			<span class="kw-2">&amp;</span><span class="ident">candidate</span>, <span class="kw-2">&amp;</span><span class="ident">delegator</span>,
+		<span class="comment">// If we are not able to get delegator state, we return false
+		// Users can call `is_delegator` to determine when this happens
+		</span><span class="kw">let </span>pending = &lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::delegation_request_exists(
+			<span class="kw-2">&amp;</span>candidate, <span class="kw-2">&amp;</span>delegator,
 		);
 
-		<span class="prelude-val">Ok</span>(<span class="ident">pending</span>)
+		<span class="prelude-val">Ok</span>(pending)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidateExitIsPending(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidate_exit_is_pending(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">candidate_exit_is_pending</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;candidateExitIsPending(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;candidate_exit_is_pending(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>candidate_exit_is_pending(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="comment">// If we are not able to get delegator state, we return false</span>
-		<span class="comment">// Users can call `is_candidate` to determine when this happens</span>
-		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_info</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>)
+		<span class="comment">// If we are not able to get delegator state, we return false
+		// Users can call `is_candidate` to determine when this happens
+		</span><span class="kw">let </span>pending = <span class="kw">if let </span><span class="prelude-val">Some</span>(state) =
+			&lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::candidate_info(<span class="kw-2">&amp;</span>candidate)
 		{
-			<span class="ident">state</span>.<span class="ident">is_leaving</span>()
-		} <span class="kw">else</span> {
+			state.is_leaving()
+		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Candidate state for {:?} not found, so pending exit is false&quot;</span>,
-				<span class="ident">candidate</span>
+				candidate
 			);
-			<span class="bool-val">false</span>
-		};
+			<span class="bool-val">false
+		</span>};
 
-		<span class="prelude-val">Ok</span>(<span class="ident">pending</span>)
+		<span class="prelude-val">Ok</span>(pending)
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidateRequestIsPending(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidate_request_is_pending(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::view</span>]</span>
-	<span class="kw">fn</span> <span class="ident">candidate_request_is_pending</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;candidateRequestIsPending(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;candidate_request_is_pending(address)&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>candidate_request_is_pending(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult&lt;bool&gt; {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Fetch info.</span>
-		<span class="ident">handle</span>.<span class="ident">record_cost</span>(<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::db_read_gas_cost</span>())<span class="question-mark">?</span>;
+		<span class="comment">// Fetch info.
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 
-		<span class="comment">// If we are not able to get candidate metadata, we return false</span>
-		<span class="comment">// Users can call `is_candidate` to determine when this happens</span>
-		<span class="kw">let</span> <span class="ident">pending</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">state</span>) <span class="op">=</span>
-			<span class="op">&lt;</span><span class="ident">pallet_parachain_staking::Pallet</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::candidate_info</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>)
+		<span class="comment">// If we are not able to get candidate metadata, we return false
+		// Users can call `is_candidate` to determine when this happens
+		</span><span class="kw">let </span>pending = <span class="kw">if let </span><span class="prelude-val">Some</span>(state) =
+			&lt;pallet_parachain_staking::Pallet&lt;Runtime&gt;&gt;::candidate_info(<span class="kw-2">&amp;</span>candidate)
 		{
-			<span class="ident">state</span>.<span class="ident">request</span>.<span class="ident">is_some</span>()
-		} <span class="kw">else</span> {
+			state.request.is_some()
+		} <span class="kw">else </span>{
 			<span class="macro">log::trace!</span>(
-				<span class="ident">target</span>: <span class="string">&quot;staking-precompile&quot;</span>,
+				target: <span class="string">&quot;staking-precompile&quot;</span>,
 				<span class="string">&quot;Candidate metadata for {:?} not found, so pending request is false&quot;</span>,
-				<span class="ident">candidate</span>
+				candidate
 			);
-			<span class="bool-val">false</span>
+			<span class="bool-val">false
+		</span>};
+
+		<span class="prelude-val">Ok</span>(pending)
+	}
+
+	<span class="comment">// Runtime Methods (dispatchables)
+
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;joinCandidates(uint256,uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;join_candidates(uint256,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>join_candidates(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		amount: U256,
+		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>candidate_count = candidate_count.converted();
+
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::join_candidates {
+			bond: amount,
+			candidate_count,
 		};
 
-		<span class="prelude-val">Ok</span>(<span class="ident">pending</span>)
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="comment">// Runtime Methods (dispatchables)</span>
+	<span class="attribute">#[precompile::public(<span class="string">&quot;scheduleLeaveCandidates(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>schedule_leave_candidates(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate_count = candidate_count.converted();
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;joinCandidates(uint256,uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;join_candidates(uint256,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">join_candidates</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-		<span class="ident">candidate_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">candidate_count</span>.<span class="ident">converted</span>();
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::join_candidates</span> {
-			<span class="ident">bond</span>: <span class="ident">amount</span>,
-			<span class="ident">candidate_count</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::schedule_leave_candidates {
+			candidate_count,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;scheduleLeaveCandidates(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;schedule_leave_candidates(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">schedule_leave_candidates</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">candidate_count</span>.<span class="ident">converted</span>();
+	<span class="attribute">#[precompile::public(<span class="string">&quot;executeLeaveCandidates(address,uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;execute_leave_candidates(address,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>execute_leave_candidates(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate_count = candidate_count.converted();
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_leave_candidates</span> {
-			<span class="ident">candidate_count</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::execute_leave_candidates {
+			candidate,
+			candidate_delegation_count: candidate_count,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;executeLeaveCandidates(address,uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;execute_leave_candidates(address,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute_leave_candidates</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-		<span class="ident">candidate_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">candidate_count</span>.<span class="ident">converted</span>();
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;cancelLeaveCandidates(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>cancel_leave_candidates(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate_count = candidate_count.converted();
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_leave_candidates</span> {
-			<span class="ident">candidate</span>,
-			<span class="ident">candidate_delegation_count</span>: <span class="ident">candidate_count</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call =
+			pallet_parachain_staking::Call::&lt;Runtime&gt;::cancel_leave_candidates { candidate_count };
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;goOffline()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;go_offline()&quot;</span>)]
+	</span><span class="kw">fn </span>go_offline(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::go_offline {};
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;goOnline()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;go_online()&quot;</span>)]
+	</span><span class="kw">fn </span>go_online(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::go_online {};
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;candidateBondMore(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;candidate_bond_more(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>candidate_bond_more(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, more: U256) -&gt; EvmResult {
+		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::candidate_bond_more { more };
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;scheduleCandidateBondLess(uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;schedule_candidate_bond_less(uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>schedule_candidate_bond_less(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, less: U256) -&gt; EvmResult {
+		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
+
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::schedule_candidate_bond_less { less };
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;executeCandidateBondLess(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;execute_candidate_bond_less(address)&quot;</span>)]
+	</span><span class="kw">fn </span>execute_candidate_bond_less(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
+
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call =
+			pallet_parachain_staking::Call::&lt;Runtime&gt;::execute_candidate_bond_less { candidate };
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;cancelCandidateBondLess()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;cancel_candidate_bond_less()&quot;</span>)]
+	</span><span class="kw">fn </span>cancel_candidate_bond_less(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::cancel_candidate_bond_less {};
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		<span class="prelude-val">Ok</span>(())
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;delegate(address,uint256,uint256,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>delegate(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+		amount: U256,
+		candidate_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>candidate_delegation_count = candidate_delegation_count.converted();
+		<span class="kw">let </span>delegator_delegation_count = delegator_delegation_count.converted();
+
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
+
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::delegate {
+			candidate,
+			amount,
+			candidate_delegation_count,
+			delegation_count: delegator_delegation_count,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancelLeaveCandidates(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancel_leave_candidates(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">cancel_leave_candidates</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate_count</span> <span class="op">=</span> <span class="ident">candidate_count</span>.<span class="ident">converted</span>();
+	<span class="doccomment">/// Deprecated in favor of batch util
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;scheduleLeaveDelegators()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;schedule_leave_delegators()&quot;</span>)]
+	</span><span class="kw">fn </span>schedule_leave_delegators(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::schedule_leave_delegators {};
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_leave_candidates</span> { <span class="ident">candidate_count</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;goOffline()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;go_offline()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">go_offline</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_offline</span> {};
+	<span class="doccomment">/// Deprecated in favor of batch util
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;executeLeaveDelegators(address,uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;execute_leave_delegators(address,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>execute_leave_delegators(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegator: Address,
+		delegator_delegation_count: SolidityConvert&lt;U256, u32&gt;,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
+		<span class="kw">let </span>delegator_delegation_count = delegator_delegation_count.converted();
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;goOnline()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;go_online()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">go_online</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::go_online</span> {};
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidateBondMore(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;candidate_bond_more(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">candidate_bond_more</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">more</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">more</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">more</span>).<span class="ident">in_field</span>(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::candidate_bond_more</span> { <span class="ident">more</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;scheduleCandidateBondLess(uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;schedule_candidate_bond_less(uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">schedule_candidate_bond_less</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>, <span class="ident">less</span>: <span class="ident">U256</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">less</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">less</span>).<span class="ident">in_field</span>(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_candidate_bond_less</span> { <span class="ident">less</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;executeCandidateBondLess(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;execute_candidate_bond_less(address)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute_candidate_bond_less</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_candidate_bond_less</span> { <span class="ident">candidate</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancelCandidateBondLess()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancel_candidate_bond_less()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">cancel_candidate_bond_less</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_candidate_bond_less</span> {};
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegate(address,uint256,uint256,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">delegate</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-		<span class="ident">amount</span>: <span class="ident">U256</span>,
-		<span class="ident">candidate_delegation_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-		<span class="ident">delegator_delegation_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">amount</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">amount</span>).<span class="ident">in_field</span>(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">candidate_delegation_count</span> <span class="op">=</span> <span class="ident">candidate_delegation_count</span>.<span class="ident">converted</span>();
-		<span class="kw">let</span> <span class="ident">delegator_delegation_count</span> <span class="op">=</span> <span class="ident">delegator_delegation_count</span>.<span class="ident">converted</span>();
-
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegate</span> {
-			<span class="ident">candidate</span>,
-			<span class="ident">amount</span>,
-			<span class="ident">candidate_delegation_count</span>,
-			<span class="ident">delegation_count</span>: <span class="ident">delegator_delegation_count</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::execute_leave_delegators {
+			delegator,
+			delegation_count: delegator_delegation_count,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Deprecated in favor of batch util</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;scheduleLeaveDelegators()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;schedule_leave_delegators()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">schedule_leave_delegators</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_leave_delegators</span> {};
+	<span class="doccomment">/// Deprecated in favor of batch util
+	</span><span class="attribute">#[precompile::public(<span class="string">&quot;cancelLeaveDelegators()&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;cancel_leave_delegators()&quot;</span>)]
+	</span><span class="kw">fn </span>cancel_leave_delegators(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::cancel_leave_delegators {};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Deprecated in favor of batch util</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;executeLeaveDelegators(address,uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;execute_leave_delegators(address,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute_leave_delegators</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegator</span>: <span class="ident">Address</span>,
-		<span class="ident">delegator_delegation_count</span>: <span class="ident">SolidityConvert</span><span class="op">&lt;</span><span class="ident">U256</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">delegator_delegation_count</span> <span class="op">=</span> <span class="ident">delegator_delegation_count</span>.<span class="ident">converted</span>();
+	<span class="attribute">#[precompile::public(<span class="string">&quot;scheduleRevokeDelegation(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;schedule_revoke_delegation(address)&quot;</span>)]
+	</span><span class="kw">fn </span>schedule_revoke_delegation(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_leave_delegators</span> {
-			<span class="ident">delegator</span>,
-			<span class="ident">delegation_count</span>: <span class="ident">delegator_delegation_count</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::schedule_revoke_delegation {
+			collator: candidate,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Deprecated in favor of batch util</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancelLeaveDelegators()&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancel_leave_delegators()&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">cancel_leave_delegators</span>(<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>) -&gt; <span class="ident">EvmResult</span> {
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_leave_delegators</span> {};
+	<span class="attribute">#[precompile::public(<span class="string">&quot;delegatorBondMore(address,uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;delegator_bond_more(address,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>delegator_bond_more(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+		more: U256,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
+		<span class="kw">let </span>more = <span class="self">Self</span>::u256_to_amount(more).in_field(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call =
+			pallet_parachain_staking::Call::&lt;Runtime&gt;::delegator_bond_more { candidate, more };
+
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;scheduleRevokeDelegation(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;schedule_revoke_delegation(address)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">schedule_revoke_delegation</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;scheduleDelegatorBondLess(address,uint256)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;schedule_delegator_bond_less(address,uint256)&quot;</span>)]
+	</span><span class="kw">fn </span>schedule_delegator_bond_less(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+		less: U256,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
+		<span class="kw">let </span>less = <span class="self">Self</span>::u256_to_amount(less).in_field(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_revoke_delegation</span> {
-			<span class="ident">collator</span>: <span class="ident">candidate</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::schedule_delegator_bond_less {
+			candidate,
+			less,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegatorBondMore(address,uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;delegator_bond_more(address,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">delegator_bond_more</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-		<span class="ident">more</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">more</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">more</span>).<span class="ident">in_field</span>(<span class="string">&quot;more&quot;</span>)<span class="question-mark">?</span>;
+	<span class="attribute">#[precompile::public(<span class="string">&quot;executeDelegationRequest(address,address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;execute_delegation_request(address,address)&quot;</span>)]
+	</span><span class="kw">fn </span>execute_delegation_request(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>delegator = Runtime::AddressMapping::into_account_id(delegator.<span class="number">0</span>);
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::delegator_bond_more</span> { <span class="ident">candidate</span>, <span class="ident">more</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;scheduleDelegatorBondLess(address,uint256)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;schedule_delegator_bond_less(address,uint256)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">schedule_delegator_bond_less</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-		<span class="ident">less</span>: <span class="ident">U256</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">less</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::u256_to_amount</span>(<span class="ident">less</span>).<span class="ident">in_field</span>(<span class="string">&quot;less&quot;</span>)<span class="question-mark">?</span>;
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::schedule_delegator_bond_less</span> {
-			<span class="ident">candidate</span>,
-			<span class="ident">less</span>,
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = pallet_parachain_staking::Call::&lt;Runtime&gt;::execute_delegation_request {
+			delegator,
+			candidate,
 		};
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;executeDelegationRequest(address,address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;execute_delegation_request(address,address)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">execute_delegation_request</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">delegator</span>: <span class="ident">Address</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">delegator</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">delegator</span>.<span class="number">0</span>);
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
+	<span class="attribute">#[precompile::public(<span class="string">&quot;cancelDelegationRequest(address)&quot;</span>)]
+	#[precompile::public(<span class="string">&quot;cancel_delegation_request(address)&quot;</span>)]
+	</span><span class="kw">fn </span>cancel_delegation_request(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		candidate: Address,
+	) -&gt; EvmResult {
+		<span class="kw">let </span>candidate = Runtime::AddressMapping::into_account_id(candidate.<span class="number">0</span>);
 
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::execute_delegation_request</span> {
-			<span class="ident">delegator</span>,
-			<span class="ident">candidate</span>,
-		};
+		<span class="comment">// Build call with origin.
+		</span><span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call =
+			pallet_parachain_staking::Call::&lt;Runtime&gt;::cancel_delegation_request { candidate };
 
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call (if enough gas).
+		</span>RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancelDelegationRequest(address)&quot;</span>)]</span>
-	<span class="attribute">#[<span class="ident">precompile::public</span>(<span class="string">&quot;cancel_delegation_request(address)&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">cancel_delegation_request</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">candidate</span>: <span class="ident">Address</span>,
-	) -&gt; <span class="ident">EvmResult</span> {
-		<span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">candidate</span>.<span class="number">0</span>);
-
-		<span class="comment">// Build call with origin.</span>
-		<span class="kw">let</span> <span class="ident">origin</span> <span class="op">=</span> <span class="ident">Runtime::AddressMapping::into_account_id</span>(<span class="ident">handle</span>.<span class="ident">context</span>().<span class="ident">caller</span>);
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span>
-			<span class="ident">pallet_parachain_staking::Call</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::cancel_delegation_request</span> { <span class="ident">candidate</span> };
-
-		<span class="comment">// Dispatch call (if enough gas).</span>
-		<span class="ident">RuntimeHelper</span>::<span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="ident">::try_dispatch</span>(<span class="ident">handle</span>, <span class="prelude-val">Some</span>(<span class="ident">origin</span>).<span class="ident">into</span>(), <span class="ident">call</span>)<span class="question-mark">?</span>;
-
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="kw">fn</span> <span class="ident">u256_to_amount</span>(<span class="ident">value</span>: <span class="ident">U256</span>) -&gt; <span class="ident">MayRevert</span><span class="op">&lt;</span><span class="ident">BalanceOf</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="ident">value</span>
-			.<span class="ident">try_into</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">RevertReason::value_is_too_large</span>(<span class="string">&quot;balance type&quot;</span>).<span class="ident">into</span>())
+	<span class="kw">fn </span>u256_to_amount(value: U256) -&gt; MayRevert&lt;BalanceOf&lt;Runtime&gt;&gt; {
+		value
+			.try_into()
+			.map_err(|<span class="kw">_</span>| RevertReason::value_is_too_large(<span class="string">&quot;balance type&quot;</span>).into())
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_parachain_staking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_evm_precompile_parachain_staking" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

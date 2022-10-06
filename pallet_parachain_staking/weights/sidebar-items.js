@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SubstrateWeight","Weights for parachain_staking using the Substrate node and recommended hardware."]],"trait":[["WeightInfo","Weight functions needed for parachain_staking."]]});
+window.SIDEBAR_ITEMS = {"struct":[["SubstrateWeight","Weights for parachain_staking using the Substrate node and recommended hardware."]],"trait":[["WeightInfo","Weight functions needed for parachain_staking."]]};

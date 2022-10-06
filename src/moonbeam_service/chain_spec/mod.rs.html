@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/chain_spec/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_service/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `node/service/src/chain_spec/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../moonbeam_service/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../moonbeam_service/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -156,159 +151,158 @@
 <span id="151">151</span>
 <span id="152">152</span>
 <span id="153">153</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="kw">use</span> <span class="ident">bip32::ExtendedPrivateKey</span>;
-<span class="kw">use</span> <span class="ident">bip39</span>::{<span class="ident">Language</span>, <span class="ident">Mnemonic</span>, <span class="ident">Seed</span>};
-<span class="kw">use</span> <span class="ident">cli_opt::account_key::Secp256k1SecretKey</span>;
-<span class="kw">use</span> <span class="ident">libsecp256k1</span>::{<span class="ident">PublicKey</span>, <span class="ident">PublicKeyFormat</span>};
-<span class="kw">use</span> <span class="ident">log::debug</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_core_primitives::AccountId</span>;
-<span class="kw">use</span> <span class="ident">sc_chain_spec</span>::{<span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">sha3</span>::{<span class="ident">Digest</span>, <span class="ident">Keccak256</span>};
-<span class="kw">use</span> <span class="ident">sp_core</span>::{<span class="ident">ecdsa</span>, <span class="ident">Pair</span>, <span class="ident">Public</span>, <span class="ident">H160</span>, <span class="ident">H256</span>};
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</span><span class="kw">use </span>bip32::ExtendedPrivateKey;
+<span class="kw">use </span>bip39::{Language, Mnemonic, Seed};
+<span class="kw">use </span>cli_opt::account_key::Secp256k1SecretKey;
+<span class="kw">use </span>libsecp256k1::{PublicKey, PublicKeyFormat};
+<span class="kw">use </span>log::debug;
+<span class="kw">pub use </span>moonbeam_core_primitives::AccountId;
+<span class="kw">use </span>sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
+<span class="kw">use </span>serde::{Deserialize, Serialize};
+<span class="kw">use </span>sha3::{Digest, Keccak256};
+<span class="kw">use </span>sp_core::{ecdsa, Pair, Public, H160, H256};
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fake_spec</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonbase</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonbeam</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonriver</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">test_spec</span>;
+<span class="kw">pub mod </span>fake_spec;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+</span><span class="kw">pub mod </span>moonbase;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;moonbeam-native&quot;</span>)]
+</span><span class="kw">pub mod </span>moonbeam;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]
+</span><span class="kw">pub mod </span>moonriver;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;moonbase-native&quot;</span>)]
+</span><span class="kw">pub mod </span>test_spec;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbase-native&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonbase</span> {
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec</span>;
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain_spec_from_json_file</span>(<span class="kw">_</span>: <span class="ident">std::path::PathBuf</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ChainSpec</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;moonbase-native&quot;</span>))]
+</span><span class="kw">pub mod </span>moonbase {
+	<span class="kw">pub type </span>ChainSpec = <span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec;
+	<span class="kw">pub fn </span>chain_spec_from_json_file(<span class="kw">_</span>: std::path::PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;ChainSpec, String&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonbase runtime not enabled&quot;</span>)
 	}
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">development_chain_spec</span>(<span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="ident">ChainSpec</span> {
+	<span class="kw">pub fn </span>development_chain_spec(<span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonbase runtime not enabled&quot;</span>)
 	}
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonriver-native&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonriver</span> {
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec</span>;
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain_spec_from_json_file</span>(<span class="kw">_</span>: <span class="ident">std::path::PathBuf</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ChainSpec</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;moonriver-native&quot;</span>))]
+</span><span class="kw">pub mod </span>moonriver {
+	<span class="kw">pub type </span>ChainSpec = <span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec;
+	<span class="kw">pub fn </span>chain_spec_from_json_file(<span class="kw">_</span>: std::path::PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;ChainSpec, String&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonriver runtime not enabled&quot;</span>)
 	}
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">development_chain_spec</span>(<span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="ident">ChainSpec</span> {
+	<span class="kw">pub fn </span>development_chain_spec(<span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonriver runtime not enabled&quot;</span>)
 	}
 }
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;moonbeam-native&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">moonbeam</span> {
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ChainSpec</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec</span>;
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">chain_spec_from_json_file</span>(<span class="kw">_</span>: <span class="ident">std::path::PathBuf</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ChainSpec</span>, <span class="ident">String</span><span class="op">&gt;</span> {
+<span class="attribute">#[cfg(not(feature = <span class="string">&quot;moonbeam-native&quot;</span>))]
+</span><span class="kw">pub mod </span>moonbeam {
+	<span class="kw">pub type </span>ChainSpec = <span class="kw">crate</span>::chain_spec::fake_spec::FakeSpec;
+	<span class="kw">pub fn </span>chain_spec_from_json_file(<span class="kw">_</span>: std::path::PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;ChainSpec, String&gt; {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonbeam runtime not enabled&quot;</span>)
 	}
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">development_chain_spec</span>(<span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="kw">_</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>) -&gt; <span class="ident">ChainSpec</span> {
+	<span class="kw">pub fn </span>development_chain_spec(<span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;String&gt;, <span class="kw">_</span>: <span class="prelude-ty">Option</span>&lt;u32&gt;) -&gt; ChainSpec {
 		<span class="macro">panic!</span>(<span class="string">&quot;moonbeam runtime not enabled&quot;</span>)
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">RawChainSpec</span> <span class="op">=</span> <span class="ident">sc_service::GenericChainSpec</span><span class="op">&lt;</span>(), <span class="ident">Extensions</span><span class="op">&gt;</span>;
+<span class="kw">pub type </span>RawChainSpec = sc_service::GenericChainSpec&lt;(), Extensions&gt;;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Clone</span>, <span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">ChainSpecExtension</span>, <span class="ident">ChainSpecGroup</span>)]</span>
-<span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;camelCase&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Extensions</span> {
-	<span class="doccomment">/// The relay chain of the Parachain.</span>
-	<span class="kw">pub</span> <span class="ident">relay_chain</span>: <span class="ident">String</span>,
-	<span class="doccomment">/// The id of the Parachain.</span>
-	<span class="kw">pub</span> <span class="ident">para_id</span>: <span class="ident">u32</span>,
+<span class="attribute">#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension, ChainSpecGroup)]
+#[serde(rename_all = <span class="string">&quot;camelCase&quot;</span>)]
+</span><span class="kw">pub struct </span>Extensions {
+	<span class="doccomment">/// The relay chain of the Parachain.
+	</span><span class="kw">pub </span>relay_chain: String,
+	<span class="doccomment">/// The id of the Parachain.
+	</span><span class="kw">pub </span>para_id: u32,
 }
 
-<span class="kw">impl</span> <span class="ident">Extensions</span> {
-	<span class="doccomment">/// Try to get the extension from the given `ChainSpec`.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_get</span>(<span class="ident">chain_spec</span>: <span class="kw-2">&amp;</span><span class="kw">dyn</span> <span class="ident">sc_service::ChainSpec</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="ident">sc_chain_spec::get_extension</span>(<span class="ident">chain_spec</span>.<span class="ident">extensions</span>())
+<span class="kw">impl </span>Extensions {
+	<span class="doccomment">/// Try to get the extension from the given `ChainSpec`.
+	</span><span class="kw">pub fn </span>try_get(chain_spec: <span class="kw-2">&amp;</span><span class="kw">dyn </span>sc_service::ChainSpec) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="self">Self</span>&gt; {
+		sc_chain_spec::get_extension(chain_spec.extensions())
 	}
 }
 
-<span class="doccomment">/// Helper function to derive `num_accounts` child pairs from mnemonics</span>
-<span class="doccomment">/// Substrate derive function cannot be used because the derivation is different than Ethereum&#39;s</span>
-<span class="doccomment">/// https://substrate.dev/rustdocs/v2.0.0/src/sp_core/ecdsa.rs.html#460-470</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span><span class="op">&lt;</span><span class="ident">TPublic</span>: <span class="ident">Public</span><span class="op">&gt;</span>(
-	<span class="ident">mnemonic</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-	<span class="ident">num_accounts</span>: <span class="ident">u32</span>,
-) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TPublic::Pair</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">seed</span> <span class="op">=</span> <span class="ident">Mnemonic::from_phrase</span>(<span class="ident">mnemonic</span>, <span class="ident">Language::English</span>)
-		.<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">Seed::new</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>, <span class="string">&quot;&quot;</span>))
-		.<span class="ident">expect</span>(<span class="string">&quot;Wrong mnemonic provided&quot;</span>);
+<span class="doccomment">/// Helper function to derive `num_accounts` child pairs from mnemonics
+/// Substrate derive function cannot be used because the derivation is different than Ethereum&#39;s
+/// https://substrate.dev/rustdocs/v2.0.0/src/sp_core/ecdsa.rs.html#460-470
+</span><span class="kw">pub fn </span>derive_bip44_pairs_from_mnemonic&lt;TPublic: Public&gt;(
+	mnemonic: <span class="kw-2">&amp;</span>str,
+	num_accounts: u32,
+) -&gt; Vec&lt;TPublic::Pair&gt; {
+	<span class="kw">let </span>seed = Mnemonic::from_phrase(mnemonic, Language::English)
+		.map(|x| Seed::new(<span class="kw-2">&amp;</span>x, <span class="string">&quot;&quot;</span>))
+		.expect(<span class="string">&quot;Wrong mnemonic provided&quot;</span>);
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">childs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-	<span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">num_accounts</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">child_pair</span>) <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;m/44&#39;/60&#39;/0&#39;/0/{}&quot;</span>, <span class="ident">i</span>)
-			.<span class="ident">parse</span>()
-			.<span class="ident">ok</span>()
-			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">derivation_path</span><span class="op">|</span> {
-				<span class="ident">ExtendedPrivateKey</span>::<span class="op">&lt;</span><span class="ident">Secp256k1SecretKey</span><span class="op">&gt;</span><span class="ident">::derive_from_path</span>(<span class="kw-2">&amp;</span><span class="ident">seed</span>, <span class="kw-2">&amp;</span><span class="ident">derivation_path</span>)
-					.<span class="ident">ok</span>()
+	<span class="kw">let </span><span class="kw-2">mut </span>childs = Vec::new();
+	<span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..num_accounts {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(child_pair) = <span class="macro">format!</span>(<span class="string">&quot;m/44&#39;/60&#39;/0&#39;/0/{}&quot;</span>, i)
+			.parse()
+			.ok()
+			.and_then(|derivation_path| {
+				ExtendedPrivateKey::&lt;Secp256k1SecretKey&gt;::derive_from_path(<span class="kw-2">&amp;</span>seed, <span class="kw-2">&amp;</span>derivation_path)
+					.ok()
 			})
-			.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">extended</span><span class="op">|</span> {
-				<span class="ident">TPublic::Pair::from_seed_slice</span>(<span class="kw-2">&amp;</span><span class="ident">extended</span>.<span class="ident">private_key</span>().<span class="number">0</span>.<span class="ident">serialize</span>()).<span class="ident">ok</span>()
+			.and_then(|extended| {
+				TPublic::Pair::from_seed_slice(<span class="kw-2">&amp;</span>extended.private_key().<span class="number">0</span>.serialize()).ok()
 			}) {
-			<span class="ident">childs</span>.<span class="ident">push</span>(<span class="ident">child_pair</span>);
-		} <span class="kw">else</span> {
-			<span class="macro">log::error!</span>(<span class="string">&quot;An error ocurred while deriving key {} from parent&quot;</span>, <span class="ident">i</span>)
+			childs.push(child_pair);
+		} <span class="kw">else </span>{
+			<span class="macro">log::error!</span>(<span class="string">&quot;An error ocurred while deriving key {} from parent&quot;</span>, i)
 		}
 	}
-	<span class="ident">childs</span>
+	childs
 }
 
-<span class="doccomment">/// Helper function to get an `AccountId` from an ECDSA Key Pair.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">pair</span>: <span class="ident">ecdsa::Pair</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">decompressed</span> <span class="op">=</span> <span class="ident">PublicKey::parse_slice</span>(<span class="kw-2">&amp;</span><span class="ident">pair</span>.<span class="ident">public</span>().<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">PublicKeyFormat::Compressed</span>))
-		.<span class="ident">ok</span>()<span class="question-mark">?</span>
-		.<span class="ident">serialize</span>();
+<span class="doccomment">/// Helper function to get an `AccountId` from an ECDSA Key Pair.
+</span><span class="kw">pub fn </span>get_account_id_from_pair(pair: ecdsa::Pair) -&gt; <span class="prelude-ty">Option</span>&lt;AccountId&gt; {
+	<span class="kw">let </span>decompressed = PublicKey::parse_slice(<span class="kw-2">&amp;</span>pair.public().<span class="number">0</span>, <span class="prelude-val">Some</span>(PublicKeyFormat::Compressed))
+		.ok()<span class="question-mark">?
+		</span>.serialize();
 
-	<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">m</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">64</span>];
-	<span class="ident">m</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">decompressed</span>[<span class="number">1</span>..<span class="number">65</span>]);
+	<span class="kw">let </span><span class="kw-2">mut </span>m = [<span class="number">0u8</span>; <span class="number">64</span>];
+	m.copy_from_slice(<span class="kw-2">&amp;</span>decompressed[<span class="number">1</span>..<span class="number">65</span>]);
 
-	<span class="prelude-val">Some</span>(<span class="ident">H160::from</span>(<span class="ident">H256::from_slice</span>(<span class="ident">Keccak256::digest</span>(<span class="kw-2">&amp;</span><span class="ident">m</span>).<span class="ident">as_slice</span>())).<span class="ident">into</span>())
+	<span class="prelude-val">Some</span>(H160::from(H256::from_slice(Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice())).into())
 }
 
-<span class="doccomment">/// Function to generate accounts given a mnemonic and a number of child accounts to be generated</span>
-<span class="doccomment">/// Defaults to a default mnemonic if no mnemonic is supplied</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generate_accounts</span>(<span class="ident">mnemonic</span>: <span class="ident">String</span>, <span class="ident">num_accounts</span>: <span class="ident">u32</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">let</span> <span class="ident">childs</span> <span class="op">=</span> <span class="ident">derive_bip44_pairs_from_mnemonic</span>::<span class="op">&lt;</span><span class="ident">ecdsa::Public</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">mnemonic</span>, <span class="ident">num_accounts</span>);
+<span class="doccomment">/// Function to generate accounts given a mnemonic and a number of child accounts to be generated
+/// Defaults to a default mnemonic if no mnemonic is supplied
+</span><span class="kw">pub fn </span>generate_accounts(mnemonic: String, num_accounts: u32) -&gt; Vec&lt;AccountId&gt; {
+	<span class="kw">let </span>childs = derive_bip44_pairs_from_mnemonic::&lt;ecdsa::Public&gt;(<span class="kw-2">&amp;</span>mnemonic, num_accounts);
 	<span class="macro">debug!</span>(<span class="string">&quot;Account Generation&quot;</span>);
-	<span class="ident">childs</span>
-		.<span class="ident">iter</span>()
-		.<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">par</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">account</span> <span class="op">=</span> <span class="ident">get_account_id_from_pair</span>(<span class="ident">par</span>.<span class="ident">clone</span>());
+	childs
+		.iter()
+		.filter_map(|par| {
+			<span class="kw">let </span>account = get_account_id_from_pair(par.clone());
 			<span class="macro">debug!</span>(
 				<span class="string">&quot;private_key {} --------&gt; Account {:x?}&quot;</span>,
-				<span class="ident">sp_core::hexdisplay::HexDisplay::from</span>(<span class="kw-2">&amp;</span><span class="ident">par</span>.<span class="ident">clone</span>().<span class="ident">seed</span>()),
-				<span class="ident">account</span>
+				sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>par.clone().seed()),
+				account
 			);
-			<span class="ident">account</span>
+			account
 		})
-		.<span class="ident">collect</span>()
+		.collect()
 }
 
-<span class="doccomment">/// Helper function to generate a crypto pair from seed</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_from_seed</span><span class="op">&lt;</span><span class="ident">TPublic</span>: <span class="ident">Public</span><span class="op">&gt;</span>(<span class="ident">seed</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="op">&lt;</span><span class="ident">TPublic::Pair</span> <span class="kw">as</span> <span class="ident">Pair</span><span class="op">&gt;</span><span class="ident">::Public</span> {
-	<span class="ident">TPublic::Pair::from_string</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;//{}&quot;</span>, <span class="ident">seed</span>), <span class="prelude-val">None</span>)
-		.<span class="ident">expect</span>(<span class="string">&quot;static values are valid; qed&quot;</span>)
-		.<span class="ident">public</span>()
+<span class="doccomment">/// Helper function to generate a crypto pair from seed
+</span><span class="kw">pub fn </span>get_from_seed&lt;TPublic: Public&gt;(seed: <span class="kw-2">&amp;</span>str) -&gt; &lt;TPublic::Pair <span class="kw">as </span>Pair&gt;::Public {
+	TPublic::Pair::from_string(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;//{}&quot;</span>, seed), <span class="prelude-val">None</span>)
+		.expect(<span class="string">&quot;static values are valid; qed&quot;</span>)
+		.public()
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="moonbeam_service" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

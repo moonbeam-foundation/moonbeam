@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/moonbeam-orbiters/src/types.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>types.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_moonbeam_orbiters/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_moonbeam_orbiters/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -174,177 +169,176 @@
 <span id="169">169</span>
 <span id="170">170</span>
 <span id="171">171</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;
 
-<span class="kw">use</span> <span class="ident">scale_info::TypeInfo</span>;
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::{
-	<span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>},
-	<span class="ident">RuntimeDebug</span>,
+</span><span class="kw">use </span>scale_info::TypeInfo;
+<span class="kw">use </span>sp_runtime::{
+	codec::{Decode, Encode},
+	RuntimeDebug,
 };
-<span class="kw">use</span> <span class="ident">sp_std::vec::Vec</span>;
+<span class="kw">use </span>sp_std::vec::Vec;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="ident">account_id</span>: <span class="ident">AccountId</span>,
-	<span class="kw">pub</span> <span class="ident">removed</span>: <span class="ident">bool</span>,
+<span class="attribute">#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub struct </span>CurrentOrbiter&lt;AccountId&gt; {
+	<span class="kw">pub </span>account_id: AccountId,
+	<span class="kw">pub </span>removed: bool,
 }
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">account_id</span>: <span class="self">self</span>.<span class="ident">account_id</span>.<span class="ident">clone</span>(),
-			<span class="ident">removed</span>: <span class="self">self</span>.<span class="ident">removed</span>,
+<span class="kw">impl</span>&lt;AccountId: Clone&gt; Clone <span class="kw">for </span>CurrentOrbiter&lt;AccountId&gt; {
+	<span class="kw">fn </span>clone(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			account_id: <span class="self">self</span>.account_id.clone(),
+			removed: <span class="self">self</span>.removed,
 		}
 	}
 }
 
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">RemoveOrbiterResult</span> {
-	<span class="ident">OrbiterNotFound</span>,
-	<span class="ident">OrbiterRemoved</span>,
-	<span class="ident">OrbiterRemoveScheduled</span>,
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum </span>RemoveOrbiterResult {
+	OrbiterNotFound,
+	OrbiterRemoved,
+	OrbiterRemoveScheduled,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">RotateOrbiterResult</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="ident">maybe_old_orbiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="kw">pub</span> <span class="ident">maybe_next_orbiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
+<span class="attribute">#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct </span>RotateOrbiterResult&lt;AccountId&gt; {
+	<span class="kw">pub </span>maybe_old_orbiter: <span class="prelude-ty">Option</span>&lt;CurrentOrbiter&lt;AccountId&gt;&gt;,
+	<span class="kw">pub </span>maybe_next_orbiter: <span class="prelude-ty">Option</span>&lt;AccountId&gt;,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="ident">orbiters</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span>,
-	<span class="ident">maybe_current_orbiter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CurrentOrbiter</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	<span class="ident">next_orbiter</span>: <span class="ident">u32</span>,
+<span class="attribute">#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub struct </span>CollatorPoolInfo&lt;AccountId&gt; {
+	orbiters: Vec&lt;AccountId&gt;,
+	maybe_current_orbiter: <span class="prelude-ty">Option</span>&lt;CurrentOrbiter&lt;AccountId&gt;&gt;,
+	next_orbiter: u32,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">orbiters</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">maybe_current_orbiter</span>: <span class="prelude-val">None</span>,
-			<span class="ident">next_orbiter</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;AccountId&gt; Default <span class="kw">for </span>CollatorPoolInfo&lt;AccountId&gt; {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			orbiters: Vec::new(),
+			maybe_current_orbiter: <span class="prelude-val">None</span>,
+			next_orbiter: <span class="number">0</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">PartialEq</span><span class="op">&gt;</span> <span class="ident">CollatorPoolInfo</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">add_orbiter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">orbiter</span>: <span class="ident">AccountId</span>) {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">&gt;</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> {
-			<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">=</span> <span class="number">0</span>;
+<span class="kw">impl</span>&lt;AccountId: Clone + PartialEq&gt; CollatorPoolInfo&lt;AccountId&gt; {
+	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>add_orbiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, orbiter: AccountId) {
+		<span class="kw">if </span><span class="self">self</span>.next_orbiter &gt; <span class="self">self</span>.orbiters.len() <span class="kw">as </span>u32 {
+			<span class="self">self</span>.next_orbiter = <span class="number">0</span>;
 		}
-		<span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">insert</span>(<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">orbiter</span>);
-		<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="self">self</span>.orbiters.insert(<span class="self">self</span>.next_orbiter <span class="kw">as </span>usize, orbiter);
+		<span class="self">self</span>.next_orbiter += <span class="number">1</span>;
 	}
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">contains_orbiter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">orbiter</span>: <span class="kw-2">&amp;</span><span class="ident">AccountId</span>) -&gt; <span class="ident">bool</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">CurrentOrbiter</span> { <span class="kw-2">ref</span> <span class="ident">account_id</span>, .. }) <span class="op">=</span> <span class="self">self</span>.<span class="ident">maybe_current_orbiter</span> {
-			<span class="kw">if</span> <span class="ident">account_id</span> <span class="op">==</span> <span class="ident">orbiter</span> {
-				<span class="kw">return</span> <span class="bool-val">true</span>;
+	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>contains_orbiter(<span class="kw-2">&amp;</span><span class="self">self</span>, orbiter: <span class="kw-2">&amp;</span>AccountId) -&gt; bool {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(CurrentOrbiter { <span class="kw-2">ref </span>account_id, .. }) = <span class="self">self</span>.maybe_current_orbiter {
+			<span class="kw">if </span>account_id == orbiter {
+				<span class="kw">return </span><span class="bool-val">true</span>;
 			}
 		}
-		<span class="kw">for</span> <span class="ident">orbiter_</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">iter</span>() {
-			<span class="kw">if</span> <span class="ident">orbiter_</span> <span class="op">==</span> <span class="ident">orbiter</span> {
-				<span class="kw">return</span> <span class="bool-val">true</span>;
+		<span class="kw">for </span>orbiter_ <span class="kw">in </span><span class="self">self</span>.orbiters.iter() {
+			<span class="kw">if </span>orbiter_ == orbiter {
+				<span class="kw">return </span><span class="bool-val">true</span>;
 			}
 		}
-		<span class="bool-val">false</span>
+		<span class="bool-val">false
+	</span>}
+	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>get_orbiters(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[AccountId] {
+		<span class="kw-2">&amp;</span><span class="self">self</span>.orbiters
 	}
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_orbiters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">AccountId</span>] {
-		<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">orbiters</span>
-	}
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">remove_orbiter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">orbiter</span>: <span class="kw-2">&amp;</span><span class="ident">AccountId</span>) -&gt; <span class="ident">RemoveOrbiterResult</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
-		<span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">orbiter_</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-			<span class="kw">if</span> <span class="ident">orbiter_</span> <span class="op">==</span> <span class="ident">orbiter</span> {
-				<span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">remove</span>(<span class="ident">index</span>);
-				<span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
+	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>remove_orbiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, orbiter: <span class="kw-2">&amp;</span>AccountId) -&gt; RemoveOrbiterResult {
+		<span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+		<span class="kw">for </span>(index, orbiter_) <span class="kw">in </span><span class="self">self</span>.orbiters.iter().enumerate() {
+			<span class="kw">if </span>orbiter_ == orbiter {
+				<span class="self">self</span>.orbiters.remove(index);
+				found = <span class="bool-val">true</span>;
 				<span class="kw">break</span>;
 			}
 		}
 
-		<span class="kw">if</span> <span class="ident">found</span> {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">CurrentOrbiter</span> {
-				<span class="ident">account_id</span>: <span class="kw-2">ref</span> <span class="ident">current_orbiter</span>,
-				<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">removed</span>,
-			}) <span class="op">=</span> <span class="self">self</span>.<span class="ident">maybe_current_orbiter</span>
+		<span class="kw">if </span>found {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(CurrentOrbiter {
+				account_id: <span class="kw-2">ref </span>current_orbiter,
+				<span class="kw-2">ref mut </span>removed,
+			}) = <span class="self">self</span>.maybe_current_orbiter
 			{
-				<span class="kw">if</span> <span class="ident">current_orbiter</span> <span class="op">==</span> <span class="ident">orbiter</span> {
-					<span class="kw-2">*</span><span class="ident">removed</span> <span class="op">=</span> <span class="bool-val">true</span>;
-					<span class="kw">return</span> <span class="ident">RemoveOrbiterResult::OrbiterRemoveScheduled</span>;
+				<span class="kw">if </span>current_orbiter == orbiter {
+					<span class="kw-2">*</span>removed = <span class="bool-val">true</span>;
+					<span class="kw">return </span>RemoveOrbiterResult::OrbiterRemoveScheduled;
 				}
 			}
-			<span class="ident">RemoveOrbiterResult::OrbiterRemoved</span>
-		} <span class="kw">else</span> {
-			<span class="ident">RemoveOrbiterResult::OrbiterNotFound</span>
+			RemoveOrbiterResult::OrbiterRemoved
+		} <span class="kw">else </span>{
+			RemoveOrbiterResult::OrbiterNotFound
 		}
 	}
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">rotate_orbiter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">RotateOrbiterResult</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">maybe_old_orbiter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">maybe_current_orbiter</span>.<span class="ident">clone</span>();
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span> {
-			<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">=</span> <span class="number">0</span>;
+	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>rotate_orbiter(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; RotateOrbiterResult&lt;AccountId&gt; {
+		<span class="kw">let </span>maybe_old_orbiter = <span class="self">self</span>.maybe_current_orbiter.clone();
+		<span class="kw">if </span><span class="self">self</span>.next_orbiter &gt;= <span class="self">self</span>.orbiters.len() <span class="kw">as </span>u32 {
+			<span class="self">self</span>.next_orbiter = <span class="number">0</span>;
 		}
-		<span class="kw">let</span> <span class="ident">maybe_next_orbiter</span> <span class="op">=</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_orbiter</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">orbiters</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-				<span class="self">self</span>.<span class="ident">maybe_current_orbiter</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">CurrentOrbiter</span> {
-					<span class="ident">account_id</span>: <span class="ident">next_orbiter</span>.<span class="ident">clone</span>(),
-					<span class="ident">removed</span>: <span class="bool-val">false</span>,
+		<span class="kw">let </span>maybe_next_orbiter =
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(next_orbiter) = <span class="self">self</span>.orbiters.get(<span class="self">self</span>.next_orbiter <span class="kw">as </span>usize) {
+				<span class="self">self</span>.maybe_current_orbiter = <span class="prelude-val">Some</span>(CurrentOrbiter {
+					account_id: next_orbiter.clone(),
+					removed: <span class="bool-val">false</span>,
 				});
-				<span class="self">self</span>.<span class="ident">next_orbiter</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-				<span class="prelude-val">Some</span>(<span class="ident">next_orbiter</span>.<span class="ident">clone</span>())
-			} <span class="kw">else</span> {
-				<span class="prelude-val">None</span>
-			};
+				<span class="self">self</span>.next_orbiter += <span class="number">1</span>;
+				<span class="prelude-val">Some</span>(next_orbiter.clone())
+			} <span class="kw">else </span>{
+				<span class="prelude-val">None
+			</span>};
 
-		<span class="ident">RotateOrbiterResult</span> {
-			<span class="ident">maybe_old_orbiter</span>,
-			<span class="ident">maybe_next_orbiter</span>,
+		RotateOrbiterResult {
+			maybe_old_orbiter,
+			maybe_next_orbiter,
 		}
 	}
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RoundAuthors</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="ident">data</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">u32</span>)<span class="op">&gt;</span>,
-	<span class="ident">blocks_count</span>: <span class="ident">u32</span>,
+<span class="attribute">#[derive(Decode, Encode, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub struct </span>RoundAuthors&lt;AccountId&gt; {
+	data: Vec&lt;(AccountId, u32)&gt;,
+	blocks_count: u32,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">RoundAuthors</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> {
-			<span class="ident">data</span>: <span class="ident">Vec::new</span>(),
-			<span class="ident">blocks_count</span>: <span class="number">0</span>,
+<span class="kw">impl</span>&lt;AccountId&gt; Default <span class="kw">for </span>RoundAuthors&lt;AccountId&gt; {
+	<span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{
+			data: Vec::new(),
+			blocks_count: <span class="number">0</span>,
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">AccountId</span>: <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">RoundAuthors</span><span class="op">&lt;</span><span class="ident">AccountId</span><span class="op">&gt;</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add_author</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">author</span>: <span class="ident">AccountId</span>) {
-		<span class="kw">match</span> <span class="self">self</span>
-			.<span class="ident">data</span>
-			.<span class="ident">binary_search_by</span>(<span class="op">|</span>(<span class="ident">account</span>, <span class="ident">_counter</span>)<span class="op">|</span> <span class="ident">account</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">author</span>))
+<span class="kw">impl</span>&lt;AccountId: Ord&gt; RoundAuthors&lt;AccountId&gt; {
+	<span class="kw">pub fn </span>add_author(<span class="kw-2">&amp;mut </span><span class="self">self</span>, author: AccountId) {
+		<span class="kw">match </span><span class="self">self
+			</span>.data
+			.binary_search_by(|(account, _counter)| account.cmp(<span class="kw-2">&amp;</span>author))
 		{
-			<span class="prelude-val">Ok</span>(<span class="ident">index</span>) =&gt; <span class="self">self</span>.<span class="ident">data</span>[<span class="ident">index</span>].<span class="number">1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>[<span class="ident">index</span>].<span class="number">1</span>.<span class="ident">saturating_add</span>(<span class="number">1</span>),
-			<span class="prelude-val">Err</span>(<span class="ident">index</span>) =&gt; <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">insert</span>(<span class="ident">index</span>, (<span class="ident">author</span>, <span class="number">1</span>)),
+			<span class="prelude-val">Ok</span>(index) =&gt; <span class="self">self</span>.data[index].<span class="number">1 </span>= <span class="self">self</span>.data[index].<span class="number">1</span>.saturating_add(<span class="number">1</span>),
+			<span class="prelude-val">Err</span>(index) =&gt; <span class="self">self</span>.data.insert(index, (author, <span class="number">1</span>)),
 		};
-		<span class="self">self</span>.<span class="ident">blocks_count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+		<span class="self">self</span>.blocks_count += <span class="number">1</span>;
 	}
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_data</span>(<span class="self">self</span>) -&gt; (<span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">AccountId</span>, <span class="ident">u32</span>)<span class="op">&gt;</span>, <span class="ident">u32</span>) {
-		<span class="kw">let</span> <span class="self">Self</span> { <span class="ident">data</span>, <span class="ident">blocks_count</span> } <span class="op">=</span> <span class="self">self</span>;
-		(<span class="ident">data</span>, <span class="ident">blocks_count</span>)
+	<span class="kw">pub fn </span>into_data(<span class="self">self</span>) -&gt; (Vec&lt;(AccountId, u32)&gt;, u32) {
+		<span class="kw">let </span><span class="self">Self </span>{ data, blocks_count } = <span class="self">self</span>;
+		(data, blocks_count)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_moonbeam_orbiters" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["ENCODED_PROPOSAL_SIZE_LIMIT",""]],"enum":[["DemocracyPrecompileCall",""]],"struct":[["DemocracyPrecompile","A precompile to wrap the functionality from pallet democracy."]]});
+window.SIDEBAR_ITEMS = {"constant":[["ENCODED_PROPOSAL_SIZE_LIMIT",""]],"enum":[["DemocracyPrecompileCall",""]],"struct":[["DemocracyPrecompile","A precompile to wrap the functionality from pallet democracy."]]};

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/macro/src/precompile/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../../normalize.css"><link rel="stylesheet" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../../ayu.css" disabled><link rel="stylesheet" href="../../../dark.css" disabled><link rel="stylesheet" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../precompile_utils_macro/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../precompile_utils_macro/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -549,90 +544,90 @@
 <span id="544">544</span>
 <span id="545">545</span>
 <span id="546">546</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+</span><span class="kw">use super</span>::<span class="kw-2">*</span>;
 
-<span class="kw">impl</span> <span class="ident">Precompile</span> {
-	<span class="doccomment">/// Try to extract information out of an annotated `impl` block.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">impl_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">syn::ItemImpl</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-		<span class="comment">// Extract the name of the type used in the `impl` block.</span>
-		<span class="kw">let</span> <span class="ident">impl_ident</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::extract_impl_ident</span>(<span class="ident">impl_</span>)<span class="question-mark">?</span>;
-		<span class="kw">let</span> <span class="ident">enum_ident</span> <span class="op">=</span> <span class="macro">format_ident!</span>(<span class="string">&quot;{}Call&quot;</span>, <span class="ident">impl_ident</span>);
+<span class="kw">impl </span>Precompile {
+	<span class="doccomment">/// Try to extract information out of an annotated `impl` block.
+	</span><span class="kw">pub fn </span>try_from(impl_: <span class="kw-2">&amp;mut </span>syn::ItemImpl) -&gt; syn::Result&lt;<span class="self">Self</span>&gt; {
+		<span class="comment">// Extract the name of the type used in the `impl` block.
+		</span><span class="kw">let </span>impl_ident = <span class="self">Self</span>::extract_impl_ident(impl_)<span class="question-mark">?</span>;
+		<span class="kw">let </span>enum_ident = <span class="macro">format_ident!</span>(<span class="string">&quot;{}Call&quot;</span>, impl_ident);
 
-		<span class="comment">// We setup the data collection struct.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">precompile</span> <span class="op">=</span> <span class="ident">Precompile</span> {
-			<span class="ident">impl_type</span>: <span class="ident">impl_</span>.<span class="ident">self_ty</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>(),
-			<span class="ident">impl_ident</span>,
-			<span class="ident">enum_ident</span>,
-			<span class="ident">generics</span>: <span class="ident">impl_</span>.<span class="ident">generics</span>.<span class="ident">clone</span>(),
-			<span class="ident">selector_to_variant</span>: <span class="ident">BTreeMap::new</span>(),
-			<span class="ident">variants_content</span>: <span class="ident">BTreeMap::new</span>(),
-			<span class="ident">fallback_to_variant</span>: <span class="prelude-val">None</span>,
-			<span class="ident">tagged_as_precompile_set</span>: <span class="bool-val">false</span>,
-			<span class="ident">precompile_set_discriminant_fn</span>: <span class="prelude-val">None</span>,
-			<span class="ident">precompile_set_discriminant_type</span>: <span class="prelude-val">None</span>,
-			<span class="ident">test_concrete_types</span>: <span class="prelude-val">None</span>,
-			<span class="ident">pre_check</span>: <span class="prelude-val">None</span>,
+		<span class="comment">// We setup the data collection struct.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>precompile = Precompile {
+			impl_type: impl_.self_ty.as_ref().clone(),
+			impl_ident,
+			enum_ident,
+			generics: impl_.generics.clone(),
+			selector_to_variant: BTreeMap::new(),
+			variants_content: BTreeMap::new(),
+			fallback_to_variant: <span class="prelude-val">None</span>,
+			tagged_as_precompile_set: <span class="bool-val">false</span>,
+			precompile_set_discriminant_fn: <span class="prelude-val">None</span>,
+			precompile_set_discriminant_type: <span class="prelude-val">None</span>,
+			test_concrete_types: <span class="prelude-val">None</span>,
+			pre_check: <span class="prelude-val">None</span>,
 		};
 
-		<span class="ident">precompile</span>.<span class="ident">process_impl_attr</span>(<span class="ident">impl_</span>)<span class="question-mark">?</span>;
-		<span class="kw">for</span> <span class="kw-2">mut</span> <span class="ident">item</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">impl_</span>.<span class="ident">items</span> {
-			<span class="comment">// We only interact with methods and leave the rest as-is.</span>
-			<span class="kw">if</span> <span class="kw">let</span> <span class="ident">syn::ImplItem::Method</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">method</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">item</span> {
-				<span class="ident">precompile</span>.<span class="ident">process_method</span>(<span class="ident">method</span>)<span class="question-mark">?</span>;
+		precompile.process_impl_attr(impl_)<span class="question-mark">?</span>;
+		<span class="kw">for </span><span class="kw-2">mut </span>item <span class="kw">in </span><span class="kw-2">&amp;mut </span>impl_.items {
+			<span class="comment">// We only interact with methods and leave the rest as-is.
+			</span><span class="kw">if let </span>syn::ImplItem::Method(<span class="kw-2">ref mut </span>method) = <span class="kw-2">&amp;mut </span>item {
+				precompile.process_method(method)<span class="question-mark">?</span>;
 			}
 		}
 
-		<span class="comment">// Check constraint of PrecompileSet.</span>
-		<span class="kw">if</span> <span class="ident">precompile</span>.<span class="ident">tagged_as_precompile_set</span>
-			<span class="op">&amp;&amp;</span> <span class="ident">precompile</span>.<span class="ident">precompile_set_discriminant_fn</span>.<span class="ident">is_none</span>()
+		<span class="comment">// Check constraint of PrecompileSet.
+		</span><span class="kw">if </span>precompile.tagged_as_precompile_set
+			&amp;&amp; precompile.precompile_set_discriminant_fn.is_none()
 		{
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;A PrecompileSet must have exactly one function tagged with \
+			<span class="kw">let </span>msg = <span class="string">&quot;A PrecompileSet must have exactly one function tagged with \
 			`#[precompile::discriminant]`&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">Span::call_site</span>(), <span class="ident">msg</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(Span::call_site(), msg));
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="ident">precompile</span>)
+		<span class="prelude-val">Ok</span>(precompile)
 	}
 
-	<span class="doccomment">/// Process the attributes used on the `impl` block, which allows to declare</span>
-	<span class="doccomment">/// if it is a PrecompileSet or not, and to provide concrete types for tests if necessary.</span>
-	<span class="kw">fn</span> <span class="ident">process_impl_attr</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">impl_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">syn::ItemImpl</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">attr::take_attributes</span>::<span class="op">&lt;</span><span class="ident">attr::ImplAttr</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">impl_</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Process the attributes used on the `impl` block, which allows to declare
+	/// if it is a PrecompileSet or not, and to provide concrete types for tests if necessary.
+	</span><span class="kw">fn </span>process_impl_attr(<span class="kw-2">&amp;mut </span><span class="self">self</span>, impl_: <span class="kw-2">&amp;mut </span>syn::ItemImpl) -&gt; syn::Result&lt;()&gt; {
+		<span class="kw">let </span>attrs = attr::take_attributes::&lt;attr::ImplAttr&gt;(<span class="kw-2">&amp;mut </span>impl_.attrs)<span class="question-mark">?</span>;
 
-		<span class="kw">for</span> <span class="ident">attr</span> <span class="kw">in</span> <span class="ident">attrs</span> {
-			<span class="kw">match</span> <span class="ident">attr</span> {
-				<span class="ident">attr::ImplAttr::PrecompileSet</span>(<span class="kw">_</span>) =&gt; {
-					<span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> <span class="op">=</span> <span class="bool-val">true</span>;
+		<span class="kw">for </span>attr <span class="kw">in </span>attrs {
+			<span class="kw">match </span>attr {
+				attr::ImplAttr::PrecompileSet(<span class="kw">_</span>) =&gt; {
+					<span class="self">self</span>.tagged_as_precompile_set = <span class="bool-val">true</span>;
 				}
-				<span class="ident">attr::ImplAttr::TestConcreteTypes</span>(<span class="ident">span</span>, <span class="ident">types</span>) =&gt; {
-					<span class="kw">if</span> <span class="ident">types</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">len</span>() {
-						<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The amount of types should match the amount of type parameters \
+				attr::ImplAttr::TestConcreteTypes(span, types) =&gt; {
+					<span class="kw">if </span>types.len() != <span class="self">self</span>.generics.params.len() {
+						<span class="kw">let </span>msg = <span class="string">&quot;The amount of types should match the amount of type parameters \
 						of the impl block&quot;</span>;
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
-					<span class="kw">if</span> <span class="self">self</span>.<span class="ident">test_concrete_types</span>.<span class="ident">is_some</span>() {
-						<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Only one set of types can be provided to generate tests&quot;</span>;
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+					<span class="kw">if </span><span class="self">self</span>.test_concrete_types.is_some() {
+						<span class="kw">let </span>msg = <span class="string">&quot;Only one set of types can be provided to generate tests&quot;</span>;
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
-					<span class="self">self</span>.<span class="ident">test_concrete_types</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">types</span>);
+					<span class="self">self</span>.test_concrete_types = <span class="prelude-val">Some</span>(types);
 				}
 			}
 		}
@@ -640,461 +635,460 @@
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Extract the ident of the type of the `impl` block.</span>
-	<span class="doccomment">/// This ident is used to generate new idents such as the name of the Call enum and</span>
-	<span class="doccomment">/// the Solidity selector test.</span>
-	<span class="kw">fn</span> <span class="ident">extract_impl_ident</span>(<span class="ident">impl_</span>: <span class="kw-2">&amp;</span><span class="ident">syn::ItemImpl</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">syn::Ident</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">type_path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">impl_</span>.<span class="ident">self_ty</span>.<span class="ident">as_ref</span>() {
-			<span class="ident">syn::Type::Path</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>,
-			<span class="kw">_</span> =&gt; {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The type in the impl block must be a path, like `Precompile` or
+	<span class="doccomment">/// Extract the ident of the type of the `impl` block.
+	/// This ident is used to generate new idents such as the name of the Call enum and
+	/// the Solidity selector test.
+	</span><span class="kw">fn </span>extract_impl_ident(impl_: <span class="kw-2">&amp;</span>syn::ItemImpl) -&gt; syn::Result&lt;syn::Ident&gt; {
+		<span class="kw">let </span>type_path = <span class="kw">match </span>impl_.self_ty.as_ref() {
+			syn::Type::Path(p) =&gt; p,
+			<span class="kw">_ </span>=&gt; {
+				<span class="kw">let </span>msg = <span class="string">&quot;The type in the impl block must be a path, like `Precompile` or
 				`example::Precompile`&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">impl_</span>.<span class="ident">self_ty</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(impl_.self_ty.span(), msg));
 			}
 		};
 
-		<span class="kw">let</span> <span class="ident">final_path</span> <span class="op">=</span> <span class="ident">type_path</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The type path must be non empty.&quot;</span>;
-			<span class="ident">syn::Error::new</span>(<span class="ident">impl_</span>.<span class="ident">self_ty</span>.<span class="ident">span</span>(), <span class="ident">msg</span>)
+		<span class="kw">let </span>final_path = type_path.path.segments.last().ok_or_else(|| {
+			<span class="kw">let </span>msg = <span class="string">&quot;The type path must be non empty.&quot;</span>;
+			syn::Error::new(impl_.self_ty.span(), msg)
 		})<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">final_path</span>.<span class="ident">ident</span>.<span class="ident">clone</span>())
+		<span class="prelude-val">Ok</span>(final_path.ident.clone())
 	}
 
-	<span class="doccomment">/// Process a single method, looking for attributes and checking mandatory parameters.</span>
-	<span class="kw">fn</span> <span class="ident">process_method</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">method</span>: <span class="kw-2">&amp;mut</span> <span class="ident">syn::ImplItemMethod</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="comment">// Take (remove) all attributes related to this macro.</span>
-		<span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">attr::take_attributes</span>::<span class="op">&lt;</span><span class="ident">attr::MethodAttr</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">method</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Process a single method, looking for attributes and checking mandatory parameters.
+	</span><span class="kw">fn </span>process_method(<span class="kw-2">&amp;mut </span><span class="self">self</span>, method: <span class="kw-2">&amp;mut </span>syn::ImplItemMethod) -&gt; syn::Result&lt;()&gt; {
+		<span class="comment">// Take (remove) all attributes related to this macro.
+		</span><span class="kw">let </span>attrs = attr::take_attributes::&lt;attr::MethodAttr&gt;(<span class="kw-2">&amp;mut </span>method.attrs)<span class="question-mark">?</span>;
 
-		<span class="comment">// If there are no attributes it is a private function and we ignore it.</span>
-		<span class="kw">if</span> <span class="ident">attrs</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+		<span class="comment">// If there are no attributes it is a private function and we ignore it.
+		</span><span class="kw">if </span>attrs.is_empty() {
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(());
 		}
 
-		<span class="comment">// A method cannot have modifiers if it isn&#39;t a fallback and/or doesn&#39;t have a selector.</span>
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">used</span> <span class="op">=</span> <span class="bool-val">false</span>;
+		<span class="comment">// A method cannot have modifiers if it isn&#39;t a fallback and/or doesn&#39;t have a selector.
+		</span><span class="kw">let </span><span class="kw-2">mut </span>used = <span class="bool-val">false</span>;
 
-		<span class="kw">let</span> <span class="ident">method_name</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">clone</span>();
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modifier</span> <span class="op">=</span> <span class="ident">Modifier::NonPayable</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">solidity_arguments_type</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_fallback</span> <span class="op">=</span> <span class="bool-val">false</span>;
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">selectors</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-		<span class="kw">let</span> <span class="ident">initial_arguments</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> { <span class="number">2</span> } <span class="kw">else</span> { <span class="number">1</span> };
+		<span class="kw">let </span>method_name = method.sig.ident.clone();
+		<span class="kw">let </span><span class="kw-2">mut </span>modifier = Modifier::NonPayable;
+		<span class="kw">let </span><span class="kw-2">mut </span>solidity_arguments_type: <span class="prelude-ty">Option</span>&lt;String&gt; = <span class="prelude-val">None</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>arguments = <span class="macro">vec!</span>[];
+		<span class="kw">let </span><span class="kw-2">mut </span>is_fallback = <span class="bool-val">false</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>selectors = <span class="macro">vec!</span>[];
+		<span class="kw">let </span>initial_arguments = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set { <span class="number">2 </span>} <span class="kw">else </span>{ <span class="number">1 </span>};
 
-		<span class="comment">// We first look for unique attributes.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">attr::MethodAttr::Discriminant</span>(<span class="ident">span</span>)) <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">first</span>() {
-			<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">span</span>;
+		<span class="comment">// We first look for unique attributes.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(attr::MethodAttr::Discriminant(span)) = attrs.first() {
+			<span class="kw">let </span>span = <span class="kw-2">*</span>span;
 
-			<span class="kw">if</span> <span class="ident">attrs</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The discriminant attribute must be the only precompile attribute of \
+			<span class="kw">if </span>attrs.len() != <span class="number">1 </span>{
+				<span class="kw">let </span>msg = <span class="string">&quot;The discriminant attribute must be the only precompile attribute of \
 				a function&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 			}
 
-			<span class="kw">return</span> <span class="self">self</span>.<span class="ident">parse_discriminant_fn</span>(<span class="ident">span</span>, <span class="ident">method</span>);
+			<span class="kw">return </span><span class="self">self</span>.parse_discriminant_fn(span, method);
 		}
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">attr::MethodAttr::PreCheck</span>(<span class="ident">span</span>)) <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">first</span>() {
-			<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">span</span>;
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(attr::MethodAttr::PreCheck(span)) = attrs.first() {
+			<span class="kw">let </span>span = <span class="kw-2">*</span>span;
 
-			<span class="kw">if</span> <span class="ident">attrs</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The pre_check attribute must be the only precompile attribute of \
+			<span class="kw">if </span>attrs.len() != <span class="number">1 </span>{
+				<span class="kw">let </span>msg = <span class="string">&quot;The pre_check attribute must be the only precompile attribute of \
 				a function&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 			}
 
-			<span class="kw">return</span> <span class="self">self</span>.<span class="ident">parse_pre_check_fn</span>(<span class="ident">span</span>, <span class="ident">method</span>);
+			<span class="kw">return </span><span class="self">self</span>.parse_pre_check_fn(span, method);
 		}
 
-		<span class="comment">// We iterate over all attributes of the method.</span>
-		<span class="kw">for</span> <span class="ident">attr</span> <span class="kw">in</span> <span class="ident">attrs</span> {
-			<span class="kw">match</span> <span class="ident">attr</span> {
-				<span class="ident">attr::MethodAttr::Discriminant</span>(<span class="ident">span</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The discriminant attribute must be the only precompile \
+		<span class="comment">// We iterate over all attributes of the method.
+		</span><span class="kw">for </span>attr <span class="kw">in </span>attrs {
+			<span class="kw">match </span>attr {
+				attr::MethodAttr::Discriminant(span) =&gt; {
+					<span class="kw">let </span>msg = <span class="string">&quot;The discriminant attribute must be the only precompile \
 					attribute of the function&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 				}
-				<span class="ident">attr::MethodAttr::PreCheck</span>(<span class="ident">span</span>) =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The pre_check attribute must be the only precompile \
+				attr::MethodAttr::PreCheck(span) =&gt; {
+					<span class="kw">let </span>msg = <span class="string">&quot;The pre_check attribute must be the only precompile \
 					attribute of the function&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 				}
-				<span class="ident">attr::MethodAttr::Fallback</span>(<span class="ident">span</span>) =&gt; {
-					<span class="kw">if</span> <span class="self">self</span>.<span class="ident">fallback_to_variant</span>.<span class="ident">is_some</span>() {
-						<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;A precompile can only have 1 fallback function&quot;</span>;
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+				attr::MethodAttr::Fallback(span) =&gt; {
+					<span class="kw">if </span><span class="self">self</span>.fallback_to_variant.is_some() {
+						<span class="kw">let </span>msg = <span class="string">&quot;A precompile can only have 1 fallback function&quot;</span>;
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
-					<span class="self">self</span>.<span class="ident">fallback_to_variant</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">method_name</span>.<span class="ident">clone</span>());
-					<span class="ident">used</span> <span class="op">=</span> <span class="bool-val">true</span>;
-					<span class="ident">is_fallback</span> <span class="op">=</span> <span class="bool-val">true</span>;
+					<span class="self">self</span>.fallback_to_variant = <span class="prelude-val">Some</span>(method_name.clone());
+					used = <span class="bool-val">true</span>;
+					is_fallback = <span class="bool-val">true</span>;
 				}
-				<span class="ident">attr::MethodAttr::Payable</span>(<span class="ident">span</span>) =&gt; {
-					<span class="kw">if</span> <span class="ident">modifier</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Modifier::NonPayable</span> {
-						<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span>
+				attr::MethodAttr::Payable(span) =&gt; {
+					<span class="kw">if </span>modifier != Modifier::NonPayable {
+						<span class="kw">let </span>msg =
 							<span class="string">&quot;A precompile method can have at most one modifier (payable, view)&quot;</span>;
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
-					<span class="ident">modifier</span> <span class="op">=</span> <span class="ident">Modifier::Payable</span>;
+					modifier = Modifier::Payable;
 				}
-				<span class="ident">attr::MethodAttr::View</span>(<span class="ident">span</span>) =&gt; {
-					<span class="kw">if</span> <span class="ident">modifier</span> <span class="op">!</span><span class="op">=</span> <span class="ident">Modifier::NonPayable</span> {
-						<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span>
+				attr::MethodAttr::View(span) =&gt; {
+					<span class="kw">if </span>modifier != Modifier::NonPayable {
+						<span class="kw">let </span>msg =
 							<span class="string">&quot;A precompile method can have at most one modifier (payable, view)&quot;</span>;
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 					}
 
-					<span class="ident">modifier</span> <span class="op">=</span> <span class="ident">Modifier::View</span>;
+					modifier = Modifier::View;
 				}
-				<span class="ident">attr::MethodAttr::Public</span>(<span class="kw">_</span>, <span class="ident">signature_lit</span>) =&gt; {
-					<span class="ident">used</span> <span class="op">=</span> <span class="bool-val">true</span>;
+				attr::MethodAttr::Public(<span class="kw">_</span>, signature_lit) =&gt; {
+					used = <span class="bool-val">true</span>;
 
-					<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse_public_attr</span>(
-						<span class="ident">signature_lit</span>,
-						<span class="kw-2">&amp;</span><span class="ident">method_name</span>,
-						<span class="kw-2">&amp;mut</span> <span class="ident">solidity_arguments_type</span>,
+					<span class="kw">let </span>selector = <span class="self">self</span>.parse_public_attr(
+						signature_lit,
+						<span class="kw-2">&amp;</span>method_name,
+						<span class="kw-2">&amp;mut </span>solidity_arguments_type,
 					)<span class="question-mark">?</span>;
-					<span class="ident">selectors</span>.<span class="ident">push</span>(<span class="ident">selector</span>);
+					selectors.push(selector);
 				}
 			}
 		}
 
-		<span class="comment">// A method cannot have attributes without being public or fallback.</span>
-		<span class="kw">if</span> <span class="op">!</span><span class="ident">used</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span>
+		<span class="comment">// A method cannot have attributes without being public or fallback.
+		</span><span class="kw">if </span>!used {
+			<span class="kw">let </span>msg =
 				<span class="string">&quot;A precompile method cannot have modifiers without being a fallback or having\
 			a `public` attribute&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">method</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method.span(), msg));
 		}
 
-		<span class="comment">// We forbid type parameters.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">param</span>) <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">generics</span>.<span class="ident">params</span>.<span class="ident">first</span>() {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Exposed precompile methods cannot have type parameters&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">param</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+		<span class="comment">// We forbid type parameters.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(param) = method.sig.generics.params.first() {
+			<span class="kw">let </span>msg = <span class="string">&quot;Exposed precompile methods cannot have type parameters&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(param.span(), msg));
 		}
 
-		<span class="comment">// Fallback method cannot have custom parameters.</span>
-		<span class="kw">if</span> <span class="ident">is_fallback</span> {
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">inputs</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="ident">initial_arguments</span>).<span class="ident">next</span>() {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> {
+		<span class="comment">// Fallback method cannot have custom parameters.
+		</span><span class="kw">if </span>is_fallback {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(input) = method.sig.inputs.iter().skip(initial_arguments).next() {
+				<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
 					<span class="string">&quot;Fallback methods cannot take any parameter outside of the discriminant and \
-					PrecompileHandle&quot;</span>
-				} <span class="kw">else</span> {
-					<span class="string">&quot;Fallback methods cannot take any parameter outside of the PrecompileHandle&quot;</span>
-				};
+					PrecompileHandle&quot;
+				</span>} <span class="kw">else </span>{
+					<span class="string">&quot;Fallback methods cannot take any parameter outside of the PrecompileHandle&quot;
+				</span>};
 
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 			}
 		}
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method_inputs</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">inputs</span>.<span class="ident">iter</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>method_inputs = method.sig.inputs.iter();
 
-		<span class="comment">// We check the first parameters of the method.</span>
-		<span class="comment">// If this is a PrecompileSet it will look for a discriminant.</span>
-		<span class="comment">// Then for all precompile(set)s it will look for the PrecompileHandle.</span>
-		<span class="comment">// We take them from the iterator such that we are only left with the</span>
-		<span class="comment">// custom arguments.</span>
-		<span class="self">self</span>.<span class="ident">check_initial_parameters</span>(<span class="kw-2">&amp;mut</span> <span class="ident">method_inputs</span>, <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">span</span>())<span class="question-mark">?</span>;
+		<span class="comment">// We check the first parameters of the method.
+		// If this is a PrecompileSet it will look for a discriminant.
+		// Then for all precompile(set)s it will look for the PrecompileHandle.
+		// We take them from the iterator such that we are only left with the
+		// custom arguments.
+		</span><span class="self">self</span>.check_initial_parameters(<span class="kw-2">&amp;mut </span>method_inputs, method.sig.span())<span class="question-mark">?</span>;
 
-		<span class="comment">// We go through each parameter to collect each name and type that will be used to</span>
-		<span class="comment">// generate the input enum and parse the call data.</span>
-		<span class="kw">for</span> <span class="ident">input</span> <span class="kw">in</span> <span class="ident">method_inputs</span> {
-			<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span> {
-				<span class="ident">syn::FnArg::Typed</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
-				<span class="kw">_</span> =&gt; {
-					<span class="comment">// I don&#39;t think it is possible to encounter this error since a self receiver</span>
-					<span class="comment">// seems to only be possible in the first position which is checked in</span>
-					<span class="comment">// `check_initial_parameters`.</span>
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Exposed precompile methods cannot have a `self` parameter&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+		<span class="comment">// We go through each parameter to collect each name and type that will be used to
+		// generate the input enum and parse the call data.
+		</span><span class="kw">for </span>input <span class="kw">in </span>method_inputs {
+			<span class="kw">let </span>input = <span class="kw">match </span>input {
+				syn::FnArg::Typed(t) =&gt; t,
+				<span class="kw">_ </span>=&gt; {
+					<span class="comment">// I don&#39;t think it is possible to encounter this error since a self receiver
+					// seems to only be possible in the first position which is checked in
+					// `check_initial_parameters`.
+					</span><span class="kw">let </span>msg = <span class="string">&quot;Exposed precompile methods cannot have a `self` parameter&quot;</span>;
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Parameter must be of the form `name: Type`, optionally prefixed by `mut`&quot;</span>;
-			<span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">pat</span>.<span class="ident">as_ref</span>() {
-				<span class="ident">syn::Pat::Ident</span>(<span class="ident">pat</span>) =&gt; {
-					<span class="kw">if</span> <span class="ident">pat</span>.<span class="ident">by_ref</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">pat</span>.<span class="ident">subpat</span>.<span class="ident">is_some</span>() {
-						<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">let </span>msg = <span class="string">&quot;Parameter must be of the form `name: Type`, optionally prefixed by `mut`&quot;</span>;
+			<span class="kw">let </span>ident = <span class="kw">match </span>input.pat.as_ref() {
+				syn::Pat::Ident(pat) =&gt; {
+					<span class="kw">if </span>pat.by_ref.is_some() || pat.subpat.is_some() {
+						<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(pat.span(), msg));
 					}
 
-					<span class="ident">pat</span>.<span class="ident">ident</span>.<span class="ident">clone</span>()
+					pat.ident.clone()
 				}
-				<span class="kw">_</span> =&gt; {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input</span>.<span class="ident">pat</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+				<span class="kw">_ </span>=&gt; {
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.pat.span(), msg));
 				}
 			};
-			<span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">ty</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>();
+			<span class="kw">let </span>ty = input.ty.as_ref().clone();
 
-			<span class="ident">arguments</span>.<span class="ident">push</span>(<span class="ident">Argument</span> { <span class="ident">ident</span>, <span class="ident">ty</span> })
+			arguments.push(Argument { ident, ty })
 		}
 
-		<span class="comment">// Function output.</span>
-		<span class="kw">let</span> <span class="ident">output_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">output</span> {
-			<span class="ident">syn::ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">t</span>) =&gt; <span class="ident">t</span>,
-			<span class="kw">_</span> =&gt; {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;A precompile method must have a return type of `EvmResult&lt;_&gt;` (exposed \
+		<span class="comment">// Function output.
+		</span><span class="kw">let </span>output_type = <span class="kw">match </span><span class="kw-2">&amp;</span>method.sig.output {
+			syn::ReturnType::Type(<span class="kw">_</span>, t) =&gt; t,
+			<span class="kw">_ </span>=&gt; {
+				<span class="kw">let </span>msg = <span class="string">&quot;A precompile method must have a return type of `EvmResult&lt;_&gt;` (exposed \
 				by `precompile_utils`)&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method.sig.span(), msg));
 			}
 		};
 
-		<span class="comment">// We insert the collected data in self.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants_content</span>.<span class="ident">insert</span>(
-			<span class="ident">method_name</span>.<span class="ident">clone</span>(),
-			<span class="ident">Variant</span> {
-				<span class="ident">arguments</span>,
-				<span class="ident">solidity_arguments_type</span>: <span class="ident">solidity_arguments_type</span>.<span class="ident">unwrap_or</span>(<span class="ident">String::from</span>(<span class="string">&quot;()&quot;</span>)),
-				<span class="ident">modifier</span>,
-				<span class="ident">selectors</span>,
-				<span class="ident">fn_output</span>: <span class="ident">output_type</span>.<span class="ident">as_ref</span>().<span class="ident">clone</span>(),
+		<span class="comment">// We insert the collected data in self.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw">_</span>) = <span class="self">self</span>.variants_content.insert(
+			method_name.clone(),
+			Variant {
+				arguments,
+				solidity_arguments_type: solidity_arguments_type.unwrap_or(String::from(<span class="string">&quot;()&quot;</span>)),
+				modifier,
+				selectors,
+				fn_output: output_type.as_ref().clone(),
 			},
 		) {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Duplicate method name&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">method_name</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">let </span>msg = <span class="string">&quot;Duplicate method name&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_name.span(), msg));
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Check the initial parameters of most methods of a Precompile(Set).</span>
-	<span class="kw">fn</span> <span class="ident">check_initial_parameters</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">method_inputs</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">syn::FnArg</span><span class="op">&gt;</span>,
-		<span class="ident">method_span</span>: <span class="ident">Span</span>,
-	) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="comment">// Discriminant input</span>
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> {
-			<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method_inputs</span>.<span class="ident">next</span>() {
-				<span class="prelude-val">Some</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-				<span class="prelude-val">None</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;PrecompileSet methods must have at least 2 parameters (the \
+	<span class="doccomment">/// Check the initial parameters of most methods of a Precompile(Set).
+	</span><span class="kw">fn </span>check_initial_parameters&lt;<span class="lifetime">&#39;a</span>&gt;(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		method_inputs: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>Iterator&lt;Item = <span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>syn::FnArg&gt;,
+		method_span: Span,
+	) -&gt; syn::Result&lt;()&gt; {
+		<span class="comment">// Discriminant input
+		</span><span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
+			<span class="kw">let </span>input = <span class="kw">match </span>method_inputs.next() {
+				<span class="prelude-val">Some</span>(a) =&gt; a,
+				<span class="prelude-val">None </span>=&gt; {
+					<span class="kw">let </span>msg = <span class="string">&quot;PrecompileSet methods must have at least 2 parameters (the \
 					precompile instance discriminant and the PrecompileHandle)&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">method_span</span>, <span class="ident">msg</span>));
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_span, msg));
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span> {
-				<span class="ident">syn::FnArg::Typed</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-				<span class="kw">_</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">let </span>input = <span class="kw">match </span>input {
+				syn::FnArg::Typed(a) =&gt; a,
+				<span class="kw">_ </span>=&gt; {
+					<span class="kw">let </span>msg = <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">input_type</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">ty</span>.<span class="ident">as_ref</span>();
+			<span class="kw">let </span>input_type = input.ty.as_ref();
 
-			<span class="self">self</span>.<span class="ident">try_register_discriminant_type</span>(<span class="kw-2">&amp;</span><span class="ident">input_type</span>)<span class="question-mark">?</span>;
+			<span class="self">self</span>.try_register_discriminant_type(<span class="kw-2">&amp;</span>input_type)<span class="question-mark">?</span>;
 		}
 
-		<span class="comment">// Precompile handle input</span>
-		{
-			<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">method_inputs</span>.<span class="ident">next</span>() {
-				<span class="prelude-val">Some</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-				<span class="prelude-val">None</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> {
+		<span class="comment">// Precompile handle input
+		</span>{
+			<span class="kw">let </span>input = <span class="kw">match </span>method_inputs.next() {
+				<span class="prelude-val">Some</span>(a) =&gt; a,
+				<span class="prelude-val">None </span>=&gt; {
+					<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
 						<span class="string">&quot;PrecompileSet methods must have at least 2 parameters (the precompile \
-						instance discriminant and the PrecompileHandle)&quot;</span>
-					} <span class="kw">else</span> {
-						<span class="string">&quot;Precompile methods must have at least 1 parameter (the PrecompileHandle)&quot;</span>
-					};
+						instance discriminant and the PrecompileHandle)&quot;
+					</span>} <span class="kw">else </span>{
+						<span class="string">&quot;Precompile methods must have at least 1 parameter (the PrecompileHandle)&quot;
+					</span>};
 
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">method_span</span>, <span class="ident">msg</span>));
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(method_span, msg));
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">input</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span> {
-				<span class="ident">syn::FnArg::Typed</span>(<span class="ident">a</span>) =&gt; <span class="ident">a</span>,
-				<span class="kw">_</span> =&gt; {
-					<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">let </span>input = <span class="kw">match </span>input {
+				syn::FnArg::Typed(a) =&gt; a,
+				<span class="kw">_ </span>=&gt; {
+					<span class="kw">let </span>msg = <span class="string">&quot;self is not allowed in precompile methods&quot;</span>;
+					<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input.span(), msg));
 				}
 			};
 
-			<span class="kw">let</span> <span class="ident">input_type</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">ty</span>.<span class="ident">as_ref</span>();
+			<span class="kw">let </span>input_type = input.ty.as_ref();
 
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">is_same_type</span>(<span class="kw-2">&amp;</span><span class="ident">input_type</span>, <span class="kw-2">&amp;</span><span class="macro">syn::parse_quote!</span> {<span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>}) {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;This parameter must have type `&amp;mut impl PrecompileHandle`&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">input_type</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">if </span>!is_same_type(<span class="kw-2">&amp;</span>input_type, <span class="kw-2">&amp;</span><span class="macro">syn::parse_quote! </span>{<span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle}) {
+				<span class="kw">let </span>msg = <span class="string">&quot;This parameter must have type `&amp;mut impl PrecompileHandle`&quot;</span>;
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(input_type.span(), msg));
 			}
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Records the type of the discriminant and ensure they all have the same type.</span>
-	<span class="kw">fn</span> <span class="ident">try_register_discriminant_type</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">ty</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">known_type</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">precompile_set_discriminant_type</span> {
-			<span class="kw">if</span> <span class="op">!</span><span class="ident">is_same_type</span>(<span class="kw-2">&amp;</span><span class="ident">known_type</span>, <span class="kw-2">&amp;</span><span class="ident">ty</span>) {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(
+	<span class="doccomment">/// Records the type of the discriminant and ensure they all have the same type.
+	</span><span class="kw">fn </span>try_register_discriminant_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ty: <span class="kw-2">&amp;</span>syn::Type) -&gt; syn::Result&lt;()&gt; {
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(known_type) = <span class="kw-2">&amp;</span><span class="self">self</span>.precompile_set_discriminant_type {
+			<span class="kw">if </span>!is_same_type(<span class="kw-2">&amp;</span>known_type, <span class="kw-2">&amp;</span>ty) {
+				<span class="kw">let </span>msg = <span class="macro">format!</span>(
 					<span class="string">&quot;All discriminants must have the same type (found {} before)&quot;</span>,
-					<span class="ident">known_type</span>.<span class="ident">to_token_stream</span>()
+					known_type.to_token_stream()
 				);
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">ty</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(ty.span(), msg));
 			}
-		} <span class="kw">else</span> {
-			<span class="self">self</span>.<span class="ident">precompile_set_discriminant_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ty</span>.<span class="ident">clone</span>());
+		} <span class="kw">else </span>{
+			<span class="self">self</span>.precompile_set_discriminant_type = <span class="prelude-val">Some</span>(ty.clone());
 		}
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Process the discriminant function.</span>
-	<span class="kw">fn</span> <span class="ident">parse_discriminant_fn</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">span</span>: <span class="ident">Span</span>,
-		<span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">syn::ImplItemMethod</span>,
-	) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The impl block must be tagged with `#[precompile::precompile_set]` for
+	<span class="doccomment">/// Process the discriminant function.
+	</span><span class="kw">fn </span>parse_discriminant_fn(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		span: Span,
+		method: <span class="kw-2">&amp;</span>syn::ImplItemMethod,
+	) -&gt; syn::Result&lt;()&gt; {
+		<span class="kw">if </span>!<span class="self">self</span>.tagged_as_precompile_set {
+			<span class="kw">let </span>msg = <span class="string">&quot;The impl block must be tagged with `#[precompile::precompile_set]` for
 			the discriminant attribute to be used&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">precompile_set_discriminant_fn</span>.<span class="ident">is_some</span>() {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;A PrecompileSet can only have 1 discriminant function&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+		<span class="kw">if </span><span class="self">self</span>.precompile_set_discriminant_fn.is_some() {
+			<span class="kw">let </span>msg = <span class="string">&quot;A PrecompileSet can only have 1 discriminant function&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">span</span>();
+		<span class="kw">let </span>span = method.sig.span();
 
-		<span class="kw">if</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">inputs</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The discriminant function must only take the code address (H160) as \
+		<span class="kw">if </span>method.sig.inputs.len() != <span class="number">1 </span>{
+			<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must only take the code address (H160) as \
 			parameter.&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;The discriminant function must return an Option&lt;_&gt; (no type alias)&quot;</span>;
+		<span class="kw">let </span>msg = <span class="string">&quot;The discriminant function must return an Option&lt;_&gt; (no type alias)&quot;</span>;
 
-		<span class="kw">let</span> <span class="ident">return_type</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">output</span> {
-			<span class="ident">syn::ReturnType::Type</span>(<span class="kw">_</span>, <span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">as_ref</span>(),
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>)),
+		<span class="kw">let </span>return_type = <span class="kw">match </span><span class="kw-2">&amp;</span>method.sig.output {
+			syn::ReturnType::Type(<span class="kw">_</span>, t) =&gt; t.as_ref(),
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg)),
 		};
 
-		<span class="kw">let</span> <span class="ident">return_path</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">return_type</span> {
-			<span class="ident">syn::Type::Path</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>,
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>)),
+		<span class="kw">let </span>return_path = <span class="kw">match </span>return_type {
+			syn::Type::Path(p) =&gt; p,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg)),
 		};
 
-		<span class="kw">if</span> <span class="ident">return_path</span>.<span class="ident">qself</span>.<span class="ident">is_some</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+		<span class="kw">if </span>return_path.qself.is_some() {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">return_path</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">return_path</span>.<span class="ident">path</span>;
+		<span class="kw">let </span>return_path = <span class="kw-2">&amp;</span>return_path.path;
 
-		<span class="kw">if</span> <span class="ident">return_path</span>.<span class="ident">leading_colon</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">return_path</span>.<span class="ident">segments</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+		<span class="kw">if </span>return_path.leading_colon.is_some() || return_path.segments.len() != <span class="number">1 </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">return_segment</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">return_path</span>.<span class="ident">segments</span>[<span class="number">0</span>];
+		<span class="kw">let </span>return_segment = <span class="kw-2">&amp;</span>return_path.segments[<span class="number">0</span>];
 
-		<span class="kw">if</span> <span class="ident">return_segment</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>() <span class="op">!</span><span class="op">=</span> <span class="string">&quot;Option&quot;</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">return_segment</span>.<span class="ident">ident</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+		<span class="kw">if </span>return_segment.ident.to_string() != <span class="string">&quot;Option&quot; </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(return_segment.ident.span(), msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">option_arguments</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">return_segment</span>.<span class="ident">arguments</span> {
-			<span class="ident">syn::PathArguments::AngleBracketed</span>(<span class="ident">args</span>) =&gt; <span class="ident">args</span>,
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">return_segment</span>.<span class="ident">ident</span>.<span class="ident">span</span>(), <span class="ident">msg</span>)),
+		<span class="kw">let </span>option_arguments = <span class="kw">match </span><span class="kw-2">&amp;</span>return_segment.arguments {
+			syn::PathArguments::AngleBracketed(args) =&gt; args,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(return_segment.ident.span(), msg)),
 		};
 
-		<span class="kw">if</span> <span class="ident">option_arguments</span>.<span class="ident">args</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">1</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Option type should only have 1 type argument&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">option_arguments</span>.<span class="ident">args</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+		<span class="kw">if </span>option_arguments.args.len() != <span class="number">1 </span>{
+			<span class="kw">let </span>msg = <span class="string">&quot;Option type should only have 1 type argument&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(option_arguments.args.span(), msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">discriminant_type</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">option_arguments</span>.<span class="ident">args</span>[<span class="number">0</span>] {
-			<span class="ident">syn::GenericArgument::Type</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>,
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">option_arguments</span>.<span class="ident">args</span>.<span class="ident">span</span>(), <span class="ident">msg</span>)),
+		<span class="kw">let </span>discriminant_type: <span class="kw-2">&amp;</span>syn::Type = <span class="kw">match </span><span class="kw-2">&amp;</span>option_arguments.args[<span class="number">0</span>] {
+			syn::GenericArgument::Type(t) =&gt; t,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(option_arguments.args.span(), msg)),
 		};
 
-		<span class="self">self</span>.<span class="ident">try_register_discriminant_type</span>(<span class="kw-2">&amp;</span><span class="ident">discriminant_type</span>)<span class="question-mark">?</span>;
+		<span class="self">self</span>.try_register_discriminant_type(<span class="kw-2">&amp;</span>discriminant_type)<span class="question-mark">?</span>;
 
-		<span class="self">self</span>.<span class="ident">precompile_set_discriminant_fn</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">clone</span>());
+		<span class="self">self</span>.precompile_set_discriminant_fn = <span class="prelude-val">Some</span>(method.sig.ident.clone());
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Process the pre_check function.</span>
-	<span class="kw">fn</span> <span class="ident">parse_pre_check_fn</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">span</span>: <span class="ident">Span</span>, <span class="ident">method</span>: <span class="kw-2">&amp;</span><span class="ident">syn::ImplItemMethod</span>) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-		<span class="kw">if</span> <span class="self">self</span>.<span class="ident">pre_check</span>.<span class="ident">is_some</span>() {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;A Precompile can only have 1 pre_check function&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+	<span class="doccomment">/// Process the pre_check function.
+	</span><span class="kw">fn </span>parse_pre_check_fn(<span class="kw-2">&amp;mut </span><span class="self">self</span>, span: Span, method: <span class="kw-2">&amp;</span>syn::ImplItemMethod) -&gt; syn::Result&lt;()&gt; {
+		<span class="kw">if </span><span class="self">self</span>.pre_check.is_some() {
+			<span class="kw">let </span>msg = <span class="string">&quot;A Precompile can only have 1 pre_check function&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">span</span>();
+		<span class="kw">let </span>span = method.sig.span();
 
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">method_inputs</span> <span class="op">=</span> <span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">inputs</span>.<span class="ident">iter</span>();
+		<span class="kw">let </span><span class="kw-2">mut </span>method_inputs = method.sig.inputs.iter();
 
-		<span class="self">self</span>.<span class="ident">check_initial_parameters</span>(<span class="kw-2">&amp;mut</span> <span class="ident">method_inputs</span>, <span class="ident">span</span>)<span class="question-mark">?</span>;
+		<span class="self">self</span>.check_initial_parameters(<span class="kw-2">&amp;mut </span>method_inputs, span)<span class="question-mark">?</span>;
 
-		<span class="kw">if</span> <span class="ident">method_inputs</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">tagged_as_precompile_set</span> {
+		<span class="kw">if </span>method_inputs.next().is_some() {
+			<span class="kw">let </span>msg = <span class="kw">if </span><span class="self">self</span>.tagged_as_precompile_set {
 				<span class="string">&quot;PrecompileSet pre_check method must have exactly 2 parameters (the precompile \
-				instance discriminant and the PrecompileHandle)&quot;</span>
-			} <span class="kw">else</span> {
+				instance discriminant and the PrecompileHandle)&quot;
+			</span>} <span class="kw">else </span>{
 				<span class="string">&quot;Precompile pre_check method must have exactly 1 parameter (the \
-				PrecompileHandle)&quot;</span>
-			};
+				PrecompileHandle)&quot;
+			</span>};
 
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(span, msg));
 		}
 
-		<span class="self">self</span>.<span class="ident">pre_check</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">method</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">clone</span>());
+		<span class="self">self</span>.pre_check = <span class="prelude-val">Some</span>(method.sig.ident.clone());
 
 		<span class="prelude-val">Ok</span>(())
 	}
 
-	<span class="doccomment">/// Process a `public` attribute on a method.</span>
-	<span class="kw">fn</span> <span class="ident">parse_public_attr</span>(
-		<span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-		<span class="ident">signature_lit</span>: <span class="ident">syn::LitStr</span>,
-		<span class="ident">method_name</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Ident</span>,
-		<span class="ident">solidity_arguments_type</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">syn::Result</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="ident">signature</span> <span class="op">=</span> <span class="ident">signature_lit</span>.<span class="ident">value</span>();
-		<span class="comment">// Split signature to get arguments type.</span>
-		<span class="kw">let</span> <span class="ident">split</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">signature</span>.<span class="ident">splitn</span>(<span class="number">2</span>, <span class="string">&quot;(&quot;</span>).<span class="ident">collect</span>();
-		<span class="kw">if</span> <span class="ident">split</span>.<span class="ident">len</span>() <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Selector must have form \&quot;foo(arg1,arg2,...)\&quot;&quot;</span>;
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">signature_lit</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+	<span class="doccomment">/// Process a `public` attribute on a method.
+	</span><span class="kw">fn </span>parse_public_attr(
+		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
+		signature_lit: syn::LitStr,
+		method_name: <span class="kw-2">&amp;</span>syn::Ident,
+		solidity_arguments_type: <span class="kw-2">&amp;mut </span><span class="prelude-ty">Option</span>&lt;String&gt;,
+	) -&gt; syn::Result&lt;u32&gt; {
+		<span class="kw">let </span>signature = signature_lit.value();
+		<span class="comment">// Split signature to get arguments type.
+		</span><span class="kw">let </span>split: Vec&lt;<span class="kw">_</span>&gt; = signature.splitn(<span class="number">2</span>, <span class="string">&quot;(&quot;</span>).collect();
+		<span class="kw">if </span>split.len() != <span class="number">2 </span>{
+			<span class="kw">let </span>msg = <span class="string">&quot;Selector must have form \&quot;foo(arg1,arg2,...)\&quot;&quot;</span>;
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 		}
 
-		<span class="kw">let</span> <span class="ident">local_args_type</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({}&quot;</span>, <span class="ident">split</span>[<span class="number">1</span>]); <span class="comment">// add back initial parenthesis</span>
+		<span class="kw">let </span>local_args_type = <span class="macro">format!</span>(<span class="string">&quot;({}&quot;</span>, split[<span class="number">1</span>]); <span class="comment">// add back initial parenthesis
 
-		<span class="comment">// If there are multiple public attributes we check that they all have</span>
-		<span class="comment">// the same type.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">args_type</span>) <span class="op">=</span> <span class="ident">solidity_arguments_type</span> {
-			<span class="kw">if</span> <span class="ident">args_type</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">local_args_type</span> {
-				<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;Method cannot have selectors with different types.&quot;</span>;
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">signature_lit</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+		// If there are multiple public attributes we check that they all have
+		// the same type.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>args_type) = solidity_arguments_type {
+			<span class="kw">if </span>args_type != <span class="kw-2">&amp;</span>local_args_type {
+				<span class="kw">let </span>msg = <span class="string">&quot;Method cannot have selectors with different types.&quot;</span>;
+				<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 			}
-		} <span class="kw">else</span> {
-			<span class="kw-2">*</span><span class="ident">solidity_arguments_type</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">local_args_type</span>);
+		} <span class="kw">else </span>{
+			<span class="kw-2">*</span>solidity_arguments_type = <span class="prelude-val">Some</span>(local_args_type);
 		}
 
-		<span class="comment">// Compute the 4-bytes selector.</span>
-		<span class="kw">let</span> <span class="ident">digest</span> <span class="op">=</span> <span class="ident">Keccak256::digest</span>(<span class="ident">signature</span>.<span class="ident">as_ref</span>());
-		<span class="kw">let</span> <span class="ident">selector</span> <span class="op">=</span> <span class="ident">u32::from_be_bytes</span>([<span class="ident">digest</span>[<span class="number">0</span>], <span class="ident">digest</span>[<span class="number">1</span>], <span class="ident">digest</span>[<span class="number">2</span>], <span class="ident">digest</span>[<span class="number">3</span>]]);
+		<span class="comment">// Compute the 4-bytes selector.
+		</span><span class="kw">let </span>digest = Keccak256::digest(signature.as_ref());
+		<span class="kw">let </span>selector = u32::from_be_bytes([digest[<span class="number">0</span>], digest[<span class="number">1</span>], digest[<span class="number">2</span>], digest[<span class="number">3</span>]]);
 
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">previous</span>) <span class="op">=</span> <span class="self">self</span>
-			.<span class="ident">selector_to_variant</span>
-			.<span class="ident">insert</span>(<span class="ident">selector</span>, <span class="ident">method_name</span>.<span class="ident">clone</span>())
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(previous) = <span class="self">self
+			</span>.selector_to_variant
+			.insert(selector, method_name.clone())
 		{
-			<span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;Selector collision with method {}&quot;</span>, <span class="ident">previous</span>.<span class="ident">to_string</span>());
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">syn::Error::new</span>(<span class="ident">signature_lit</span>.<span class="ident">span</span>(), <span class="ident">msg</span>));
+			<span class="kw">let </span>msg = <span class="macro">format!</span>(<span class="string">&quot;Selector collision with method {}&quot;</span>, previous.to_string());
+			<span class="kw">return </span><span class="prelude-val">Err</span>(syn::Error::new(signature_lit.span(), msg));
 		}
 
-		<span class="prelude-val">Ok</span>(<span class="ident">selector</span>)
+		<span class="prelude-val">Ok</span>(selector)
 	}
 }
 
-<span class="doccomment">/// Helper to check 2 types are equal.</span>
-<span class="doccomment">/// Having a function with explicit type annotation helps type inference at callsite,</span>
-<span class="doccomment">/// which have trouble if `==` is used inline.</span>
-<span class="kw">fn</span> <span class="ident">is_same_type</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">syn::Type</span>) -&gt; <span class="ident">bool</span> {
-	<span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>
+<span class="doccomment">/// Helper to check 2 types are equal.
+/// Having a function with explicit type annotation helps type inference at callsite,
+/// which have trouble if `==` is used inline.
+</span><span class="kw">fn </span>is_same_type(a: <span class="kw-2">&amp;</span>syn::Type, b: <span class="kw-2">&amp;</span>syn::Type) -&gt; bool {
+	a == b
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="precompile_utils_macro" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/debug/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_rpc_debug/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_rpc_debug/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_rpc_debug/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `client/rpc/debug/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../moonbeam_rpc_debug/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../moonbeam_rpc_debug/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../moonbeam_rpc_debug/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -593,596 +588,595 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
-<span class="kw">use</span> <span class="ident">futures</span>::{<span class="ident">SinkExt</span>, <span class="ident">StreamExt</span>};
-<span class="kw">use</span> <span class="ident">jsonrpsee::core::RpcResult</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">moonbeam_rpc_core_debug</span>::{<span class="ident">DebugServer</span>, <span class="ident">TraceParams</span>};
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
+</span><span class="kw">use </span>futures::{SinkExt, StreamExt};
+<span class="kw">use </span>jsonrpsee::core::RpcResult;
+<span class="kw">pub use </span>moonbeam_rpc_core_debug::{DebugServer, TraceParams};
 
-<span class="kw">use</span> <span class="ident">tokio</span>::{
+<span class="kw">use </span>tokio::{
 	<span class="self">self</span>,
-	<span class="ident">sync</span>::{<span class="ident">oneshot</span>, <span class="ident">Semaphore</span>},
+	sync::{oneshot, Semaphore},
 };
 
-<span class="kw">use</span> <span class="ident">ethereum_types::H256</span>;
-<span class="kw">use</span> <span class="ident">fc_rpc</span>::{<span class="ident">frontier_backend_client</span>, <span class="ident">internal_err</span>, <span class="ident">OverrideHandle</span>};
-<span class="kw">use</span> <span class="ident">fp_rpc::EthereumRuntimeRPCApi</span>;
-<span class="kw">use</span> <span class="ident">moonbeam_client_evm_tracing</span>::{<span class="ident">formatters::ResponseFormatter</span>, <span class="ident">types::single</span>};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_core_types</span>::{<span class="ident">RequestBlockId</span>, <span class="ident">RequestBlockTag</span>};
-<span class="kw">use</span> <span class="ident">moonbeam_rpc_primitives_debug</span>::{<span class="ident">DebugRuntimeApi</span>, <span class="ident">TracerInput</span>};
-<span class="kw">use</span> <span class="ident">sc_client_api::backend</span>::{<span class="ident">Backend</span>, <span class="ident">StateBackend</span>, <span class="ident">StorageProvider</span>};
-<span class="kw">use</span> <span class="ident">sc_utils::mpsc::TracingUnboundedSender</span>;
-<span class="kw">use</span> <span class="ident">sp_api</span>::{<span class="ident">ApiExt</span>, <span class="ident">BlockId</span>, <span class="ident">Core</span>, <span class="ident">HeaderT</span>, <span class="ident">ProvideRuntimeApi</span>};
-<span class="kw">use</span> <span class="ident">sp_block_builder::BlockBuilder</span>;
-<span class="kw">use</span> <span class="ident">sp_blockchain</span>::{
-	<span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">BlockchainBackend</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">BlockChainError</span>, <span class="ident">HeaderBackend</span>, <span class="ident">HeaderMetadata</span>,
+<span class="kw">use </span>ethereum_types::H256;
+<span class="kw">use </span>fc_rpc::{frontier_backend_client, internal_err, OverrideHandle};
+<span class="kw">use </span>fp_rpc::EthereumRuntimeRPCApi;
+<span class="kw">use </span>moonbeam_client_evm_tracing::{formatters::ResponseFormatter, types::single};
+<span class="kw">use </span>moonbeam_rpc_core_types::{RequestBlockId, RequestBlockTag};
+<span class="kw">use </span>moonbeam_rpc_primitives_debug::{DebugRuntimeApi, TracerInput};
+<span class="kw">use </span>sc_client_api::backend::{Backend, StateBackend, StorageProvider};
+<span class="kw">use </span>sc_utils::mpsc::TracingUnboundedSender;
+<span class="kw">use </span>sp_api::{ApiExt, BlockId, Core, HeaderT, ProvideRuntimeApi};
+<span class="kw">use </span>sp_block_builder::BlockBuilder;
+<span class="kw">use </span>sp_blockchain::{
+	Backend <span class="kw">as </span>BlockchainBackend, Error <span class="kw">as </span>BlockChainError, HeaderBackend, HeaderMetadata,
 };
-<span class="kw">use</span> <span class="ident">sp_runtime::traits</span>::{<span class="ident">BlakeTwo256</span>, <span class="ident">Block</span> <span class="kw">as</span> <span class="ident">BlockT</span>, <span class="ident">UniqueSaturatedInto</span>};
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">future::Future</span>, <span class="ident">marker::PhantomData</span>, <span class="ident">sync::Arc</span>};
+<span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT, UniqueSaturatedInto};
+<span class="kw">use </span>std::{future::Future, marker::PhantomData, sync::Arc};
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RequesterInput</span> {
-	<span class="ident">Transaction</span>(<span class="ident">H256</span>),
-	<span class="ident">Block</span>(<span class="ident">RequestBlockId</span>),
+<span class="kw">pub enum </span>RequesterInput {
+	Transaction(H256),
+	Block(RequestBlockId),
 }
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Response</span> {
-	<span class="ident">Single</span>(<span class="ident">single::TransactionTrace</span>),
-	<span class="ident">Block</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span>),
+<span class="kw">pub enum </span>Response {
+	Single(single::TransactionTrace),
+	Block(Vec&lt;single::TransactionTrace&gt;),
 }
 
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Responder</span> <span class="op">=</span> <span class="ident">oneshot::Sender</span><span class="op">&lt;</span><span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span><span class="op">&gt;</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">DebugRequester</span> <span class="op">=</span>
-	<span class="ident">TracingUnboundedSender</span><span class="op">&lt;</span>((<span class="ident">RequesterInput</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>), <span class="ident">Responder</span>)<span class="op">&gt;</span>;
+<span class="kw">pub type </span>Responder = oneshot::Sender&lt;RpcResult&lt;Response&gt;&gt;;
+<span class="kw">pub type </span>DebugRequester =
+	TracingUnboundedSender&lt;((RequesterInput, <span class="prelude-ty">Option</span>&lt;TraceParams&gt;), Responder)&gt;;
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Debug</span> {
-	<span class="kw">pub</span> <span class="ident">requester</span>: <span class="ident">DebugRequester</span>,
+<span class="kw">pub struct </span>Debug {
+	<span class="kw">pub </span>requester: DebugRequester,
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> {
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">requester</span>: <span class="ident">DebugRequester</span>) -&gt; <span class="self">Self</span> {
-		<span class="self">Self</span> { <span class="ident">requester</span> }
+<span class="kw">impl </span>Debug {
+	<span class="kw">pub fn </span>new(requester: DebugRequester) -&gt; <span class="self">Self </span>{
+		<span class="self">Self </span>{ requester }
 	}
 }
 
-<span class="attribute">#[<span class="ident">jsonrpsee::core::async_trait</span>]</span>
-<span class="kw">impl</span> <span class="ident">DebugServer</span> <span class="kw">for</span> <span class="ident">Debug</span> {
-	<span class="doccomment">/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task</span>
-	<span class="doccomment">/// using channels.</span>
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">trace_transaction</span>(
+<span class="attribute">#[jsonrpsee::core::async_trait]
+</span><span class="kw">impl </span>DebugServer <span class="kw">for </span>Debug {
+	<span class="doccomment">/// Handler for `debug_traceTransaction` request. Communicates with the service-defined task
+	/// using channels.
+	</span><span class="kw">async fn </span>trace_transaction(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requester</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">clone</span>();
+		transaction_hash: H256,
+		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
+	) -&gt; RpcResult&lt;single::TransactionTrace&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>requester = <span class="self">self</span>.requester.clone();
 
-		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="comment">// Send a message from the rpc handler to the service level task.</span>
-		<span class="ident">requester</span>
-			.<span class="ident">send</span>(((<span class="ident">RequesterInput::Transaction</span>(<span class="ident">transaction_hash</span>), <span class="ident">params</span>), <span class="ident">tx</span>))
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-				<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+		<span class="kw">let </span>(tx, rx) = oneshot::channel();
+		<span class="comment">// Send a message from the rpc handler to the service level task.
+		</span>requester
+			.send(((RequesterInput::Transaction(transaction_hash), params), tx))
+			.<span class="kw">await
+			</span>.map_err(|err| {
+				internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;failed to send request to debug service : {:?}&quot;</span>,
-					<span class="ident">err</span>
+					err
 				))
 			})<span class="question-mark">?</span>;
 
-		<span class="comment">// Receive a message from the service level task and send the rpc response.</span>
-		<span class="ident">rx</span>.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;debug service dropped the channel : {:?}&quot;</span>, <span class="ident">err</span>)))<span class="question-mark">?</span>
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
-				<span class="ident">Response::Single</span>(<span class="ident">res</span>) =&gt; <span class="ident">res</span>,
-				<span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+		<span class="comment">// Receive a message from the service level task and send the rpc response.
+		</span>rx.<span class="kw">await
+			</span>.map_err(|err| internal_err(<span class="macro">format!</span>(<span class="string">&quot;debug service dropped the channel : {:?}&quot;</span>, err)))<span class="question-mark">?
+			</span>.map(|res| <span class="kw">match </span>res {
+				Response::Single(res) =&gt; res,
+				<span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
 			})
 	}
 
-	<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">trace_block</span>(
+	<span class="kw">async fn </span>trace_block(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		<span class="ident">id</span>: <span class="ident">RequestBlockId</span>,
-		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">single::TransactionTrace</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requester</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">requester</span>.<span class="ident">clone</span>();
+		id: RequestBlockId,
+		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
+	) -&gt; RpcResult&lt;Vec&lt;single::TransactionTrace&gt;&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>requester = <span class="self">self</span>.requester.clone();
 
-		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="ident">rx</span>) <span class="op">=</span> <span class="ident">oneshot::channel</span>();
-		<span class="comment">// Send a message from the rpc handler to the service level task.</span>
-		<span class="ident">requester</span>
-			.<span class="ident">send</span>(((<span class="ident">RequesterInput::Block</span>(<span class="ident">id</span>), <span class="ident">params</span>), <span class="ident">tx</span>))
-			.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
-				<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+		<span class="kw">let </span>(tx, rx) = oneshot::channel();
+		<span class="comment">// Send a message from the rpc handler to the service level task.
+		</span>requester
+			.send(((RequesterInput::Block(id), params), tx))
+			.<span class="kw">await
+			</span>.map_err(|err| {
+				internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;failed to send request to debug service : {:?}&quot;</span>,
-					<span class="ident">err</span>
+					err
 				))
 			})<span class="question-mark">?</span>;
 
-		<span class="comment">// Receive a message from the service level task and send the rpc response.</span>
-		<span class="ident">rx</span>.<span class="kw">await</span>
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;debug service dropped the channel : {:?}&quot;</span>, <span class="ident">err</span>)))<span class="question-mark">?</span>
-			.<span class="ident">map</span>(<span class="op">|</span><span class="ident">res</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">res</span> {
-				<span class="ident">Response::Block</span>(<span class="ident">res</span>) =&gt; <span class="ident">res</span>,
-				<span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+		<span class="comment">// Receive a message from the service level task and send the rpc response.
+		</span>rx.<span class="kw">await
+			</span>.map_err(|err| internal_err(<span class="macro">format!</span>(<span class="string">&quot;debug service dropped the channel : {:?}&quot;</span>, err)))<span class="question-mark">?
+			</span>.map(|res| <span class="kw">match </span>res {
+				Response::Block(res) =&gt; res,
+				<span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
 			})
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DebugHandler</span><span class="op">&lt;</span><span class="ident">B</span>: <span class="ident">BlockT</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span>(<span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span>)<span class="op">&gt;</span>);
+<span class="kw">pub struct </span>DebugHandler&lt;B: BlockT, C, BE&gt;(PhantomData&lt;(B, C, BE)&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span> <span class="ident">DebugHandler</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">BE</span>: <span class="ident">Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">BE::State</span>: <span class="ident">StateBackend</span><span class="op">&lt;</span><span class="ident">BlakeTwo256</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">ProvideRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">StorageProvider</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">BE</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">HeaderMetadata</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Error</span> <span class="op">=</span> <span class="ident">BlockChainError</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">HeaderBackend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">B</span>: <span class="ident">BlockT</span><span class="op">&lt;</span><span class="ident">Hash</span> <span class="op">=</span> <span class="ident">H256</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-	<span class="ident">C::Api</span>: <span class="ident">BlockBuilder</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">EthereumRuntimeRPCApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
-	<span class="ident">C::Api</span>: <span class="ident">ApiExt</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>,
+<span class="kw">impl</span>&lt;B, C, BE&gt; DebugHandler&lt;B, C, BE&gt;
+<span class="kw">where
+	</span>BE: Backend&lt;B&gt; + <span class="lifetime">&#39;static</span>,
+	BE::State: StateBackend&lt;BlakeTwo256&gt;,
+	C: ProvideRuntimeApi&lt;B&gt;,
+	C: StorageProvider&lt;B, BE&gt;,
+	C: HeaderMetadata&lt;B, Error = BlockChainError&gt; + HeaderBackend&lt;B&gt;,
+	C: Send + Sync + <span class="lifetime">&#39;static</span>,
+	B: BlockT&lt;Hash = H256&gt; + Send + Sync + <span class="lifetime">&#39;static</span>,
+	C::Api: BlockBuilder&lt;B&gt;,
+	C::Api: DebugRuntimeApi&lt;B&gt;,
+	C::Api: EthereumRuntimeRPCApi&lt;B&gt;,
+	C::Api: ApiExt&lt;B&gt;,
 {
-	<span class="doccomment">/// Task spawned at service level that listens for messages on the rpc channel and spawns</span>
-	<span class="doccomment">/// blocking tasks using a permit pool.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">task</span>(
-		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-		<span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">permit_pool</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">Semaphore</span><span class="op">&gt;</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">raw_max_memory_usage</span>: <span class="ident">usize</span>,
-	) -&gt; (<span class="kw">impl</span> <span class="ident">Future</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span>, <span class="ident">DebugRequester</span>) {
-		<span class="kw">let</span> (<span class="ident">tx</span>, <span class="kw-2">mut</span> <span class="ident">rx</span>): (<span class="ident">DebugRequester</span>, <span class="kw">_</span>) <span class="op">=</span>
-			<span class="ident">sc_utils::mpsc::tracing_unbounded</span>(<span class="string">&quot;debug-requester&quot;</span>);
+	<span class="doccomment">/// Task spawned at service level that listens for messages on the rpc channel and spawns
+	/// blocking tasks using a permit pool.
+	</span><span class="kw">pub fn </span>task(
+		client: Arc&lt;C&gt;,
+		backend: Arc&lt;BE&gt;,
+		frontier_backend: Arc&lt;fc_db::Backend&lt;B&gt;&gt;,
+		permit_pool: Arc&lt;Semaphore&gt;,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		raw_max_memory_usage: usize,
+	) -&gt; (<span class="kw">impl </span>Future&lt;Output = ()&gt;, DebugRequester) {
+		<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx): (DebugRequester, <span class="kw">_</span>) =
+			sc_utils::mpsc::tracing_unbounded(<span class="string">&quot;debug-requester&quot;</span>);
 
-		<span class="kw">let</span> <span class="ident">fut</span> <span class="op">=</span> <span class="kw">async</span> <span class="kw">move</span> {
-			<span class="kw">loop</span> {
-				<span class="kw">match</span> <span class="ident">rx</span>.<span class="ident">next</span>().<span class="kw">await</span> {
+		<span class="kw">let </span>fut = <span class="kw">async move </span>{
+			<span class="kw">loop </span>{
+				<span class="kw">match </span>rx.next().<span class="kw">await </span>{
 					<span class="prelude-val">Some</span>((
-						(<span class="ident">RequesterInput::Transaction</span>(<span class="ident">transaction_hash</span>), <span class="ident">params</span>),
-						<span class="ident">response_tx</span>,
+						(RequesterInput::Transaction(transaction_hash), params),
+						response_tx,
 					)) =&gt; {
-						<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">permit_pool</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">overrides</span>.<span class="ident">clone</span>();
+						<span class="kw">let </span>client = client.clone();
+						<span class="kw">let </span>backend = backend.clone();
+						<span class="kw">let </span>frontier_backend = frontier_backend.clone();
+						<span class="kw">let </span>permit_pool = permit_pool.clone();
+						<span class="kw">let </span>overrides = overrides.clone();
 
-						<span class="ident">tokio::task::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">response_tx</span>.<span class="ident">send</span>(
-								<span class="kw">async</span> {
-									<span class="kw">let</span> <span class="ident">_permit</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">acquire</span>().<span class="kw">await</span>;
-									<span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-										<span class="ident"><span class="self">Self</span>::handle_transaction_request</span>(
-											<span class="ident">client</span>.<span class="ident">clone</span>(),
-											<span class="ident">backend</span>.<span class="ident">clone</span>(),
-											<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
-											<span class="ident">transaction_hash</span>,
-											<span class="ident">params</span>,
-											<span class="ident">overrides</span>.<span class="ident">clone</span>(),
-											<span class="ident">raw_max_memory_usage</span>,
+						tokio::task::spawn(<span class="kw">async move </span>{
+							<span class="kw">let _ </span>= response_tx.send(
+								<span class="kw">async </span>{
+									<span class="kw">let </span>_permit = permit_pool.acquire().<span class="kw">await</span>;
+									tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+										<span class="self">Self</span>::handle_transaction_request(
+											client.clone(),
+											backend.clone(),
+											frontier_backend.clone(),
+											transaction_hash,
+											params,
+											overrides.clone(),
+											raw_max_memory_usage,
 										)
 									})
-									.<span class="kw">await</span>
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-										<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+									.<span class="kw">await
+									</span>.map_err(|e| {
+										internal_err(<span class="macro">format!</span>(
 											<span class="string">&quot;Internal error on spawned task : {:?}&quot;</span>,
-											<span class="ident">e</span>
+											e
 										))
-									})<span class="question-mark">?</span>
-								}
+									})<span class="question-mark">?
+								</span>}
 								.<span class="kw">await</span>,
 							);
 						});
 					}
-					<span class="prelude-val">Some</span>(((<span class="ident">RequesterInput::Block</span>(<span class="ident">request_block_id</span>), <span class="ident">params</span>), <span class="ident">response_tx</span>)) =&gt; {
-						<span class="kw">let</span> <span class="ident">client</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">backend</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">frontier_backend</span> <span class="op">=</span> <span class="ident">frontier_backend</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">permit_pool</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">clone</span>();
-						<span class="kw">let</span> <span class="ident">overrides</span> <span class="op">=</span> <span class="ident">overrides</span>.<span class="ident">clone</span>();
+					<span class="prelude-val">Some</span>(((RequesterInput::Block(request_block_id), params), response_tx)) =&gt; {
+						<span class="kw">let </span>client = client.clone();
+						<span class="kw">let </span>backend = backend.clone();
+						<span class="kw">let </span>frontier_backend = frontier_backend.clone();
+						<span class="kw">let </span>permit_pool = permit_pool.clone();
+						<span class="kw">let </span>overrides = overrides.clone();
 
-						<span class="ident">tokio::task::spawn</span>(<span class="kw">async</span> <span class="kw">move</span> {
-							<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">response_tx</span>.<span class="ident">send</span>(
-								<span class="kw">async</span> {
-									<span class="kw">let</span> <span class="ident">_permit</span> <span class="op">=</span> <span class="ident">permit_pool</span>.<span class="ident">acquire</span>().<span class="kw">await</span>;
+						tokio::task::spawn(<span class="kw">async move </span>{
+							<span class="kw">let _ </span>= response_tx.send(
+								<span class="kw">async </span>{
+									<span class="kw">let </span>_permit = permit_pool.acquire().<span class="kw">await</span>;
 
-									<span class="ident">tokio::task::spawn_blocking</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
-										<span class="ident"><span class="self">Self</span>::handle_block_request</span>(
-											<span class="ident">client</span>.<span class="ident">clone</span>(),
-											<span class="ident">backend</span>.<span class="ident">clone</span>(),
-											<span class="ident">frontier_backend</span>.<span class="ident">clone</span>(),
-											<span class="ident">request_block_id</span>,
-											<span class="ident">params</span>,
-											<span class="ident">overrides</span>.<span class="ident">clone</span>(),
+									tokio::task::spawn_blocking(<span class="kw">move </span>|| {
+										<span class="self">Self</span>::handle_block_request(
+											client.clone(),
+											backend.clone(),
+											frontier_backend.clone(),
+											request_block_id,
+											params,
+											overrides.clone(),
 										)
 									})
-									.<span class="kw">await</span>
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-										<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+									.<span class="kw">await
+									</span>.map_err(|e| {
+										internal_err(<span class="macro">format!</span>(
 											<span class="string">&quot;Internal error on spawned task : {:?}&quot;</span>,
-											<span class="ident">e</span>
+											e
 										))
-									})<span class="question-mark">?</span>
-								}
+									})<span class="question-mark">?
+								</span>}
 								.<span class="kw">await</span>,
 							);
 						});
 					}
-					<span class="kw">_</span> =&gt; {}
+					<span class="kw">_ </span>=&gt; {}
 				}
 			}
 		};
-		(<span class="ident">fut</span>, <span class="ident">tx</span>)
+		(fut, tx)
 	}
 
-	<span class="kw">fn</span> <span class="ident">handle_params</span>(<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span>(<span class="ident">TracerInput</span>, <span class="ident">single::TraceType</span>)<span class="op">&gt;</span> {
-		<span class="comment">// Set trace input and type</span>
-		<span class="kw">match</span> <span class="ident">params</span> {
-			<span class="prelude-val">Some</span>(<span class="ident">TraceParams</span> {
-				<span class="ident">tracer</span>: <span class="prelude-val">Some</span>(<span class="ident">tracer</span>),
+	<span class="kw">fn </span>handle_params(params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;) -&gt; RpcResult&lt;(TracerInput, single::TraceType)&gt; {
+		<span class="comment">// Set trace input and type
+		</span><span class="kw">match </span>params {
+			<span class="prelude-val">Some</span>(TraceParams {
+				tracer: <span class="prelude-val">Some</span>(tracer),
 				..
 			}) =&gt; {
-				<span class="kw">const</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span>
+				<span class="kw">const </span>BLOCKSCOUT_JS_CODE_HASH: [u8; <span class="number">16</span>] =
 					<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;94d9f08796f91eb13a2e82a6066882f7&quot;</span>);
-				<span class="kw">const</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH_V2</span>: [<span class="ident">u8</span>; <span class="number">16</span>] <span class="op">=</span>
+				<span class="kw">const </span>BLOCKSCOUT_JS_CODE_HASH_V2: [u8; <span class="number">16</span>] =
 					<span class="macro">hex_literal::hex!</span>(<span class="string">&quot;89db13694675692951673a1e6e18ff02&quot;</span>);
-				<span class="kw">let</span> <span class="ident">hash</span> <span class="op">=</span> <span class="ident">sp_io::hashing::twox_128</span>(<span class="kw-2">&amp;</span><span class="ident">tracer</span>.<span class="ident">as_bytes</span>());
-				<span class="kw">let</span> <span class="ident">tracer</span> <span class="op">=</span>
-					<span class="kw">if</span> <span class="ident">hash</span> <span class="op">==</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH</span> <span class="op">|</span><span class="op">|</span> <span class="ident">hash</span> <span class="op">==</span> <span class="ident">BLOCKSCOUT_JS_CODE_HASH_V2</span> {
-						<span class="prelude-val">Some</span>(<span class="ident">TracerInput::Blockscout</span>)
-					} <span class="kw">else</span> <span class="kw">if</span> <span class="ident">tracer</span> <span class="op">==</span> <span class="string">&quot;callTracer&quot;</span> {
-						<span class="prelude-val">Some</span>(<span class="ident">TracerInput::CallTracer</span>)
-					} <span class="kw">else</span> {
-						<span class="prelude-val">None</span>
-					};
-				<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tracer</span>) <span class="op">=</span> <span class="ident">tracer</span> {
-					<span class="prelude-val">Ok</span>((<span class="ident">tracer</span>, <span class="ident">single::TraceType::CallList</span>))
-				} <span class="kw">else</span> {
-					<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+				<span class="kw">let </span>hash = sp_io::hashing::twox_128(<span class="kw-2">&amp;</span>tracer.as_bytes());
+				<span class="kw">let </span>tracer =
+					<span class="kw">if </span>hash == BLOCKSCOUT_JS_CODE_HASH || hash == BLOCKSCOUT_JS_CODE_HASH_V2 {
+						<span class="prelude-val">Some</span>(TracerInput::Blockscout)
+					} <span class="kw">else if </span>tracer == <span class="string">&quot;callTracer&quot; </span>{
+						<span class="prelude-val">Some</span>(TracerInput::CallTracer)
+					} <span class="kw">else </span>{
+						<span class="prelude-val">None
+					</span>};
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(tracer) = tracer {
+					<span class="prelude-val">Ok</span>((tracer, single::TraceType::CallList))
+				} <span class="kw">else </span>{
+					<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;javascript based tracing is not available (hash :{:?})&quot;</span>,
-						<span class="ident">hash</span>
+						hash
 					)));
 				}
 			}
-			<span class="prelude-val">Some</span>(<span class="ident">params</span>) =&gt; <span class="prelude-val">Ok</span>((
-				<span class="ident">TracerInput::None</span>,
-				<span class="ident">single::TraceType::Raw</span> {
-					<span class="ident">disable_storage</span>: <span class="ident">params</span>.<span class="ident">disable_storage</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>),
-					<span class="ident">disable_memory</span>: <span class="ident">params</span>.<span class="ident">disable_memory</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>),
-					<span class="ident">disable_stack</span>: <span class="ident">params</span>.<span class="ident">disable_stack</span>.<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>),
+			<span class="prelude-val">Some</span>(params) =&gt; <span class="prelude-val">Ok</span>((
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: params.disable_storage.unwrap_or(<span class="bool-val">false</span>),
+					disable_memory: params.disable_memory.unwrap_or(<span class="bool-val">false</span>),
+					disable_stack: params.disable_stack.unwrap_or(<span class="bool-val">false</span>),
 				},
 			)),
-			<span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>((
-				<span class="ident">TracerInput::None</span>,
-				<span class="ident">single::TraceType::Raw</span> {
-					<span class="ident">disable_storage</span>: <span class="bool-val">false</span>,
-					<span class="ident">disable_memory</span>: <span class="bool-val">false</span>,
-					<span class="ident">disable_stack</span>: <span class="bool-val">false</span>,
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>((
+				TracerInput::None,
+				single::TraceType::Raw {
+					disable_storage: <span class="bool-val">false</span>,
+					disable_memory: <span class="bool-val">false</span>,
+					disable_stack: <span class="bool-val">false</span>,
 				},
 			)),
 		}
 	}
 
-	<span class="kw">fn</span> <span class="ident">handle_block_request</span>(
-		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-		<span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">request_block_id</span>: <span class="ident">RequestBlockId</span>,
-		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-	) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">tracer_input</span>, <span class="ident">trace_type</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::handle_params</span>(<span class="ident">params</span>)<span class="question-mark">?</span>;
+	<span class="kw">fn </span>handle_block_request(
+		client: Arc&lt;C&gt;,
+		backend: Arc&lt;BE&gt;,
+		frontier_backend: Arc&lt;fc_db::Backend&lt;B&gt;&gt;,
+		request_block_id: RequestBlockId,
+		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+	) -&gt; RpcResult&lt;Response&gt; {
+		<span class="kw">let </span>(tracer_input, trace_type) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">reference_id</span>: <span class="ident">BlockId</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">request_block_id</span> {
-			<span class="ident">RequestBlockId::Number</span>(<span class="ident">n</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">BlockId::Number</span>(<span class="ident">n</span>.<span class="ident">unique_saturated_into</span>())),
-			<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Latest</span>) =&gt; {
-				<span class="prelude-val">Ok</span>(<span class="ident">BlockId::Number</span>(<span class="ident">client</span>.<span class="ident">info</span>().<span class="ident">best_number</span>))
+		<span class="kw">let </span>reference_id: BlockId&lt;B&gt; = <span class="kw">match </span>request_block_id {
+			RequestBlockId::Number(n) =&gt; <span class="prelude-val">Ok</span>(BlockId::Number(n.unique_saturated_into())),
+			RequestBlockId::Tag(RequestBlockTag::Latest) =&gt; {
+				<span class="prelude-val">Ok</span>(BlockId::Number(client.info().best_number))
 			}
-			<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Earliest</span>) =&gt; {
-				<span class="prelude-val">Ok</span>(<span class="ident">BlockId::Number</span>(<span class="number">0u32</span>.<span class="ident">unique_saturated_into</span>()))
+			RequestBlockId::Tag(RequestBlockTag::Earliest) =&gt; {
+				<span class="prelude-val">Ok</span>(BlockId::Number(<span class="number">0u32</span>.unique_saturated_into()))
 			}
-			<span class="ident">RequestBlockId::Tag</span>(<span class="ident">RequestBlockTag::Pending</span>) =&gt; {
-				<span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;&#39;pending&#39; blocks are not supported&quot;</span>))
+			RequestBlockId::Tag(RequestBlockTag::Pending) =&gt; {
+				<span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;&#39;pending&#39; blocks are not supported&quot;</span>))
 			}
-			<span class="ident">RequestBlockId::Hash</span>(<span class="ident">eth_hash</span>) =&gt; {
-				<span class="kw">match</span> <span class="ident">frontier_backend_client::load_hash</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">frontier_backend</span>.<span class="ident">as_ref</span>(), <span class="ident">eth_hash</span>) {
-					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">id</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">id</span>),
-					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not found&quot;</span>.<span class="ident">to_string</span>())),
-					<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+			RequestBlockId::Hash(eth_hash) =&gt; {
+				<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B&gt;(frontier_backend.as_ref(), eth_hash) {
+					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(id)) =&gt; <span class="prelude-val">Ok</span>(id),
+					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
+					<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
 				}
 			}
 		}<span class="question-mark">?</span>;
 
-		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.</span>
-		<span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">runtime_api</span>();
-		<span class="comment">// Get Blockchain backend</span>
-		<span class="kw">let</span> <span class="ident">blockchain</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">blockchain</span>();
-		<span class="comment">// Get the header I want to work with.</span>
-		<span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="ident">reference_id</span>) {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">h</span>)) =&gt; <span class="ident">h</span>,
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block header not found&quot;</span>)),
+		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		</span><span class="kw">let </span>api = client.runtime_api();
+		<span class="comment">// Get Blockchain backend
+		</span><span class="kw">let </span>blockchain = backend.blockchain();
+		<span class="comment">// Get the header I want to work with.
+		</span><span class="kw">let </span>header = <span class="kw">match </span>client.header(reference_id) {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h)) =&gt; h,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>)),
 		};
 
-		<span class="comment">// Get parent blockid.</span>
-		<span class="kw">let</span> <span class="ident">parent_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">parent_hash</span>());
+		<span class="comment">// Get parent blockid.
+		</span><span class="kw">let </span>parent_block_id = BlockId::Hash(<span class="kw-2">*</span>header.parent_hash());
 
-		<span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">frontier_backend_client::onchain_storage_schema</span>::<span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(
-			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
-			<span class="ident">reference_id</span>,
+		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
+			client.as_ref(),
+			reference_id,
 		);
 
-		<span class="comment">// Using storage overrides we align with `:ethereum_schema` which will result in proper</span>
-		<span class="comment">// SCALE decoding in case of migration.</span>
-		<span class="kw">let</span> <span class="ident">statuses</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overrides</span>.<span class="ident">schemas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">schema</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="ident">schema</span>
-				.<span class="ident">current_transaction_statuses</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>)
-				.<span class="ident">unwrap_or_default</span>(),
-			<span class="kw">_</span> =&gt; {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+		<span class="comment">// Using storage overrides we align with `:ethereum_schema` which will result in proper
+		// SCALE decoding in case of migration.
+		</span><span class="kw">let </span>statuses = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
+			<span class="prelude-val">Some</span>(schema) =&gt; schema
+				.current_transaction_statuses(<span class="kw-2">&amp;</span>reference_id)
+				.unwrap_or_default(),
+			<span class="kw">_ </span>=&gt; {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;No storage override at {:?}&quot;</span>,
-					<span class="ident">reference_id</span>
+					reference_id
 				)))
 			}
 		};
 
-		<span class="comment">// Known ethereum transaction hashes.</span>
-		<span class="kw">let</span> <span class="ident">eth_tx_hashes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">statuses</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">transaction_hash</span>).<span class="ident">collect</span>();
+		<span class="comment">// Known ethereum transaction hashes.
+		</span><span class="kw">let </span>eth_tx_hashes: Vec&lt;<span class="kw">_</span>&gt; = statuses.iter().map(|t| t.transaction_hash).collect();
 
-		<span class="comment">// If there are no ethereum transactions in the block return empty trace right away.</span>
-		<span class="kw">if</span> <span class="ident">eth_tx_hashes</span>.<span class="ident">is_empty</span>() {
-			<span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Response::Block</span>(<span class="macro">vec!</span>[]));
+		<span class="comment">// If there are no ethereum transactions in the block return empty trace right away.
+		</span><span class="kw">if </span>eth_tx_hashes.is_empty() {
+			<span class="kw">return </span><span class="prelude-val">Ok</span>(Response::Block(<span class="macro">vec!</span>[]));
 		}
 
-		<span class="comment">// Get block extrinsics.</span>
-		<span class="kw">let</span> <span class="ident">exts</span> <span class="op">=</span> <span class="ident">blockchain</span>
-			.<span class="ident">body</span>(<span class="ident">reference_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
-			.<span class="ident">unwrap_or_default</span>();
+		<span class="comment">// Get block extrinsics.
+		</span><span class="kw">let </span>exts = blockchain
+			.body(reference_id)
+			.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, e)))<span class="question-mark">?
+			</span>.unwrap_or_default();
 
-		<span class="comment">// Trace the block.</span>
-		<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> {
-			<span class="ident">api</span>.<span class="ident">initialize_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+		<span class="comment">// Trace the block.
+		</span><span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
+			api.initialize_block(<span class="kw-2">&amp;</span>parent_block_id, <span class="kw-2">&amp;</span>header)
+				.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
-			<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-				.<span class="ident">trace_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="ident">eth_tx_hashes</span>)
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+			<span class="kw">let </span>_result = api
+				.trace_block(<span class="kw-2">&amp;</span>parent_block_id, exts, eth_tx_hashes)
+				.map_err(|e| {
+					internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;Blockchain error when replaying block {} : {:?}&quot;</span>,
-						<span class="ident">reference_id</span>, <span class="ident">e</span>
+						reference_id, e
 					))
-				})<span class="question-mark">?</span>
-				.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-					<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+				})<span class="question-mark">?
+				</span>.map_err(|e| {
+					internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;Internal runtime error when replaying block {} : {:?}&quot;</span>,
-						<span class="ident">reference_id</span>, <span class="ident">e</span>
+						reference_id, e
 					))
 				})<span class="question-mark">?</span>;
-			<span class="prelude-val">Ok</span>(<span class="ident">moonbeam_rpc_primitives_debug::Response::Block</span>)
+			<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Block)
 		};
 
-		<span class="kw">return</span> <span class="kw">match</span> <span class="ident">trace_type</span> {
-			<span class="ident">single::TraceType::CallList</span> =&gt; {
-				<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">moonbeam_client_evm_tracing::listeners::CallList::default</span>();
-				<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-				<span class="ident">proxy</span>.<span class="ident">finish_transaction</span>();
-				<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tracer_input</span> {
-					<span class="ident">TracerInput::CallTracer</span> =&gt; {
-						<span class="ident">moonbeam_client_evm_tracing::formatters::CallTracer::format</span>(<span class="ident">proxy</span>)
-							.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))
+		<span class="kw">return match </span>trace_type {
+			single::TraceType::CallList =&gt; {
+				<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+				proxy.using(f)<span class="question-mark">?</span>;
+				proxy.finish_transaction();
+				<span class="kw">let </span>response = <span class="kw">match </span>tracer_input {
+					TracerInput::CallTracer =&gt; {
+						moonbeam_client_evm_tracing::formatters::CallTracer::format(proxy)
+							.ok_or(<span class="string">&quot;Trace result is empty.&quot;</span>)
+							.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))
 					}
-					<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
-						<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>.<span class="ident">to_string</span>(),
+					<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(internal_err(
+						<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>.to_string(),
 					)),
 				}<span class="question-mark">?</span>;
 
-				<span class="prelude-val">Ok</span>(<span class="ident">Response::Block</span>(<span class="ident">response</span>))
+				<span class="prelude-val">Ok</span>(Response::Block(response))
 			}
-			<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
+			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(internal_err(
 				<span class="string">&quot;debug_traceBlock functions currently only support callList mode (enabled
-				by providing `{{&#39;tracer&#39;: &#39;callTracer&#39;}}` in the request).&quot;</span>
-					.<span class="ident">to_string</span>(),
+				by providing `{{&#39;tracer&#39;: &#39;callTracer&#39;}}` in the request).&quot;
+					</span>.to_string(),
 			)),
 		};
 	}
 
-	<span class="doccomment">/// Replays a transaction in the Runtime at a given block height.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// In order to succesfully reproduce the result of the original transaction we need a correct</span>
-	<span class="doccomment">/// state to replay over.</span>
-	<span class="doccomment">///</span>
-	<span class="doccomment">/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.</span>
-	<span class="doccomment">/// This overlayed changes will live in-memory for the lifetime of the ApiRef.</span>
-	<span class="kw">fn</span> <span class="ident">handle_transaction_request</span>(
-		<span class="ident">client</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>,
-		<span class="ident">backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">BE</span><span class="op">&gt;</span>,
-		<span class="ident">frontier_backend</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">fc_db::Backend</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">transaction_hash</span>: <span class="ident">H256</span>,
-		<span class="ident">params</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TraceParams</span><span class="op">&gt;</span>,
-		<span class="ident">overrides</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">OverrideHandle</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-		<span class="ident">raw_max_memory_usage</span>: <span class="ident">usize</span>,
-	) -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="ident">Response</span><span class="op">&gt;</span> {
-		<span class="kw">let</span> (<span class="ident">tracer_input</span>, <span class="ident">trace_type</span>) <span class="op">=</span> <span class="ident"><span class="self">Self</span>::handle_params</span>(<span class="ident">params</span>)<span class="question-mark">?</span>;
+	<span class="doccomment">/// Replays a transaction in the Runtime at a given block height.
+	///
+	/// In order to succesfully reproduce the result of the original transaction we need a correct
+	/// state to replay over.
+	///
+	/// Substrate allows to apply extrinsics in the Runtime and thus creating an overlayed state.
+	/// This overlayed changes will live in-memory for the lifetime of the ApiRef.
+	</span><span class="kw">fn </span>handle_transaction_request(
+		client: Arc&lt;C&gt;,
+		backend: Arc&lt;BE&gt;,
+		frontier_backend: Arc&lt;fc_db::Backend&lt;B&gt;&gt;,
+		transaction_hash: H256,
+		params: <span class="prelude-ty">Option</span>&lt;TraceParams&gt;,
+		overrides: Arc&lt;OverrideHandle&lt;B&gt;&gt;,
+		raw_max_memory_usage: usize,
+	) -&gt; RpcResult&lt;Response&gt; {
+		<span class="kw">let </span>(tracer_input, trace_type) = <span class="self">Self</span>::handle_params(params)<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> (<span class="ident">hash</span>, <span class="ident">index</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">frontier_backend_client::load_transactions</span>::<span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span>(
-			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
-			<span class="ident">frontier_backend</span>.<span class="ident">as_ref</span>(),
-			<span class="ident">transaction_hash</span>,
+		<span class="kw">let </span>(hash, index) = <span class="kw">match </span>frontier_backend_client::load_transactions::&lt;B, C&gt;(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			transaction_hash,
 			<span class="bool-val">false</span>,
 		) {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((<span class="ident">hash</span>, <span class="ident">index</span>))) =&gt; (<span class="ident">hash</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>),
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Transaction hash not found&quot;</span>.<span class="ident">to_string</span>())),
-			<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>((hash, index))) =&gt; (hash, index <span class="kw">as </span>usize),
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Transaction hash not found&quot;</span>.to_string())),
+			<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 		};
 
-		<span class="kw">let</span> <span class="ident">reference_id</span> <span class="op">=</span>
-			<span class="kw">match</span> <span class="ident">frontier_backend_client::load_hash</span>::<span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span>(<span class="ident">frontier_backend</span>.<span class="ident">as_ref</span>(), <span class="ident">hash</span>) {
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">hash</span>)) =&gt; <span class="ident">hash</span>,
-				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block hash not found&quot;</span>.<span class="ident">to_string</span>())),
-				<span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+		<span class="kw">let </span>reference_id =
+			<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B&gt;(frontier_backend.as_ref(), hash) {
+				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; hash,
+				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
+				<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 			};
-		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.</span>
-		<span class="kw">let</span> <span class="ident">api</span> <span class="op">=</span> <span class="ident">client</span>.<span class="ident">runtime_api</span>();
-		<span class="comment">// Get Blockchain backend</span>
-		<span class="kw">let</span> <span class="ident">blockchain</span> <span class="op">=</span> <span class="ident">backend</span>.<span class="ident">blockchain</span>();
-		<span class="comment">// Get the header I want to work with.</span>
-		<span class="kw">let</span> <span class="ident">header</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">client</span>.<span class="ident">header</span>(<span class="ident">reference_id</span>) {
-			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">h</span>)) =&gt; <span class="ident">h</span>,
-			<span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Block header not found&quot;</span>)),
+		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
+		</span><span class="kw">let </span>api = client.runtime_api();
+		<span class="comment">// Get Blockchain backend
+		</span><span class="kw">let </span>blockchain = backend.blockchain();
+		<span class="comment">// Get the header I want to work with.
+		</span><span class="kw">let </span>header = <span class="kw">match </span>client.header(reference_id) {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(h)) =&gt; h,
+			<span class="kw">_ </span>=&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block header not found&quot;</span>)),
 		};
-		<span class="comment">// Get parent blockid.</span>
-		<span class="kw">let</span> <span class="ident">parent_block_id</span> <span class="op">=</span> <span class="ident">BlockId::Hash</span>(<span class="kw-2">*</span><span class="ident">header</span>.<span class="ident">parent_hash</span>());
+		<span class="comment">// Get parent blockid.
+		</span><span class="kw">let </span>parent_block_id = BlockId::Hash(<span class="kw-2">*</span>header.parent_hash());
 
-		<span class="comment">// Get block extrinsics.</span>
-		<span class="kw">let</span> <span class="ident">exts</span> <span class="op">=</span> <span class="ident">blockchain</span>
-			.<span class="ident">body</span>(<span class="ident">reference_id</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
-			.<span class="ident">unwrap_or_default</span>();
+		<span class="comment">// Get block extrinsics.
+		</span><span class="kw">let </span>exts = blockchain
+			.body(reference_id)
+			.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Fail to read blockchain db: {:?}&quot;</span>, e)))<span class="question-mark">?
+			</span>.unwrap_or_default();
 
-		<span class="comment">// Get DebugRuntimeApi version</span>
-		<span class="kw">let</span> <span class="ident">trace_api_version</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">api_version</span>)) <span class="op">=</span>
-			<span class="ident">api</span>.<span class="ident">api_version</span>::<span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">DebugRuntimeApi</span><span class="op">&lt;</span><span class="ident">B</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>)
+		<span class="comment">// Get DebugRuntimeApi version
+		</span><span class="kw">let </span>trace_api_version = <span class="kw">if let </span><span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(api_version)) =
+			api.api_version::&lt;<span class="kw">dyn </span>DebugRuntimeApi&lt;B&gt;&gt;(<span class="kw-2">&amp;</span>parent_block_id)
 		{
-			<span class="ident">api_version</span>
-		} <span class="kw">else</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
-				<span class="string">&quot;Runtime api version call failed (trace)&quot;</span>.<span class="ident">to_string</span>(),
+			api_version
+		} <span class="kw">else </span>{
+			<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+				<span class="string">&quot;Runtime api version call failed (trace)&quot;</span>.to_string(),
 			));
 		};
 
-		<span class="kw">let</span> <span class="ident">schema</span> <span class="op">=</span> <span class="ident">frontier_backend_client::onchain_storage_schema</span>::<span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span>, <span class="ident">BE</span><span class="op">&gt;</span>(
-			<span class="ident">client</span>.<span class="ident">as_ref</span>(),
-			<span class="ident">reference_id</span>,
+		<span class="kw">let </span>schema = frontier_backend_client::onchain_storage_schema::&lt;B, C, BE&gt;(
+			client.as_ref(),
+			reference_id,
 		);
 
-		<span class="comment">// Get the block that contains the requested transaction. Using storage overrides we align</span>
-		<span class="comment">// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.</span>
-		<span class="kw">let</span> <span class="ident">reference_block</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">overrides</span>.<span class="ident">schemas</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">schema</span>) {
-			<span class="prelude-val">Some</span>(<span class="ident">schema</span>) =&gt; <span class="ident">schema</span>.<span class="ident">current_block</span>(<span class="kw-2">&amp;</span><span class="ident">reference_id</span>),
-			<span class="kw">_</span> =&gt; {
-				<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+		<span class="comment">// Get the block that contains the requested transaction. Using storage overrides we align
+		// with `:ethereum_schema` which will result in proper SCALE decoding in case of migration.
+		</span><span class="kw">let </span>reference_block = <span class="kw">match </span>overrides.schemas.get(<span class="kw-2">&amp;</span>schema) {
+			<span class="prelude-val">Some</span>(schema) =&gt; schema.current_block(<span class="kw-2">&amp;</span>reference_id),
+			<span class="kw">_ </span>=&gt; {
+				<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 					<span class="string">&quot;No storage override at {:?}&quot;</span>,
-					<span class="ident">reference_id</span>
+					reference_id
 				)))
 			}
 		};
 
-		<span class="comment">// Get the actual ethereum transaction.</span>
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">block</span>) <span class="op">=</span> <span class="ident">reference_block</span> {
-			<span class="kw">let</span> <span class="ident">transactions</span> <span class="op">=</span> <span class="ident">block</span>.<span class="ident">transactions</span>;
-			<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>) <span class="op">=</span> <span class="ident">transactions</span>.<span class="ident">get</span>(<span class="ident">index</span>) {
-				<span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="op">|</span><span class="op">|</span> -&gt; <span class="ident">RpcResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> {
-					<span class="ident">api</span>.<span class="ident">initialize_block</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="kw-2">&amp;</span><span class="ident">header</span>)
-						.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
+		<span class="comment">// Get the actual ethereum transaction.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(block) = reference_block {
+			<span class="kw">let </span>transactions = block.transactions;
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transactions.get(index) {
+				<span class="kw">let </span>f = || -&gt; RpcResult&lt;<span class="kw">_</span>&gt; {
+					api.initialize_block(<span class="kw-2">&amp;</span>parent_block_id, <span class="kw-2">&amp;</span>header)
+						.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;Runtime api access error: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
 
-					<span class="kw">if</span> <span class="ident">trace_api_version</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span> {
-						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="ident">api</span>
-							.<span class="ident">trace_transaction</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="kw-2">&amp;</span><span class="ident">transaction</span>)
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-								<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+					<span class="kw">if </span>trace_api_version &gt;= <span class="number">4 </span>{
+						<span class="kw">let </span>_result = api
+							.trace_transaction(<span class="kw-2">&amp;</span>parent_block_id, exts, <span class="kw-2">&amp;</span>transaction)
+							.map_err(|e| {
+								internal_err(<span class="macro">format!</span>(
 									<span class="string">&quot;Runtime api access error (version {:?}): {:?}&quot;</span>,
-									<span class="ident">trace_api_version</span>, <span class="ident">e</span>
+									trace_api_version, e
 								))
-							})<span class="question-mark">?</span>
-							.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
-					} <span class="kw">else</span> {
-						<span class="comment">// Pre-london update, legacy transactions.</span>
-						<span class="kw">let</span> <span class="ident">_result</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">transaction</span> {
-							<span class="ident">ethereum::TransactionV2::Legacy</span>(<span class="ident">tx</span>) =&gt;
+							})<span class="question-mark">?
+							</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+					} <span class="kw">else </span>{
+						<span class="comment">// Pre-london update, legacy transactions.
+						</span><span class="kw">let </span>_result = <span class="kw">match </span>transaction {
+							ethereum::TransactionV2::Legacy(tx) =&gt;
 							{
-								<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-								<span class="ident">api</span>.<span class="ident">trace_transaction_before_version_4</span>(<span class="kw-2">&amp;</span><span class="ident">parent_block_id</span>, <span class="ident">exts</span>, <span class="kw-2">&amp;</span><span class="ident">tx</span>)
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-										<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+								<span class="attribute">#[allow(deprecated)]
+								</span>api.trace_transaction_before_version_4(<span class="kw-2">&amp;</span>parent_block_id, exts, <span class="kw-2">&amp;</span>tx)
+									.map_err(|e| {
+										internal_err(<span class="macro">format!</span>(
 											<span class="string">&quot;Runtime api access error (legacy): {:?}&quot;</span>,
-											<span class="ident">e</span>
+											e
 										))
-									})<span class="question-mark">?</span>
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>
-							}
-							<span class="kw">_</span> =&gt; {
-								<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
-									<span class="string">&quot;Bug: pre-london runtime expects legacy transactions&quot;</span>
-										.<span class="ident">to_string</span>(),
+									})<span class="question-mark">?
+									</span>.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;DispatchError: {:?}&quot;</span>, e)))<span class="question-mark">?
+							</span>}
+							<span class="kw">_ </span>=&gt; {
+								<span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(
+									<span class="string">&quot;Bug: pre-london runtime expects legacy transactions&quot;
+										</span>.to_string(),
 								))
 							}
 						};
 					}
 
-					<span class="prelude-val">Ok</span>(<span class="ident">moonbeam_rpc_primitives_debug::Response::Single</span>)
+					<span class="prelude-val">Ok</span>(moonbeam_rpc_primitives_debug::Response::Single)
 				};
 
-				<span class="kw">return</span> <span class="kw">match</span> <span class="ident">trace_type</span> {
-					<span class="ident">single::TraceType::Raw</span> {
-						<span class="ident">disable_storage</span>,
-						<span class="ident">disable_memory</span>,
-						<span class="ident">disable_stack</span>,
+				<span class="kw">return match </span>trace_type {
+					single::TraceType::Raw {
+						disable_storage,
+						disable_memory,
+						disable_stack,
 					} =&gt; {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">moonbeam_client_evm_tracing::listeners::Raw::new</span>(
-							<span class="ident">disable_storage</span>,
-							<span class="ident">disable_memory</span>,
-							<span class="ident">disable_stack</span>,
-							<span class="ident">raw_max_memory_usage</span>,
+						<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::Raw::new(
+							disable_storage,
+							disable_memory,
+							disable_stack,
+							raw_max_memory_usage,
 						);
-						<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-						<span class="prelude-val">Ok</span>(<span class="ident">Response::Single</span>(
-							<span class="ident">moonbeam_client_evm_tracing::formatters::Raw::format</span>(<span class="ident">proxy</span>).<span class="ident">ok_or</span>(
-								<span class="ident">internal_err</span>(
+						proxy.using(f)<span class="question-mark">?</span>;
+						<span class="prelude-val">Ok</span>(Response::Single(
+							moonbeam_client_evm_tracing::formatters::Raw::format(proxy).ok_or(
+								internal_err(
 									<span class="string">&quot;replayed transaction generated too much data. \
 								try disabling memory or storage?&quot;</span>,
 								),
 							)<span class="question-mark">?</span>,
 						))
 					}
-					<span class="ident">single::TraceType::CallList</span> =&gt; {
-						<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">proxy</span> <span class="op">=</span> <span class="ident">moonbeam_client_evm_tracing::listeners::CallList::default</span>();
-						<span class="ident">proxy</span>.<span class="ident">using</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
-						<span class="ident">proxy</span>.<span class="ident">finish_transaction</span>();
-						<span class="kw">let</span> <span class="ident">response</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">tracer_input</span> {
-							<span class="ident">TracerInput::Blockscout</span> =&gt; {
-								<span class="ident">moonbeam_client_evm_tracing::formatters::Blockscout::format</span>(<span class="ident">proxy</span>)
-									.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))
+					single::TraceType::CallList =&gt; {
+						<span class="kw">let </span><span class="kw-2">mut </span>proxy = moonbeam_client_evm_tracing::listeners::CallList::default();
+						proxy.using(f)<span class="question-mark">?</span>;
+						proxy.finish_transaction();
+						<span class="kw">let </span>response = <span class="kw">match </span>tracer_input {
+							TracerInput::Blockscout =&gt; {
+								moonbeam_client_evm_tracing::formatters::Blockscout::format(proxy)
+									.ok_or(<span class="string">&quot;Trace result is empty.&quot;</span>)
+									.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))
 							}
-							<span class="ident">TracerInput::CallTracer</span> =&gt; {
-								<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span>
-									<span class="ident">moonbeam_client_evm_tracing::formatters::CallTracer::format</span>(
-										<span class="ident">proxy</span>,
+							TracerInput::CallTracer =&gt; {
+								<span class="kw">let </span><span class="kw-2">mut </span>res =
+									moonbeam_client_evm_tracing::formatters::CallTracer::format(
+										proxy,
 									)
-									.<span class="ident">ok_or</span>(<span class="string">&quot;Trace result is empty.&quot;</span>)
-									.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">internal_err</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">e</span>)))<span class="question-mark">?</span>;
-								<span class="prelude-val">Ok</span>(<span class="ident">res</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;Trace result is empty.&quot;</span>))
+									.ok_or(<span class="string">&quot;Trace result is empty.&quot;</span>)
+									.map_err(|e| internal_err(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, e)))<span class="question-mark">?</span>;
+								<span class="prelude-val">Ok</span>(res.pop().expect(<span class="string">&quot;Trace result is empty.&quot;</span>))
 							}
-							<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(
-								<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>.<span class="ident">to_string</span>(),
+							<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(internal_err(
+								<span class="string">&quot;Bug: failed to resolve the tracer format.&quot;</span>.to_string(),
 							)),
 						}<span class="question-mark">?</span>;
-						<span class="prelude-val">Ok</span>(<span class="ident">Response::Single</span>(<span class="ident">response</span>))
+						<span class="prelude-val">Ok</span>(Response::Single(response))
 					}
-					<span class="ident">not_supported</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="macro">format!</span>(
+					not_supported =&gt; <span class="prelude-val">Err</span>(internal_err(<span class="macro">format!</span>(
 						<span class="string">&quot;Bug: `handle_transaction_request` does not support {:?}.&quot;</span>,
-						<span class="ident">not_supported</span>
+						not_supported
 					))),
 				};
 			}
 		}
-		<span class="prelude-val">Err</span>(<span class="ident">internal_err</span>(<span class="string">&quot;Runtime block call failed&quot;</span>.<span class="ident">to_string</span>()))
+		<span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Runtime block call failed&quot;</span>.to_string()))
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_debug" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="moonbeam_rpc_debug" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/substrate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>substrate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `precompiles/utils/src/substrate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>substrate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../precompile_utils/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../precompile_utils/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -122,125 +117,124 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! Utils related to Substrate features:</span>
-<span class="doccomment">//! - Substrate call dispatch.</span>
-<span class="doccomment">//! - Substrate DB read and write costs</span>
+</span><span class="doccomment">//! Utils related to Substrate features:
+//! - Substrate call dispatch.
+//! - Substrate DB read and write costs
 
-<span class="kw">use</span> {
-	<span class="ident"><span class="kw">crate</span>::revert</span>,
-	<span class="ident">core::marker::PhantomData</span>,
-	<span class="ident">fp_evm</span>::{<span class="ident">ExitError</span>, <span class="ident">PrecompileFailure</span>, <span class="ident">PrecompileHandle</span>},
-	<span class="ident">frame_support</span>::{
-		<span class="ident">dispatch</span>::{<span class="ident">Dispatchable</span>, <span class="ident">GetDispatchInfo</span>, <span class="ident">PostDispatchInfo</span>},
-		<span class="ident">pallet_prelude::DispatchError</span>,
-		<span class="ident">traits::Get</span>,
+</span><span class="kw">use </span>{
+	<span class="kw">crate</span>::revert,
+	core::marker::PhantomData,
+	fp_evm::{ExitError, PrecompileFailure, PrecompileHandle},
+	frame_support::{
+		dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+		pallet_prelude::DispatchError,
+		traits::Get,
 	},
-	<span class="ident">pallet_evm::GasWeightMapping</span>,
+	pallet_evm::GasWeightMapping,
 };
 
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TryDispatchError</span> {
-	<span class="ident">Evm</span>(<span class="ident">ExitError</span>),
-	<span class="ident">Substrate</span>(<span class="ident">DispatchError</span>),
+<span class="kw">pub enum </span>TryDispatchError {
+	Evm(ExitError),
+	Substrate(DispatchError),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">TryDispatchError</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PrecompileFailure</span> {
-	<span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="ident">TryDispatchError</span>) -&gt; <span class="ident">PrecompileFailure</span> {
-		<span class="kw">match</span> <span class="ident">f</span> {
-			<span class="ident">TryDispatchError::Evm</span>(<span class="ident">e</span>) =&gt; <span class="ident">PrecompileFailure::Error</span> { <span class="ident">exit_status</span>: <span class="ident">e</span> },
-			<span class="ident">TryDispatchError::Substrate</span>(<span class="ident">e</span>) =&gt; {
-				<span class="ident">revert</span>(<span class="macro">alloc::format!</span>(<span class="string">&quot;Dispatched call failed with error: {e:?}&quot;</span>))
+<span class="kw">impl </span>From&lt;TryDispatchError&gt; <span class="kw">for </span>PrecompileFailure {
+	<span class="kw">fn </span>from(f: TryDispatchError) -&gt; PrecompileFailure {
+		<span class="kw">match </span>f {
+			TryDispatchError::Evm(e) =&gt; PrecompileFailure::Error { exit_status: e },
+			TryDispatchError::Substrate(e) =&gt; {
+				revert(<span class="macro">alloc::format!</span>(<span class="string">&quot;Dispatched call failed with error: {e:?}&quot;</span>))
 			}
 		}
 	}
 }
 
-<span class="doccomment">/// Helper functions requiring a Substrate runtime.</span>
-<span class="doccomment">/// This runtime must of course implement `pallet_evm::Config`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>);
+<span class="doccomment">/// Helper functions requiring a Substrate runtime.
+/// This runtime must of course implement `pallet_evm::Config`.
+</span><span class="attribute">#[derive(Clone, Copy, Debug)]
+</span><span class="kw">pub struct </span>RuntimeHelper&lt;Runtime&gt;(PhantomData&lt;Runtime&gt;);
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
-	<span class="ident">Runtime::Call</span>: <span class="ident">Dispatchable</span><span class="op">&lt;</span><span class="ident">PostInfo</span> <span class="op">=</span> <span class="ident">PostDispatchInfo</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">GetDispatchInfo</span>,
+<span class="kw">impl</span>&lt;Runtime&gt; RuntimeHelper&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_evm::Config,
+	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
-	<span class="doccomment">/// Try to dispatch a Substrate call.</span>
-	<span class="doccomment">/// Return an error if there are not enough gas, or if the call fails.</span>
-	<span class="doccomment">/// If successful returns the used gas using the Runtime GasWeightMapping.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_dispatch</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span>(
-		<span class="ident">handle</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">PrecompileHandle</span>,
-		<span class="ident">origin</span>: <span class="op">&lt;</span><span class="ident">Runtime::Call</span> <span class="kw">as</span> <span class="ident">Dispatchable</span><span class="op">&gt;</span><span class="ident">::Origin</span>,
-		<span class="ident">call</span>: <span class="ident">Call</span>,
-	) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">PostDispatchInfo</span>, <span class="ident">TryDispatchError</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">Runtime::Call</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Call</span><span class="op">&gt;</span>,
+	<span class="doccomment">/// Try to dispatch a Substrate call.
+	/// Return an error if there are not enough gas, or if the call fails.
+	/// If successful returns the used gas using the Runtime GasWeightMapping.
+	</span><span class="kw">pub fn </span>try_dispatch&lt;Call&gt;(
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+		origin: &lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin,
+		call: Call,
+	) -&gt; <span class="prelude-ty">Result</span>&lt;PostDispatchInfo, TryDispatchError&gt;
+	<span class="kw">where
+		</span>Runtime::Call: From&lt;Call&gt;,
 	{
-		<span class="kw">let</span> <span class="ident">call</span> <span class="op">=</span> <span class="ident">Runtime::Call::from</span>(<span class="ident">call</span>);
-		<span class="kw">let</span> <span class="ident">dispatch_info</span> <span class="op">=</span> <span class="ident">call</span>.<span class="ident">get_dispatch_info</span>();
+		<span class="kw">let </span>call = Runtime::Call::from(call);
+		<span class="kw">let </span>dispatch_info = call.get_dispatch_info();
 
-		<span class="comment">// Make sure there is enough gas.</span>
-		<span class="kw">let</span> <span class="ident">remaining_gas</span> <span class="op">=</span> <span class="ident">handle</span>.<span class="ident">remaining_gas</span>();
-		<span class="kw">let</span> <span class="ident">required_gas</span> <span class="op">=</span> <span class="ident">Runtime::GasWeightMapping::weight_to_gas</span>(<span class="ident">dispatch_info</span>.<span class="ident">weight</span>);
-		<span class="kw">if</span> <span class="ident">required_gas</span> <span class="op">&gt;</span> <span class="ident">remaining_gas</span> {
-			<span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">TryDispatchError::Evm</span>(<span class="ident">ExitError::OutOfGas</span>));
+		<span class="comment">// Make sure there is enough gas.
+		</span><span class="kw">let </span>remaining_gas = handle.remaining_gas();
+		<span class="kw">let </span>required_gas = Runtime::GasWeightMapping::weight_to_gas(dispatch_info.weight);
+		<span class="kw">if </span>required_gas &gt; remaining_gas {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(TryDispatchError::Evm(ExitError::OutOfGas));
 		}
 
-		<span class="comment">// Dispatch call.</span>
-		<span class="comment">// It may be possible to not record gas cost if the call returns Pays::No.</span>
-		<span class="comment">// However while Substrate handle checking weight while not making the sender pay for it,</span>
-		<span class="comment">// the EVM doesn&#39;t. It seems this safer to always record the costs to avoid unmetered</span>
-		<span class="comment">// computations.</span>
-		<span class="kw">let</span> <span class="ident">post_dispatch_info</span> <span class="op">=</span> <span class="ident">call</span>
-			.<span class="ident">dispatch</span>(<span class="ident">origin</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TryDispatchError::Substrate</span>(<span class="ident">e</span>.<span class="ident">error</span>))<span class="question-mark">?</span>;
+		<span class="comment">// Dispatch call.
+		// It may be possible to not record gas cost if the call returns Pays::No.
+		// However while Substrate handle checking weight while not making the sender pay for it,
+		// the EVM doesn&#39;t. It seems this safer to always record the costs to avoid unmetered
+		// computations.
+		</span><span class="kw">let </span>post_dispatch_info = call
+			.dispatch(origin)
+			.map_err(|e| TryDispatchError::Substrate(e.error))<span class="question-mark">?</span>;
 
-		<span class="kw">let</span> <span class="ident">used_weight</span> <span class="op">=</span> <span class="ident">post_dispatch_info</span>.<span class="ident">actual_weight</span>;
+		<span class="kw">let </span>used_weight = post_dispatch_info.actual_weight;
 
-		<span class="kw">let</span> <span class="ident">used_gas</span> <span class="op">=</span>
-			<span class="ident">Runtime::GasWeightMapping::weight_to_gas</span>(<span class="ident">used_weight</span>.<span class="ident">unwrap_or</span>(<span class="ident">dispatch_info</span>.<span class="ident">weight</span>));
+		<span class="kw">let </span>used_gas =
+			Runtime::GasWeightMapping::weight_to_gas(used_weight.unwrap_or(dispatch_info.weight));
 
-		<span class="ident">handle</span>
-			.<span class="ident">record_cost</span>(<span class="ident">used_gas</span>)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">TryDispatchError::Evm</span>(<span class="ident">e</span>))<span class="question-mark">?</span>;
+		handle
+			.record_cost(used_gas)
+			.map_err(|e| TryDispatchError::Evm(e))<span class="question-mark">?</span>;
 
-		<span class="prelude-val">Ok</span>(<span class="ident">post_dispatch_info</span>)
+		<span class="prelude-val">Ok</span>(post_dispatch_info)
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span> <span class="ident">RuntimeHelper</span><span class="op">&lt;</span><span class="ident">Runtime</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">Runtime</span>: <span class="ident">pallet_evm::Config</span>,
+<span class="kw">impl</span>&lt;Runtime&gt; RuntimeHelper&lt;Runtime&gt;
+<span class="kw">where
+	</span>Runtime: pallet_evm::Config,
 {
-	<span class="doccomment">/// Cost of a Substrate DB write in gas.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">db_write_gas_cost</span>() -&gt; <span class="ident">u64</span> {
-		<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">write</span>,
+	<span class="doccomment">/// Cost of a Substrate DB write in gas.
+	</span><span class="kw">pub fn </span>db_write_gas_cost() -&gt; u64 {
+		&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().writes(<span class="number">1</span>),
 		)
 	}
 
-	<span class="doccomment">/// Cost of a Substrate DB read in gas.</span>
-	<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">db_read_gas_cost</span>() -&gt; <span class="ident">u64</span> {
-		<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-			<span class="op">&lt;</span><span class="ident">Runtime</span> <span class="kw">as</span> <span class="ident">frame_system::Config</span><span class="op">&gt;</span><span class="ident">::DbWeight::get</span>().<span class="ident">read</span>,
+	<span class="doccomment">/// Cost of a Substrate DB read in gas.
+	</span><span class="kw">pub fn </span>db_read_gas_cost() -&gt; u64 {
+		&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
+			&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::DbWeight::get().reads(<span class="number">1</span>),
 		)
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="precompile_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/ethereum-xcm/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_ethereum_xcm/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../pallet_ethereum_xcm/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_ethereum_xcm/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `pallets/ethereum-xcm/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" href="../../normalize.css"><link rel="stylesheet" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" href="../../ayu.css" disabled><link rel="stylesheet" href="../../dark.css" disabled><link rel="stylesheet" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../pallet_ethereum_xcm/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../pallet_ethereum_xcm/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../pallet_ethereum_xcm/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -288,291 +283,290 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
-</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.</span>
-<span class="comment">// This file is part of Moonbeam.</span>
+</pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
+// This file is part of Moonbeam.
 
-<span class="comment">// Moonbeam is free software: you can redistribute it and/or modify</span>
-<span class="comment">// it under the terms of the GNU General Public License as published by</span>
-<span class="comment">// the Free Software Foundation, either version 3 of the License, or</span>
-<span class="comment">// (at your option) any later version.</span>
+// Moonbeam is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-<span class="comment">// Moonbeam is distributed in the hope that it will be useful,</span>
-<span class="comment">// but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
-<span class="comment">// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
-<span class="comment">// GNU General Public License for more details.</span>
+// Moonbeam is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-<span class="comment">// You should have received a copy of the GNU General Public License</span>
-<span class="comment">// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+// You should have received a copy of the GNU General Public License
+// along with Moonbeam.  If not, see &lt;http://www.gnu.org/licenses/&gt;.
 
-<span class="doccomment">//! # Ethereum Xcm pallet</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The Xcm Ethereum pallet is a bridge for Xcm Transact to Ethereum pallet</span>
+</span><span class="doccomment">//! # Ethereum Xcm pallet
+//!
+//! The Xcm Ethereum pallet is a bridge for Xcm Transact to Ethereum pallet
 
-<span class="comment">// Ensure we&#39;re `no_std` when compiling for Wasm.</span>
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
-<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::comparison_chain</span>, <span class="ident">clippy::large_enum_variant</span>)]</span>
+</span><span class="comment">// Ensure we&#39;re `no_std` when compiling for Wasm.
+</span><span class="attribute">#![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
+#![allow(clippy::comparison_chain, clippy::large_enum_variant)]
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">mod</span> <span class="ident">mock</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">mod</span> <span class="ident">tests</span>;
+#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">mod </span>mock;
+<span class="attribute">#[cfg(all(feature = <span class="string">&quot;std&quot;</span>, test))]
+</span><span class="kw">mod </span>tests;
 
-<span class="kw">use</span> <span class="ident">ethereum_types</span>::{<span class="ident">H160</span>, <span class="ident">U256</span>};
-<span class="kw">use</span> <span class="ident">fp_ethereum</span>::{<span class="ident">TransactionData</span>, <span class="ident">ValidatedTransaction</span>};
-<span class="kw">use</span> <span class="ident">fp_evm</span>::{<span class="ident">CheckEvmTransaction</span>, <span class="ident">CheckEvmTransactionConfig</span>, <span class="ident">InvalidEvmTransactionError</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;try-runtime&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">frame_support::traits::OnRuntimeUpgradeHelpersExt</span>;
-<span class="kw">use</span> <span class="ident">frame_support</span>::{
-	<span class="ident">codec</span>::{<span class="ident">Decode</span>, <span class="ident">Encode</span>, <span class="ident">MaxEncodedLen</span>},
-	<span class="ident">dispatch::DispatchResultWithPostInfo</span>,
-	<span class="ident">scale_info::TypeInfo</span>,
-	<span class="ident">traits</span>::{<span class="ident">EnsureOrigin</span>, <span class="ident">Get</span>},
-	<span class="ident">weights</span>::{<span class="ident">Pays</span>, <span class="ident">PostDispatchInfo</span>, <span class="ident">Weight</span>},
+<span class="kw">use </span>ethereum_types::{H160, U256};
+<span class="kw">use </span>fp_ethereum::{TransactionData, ValidatedTransaction};
+<span class="kw">use </span>fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+<span class="kw">use </span>frame_support::{
+	codec::{Decode, Encode, MaxEncodedLen},
+	dispatch::DispatchResultWithPostInfo,
+	scale_info::TypeInfo,
+	traits::{EnsureOrigin, Get},
+	weights::{Pays, PostDispatchInfo, Weight},
 };
-<span class="kw">use</span> <span class="ident">frame_system::pallet_prelude::OriginFor</span>;
-<span class="kw">use</span> <span class="ident">pallet_evm</span>::{<span class="ident">AddressMapping</span>, <span class="ident">GasWeightMapping</span>};
-<span class="kw">use</span> <span class="ident">sp_runtime</span>::{<span class="ident">traits::UniqueSaturatedInto</span>, <span class="ident">DispatchErrorWithPostInfo</span>, <span class="ident">RuntimeDebug</span>};
-<span class="kw">use</span> <span class="ident">sp_std</span>::{<span class="ident">marker::PhantomData</span>, <span class="ident">prelude</span>::<span class="kw-2">*</span>};
+<span class="kw">use </span>frame_system::pallet_prelude::OriginFor;
+<span class="kw">use </span>pallet_evm::{AddressMapping, GasWeightMapping};
+<span class="kw">use </span>sp_runtime::{traits::UniqueSaturatedInto, DispatchErrorWithPostInfo, RuntimeDebug};
+<span class="kw">use </span>sp_std::{marker::PhantomData, prelude::<span class="kw-2">*</span>};
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ethereum</span>::{
-	<span class="ident">AccessListItem</span>, <span class="ident">BlockV2</span> <span class="kw">as</span> <span class="ident">Block</span>, <span class="ident">LegacyTransactionMessage</span>, <span class="ident">Log</span>, <span class="ident">ReceiptV3</span> <span class="kw">as</span> <span class="ident">Receipt</span>,
-	<span class="ident">TransactionAction</span>, <span class="ident">TransactionV2</span> <span class="kw">as</span> <span class="ident">Transaction</span>,
+<span class="kw">pub use </span>ethereum::{
+	AccessListItem, BlockV2 <span class="kw">as </span>Block, LegacyTransactionMessage, Log, ReceiptV3 <span class="kw">as </span>Receipt,
+	TransactionAction, TransactionV2 <span class="kw">as </span>Transaction,
 };
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">fp_rpc::TransactionStatus</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">xcm_primitives</span>::{<span class="ident">EnsureProxy</span>, <span class="ident">EthereumXcmTransaction</span>, <span class="ident">XcmToEthereum</span>};
+<span class="kw">pub use </span>fp_rpc::TransactionStatus;
+<span class="kw">pub use </span>xcm_primitives::{EnsureProxy, EthereumXcmTransaction, XcmToEthereum};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Encode</span>, <span class="ident">Decode</span>, <span class="ident">RuntimeDebug</span>, <span class="ident">TypeInfo</span>, <span class="ident">MaxEncodedLen</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RawOrigin</span> {
-	<span class="ident">XcmEthereumTransaction</span>(<span class="ident">H160</span>),
+<span class="attribute">#[derive(PartialEq, Eq, Clone, Encode, Decode, RuntimeDebug, TypeInfo, MaxEncodedLen)]
+</span><span class="kw">pub enum </span>RawOrigin {
+	XcmEthereumTransaction(H160),
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">ensure_xcm_ethereum_transaction</span><span class="op">&lt;</span><span class="ident">OuterOrigin</span><span class="op">&gt;</span>(<span class="ident">o</span>: <span class="ident">OuterOrigin</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">H160</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-	<span class="ident">OuterOrigin</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RawOrigin</span>, <span class="ident">OuterOrigin</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+<span class="kw">pub fn </span>ensure_xcm_ethereum_transaction&lt;OuterOrigin&gt;(o: OuterOrigin) -&gt; <span class="prelude-ty">Result</span>&lt;H160, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt;
+<span class="kw">where
+	</span>OuterOrigin: Into&lt;<span class="prelude-ty">Result</span>&lt;RawOrigin, OuterOrigin&gt;&gt;,
 {
-	<span class="kw">match</span> <span class="ident">o</span>.<span class="ident">into</span>() {
-		<span class="prelude-val">Ok</span>(<span class="ident">RawOrigin::XcmEthereumTransaction</span>(<span class="ident">n</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">n</span>),
-		<span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;bad origin: expected to be a xcm Ethereum transaction&quot;</span>),
+	<span class="kw">match </span>o.into() {
+		<span class="prelude-val">Ok</span>(RawOrigin::XcmEthereumTransaction(n)) =&gt; <span class="prelude-val">Ok</span>(n),
+		<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(<span class="string">&quot;bad origin: expected to be a xcm Ethereum transaction&quot;</span>),
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EnsureXcmEthereumTransaction</span>;
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">O</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RawOrigin</span>, <span class="ident">O</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">RawOrigin</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident">O</span><span class="op">&gt;</span>
-	<span class="kw">for</span> <span class="ident">EnsureXcmEthereumTransaction</span>
+<span class="kw">pub struct </span>EnsureXcmEthereumTransaction;
+<span class="kw">impl</span>&lt;O: Into&lt;<span class="prelude-ty">Result</span>&lt;RawOrigin, O&gt;&gt; + From&lt;RawOrigin&gt;&gt; EnsureOrigin&lt;O&gt;
+	<span class="kw">for </span>EnsureXcmEthereumTransaction
 {
-	<span class="kw">type</span> <span class="ident">Success</span> <span class="op">=</span> <span class="ident">H160</span>;
-	<span class="kw">fn</span> <span class="ident">try_origin</span>(<span class="ident">o</span>: <span class="ident">O</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Success</span>, <span class="ident">O</span><span class="op">&gt;</span> {
-		<span class="ident">o</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">o</span> {
-			<span class="ident">RawOrigin::XcmEthereumTransaction</span>(<span class="ident">id</span>) =&gt; <span class="ident">id</span>,
+	<span class="kw">type </span>Success = H160;
+	<span class="kw">fn </span>try_origin(o: O) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::Success, O&gt; {
+		o.into().map(|o| <span class="kw">match </span>o {
+			RawOrigin::XcmEthereumTransaction(id) =&gt; id,
 		})
 	}
 
-	<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;runtime-benchmarks&quot;</span>)]</span>
-	<span class="kw">fn</span> <span class="ident">successful_origin</span>() -&gt; <span class="ident">O</span> {
-		<span class="ident">O::from</span>(<span class="ident">RawOrigin::XcmEthereumTransaction</span>(<span class="ident">Default::default</span>()))
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">fn </span>successful_origin() -&gt; O {
+		O::from(RawOrigin::XcmEthereumTransaction(Default::default()))
 	}
 }
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::pallet</span>::<span class="kw-2">*</span>;
+<span class="kw">pub use </span><span class="self">self</span>::pallet::<span class="kw-2">*</span>;
 
-<span class="attribute">#[<span class="ident">frame_support::pallet</span>]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pallet</span> {
-	<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use</span> <span class="ident">frame_support::pallet_prelude</span>::<span class="kw-2">*</span>;
+<span class="attribute">#[frame_support::pallet]
+</span><span class="kw">pub mod </span>pallet {
+	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 
-	<span class="attribute">#[<span class="ident">pallet::config</span>]</span>
-	<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Config</span>: <span class="ident">frame_system::Config</span> <span class="op">+</span> <span class="ident">pallet_timestamp::Config</span> <span class="op">+</span> <span class="ident">pallet_evm::Config</span> {
-		<span class="doccomment">/// Invalid transaction error</span>
-		<span class="kw">type</span> <span class="ident">InvalidEvmTransactionError</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">InvalidEvmTransactionError</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Handler for applying an already validated transaction</span>
-		<span class="kw">type</span> <span class="ident">ValidatedTransaction</span>: <span class="ident">ValidatedTransaction</span>;
-		<span class="doccomment">/// Origin for xcm transact</span>
-		<span class="kw">type</span> <span class="ident">XcmEthereumOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span>, <span class="ident">Success</span> <span class="op">=</span> <span class="ident">H160</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Maximum Weight reserved for xcm in a block</span>
-		<span class="kw">type</span> <span class="ident">ReservedXcmpWeight</span>: <span class="ident">Get</span><span class="op">&lt;</span><span class="ident">Weight</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// Ensure proxy</span>
-		<span class="kw">type</span> <span class="ident">EnsureProxy</span>: <span class="ident">EnsureProxy</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::AccountId</span><span class="op">&gt;</span>;
-		<span class="doccomment">/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.</span>
-		<span class="kw">type</span> <span class="ident">ControllerOrigin</span>: <span class="ident">EnsureOrigin</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Origin</span><span class="op">&gt;</span>;
+	<span class="attribute">#[pallet::config]
+	</span><span class="kw">pub trait </span>Config: frame_system::Config + pallet_timestamp::Config + pallet_evm::Config {
+		<span class="doccomment">/// Invalid transaction error
+		</span><span class="kw">type </span>InvalidEvmTransactionError: From&lt;InvalidEvmTransactionError&gt;;
+		<span class="doccomment">/// Handler for applying an already validated transaction
+		</span><span class="kw">type </span>ValidatedTransaction: ValidatedTransaction;
+		<span class="doccomment">/// Origin for xcm transact
+		</span><span class="kw">type </span>XcmEthereumOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin, Success = H160&gt;;
+		<span class="doccomment">/// Maximum Weight reserved for xcm in a block
+		</span><span class="kw">type </span>ReservedXcmpWeight: Get&lt;Weight&gt;;
+		<span class="doccomment">/// Ensure proxy
+		</span><span class="kw">type </span>EnsureProxy: EnsureProxy&lt;<span class="self">Self</span>::AccountId&gt;;
+		<span class="doccomment">/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
+		</span><span class="kw">type </span>ControllerOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::pallet</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::without_storage_info</span>]</span>
-	<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>);
+	<span class="attribute">#[pallet::pallet]
+	#[pallet::without_storage_info]
+	</span><span class="kw">pub struct </span>Pallet&lt;T&gt;(PhantomData&lt;T&gt;);
 
-	<span class="doccomment">/// Global nonce used for building Ethereum transaction payload.</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">nonce</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type</span> <span class="ident">Nonce</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">U256</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Global nonce used for building Ethereum transaction payload.
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>nonce)]
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>Nonce&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, U256, ValueQuery&gt;;
 
-	<span class="doccomment">/// Whether or not Ethereum-XCM is suspended from executing</span>
-	<span class="attribute">#[<span class="ident">pallet::storage</span>]</span>
-	<span class="attribute">#[<span class="ident">pallet::getter</span>(<span class="kw">fn</span> <span class="ident">ethereum_xcm_suspended</span>)]</span>
-	<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type</span> <span class="ident">EthereumXcmSuspended</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">StorageValue</span><span class="op">&lt;</span><span class="kw">_</span>, <span class="ident">bool</span>, <span class="ident">ValueQuery</span><span class="op">&gt;</span>;
+	<span class="doccomment">/// Whether or not Ethereum-XCM is suspended from executing
+	</span><span class="attribute">#[pallet::storage]
+	#[pallet::getter(<span class="kw">fn </span>ethereum_xcm_suspended)]
+	</span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">type </span>EthereumXcmSuspended&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, bool, ValueQuery&gt;;
 
-	<span class="attribute">#[<span class="ident">pallet::origin</span>]</span>
-	<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">Origin</span> <span class="op">=</span> <span class="ident">RawOrigin</span>;
+	<span class="attribute">#[pallet::origin]
+	</span><span class="kw">pub type </span>Origin = RawOrigin;
 
-	<span class="attribute">#[<span class="ident">pallet::error</span>]</span>
-	<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Error</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-		<span class="doccomment">/// Xcm to Ethereum execution is suspended</span>
-		<span class="ident">EthereumXcmExecutionSuspended</span>,
+	<span class="attribute">#[pallet::error]
+	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
+		<span class="doccomment">/// Xcm to Ethereum execution is suspended
+		</span>EthereumXcmExecutionSuspended,
 	}
 
-	<span class="attribute">#[<span class="ident">pallet::call</span>]</span>
-	<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-	<span class="kw">where</span>
-		<span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RawOrigin</span>, <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt;
+	<span class="kw">where
+		</span>OriginFor&lt;T&gt;: Into&lt;<span class="prelude-ty">Result</span>&lt;RawOrigin, OriginFor&lt;T&gt;&gt;&gt;,
 	{
-		<span class="doccomment">/// Xcm Transact an Ethereum transaction.</span>
-		<span class="doccomment">/// Weight: Gas limit plus the db read involving the suspension check</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::gas_to_weight</span>({
-			<span class="kw">match</span> <span class="ident">xcm_transaction</span> {
-				<span class="ident">EthereumXcmTransaction::V1</span>(<span class="ident">v1_tx</span>) =&gt;  <span class="ident">v1_tx</span>.<span class="ident">gas_limit</span>.<span class="ident">unique_saturated_into</span>(),
-				<span class="ident">EthereumXcmTransaction::V2</span>(<span class="ident">v2_tx</span>) =&gt;  <span class="ident">v2_tx</span>.<span class="ident">gas_limit</span>.<span class="ident">unique_saturated_into</span>()
+		<span class="doccomment">/// Xcm Transact an Ethereum transaction.
+		/// Weight: Gas limit plus the db read involving the suspension check
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
+			<span class="kw">match </span>xcm_transaction {
+				EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
+				EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
 			}
-		}).<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span>)))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">xcm_transaction</span>: <span class="ident">EthereumXcmTransaction</span>,
-		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-			<span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">T::XcmEthereumOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		}).saturating_add(T::DbWeight::get().reads(<span class="number">1</span>)))]
+		</span><span class="kw">pub fn </span>transact(
+			origin: OriginFor&lt;T&gt;,
+			xcm_transaction: EthereumXcmTransaction,
+		) -&gt; DispatchResultWithPostInfo {
+			<span class="kw">let </span>source = T::XcmEthereumOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(
-				<span class="op">!</span><span class="ident">EthereumXcmSuspended</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(),
-				<span class="ident">DispatchErrorWithPostInfo</span> {
-					<span class="ident">error</span>: <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::EthereumXcmExecutionSuspended</span>.<span class="ident">into</span>(),
-					<span class="ident">post_info</span>: <span class="ident">PostDispatchInfo</span> {
-						<span class="ident">actual_weight</span>: <span class="prelude-val">Some</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span>)),
-						<span class="ident">pays_fee</span>: <span class="ident">Pays::Yes</span>
+				!EthereumXcmSuspended::&lt;T&gt;::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::&lt;T&gt;::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: <span class="prelude-val">Some</span>(T::DbWeight::get().reads(<span class="number">1</span>)),
+						pays_fee: Pays::Yes
 					}
 				}
 			);
-			<span class="ident"><span class="self">Self</span>::validate_and_apply</span>(<span class="ident">source</span>, <span class="ident">xcm_transaction</span>)
+			<span class="self">Self</span>::validate_and_apply(source, xcm_transaction)
 		}
 
-		<span class="doccomment">/// Xcm Transact an Ethereum transaction through proxy.</span>
-		<span class="doccomment">/// Weight: Gas limit plus the db reads involving the suspension and proxy checks</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>(<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::gas_to_weight</span>({
-			<span class="kw">match</span> <span class="ident">xcm_transaction</span> {
-				<span class="ident">EthereumXcmTransaction::V1</span>(<span class="ident">v1_tx</span>) =&gt;  <span class="ident">v1_tx</span>.<span class="ident">gas_limit</span>.<span class="ident">unique_saturated_into</span>(),
-				<span class="ident">EthereumXcmTransaction::V2</span>(<span class="ident">v2_tx</span>) =&gt;  <span class="ident">v2_tx</span>.<span class="ident">gas_limit</span>.<span class="ident">unique_saturated_into</span>()
+		<span class="doccomment">/// Xcm Transact an Ethereum transaction through proxy.
+		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
+		</span><span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::gas_to_weight({
+			<span class="kw">match </span>xcm_transaction {
+				EthereumXcmTransaction::V1(v1_tx) =&gt;  v1_tx.gas_limit.unique_saturated_into(),
+				EthereumXcmTransaction::V2(v2_tx) =&gt;  v2_tx.gas_limit.unique_saturated_into()
 			}
-		}).<span class="ident">saturating_add</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span>)))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">transact_through_proxy</span>(
-			<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
-			<span class="ident">transact_as</span>: <span class="ident">H160</span>,
-			<span class="ident">xcm_transaction</span>: <span class="ident">EthereumXcmTransaction</span>,
-		) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-			<span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">T::XcmEthereumOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		}).saturating_add(T::DbWeight::get().reads(<span class="number">2</span>)))]
+		</span><span class="kw">pub fn </span>transact_through_proxy(
+			origin: OriginFor&lt;T&gt;,
+			transact_as: H160,
+			xcm_transaction: EthereumXcmTransaction,
+		) -&gt; DispatchResultWithPostInfo {
+			<span class="kw">let </span>source = T::XcmEthereumOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 			<span class="macro">ensure!</span>(
-				<span class="op">!</span><span class="ident">EthereumXcmSuspended</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::get</span>(),
-				<span class="ident">DispatchErrorWithPostInfo</span> {
-					<span class="ident">error</span>: <span class="ident">Error</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::EthereumXcmExecutionSuspended</span>.<span class="ident">into</span>(),
-					<span class="ident">post_info</span>: <span class="ident">PostDispatchInfo</span> {
-						<span class="ident">actual_weight</span>: <span class="prelude-val">Some</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span>)),
-						<span class="ident">pays_fee</span>: <span class="ident">Pays::Yes</span>
+				!EthereumXcmSuspended::&lt;T&gt;::get(),
+				DispatchErrorWithPostInfo {
+					error: Error::&lt;T&gt;::EthereumXcmExecutionSuspended.into(),
+					post_info: PostDispatchInfo {
+						actual_weight: <span class="prelude-val">Some</span>(T::DbWeight::get().reads(<span class="number">1</span>)),
+						pays_fee: Pays::Yes
 					}
 				}
 			);
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">T::EnsureProxy::ensure_ok</span>(
-				<span class="ident">T::AddressMapping::into_account_id</span>(<span class="ident">transact_as</span>),
-				<span class="ident">T::AddressMapping::into_account_id</span>(<span class="ident">source</span>),
+			<span class="kw">let _ </span>= T::EnsureProxy::ensure_ok(
+				T::AddressMapping::into_account_id(transact_as),
+				T::AddressMapping::into_account_id(source),
 			)
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">sp_runtime::DispatchErrorWithPostInfo</span> {
-				<span class="ident">post_info</span>: <span class="ident">PostDispatchInfo</span> {
-					<span class="ident">actual_weight</span>: <span class="prelude-val">Some</span>(<span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">2</span>)),
-					<span class="ident">pays_fee</span>: <span class="ident">Pays::Yes</span>,
+			.map_err(|e| sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: <span class="prelude-val">Some</span>(T::DbWeight::get().reads(<span class="number">2</span>)),
+					pays_fee: Pays::Yes,
 				},
-				<span class="ident">error</span>: <span class="ident">sp_runtime::DispatchError::Other</span>(<span class="ident">e</span>),
+				error: sp_runtime::DispatchError::Other(e),
 			})<span class="question-mark">?</span>;
 
-			<span class="ident"><span class="self">Self</span>::validate_and_apply</span>(<span class="ident">transact_as</span>, <span class="ident">xcm_transaction</span>)
+			<span class="self">Self</span>::validate_and_apply(transact_as, xcm_transaction)
 		}
 
-		<span class="doccomment">/// Suspends all Ethereum executions from XCM.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// - `origin`: Must pass `ControllerOrigin`.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>((<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>), <span class="ident">DispatchClass::Operational</span>,))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">suspend_ethereum_xcm_execution</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::ControllerOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Suspends all Ethereum executions from XCM.
+		///
+		/// - `origin`: Must pass `ControllerOrigin`.
+		</span><span class="attribute">#[pallet::weight((T::DbWeight::get().writes(<span class="number">1</span>), DispatchClass::Operational,))]
+		</span><span class="kw">pub fn </span>suspend_ethereum_xcm_execution(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
+			T::ControllerOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="ident">EthereumXcmSuspended</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">true</span>);
+			EthereumXcmSuspended::&lt;T&gt;::put(<span class="bool-val">true</span>);
 
 			<span class="prelude-val">Ok</span>(())
 		}
 
-		<span class="doccomment">/// Resumes all Ethereum executions from XCM.</span>
-		<span class="doccomment">///</span>
-		<span class="doccomment">/// - `origin`: Must pass `ControllerOrigin`.</span>
-		<span class="attribute">#[<span class="ident">pallet::weight</span>((<span class="ident">T::DbWeight::get</span>().<span class="ident">writes</span>(<span class="number">1</span>), <span class="ident">DispatchClass::Operational</span>,))]</span>
-		<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resume_ethereum_xcm_execution</span>(<span class="ident">origin</span>: <span class="ident">OriginFor</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">DispatchResult</span> {
-			<span class="ident">T::ControllerOrigin::ensure_origin</span>(<span class="ident">origin</span>)<span class="question-mark">?</span>;
+		<span class="doccomment">/// Resumes all Ethereum executions from XCM.
+		///
+		/// - `origin`: Must pass `ControllerOrigin`.
+		</span><span class="attribute">#[pallet::weight((T::DbWeight::get().writes(<span class="number">1</span>), DispatchClass::Operational,))]
+		</span><span class="kw">pub fn </span>resume_ethereum_xcm_execution(origin: OriginFor&lt;T&gt;) -&gt; DispatchResult {
+			T::ControllerOrigin::ensure_origin(origin)<span class="question-mark">?</span>;
 
-			<span class="ident">EthereumXcmSuspended</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="bool-val">false</span>);
+			EthereumXcmSuspended::&lt;T&gt;::put(<span class="bool-val">false</span>);
 
 			<span class="prelude-val">Ok</span>(())
 		}
 	}
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Config</span><span class="op">&gt;</span> <span class="ident">Pallet</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-	<span class="kw">fn</span> <span class="ident">validate_and_apply</span>(
-		<span class="ident">source</span>: <span class="ident">H160</span>,
-		<span class="ident">xcm_transaction</span>: <span class="ident">EthereumXcmTransaction</span>,
-	) -&gt; <span class="ident">DispatchResultWithPostInfo</span> {
-		<span class="comment">// The lack of a real signature where different callers with the</span>
-		<span class="comment">// same nonce are providing identical transaction payloads results in a collision and</span>
-		<span class="comment">// the same ethereum tx hash.</span>
-		<span class="comment">// We use a global nonce instead the user nonce for all Xcm-&gt;Ethereum transactions to avoid</span>
-		<span class="comment">// this.</span>
-		<span class="kw">let</span> <span class="ident">current_nonce</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::nonce</span>();
-		<span class="kw">let</span> <span class="ident">error_weight</span> <span class="op">=</span> <span class="ident">T::DbWeight::get</span>().<span class="ident">reads</span>(<span class="number">1</span> <span class="kw">as</span> <span class="ident">Weight</span>);
+<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+	<span class="kw">fn </span>validate_and_apply(
+		source: H160,
+		xcm_transaction: EthereumXcmTransaction,
+	) -&gt; DispatchResultWithPostInfo {
+		<span class="comment">// The lack of a real signature where different callers with the
+		// same nonce are providing identical transaction payloads results in a collision and
+		// the same ethereum tx hash.
+		// We use a global nonce instead the user nonce for all Xcm-&gt;Ethereum transactions to avoid
+		// this.
+		</span><span class="kw">let </span>current_nonce = <span class="self">Self</span>::nonce();
+		<span class="kw">let </span>error_weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
-		<span class="kw">let</span> <span class="ident">transaction</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Transaction</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">xcm_transaction</span>.<span class="ident">into_transaction_v2</span>(<span class="ident">current_nonce</span>);
-		<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">transaction</span>) <span class="op">=</span> <span class="ident">transaction</span> {
-			<span class="kw">let</span> <span class="ident">transaction_data</span>: <span class="ident">TransactionData</span> <span class="op">=</span> (<span class="kw-2">&amp;</span><span class="ident">transaction</span>).<span class="ident">into</span>();
+		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; = xcm_transaction.into_transaction_v2(current_nonce);
+		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
+			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();
 
-			<span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">CheckEvmTransaction</span>::<span class="op">&lt;</span><span class="ident">T::InvalidEvmTransactionError</span><span class="op">&gt;</span><span class="ident">::new</span>(
-				<span class="ident">CheckEvmTransactionConfig</span> {
-					<span class="ident">evm_config</span>: <span class="ident">T::config</span>(),
-					<span class="ident">block_gas_limit</span>: <span class="ident">U256::from</span>(
-						<span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">pallet_evm::Config</span><span class="op">&gt;</span><span class="ident">::GasWeightMapping::weight_to_gas</span>(
-							<span class="ident">T::ReservedXcmpWeight::get</span>(),
+			<span class="kw">let _ </span>= CheckEvmTransaction::&lt;T::InvalidEvmTransactionError&gt;::new(
+				CheckEvmTransactionConfig {
+					evm_config: T::config(),
+					block_gas_limit: U256::from(
+						&lt;T <span class="kw">as </span>pallet_evm::Config&gt;::GasWeightMapping::weight_to_gas(
+							T::ReservedXcmpWeight::get(),
 						),
 					),
-					<span class="ident">base_fee</span>: <span class="ident">U256::zero</span>(),
-					<span class="ident">chain_id</span>: <span class="number">0u64</span>,
-					<span class="ident">is_transactional</span>: <span class="bool-val">true</span>,
+					base_fee: U256::zero(),
+					chain_id: <span class="number">0u64</span>,
+					is_transactional: <span class="bool-val">true</span>,
 				},
-				<span class="ident">transaction_data</span>.<span class="ident">into</span>(),
+				transaction_data.into(),
 			)
-			<span class="comment">// We only validate the gas limit against the evm transaction cost.</span>
-			<span class="comment">// No need to validate fee payment, as it is handled by the xcm executor.</span>
-			.<span class="ident">validate_common</span>()
-			.<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">sp_runtime::DispatchErrorWithPostInfo</span> {
-				<span class="ident">post_info</span>: <span class="ident">PostDispatchInfo</span> {
-					<span class="ident">actual_weight</span>: <span class="prelude-val">Some</span>(<span class="ident">error_weight</span>),
-					<span class="ident">pays_fee</span>: <span class="ident">Pays::Yes</span>,
+			<span class="comment">// We only validate the gas limit against the evm transaction cost.
+			// No need to validate fee payment, as it is handled by the xcm executor.
+			</span>.validate_common()
+			.map_err(|<span class="kw">_</span>| sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: <span class="prelude-val">Some</span>(error_weight),
+					pays_fee: Pays::Yes,
 				},
-				<span class="ident">error</span>: <span class="ident">sp_runtime::DispatchError::Other</span>(<span class="string">&quot;Failed to validate ethereum transaction&quot;</span>),
+				error: sp_runtime::DispatchError::Other(<span class="string">&quot;Failed to validate ethereum transaction&quot;</span>),
 			})<span class="question-mark">?</span>;
 
-			<span class="comment">// Once we know a new transaction hash exists - the user can afford storing the</span>
-			<span class="comment">// transaction on chain - we increase the global nonce.</span>
-			<span class="op">&lt;</span><span class="ident">Nonce</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::put</span>(<span class="ident">current_nonce</span>.<span class="ident">saturating_add</span>(<span class="ident">U256::one</span>()));
+			<span class="comment">// Once we know a new transaction hash exists - the user can afford storing the
+			// transaction on chain - we increase the global nonce.
+			</span>&lt;Nonce&lt;T&gt;&gt;::put(current_nonce.saturating_add(U256::one()));
 
-			<span class="ident">T::ValidatedTransaction::apply</span>(<span class="ident">source</span>, <span class="ident">transaction</span>)
-		} <span class="kw">else</span> {
-			<span class="prelude-val">Err</span>(<span class="ident">sp_runtime::DispatchErrorWithPostInfo</span> {
-				<span class="ident">post_info</span>: <span class="ident">PostDispatchInfo</span> {
-					<span class="ident">actual_weight</span>: <span class="prelude-val">Some</span>(<span class="ident">error_weight</span>),
-					<span class="ident">pays_fee</span>: <span class="ident">Pays::Yes</span>,
+			T::ValidatedTransaction::apply(source, transaction)
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(sp_runtime::DispatchErrorWithPostInfo {
+				post_info: PostDispatchInfo {
+					actual_weight: <span class="prelude-val">Some</span>(error_weight),
+					pays_fee: Pays::Yes,
 				},
-				<span class="ident">error</span>: <span class="ident">sp_runtime::DispatchError::Other</span>(<span class="string">&quot;Cannot convert xcm payload to known type&quot;</span>),
+				error: sp_runtime::DispatchError::Other(<span class="string">&quot;Cannot convert xcm payload to known type&quot;</span>),
 			})
 		}
 	}
 }
 </code></pre></div>
-</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_ethereum_xcm" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0-nightly (4c60a0ea5 2022-05-04)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="pallet_ethereum_xcm" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.65.0-nightly (1d37ed661 2022-09-09)" ></div></body></html>
