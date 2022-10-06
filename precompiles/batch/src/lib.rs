@@ -19,25 +19,22 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm::{ExitError, ExitReason};
-use fp_evm::{
-	Context, Log, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
-};
+use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::traits::ConstU32;
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
-use sp_std::{iter::repeat, marker::PhantomData, vec};
+use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[generate_function_selector]
 #[derive(Copy, Clone, Debug, PartialEq)]
-pub enum Action {
-	BatchSome = "batchSome(address[],uint256[],bytes[],uint64[])",
-	BatchSomeUntilFailure = "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])",
-	BatchAll = "batchAll(address[],uint256[],bytes[],uint64[])",
+pub enum Mode {
+	BatchSome,             // = "batchSome(address[],uint256[],bytes[],uint64[])",
+	BatchSomeUntilFailure, // = "batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])",
+	BatchAll,              // = "batchAll(address[],uint256[],bytes[],uint64[])",
 }
 
 pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("SubcallSucceeded(uint256)");
@@ -68,63 +65,91 @@ pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
 #[derive(Debug, Clone)]
 pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for BatchPrecompile<Runtime>
-where
-	Runtime: pallet_evm::Config,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		// No funds are transfered to the precompile address.
-		// Transfers will directly be made on the behalf of the user by the precompile.
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
-
-		Self::batch(handle, selector)
-	}
-}
-
+// No funds are transfered to the precompile address.
+// Transfers will directly be made on the behalf of the user by the precompile.
+#[precompile_utils::precompile]
 impl<Runtime> BatchPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config,
 {
-	fn batch(handle: &mut impl PrecompileHandle, action: Action) -> EvmResult<PrecompileOutput> {
+	#[precompile::pre_check]
+	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let caller_code = pallet_evm::Pallet::<Runtime>::account_codes(handle.context().caller);
 		// Check that caller is not a smart contract s.t. no code is inserted into
 		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
 		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
-			return Err(revert("Batch not callable by smart contracts"));
+			Err(revert("Batch not callable by smart contracts"))
+		} else {
+			Ok(())
 		}
-		let (addresses, values, calls_data, gas_limits);
+	}
 
-		{
-			read_args!(handle, {
-				to: BoundedVec<Address, GetArrayLimit>,
-				value: BoundedVec<U256, GetArrayLimit>,
-				call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
-				gas_limit: BoundedVec<u64, GetArrayLimit>
-			});
+	#[precompile::public("batchSome(address[],uint256[],bytes[],uint64[])")]
+	fn batch_some(
+		handle: &mut impl PrecompileHandle,
+		to: BoundedVec<Address, GetArrayLimit>,
+		value: BoundedVec<U256, GetArrayLimit>,
+		call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+		gas_limit: BoundedVec<u64, GetArrayLimit>,
+	) -> EvmResult {
+		Self::inner_batch(Mode::BatchSome, handle, to, value, call_data, gas_limit)
+	}
 
-			addresses = to.into_vec().into_iter().enumerate();
-			values = value
-				.into_vec()
-				.into_iter()
-				.map(|x| Some(x))
-				.chain(repeat(None));
-			calls_data = call_data
-				.into_vec()
-				.into_iter()
-				.map(|x| Some(x.into_vec()))
-				.chain(repeat(None));
-			gas_limits = gas_limit.into_vec().into_iter().map(|x|
-				// x = 0 => forward all remaining gas
-				if x == 0 {
-					None
-				} else {
-					Some(x)
-				}
-			).chain(repeat(None));
-		}
+	#[precompile::public("batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])")]
+	fn batch_some_until_failure(
+		handle: &mut impl PrecompileHandle,
+		to: BoundedVec<Address, GetArrayLimit>,
+		value: BoundedVec<U256, GetArrayLimit>,
+		call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+		gas_limit: BoundedVec<u64, GetArrayLimit>,
+	) -> EvmResult {
+		Self::inner_batch(
+			Mode::BatchSomeUntilFailure,
+			handle,
+			to,
+			value,
+			call_data,
+			gas_limit,
+		)
+	}
+
+	#[precompile::public("batchAll(address[],uint256[],bytes[],uint64[])")]
+	fn batch_all(
+		handle: &mut impl PrecompileHandle,
+		to: BoundedVec<Address, GetArrayLimit>,
+		value: BoundedVec<U256, GetArrayLimit>,
+		call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+		gas_limit: BoundedVec<u64, GetArrayLimit>,
+	) -> EvmResult {
+		Self::inner_batch(Mode::BatchAll, handle, to, value, call_data, gas_limit)
+	}
+
+	fn inner_batch(
+		mode: Mode,
+		handle: &mut impl PrecompileHandle,
+		to: BoundedVec<Address, GetArrayLimit>,
+		value: BoundedVec<U256, GetArrayLimit>,
+		call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+		gas_limit: BoundedVec<u64, GetArrayLimit>,
+	) -> EvmResult {
+		let addresses = Vec::from(to).into_iter().enumerate();
+		let values = Vec::from(value)
+			.into_iter()
+			.map(|x| Some(x))
+			.chain(repeat(None));
+		let calls_data = Vec::from(call_data)
+			.into_iter()
+			.map(|x| Some(x.into()))
+			.chain(repeat(None));
+		let gas_limits = Vec::from(gas_limit).into_iter().map(|x|
+			// x = 0 => forward all remaining gas
+			if x == 0 {
+				None
+			} else {
+				Some(x)
+			}
+		).chain(repeat(None));
 
 		// Cost of batch log. (doesn't change when index changes)
 		let log_cost = log_subcall_failed(handle.code_address(), 0)
@@ -155,18 +180,18 @@ where
 			};
 
 			// We reserve enough gas to emit a final log and perform the subcall itself.
-			// If not enough gas we stop there according to Action strategy.
+			// If not enough gas we stop there according to Mode strategy.
 			let remaining_gas = handle.remaining_gas();
 
-			let forwarded_gas = match (remaining_gas.checked_sub(log_cost), action) {
+			let forwarded_gas = match (remaining_gas.checked_sub(log_cost), mode) {
 				(Some(remaining), _) => remaining,
-				(None, Action::BatchAll) => {
+				(None, Mode::BatchAll) => {
 					return Err(PrecompileFailure::Error {
 						exit_status: ExitError::OutOfGas,
 					})
 				}
 				(None, _) => {
-					return Ok(succeed([]));
+					return Ok(());
 				}
 			};
 
@@ -180,14 +205,14 @@ where
 					handle.record_log_costs(&[&log])?;
 					log.record(handle)?;
 
-					match action {
-						Action::BatchAll => {
+					match mode {
+						Mode::BatchAll => {
 							return Err(PrecompileFailure::Error {
 								exit_status: ExitError::OutOfGas,
 							})
 						}
-						Action::BatchSomeUntilFailure => return Ok(succeed([])),
-						Action::BatchSome => continue,
+						Mode::BatchSomeUntilFailure => return Ok(()),
+						Mode::BatchSome => continue,
 					}
 				}
 			};
@@ -201,14 +226,14 @@ where
 						handle.record_log_costs(&[&log])?;
 						log.record(handle)?;
 
-						match action {
-							Action::BatchAll => {
+						match mode {
+							Mode::BatchAll => {
 								return Err(PrecompileFailure::Error {
 									exit_status: ExitError::OutOfGas,
 								})
 							}
-							Action::BatchSomeUntilFailure => return Ok(succeed([])),
-							Action::BatchSome => continue,
+							Mode::BatchSomeUntilFailure => return Ok(()),
+							Mode::BatchSome => continue,
 						}
 					}
 					limit
@@ -241,27 +266,27 @@ where
 			}
 
 			// How to proceed
-			match (action, reason) {
+			match (mode, reason) {
 				// _: Fatal is always fatal
 				(_, ExitReason::Fatal(exit_status)) => {
 					return Err(PrecompileFailure::Fatal { exit_status })
 				}
 
 				// BatchAll : Reverts and errors are immediatly forwarded.
-				(Action::BatchAll, ExitReason::Revert(exit_status)) => {
+				(Mode::BatchAll, ExitReason::Revert(exit_status)) => {
 					return Err(PrecompileFailure::Revert {
 						exit_status,
 						output,
 					})
 				}
-				(Action::BatchAll, ExitReason::Error(exit_status)) => {
+				(Mode::BatchAll, ExitReason::Error(exit_status)) => {
 					return Err(PrecompileFailure::Error { exit_status })
 				}
 
 				// BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to
 				// be executed but the precompile still succeed.
-				(Action::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_)) => {
-					return Ok(succeed([]))
+				(Mode::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_)) => {
+					return Ok(())
 				}
 
 				// Success or ignored revert/error.
@@ -269,6 +294,51 @@ where
 			}
 		}
 
-		Ok(succeed([]))
+		Ok(())
+	}
+}
+
+// The enum is generated by the macro above.
+// We add this method to simplify writing tests generic over the mode.
+impl<Runtime> BatchPrecompileCall<Runtime>
+where
+	Runtime: pallet_evm::Config,
+{
+	pub fn batch_from_mode(
+		mode: Mode,
+		to: Vec<Address>,
+		value: Vec<U256>,
+		call_data: Vec<Vec<u8>>,
+		gas_limit: Vec<u64>,
+	) -> Self {
+		// Convert Vecs into their bounded versions.
+		// This is mainly a convenient function to write tests.
+		// Bounds are only checked when parsing from call data.
+		let to = to.into();
+		let value = value.into();
+		let call_data: Vec<_> = call_data.into_iter().map(|inner| inner.into()).collect();
+		let call_data = call_data.into();
+		let gas_limit = gas_limit.into();
+
+		match mode {
+			Mode::BatchSome => Self::batch_some {
+				to,
+				value,
+				call_data,
+				gas_limit,
+			},
+			Mode::BatchSomeUntilFailure => Self::batch_some_until_failure {
+				to,
+				value,
+				call_data,
+				gas_limit,
+			},
+			Mode::BatchAll => Self::batch_all {
+				to,
+				value,
+				call_data,
+				gas_limit,
+			},
+		}
 	}
 }

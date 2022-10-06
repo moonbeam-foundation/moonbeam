@@ -12,9 +12,26 @@ proc-macro = true
 name = "tests"
 path = "tests/tests.rs"
 
+[[test]]
+name = "precompile-macro"
+path = "tests/precompile.rs"
+
 [dependencies]
+case = "1.0"
 num_enum = { version = "0.5.3", default-features = false }
+prettyplease = "0.1.18"
 proc-macro2 = "1.0"
 quote = "1.0"
 sha3 = "0.8"
 syn = { version = "1.0", features = [ "extra-traits", "fold", "full", "visit" ] }
+
+[dev-dependencies]
+macrotest = "1.0.9"
+trybuild = "1.0"
+
+precompile-utils = { path = "../", features = [ "testing" ] }
+
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }

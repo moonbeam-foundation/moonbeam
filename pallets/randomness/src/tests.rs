@@ -42,7 +42,7 @@ fn cannot_make_local_request_already_fulfillable() {
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::Local(0u64));
+			let request = build_default_request(RequestType::Local(0));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessBeforeMinDelay
@@ -56,7 +56,7 @@ fn cannot_make_request_fulfillable_past_expiry() {
 		.with_balances(vec![(ALICE, 15)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::Local(22u64));
+			let request = build_default_request(RequestType::Local(22));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				Error::<Test>::CannotRequestRandomnessAfterMaxDelay
@@ -70,7 +70,7 @@ fn cannot_make_request_with_less_than_deposit() {
 		.with_balances(vec![(ALICE, 9)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeEpoch(16u64));
+			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -79,7 +79,7 @@ fn cannot_make_request_with_less_than_deposit() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestType::Local(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -97,7 +97,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 		.with_balances(vec![(ALICE, 14)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeEpoch(16u64));
+			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -106,7 +106,7 @@ fn cannot_make_request_with_less_than_deposit_plus_fee() {
 					message: Some("InsufficientBalance")
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestType::Local(16));
 			assert_noop!(
 				Randomness::request_randomness(request),
 				sp_runtime::DispatchError::Module(sp_runtime::ModuleError {
@@ -126,11 +126,11 @@ fn request_reserves_deposit_and_fee() {
 		.execute_with(|| {
 			assert_eq!(Randomness::total_locked(), 0);
 			assert_eq!(Balances::free_balance(&ALICE), 30);
-			let request = build_default_request(RequestType::BabeEpoch(16u64));
+			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 15);
 			assert_eq!(Balances::free_balance(&ALICE), 15);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestType::Local(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::total_locked(), 30);
 			assert_eq!(Balances::free_balance(&ALICE), 0);
@@ -144,10 +144,10 @@ fn request_babe_current_block_randomness_increments_request_counter() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(Randomness::request_count(), 0);
-			let request = build_default_request(RequestType::BabeEpoch(16u64));
+			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 1);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestType::Local(16));
 			assert_ok!(Randomness::request_randomness(request));
 			assert_eq!(Randomness::request_count(), 2);
 		});
@@ -159,7 +159,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 		.with_balances(vec![(ALICE, 60)])
 		.build()
 		.execute_with(|| {
-			let request = build_default_request(RequestType::BabeEpoch(16u64));
+			let request = build_default_request(RequestType::BabeEpoch(16));
 			assert_eq!(Randomness::requests(0), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -169,7 +169,7 @@ fn request_babe_current_block_randomness_inserts_request_state() {
 					deposit: 10,
 				})
 			);
-			let request = build_default_request(RequestType::Local(16u64));
+			let request = build_default_request(RequestType::Local(16));
 			assert_eq!(Randomness::requests(1), None);
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_eq!(
@@ -197,7 +197,7 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::BabeEpoch(16u64),
+				info: RequestType::BabeEpoch(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedBabeEpoch {
@@ -208,7 +208,7 @@ fn request_babe_one_epoch_ago_randomness_emits_event() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				earliest_epoch: 16u64,
+				earliest_epoch: 16,
 			});
 		});
 }
@@ -226,7 +226,7 @@ fn request_local_randomness_emits_event() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_event_emitted!(crate::Event::RandomnessRequestedLocal {
@@ -237,7 +237,7 @@ fn request_local_randomness_emits_event() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				earliest_block: 16u64,
+				earliest_block: 16,
 			});
 		});
 }
@@ -255,10 +255,10 @@ fn request_randomness_adds_new_randomness_result() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
-			let result = Randomness::randomness_results(RequestType::Local(16u64)).unwrap();
+			let result = Randomness::randomness_results(RequestType::Local(16)).unwrap();
 			assert_eq!(result.request_count, 1u64);
 			assert!(result.randomness.is_none());
 		});
@@ -277,11 +277,11 @@ fn request_randomness_increments_randomness_result() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
-			let result = Randomness::randomness_results(RequestType::Local(16u64)).unwrap();
+			let result = Randomness::randomness_results(RequestType::Local(16)).unwrap();
 			assert_eq!(result.request_count, 2u64);
 			assert!(result.randomness.is_none());
 		});
@@ -302,14 +302,14 @@ fn prepare_fulfillment_for_local_works() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), result);
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), result);
 			assert_ok!(Randomness::prepare_fulfillment(0u64));
 		});
 }
@@ -327,7 +327,7 @@ fn prepare_fulfillment_fails_before_can_be_fulfilled() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
@@ -361,17 +361,17 @@ fn prepare_fulfillment_uses_randomness_result_without_updating_count() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut pre_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			pre_result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), pre_result);
 			assert_ok!(Randomness::prepare_fulfillment(0u64));
 			let post_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			assert_eq!(post_result.request_count, 1);
 		});
 }
@@ -391,15 +391,15 @@ fn finish_fulfillment_removes_request_from_storage() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut pre_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			pre_result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), pre_result);
 			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
 			Randomness::finish_fulfillment(
 				1u64,
@@ -425,14 +425,14 @@ fn finish_fulfillment_refunds_refund_address_with_excess_and_caller_with_cost_of
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut pre_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			pre_result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), pre_result);
 			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
 			Randomness::finish_fulfillment(
 				1u64,
@@ -461,18 +461,18 @@ fn finish_fulfillment_decrements_randomness_result_and_keeps_in_storage_if_not_l
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request.clone()));
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut pre_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			pre_result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), pre_result);
 			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
 			assert_eq!(
-				Randomness::randomness_results(RequestType::Local(16u64))
+				Randomness::randomness_results(RequestType::Local(16))
 					.unwrap()
 					.request_count,
 				2
@@ -485,7 +485,7 @@ fn finish_fulfillment_decrements_randomness_result_and_keeps_in_storage_if_not_l
 				5,
 			);
 			assert_eq!(
-				Randomness::randomness_results(RequestType::Local(16u64))
+				Randomness::randomness_results(RequestType::Local(16))
 					.unwrap()
 					.request_count,
 				1
@@ -506,17 +506,17 @@ fn finish_fulfillment_decrements_randomness_result_and_removes_from_storage_if_l
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
-			System::set_block_number(16u64);
+			System::set_block_number(16);
 			let mut pre_result =
-				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16u64)).unwrap();
+				crate::pallet::RandomnessResults::<Test>::get(RequestType::Local(16)).unwrap();
 			pre_result.randomness = Some(H256::default());
-			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16u64), pre_result);
-			let fulfill_args = Randomness::prepare_fulfillment(0u64).unwrap();
+			crate::pallet::RandomnessResults::<Test>::insert(RequestType::Local(16), pre_result);
+			let fulfill_args = Randomness::prepare_fulfillment(0).unwrap();
 			assert_eq!(
-				Randomness::randomness_results(RequestType::Local(16u64))
+				Randomness::randomness_results(RequestType::Local(16))
 					.unwrap()
 					.request_count,
 				1
@@ -528,7 +528,7 @@ fn finish_fulfillment_decrements_randomness_result_and_removes_from_storage_if_l
 				&ALICE,
 				5,
 			);
-			assert!(Randomness::randomness_results(RequestType::Local(16u64)).is_none());
+			assert!(Randomness::randomness_results(RequestType::Local(16)).is_none());
 		});
 }
 
@@ -557,7 +557,7 @@ fn non_requester_cannot_increase_fee() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_noop!(
@@ -580,7 +580,7 @@ fn increase_request_fee_transfers_from_caller_and_updates_request_state_fee() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_ok!(Randomness::increase_request_fee(&ALICE, 0u64, 6));
@@ -604,7 +604,7 @@ fn increase_request_fee_fails_if_insufficient_balance() {
 				gas_limit: 100u64,
 				num_words: 1u8,
 				salt: H256::default(),
-				info: RequestType::Local(16u64),
+				info: RequestType::Local(16),
 			};
 			assert_ok!(Randomness::request_randomness(request));
 			assert_noop!(
@@ -637,7 +637,7 @@ fn execute_request_expiration_fails_before_request_expiration() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
-				RequestType::BabeEpoch(16u64)
+				RequestType::BabeEpoch(16)
 			)));
 			assert_noop!(
 				Randomness::execute_request_expiration(&ALICE, 0u64),
@@ -653,7 +653,7 @@ fn execute_request_expiration_removes_request() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
-				RequestType::BabeEpoch(16u64)
+				RequestType::BabeEpoch(16)
 			)));
 			// increase epoch to expiry
 			crate::pallet::RelayEpoch::<Test>::put(20u64);
@@ -671,14 +671,14 @@ fn execute_request_expiration_removes_result() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
-				RequestType::BabeEpoch(16u64)
+				RequestType::BabeEpoch(16)
 			)));
 			// increase epoch to expiry
 			crate::pallet::RelayEpoch::<Test>::put(20u64);
-			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_some());
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16)).is_some());
 			// execute expiry
 			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));
-			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16u64)).is_none());
+			assert!(Randomness::randomness_results(RequestType::BabeEpoch(16)).is_none());
 		});
 }
 
@@ -689,7 +689,7 @@ fn execute_request_expiration_returns_deposit_to_contract_address_and_fees_to_ca
 		.build()
 		.execute_with(|| {
 			assert_ok!(Randomness::request_randomness(build_default_request(
-				RequestType::BabeEpoch(16u64)
+				RequestType::BabeEpoch(16)
 			)));
 			crate::pallet::RelayEpoch::<Test>::put(20u64);
 			assert_ok!(Randomness::execute_request_expiration(&BOB, 0u64));

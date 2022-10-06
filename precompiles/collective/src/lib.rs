@@ -19,12 +19,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use core::marker::PhantomData;
-use fp_evm::{Log, Precompile, PrecompileOutput};
+use fp_evm::Log;
 use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, Pays, PostDispatchInfo},
+	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -85,47 +85,9 @@ pub fn log_closed(address: impl Into<H160>, hash: H256) -> Log {
 
 type GetProposalLimit = ConstU32<{ 2u32.pow(16) }>;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	Execute = "execute(bytes)",
-	Propose = "propose(uint32,bytes)",
-	Vote = "vote(bytes32,uint32,bool)",
-	Close = "close(bytes32,uint32,uint64,uint32)",
-	ProposalHash = "proposalHash(bytes)",
-}
-
 pub struct CollectivePrecompile<Runtime, Instance: 'static>(PhantomData<(Runtime, Instance)>);
 
-impl<Runtime, Instance> Precompile for CollectivePrecompile<Runtime, Instance>
-where
-	Instance: 'static,
-	Runtime: pallet_collective::Config<Instance> + pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo + Decode,
-	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
-	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	H256: From<<Runtime as frame_system::Config>::Hash>
-		+ Into<<Runtime as frame_system::Config>::Hash>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::ProposalHash => FunctionModifier::View,
-			_ => FunctionModifier::NonPayable,
-		})?;
-
-		match selector {
-			Action::Execute => Self::contract_execute(handle),
-			Action::Propose => Self::propose(handle),
-			Action::Vote => Self::vote(handle),
-			Action::Close => Self::close(handle),
-			Action::ProposalHash => Self::proposal_hash(handle),
-		}
-	}
-}
-
+#[precompile_utils::precompile]
 impl<Runtime, Instance> CollectivePrecompile<Runtime, Instance>
 where
 	Instance: 'static,
@@ -134,15 +96,16 @@ where
 	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
 {
-	fn contract_execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal: BoundedBytes<GetProposalLimit>
-		});
-
-		let proposal: Vec<_> = proposal.into_vec();
+	#[precompile::public("execute(bytes)")]
+	fn execute(
+		handle: &mut impl PrecompileHandle,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult {
+		let proposal: Vec<_> = proposal.into();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
@@ -170,18 +133,18 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(())
 	}
 
-	fn propose(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("propose(uint32,bytes)")]
+	fn propose(
+		handle: &mut impl PrecompileHandle,
+		threshold: u32,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult<u32> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		read_args!(handle, {
-			threshold: u32,
-			proposal: BoundedBytes<GetProposalLimit>
-		});
-
-		let proposal: Vec<_> = proposal.into_vec();
+		let proposal: Vec<_> = proposal.into();
 		let proposal_length: u32 = proposal.len().try_into().map_err(|_| {
 			RevertReason::value_is_too_large("uint32")
 				.in_field("length")
@@ -225,16 +188,16 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(EvmDataWriter::new().write(proposal_index).build()))
+		Ok(proposal_index)
 	}
 
-	fn vote(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal_hash: H256,
-			proposal_index: u32,
-			approve: bool
-		});
-
+	#[precompile::public("vote(bytes32,uint32,bool)")]
+	fn vote(
+		handle: &mut impl PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		approve: bool,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -258,17 +221,17 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(&[]))
+		Ok(())
 	}
 
-	fn close(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal_hash: H256,
-			proposal_index: u32,
-			proposal_weight_bound: u64,
-			length_bound: u32
-		});
-
+	#[precompile::public("close(bytes32,uint32,uint64,uint32)")]
+	fn close(
+		handle: &mut impl PrecompileHandle,
+		proposal_hash: H256,
+		proposal_index: u32,
+		proposal_weight_bound: u64,
+		length_bound: u32,
+	) -> EvmResult<bool> {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let post_dispatch_info = RuntimeHelper::<Runtime>::try_dispatch(
 			handle,
@@ -276,7 +239,7 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound,
+				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
 				length_bound,
 			},
 		)?;
@@ -290,17 +253,65 @@ where
 		handle.record_log_costs(&[&log])?;
 		log.record(handle)?;
 
-		Ok(succeed(EvmDataWriter::new().write(executed).build()))
+		Ok(executed)
 	}
 
-	fn proposal_hash(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, {
-			proposal: BoundedBytes<GetProposalLimit>
-		});
+	#[precompile::public("proposalHash(bytes)")]
+	#[precompile::view]
+	fn proposal_hash(
+		_handle: &mut impl PrecompileHandle,
+		proposal: BoundedBytes<GetProposalLimit>,
+	) -> EvmResult<H256> {
+		let proposal: Vec<_> = proposal.into();
+		let hash = hash::<Runtime>(&proposal);
 
-		let hash = hash::<Runtime>(&proposal.into_vec());
+		Ok(hash)
+	}
 
-		Ok(succeed(EvmDataWriter::new().write(hash).build()))
+	#[precompile::public("proposals()")]
+	#[precompile::view]
+	fn proposals(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<H256>> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let proposals = pallet_collective::Pallet::<Runtime, Instance>::proposals();
+		let proposals: Vec<_> = proposals.into_iter().map(|hash| hash.into()).collect();
+
+		Ok(proposals)
+	}
+
+	#[precompile::public("members()")]
+	#[precompile::view]
+	fn members(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Address>> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let members = pallet_collective::Pallet::<Runtime, Instance>::members();
+		let members: Vec<_> = members.into_iter().map(|id| Address(id.into())).collect();
+
+		Ok(members)
+	}
+
+	#[precompile::public("isMember(address)")]
+	#[precompile::view]
+	fn is_member(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult<bool> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let account = Runtime::AddressMapping::into_account_id(account.into());
+
+		let is_member = pallet_collective::Pallet::<Runtime, Instance>::is_member(&account);
+
+		Ok(is_member)
+	}
+
+	#[precompile::public("prime()")]
+	#[precompile::view]
+	fn prime(handle: &mut impl PrecompileHandle) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let prime = pallet_collective::Pallet::<Runtime, Instance>::prime()
+			.map(|prime| prime.into())
+			.unwrap_or(H160::zero());
+
+		Ok(Address(prime))
 	}
 }
 

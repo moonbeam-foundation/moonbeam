@@ -25,27 +25,27 @@ use sp_std::marker::PhantomData;
 pub struct WeightInfo<T>(PhantomData<T>);
 impl<T: frame_system::Config> WeightInfo<T> {
 	pub(crate) fn withdraw_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn transfer_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn transfer_reserve_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn receive_teleported_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn deposit_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn deposit_reserve_asset() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn initiate_teleport() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 	pub(crate) fn reserve_asset_deposited() -> Weight {
-		200_000_000u64
+		Weight::from_ref_time(200_000_000 as u64)
 	}
 }

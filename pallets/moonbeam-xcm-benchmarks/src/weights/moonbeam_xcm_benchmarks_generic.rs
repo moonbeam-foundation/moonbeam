@@ -98,9 +98,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn query_holding() -> Weight {
-		(30_391_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(30_391_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:0)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:1 w:0)
@@ -108,44 +108,44 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn buy_execution() -> Weight {
-		(68_188_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+		Weight::from_ref_time(68_188_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(4 as u64))
 	}
 	// Storage: PolkadotXcm Queries (r:1 w:0)
 	#[rustfmt::skip]
 	fn query_response() -> Weight {
-		(21_259_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(21_259_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact() -> Weight {
-		(28_878_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(28_878_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn refund_surplus() -> Weight {
-		(6_668_000 as Weight)
+		Weight::from_ref_time(6_668_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn set_error_handler() -> Weight {
-		(5_993_000 as Weight)
+		Weight::from_ref_time(5_993_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn set_appendix() -> Weight {
-		(5_980_000 as Weight)
+		Weight::from_ref_time(5_980_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn clear_error() -> Weight {
-		(5_906_000 as Weight)
+		Weight::from_ref_time(5_906_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn descend_origin() -> Weight {
-		(6_913_000 as Weight)
+		Weight::from_ref_time(6_913_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn clear_origin() -> Weight {
-		(6_023_000 as Weight)
+		Weight::from_ref_time(6_023_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -154,20 +154,20 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn report_error() -> Weight {
-		(22_667_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(22_667_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 	// Storage: PolkadotXcm AssetTraps (r:1 w:1)
 	#[rustfmt::skip]
 	fn claim_asset() -> Weight {
-		(13_232_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(1 as Weight))
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(13_232_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn trap() -> Weight {
-		(5_972_000 as Weight)
+		Weight::from_ref_time(5_972_000 as u64)
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:1 w:1)
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
@@ -177,15 +177,15 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn subscribe_version() -> Weight {
-		(28_261_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(6 as Weight))
-			.saturating_add(T::DbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(28_261_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:0 w:1)
 	#[rustfmt::skip]
 	fn unsubscribe_version() -> Weight {
-		(9_491_000 as Weight)
-			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(9_491_000 as u64)
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -194,9 +194,9 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn initiate_reserve_withdraw() -> Weight {
-		(31_233_000 as Weight)
-			.saturating_add(T::DbWeight::get().reads(5 as Weight))
-			.saturating_add(T::DbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(31_233_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(5 as u64))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 	}
 }
 
@@ -209,9 +209,9 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn query_holding() -> Weight {
-		(30_391_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(30_391_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: AssetManager SupportedFeePaymentAssets (r:1 w:0)
 	// Storage: AssetManager AssetTypeUnitsPerSecond (r:1 w:0)
@@ -219,44 +219,44 @@ impl WeightInfo for () {
 	// Storage: Assets Asset (r:1 w:0)
 	#[rustfmt::skip]
 	fn buy_execution() -> Weight {
-		(68_188_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+		Weight::from_ref_time(68_188_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(4 as u64))
 	}
 	// Storage: PolkadotXcm Queries (r:1 w:0)
 	#[rustfmt::skip]
 	fn query_response() -> Weight {
-		(21_259_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(21_259_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
 	}
 	// Storage: MaintenanceMode MaintenanceMode (r:1 w:0)
 	#[rustfmt::skip]
 	fn transact() -> Weight {
-		(28_878_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
+		Weight::from_ref_time(28_878_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn refund_surplus() -> Weight {
-		(6_668_000 as Weight)
+		Weight::from_ref_time(6_668_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn set_error_handler() -> Weight {
-		(5_993_000 as Weight)
+		Weight::from_ref_time(5_993_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn set_appendix() -> Weight {
-		(5_980_000 as Weight)
+		Weight::from_ref_time(5_980_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn clear_error() -> Weight {
-		(5_906_000 as Weight)
+		Weight::from_ref_time(5_906_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn descend_origin() -> Weight {
-		(6_913_000 as Weight)
+		Weight::from_ref_time(6_913_000 as u64)
 	}
 	#[rustfmt::skip]
 	fn clear_origin() -> Weight {
-		(6_023_000 as Weight)
+		Weight::from_ref_time(6_023_000 as u64)
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -265,20 +265,20 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn report_error() -> Weight {
-		(22_667_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(22_667_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 	// Storage: PolkadotXcm AssetTraps (r:1 w:1)
 	#[rustfmt::skip]
 	fn claim_asset() -> Weight {
-		(13_232_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(1 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(13_232_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	#[rustfmt::skip]
 	fn trap() -> Weight {
-		(5_972_000 as Weight)
+		Weight::from_ref_time(5_972_000 as u64)
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:1 w:1)
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
@@ -288,15 +288,15 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn subscribe_version() -> Weight {
-		(28_261_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(6 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(3 as Weight))
+		Weight::from_ref_time(28_261_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 	}
 	// Storage: PolkadotXcm VersionNotifyTargets (r:0 w:1)
 	#[rustfmt::skip]
 	fn unsubscribe_version() -> Weight {
-		(9_491_000 as Weight)
-			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+		Weight::from_ref_time(9_491_000 as u64)
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 	// Storage: PolkadotXcm SupportedVersion (r:1 w:0)
 	// Storage: PolkadotXcm VersionDiscoveryQueue (r:1 w:1)
@@ -305,8 +305,8 @@ impl WeightInfo for () {
 	// Storage: ParachainSystem PendingUpwardMessages (r:1 w:1)
 	#[rustfmt::skip]
 	fn initiate_reserve_withdraw() -> Weight {
-		(31_233_000 as Weight)
-			.saturating_add(RocksDbWeight::get().reads(5 as Weight))
-			.saturating_add(RocksDbWeight::get().writes(2 as Weight))
+		Weight::from_ref_time(31_233_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(5 as u64))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 	}
 }
