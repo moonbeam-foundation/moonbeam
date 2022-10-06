@@ -196,8 +196,8 @@ pub mod pallet {
 				// a lower limit.
 				// Otherwise, we should still have a lower limit, and implement a multi-block clear
 				// by using the return value of clear_prefix for subsequent blocks.
-				let _result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
-				T::DbWeight::get().reads_writes(1, 1)
+				let result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
+				T::WeightInfo::on_initialize(result.unique)
 			} else {
 				T::DbWeight::get().reads(1)
 			}
@@ -453,6 +453,7 @@ pub mod pallet {
 						maybe_old_orbiter,
 						maybe_next_orbiter,
 					} = pool.rotate_orbiter();
+
 					// remove old orbiter, if any.
 					if let Some(CurrentOrbiter {
 						account_id: ref current_orbiter,
@@ -475,6 +476,7 @@ pub mod pallet {
 							Option::<T::AccountId>::None,
 						);
 						writes += 1;
+
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),
@@ -516,9 +518,11 @@ pub mod pallet {
 
 			if ForceRotation::<T>::get() {
 				ForceRotation::<T>::put(false);
-				Self::on_rotate(round_index) + T::DbWeight::get().writes(2)
+				let _ = Self::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
-				Self::on_rotate(round_index).saturating_add(T::DbWeight::get().writes(1))
+				let _ = Self::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} else {
 				T::DbWeight::get().writes(1)
 			}
@@ -542,19 +546,9 @@ pub mod pallet {
 							account: orbiter,
 							rewards: real_reward,
 						});
-						// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw + resolve_into_existing
-						T::DbWeight::get().reads_writes(2, 3)
-					} else {
-						// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw
-						T::DbWeight::get().reads_writes(2, 2)
 					}
-				} else {
-					// reads: withdraw
-					// writes: take
-					T::DbWeight::get().reads_writes(1, 1)
 				}
+				T::WeightInfo::distribute_rewards()
 			} else {
 				// writes: take
 				T::DbWeight::get().writes(1)
