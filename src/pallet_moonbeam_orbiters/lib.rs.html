@@ -566,12 +566,6 @@
 <span id="566">566</span>
 <span id="567">567</span>
 <span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -770,8 +764,8 @@
 				// a lower limit.
 				// Otherwise, we should still have a lower limit, and implement a multi-block clear
 				// by using the return value of clear_prefix for subsequent blocks.
-				</span><span class="kw">let </span>_result = OrbiterPerRound::&lt;T&gt;::clear_prefix(round_to_prune, u32::MAX, <span class="prelude-val">None</span>);
-				T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
+				</span><span class="kw">let </span>result = OrbiterPerRound::&lt;T&gt;::clear_prefix(round_to_prune, u32::MAX, <span class="prelude-val">None</span>);
+				T::WeightInfo::on_initialize(result.unique)
 			} <span class="kw">else </span>{
 				T::DbWeight::get().reads(<span class="number">1</span>)
 			}
@@ -1027,6 +1021,7 @@
 						maybe_old_orbiter,
 						maybe_next_orbiter,
 					} = pool.rotate_orbiter();
+
 					<span class="comment">// remove old orbiter, if any.
 					</span><span class="kw">if let </span><span class="prelude-val">Some</span>(CurrentOrbiter {
 						account_id: <span class="kw-2">ref </span>current_orbiter,
@@ -1049,6 +1044,7 @@
 							<span class="prelude-ty">Option</span>::&lt;T::AccountId&gt;::None,
 						);
 						writes += <span class="number">1</span>;
+
 						<span class="comment">// Insert new current orbiter
 						</span>AccountLookupOverride::&lt;T&gt;::insert(
 							next_orbiter.clone(),
@@ -1090,9 +1086,11 @@
 
 			<span class="kw">if </span>ForceRotation::&lt;T&gt;::get() {
 				ForceRotation::&lt;T&gt;::put(<span class="bool-val">false</span>);
-				<span class="self">Self</span>::on_rotate(round_index) + T::DbWeight::get().writes(<span class="number">2</span>)
+				<span class="kw">let _ </span>= <span class="self">Self</span>::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} <span class="kw">else if </span>round_index % T::RotatePeriod::get() == Zero::zero() {
-				<span class="self">Self</span>::on_rotate(round_index).saturating_add(T::DbWeight::get().writes(<span class="number">1</span>))
+				<span class="kw">let _ </span>= <span class="self">Self</span>::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} <span class="kw">else </span>{
 				T::DbWeight::get().writes(<span class="number">1</span>)
 			}
@@ -1116,19 +1114,9 @@
 							account: orbiter,
 							rewards: real_reward,
 						});
-						<span class="comment">// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw + resolve_into_existing
-						</span>T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">3</span>)
-					} <span class="kw">else </span>{
-						<span class="comment">// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw
-						</span>T::DbWeight::get().reads_writes(<span class="number">2</span>, <span class="number">2</span>)
 					}
-				} <span class="kw">else </span>{
-					<span class="comment">// reads: withdraw
-					// writes: take
-					</span>T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>)
 				}
+				T::WeightInfo::distribute_rewards()
 			} <span class="kw">else </span>{
 				<span class="comment">// writes: take
 				</span>T::DbWeight::get().writes(<span class="number">1</span>)
