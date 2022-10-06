@@ -1,10 +1,11 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { BN } from "@polkadot/util";
+import { BN, BN_BILLION } from "@polkadot/util";
 import { u128, u32 } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { HexString } from "@polkadot/util/types";
 const debug = require("debug")("smoke:staking");
 
 const wssUrl = process.env.WSS_URL || null;
@@ -31,6 +32,10 @@ async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: numbe
 }
 
 async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
+  const latestBlock = await api.rpc.chain.getBlock();
+  const latestBlockHash = latestBlock.block.hash;
+  const latestBlockNumber = latestBlock.block.header.number.toNumber();
+  const latestRound = await (await api.at(latestBlock.block.hash)).query.parachainStaking.round();
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
   const nowRound = await (await api.at(nowBlockHash)).query.parachainStaking.round();
   const nowRoundNumber = nowRound.current;
@@ -39,7 +44,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtRewarded = await api.at(nowRoundFirstBlockHash);
   const rewardDelay = apiAtRewarded.consts.parachainStaking.rewardPaymentDelay;
   const priorRewardedBlockHash = await api.rpc.chain.getBlockHash(nowRoundFirstBlock.subn(1));
-  const _specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
+  const specVersion = (await apiAtRewarded.query.system.lastRuntimeUpgrade())
     .unwrap()
     .specVersion.toNumber();
 
@@ -67,6 +72,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
   const apiAtOriginal = await api.at(originalRoundPriorBlockHash);
 
   debug(`
+  latest  ${latestRound.current.toString()} (${latestBlockNumber} / ${latestBlockHash.toHex()})
   now     ${nowRound.current.toString()} (${nowBlockNumber} / ${nowBlockHash.toHex()})
   round   ${originalRoundNumber.toString()} (prior round last block \
   ${originalRoundPriorBlock} / ${originalRoundPriorBlockHash.toHex()})
@@ -110,6 +116,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         .unwrap()
         .delegations.map((d) => d.owner.toHex())
     );
+    let countedDelegationSum = new BN(0);
     for (const { owner, amount } of delegations) {
       if (!topDelegations.has(owner.toHex())) {
         continue;
@@ -120,6 +127,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         id: id,
         amount: amount,
       };
+      countedDelegationSum = countedDelegationSum.add(amount);
     }
 
     for (const topDelegation of topDelegations) {
@@ -170,6 +178,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       return range.ideal;
     }
   })();
+  const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(totalRoundIssuance);
 
   // calculate total staking reward
   const firstBlockRewardedEvents = await apiAtRewarded.query.system.events();
@@ -185,6 +194,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     }
   }
 
+  // total expected staking reward minus the amount reserved for parachain bond
   const totalStakingReward = (function () {
     const parachainBondReward = parachainBondPercent.of(totalRoundIssuance);
     if (!reservedForParachainBond.isZero()) {
@@ -199,6 +209,7 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
     return totalRoundIssuance;
   })();
+  const totalBondReward = totalStakingReward.sub(totalCollatorCommissionReward);
 
   const delayedPayout = (
     await apiAtRewarded.query.parachainStaking.delayedPayouts(originalRoundNumber)
@@ -210,32 +221,59 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
-  // verify rewards
-  const latestBlock = await api.rpc.chain.getBlock();
-  const latestRoundNumber = latestBlock.block.header.number.toNumber();
+  debug(`totalRoundIssuance            ${totalRoundIssuance.toString()}
+reservedForParachainBond      ${reservedForParachainBond} \
+(${parachainBondPercent} * totalRoundIssuance)
+totalCollatorCommissionReward ${totalCollatorCommissionReward.toString()} \
+(${collatorCommissionRate} * totalRoundIssuance)
+totalStakingReward            ${totalStakingReward} \
+(totalRoundIssuance - reservedForParachainBond)
+totalBondReward               ${totalBondReward} \
+(totalStakingReward - totalCollatorCommissionReward)`);
+
+  // get the collators to be awarded via `awardedPts` storage
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
   ).map((awarded) => awarded.args[1].toHex());
-
   const awardedCollatorCount = awardedCollators.length;
 
-  const maxRoundChecks = Math.min(latestRoundNumber - nowBlockNumber + 1, awardedCollatorCount);
+  // compute max rounds respecting the current block number and the number of awarded collators
+  const maxRoundChecks = Math.min(latestBlockNumber - nowBlockNumber + 1, awardedCollatorCount);
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
-  const rewardedCollators = new Set<`0x${string}`>();
+  const rewardedCollators = new Set<HexString>();
+  let totalRewardedAmount = new BN(0);
+
+  // accumulate collator share percentages
+  let totalCollatorShare = new BN(0);
+  // accumulate amount lost while distributing rewards to delegators per collator
+  let totalBondRewardedLoss = new BN(0);
+  // accumulate total rewards given to collators & delegators due to bonding
+  let totalBondRewarded = new BN(0);
+  // accumulate total commission rewards per collator
+  let totalCollatorCommissionRewarded = new BN(0);
+
+  // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
     const rewarded = await assertRewardedEventsAtBlock(
       api,
+      specVersion,
       blockNumber,
       delegators,
       collators,
-      collatorCommissionRate,
-      totalRoundIssuance,
+      totalCollatorCommissionReward,
       totalPoints,
       totalStakingReward,
       stakedValue
     );
+    totalCollatorShare = totalCollatorShare.add(rewarded.collatorSharePerbill);
+    totalCollatorCommissionRewarded = totalCollatorCommissionRewarded.add(
+      rewarded.amount.commissionReward
+    );
+    totalRewardedAmount = totalRewardedAmount.add(rewarded.amount.total);
+    totalBondRewarded = totalBondRewarded.add(rewarded.amount.bondReward);
+    totalBondRewardedLoss = totalBondRewardedLoss.add(rewarded.amount.bondRewardLoss);
 
     expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
@@ -266,6 +304,58 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
     ).to.be.empty;
   }
 
+  // check reward amount with losses due to Perbill arithmetic
+  if (specVersion >= 1800) {
+    // Perbill arithmetic can deviate at most ±1 per operation so we use the number of collators
+    // to compute the max deviation per billion
+    const maxDifference = awardedCollatorCount;
+
+    // assert rewarded amounts match (with loss due to Perbill arithmetic)
+    const estimatedCommissionRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare)).of(
+      totalCollatorCommissionReward
+    );
+    const actualCommissionRewardedLoss = totalCollatorCommissionReward.sub(
+      totalCollatorCommissionRewarded
+    );
+    const commissionRewardLoss = estimatedCommissionRewardedLoss
+      .sub(actualCommissionRewardedLoss)
+      .abs();
+    expect(
+      commissionRewardLoss.lten(maxDifference),
+      `Total commission rewarded share loss was above ${maxDifference} parts per billion, \
+got "${commissionRewardLoss}", estimated loss ${estimatedCommissionRewardedLoss.toString()}, \
+actual loss ${actualCommissionRewardedLoss.toString()}`
+    ).to.be.true;
+
+    // we add the two estimated losses, since the totalBondReward is always split between N
+    // collators, which then split the reward again between the all the delegators
+    const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalCollatorShare))
+      .of(totalBondReward)
+      .add(totalBondRewardedLoss);
+    const actualBondRewardedLoss = totalBondReward.sub(totalBondRewarded);
+    const bondRewardedLoss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
+    expect(
+      bondRewardedLoss.lten(maxDifference),
+      `Total bond rewarded share loss was above ${maxDifference} parts per billion, \
+got "${bondRewardedLoss}", estimated loss ${estimatedBondRewardedLoss.toString()}, \
+actual loss ${actualBondRewardedLoss.toString()}`
+    ).to.be.true;
+
+    // calculate total rewarded amount including the amount lost to Perbill arithmetic
+    const actualTotalRewardedWithLoss = totalRewardedAmount
+      .add(actualCommissionRewardedLoss)
+      .add(actualBondRewardedLoss);
+
+    // check that sum of all reward transfers is equal to total expected staking reward
+    expect(actualTotalRewardedWithLoss.toString()).to.equal(
+      totalStakingReward.toString(),
+      `Total rewarded events did not match total expected issuance for collators & delegators, \
+      diff of "${actualTotalRewardedWithLoss
+        .sub(totalStakingReward)
+        .toString()}" for round ${originalRoundNumber}`
+    );
+  }
+
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
   );
@@ -288,11 +378,11 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
 
 async function assertRewardedEventsAtBlock(
   api: ApiPromise,
+  specVersion: number,
   rewardedBlockNumber: BN,
   delegators: Set<string>,
   collators: Set<string>,
-  collatorCommissionRate: BN,
-  totalRoundIssuance: BN,
+  totalCollatorCommissionReward: BN,
   totalPoints: u32,
   totalStakingReward: BN,
   stakedValue: StakedValue
@@ -301,7 +391,7 @@ async function assertRewardedEventsAtBlock(
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
-  const rewards: { [key: `0x${string}`]: { account: string; amount: u128 } } = {};
+  const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
   const blockEvents = await apiAtBlock.query.system.events();
   let rewardCount = 0;
   for (const { phase, event } of blockEvents) {
@@ -319,32 +409,48 @@ async function assertRewardedEventsAtBlock(
   }
   expect(rewardCount).to.equal(Object.keys(rewards).length, "reward count mismatch");
 
-  let delegationReward: BN = new BN(0);
+  let bondReward: BN = new BN(0);
   let collatorInfo: any = {};
   let rewarded = {
-    collator: null as `0x${string}`,
+    collator: null as HexString,
     delegators: new Set<string>(),
+    collatorSharePerbill: new BN(0),
+    amount: {
+      total: new BN(0),
+      commissionReward: new BN(0),
+      bondReward: new BN(0),
+      bondRewardLoss: new BN(0),
+    },
   };
+  let totalBondRewardShare = new BN(0);
 
-  for (const accountId of Object.keys(rewards) as `0x${string}`[]) {
+  for (const accountId of Object.keys(rewards) as HexString[]) {
+    rewarded.amount.total = rewarded.amount.total.add(rewards[accountId].amount);
+
     if (collators.has(accountId)) {
       // collator is always paid first so this is guaranteed to execute first
       collatorInfo = stakedValue[accountId];
-      const totalCollatorCommissionReward = new Perbill(collatorCommissionRate).of(
-        totalRoundIssuance
-      );
+
       const pointsShare = new Perbill(collatorInfo.points, totalPoints);
       const collatorReward = pointsShare.of(totalStakingReward);
+      rewarded.collatorSharePerbill = pointsShare.value();
+      const collatorCommissionReward = pointsShare.of(totalCollatorCommissionReward);
+      rewarded.amount.commissionReward = collatorCommissionReward;
+      bondReward = collatorReward.sub(collatorCommissionReward);
 
       if (!stakedValue[accountId].delegators) {
         assertEqualWithAccount(rewards[accountId].amount, collatorReward, `${accountId} (COL)`);
       } else {
-        const collatorCommissionReward = pointsShare.of(totalCollatorCommissionReward);
-        delegationReward = collatorReward.sub(collatorCommissionReward);
         const bondShare = new Perbill(collatorInfo.bond, collatorInfo.total);
-        const collatorBondReward = bondShare.of(delegationReward);
-        const candidateReward = collatorBondReward.add(collatorCommissionReward);
-        assertEqualWithAccount(rewards[accountId].amount, candidateReward, `${accountId} (COL)`);
+        totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
+        const collatorBondReward = bondShare.of(bondReward);
+        rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
+        const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
+        assertEqualWithAccount(
+          rewards[accountId].amount,
+          collatorTotalReward,
+          `${accountId} (COL)`
+        );
       }
       rewarded.collator = accountId;
     } else if (delegators.has(accountId)) {
@@ -357,12 +463,35 @@ async function assertRewardedEventsAtBlock(
         continue;
       }
       const bondShare = new Perbill(collatorInfo.delegators[accountId].amount, collatorInfo.total);
-      const candidateReward = bondShare.of(delegationReward);
+      totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
+      const delegatorReward = bondShare.of(bondReward);
+      rewarded.amount.bondReward = rewarded.amount.bondReward.add(delegatorReward);
       rewarded.delegators.add(accountId);
-      assertEqualWithAccount(rewards[accountId].amount, candidateReward, `${accountId} (DEL)`);
+      assertEqualWithAccount(rewards[accountId].amount, delegatorReward, `${accountId} (DEL)`);
     } else {
       throw Error(`invalid key ${accountId}, neither collator not delegator`);
     }
+  }
+
+  if (specVersion >= 1800) {
+    // we calculate the share loss since adding all percentages will usually not yield a full 100%
+    const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
+      bondReward
+    );
+    const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
+
+    // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
+    // and the collator itself to compute the max deviation per billion
+    const maxDifference = rewarded.delegators.size + 1;
+    const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
+    expect(
+      loss.lten(maxDifference),
+      `Total bond rewarded share loss for collator "${rewarded.collator}" was above \
+${maxDifference} parts per billion, got diff "${loss}", estimated loss \
+${estimatedBondRewardedLoss}, actual loss ${actualBondRewardedLoss}`
+    ).to.be.true;
+
+    rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
   }
 
   return rewarded;
@@ -377,7 +506,25 @@ function assertEqualWithAccount(a: BN, b: BN, account: string) {
   ).to.be.true;
 }
 
-type Rewarded = { collator: `0x${string}` | null; delegators: Set<string> };
+type Rewarded = {
+  // Collator account id
+  collator: HexString | null;
+  // Set of delegator account ids
+  delegators: Set<string>;
+  // The percentage point share in Perbill of the collator
+  collatorSharePerbill: BN;
+  // The rewarded amount
+  amount: {
+    // Total rewarded
+    total: BN;
+    // Contribution of commission rewards towards the total
+    commissionReward: BN;
+    // Contribution of bond rewards towards the total
+    bondReward: BN;
+    // Portion of rewards lost due to Perbill arithmetic (sum of bond shares not 100%)
+    bondRewardLoss: BN;
+  };
+};
 
 type StakedValueData = {
   id: string;
@@ -404,8 +551,11 @@ class Perthing {
     }
   }
 
+  value(): BN {
+    return this.perthing;
+  }
+
   of(value: BN): BN {
-    // return this.perthing.mul(value).divRound(this.unit);
     return this.divNearest(this.perthing.mul(value), this.unit);
   }
 

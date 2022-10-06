@@ -41,9 +41,9 @@ use fp_evm::{ExitRevert, ExitSucceed, PrecompileFailure, PrecompileHandle, Preco
 
 pub mod data;
 
-pub use data::{Address, Bytes, EvmData, EvmDataReader, EvmDataWriter};
+pub use data::{EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
-pub use precompile_utils_macro::{generate_function_selector, keccak256};
+pub use precompile_utils_macro::{generate_function_selector, keccak256, precompile};
 
 /// Generated a `PrecompileFailure::Revert` with proper encoding for the output.
 /// If the revert needs improved formatting such as backtraces, `Revert` type should
@@ -58,7 +58,7 @@ pub fn revert(output: impl AsRef<[u8]>) -> PrecompileFailure {
 
 pub fn encoded_revert(output: impl AsRef<[u8]>) -> Vec<u8> {
 	EvmDataWriter::new_with_selector(revert::RevertSelector::Generic)
-		.write::<Bytes>(Bytes(output.as_ref().to_owned()))
+		.write::<data::UnboundedBytes>(output.as_ref().to_owned().into())
 		.build()
 }
 
@@ -89,17 +89,18 @@ pub mod prelude {
 	pub use {
 		crate::{
 			data::{
-				Address, BoundedBytes, BoundedVec, Bytes, EvmData, EvmDataReader, EvmDataWriter,
+				Address, BoundedBytes, BoundedString, BoundedVec, EvmData, EvmDataReader,
+				EvmDataWriter, SolidityConvert, UnboundedBytes, UnboundedString,
 			},
 			handle::PrecompileHandleExt,
 			logs::{log0, log1, log2, log3, log4, LogExt},
 			modifier::{check_function_modifier, FunctionModifier},
 			read_args, read_struct, revert,
 			revert::{BacktraceExt, InjectBacktrace, MayRevert, Revert, RevertExt, RevertReason},
-			substrate::RuntimeHelper,
+			substrate::{RuntimeHelper, TryDispatchError},
 			succeed, EvmResult, StatefulPrecompile,
 		},
-		pallet_evm::PrecompileHandle,
-		precompile_utils_macro::{generate_function_selector, keccak256},
+		pallet_evm::{PrecompileHandle, PrecompileOutput},
+		precompile_utils_macro::{generate_function_selector, keccak256, precompile},
 	};
 }

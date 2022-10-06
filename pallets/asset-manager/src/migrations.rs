@@ -22,7 +22,6 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat,
 };
-use sp_std::convert::TryInto;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
@@ -86,10 +85,7 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		.drain()
 		.collect();
 
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_count = stored_data.len() as u64;
 
 		log::info!(target: "UnitsWithForeignAssetType", "Migrating {:?} elements", migrated_count);
 
@@ -108,7 +104,8 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		// memory, a read to get ForeignAssetType and
 		// a write to clear the old stored value, and a write to re-store it.
 		let db_weights = T::DbWeight::get();
-		migrated_count.saturating_mul(2 * db_weights.write + 2 * db_weights.read)
+		let rw_count = migrated_count.saturating_mul(2u64);
+		db_weights.reads_writes(rw_count, rw_count)
 	}
 
 	#[cfg(feature = "try-runtime")]
@@ -205,10 +202,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_count = stored_data.len() as u64;
 
 		log::info!(
 			target: "PopulateAssetTypeIdStorage",
@@ -227,7 +221,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		// Return the weight used. For each migrated mapping there is a read to get it into
 		// memory,  and a write to populate the new storage.
 		let db_weights = T::DbWeight::get();
-		migrated_count.saturating_mul(db_weights.write + db_weights.read)
+		db_weights.reads_writes(migrated_count, migrated_count)
 	}
 
 	#[cfg(feature = "try-runtime")]
@@ -327,16 +321,13 @@ where
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 
-		let read_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let mut read_count = stored_data.len() as u64;
+		let mut write_count = 0u64;
 
 		log::info!(target: "ChangeStateminePrefixes", "Evaluating {:?} elements", read_count);
 
 		let db_weights = T::DbWeight::get();
 
-		let mut used_weight = read_count.saturating_mul(db_weights.read);
 		let statemine_para_id = StatemineParaIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 		// Write to the new storage
@@ -366,7 +357,7 @@ where
 						AssetTypeId::<T>::insert(&new_asset_type, asset_id);
 
 						// Update weight due to this branch
-						used_weight = used_weight.saturating_add(2 * db_weights.write);
+						write_count += 2;
 					}
 
 					// This is checked in case UnitsWithForeignAssetType runs first
@@ -375,12 +366,12 @@ where
 						AssetTypeUnitsPerSecond::<T>::insert(&new_asset_type, units);
 
 						// Update weight due to this branch
-						used_weight = used_weight.saturating_add(2 * db_weights.write);
+						write_count += 2;
 					}
 
 					// Update used weight
-					used_weight =
-						used_weight.saturating_add(db_weights.write + 2 * db_weights.read);
+					read_count += 2;
+					write_count += 1;
 				}
 				_ => continue,
 			}
@@ -389,7 +380,7 @@ where
 		log::info!(target: "ChangeStateminePrefixes", "almost done");
 
 		// Return the weight used.
-		used_weight
+		db_weights.reads_writes(read_count, write_count)
 	}
 
 	#[cfg(feature = "try-runtime")]
@@ -461,10 +452,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		)
 		.collect();
 
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_count = stored_data.len() as u64;
 
 		log::trace!(
 			target: "PopulateSupportedFeePaymentAssets",
@@ -493,8 +481,7 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		// memory
 		// A final one write makes it push to the new storage item
 		let db_weights = T::DbWeight::get();
-		let weight = migrated_count.saturating_mul(db_weights.read);
-		weight.saturating_add(db_weights.write)
+		db_weights.reads_writes(migrated_count, 1)
 	}
 
 	#[cfg(feature = "try-runtime")]

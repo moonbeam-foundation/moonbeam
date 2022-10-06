@@ -22,6 +22,7 @@ use cumulus_primitives_core::{
 };
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime,
 	dispatch::UnfilteredDispatchable,
@@ -35,14 +36,13 @@ use serde::{Deserialize, Serialize};
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
 pub type AccountId = H160;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -135,7 +135,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -149,7 +149,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = H160;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -184,12 +184,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	CrowdloanRewardsWrapper<R>: Precompile,
+	CrowdloanRewardsPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == Account::Precompile.into() => {
-				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
+				Some(CrowdloanRewardsPrecompile::<R>::execute(handle))
 			}
 			_ => None,
 		}
@@ -199,6 +199,8 @@ where
 		address == Account::Precompile.into()
 	}
 }
+
+pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
@@ -308,14 +310,14 @@ impl ExtBuilder {
 }
 
 //TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		// Relay chain Stuff. I might actually set this to a number different than N
 		let sproof_builder = RelayStateSproofBuilder::default();
 		let (relay_parent_storage_root, relay_chain_state) =
 			sproof_builder.into_state_root_and_proof();
 		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
+			relay_parent_number: (System::block_number() + 1) as RelayChainBlockNumber,
 			relay_parent_storage_root,
 			..Default::default()
 		};

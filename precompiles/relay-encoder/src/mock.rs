@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 
+use fp_evm::Precompile;
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, parameter_types};
 use pallet_evm::{
@@ -27,14 +28,13 @@ use serde::{Deserialize, Serialize};
 use sp_core::H160;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
 pub type AccountId = Account;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -115,7 +115,7 @@ impl From<H160> for Account {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -129,7 +129,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -181,12 +181,12 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
+	RelayEncoderPrecompile<R, test_relay_runtime::TestEncoder>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
 			a if a == H160::from_low_u64_be(1) => {
-				Some(RelayEncoderWrapper::<R, test_relay_runtime::TestEncoder>::execute(handle))
+				Some(RelayEncoderPrecompile::<R, test_relay_runtime::TestEncoder>::execute(handle))
 			}
 			_ => None,
 		}
@@ -196,6 +196,8 @@ where
 		address == H160::from_low_u64_be(1)
 	}
 }
+
+pub type PCall = RelayEncoderPrecompileCall<Runtime, test_relay_runtime::TestEncoder>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();

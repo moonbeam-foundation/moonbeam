@@ -70,10 +70,12 @@ jobs:
           node-version: 16.x
       - name: Generate release body
         id: generate-release-body
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd tools
           yarn
-          yarn -s run ts-node github/generate-release-body.ts --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
+          yarn -s run ts-node github/generate-release-body.ts --owner "${{ github.repository_owner }}" --repo "$(basename ${{ github.repository }})" --from "${{ github.event.inputs.from }}" --to "${{ github.event.inputs.to }}" --srtool-report-folder '../build/' > ../body.md
       - name: Create draft release
         id: create-release
         uses: actions/create-release@v1

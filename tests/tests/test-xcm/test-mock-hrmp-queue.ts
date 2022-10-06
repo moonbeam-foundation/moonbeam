@@ -1,10 +1,9 @@
 import "@moonbeam-network/api-augment";
 
-import { BN, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
-import { customWeb3Request } from "../../util/providers";
 import {
   mockHrmpChannelExistanceTx,
   injectHrmpMessageAndSeal,
@@ -15,8 +14,13 @@ import {
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { customWeb3Request } from "../../util/providers";
 
 import { expectOk } from "../../util/expect";
+import { XcmFragment } from "../../util/xcm";
+import { GLMR } from "../../util/constants";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
 // enum to mark how xcmp execution went
 enum XcmpExecution {
@@ -113,7 +117,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -124,44 +128,24 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // single messages.
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst) / weightPerXcmInst;
 
-    const xcmMessage = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-          ],
-        },
-        ...Array(Number(clearOriginsPerMessage)).fill({
-          ClearOrigin: null,
-        }),
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
-            },
-            weightLimit: { Limited: new BN(20000000000) },
           },
-        },
-      ],
-    };
+        ],
+        fungible: 1n,
+      },
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .clear_origin(clearOriginsPerMessage)
+      .buy_execution()
+      .as_v2();
 
     // We want these isntructions to fail in BuyExecution. That means
     // WithdrawAsset needs to work. The only way for this to work
@@ -191,7 +175,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * weightPerXcmInst;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -253,7 +237,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
+    const weightPerXcmInst = 200_000_000n;
     // Now we need to construct the message. This needs to:
     // - pass barrier (withdraw + clearOrigin*n buyExecution)
     // - fail in buyExecution, so that the previous instruction weights are counted
@@ -268,44 +252,24 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // for that reason, we multiply times 2
     const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
 
-    let xcmMessage = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
+    const xcmMessage = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-          ],
-        },
-        ...Array(Number(clearOriginsPerMessage)).fill({
-          ClearOrigin: null,
-        }),
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
-            },
-            weightLimit: { Limited: new BN(20000000000) },
           },
-        },
-      ],
-    };
+        ],
+        fungible: 1n,
+      },
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .clear_origin(clearOriginsPerMessage)
+      .buy_execution()
+      .as_v2();
 
     // We want these isntructions to fail in BuyExecution. That means
     // WithdrawAsset needs to work. The only way for this to work
@@ -335,7 +299,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     await context.createBlock();
 
     // all the withdraws + clear origins `buyExecution
-    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * 100_000_000n;
+    const weightUsePerMessage = (clearOriginsPerMessage + 2n) * weightPerXcmInst;
 
     // in this case, we have some that will execute on_initialize
     // some that will fail the execution
@@ -389,76 +353,41 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    const xcmMessageNotExecuted = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
+    const xcmMessageNotExecuted = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-          ],
-        },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
-            },
-            weightLimit: { Limited: new BN(20000000000) },
           },
-        },
-      ],
-    };
-    const xcmMessageExecuted = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 2 },
+        ],
+        fungible: 1n,
+      },
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
+
+    const xcmMessageExecuted = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-          ],
-        },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 2 },
-            },
-            weightLimit: { Limited: new BN(20000000000) },
           },
-        },
-      ],
-    };
+        ],
+        fungible: 2n,
+      },
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
 
     const paraId = context.polkadotApi.createType("ParaId", 1) as any;
     const sovereignAddress = u8aToHex(
@@ -497,41 +426,23 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    const xcmMessageNotExecuted = {
-      V2: [
-        {
-          WithdrawAsset: [
-            {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
+    const xcmMessageNotExecuted = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-          ],
-        },
-        {
-          BuyExecution: {
-            fees: {
-              id: {
-                Concrete: {
-                  parents: 0,
-                  interior: {
-                    X1: { PalletInstance: balancesPalletIndex },
-                  },
-                },
-              },
-              fun: { Fungible: 1 },
-            },
-            weightLimit: { Limited: new BN(20000000000) },
           },
-        },
-      ],
-    };
+        ],
+        fungible: 1n,
+      },
+      weight_limit: new BN(20000000000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
 
     const paraId = context.polkadotApi.createType("ParaId", 1) as any;
     const sovereignAddress = u8aToHex(
@@ -640,5 +551,101 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     // expect that queued messages is equal to the number of sent messages
     const queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
     expect(queuedMessages).to.have.lengthOf(numMessages);
+  });
+});
+
+describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
+  it("Should test that we receive an event per fragment, not per message", async function () {
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Balances"
+    ).index;
+
+    const sendingParaId = context.polkadotApi.createType("ParaId", 2000) as any;
+    const sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...sendingParaId.toU8a()])
+    ).padEnd(42, "0");
+
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
+    );
+
+    // we will prove we get two different events with xcmp.queue
+    const xcmFirstFragment = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: 1_000_000_000_000_000n,
+      },
+      weight_limit: new BN(1_000_000_000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
+
+    const xcmSecondFragment = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: 2_000_000_000_000_000n,
+      },
+      weight_limit: new BN(2_000_000_000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
+
+    // In order to insert two fragments in one msg, we need to manually build the message
+    const firstEncodedFragment: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmFirstFragment
+    ) as any;
+
+    const secondEncodedFragment: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmSecondFragment
+    ) as any;
+
+    // We first fund each sovereign account with 100
+    // we will only withdraw 1, so no problem on this
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
+    );
+
+    let message = [].concat(firstEncodedFragment.toU8a(), secondEncodedFragment.toU8a());
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      2000,
+      [...xcmpFormat.toU8a(), ...firstEncodedFragment.toU8a(), ...secondEncodedFragment.toU8a()],
+    ]);
+    await context.createBlock();
+
+    const records = (await context.polkadotApi.query.system.events()) as any;
+    const events = records.filter(
+      ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+    );
+    expect(events).to.have.lengthOf(2);
+    expect(events[0].event.data[0].toString()).to.be.eq(
+      blake2AsHex(firstEncodedFragment.toU8a()).toString()
+    );
+    expect(events[1].event.data[0].toString()).to.be.eq(
+      blake2AsHex(secondEncodedFragment.toU8a()).toString()
+    );
   });
 });

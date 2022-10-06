@@ -52,10 +52,10 @@ use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network::NetworkService;
+use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
+	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -474,10 +474,6 @@ where
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
-	if matches!(parachain_config.role, Role::Light) {
-		return Err("Light client not supported!".into());
-	}
-
 	let mut parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&mut parachain_config, false)?;
@@ -957,6 +953,7 @@ where
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
+					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
@@ -1122,7 +1119,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role,
+		Configuration, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1209,6 +1206,7 @@ mod tests {
 					vec![],
 					vec![],
 					vec![],
+					vec![],
 					1000 * UNIT,
 					ParaId::new(0),
 					0,
@@ -1238,10 +1236,9 @@ mod tests {
 				path: "db".into(),
 				cache_size: 128,
 			},
-			state_cache_size: 16777216,
-			state_cache_child_ratio: None,
+			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			keep_blocks: KeepBlocks::All,
+			blocks_pruning: sc_service::BlocksPruning::All,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

@@ -14,7 +14,41 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Randomness pallet
+//! # Randomness Pallet
+//!
+//! This pallet provides access to 2 sources of randomness:
+//! 1. local VRF, produced by collators per block
+//! 2. relay chain BABE one epoch ago randomness, produced by the relay chain per relay chain epoch
+//! These options are represented as `type::RequestType`.
+//!
+//! There are no extrinsics for this pallet. Instead, public functions on `Pallet<T: Config>` expose
+//! user actions for the precompile i.e. `request_randomness`.
+//!
+//! ## Local VRF
+//! The local VRF randomness is produced every block by the collator that authors the block.
+//!
+//! This pallet is default configured to look for the `VrfOutput` in `frame_system::digests()`. If
+//! it cannot find the `VrfOutput` in `frame_system::digests()`, then it will panic and the block
+//! will be invalid.
+//!
+//! Next, the `VrfOutput` is verified using the block author's `VrfId` and the VRF input, which is
+//! last block's `VrfOutput`. If verification fails, then it will panic (block is invalid).
+//!
+//! Finally, the output is transformed into the randomness bytes stored on-chain and put in
+//! `LocalVrfOutput`. Any pending randomness results for this block are filled with the
+//! output randomness bytes.
+//!
+//! The function which contains this logic is `vrf::verify_and_set_output`. It is called in every
+//! block's `on_initialize`.
+//!
+//! ## Babe Epoch Randomness
+//! Babe epoch randomness is retrieved once every relay chain epoch.
+//!
+//! The `set_babe_randomness_results` mandatory inherent reads the Babe epoch randomness from the
+//! relay chain state proof and fills any pending `RandomnessResults` for this epoch randomness.
+//!
+//! `Config::BabeDataGetter` is responsible for reading the epoch index and epoch randomness
+//! from the relay chain state proof. The moonbeam `GetBabeData` implementation is in the runtime.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
@@ -43,6 +77,7 @@ pub trait GetBabeData<EpochIndex, Randomness> {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::weights::{SubstrateWeight, WeightInfo};
 	use frame_support::traits::{Currency, ExistenceRequirement::KeepAlive};
 	use frame_support::{pallet_prelude::*, PalletId};
 	use frame_system::pallet_prelude::*;
@@ -51,7 +86,7 @@ pub mod pallet {
 	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
 	use sp_runtime::traits::{AccountIdConversion, Saturating};
-	use sp_std::{convert::TryInto, vec::Vec};
+	use sp_std::convert::TryInto;
 
 	/// The Randomness's pallet id
 	pub const PALLET_ID: PalletId = PalletId(*b"moonrand");
@@ -82,22 +117,22 @@ pub mod pallet {
 		#[pallet::constant]
 		/// The amount that should be taken as a security deposit when requesting randomness.
 		type Deposit: Get<BalanceOf<Self>>;
-		#[pallet::constant]
 		/// Maximum number of random words that can be requested per request
-		type MaxRandomWords: Get<u8>;
 		#[pallet::constant]
+		type MaxRandomWords: Get<u8>;
 		/// Local per-block VRF requests must be at least this many blocks after the block in which
 		/// they were requested
-		type MinBlockDelay: Get<Self::BlockNumber>;
 		#[pallet::constant]
+		type MinBlockDelay: Get<Self::BlockNumber>;
 		/// Local per-block VRF requests must be at most this many blocks after the block in which
 		/// they were requested
+		#[pallet::constant]
 		type MaxBlockDelay: Get<Self::BlockNumber>;
-		#[pallet::constant]
 		/// Local requests expire and can be purged from storage after this many blocks/epochs
-		type BlockExpirationDelay: Get<Self::BlockNumber>;
 		#[pallet::constant]
+		type BlockExpirationDelay: Get<Self::BlockNumber>;
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
+		#[pallet::constant]
 		type EpochExpirationDelay: Get<u64>;
 	}
 
@@ -152,14 +187,14 @@ pub mod pallet {
 		},
 	}
 
+	/// Randomness requests not yet fulfilled or purged
 	#[pallet::storage]
 	#[pallet::getter(fn requests)]
-	/// Randomness requests not yet fulfilled or purged
 	pub type Requests<T: Config> = StorageMap<_, Twox64Concat, RequestId, RequestState<T>>;
 
+	/// Number of randomness requests made so far, used to generate the next request's uid
 	#[pallet::storage]
 	#[pallet::getter(fn request_count)]
-	/// Number of randomness requests made so far, used to generate the next request's uid
 	pub type RequestCount<T: Config> = StorageValue<_, RequestId, ValueQuery>;
 
 	/// Current local per-block VRF randomness
@@ -192,22 +227,18 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		/// Populates the `RandomnessResults` that are due this block with the raw values
-		// This inherent is a workaround to run code in every block after
-		// `ParachainSystem::set_validation_data` but before all extrinsics.
-		// the relevant storage item to validate the VRF output in this pallet's `on_initialize`
-		// This should go into on_post_inherents when it is ready
-		// https://github.com/paritytech/substrate/pull/10128
-		// TODO: weight
-		#[pallet::weight((10_000, DispatchClass::Mandatory))]
+		/// Populates `RandomnessResults` due this epoch with BABE epoch randomness
+		#[pallet::weight((
+			SubstrateWeight::<T>::set_babe_randomness_results(),
+			DispatchClass::Mandatory
+		))]
 		pub fn set_babe_randomness_results(origin: OriginFor<T>) -> DispatchResultWithPostInfo {
 			ensure_none(origin)?;
-
 			let last_relay_epoch_index = <RelayEpoch<T>>::get();
-			// populate the `RandomnessResults` for BABE epoch randomness (1 and 2 ago)
 			let relay_epoch_index = T::BabeDataGetter::get_epoch_index();
 			if relay_epoch_index > last_relay_epoch_index {
 				let babe_one_epoch_ago_this_block = RequestType::BabeEpoch(relay_epoch_index);
+				// populate `RandomnessResults` for BABE epoch randomness
 				if let Some(mut results) =
 					<RandomnessResults<T>>::get(&babe_one_epoch_ago_this_block)
 				{
@@ -225,7 +256,6 @@ pub mod pallet {
 			}
 			<RelayEpoch<T>>::put(relay_epoch_index);
 			<InherentIncluded<T>>::put(());
-
 			Ok(Pays::No.into())
 		}
 	}
@@ -258,14 +288,20 @@ pub mod pallet {
 
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		// Set this block's randomness using the VRF output
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// Set and validate VRF output
-			vrf::set_output::<T>()
+			// Do not set the output in the first block (genesis or runtime upgrade)
+			// because we do not have any input for author to sign
+			if NotFirstBlock::<T>::get().is_none() {
+				NotFirstBlock::<T>::put(());
+				LocalVrfOutput::<T>::put(Some(T::Hash::default()));
+				return T::DbWeight::get().reads_writes(1, 2);
+			}
+			// Verify VRF output included by block author and set it in storage
+			vrf::verify_and_set_output::<T>();
+			SubstrateWeight::<T>::on_initialize()
 		}
-		// Set next block's VRF input in storage
 		fn on_finalize(_now: BlockNumberFor<T>) {
-			// Panics if set_babe_randomness_results inherent was not included
+			// Ensure the mandatory inherent was included in the block or the block is invalid
 			assert!(
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
@@ -273,32 +309,23 @@ pub mod pallet {
 		}
 	}
 
-	// Utility function
+	// Read-only functions
 	impl<T: Config> Pallet<T> {
+		/// Returns the pallet account
 		pub fn account_id() -> T::AccountId {
 			PALLET_ID.into_account_truncating()
 		}
+		/// Returns total balance in the pallet account
 		pub fn total_locked() -> BalanceOf<T> {
-			// free balance is usable balance for the pallet account as it is not controlled
-			// by anyone so will never be locked
+			// expect free balance == usable balance for pallet account because it is not controlled
+			// by anyone so balance should never be locked
 			T::Currency::free_balance(&Self::account_id())
-		}
-		pub(crate) fn concat_and_hash(a: T::Hash, b: H256, index: u8) -> Vec<[u8; 32]> {
-			let mut output: Vec<[u8; 32]> = Vec::new();
-			let mut s = Vec::new();
-			for i in 0u8..index {
-				s.extend_from_slice(a.as_ref());
-				s.extend_from_slice(b.as_ref());
-				s.extend_from_slice(&[i]);
-				output.push(sp_io::hashing::blake2_256(&s));
-				s.clear();
-			}
-			output
 		}
 	}
 
 	// Public functions for precompile usage only
 	impl<T: Config> Pallet<T> {
+		/// Make request for future randomness
 		pub fn request_randomness(
 			request: Request<BalanceOf<T>, RequestType<T>>,
 		) -> Result<RequestId, sp_runtime::DispatchError> {

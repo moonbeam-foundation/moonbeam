@@ -1,4 +1,5 @@
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: GPL-3.0-only
+pragma solidity >=0.8.3;
 
 /// @title ERC20 interface
 /// @dev see https://github.com/ethereum/EIPs/issues/20

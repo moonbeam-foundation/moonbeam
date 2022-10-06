@@ -24,7 +24,7 @@
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
+	BlockNumber, Event as MetaEvent, ExtBuilder, Origin, ParachainStaking, Test,
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
@@ -4337,15 +4337,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 24,
+					rewards: 26,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 6,
+					rewards: 7,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 6,
+					rewards: 7,
 				},
 			];
 			expected.append(&mut new2);
@@ -4401,15 +4401,15 @@ fn parachain_bond_inflation_reserve_matches_config() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 20,
+					rewards: 21,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 4,
+					rewards: 5,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 4,
+					rewards: 5,
 				},
 			];
 			expected.append(&mut new3);
@@ -4421,7 +4421,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			let mut new4 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 31,
+					value: 32,
 				},
 				Event::CollatorChosen {
 					round: 9,
@@ -4469,7 +4469,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new4);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 126);
+			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, 100);
 			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
 			roll_to(45);
@@ -4531,7 +4531,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new5);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 159);
+			assert_eq!(Balances::free_balance(&11), 160);
 			set_author(9, 1, 100);
 			set_author(10, 1, 100);
 			roll_to(50);
@@ -4587,13 +4587,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new6);
 			assert_eq_events!(expected.clone());
-			assert_eq!(Balances::free_balance(&11), 194);
+			assert_eq!(Balances::free_balance(&11), 195);
 			roll_to(55);
 			// new delegation is rewarded, 2 rounds after joining (`RewardPaymentDelay` is 2)
 			let mut new7 = vec![
 				Event::ReservedForParachainBond {
 					account: 11,
-					value: 36,
+					value: 37,
 				},
 				Event::CollatorChosen {
 					round: 12,
@@ -4645,7 +4645,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			];
 			expected.append(&mut new7);
 			assert_eq_events!(expected);
-			assert_eq!(Balances::free_balance(&11), 230);
+			assert_eq!(Balances::free_balance(&11), 232);
 		});
 }
 
@@ -6170,15 +6170,15 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 30,
+					rewards: 35,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 9,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 9,
+					rewards: 11,
 				},
 				Event::CollatorChosen {
 					round: 8,
@@ -6213,15 +6213,15 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 31,
+					rewards: 36,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 10,
+					rewards: 12,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 10,
+					rewards: 12,
 				},
 			];
 			expected.append(&mut new3);
@@ -6267,11 +6267,11 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 12,
+					rewards: 13,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 12,
+					rewards: 13,
 				},
 			];
 			expected.append(&mut new4);
@@ -6320,7 +6320,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 39,
+					rewards: 40,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6370,7 +6370,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 41,
+					rewards: 42,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6420,7 +6420,7 @@ fn payouts_follow_delegation_changes() {
 				},
 				Event::Rewarded {
 					account: 1,
-					rewards: 38,
+					rewards: 39,
 				},
 				Event::Rewarded {
 					account: 7,
@@ -6916,7 +6916,7 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 		.with_candidates(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			let mut round: u32 = 1;
+			let mut round: BlockNumber = 1;
 			set_author(round, 1, 1);
 			set_author(round, 2, 1);
 
@@ -7121,11 +7121,11 @@ fn deferred_payment_steady_state_event_flow() {
 		.build()
 		.execute_with(|| {
 			// convenience to set the round points consistently
-			let set_round_points = |round: u64| {
-				set_author(round as u32, 1, 1);
-				set_author(round as u32, 2, 1);
-				set_author(round as u32, 3, 1);
-				set_author(round as u32, 4, 1);
+			let set_round_points = |round: BlockNumber| {
+				set_author(round as BlockNumber, 1, 1);
+				set_author(round as BlockNumber, 2, 1);
+				set_author(round as BlockNumber, 3, 1);
+				set_author(round as BlockNumber, 4, 1);
 			};
 
 			// grab initial issuance -- we will reset it before round issuance is calculated so that
@@ -7145,8 +7145,8 @@ fn deferred_payment_steady_state_event_flow() {
 			};
 
 			// fn to roll through the first RewardPaymentDelay rounds. returns new round index
-			let roll_through_initial_rounds = |mut round: u64| -> u64 {
-				while round < crate::mock::RewardPaymentDelay::get() as u64 + 1 {
+			let roll_through_initial_rounds = |mut round: BlockNumber| -> BlockNumber {
+				while round < crate::mock::RewardPaymentDelay::get() + 1 {
 					set_round_points(round);
 
 					roll_to_round_end(round);
@@ -7160,7 +7160,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			// roll through a "steady state" round and make all of our assertions
 			// returns new round index
-			let roll_through_steady_state_round = |round: u64| -> u64 {
+			let roll_through_steady_state_round = |round: BlockNumber| -> BlockNumber {
 				let num_rounds_rolled = roll_to_round_begin(round);
 				assert_eq!(
 					num_rounds_rolled, 1,
@@ -7714,7 +7714,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 			assert_eq_last_events!(
 				vec![Event::<Test>::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 5,
 				}],
 				"delegator was rewarded unexpectedly"
 			);
@@ -7726,7 +7726,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 				"collator snapshot's delegator count was reduced unexpectedly"
 			);
 			assert_eq!(
-				30, collator_snapshot.total,
+				20, collator_snapshot.total,
 				"collator snapshot's total was reduced unexpectedly",
 			);
 		});
@@ -7775,7 +7775,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 			assert_eq_last_events!(
 				vec![Event::<Test>::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 5,
 				}],
 				"delegator was rewarded unexpectedly",
 			);
@@ -7863,7 +7863,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				vec![
 					Event::<Test>::Rewarded {
 						account: 1,
-						rewards: 3,
+						rewards: 4,
 					},
 					Event::<Test>::Rewarded {
 						account: 2,
@@ -7880,7 +7880,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 				"collator snapshot's delegator count was reduced unexpectedly"
 			);
 			assert_eq!(
-				40, collator_snapshot.total,
+				30, collator_snapshot.total,
 				"collator snapshot's total was reduced unexpectedly",
 			);
 		});
@@ -7931,7 +7931,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 				vec![
 					Event::<Test>::Rewarded {
 						account: 1,
-						rewards: 3,
+						rewards: 4,
 					},
 					Event::<Test>::Rewarded {
 						account: 2,
@@ -8017,7 +8017,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 			assert_eq_last_events!(
 				vec![Event::<Test>::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 5,
 				},],
 				"delegator was rewarded unexpectedly"
 			);
@@ -8029,7 +8029,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 				"collator snapshot's delegator count was reduced unexpectedly"
 			);
 			assert_eq!(
-				30, collator_snapshot.total,
+				20, collator_snapshot.total,
 				"collator snapshot's total was reduced unexpectedly",
 			);
 		});
@@ -8071,7 +8071,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 			assert_eq_last_events!(
 				vec![Event::<Test>::Rewarded {
 					account: 1,
-					rewards: 4,
+					rewards: 5,
 				},],
 				"delegator was rewarded unexpectedly",
 			);

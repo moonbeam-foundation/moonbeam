@@ -27,14 +27,13 @@ use frame_support::{
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
 
 pub type AccountId = u64;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -54,8 +53,8 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -71,7 +70,7 @@ impl frame_system::Config for Test {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -125,7 +124,6 @@ impl Config for Test {
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
-	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
 	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
@@ -136,8 +134,6 @@ impl Config for Test {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
@@ -227,6 +223,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: DefaultCollatorCommission::get(),
+			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
+			blocks_per_round: DefaultBlocksPerRound::get(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -238,7 +237,7 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-pub(crate) fn roll_one_block() -> u64 {
+pub(crate) fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -249,7 +248,7 @@ pub(crate) fn roll_one_block() -> u64 {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: u64) -> u64 {
+pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -262,15 +261,15 @@ pub(crate) fn roll_to(n: u64) -> u64 {
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
-pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
-	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
+	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
-pub(crate) fn roll_to_round_end(round: u64) -> u64 {
-	let block = round * DefaultBlocksPerRound::get() as u64 - 1;
+pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
+	let block = round * DefaultBlocksPerRound::get() - 1;
 	roll_to(block)
 }
 
@@ -404,7 +403,7 @@ macro_rules! assert_event_not_emitted {
 }
 
 // Same storage changes as ParachainStaking::on_finalize
-pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
+pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
 }

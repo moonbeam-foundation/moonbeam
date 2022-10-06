@@ -530,7 +530,7 @@ describeDevMoonbeam(
   "Trace (call list)",
   (context) => {
     it("should correctly trace subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "Proxy");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(

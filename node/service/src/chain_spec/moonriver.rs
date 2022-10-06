@@ -30,13 +30,14 @@ use moonriver_runtime::{
 	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
-	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig,
+	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
 #[cfg(test)]
 use sp_core::ecdsa;
-use sp_runtime::Perbill;
+use sp_runtime::{Perbill, Percent};
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 pub type ChainSpec = sc_service::GenericChainSpec<GenesisConfig, Extensions>;
@@ -62,6 +63,8 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![accounts[1], accounts[2], accounts[3]],
 				// Tech comitee members: Alith and Baltathar
 				vec![accounts[0], accounts[1]],
+				// Treasury Council members: Baltathar, Charleth and Dorothy
+				vec![accounts[1], accounts[2], accounts[3]],
 				// Collator Candidate: Alice -> Alith
 				vec![(
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
@@ -122,6 +125,12 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
+				// Treasury Council members: Baltathar, Charleth and Dorothy
+				vec![
+					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
+					AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")),
+					AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")),
+				],
 				// Collator Candidates
 				vec![
 					// Alice -> Alith
@@ -174,7 +183,10 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	)
 }
 
-pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
+const COLLATOR_COMMISSION: Perbill = Perbill::from_percent(20);
+const PARACHAIN_BOND_RESERVE_PERCENT: Percent = Percent::from_percent(30);
+const BLOCKS_PER_ROUND: u32 = 2 * HOURS;
+pub fn moonriver_inflation_config() -> InflationInfo<Balance> {
 	fn to_round_inflation(annual: Range<Perbill>) -> Range<Perbill> {
 		use pallet_parachain_staking::inflation::{
 			perbill_annual_to_perbill_round, BLOCKS_PER_YEAR,
@@ -182,8 +194,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 		perbill_annual_to_perbill_round(
 			annual,
 			// rounds per year
-			BLOCKS_PER_YEAR
-				/ moonriver_runtime::get!(pallet_parachain_staking, DefaultBlocksPerRound, u32),
+			BLOCKS_PER_YEAR / BLOCKS_PER_ROUND,
 		)
 	}
 	let annual = Range {
@@ -207,6 +218,7 @@ pub fn moonbeam_inflation_config() -> InflationInfo<Balance> {
 pub fn testnet_genesis(
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
+	treasury_council_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
@@ -267,7 +279,10 @@ pub fn testnet_genesis(
 				.map(|(account, _, bond)| (account, bond))
 				.collect(),
 			delegations,
-			inflation_config: moonbeam_inflation_config(),
+			inflation_config: moonriver_inflation_config(),
+			collator_commission: COLLATOR_COMMISSION,
+			parachain_bond_reserve_percent: PARACHAIN_BOND_RESERVE_PERCENT,
+			blocks_per_round: BLOCKS_PER_ROUND,
 		},
 		council_collective: CouncilCollectiveConfig {
 			phantom: Default::default(),
@@ -276,6 +291,10 @@ pub fn testnet_genesis(
 		tech_committee_collective: TechCommitteeCollectiveConfig {
 			phantom: Default::default(),
 			members: tech_comittee_members,
+		},
+		treasury_council_collective: TreasuryCouncilCollectiveConfig {
+			phantom: Default::default(),
+			members: treasury_council_members,
 		},
 		author_filter: AuthorFilterConfig {
 			eligible_count: EligibilityValue::new_unchecked(50),

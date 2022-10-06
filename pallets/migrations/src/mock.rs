@@ -27,13 +27,12 @@ use frame_support::{
 };
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
 pub type AccountId = u64;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -51,8 +50,8 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -68,7 +67,7 @@ impl frame_system::Config for Test {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -209,7 +208,7 @@ impl Migration for MockMigration {
 		result
 	}
 	fn migrate(&self, available_weight: Weight) -> Weight {
-		let mut result: Weight = 0u64.into();
+		let mut result = Weight::zero();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_migrate_fn(self.index, available_weight);
 		});
@@ -317,7 +316,7 @@ pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
 	weight
 }
 
-pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
+pub(crate) fn roll_to(block_number: BlockNumber, invoke_on_runtime_upgrade_first: bool) {
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}
