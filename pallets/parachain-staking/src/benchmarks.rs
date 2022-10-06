@@ -1254,7 +1254,9 @@ benchmarks! {
 	// 		)?;
 	// 		if i < z {
 	// 			log::info!("set auto compounding {:?}", i);
-	// 			Pallet::<T>::delegation_set_auto_compounding_reward(RawOrigin::Signed(delegator.clone().into()).into(), sole_collator.clone(), Percent::from_percent(100), 1000, 1000)?;
+	// 			Pallet::<T>::delegation_set_auto_compounding_reward(
+	//				RawOrigin::Signed(delegator.clone().into()).into(),
+	//				sole_collator.clone(), Percent::from_percent(100), 1000, 1000)?;
 	// 		}
 	// 		delegators.push(delegator);
 	// 		total_staked += initial_stake_amount;
@@ -1293,7 +1295,7 @@ benchmarks! {
 	// 	// TODO: this is an extra read right here (we should whitelist it?)
 	// 	let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 	// 	let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-	// 	assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+	// 	assert!(result.0.is_some());
 	// }
 	// verify {
 	// 	// collator should have been paid
