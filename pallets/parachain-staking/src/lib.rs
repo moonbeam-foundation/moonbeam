@@ -1721,6 +1721,28 @@ pub mod pallet {
 				let state = <CandidateInfo<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
 
+				// insert auto-compounding-delegations for all delegations
+				// this is for PoV testing only. Note that this increases the PoV size since we
+				// additionally access BottomDelegations here
+				let mut all_delegations = <TopDelegations<T>>::get(account.clone())
+					.expect("must exist")
+					.delegations;
+				all_delegations.extend(
+					<BottomDelegations<T>>::get(account.clone())
+						.expect("must exist")
+						.delegations,
+				);
+				<AutoCompoundingDelegations<T>>::insert(
+					account.clone(),
+					all_delegations
+						.into_iter()
+						.map(|d| DelegationAutoCompoundConfig {
+							delegator: d.owner,
+							value: Percent::from_percent(100),
+						})
+						.collect::<Vec<_>>(),
+				);
+
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
