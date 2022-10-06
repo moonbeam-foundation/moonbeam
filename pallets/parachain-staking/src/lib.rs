@@ -1597,7 +1597,7 @@ pub mod pallet {
 					// storage still not migrated, decode as deprecated CollatorSnapshot.
 					let key = <AtStake<T>>::hashed_key_for(paid_for_round, &collator);
 					let at_stake: deprecated::CollatorSnapshot<T::AccountId, BalanceOf<T>> =
-						frame_support::storage::unhashed::get(&key).expect("must exist; qed");
+						frame_support::storage::unhashed::get(&key).unwrap_or_default();
 
 					CollatorSnapshot {
 						bond: at_stake.bond,
