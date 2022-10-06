@@ -45,7 +45,7 @@ use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets,
 };
-use xcm_primitives::AccountIdToCurrencyId;
+use xcm_primitives::{AccountIdToCurrencyId, XcmV2Weight};
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
@@ -270,10 +270,10 @@ parameter_types! {
 pub struct MockGasWeightMapping;
 impl GasWeightMapping for MockGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		return gas;
+		Weight::from_ref_time(gas)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		return weight;
+		weight.ref_time().into()
 	}
 }
 
@@ -342,7 +342,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -367,7 +367,7 @@ pub enum CurrencyId {
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();

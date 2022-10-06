@@ -18,7 +18,7 @@ use super::*;
 use frame_support::{
 	assert_noop,
 	traits::ConstU32,
-	weights::{Pays, PostDispatchInfo},
+	weights::{Pays, PostDispatchInfo, Weight},
 	BoundedVec,
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
@@ -133,7 +133,7 @@ fn test_transact_xcm_create() {
 			),
 			DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
-					actual_weight: Some(0),
+					actual_weight: Some(Weight::zero()),
 					pays_fee: Pays::Yes,
 				},
 				error: DispatchError::Other("Cannot convert xcm payload to known type"),
@@ -231,7 +231,7 @@ fn test_transact_xcm_validation_works() {
 			),
 			DispatchErrorWithPostInfo {
 				post_info: PostDispatchInfo {
-					actual_weight: Some(0),
+					actual_weight: Some(Weight::zero()),
 					pays_fee: Pays::Yes,
 				},
 				error: DispatchError::Other("Failed to validate ethereum transaction"),
