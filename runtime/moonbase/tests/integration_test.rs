@@ -2839,7 +2839,7 @@ fn test_xcm_utils_ml_tp_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight: Weight = UnitWeightCost::get();
+		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
 
 		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
 
@@ -2863,7 +2863,7 @@ fn test_xcm_utils_get_units_per_second() {
 
 		let input = XcmUtilsPCall::get_units_per_second { multilocation };
 
-		let expected_units = WEIGHT_PER_SECOND as u128 * moonbase_runtime::currency::WEIGHT_FEE;
+		let expected_units = WEIGHT_PER_SECOND.ref_time() as u128 * moonbase_runtime::currency::WEIGHT_FEE;
 
 		Precompiles::new()
 			.prepare_test(ALICE, xcm_utils_precompile_address, input)
