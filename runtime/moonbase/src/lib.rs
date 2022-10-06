@@ -431,7 +431,7 @@ pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
 	TargetBlockFullness,
 	AdjustmentVariable,
 	MinimumMultiplier,
-	MaximumMultiplier
+	MaximumMultiplier,
 >;
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
