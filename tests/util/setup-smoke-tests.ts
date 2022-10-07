@@ -44,7 +44,7 @@ export function describeSmokeSuite(
         ApiPromise.create({
           initWasm: false,
           provider: new WsProvider(options.wssUrl),
-          typesBundle: types,
+          typesBundle: types
         }),
         options.relayWssUrl
           ? ApiPromise.create({

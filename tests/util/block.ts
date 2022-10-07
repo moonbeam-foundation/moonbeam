@@ -344,3 +344,8 @@ export async function jumpRounds(context: DevTestContext, count: Number): Promis
 
   return jumpToRound(context, round);
 }
+
+export const getBlockTime = (signedBlock: any) => {
+  const item = signedBlock.block.extrinsics.find(item => item.method.section == "timestamp");
+  return item.method.args[0].toNumber()
+};

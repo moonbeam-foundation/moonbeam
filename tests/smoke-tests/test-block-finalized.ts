@@ -1,5 +1,6 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
+import { getBlockTime, exploreBlockRange } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:block-finalized");
@@ -28,63 +29,58 @@ describeSmokeSuite(
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
     });
 
-    it("should have only finalized blocks in the past two hours.", async function () {
-      this.timeout(120000);
-      this.slow();
+    it.only("should have only finalized blocks in the past two hours.", async function () {
+      this.slow(10000);
 
       const finalHash = await context.polkadotApi.rpc.chain.getFinalizedHead();
-      const block = (await context.polkadotApi.rpc.chain.getBlock(finalHash)).toHuman() as any;
-      const lastBlockNumber = Number(block.block.header.number.replace(/,/g, ""));
-      const lastBlockTime = getBlockTime(block);
+      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(finalHash);
+      const lastBlockNumber = signedBlock.block.header.number.toNumber();
+      const lastBlockTime = getBlockTime(signedBlock);
 
       // Target time here is set to be 2 hours, possible parameterize this in future
       const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
-      const firstBlockNumber = await fetchHistoricBlock(lastBlockNumber, firstBlockTime);
+
+      const fetchBlockTime = async (blockNum) => {
+        const hash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
+        const block = await context.polkadotApi.rpc.chain.getBlock(hash);
+        return getBlockTime(block);
+      };
+
+      const fetchHistoricBlockNum = async function (blockNumber, targetTime) {
+        return  fetchBlockTime(blockNumber).then(async (time) => {
+          if (time < targetTime) {
+            return blockNumber;
+          } else {
+            return  fetchHistoricBlockNum(
+              (blockNumber -= Math.ceil((time - targetTime) / 40_000)),
+              targetTime
+            );
+          }
+        });
+      };
+
+      const firstBlockNumber = await fetchHistoricBlockNum(lastBlockNumber, firstBlockTime);
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
+      // const promises = exploreBlockRange(context.polkadotApi,{from: firstBlockNumber, to: lastBlockNumber, concurrency: 5},)
+
       const promiseArray = range(firstBlockNumber, lastBlockNumber).map(async (num) => {
-        //@ts-ignore typescript doesn't like the custom RPC methods
         const promise = await context.polkadotApi.rpc.moon.isBlockFinalized(
           await context.polkadotApi.rpc.chain.getBlockHash(num)
         );
         return { number: num, finalized: promise };
       });
 
-      await Promise.all(promiseArray).then((results) => {
-        results.forEach((item) => {
-          if (item.finalized.isFalse) debug(`Historic block #${item.number} is unfinalized!`);
-        });
-        expect(results.every((item) => item.finalized.isTrue)).to.be.true;
+      const results = await Promise.all(promiseArray);
+      results.forEach((item) => {
+        if (item.finalized.isFalse) debug(`Historic block #${item.number} is unfinalized!`);
       });
+      expect(results.every((item) => item.finalized.isTrue)).to.be.true;
     });
-
-    const fetchBlockTime = async (blockNum) => {
-      const hash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
-      const block = (await context.polkadotApi.rpc.chain.getBlock(hash)).toHuman() as any;
-      return getBlockTime(block);
-    };
-
-    const getBlockTime = (block: any): number => {
-      const item = block.block.extrinsics.find((item) => item.method.section == "timestamp");
-      return Number(item.method.args.now.replace(/,/g, ""));
-    };
 
     const range = (start, end) => {
       const length = end - start;
       return Array.from({ length }, (_, i) => start + i);
-    };
-
-    const fetchHistoricBlock = async (blockNumber, targetTime) => {
-      return await fetchBlockTime(blockNumber).then(async (time) => {
-        if (time < targetTime) {
-          return blockNumber;
-        } else {
-          return await fetchHistoricBlock(
-            (blockNumber -= Math.ceil((time - targetTime) / 40_000)),
-            targetTime
-          );
-        }
-      });
     };
   }
 );
