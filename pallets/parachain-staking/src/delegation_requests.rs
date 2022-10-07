@@ -100,6 +100,8 @@ impl<T: Config> Pallet<T> {
 		state.less_total = state.less_total.saturating_add(bonded_amount);
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
+		// here we would need to update candidatestate as well to increase its uncounted_stake
+		// (and potentially count the number of rewardable delegations if that's a thing)
 
 		Self::deposit_event(Event::DelegationRevocationScheduled {
 			round: now,
@@ -158,6 +160,7 @@ impl<T: Config> Pallet<T> {
 		state.less_total = state.less_total.saturating_add(decrease_amount);
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
+		// here we would need to also modify collator state to increase the uncounted_stake
 
 		Self::deposit_event(Event::DelegationDecreaseScheduled {
 			delegator,
@@ -203,6 +206,7 @@ impl<T: Config> Pallet<T> {
 		let request = scheduled_requests.remove(request_idx);
 		let amount = request.action.amount();
 		state.less_total = state.less_total.saturating_sub(amount);
+		// here we would need to update collator state apprporiately
 		Some(request)
 	}
 

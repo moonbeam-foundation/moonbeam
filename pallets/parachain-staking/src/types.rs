@@ -528,6 +528,9 @@ impl<
 	) where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// here-ish we *might* need to update collator state (as we do elsewhere)
+		// and also lazily populate past round snapshots
+		// this fn would need to know if this change is necessary...
 		self.lowest_top_delegation_amount = top_delegations.lowest_delegation_amount().into();
 		self.top_capacity = top_delegations.top_capacity::<T>();
 		let old_total_counted = self.total_counted;
@@ -610,6 +613,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// here-ish we would need to update collator state (as we do elsewhere)
+		// and also lazily populate past round snapshots
 		let mut less_total_staked = None;
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
 			.expect("CandidateInfo existence => TopDelegations existence");
@@ -745,6 +750,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// here-ish we would need to update collator state (as we do elsewhere)
+		// and also lazily populate past round snapshots
 		let old_total_counted = self.total_counted;
 		// remove top delegation
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
@@ -862,6 +869,8 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
+		// here-ish we would need to update collator state (as we do elsewhere)
+		// and also lazily populate past round snapshots
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
 			.expect("CandidateInfo exists => TopDelegations exists");
 		let mut in_top = false;

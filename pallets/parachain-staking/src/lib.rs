@@ -1635,6 +1635,11 @@ pub mod pallet {
 				} = Self::get_rewardable_delegators(&account);
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
+				// TODO: CollatorSnapshot would need to not have the full list of delegations initially,
+				//       it would need to be empty.
+				//       Then, whenever there is a change to the top delagators, the appropriate snapshots
+				//       would need to be updated. (A first pass could naively update snapshots for
+				//       all outstanding rounds, but a more-optimized version could update only the most recent.)
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
 					delegations: rewardable_delegations,
@@ -1661,6 +1666,13 @@ pub mod pallet {
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
+		// TODO: this entire fn can become unnecessary (including the iteration of TopDelegations)
+		//       with some changes:
+		//         * new uncounted_stake field on CollatorCandidate
+		//         * new logic in all delegation request extrinsics to track collator's uncounted_stake
+		//         * CountedDelegations loses the rewardable_delegations field
+		//         * CollatorSnapshot's delegations vec is lazily populated when any change to TopDelegations occurs
+		// We may also need to track the number of counted delegators similarly to uncounted_stake.
 		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
