@@ -426,6 +426,32 @@ pub mod pallet {
 			let mut weight = T::WeightInfo::base_on_initialize();
 
 			let mut round = <Round<T>>::get();
+
+			// TODO: Remove
+			if n == T::BlockNumber::from(98u32) {
+				let collators = Self::compute_top_candidates();
+				for account in collators.iter() {
+					let mut all_delegations = <TopDelegations<T>>::get(account.clone())
+						.expect("must exist")
+						.delegations;
+					all_delegations.extend(
+						<BottomDelegations<T>>::get(account.clone())
+							.expect("must exist")
+							.delegations,
+					);
+					<AutoCompoundingDelegations<T>>::insert(
+						account.clone(),
+						all_delegations
+							.into_iter()
+							.map(|d| DelegationAutoCompoundConfig {
+								delegator: d.owner,
+								value: Percent::from_percent(90),
+							})
+							.collect::<Vec<_>>(),
+					);
+				}
+			}
+
 			if round.should_update(n) {
 				// mutate round
 				round.update(n);
@@ -1724,24 +1750,6 @@ pub mod pallet {
 				// insert auto-compounding-delegations for all delegations
 				// this is for PoV testing only. Note that this increases the PoV size since we
 				// additionally access BottomDelegations here
-				let mut all_delegations = <TopDelegations<T>>::get(account.clone())
-					.expect("must exist")
-					.delegations;
-				all_delegations.extend(
-					<BottomDelegations<T>>::get(account.clone())
-						.expect("must exist")
-						.delegations,
-				);
-				<AutoCompoundingDelegations<T>>::insert(
-					account.clone(),
-					all_delegations
-						.into_iter()
-						.map(|d| DelegationAutoCompoundConfig {
-							delegator: d.owner,
-							value: Percent::from_percent(100),
-						})
-						.collect::<Vec<_>>(),
-				);
 
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
