@@ -60,7 +60,7 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 	fn benchmarks(extra: bool) -> Vec<frame_benchmarking::BenchmarkMetadata> {
 		// Assuming we are overwritting, we only need to return the generics
 		use pallet_xcm_benchmarks::generic::Pallet as PalletXcmGenericBench;
-		PalletXcmGenericBench::<T>::benchmarks(extra)		
+		PalletXcmGenericBench::<T>::benchmarks(extra)
 	}
 	fn run_benchmark(
 		extrinsic: &[u8],
