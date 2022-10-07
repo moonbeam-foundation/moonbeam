@@ -283,7 +283,7 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks"
+	"xcm-builder/runtime-benchmarks",
 ]
 
 try-runtime = [

@@ -54,5 +54,5 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks",
 	"parity-scale-codec",
 	"scale-info",
-	"xcm/runtime-benchmarks"
+	"xcm/runtime-benchmarks",
 ]

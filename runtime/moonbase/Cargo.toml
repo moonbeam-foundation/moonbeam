@@ -266,7 +266,7 @@ runtime-wasm = []
 # to make it smaller like logging for example.
 on-chain-release-build = [ "sp-api/disable-logging" ]
 
-runtime-benchmarks = [ 
+runtime-benchmarks = [
 	"cumulus-pallet-parachain-system/runtime-benchmarks",
 	"frame-benchmarking",
 	"frame-support/runtime-benchmarks",
@@ -293,7 +293,7 @@ runtime-benchmarks = [
 	"pallet-xcm/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",
 	"sp-runtime/runtime-benchmarks",
-	"xcm-builder/runtime-benchmarks" 
+	"xcm-builder/runtime-benchmarks",
 ]
 try-runtime = [
 	"frame-executive/try-runtime",
