@@ -2,6 +2,7 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import { MockProvider } from "@polkadot/rpc-provider/mock";
 import { TypeRegistry } from "@polkadot/types";
 import { types } from "moonbeam-types-bundle";
+import { ethers } from "ethers";
 
 const debug = require("debug")("test:setup");
 
@@ -9,11 +10,13 @@ export interface SmokeTestContext {
   // We also provided singleton providers for simplicity
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
+  ethers?: ethers.providers.JsonRpcProvider;
 }
 
 export type SmokeTestOptions = {
   wssUrl: string;
   relayWssUrl: string;
+  ethRpcUrl?: string;
 };
 
 export function describeSmokeSuite(
@@ -37,7 +40,7 @@ export function describeSmokeSuite(
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
-      [context.polkadotApi, context.relayApi] = await Promise.all([
+      [context.polkadotApi, context.relayApi, context.ethers] = await Promise.all([
         ApiPromise.create({
           initWasm: false,
           provider: new WsProvider(options.wssUrl),
@@ -49,6 +52,7 @@ export function describeSmokeSuite(
               provider: new WsProvider(options.relayWssUrl),
             })
           : unimplementedApi(),
+        new ethers.providers.JsonRpcProvider(options.ethRpcUrl),
       ]);
 
       await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);
