@@ -211,6 +211,7 @@ parameter_types! {
 	pub MaxInstructions: u32 = 100;
 }
 
+/// Xcm Weigher shared between multiple Xcm-related configs.
 pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
 
 // Allow paid executions
