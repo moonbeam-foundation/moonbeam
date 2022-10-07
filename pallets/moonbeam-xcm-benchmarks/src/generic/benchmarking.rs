@@ -60,16 +60,7 @@ impl<T: Config> frame_benchmarking::Benchmarking for XcmGenericBenchmarks<T> {
 	fn benchmarks(extra: bool) -> Vec<frame_benchmarking::BenchmarkMetadata> {
 		// Assuming we are overwritting, we only need to return the generics
 		use pallet_xcm_benchmarks::generic::Pallet as PalletXcmGenericBench;
-		let mut existing_benchmarks = PalletXcmGenericBench::<T>::benchmarks(extra);
-		// reserve_asset_deposited is a fungible benchmark, but it returns it because of an error
-		// TODO: fixed in 0.9.29
-		if let Some(index) = existing_benchmarks
-			.iter()
-			.position(|x| x.name == b"reserve_asset_deposited")
-		{
-			existing_benchmarks.remove(index);
-		}
-		existing_benchmarks
+		PalletXcmGenericBench::<T>::benchmarks(extra)		
 	}
 	fn run_benchmark(
 		extrinsic: &[u8],
