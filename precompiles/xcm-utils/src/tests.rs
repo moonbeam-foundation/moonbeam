@@ -19,9 +19,10 @@ use crate::mock::{
 	TestPrecompiles,
 };
 
+use codec::Encode;
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::H160;
-use xcm::latest::{Junction, Junctions, MultiLocation};
+use sp_core::{H160, U256};
+use xcm::prelude::*;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
@@ -74,6 +75,38 @@ fn test_get_account_sibling() {
 					.write(Address(expected_address))
 					.build(),
 			);
+	});
+}
+
+#[test]
+fn test_weight_message() {
+	ExtBuilder::default().build().execute_with(|| {
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = PCall::weight_message {
+			message: message.into(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(0)
+			.expect_no_logs()
+			.execute_returns_encoded(1000u64);
+	});
+}
+
+#[test]
+fn test_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let input = PCall::get_units_per_second {
+			multilocation: MultiLocation::parent(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(1)
+			.expect_no_logs()
+			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
 	});
 }
 
