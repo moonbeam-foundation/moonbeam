@@ -411,6 +411,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--no-hardware-benchmarks",
+              "--trie-cache-size=0",
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
                 : `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -420,6 +421,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--",
               "--execution=wasm",
               "--no-hardware-benchmarks",
+              "--trie-cache-size=0",
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
                 : `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -445,6 +447,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--execution=wasm",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
+              "--trie-cache-size=0",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
@@ -452,6 +455,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--execution=wasm",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
+              "--trie-cache-size=0",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
