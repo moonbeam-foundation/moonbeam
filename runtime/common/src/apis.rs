@@ -519,6 +519,25 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok(MultiLocation::parent())
 						}
 						fn worst_case_holding() -> MultiAssets {
+							// A mix of fungible, non-fungible, and concrete assets.
+						const HOLDING_FUNGIBLES: u32 = 100;
+						const HOLDING_NON_FUNGIBLES: u32 = 100;
+						let fungibles_amount: u128 = 100;
+						let mut assets = (0..HOLDING_FUNGIBLES)
+							.map(|i| {
+								MultiAsset {
+									id: Concrete(GeneralIndex(i as u128).into()),
+									fun: Fungible(fungibles_amount * i as u128),
+								}
+								.into()
+							})
+							.chain(core::iter::once(MultiAsset { id: Concrete(Here.into()), fun: Fungible(u128::MAX) }))
+							.chain((0..HOLDING_NON_FUNGIBLES).map(|i| MultiAsset {
+								id: Concrete(GeneralIndex(i as u128).into()),
+								fun: NonFungible(pallet_xcm_benchmarks::asset_instance_from(i)),
+							}))
+							.collect::<Vec<_>>();
+
 							<AssetManager as xcm_primitives::AssetTypeGetter<
 								<Runtime as PalletAssetManagerConfig>::AssetId,
 								<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
@@ -535,10 +554,11 @@ macro_rules! impl_runtime_apis_plus_common {
 								1_000_000_000_000u128
 							);
 
-							let assets: Vec<MultiAsset> = vec![MultiAsset{
+							assets.push(MultiAsset{
 								id: Concrete(MultiLocation::parent()),
 								fun: Fungible(100_000_000u128),
-							}];
+							});
+							
 							assets.into()
 						}
 					}
