@@ -40,6 +40,7 @@ async function main(inputFile: string, outputFile?: string) {
 
   let messagingState: string = "";
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
+  const roundLinePrefix = `        "${storageKey("ParachainStaking", "Round")}`;
   const orbiterLinePrefix = `        "${storageKey("MoonbeamOrbiters", "CollatorsPool")}`;
   const nimbusBlockNumberPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}"`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
@@ -179,6 +180,17 @@ async function main(inputFile: string, outputFile?: string) {
       console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
       let newLine = `${nimbusBlockNumberPrefix}: "0x00000000",\n`;
       console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
+      outStream.write(newLine);
+    } else if (line.startsWith(roundLinePrefix)) {
+      console.log(` ${chalk.red(`  - Removing ParachainStaking.Round`)}\n\t${line}`);
+      const roundLength = 100; // blocks (more than collators, short to make it faster)
+      const roundNumber = nToHex(1, { isLe: true, bitLength: 32 }).slice(2);
+      const firstBlock = nToHex(0, { isLe: true, bitLength: 32 }).slice(0);
+      const length = nToHex(roundLength, { isLe: true, bitLength: 32 }).slice(0);
+      let newLine = `${roundLinePrefix}: "0x${roundNumber}${firstBlock}${length}",\n`;
+      console.log(
+        ` ${chalk.green(`  + Adding ParachainStaking.Round (${roundLength} blocks)`)}\n\t${newLine}`
+      );
       outStream.write(newLine);
     } else if (line.startsWith(selectedAuthorMappingPrefix)) {
       console.log(
