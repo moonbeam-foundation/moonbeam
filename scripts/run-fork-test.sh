@@ -11,6 +11,7 @@ export GIT_TAG=${GIT_TAG:-"master"}
 export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-false}
 export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-true}
 export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
+export KEEP_RUNNING=${KEEP_RUNNING:-false}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 export SKIP_STATE_MODIFICATION=${SKIP_STATE_MODIFICATION:-false}
@@ -144,13 +145,21 @@ DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
 
 if [[ $SUCCESS_UPGRADE == "true" ]]
 then
+    SUCCESS_TEST=false
     echo "Running smoke tests... (10 minutes)"
-    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
+    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test && \
+    SUCCESS_TEST=true ||echo "Failed to pass smoke test"
 fi
 
 echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
 
-echo "Done !!"
-[[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
+echo "Done !! [Upgrade $SUCCESS_UPGRADE, Test: $($SUCCESS_TEST && "Passed" || "Failed")]"
+
+if [[ $KEEP_RUNNING == "true" ]]
+then
+  while true; do sleep 5; done
+fi
+
+[[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
