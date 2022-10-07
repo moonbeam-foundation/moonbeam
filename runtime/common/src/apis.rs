@@ -519,46 +519,42 @@ macro_rules! impl_runtime_apis_plus_common {
 							Ok(MultiLocation::parent())
 						}
 						fn worst_case_holding() -> MultiAssets {
-							// A mix of fungible, non-fungible, and concrete assets.
-						const HOLDING_FUNGIBLES: u32 = 100;
-						const HOLDING_NON_FUNGIBLES: u32 = 100;
-						let fungibles_amount: u128 = 100;
-						let mut assets = (0..HOLDING_FUNGIBLES)
-							.map(|i| {
+						// 100 fungibles
+							const HOLDING_FUNGIBLES: u32 = 100;
+							let fungibles_amount: u128 = 100;
+							let assets = (0..HOLDING_FUNGIBLES).map(|i| {
+								let location: MultiLocation = GeneralIndex(i as u128).into();
 								MultiAsset {
-									id: Concrete(GeneralIndex(i as u128).into()),
+									id: Concrete(location),
 									fun: Fungible(fungibles_amount * i as u128),
 								}
 								.into()
 							})
-							.chain(core::iter::once(MultiAsset { id: Concrete(Here.into()), fun: Fungible(u128::MAX) }))
-							.chain((0..HOLDING_NON_FUNGIBLES).map(|i| MultiAsset {
-								id: Concrete(GeneralIndex(i as u128).into()),
-								fun: NonFungible(pallet_xcm_benchmarks::asset_instance_from(i)),
-							}))
+							.chain(core::iter::once(MultiAsset { id: Concrete(MultiLocation::parent()), fun: Fungible(u128::MAX) }))
 							.collect::<Vec<_>>();
 
-							<AssetManager as xcm_primitives::AssetTypeGetter<
-								<Runtime as PalletAssetManagerConfig>::AssetId,
-								<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-							>::set_asset_type_asset_id(
-								MultiLocation::parent().into(),
-								1u128
-							);
 
-							// set 1-1
-							<AssetManager as xcm_primitives::UnitsToWeightRatio<
-								<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
-							>::set_units_per_second(
-								MultiLocation::parent().into(),
-								1_000_000_000_000u128
-							);
-
-							assets.push(MultiAsset{
-								id: Concrete(MultiLocation::parent()),
-								fun: Fungible(100_000_000u128),
-							});
-							
+							for (i, asset) in assets.iter().enumerate() {
+								if let MultiAsset {
+									id: Concrete(location),
+									fun: Fungible(_)
+								} = asset {
+									<AssetManager as xcm_primitives::AssetTypeGetter<
+										<Runtime as PalletAssetManagerConfig>::AssetId,
+										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
+									>::set_asset_type_asset_id(
+										location.clone().into(),
+										i as u128
+									);
+									// set 1-1
+									<AssetManager as xcm_primitives::UnitsToWeightRatio<
+										<Runtime as PalletAssetManagerConfig>::ForeignAssetType>
+									>::set_units_per_second(
+										location.clone().into(),
+										1_000_000_000_000u128
+									);
+								}
+							}
 							assets.into()
 						}
 					}
