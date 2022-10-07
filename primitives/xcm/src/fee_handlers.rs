@@ -56,13 +56,11 @@ impl<
 		weight: u64,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
-		log::error!("Entering");
 		// can only call one time
 		if self.1.is_some() {
 			// TODO: better error
 			return Err(XcmError::NotWithdrawable);
 		}
-		log::error!("first check pass");
 
 		assert_eq!(self.0, 0);
 		let first_asset = payment
@@ -71,14 +69,11 @@ impl<
 			.next()
 			.ok_or(XcmError::TooExpensive)?;
 
-		log::error!("second check pass");
-
 		// We are only going to check first asset for now. This should be sufficient for simple token
 		// transfers. We will see later if we change this.
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
-
 				// Shortcut if we know the asset is not supported
 				// This involves the same db read per block, mitigating any attack based on
 				// non-supported assets
