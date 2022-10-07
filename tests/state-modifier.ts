@@ -185,8 +185,8 @@ async function main(inputFile: string, outputFile?: string) {
       console.log(` ${chalk.red(`  - Removing ParachainStaking.Round`)}\n\t${line}`);
       const roundLength = 100; // blocks (more than collators, short to make it faster)
       const roundNumber = nToHex(1, { isLe: true, bitLength: 32 }).slice(2);
-      const firstBlock = nToHex(0, { isLe: true, bitLength: 32 }).slice(0);
-      const length = nToHex(roundLength, { isLe: true, bitLength: 32 }).slice(0);
+      const firstBlock = nToHex(0, { isLe: true, bitLength: 32 }).slice(2);
+      const length = nToHex(roundLength, { isLe: true, bitLength: 32 }).slice(2);
       let newLine = `        "${storageKey(
         "ParachainStaking",
         "Round"
