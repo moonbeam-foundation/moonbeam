@@ -22,8 +22,6 @@ use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
 
 benchmarks! {
-	// This benchmark does not use any additional orders or instructions. This should be managed
-	// by the `deep` and `shallow` implementation.
 	buy_execution {
 		let holding = T::worst_case_holding().into();
 
