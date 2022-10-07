@@ -1,0 +1,49 @@
+{
+  "settings": {
+    "timeout": 120,
+    "provider": "native"
+  },
+  "relaychain": {
+    "chain": "rococo-local",
+    "default_command": "../target/release/polkadot",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "-lparachain=debug",
+      "--database=paritydb-experimental"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "validator": true,
+        "env": [{ "name": "RUST_LOG", "value": "trace" }]
+      },
+      {
+        "name": "bob",
+        "validator": true,
+        "env": [{ "name": "RUST_LOG", "value": "trace" }]
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "id": 2000,
+      "cumulus_based": true,
+      "chain": "moonbase-local",
+      "default_args": [
+        "--no-hardware-benchmarks",
+        "-lparachain=debug",
+        "--database=paritydb-experimental"
+      ],
+      "collators": [
+        {
+          "name": "alith",
+          "command": "../target/release/moonbeam"
+        },
+        {
+          "name": "baltathar",
+          "command": "../target/release/moonbeam"
+        }
+      ]
+    }
+  ]
+}

@@ -45,6 +45,8 @@ import type {
   PalletIdentityBitFlags,
   PalletIdentityIdentityInfo,
   PalletIdentityJudgement,
+  PalletXcmTransactorCurrencyPayment,
+  PalletXcmTransactorTransactWeights,
   SpRuntimeMultiSignature,
   XcmV0OriginKind,
   XcmV1MultiLocation,
@@ -1546,7 +1548,8 @@ declare module "@polkadot/api-base/types/submittable" {
        *
        * - `proposal_hash`: The hash of the current external proposal.
        * - `voting_period`: The period that is allowed for voting on this
-       *   proposal. Increased to `FastTrackVotingPeriod` if too low.
+       *   proposal. Must be always greater than zero. For `FastTrackOrigin`
+       *   must be equal or greater than `FastTrackVotingPeriod`.
        * - `delay`: The number of block after voting has ended in approval and
        *   this should be enacted. This doesn't have a minimum amount.
        *
@@ -1934,14 +1937,6 @@ declare module "@polkadot/api-base/types/submittable" {
           Option<U256>,
           Vec<ITuple<[H160, Vec<H256>]>>
         ]
-      >;
-      /**
-       * Increment `sufficients` for existing accounts having a nonzero `nonce`
-       * but zero `sufficients` value.
-       */
-      hotfixIncAccountSufficients: AugmentedSubmittable<
-        (addresses: Vec<H160> | (H160 | string | Uint8Array)[]) => SubmittableExtrinsic<ApiType>,
-        [Vec<H160>]
       >;
       /**
        * Withdraw balance from EVM into currency/balances pallet.
@@ -3092,9 +3087,10 @@ declare module "@polkadot/api-base/types/submittable" {
         [u32]
       >;
       /**
-       * Cancel a pending request to exit the set of delegators. Success clears
-       * the pending exit request (thereby resetting the delay upon another
-       * `leave_delegators` call).
+       * DEPRECATED use batch util with cancel_delegation_request for all
+       * delegations Cancel a pending request to exit the set of delegators.
+       * Success clears the pending exit request (thereby resetting the delay
+       * upon another `leave_delegators` call).
        */
       cancelLeaveDelegators: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -3156,8 +3152,9 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, u32]
       >;
       /**
-       * Execute the right to exit the set of delegators and revoke all ongoing
-       * delegations.
+       * DEPRECATED use batch util with execute_delegation_request for all
+       * delegations Execute the right to exit the set of delegators and revoke
+       * all ongoing delegations.
        */
       executeLeaveDelegators: AugmentedSubmittable<
         (
@@ -3174,6 +3171,15 @@ declare module "@polkadot/api-base/types/submittable" {
        * Rejoin the set of collator candidates if previously had called `go_offline`
        */
       goOnline: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
+      /**
+       * Hotfix to remove existing empty entries for candidates that have left.
+       */
+      hotfixRemoveDelegationRequestsExitedCandidates: AugmentedSubmittable<
+        (
+          candidates: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>]
+      >;
       /**
        * Join the set of collator candidates
        */
@@ -3210,10 +3216,11 @@ declare module "@polkadot/api-base/types/submittable" {
         [u32]
       >;
       /**
-       * Request to leave the set of delegators. If successful, the caller is
-       * scheduled to be allowed to exit via a [DelegationAction::Revoke]
-       * towards all existing delegations. Success forbids future delegation
-       * requests until the request is invoked or cancelled.
+       * DEPRECATED use batch util with schedule_revoke_delegation for all
+       * delegations Request to leave the set of delegators. If successful, the
+       * caller is scheduled to be allowed to exit via a
+       * [DelegationAction::Revoke] towards all existing delegations. Success
+       * forbids future delegation requests until the request is invoked or cancelled.
        */
       scheduleLeaveDelegators: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -3621,6 +3628,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
@@ -3702,6 +3710,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array,
@@ -3745,6 +3754,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
@@ -3918,12 +3928,23 @@ declare module "@polkadot/api-base/types/submittable" {
             | "CancelProxy"
             | "Balances"
             | "AuthorMapping"
+            | "IdentityJudgement"
             | number
             | Uint8Array,
           delay: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, MoonbeamRuntimeProxyType, u32]
       >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    randomness: {
+      /**
+       * Populates the `RandomnessResults` that are due this block with the raw values
+       */
+      setBabeRandomnessResults: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
        * Generic tx
        */
@@ -4445,6 +4466,267 @@ declare module "@polkadot/api-base/types/submittable" {
         [Compact<u32>]
       >;
       /**
+       * Force a previously approved proposal to be removed from the approval
+       * queue. The original deposit will no longer be returned.
+       *
+       * May only be called from `T::RejectOrigin`.
+       *
+       * - `proposal_id`: The index of a proposal
+       *
+       * # <weight>
+       *
+       * - Complexity: O(A) where `A` is the number of approvals
+       * - Db reads and writes: `Approvals`
+       *
+       * # </weight>
+       *
+       * Errors:
+       *
+       * - `ProposalNotApproved`: The `proposal_id` supplied was not found in the
+       *   approval queue, i.e., the proposal has not been approved. This could
+       *   also mean the proposal does not exist altogether, thus there is no
+       *   way it would have been approved in the first place.
+       */
+      removeApproval: AugmentedSubmittable<
+        (proposalId: Compact<u32> | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>]
+      >;
+      /**
+       * Propose and approve a spend of treasury funds.
+       *
+       * - `origin`: Must be `SpendOrigin` with the `Success` value being at least `amount`.
+       * - `amount`: The amount to be transferred from the treasury to the `beneficiary`.
+       * - `beneficiary`: The destination account for the transfer.
+       *
+       * NOTE: For record-keeping purposes, the proposer is deemed to be
+       * equivalent to the beneficiary.
+       */
+      spend: AugmentedSubmittable<
+        (
+          amount: Compact<u128> | AnyNumber | Uint8Array,
+          beneficiary: AccountId20 | string | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u128>, AccountId20]
+      >;
+      /**
+       * Generic tx
+       */
+      [key: string]: SubmittableExtrinsicFunction<ApiType>;
+    };
+    treasuryCouncilCollective: {
+      /**
+       * Close a vote that is either approved, disapproved or whose voting
+       * period has ended.
+       *
+       * May be called by any signed account in order to finish voting and close
+       * the proposal.
+       *
+       * If called before the end of the voting period it will only close the
+       * vote if it is has enough votes to be approved or disapproved.
+       *
+       * If called after the end of the voting period abstentions are counted as
+       * rejections unless there is a prime member set and the prime member cast
+       * an approval.
+       *
+       * If the close operation completes successfully with disapproval, the
+       * transaction fee will be waived. Otherwise execution of the approved
+       * operation will be charged to the caller.
+       *
+       * - `proposal_weight_bound`: The maximum amount of weight consumed by
+       *   executing the closed proposal.
+       * - `length_bound`: The upper bound for the length of the proposal in
+       *   storage. Checked via `storage::read` so it is `size_of::<u32>() == 4`
+       *   larger than the pure length.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(B + M + P1 + P2)` where:
+       * - `B` is `proposal` size in bytes (length-fee-bounded)
+       * - `M` is members-count (code- and governance-bounded)
+       * - `P1` is the complexity of `proposal` preimage.
+       * - `P2` is proposal-count (code-bounded)
+       * - DB:
+       * - 2 storage reads (`Members`: codec `O(M)`, `Prime`: codec `O(1)`)
+       * - 3 mutations (`Voting`: codec `O(M)`, `ProposalOf`: codec `O(B)`,
+       *   `Proposals`: codec `O(P2)`)
+       * - Any mutations done while executing `proposal` (`P1`)
+       * - Up to 3 events
+       *
+       * # </weight>
+       */
+      close: AugmentedSubmittable<
+        (
+          proposalHash: H256 | string | Uint8Array,
+          index: Compact<u32> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
+      >;
+      /**
+       * Disapprove a proposal, close, and remove it from the system, regardless
+       * of its current state.
+       *
+       * Must be called by the Root origin.
+       *
+       * Parameters:
+       *
+       * - `proposal_hash`: The hash of the proposal that should be disapproved.
+       *
+       * # <weight>
+       *
+       * Complexity: O(P) where P is the number of max proposals DB Weight:
+       *
+       * - Reads: Proposals
+       * - Writes: Voting, Proposals, ProposalOf
+       *
+       * # </weight>
+       */
+      disapproveProposal: AugmentedSubmittable<
+        (proposalHash: H256 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [H256]
+      >;
+      /**
+       * Dispatch a proposal from a member using the `Member` origin.
+       *
+       * Origin must be a member of the collective.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(M + P)` where `M` members-count (code-bounded) and `P` complexity of
+       *   dispatching `proposal`
+       * - DB: 1 read (codec `O(M)`) + DB access of `proposal`
+       * - 1 event
+       *
+       * # </weight>
+       */
+      execute: AugmentedSubmittable<
+        (
+          proposal: Call | IMethod | string | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Call, Compact<u32>]
+      >;
+      /**
+       * Add a new proposal to either be voted on or executed directly.
+       *
+       * Requires the sender to be member.
+       *
+       * `threshold` determines whether `proposal` is executed directly
+       * (`threshold < 2`) or put up for voting.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(B + M + P1)` or `O(B + M + P2)` where:
+       * - `B` is `proposal` size in bytes (length-fee-bounded)
+       * - `M` is members-count (code- and governance-bounded)
+       * - Branching is influenced by `threshold` where:
+       * - `P1` is proposal execution complexity (`threshold < 2`)
+       * - `P2` is proposals-count (code-bounded) (`threshold >= 2`)
+       * - DB:
+       * - 1 storage read `is_member` (codec `O(M)`)
+       * - 1 storage read `ProposalOf::contains_key` (codec `O(1)`)
+       * - DB accesses influenced by `threshold`:
+       * - EITHER storage accesses done by `proposal` (`threshold < 2`)
+       * - OR proposal insertion (`threshold <= 2`)
+       * - 1 storage mutation `Proposals` (codec `O(P2)`)
+       * - 1 storage mutation `ProposalCount` (codec `O(1)`)
+       * - 1 storage write `ProposalOf` (codec `O(B)`)
+       * - 1 storage write `Voting` (codec `O(M)`)
+       * - 1 event
+       *
+       * # </weight>
+       */
+      propose: AugmentedSubmittable<
+        (
+          threshold: Compact<u32> | AnyNumber | Uint8Array,
+          proposal: Call | IMethod | string | Uint8Array,
+          lengthBound: Compact<u32> | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Compact<u32>, Call, Compact<u32>]
+      >;
+      /**
+       * Set the collective's membership.
+       *
+       * - `new_members`: The new member list. Be nice to the chain and provide it sorted.
+       * - `prime`: The prime member whose vote sets the default.
+       * - `old_count`: The upper bound for the previous number of members in
+       *   storage. Used for weight estimation.
+       *
+       * Requires root origin.
+       *
+       * NOTE: Does not enforce the expected `MaxMembers` limit on the amount of
+       * members, but the weight estimations rely on it to estimate dispatchable weight.
+       *
+       * # WARNING:
+       *
+       * The `pallet-collective` can also be managed by logic outside of the
+       * pallet through the implementation of the trait [`ChangeMembers`]. Any
+       * call to `set_members` must be careful that the member set doesn't get
+       * out of sync with other logic managing the member set.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(MP + N)` where:
+       * - `M` old-members-count (code- and governance-bounded)
+       * - `N` new-members-count (code- and governance-bounded)
+       * - `P` proposals-count (code-bounded)
+       * - DB:
+       * - 1 storage mutation (codec `O(M)` read, `O(N)` write) for reading and
+       *   writing the members
+       * - 1 storage read (codec `O(P)`) for reading the proposals
+       * - `P` storage mutations (codec `O(M)`) for updating the votes for each proposal
+       * - 1 storage write (codec `O(1)`) for deleting the old `prime` and setting
+       *   the new one
+       *
+       * # </weight>
+       */
+      setMembers: AugmentedSubmittable<
+        (
+          newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
+          prime: Option<AccountId20> | null | object | string | Uint8Array,
+          oldCount: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<AccountId20>, Option<AccountId20>, u32]
+      >;
+      /**
+       * Add an aye or nay vote for the sender to the given proposal.
+       *
+       * Requires the sender to be a member.
+       *
+       * Transaction fees will be waived if the member is voting on any
+       * particular proposal for the first time and the call is successful.
+       * Subsequent vote changes will charge a fee.
+       *
+       * # <weight>
+       *
+       * ## Weight
+       *
+       * - `O(M)` where `M` is members-count (code- and governance-bounded)
+       * - DB:
+       * - 1 storage read `Members` (codec `O(M)`)
+       * - 1 storage mutation `Voting` (codec `O(M)`)
+       * - 1 event
+       *
+       * # </weight>
+       */
+      vote: AugmentedSubmittable<
+        (
+          proposal: H256 | string | Uint8Array,
+          index: Compact<u32> | AnyNumber | Uint8Array,
+          approve: bool | boolean | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [H256, Compact<u32>, bool]
+      >;
+      /**
        * Generic tx
        */
       [key: string]: SubmittableExtrinsicFunction<ApiType>;
@@ -4550,6 +4832,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | { Ethereum: any }
             | { CouncilCollective: any }
             | { TechCommitteeCollective: any }
+            | { TreasuryCouncilCollective: any }
             | { CumulusXcm: any }
             | { PolkadotXcm: any }
             | string
@@ -4557,6 +4840,31 @@ declare module "@polkadot/api-base/types/submittable" {
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [MoonbeamRuntimeOriginCaller, Call]
+      >;
+      /**
+       * Send a batch of dispatch calls. Unlike `batch`, it allows errors and
+       * won't interrupt.
+       *
+       * May be called from any origin.
+       *
+       * - `calls`: The calls to be dispatched from the same origin. The number of
+       *   call must not exceed the constant: `batched_calls_limit` (available
+       *   in constant metadata).
+       *
+       * If origin is root then call are dispatch without checking origin
+       * filter. (This includes bypassing `frame_system::Config::BaseCallFilter`).
+       *
+       * # <weight>
+       *
+       * - Complexity: O(C) where C is the number of calls to be batched.
+       *
+       * # </weight>
+       */
+      forceBatch: AugmentedSubmittable<
+        (
+          calls: Vec<Call> | (Call | IMethod | string | Uint8Array)[]
+        ) => SubmittableExtrinsic<ApiType>,
+        [Vec<Call>]
       >;
       /**
        * Generic tx
@@ -4638,7 +4946,8 @@ declare module "@polkadot/api-base/types/submittable" {
       >;
       /**
        * Transact the inner call through a derivative account in a destination
-       * chain, using 'currency_id' to pay for the fees.
+       * chain, using 'fee_location' to pay for the fees. This fee_location is
+       * given as a multilocation
        *
        * The caller needs to have the index registered in this pallet. The fee
        * multiasset needs to be a reserve asset for the destination
@@ -4648,36 +4957,25 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           dest: MoonbeamRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
           index: u16 | AnyNumber | Uint8Array,
-          currencyId:
-            | MoonbeamRuntimeXcmConfigCurrencyId
-            | { SelfReserve: any }
-            | { ForeignAsset: any }
-            | { LocalAssetReserve: any }
+          fee:
+            | PalletXcmTransactorCurrencyPayment
+            | { currency?: any; feeAmount?: any }
             | string
             | Uint8Array,
-          destWeight: u64 | AnyNumber | Uint8Array,
-          innerCall: Bytes | string | Uint8Array
+          innerCall: Bytes | string | Uint8Array,
+          weightInfo:
+            | PalletXcmTransactorTransactWeights
+            | { transactRequiredWeightAtMost?: any; overallWeight?: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [MoonbeamRuntimeXcmConfigTransactors, u16, MoonbeamRuntimeXcmConfigCurrencyId, u64, Bytes]
-      >;
-      /**
-       * Transact the inner call through a derivative account in a destination
-       * chain, using 'fee_location' to pay for the fees. This fee_location is
-       * given as a multilocation
-       *
-       * The caller needs to have the index registered in this pallet. The fee
-       * multiasset needs to be a reserve asset for the destination
-       * transactor::multilocation.
-       */
-      transactThroughDerivativeMultilocation: AugmentedSubmittable<
-        (
-          dest: MoonbeamRuntimeXcmConfigTransactors | "Relay" | number | Uint8Array,
-          index: u16 | AnyNumber | Uint8Array,
-          feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
-          destWeight: u64 | AnyNumber | Uint8Array,
-          innerCall: Bytes | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [MoonbeamRuntimeXcmConfigTransactors, u16, XcmVersionedMultiLocation, u64, Bytes]
+        [
+          MoonbeamRuntimeXcmConfigTransactors,
+          u16,
+          PalletXcmTransactorCurrencyPayment,
+          Bytes,
+          PalletXcmTransactorTransactWeights
+        ]
       >;
       /**
        * Transact the call through the a signed origin in this chain that should
@@ -4689,33 +4987,24 @@ declare module "@polkadot/api-base/types/submittable" {
       transactThroughSigned: AugmentedSubmittable<
         (
           dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
-          feeCurrencyId:
-            | MoonbeamRuntimeXcmConfigCurrencyId
-            | { SelfReserve: any }
-            | { ForeignAsset: any }
-            | { LocalAssetReserve: any }
+          fee:
+            | PalletXcmTransactorCurrencyPayment
+            | { currency?: any; feeAmount?: any }
             | string
             | Uint8Array,
-          destWeight: u64 | AnyNumber | Uint8Array,
-          call: Bytes | string | Uint8Array
+          call: Bytes | string | Uint8Array,
+          weightInfo:
+            | PalletXcmTransactorTransactWeights
+            | { transactRequiredWeightAtMost?: any; overallWeight?: any }
+            | string
+            | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, MoonbeamRuntimeXcmConfigCurrencyId, u64, Bytes]
-      >;
-      /**
-       * Transact the call through the a signed origin in this chain that should
-       * be converted to a transaction dispatch account in the destination chain
-       * by any method implemented in the destination chains runtime
-       *
-       * This time we are giving the currency as a multilocation instead of currencyId
-       */
-      transactThroughSignedMultilocation: AugmentedSubmittable<
-        (
-          dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
-          feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
-          destWeight: u64 | AnyNumber | Uint8Array,
-          call: Bytes | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedMultiLocation, XcmVersionedMultiLocation, u64, Bytes]
+        [
+          XcmVersionedMultiLocation,
+          PalletXcmTransactorCurrencyPayment,
+          Bytes,
+          PalletXcmTransactorTransactWeights
+        ]
       >;
       /**
        * Transact the call through the sovereign account in a destination chain,
@@ -4727,8 +5016,11 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           dest: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           feePayer: AccountId20 | string | Uint8Array,
-          feeLocation: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
-          destWeight: u64 | AnyNumber | Uint8Array,
+          fee:
+            | PalletXcmTransactorCurrencyPayment
+            | { currency?: any; feeAmount?: any }
+            | string
+            | Uint8Array,
           call: Bytes | string | Uint8Array,
           originKind:
             | XcmV0OriginKind
@@ -4737,15 +5029,20 @@ declare module "@polkadot/api-base/types/submittable" {
             | "Superuser"
             | "Xcm"
             | number
+            | Uint8Array,
+          weightInfo:
+            | PalletXcmTransactorTransactWeights
+            | { transactRequiredWeightAtMost?: any; overallWeight?: any }
+            | string
             | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [
           XcmVersionedMultiLocation,
           AccountId20,
-          XcmVersionedMultiLocation,
-          u64,
+          PalletXcmTransactorCurrencyPayment,
           Bytes,
-          XcmV0OriginKind
+          XcmV0OriginKind,
+          PalletXcmTransactorTransactWeights
         ]
       >;
       /**

@@ -30,14 +30,13 @@ use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
 
 pub type AccountId = Account;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -117,8 +116,8 @@ impl From<H160> for Account {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -134,7 +133,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -174,11 +173,13 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	ParachainStakingWrapper<R>: Precompile,
+	ParachainStakingPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(ParachainStakingWrapper::<R>::execute(handle)),
+			a if a == precompile_address() => {
+				Some(ParachainStakingPrecompile::<R>::execute(handle))
+			}
 			_ => None,
 		}
 	}
@@ -187,6 +188,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = ParachainStakingPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
@@ -359,12 +362,12 @@ impl ExtBuilder {
 }
 
 // Sets the same storage changes as EventHandler::note_author impl
-pub(crate) fn set_points(round: u32, acc: Account, pts: u32) {
+pub(crate) fn set_points(round: BlockNumber, acc: Account, pts: u32) {
 	<Points<Runtime>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Runtime>>::mutate(round, acc, |p| *p += pts);
 }
 
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		ParachainStaking::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());
@@ -378,8 +381,8 @@ pub(crate) fn roll_to(n: u64) {
 
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
-pub(crate) fn roll_to_round_begin(round: u64) {
-	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+pub(crate) fn roll_to_round_begin(round: BlockNumber) {
+	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }
 

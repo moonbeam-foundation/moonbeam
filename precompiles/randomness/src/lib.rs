@@ -21,9 +21,7 @@
 
 extern crate alloc;
 
-use fp_evm::{
-	Context, ExitReason, ExitSucceed, Log, Precompile, PrecompileHandle, PrecompileOutput,
-};
+use fp_evm::{Context, ExitReason, Log, PrecompileHandle};
 use frame_support::traits::Get;
 use pallet_evm::GasWeightMapping;
 use pallet_randomness::{
@@ -32,7 +30,7 @@ use pallet_randomness::{
 };
 use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
-use sp_std::{fmt::Debug, marker::PhantomData, vec, vec::Vec};
+use sp_std::{marker::PhantomData, vec, vec::Vec};
 
 // #[cfg(test)]
 // mod mock;
@@ -41,26 +39,10 @@ mod solidity_types;
 mod tests;
 use solidity_types::*;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	RelayEpochIndex = "relayEpochIndex()",
-	RequiredDeposit = "requiredDeposit()",
-	GetRequestStatus = "getRequestStatus(uint256)",
-	GetRequest = "getRequest(uint256)",
-	RequestRelayBabeEpochRandomWords =
-		"requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)",
-	RequestLocalVRFRandomWords =
-		"requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)",
-	FulfillRequest = "fulfillRequest(uint256)",
-	IncreaseRequestFee = "increaseRequestFee(uint256,uint256)",
-	PurgeExpiredRequest = "purgeExpiredRequest(uint256)",
-}
-
 // Tests to verify equal to weight_to_gas(weight) in runtime integration tests
-pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26325;
-pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16718;
-pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 21989;
+pub const REQUEST_RANDOMNESS_ESTIMATED_COST: u64 = 26474;
+pub const INCREASE_REQUEST_FEE_ESTIMATED_COST: u64 = 16995;
+pub const EXECUTE_EXPIRATION_ESTIMATED_COST: u64 = 22201;
 
 /// Fulfillment overhead cost, which takes input weight hint -> weight -> return gas
 pub fn fulfillment_overhead_gas_cost<T: pallet_evm::Config>(num_words: u8) -> u64 {
@@ -162,68 +144,43 @@ fn provide_randomness(
 }
 
 /// A precompile to wrap the functionality from pallet-randomness
-pub struct RandomnessWrapper<Runtime>(PhantomData<Runtime>);
+pub struct RandomnessPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for RandomnessWrapper<Runtime>
+#[precompile_utils::precompile]
+impl<Runtime> RandomnessPrecompile<Runtime>
 where
 	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: From<u32>,
+	<Runtime as frame_system::Config>::BlockNumber: TryInto<u32> + TryFrom<u32>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
 {
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		log::trace!(target: "randomness-precompile", "In randomness wrapper");
-
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::RelayEpochIndex
-			| Action::GetRequestStatus
-			| Action::GetRequest
-			| Action::RequiredDeposit => FunctionModifier::View,
-			_ => FunctionModifier::NonPayable,
-		})?;
-
-		match selector {
-			Action::RelayEpochIndex => Self::relay_epoch_index(handle),
-			Action::RequiredDeposit => Self::required_deposit(handle),
-			Action::GetRequestStatus => Self::get_request_status(handle),
-			Action::GetRequest => Self::get_request(handle),
-			Action::RequestRelayBabeEpochRandomWords => Self::request_babe_randomness(handle),
-			Action::RequestLocalVRFRandomWords => Self::request_local_randomness(handle),
-			Action::FulfillRequest => Self::fulfill_request(handle),
-			Action::IncreaseRequestFee => Self::increase_request_fee(handle),
-			Action::PurgeExpiredRequest => Self::purge_expired_request(handle),
-		}
-	}
-}
-
-impl<Runtime> RandomnessWrapper<Runtime>
-where
-	Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
-	<Runtime as frame_system::Config>::BlockNumber: TryInto<u64> + TryFrom<u64>,
-	BalanceOf<Runtime>: TryFrom<U256> + Into<U256>,
-{
-	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("relayEpochIndex()")]
+	#[precompile::view]
+	fn relay_epoch_index(handle: &mut impl PrecompileHandle) -> EvmResult<u64> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let relay_epoch_index =
 			<Runtime as pallet_randomness::Config>::BabeDataGetter::get_epoch_index();
-		Ok(succeed(
-			EvmDataWriter::new().write(relay_epoch_index).build(),
-		))
+		Ok(relay_epoch_index)
 	}
-	fn required_deposit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+
+	#[precompile::public("requiredDeposit()")]
+	#[precompile::view]
+	fn required_deposit(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let required_deposit: u128 = <Runtime as pallet_randomness::Config>::Deposit::get()
-			.try_into()
-			.map_err(|_| revert("Amount is too large for provided balance type"))?;
-		Ok(succeed(
-			EvmDataWriter::new().write(required_deposit).build(),
-		))
+		let required_deposit: U256 = <Runtime as pallet_randomness::Config>::Deposit::get().into();
+		Ok(required_deposit)
 	}
-	fn get_request_status(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, { request_id: u64 });
+
+	#[precompile::public("getRequestStatus(uint256)")]
+	#[precompile::view]
+	fn get_request_status(
+		handle: &mut impl PrecompileHandle,
+		request_id: SolidityConvert<U256, u64>,
+	) -> EvmResult<RequestStatus> {
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
+
+		let request_id = request_id.converted();
+
 		let status =
 			if let Some(RequestState { request, .. }) = Pallet::<Runtime>::requests(request_id) {
 				if request.is_expired() {
@@ -236,15 +193,37 @@ where
 			} else {
 				RequestStatus::DoesNotExist
 			};
-		Ok(succeed(EvmDataWriter::new().write(status).build()))
+		Ok(status)
 	}
-	fn get_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, { request_id: u64 });
 
+	#[precompile::public("getRequest(uint256)")]
+	#[precompile::view]
+	fn get_request(
+		handle: &mut impl PrecompileHandle,
+		request_id: SolidityConvert<U256, u64>,
+	) -> EvmResult<(
+		U256,    // id
+		Address, // refund address
+		Address, // contract address
+		U256,    // fee
+		U256,    // gas limit
+		H256,    // salt
+		u32,     // num words
+		RandomnessSource,
+		u32, // fulfillment block
+		u64, // fulfullment epoch index
+		u32, // expiration block
+		u64, // expiration epoch index
+		RequestStatus,
+	)> {
 		// record cost of 2 DB reads
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost() * 2)?;
+
+		let request_id = request_id.converted();
+
 		let RequestState { request, .. } =
 			Pallet::<Runtime>::requests(request_id).ok_or(revert("Request Does Not Exist"))?;
+
 		let status = if request.is_expired() {
 			RequestStatus::Expired
 		} else if request.can_be_fulfilled() {
@@ -252,6 +231,7 @@ where
 		} else {
 			RequestStatus::Pending
 		};
+
 		let (
 			randomness_source,
 			fulfillment_block,
@@ -262,9 +242,9 @@ where
 		) = match request.info {
 			RequestInfo::BabeEpoch(epoch_due, epoch_expired) => (
 				RandomnessSource::RelayBabeEpoch,
-				0u64,
+				0u32,
 				epoch_due,
-				0u64,
+				0u32,
 				epoch_expired,
 				status,
 			),
@@ -281,41 +261,44 @@ where
 				status,
 			),
 		};
+
 		let (refund_address, contract_address, fee): (Address, Address, U256) = (
 			request.refund_address.into(),
 			request.contract_address.into(),
 			request.fee.into(),
 		);
-		let writer = EvmDataWriter::new()
-			.write(request_id)
-			.write(refund_address)
-			.write(contract_address)
-			.write(fee)
-			.write(request.gas_limit)
-			.write(request.salt)
-			.write(request.num_words)
-			.write(randomness_source)
-			.write(fulfillment_block)
-			.write(fulfillment_epoch)
-			.write(expiration_block)
-			.write(expiration_epoch)
-			.write(request_status)
-			.build();
-		Ok(succeed(writer))
+
+		Ok((
+			request_id.into(),
+			refund_address.into(),
+			contract_address,
+			fee,
+			request.gas_limit.into(),
+			request.salt,
+			request.num_words.into(),
+			randomness_source,
+			fulfillment_block,
+			fulfillment_epoch,
+			expiration_block,
+			expiration_epoch,
+			request_status,
+		))
 	}
+
 	/// Make request for babe randomness one epoch ago
-	fn request_babe_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("requestRelayBabeEpochRandomWords(address,uint256,uint64,bytes32,uint8)")]
+	fn request_babe_randomness(
+		handle: &mut impl PrecompileHandle,
+		refund_address: Address,
+		fee: U256,
+		gas_limit: u64,
+		salt: H256,
+		num_words: u8,
+	) -> EvmResult<U256> {
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
 
-		read_args!(handle, {
-			refund_address: Address,
-			fee: U256,
-			gas_limit: u64,
-			salt: H256,
-			num_words: u8
-		});
 		let refund_address: H160 = refund_address.into();
 		let fee: BalanceOf<Runtime> = fee
 			.try_into()
@@ -342,25 +325,23 @@ where
 			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(request_id).build(),
-		})
+		Ok(request_id)
 	}
 	/// Make request for local VRF randomness
-	fn request_local_randomness(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("requestLocalVRFRandomWords(address,uint256,uint64,bytes32,uint8,uint64)")]
+	fn request_local_randomness(
+		handle: &mut impl PrecompileHandle,
+		refund_address: Address,
+		fee: U256,
+		gas_limit: u64,
+		salt: H256,
+		num_words: u8,
+		delay: SolidityConvert<u64, u32>,
+	) -> EvmResult<U256> {
 		handle.record_cost(
 			REQUEST_RANDOMNESS_ESTIMATED_COST + RuntimeHelper::<Runtime>::db_read_gas_cost(),
 		)?;
 
-		read_args!(handle, {
-			refund_address: Address,
-			fee: U256,
-			gas_limit: u64,
-			salt: H256,
-			num_words: u8,
-			delay: u64
-		});
 		let refund_address: H160 = refund_address.into();
 		let fee: BalanceOf<Runtime> = fee
 			.try_into()
@@ -368,11 +349,12 @@ where
 
 		let contract_address = handle.context().caller;
 
-		let current_block_number: u64 = <frame_system::Pallet<Runtime>>::block_number()
+		let current_block_number: u32 = <frame_system::Pallet<Runtime>>::block_number()
 			.try_into()
-			.map_err(|_| revert("block number overflowed u64"))?;
+			.map_err(|_| revert("block number overflowed u32"))?;
 
 		let requested_block_number = delay
+			.converted()
 			.checked_add(current_block_number)
 			.ok_or(revert("addition result overflowed u64"))?
 			.try_into()
@@ -392,22 +374,24 @@ where
 			.map_err(|e| revert(alloc::format!("Error in pallet_randomness: {:?}", e)))?
 			.into();
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: EvmDataWriter::new().write(request_id).build(),
-		})
+		Ok(request_id)
 	}
-	/// Fulfill a randomness request due to be fulfilled
-	fn fulfill_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		read_args!(handle, { request_id: u64 });
 
-		// read all the inputs
+	/// Fulfill a randomness request due to be fulfilled
+	#[precompile::public("fulfillRequest(uint256)")]
+	fn fulfill_request(
+		handle: &mut impl PrecompileHandle,
+		request_id: SolidityConvert<U256, u64>,
+	) -> EvmResult {
+		let request_id = request_id.converted();
+
 		let pallet_randomness::FulfillArgs {
 			request,
 			deposit,
 			randomness,
 		} = Pallet::<Runtime>::prepare_fulfillment(request_id)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
+
 		// check that randomness can be provided
 		ensure_can_provide_randomness::<Runtime>(
 			handle.code_address(),
@@ -415,6 +399,7 @@ where
 			request.fee,
 			fulfillment_overhead_gas_cost::<Runtime>(request.num_words),
 		)?;
+
 		// get gas before subcall
 		let before_remaining_gas = handle.remaining_gas();
 		provide_randomness(
@@ -424,6 +409,7 @@ where
 			request.contract_address.clone().into(),
 			randomness.into_iter().map(|x| H256(x)).collect(),
 		)?;
+
 		// get gas after subcall
 		let after_remaining_gas = handle.remaining_gas();
 		let gas_used: U256 = before_remaining_gas
@@ -436,6 +422,7 @@ where
 			.ok_or(revert("Multiply gas used by base fee overflowed"))?
 			.try_into()
 			.map_err(|_| revert("amount is too large for provided balance type"))?;
+
 		// Finish fulfillment to
 		// refund cost of execution to caller
 		// refund excess fee to the refund_address
@@ -447,19 +434,21 @@ where
 			&handle.context().caller,
 			cost_of_execution,
 		);
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+
+		Ok(())
 	}
+
 	/// Increase the fee used to refund fulfillment of the request
-	fn increase_request_fee(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("increaseRequestFee(uint256,uint256)")]
+	fn increase_request_fee(
+		handle: &mut impl PrecompileHandle,
+		request_id: SolidityConvert<U256, u64>,
+		fee_increase: U256,
+	) -> EvmResult {
 		handle.record_cost(INCREASE_REQUEST_FEE_ESTIMATED_COST)?;
 
-		read_args!(handle, {
-			request_id: u64,
-			fee_increase: U256
-		});
+		let request_id = request_id.converted();
+
 		let fee_increase: BalanceOf<Runtime> = fee_increase.try_into().map_err(|_| {
 			RevertReason::value_is_too_large("balance type").in_field("feeIncrease")
 		})?;
@@ -467,23 +456,21 @@ where
 		Pallet::<Runtime>::increase_request_fee(&handle.context().caller, request_id, fee_increase)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
 
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(())
 	}
 	/// Execute request expiration to remove the request from storage
 	/// Transfers `fee` to caller and `deposit` back to `contract_address`
-	fn purge_expired_request(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("purgeExpiredRequest(uint256)")]
+	fn purge_expired_request(
+		handle: &mut impl PrecompileHandle,
+		request_id: SolidityConvert<U256, u64>,
+	) -> EvmResult {
 		handle.record_cost(EXECUTE_EXPIRATION_ESTIMATED_COST)?;
 
-		read_args!(handle, { request_id: u64 });
+		let request_id = request_id.converted();
 
 		Pallet::<Runtime>::execute_request_expiration(&handle.context().caller, request_id)
 			.map_err(|e| revert(alloc::format!("{:?}", e)))?;
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			output: Default::default(),
-		})
+		Ok(())
 	}
 }

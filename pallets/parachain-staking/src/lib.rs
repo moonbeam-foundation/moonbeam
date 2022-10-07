@@ -1462,7 +1462,7 @@ pub mod pallet {
 
 			// don't underflow uint
 			if now < delay {
-				return 0u64.into();
+				return Weight::from_ref_time(0u64);
 			}
 
 			let paid_for_round = now.saturating_sub(delay);
@@ -1477,7 +1477,7 @@ pub mod pallet {
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {
-				0u64.into()
+				Weight::from_ref_time(0u64)
 			}
 		}
 
@@ -1499,7 +1499,7 @@ pub mod pallet {
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
 				log::warn!("pay_one_collator_reward called with no <Points<T>> for the round!");
-				return (None, 0u64.into());
+				return (None, Weight::zero());
 			}
 
 			let mint = |amt: BalanceOf<T>, to: T::AccountId| {
@@ -1517,7 +1517,7 @@ pub mod pallet {
 			if let Some((collator, pts)) =
 				<AwardedPts<T>>::iter_prefix(paid_for_round).drain().next()
 			{
-				let mut extra_weight = 0;
+				let mut extra_weight = Weight::zero();
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
@@ -1527,11 +1527,12 @@ pub mod pallet {
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
 					mint(amt_due, collator.clone());
-					extra_weight += T::OnCollatorPayout::on_collator_payout(
-						paid_for_round,
-						collator.clone(),
-						amt_due,
-					);
+					extra_weight =
+						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+							paid_for_round,
+							collator.clone(),
+							amt_due,
+						));
 				} else {
 					// pay collator first; commission + due_portion
 					let collator_pct = Perbill::from_rational(state.bond, state.total);
@@ -1539,11 +1540,12 @@ pub mod pallet {
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
 					mint(collator_reward, collator.clone());
-					extra_weight += T::OnCollatorPayout::on_collator_payout(
-						paid_for_round,
-						collator.clone(),
-						collator_reward,
-					);
+					extra_weight =
+						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+							paid_for_round,
+							collator.clone(),
+							collator_reward,
+						));
 					// pay delegators due portion
 					for Bond { owner, amount } in state.delegations {
 						let percent = Perbill::from_rational(amount, state.total);
@@ -1556,12 +1558,13 @@ pub mod pallet {
 
 				(
 					Some((collator, total_paid)),
-					T::WeightInfo::pay_one_collator_reward(num_delegators as u32) + extra_weight,
+					T::WeightInfo::pay_one_collator_reward(num_delegators as u32)
+						.saturating_add(extra_weight),
 				)
 			} else {
 				// Note that we don't clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				(None, 0u64.into())
+				(None, Weight::from_ref_time(0u64.into()))
 			}
 		}
 

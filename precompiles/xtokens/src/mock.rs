@@ -17,20 +17,15 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
+use frame_support::traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait};
 use frame_support::{construct_runtime, parameter_types};
-use frame_support::{
-	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
-	weights::Weight,
-};
 use orml_traits::{location::AbsoluteReserveProvider, parameter_type_with_key};
 use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
 use serde::{Deserialize, Serialize};
 use sp_core::H256;
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
 	Error as XcmError,
 	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
@@ -45,10 +40,11 @@ use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
 	Assets, XcmExecutor,
 };
+use xcm_primitives::XcmV2Weight;
 
 pub type AccountId = TestAccount;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -158,7 +154,7 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -172,7 +168,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -216,11 +212,11 @@ pub struct TestPrecompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for TestPrecompiles<R>
 where
-	XtokensWrapper<R>: Precompile,
+	XtokensPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == precompile_address() => Some(XtokensWrapper::<R>::execute(handle)),
+			a if a == precompile_address() => Some(XtokensPrecompile::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -229,6 +225,8 @@ where
 		address == precompile_address()
 	}
 }
+
+pub type PCall = XtokensPrecompileCall<Runtime>;
 
 pub fn precompile_address() -> H160 {
 	H160::from_low_u64_be(1)
@@ -306,7 +304,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -430,7 +428,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 	pub const MaxAssetsForTransfer: usize = 2;
 

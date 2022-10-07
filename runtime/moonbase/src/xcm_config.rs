@@ -32,7 +32,6 @@ use sp_runtime::{
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::Weight,
 };
 
 use frame_system::{EnsureRoot, RawOrigin};
@@ -54,6 +53,7 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -211,7 +211,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 );
 
 parameter_types! {
-	pub UnitWeightCost: Weight = 200_000_000;
+	pub UnitWeightCost: XcmV2Weight = 200_000_000u64;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
@@ -254,7 +254,10 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 
 // Our implementation of the Moonbeam Call
 // Attachs the right origin in case the call is made to pallet-ethereum-xcm
+#[cfg(not(feature = "evm-tracing"))]
 moonbeam_runtime_common::impl_moonbeam_xcm_call!();
+#[cfg(feature = "evm-tracing")]
+moonbeam_runtime_common::impl_moonbeam_xcm_call_tracing!();
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
@@ -440,7 +443,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 200_000_000;
+	pub const BaseXcmWeight: XcmV2Weight = 200_000_000u64;
 	pub const MaxAssetsForTransfer: usize = 2;
 	// This is how we are going to detect whether the asset is a Reserve asset
 	// This however is the chain part only
