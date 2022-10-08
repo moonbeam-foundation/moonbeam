@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 
 import { ApiPromise } from "@polkadot/api";
 import {
@@ -346,6 +346,14 @@ export async function jumpRounds(context: DevTestContext, count: Number): Promis
 }
 
 export const getBlockTime = (signedBlock: any) => {
-  const item = signedBlock.block.extrinsics.find(item => item.method.section == "timestamp");
-  return item.method.args[0].toNumber()
+  const item = signedBlock.block.extrinsics.find((item) => item.method.section == "timestamp");
+  return item.method.args[0].toNumber();
+};
+
+export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
+  return {
+    number,
+    finalized: (await api.rpc.moon.isBlockFinalized(await api.rpc.chain.getBlockHash(number)))
+      .isTrue,
+  };
 };

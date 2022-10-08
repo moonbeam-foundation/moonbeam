@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
-import { getBlockTime, exploreBlockRange } from "../util/block";
+import { checkBlockFinalized, getBlockTime } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-
+import pLimit from "p-limit";
 const debug = require("debug")("smoke:block-finalized");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
@@ -36,6 +36,7 @@ describeSmokeSuite(
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock(finalHash);
       const lastBlockNumber = signedBlock.block.header.number.toNumber();
       const lastBlockTime = getBlockTime(signedBlock);
+      const limit = pLimit(5);
 
       // Target time here is set to be 2 hours, possible parameterize this in future
       const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
@@ -46,13 +47,13 @@ describeSmokeSuite(
         return getBlockTime(block);
       };
 
-      const fetchHistoricBlockNum = async function (blockNumber, targetTime) {
-        return  fetchBlockTime(blockNumber).then(async (time) => {
+      const fetchHistoricBlockNum = async (blockNumber, targetTime) => {
+        return fetchBlockTime(blockNumber).then(async (time) => {
           if (time < targetTime) {
             return blockNumber;
           } else {
-            return  fetchHistoricBlockNum(
-              (blockNumber -= Math.ceil((time - targetTime) / 40_000)),
+            return fetchHistoricBlockNum(
+              (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
               targetTime
             );
           }
@@ -60,22 +61,34 @@ describeSmokeSuite(
       };
 
       const firstBlockNumber = await fetchHistoricBlockNum(lastBlockNumber, firstBlockTime);
+
+      // const firrrrstBlockNumber = (async function(blockNumber, targetTime){
+      //   function fetchHistoricBlockNum(blockNumber, targetTime){
+      //     fetchBlockTime(blockNumber).then(async (time) => {
+      //       if (time < targetTime) {
+      //         return blockNumber;
+      //       } else {
+      //         return fetchHistoricBlockNum((blockNumber -= Math.ceil((time - targetTime) / 30_000)),targetTime);
+      //       }
+      //     })
+      //   }
+      //   return fetchHistoricBlockNum(blockNumber, targetTime)
+      // })()
+
+      // console.log(await firrrrstBlockNumber)
+      // console.log(JSON.stringify( await firrrrstBlockNumber))
+
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
-      // const promises = exploreBlockRange(context.polkadotApi,{from: firstBlockNumber, to: lastBlockNumber, concurrency: 5},)
+      const promises = range(firstBlockNumber, lastBlockNumber).map((num) =>
+        limit(() => checkBlockFinalized(context.polkadotApi, num))
+      );
 
-      const promiseArray = range(firstBlockNumber, lastBlockNumber).map(async (num) => {
-        const promise = await context.polkadotApi.rpc.moon.isBlockFinalized(
-          await context.polkadotApi.rpc.chain.getBlockHash(num)
-        );
-        return { number: num, finalized: promise };
-      });
-
-      const results = await Promise.all(promiseArray);
+      const results = await Promise.all(promises);
       results.forEach((item) => {
-        if (item.finalized.isFalse) debug(`Historic block #${item.number} is unfinalized!`);
+        if (!item.finalized) debug(`Historic block #${item.number} is unfinalized!`);
       });
-      expect(results.every((item) => item.finalized.isTrue)).to.be.true;
+      expect(results.every((item) => item.finalized)).to.be.true;
     });
 
     const range = (start, end) => {
