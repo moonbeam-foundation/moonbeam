@@ -166,7 +166,7 @@ echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
 
-echo "[Upgrade $SUCCESS_UPGRADE, Test: $($SUCCESS_TEST && "Passed" || "Failed")]"
+echo "[Upgrade $SUCCESS_UPGRADE, Test: $($SUCCESS_TEST && echo "Passed" || echo "Failed")]"
 
 if [[ $KEEP_RUNNING == "true" ]]
 then
