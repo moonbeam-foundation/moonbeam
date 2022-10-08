@@ -110,7 +110,11 @@ describeParachain(
         for (const runtime of allPreviousMajorRuntimes) {
           if (runtime > currentVersion.specVersion.toNumber()) {
             console.log(`Found already released runtime not deployed: ${runtime}`);
-            await context.upgradeRuntime(alith, RUNTIME_NAME, `runtime-${runtime}`, {
+            await context.upgradeRuntime({
+              from: alith,
+              runtimeName: RUNTIME_NAME,
+              runtimeTag: `runtime-${runtime}`,
+              waitMigration: true,
               useGovernance: true,
             });
             // Wait for upgrade cooldown
@@ -119,7 +123,11 @@ describeParachain(
         }
       }
 
-      await context.upgradeRuntime(alith, RUNTIME_NAME, "local", { useGovernance: true });
+      await context.upgradeRuntime({
+        runtimeName: RUNTIME_NAME,
+        runtimeTag: `local`,
+        useGovernance: true,
+      });
 
       const postCurrentVersion = await (
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any

@@ -8,20 +8,27 @@ import { sha256 } from "ethers/lib/utils";
 
 import { getRuntimeWasm } from "./binaries";
 import { cancelReferendaWithCouncil, executeProposalWithCouncil } from "./governance";
+import { alith } from "./accounts";
 
 export interface UpgradePreferences {
-  from: KeyringPair;
   runtimeName: "moonbase" | "moonriver" | "moonbeam";
-  runtimeVersion: string;
+  runtimeTag: "local" | string;
+  from?: KeyringPair;
   waitMigration?: boolean;
   useGovernance?: boolean;
 }
 
 export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePreferences) {
+  const options = {
+    from: alith,
+    waitMigration: true,
+    useGovernance: false,
+    ...preferences,
+  };
   return new Promise<number>(async (resolve, reject) => {
     try {
       const code = fs
-        .readFileSync(await getRuntimeWasm(preferences.runtimeName, preferences.runtimeVersion))
+        .readFileSync(await getRuntimeWasm(options.runtimeName, options.runtimeTag))
         .toString();
 
       const existingCode = await api.rpc.state.getStorage(":code");
@@ -33,9 +40,9 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         );
       }
 
-      let nonce = (await api.rpc.system.accountNextIndex(preferences.from.address)).toNumber();
+      let nonce = (await api.rpc.system.accountNextIndex(options.from.address)).toNumber();
 
-      if (preferences.useGovernance) {
+      if (options.useGovernance) {
         // We just prepare the proposals
         let proposal = api.tx.parachainSystem.authorizeUpgrade(blake2AsHex(code));
         let encodedProposal = proposal.method.toHex();
@@ -53,7 +60,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           );
           await api.tx.democracy
             .notePreimage(encodedProposal)
-            .signAndSend(preferences.from, { nonce: nonce++ });
+            .signAndSend(options.from, { nonce: nonce++ });
           process.stdout.write(`✅\n`);
         }
 
@@ -73,11 +80,11 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         await executeProposalWithCouncil(api, encodedHash);
 
         // Needs to retrieve nonce after those governance calls
-        nonce = (await api.rpc.system.accountNextIndex(preferences.from.address)).toNumber();
+        nonce = (await api.rpc.system.accountNextIndex(options.from.address)).toNumber();
         process.stdout.write(`Enacting authorized upgrade...`);
         await api.tx.parachainSystem
           .enactAuthorizedUpgrade(code)
-          .signAndSend(preferences.from, { nonce: nonce++ });
+          .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       } else {
         process.stdout.write(
@@ -87,7 +94,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         );
         await api.tx.sudo
           .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
-          .signAndSend(preferences.from, { nonce: nonce++ });
+          .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       }
 
@@ -110,7 +117,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
                 .slice(0, 20)}`
             );
           }
-          if (preferences.waitMigration) {
+          if (options.waitMigration) {
             const blockToWait = (await api.rpc.chain.getHeader()).number.toNumber() + 1;
             const subBlocks = await api.rpc.chain.subscribeNewHeads(async (header) => {
               if (header.number.toNumber() == blockToWait) {

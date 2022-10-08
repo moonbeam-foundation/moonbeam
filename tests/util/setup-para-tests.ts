@@ -1,6 +1,6 @@
 import "@polkadot/api-augment";
 
-import { ApiPromise } from "@polkadot/api";ex } from "@polkadot/util-crypto";
+import { ApiPromise } from "@polkadot/api";
 import chalk from "chalk";
 import { ethers } from "ethers";
 import { HttpProvider } from "web3-core";

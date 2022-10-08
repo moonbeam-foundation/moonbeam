@@ -97,7 +97,7 @@ describeParachain(
             `${currentVersion.specVersion.toString()}`
         );
 
-        await context.upgradeRuntime(alith, "moonbase", RUNTIME_VERSION);
+        await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag: RUNTIME_VERSION });
 
         process.stdout.write(`Checking on-chain runtime version ${localVersion}...`);
         expect(
