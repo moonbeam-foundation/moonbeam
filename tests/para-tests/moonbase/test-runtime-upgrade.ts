@@ -1,7 +1,6 @@
 import { expect } from "chai";
 import child_process from "child_process";
 import { alith } from "../../util/accounts";
-
 import { describeParachain } from "../../util/setup-para-tests";
 
 // This test will run on local until the new runtime is available
@@ -46,22 +45,25 @@ if (localVersion == alreadyReleased) {
     .toString()
     .trim();
 
-  hasAuthoringChanges =
-    child_process
-      .execSync(
-        `git grep authoring_version ` +
-          `$(git rev-list runtime-1606..HEAD -- ../runtime/moonbase/src/lib.rs) ` +
-          `-- ../runtime/moonbase/src/lib.rs ` +
-          `| grep -v "$(git grep authoring_version runtime-1606 ` +
-          `-- ../runtime/moonbase/src/lib.rs ` +
-          `| grep -o 'authoring_version:\ *[0-9]')" ` +
-          `| grep -o 'authoring_version:\ *[0-9]*'`
-      )
-      .toString()
-      .trim().length > 0;
+  hasAuthoringChanges = child_process
+    .execSync(
+      `git grep authoring_version ` +
+        `$(git rev-list runtime-${baseRuntime}..HEAD -- ../runtime/moonbase/src/lib.rs) ` +
+        `-- ../runtime/moonbase/src/lib.rs ` +
+        `| grep -v "$(git grep authoring_version runtime-${baseRuntime} ` +
+        `-- ../runtime/moonbase/src/lib.rs ` +
+        `| grep -o 'authoring_version:\ *[0-9]')" ` +
+        `| grep -o 'authoring_version:\ *[0-9]*' || exit 0`
+    )
+    .toString()
+    .trim() as any;
 }
 
-console.log(`Using base runtime ${baseRuntime} (authoring changes: ${hasAuthoringChanges})`);
+console.log(
+  `Using base runtime ${baseRuntime} ` +
+    `(authoring changes: ${hasAuthoringChanges} - ` +
+    `localVersion: ${localVersion} - release: ${alreadyReleased})`
+);
 
 const RUNTIME_VERSION = "local";
 describeParachain(
