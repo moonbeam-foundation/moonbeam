@@ -304,7 +304,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
         ],
         fungible: 10n * RELAY_TOKEN,
       },
-      weight_limit: new BN(400000000),
+      weight_limit: new BN(500000000),
     })
       .reserve_asset_deposited()
       .buy_execution()

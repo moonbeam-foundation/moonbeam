@@ -376,7 +376,7 @@ describeDevMoonbeam(
       let randomBalance = (
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
-      let expectedRandomBalance = 71289450000000n;
+      let expectedRandomBalance = 68063400000000n;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
