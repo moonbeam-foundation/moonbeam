@@ -1863,7 +1863,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(30249)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1915,7 +1915,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(30249)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
