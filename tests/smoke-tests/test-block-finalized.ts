@@ -62,27 +62,12 @@ describeSmokeSuite(
 
       const firstBlockNumber = await fetchHistoricBlockNum(lastBlockNumber, firstBlockTime);
 
-      // const firrrrstBlockNumber = (async function(blockNumber, targetTime){
-      //   function fetchHistoricBlockNum(blockNumber, targetTime){
-      //     fetchBlockTime(blockNumber).then(async (time) => {
-      //       if (time < targetTime) {
-      //         return blockNumber;
-      //       } else {
-      //         return fetchHistoricBlockNum((blockNumber -= Math.ceil((time - targetTime) / 30_000)),targetTime);
-      //       }
-      //     })
-      //   }
-      //   return fetchHistoricBlockNum(blockNumber, targetTime)
-      // })()
-
-      // console.log(await firrrrstBlockNumber)
-      // console.log(JSON.stringify( await firrrrstBlockNumber))
-
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
-      const promises = range(firstBlockNumber, lastBlockNumber).map((num) =>
-        limit(() => checkBlockFinalized(context.polkadotApi, num))
-      );
+      const promises = (() => {
+        const length = lastBlockNumber - firstBlockNumber;
+        return Array.from({ length }, (_, i) => firstBlockNumber + i);
+      })().map((num) => limit(() => checkBlockFinalized(context.polkadotApi, num)));
 
       const results = await Promise.all(promises);
       results.forEach((item) => {
@@ -91,9 +76,5 @@ describeSmokeSuite(
       expect(results.every((item) => item.finalized)).to.be.true;
     });
 
-    const range = (start, end) => {
-      const length = end - start;
-      return Array.from({ length }, (_, i) => start + i);
-    };
   }
 );
