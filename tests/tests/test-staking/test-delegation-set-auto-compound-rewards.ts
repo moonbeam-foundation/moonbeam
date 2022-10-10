@@ -76,7 +76,7 @@ describeDevMoonbeam(
 
 describeDevMoonbeam(
   "Staking - Delegation Set Auto-Compound Rewards - \
- wrong candidate auto-compounding delegation hint",
+  wrong candidate auto-compounding delegation hint",
   (context) => {
     before("setup candidates alith & baltathar, and delegators ethan & charleth", async () => {
       await expectOk(
