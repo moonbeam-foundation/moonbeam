@@ -14,22 +14,26 @@ describeSmokeSuite(
   (context) => {
     it("should have a recently finalized block", async function () {
       const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
-      const block = (await context.polkadotApi.rpc.chain.getBlock(head)).toHuman() as any;
+      const block = await context.polkadotApi.rpc.chain.getBlock(head);
       const diff = Date.now() - getBlockTime(block);
       debug(`Last finalized block was ${diff / 1000} seconds ago`);
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
     });
 
-    // When 0.9.29 is live we can enable this test
-    // TODO: update the CI to provide ETH_URL env var
-    it.skip("should have a recently finalized eth block", async function () {
+    // TODO: Coordinate with Ops to make sure ETH RPC url is propagated before enabling this test
+    it("should have a recently finalized eth block", async function () {
+      const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
+      if (specVersion < 1900) {
+        debug(`ChainSpec ${specVersion} does not support Finalized BlockTag, skipping test`);
+        this.skip();
+      }
       const timestamp = (await context.ethers.getBlock("finalized")).timestamp;
       const diff = Date.now() - timestamp * 1000;
       debug(`Last finalized block was ${diff / 1000} seconds ago`);
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
     });
 
-    it.only("should have only finalized blocks in the past two hours.", async function () {
+    it("should have only finalized blocks in the past two hours.", async function () {
       this.slow(10000);
 
       const finalHash = await context.polkadotApi.rpc.chain.getFinalizedHead();
@@ -75,6 +79,5 @@ describeSmokeSuite(
       });
       expect(results.every((item) => item.finalized)).to.be.true;
     });
-
   }
 );
