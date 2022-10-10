@@ -1184,7 +1184,7 @@ benchmarks! {
 			prime_candidate.clone(),
 			Percent::from_percent(50),
 			x,
-			y,
+			y+1,
 		)?;
 	}
 	verify {
