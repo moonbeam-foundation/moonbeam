@@ -675,6 +675,7 @@ pub mod pallet {
 					candidate_count = candidate_count.saturating_add(1u32);
 				}
 			}
+
 			let mut col_delegator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 			let mut col_auto_compound_delegator_count: BTreeMap<T::AccountId, u32> =
 				BTreeMap::new();

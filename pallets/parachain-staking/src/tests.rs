@@ -9134,8 +9134,6 @@ fn test_migrated_at_stake_handles_deprecated_storage_value() {
 		});
 }
 
-// -=----------
-
 #[test]
 fn test_delegate_with_auto_compound_fails_if_invalid_delegation_hint() {
 	ExtBuilder::default()

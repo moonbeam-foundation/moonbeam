@@ -53,7 +53,7 @@ function bench {
         REPEAT=1
     fi
 
-    echo WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark pallet \
+    WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark pallet \
         --execution=wasm \
         --wasm-execution=compiled \
         --pallet "${1}" \
