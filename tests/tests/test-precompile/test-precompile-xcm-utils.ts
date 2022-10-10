@@ -8,7 +8,9 @@ import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
-import { descendOriginFromAddress, CLEAR_ORIGIN_WEIGHT } from "../../util/xcm";
+import { descendOriginFromAddress } from "../../util/xcm";
+
+export const CLEAR_ORIGIN_WEIGHT = 8_268_000n;
 
 const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);

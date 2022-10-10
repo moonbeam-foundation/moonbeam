@@ -12,10 +12,7 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
-  BUY_EXECUTION_WEIGHT,
-  CLEAR_ORIGIN_WEIGHT,
-  WITHDRAW_WEIGHT,
-  DEPOSIT_ASSET_WEIGHT
+  weightMessage,
 } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 
@@ -336,11 +333,7 @@ describeDevMoonbeam(
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
         (pallet) => pallet.name === "Balances"
       ).index;
-      const chargedWeight = 
-        WITHDRAW_WEIGHT + BUY_EXECUTION_WEIGHT + CLEAR_ORIGIN_WEIGHT + DEPOSIT_ASSET_WEIGHT
-      // We are charging chargedWeight
-      // chargedWeight * 50000 = chargedFee
-      const chargedFee = chargedWeight * 50000n;
+
       // The rest should be going to the deposit account
       const xcmMessage = new XcmFragment({
         fees: {
@@ -362,6 +355,14 @@ describeDevMoonbeam(
         .buy_execution()
         .deposit_asset()
         .as_v2();
+
+      const chargedWeight = await weightMessage(
+        context,
+        context.polkadotApi.createType("XcmVersionedXcm", xcmMessage) as any
+      );
+      // We are charging chargedWeight
+      // chargedWeight * 50000 = chargedFee
+      const chargedFee = chargedWeight * 50000n;
 
       // Send an XCM and create block to execute it
       await injectHrmpMessageAndSeal(context, foreign_para_id, {

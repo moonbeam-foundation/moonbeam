@@ -6,7 +6,7 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
-import { XcmFragment, BUY_EXECUTION_WEIGHT, WITHDRAW_WEIGHT } from "../../util/xcm";
+import { XcmFragment, weightMessage } from "../../util/xcm";
 import { GLMR } from "../../util/constants";
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
@@ -36,10 +36,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we get out of the loop of the execution (we reach the threshold limit), to then
     // go on idle
 
-    const unlimitedBuyExecutionsPerMessage =
-      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
-
-    const xcmMessage = new XcmFragment({
+    let config = {
       fees: {
         multilocation: [
           {
@@ -51,11 +48,30 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         ],
         fungible: 1_000_000_000_000_000n,
       },
-      weight_limit: new BN(20000000000),
-    })
+    };
+
+    let withdrawWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).withdraw_asset().as_v2()
+      )
+    );
+
+    let buyExecutionWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).buy_execution().as_v2()
+      )
+    );
+
+    const unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - withdrawWeight) / buyExecutionWeight;
+
+    const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
-      .buy_execution()
-      .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
+      .buy_execution(0, unlimitedBuyExecutionsPerMessage)
       .as_v2();
 
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
@@ -72,7 +88,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       new Uint8Array([...new TextEncoder().encode("Parent")])
     ).padEnd(42, "0");
 
-    console.log(sovereignAddress);
     // We first fund the parent sovereign account with 1000
     // we will only withdraw 1, so no problem on this
     await expectOk(

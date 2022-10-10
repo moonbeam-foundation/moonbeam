@@ -9,9 +9,7 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   injectHrmpMessage,
-  WITHDRAW_WEIGHT,
-  BUY_EXECUTION_WEIGHT,
-  TRANSACT_WEIGHT,
+  weightMessage,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
@@ -120,18 +118,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    // Now we need to construct the message. This needs to:
-    // - pass barrier (withdraw + buyExecution + n*unLimitedbuyExecution)
-    // - does not fail, so all weight is counted
-    // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
-    // how many unlimited buy executions do we need to append?
-
-    // In this case we want to never reach the thresholdLimit, to make sure we execute every
-    // single messages
-    const unlimitedBuyExecutionsPerMessage =
-      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
-
-    const xcmMessage = new XcmFragment({
+    const config = {
       fees: {
         multilocation: [
           {
@@ -143,11 +130,38 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         ],
         fungible: 1_000_000_000_000_000n,
       },
-      weight_limit: new BN(20000000000),
-    })
+    };
+
+    let withdrawWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).withdraw_asset().as_v2()
+      )
+    );
+
+    let buyExecutionWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).buy_execution().as_v2()
+      )
+    );
+
+    // Now we need to construct the message. This needs to:
+    // - pass barrier (withdraw + buyExecution + n*unLimitedbuyExecution)
+    // - does not fail, so all weight is counted
+    // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
+    // how many unlimited buy executions do we need to append?
+
+    // In this case we want to never reach the thresholdLimit, to make sure we execute every
+    // single messages
+    const unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - withdrawWeight) / buyExecutionWeight;
+
+    const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
-      .buy_execution()
-      .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
+      .buy_execution(0, unlimitedBuyExecutionsPerMessage)
       .as_v2();
 
     // The way we will prove that the message executed is checking balances.
@@ -179,9 +193,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // all the withdraws + `buyExecutions
     const weightUsePerMessage =
-      unlimitedBuyExecutionsPerMessage * BUY_EXECUTION_WEIGHT +
-      BUY_EXECUTION_WEIGHT +
-      WITHDRAW_WEIGHT;
+      unlimitedBuyExecutionsPerMessage * buyExecutionWeight + withdrawWeight;
 
     const result = await calculateShufflingAndExecution(
       context,
@@ -244,29 +256,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalXcmpWeight * BigInt(2)) / BigInt(numParaMsgs);
 
-    let unlimitedBuyExecutionsPerMessage =
-      (weightPerMessage - WITHDRAW_WEIGHT - BUY_EXECUTION_WEIGHT) / BUY_EXECUTION_WEIGHT;
-
-    // we want to reach EXACTLY weightPerMessage
-    // We know we cant reach it with buyExecutions, but we can fill the remaining with a TRANSACT
-    // In Transact, we can control specifically how much our message is gonna weight
-    // Specifically, it will weight the base Transact weight
-    // plus whatever we put in requireWeightAtMost
-    let weightUsePerMessageWithoutTransact =
-      (unlimitedBuyExecutionsPerMessage + 1n) * BUY_EXECUTION_WEIGHT + WITHDRAW_WEIGHT;
-
-    let transactWeight;
-    if (weightPerMessage - weightUsePerMessageWithoutTransact > TRANSACT_WEIGHT) {
-      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
-    } else {
-      // we substract if not a buyExecution, which is always bigger
-      unlimitedBuyExecutionsPerMessage = unlimitedBuyExecutionsPerMessage - 1n;
-      weightUsePerMessageWithoutTransact =
-        weightUsePerMessageWithoutTransact - BUY_EXECUTION_WEIGHT;
-      transactWeight = weightPerMessage - weightUsePerMessageWithoutTransact - TRANSACT_WEIGHT;
-    }
-
-    const xcmMessage = new XcmFragment({
+    const config = {
       fees: {
         multilocation: [
           {
@@ -278,16 +268,71 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         ],
         fungible: 1_000_000_000_000_000n,
       },
-      weight_limit: new BN(20000000000),
-    })
+    };
+    const withdrawWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).withdraw_asset().as_v2()
+      )
+    );
+
+    const buyExecutionWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).buy_execution().as_v2()
+      )
+    );
+
+    const transactWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config)
+          .push_any({
+            Transact: {
+              originType: "SovereignAccount",
+              requireWeightAtMost: new BN(0),
+              call: {
+                encoded: 0x01,
+              },
+            },
+          })
+          .as_v2()
+      )
+    );
+
+    let unlimitedBuyExecutionsPerMessage = (weightPerMessage - withdrawWeight) / buyExecutionWeight;
+
+    // we want to reach EXACTLY weightPerMessage
+    // We know we cant reach it with buyExecutions, but we can fill the remaining with a TRANSACT
+    // In Transact, we can control specifically how much our message is gonna weight
+    // Specifically, it will weight the base Transact weight
+    // plus whatever we put in requireWeightAtMost
+    let weightUsePerMessageWithoutTransact =
+      unlimitedBuyExecutionsPerMessage * buyExecutionWeight + withdrawWeight;
+
+    let transactRequireWeight;
+    if (weightPerMessage - weightUsePerMessageWithoutTransact > transactWeight) {
+      transactRequireWeight =
+        weightPerMessage - weightUsePerMessageWithoutTransact - transactWeight;
+    } else {
+      // we substract if not a buyExecution, which is always bigger
+      unlimitedBuyExecutionsPerMessage = unlimitedBuyExecutionsPerMessage - 1n;
+      weightUsePerMessageWithoutTransact = weightUsePerMessageWithoutTransact - buyExecutionWeight;
+      transactRequireWeight =
+        weightPerMessage - weightUsePerMessageWithoutTransact - transactWeight;
+    }
+
+    const xcmMessage = new XcmFragment(config)
       .withdraw_asset()
-      .buy_execution()
-      .buy_execution_unlimited(0, unlimitedBuyExecutionsPerMessage)
+      .buy_execution(0, unlimitedBuyExecutionsPerMessage)
       // Does not reallly matter, wont be executed, we want it to fail
       .push_any({
         Transact: {
           originType: "SovereignAccount",
-          requireWeightAtMost: new BN(transactWeight.toString()),
+          requireWeightAtMost: new BN(transactRequireWeight.toString()),
           call: {
             encoded: 0x01,
           },

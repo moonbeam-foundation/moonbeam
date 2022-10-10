@@ -13,11 +13,7 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
-  WITHDRAW_WEIGHT,
-  BUY_EXECUTION_WEIGHT,
-  CLEAR_ORIGIN_WEIGHT,
-  DEPOSIT_ASSET_WEIGHT,
-  RESERVE_ASSET_DEPOSITED_WEIGHT,
+  weightMessage,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -336,20 +332,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
-    // Deposit asset
-    const xcmMessage = new XcmFragment({
+    let config = {
       fees: {
         multilocation: [ASSET_MULTILOCATION],
-        fungible:
-          assetsToTransfer +
-          BUY_EXECUTION_WEIGHT +
-          CLEAR_ORIGIN_WEIGHT +
-          RESERVE_ASSET_DEPOSITED_WEIGHT +
-          DEPOSIT_ASSET_WEIGHT,
+        fungible: 0n,
       },
-      weight_limit: new BN(800_000_000),
       beneficiary: descendOriginAddress,
-    })
+    };
+
+    // How much will the message weight?
+    const chargedWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config)
+          .reserve_asset_deposited()
+          .clear_origin()
+          .buy_execution()
+          .deposit_asset()
+          .as_v2()
+      ) as any
+    );
+
+    // we modify the config now:
+    // we send assetsToTransfer plus whatever we will be charged in weight
+    config.fees.fungible = assetsToTransfer + chargedWeight;
+
+    // Construct the real message
+    const xcmMessage = new XcmFragment(config)
       .reserve_asset_deposited()
       .clear_origin()
       .buy_execution()

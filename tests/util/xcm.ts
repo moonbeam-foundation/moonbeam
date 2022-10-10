@@ -8,8 +8,15 @@ import {
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../util/constants";
+import { web3EthCall } from "../util/providers";
+import { getCompiled } from "../util/contracts";
 
 import { AssetMetadata } from "./assets";
+import { ethers } from "ethers";
+
+const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
+const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -178,6 +185,45 @@ export async function injectHrmpMessage(
   await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
 
+export async function weightMessage(context: DevTestContext, message?: XcmVersionedXcm) {
+  const result = await web3EthCall(context.web3, {
+    to: PRECOMPILE_XCM_UTILS_ADDRESS,
+    data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [message.toU8a()]),
+  });
+  return BigInt(result.result);
+}
+
+export async function withdrawWeight(context: DevTestContext) {
+  let config = {
+    fees: {
+      multilocation: [
+        {
+          parents: 0,
+          interior: {
+            Here: null,
+          },
+        },
+      ],
+      fungible: 0n,
+    },
+  };
+  let message = new XcmFragment(config).withdraw_asset().as_v2();
+
+  return await weightMessage(context, context.polkadotApi.createType("XcmVersionedXcm", message));
+}
+
+export async function buyExecutionWeight(context: DevTestContext) {
+  let config = {
+    fees: {
+      multilocation: [],
+      fungible: 0n,
+    },
+  };
+  let message = new XcmFragment(config).buy_execution().as_v2();
+
+  return await weightMessage(context, context.polkadotApi.createType("XcmVersionedXcm", message));
+}
+
 export async function injectHrmpMessageAndSeal(
   context: DevTestContext,
   paraId: number,
@@ -193,7 +239,7 @@ interface XcmFragmentConfig {
     multilocation: any[];
     fungible: bigint;
   };
-  weight_limit: BN;
+  weight_limit?: BN;
   descend_origin?: string;
   beneficiary?: string;
 }
@@ -238,23 +284,11 @@ export class XcmFragment {
   }
 
   // Add a `BuyExecution` instruction
-  buy_execution(multilocation_index: number = 0): this {
-    this.instructions.push({
-      BuyExecution: {
-        fees: {
-          id: {
-            Concrete: this.config.fees.multilocation[multilocation_index],
-          },
-          fun: { Fungible: this.config.fees.fungible },
-        },
-        weightLimit: { Limited: this.config.weight_limit },
-      },
-    });
-    return this;
-  }
-
-  // Add a `BuyExecution` unlimited instruction
-  buy_execution_unlimited(multilocation_index: number = 0, repeat: bigint = 1n): this {
+  buy_execution(multilocation_index: number = 0, repeat: bigint = 1n): this {
+    const weightLimit =
+      this.config.weight_limit != null
+        ? { Limited: this.config.weight_limit }
+        : { Unlimited: null };
     for (var i = 0; i < repeat; i++) {
       this.instructions.push({
         BuyExecution: {
@@ -264,7 +298,7 @@ export class XcmFragment {
             },
             fun: { Fungible: this.config.fees.fungible },
           },
-          weightLimit: { Unlimited: null },
+          weightLimit: weightLimit,
         },
       });
     }
@@ -391,11 +425,26 @@ export class XcmFragment {
       V2: this.instructions,
     };
   }
-}
 
-export const BUY_EXECUTION_WEIGHT = 130_464_000n + 25_000_000n * 4n;
-export const WITHDRAW_WEIGHT = 200_000_000n;
-export const CLEAR_ORIGIN_WEIGHT = 8_268_000n;
-export const RESERVE_ASSET_DEPOSITED_WEIGHT = 200_000_000n;
-export const DEPOSIT_ASSET_WEIGHT = 200_000_000n;
-export const TRANSACT_WEIGHT = 31_693_000n + 25_000_000n;
+  async override_weight(context: DevTestContext): Promise<this> {
+    const message: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      this.as_v2()
+    ) as any;
+
+    const instructions = message.asV2;
+    for (var i = 0; i < instructions.length; i++) {
+      if (instructions[i].isBuyExecution == true) {
+        let newWeight = await weightMessage(context, message);
+        this.instructions[i] = {
+          BuyExecution: {
+            fees: instructions[i].asBuyExecution.fees,
+            weightLimit: { Limited: newWeight },
+          },
+        };
+        break;
+      }
+    }
+    return this;
+  }
+}
