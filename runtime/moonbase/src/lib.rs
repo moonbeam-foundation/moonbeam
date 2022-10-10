@@ -404,8 +404,8 @@ parameter_types! {
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 }
 
-pub struct FixedGasPrice;
-impl FeeCalculator for FixedGasPrice {
+pub struct TransactionPaymentAsGasPrice;
+impl FeeCalculator for TransactionPaymentAsGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		// TODO: return real weight (or should it be treated as a free read since it's read so
 		//       frequently?)
@@ -467,7 +467,7 @@ where
 moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
-	type FeeCalculator = FixedGasPrice;
+	type FeeCalculator = TransactionPaymentAsGasPrice;
 	type GasWeightMapping = MoonbeamGasWeightMapping;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
@@ -1817,7 +1817,7 @@ mod fee_tests {
 		t.execute_with(|| {
 			let multiplier = sp_runtime::FixedU128::from_u32(1);
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
-			let actual = FixedGasPrice::min_gas_price().0;
+			let actual = TransactionPaymentAsGasPrice::min_gas_price().0;
 			let expected: U256 = multiplier
 				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
 				.into();
@@ -1837,9 +1837,9 @@ mod fee_tests {
 			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
 
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
-			let a = FixedGasPrice::min_gas_price();
+			let a = TransactionPaymentAsGasPrice::min_gas_price();
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
-			let b = FixedGasPrice::min_gas_price();
+			let b = TransactionPaymentAsGasPrice::min_gas_price();
 
 			assert_ne!(
 				a, b,

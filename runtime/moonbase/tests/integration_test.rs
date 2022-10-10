@@ -2157,7 +2157,7 @@ fn initial_gas_fee_is_correct() {
 			let multiplier = TransactionPayment::next_fee_multiplier();
 			assert_eq!(multiplier, Multiplier::from(8u128));
 
-			assert_eq!(FixedGasPrice::min_gas_price(), (10_000_000_000u128.into(), Weight::zero()));
+			assert_eq!(TransactionPaymentAsGasPrice::min_gas_price(), (10_000_000_000u128.into(), Weight::zero()));
 		});
 }
 
@@ -2321,7 +2321,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 1 GWEI base fee.
-			let base_fee = FixedGasPrice::min_gas_price().0;
+			let base_fee = TransactionPaymentAsGasPrice::min_gas_price().0;
 			assert_eq!(base_fee.as_u128(), BASE_FEE_GENISIS); // hint in case following asserts fail
 			let fee = (base_fee.as_u128() * 21_000u128) as f64;
 			// 80% was burned.

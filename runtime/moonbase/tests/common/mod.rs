@@ -27,7 +27,7 @@ use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetTy
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
-	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
+	CrowdloanRewards, Ethereum, Event, Executive, TransactionPaymentAsGasPrice, InflationInfo, LocalAssets,
 	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, HOURS,
 	WEEKS,
 };
