@@ -1280,16 +1280,14 @@ pub mod pallet {
 
 		/// If caller is not a delegator and not a collator, then join the set of delegators
 		/// If caller is a delegator, then makes delegation to change their delegation state
-		#[pallet::weight({
-			<T as Config>::WeightInfo::delegate(
+		/// Sets the auto-compound config for the delegation
+		#[pallet::weight(
+			<T as Config>::WeightInfo::delegate_with_auto_compound(
 				*candidate_delegation_count,
-				*delegation_count
-			).saturating_add(
-			<T as Config>::WeightInfo::delegation_set_auto_compounding_reward(
+				*candidate_auto_compounding_delegation_count,
 				*delegation_count,
-				*candidate_auto_compounding_delegation_count
-			))
-		})]
+			)
+		)]
 		pub fn delegate_with_auto_compound(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
@@ -1410,8 +1408,8 @@ pub mod pallet {
 
 		/// Sets the auto-compounding reward percentage for a delegation.
 		#[pallet::weight(<T as Config>::WeightInfo::delegation_set_auto_compounding_reward(
-			*delegation_count_hint,
 			*candidate_auto_compounding_delegation_count_hint,
+			*delegation_count_hint,
 		))]
 		pub fn delegation_set_auto_compounding_reward(
 			origin: OriginFor<T>,

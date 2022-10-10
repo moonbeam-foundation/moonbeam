@@ -88,6 +88,8 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn delegate(x: u32, y: u32, ) -> Weight;
 	#[rustfmt::skip]
+	fn delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn schedule_leave_delegators() -> Weight;
 	#[rustfmt::skip]
 	fn execute_leave_delegators(x: u32, ) -> Weight;
@@ -292,6 +294,25 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(Weight::from_ref_time(225_000 as u64).saturating_mul(y as u64))
 			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().writes(7 as u64))
+	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
+	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
+	// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	// Storage: Balances Locks (r:1 w:1)
+	// Storage: ParachainStaking Total (r:1 w:1)
+	// Storage: ParachainStaking BottomDelegations (r:1 w:1)
+	#[rustfmt::skip]
+	fn delegate_with_auto_compound(x: u32, y: u32, _z: u32, ) -> Weight {
+		Weight::from_ref_time(151_982_000 as u64)
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(92_000 as u64).saturating_mul(x as u64))
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(37_000 as u64).saturating_mul(y as u64))
+			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:1)
@@ -640,6 +661,25 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_ref_time(225_000 as u64).saturating_mul(y as u64))
 			.saturating_add(RocksDbWeight::get().reads(7 as u64))
 			.saturating_add(RocksDbWeight::get().writes(7 as u64))
+	}
+	// Storage: System Account (r:1 w:1)
+	// Storage: ParachainStaking DelegatorState (r:1 w:1)
+	// Storage: ParachainStaking CandidateInfo (r:1 w:1)
+	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
+	// Storage: ParachainStaking TopDelegations (r:1 w:1)
+	// Storage: ParachainStaking CandidatePool (r:1 w:1)
+	// Storage: Balances Locks (r:1 w:1)
+	// Storage: ParachainStaking Total (r:1 w:1)
+	// Storage: ParachainStaking BottomDelegations (r:1 w:1)
+	#[rustfmt::skip]
+	fn delegate_with_auto_compound(x: u32, y: u32, _z: u32, ) -> Weight {
+		Weight::from_ref_time(151_982_000 as u64)
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(92_000 as u64).saturating_mul(x as u64))
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(37_000 as u64).saturating_mul(y as u64))
+			.saturating_add(RocksDbWeight::get().reads(8 as u64))
+			.saturating_add(RocksDbWeight::get().writes(8 as u64))
 	}
 	// Storage: ParachainStaking DelegatorState (r:1 w:1)
 	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:1)
