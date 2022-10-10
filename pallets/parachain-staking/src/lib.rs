@@ -1272,13 +1272,13 @@ pub mod pallet {
 				*candidate_auto_compounding_delegation_count
 			))
 		})]
-		pub fn delegate_auto_compounding(
+		pub fn delegate_with_auto_compound(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
 			auto_compound: Percent,
-			candidate_delegation_count: u32,
 			delegation_count: u32,
+			candidate_delegation_count: u32,
 			candidate_auto_compounding_delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
@@ -1324,6 +1324,15 @@ pub mod pallet {
 				candidate_delegation_count >= state.delegation_count,
 				Error::<T>::TooLowCandidateDelegationCountToDelegate
 			);
+			// set auto-compound config
+			Self::delegation_set_auto_compounding_config(
+				candidate.clone(),
+				delegator.clone(),
+				auto_compound,
+				delegation_count,
+				candidate_auto_compounding_delegation_count,
+			)?;
+
 			let (delegator_position, less_total_staked) = state.add_delegation::<T>(
 				&candidate,
 				Bond {
@@ -1340,14 +1349,6 @@ pub mod pallet {
 				amount
 			};
 
-			// set auto-compound config
-			Self::delegation_set_auto_compounding_config(
-				candidate.clone(),
-				delegator.clone(),
-				auto_compound,
-				delegation_count,
-				candidate_auto_compounding_delegation_count,
-			)?;
 			let new_total_locked = <Total<T>>::get().saturating_add(net_total_increase);
 			<Total<T>>::put(new_total_locked);
 			<CandidateInfo<T>>::insert(&candidate, state);
@@ -1821,28 +1822,6 @@ pub mod pallet {
 			for account in collators.iter() {
 				let state = <CandidateInfo<T>>::get(account)
 					.expect("all members of CandidateQ must be candidates");
-
-				// insert auto-compounding-delegations for all delegations
-				// this is for PoV testing only. Note that this increases the PoV size since we
-				// additionally access BottomDelegations here
-				let mut all_delegations = <TopDelegations<T>>::get(account.clone())
-					.expect("must exist")
-					.delegations;
-				all_delegations.extend(
-					<BottomDelegations<T>>::get(account.clone())
-						.expect("must exist")
-						.delegations,
-				);
-				<AutoCompoundingDelegations<T>>::insert(
-					account.clone(),
-					all_delegations
-						.into_iter()
-						.map(|d| DelegationAutoCompoundConfig {
-							delegator: d.owner,
-							value: Percent::from_percent(100),
-						})
-						.collect::<Vec<_>>(),
-				);
 
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
