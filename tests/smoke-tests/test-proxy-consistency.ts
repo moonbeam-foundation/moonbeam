@@ -172,7 +172,7 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it.only("should only be possible for proxies of non-smart contract accounts", async function () {
+  it("should only be possible for proxies of non-smart contract accounts", async function () {
     this.timeout(60000);
 
     // For each account with a registered proxy, check whether it is a non-SC address
