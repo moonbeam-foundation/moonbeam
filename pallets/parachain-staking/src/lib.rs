@@ -221,6 +221,7 @@ pub mod pallet {
 		PendingDelegationRevoke,
 		TooLowDelegationCountToAutoCompound,
 		TooLowCandidateAutoCompoundingDelegationCountToAutoCompound,
+		TooLowCandidateAutoCompoundingDelegationCountToDelegate,
 	}
 
 	#[pallet::event]
@@ -352,6 +353,7 @@ pub mod pallet {
 			locked_amount: BalanceOf<T>,
 			candidate: T::AccountId,
 			delegator_position: DelegatorAdded<BalanceOf<T>>,
+			auto_compound: Percent,
 		},
 		/// Delegation from candidate state has been remove.
 		DelegatorLeftCandidate {
@@ -624,8 +626,8 @@ pub mod pallet {
 		/// Initialize balance and register all as collators: `(collator AccountId, balance Amount)`
 		pub candidates: Vec<(T::AccountId, BalanceOf<T>)>,
 		/// Initialize balance and make delegations:
-		/// `(delegator AccountId, collator AccountId, delegation Amount)`
-		pub delegations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>)>,
+		/// `(delegator AccountId, collator AccountId, delegation Amount, auto-compounding Percent)`
+		pub delegations: Vec<(T::AccountId, T::AccountId, BalanceOf<T>, Percent)>,
 		/// Inflation configuration
 		pub inflation_config: InflationInfo<BalanceOf<T>>,
 		/// Default fixed percent a collator takes off the top of due rewards
@@ -674,9 +676,11 @@ pub mod pallet {
 				}
 			}
 			let mut col_delegator_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
+			let mut col_auto_compound_delegator_count: BTreeMap<T::AccountId, u32> =
+				BTreeMap::new();
 			let mut del_delegation_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
 			// Initialize the delegations
-			for &(ref delegator, ref target, balance) in &self.delegations {
+			for &(ref delegator, ref target, balance, auto_compound) in &self.delegations {
 				assert!(
 					<Pallet<T>>::get_delegator_stakable_free_balance(delegator) >= balance,
 					"Account does not have enough balance to place delegation."
@@ -691,11 +695,17 @@ pub mod pallet {
 				} else {
 					0u32
 				};
-				if let Err(error) = <Pallet<T>>::delegate(
+				let cd_auto_compound_count = col_auto_compound_delegator_count
+					.get(target)
+					.cloned()
+					.unwrap_or_default();
+				if let Err(error) = <Pallet<T>>::delegate_with_auto_compound(
 					T::Origin::from(Some(delegator.clone()).into()),
 					target.clone(),
 					balance,
+					auto_compound,
 					cd_count,
+					cd_auto_compound_count,
 					dd_count,
 				) {
 					log::warn!("Delegate failed in genesis with error {:?}", error);
@@ -710,6 +720,12 @@ pub mod pallet {
 					} else {
 						del_delegation_count.insert(delegator.clone(), 1u32);
 					};
+					if !auto_compound.is_zero() {
+						col_auto_compound_delegator_count
+							.entry(target.clone())
+							.and_modify(|x| *x = x.saturating_add(1))
+							.or_insert(1);
+					}
 				}
 			}
 			// Set collator commission to default config
@@ -1256,6 +1272,7 @@ pub mod pallet {
 				locked_amount: amount,
 				candidate: candidate,
 				delegator_position: delegator_position,
+				auto_compound: Percent::zero(),
 			});
 			Ok(().into())
 		}
@@ -1277,89 +1294,20 @@ pub mod pallet {
 			candidate: T::AccountId,
 			amount: BalanceOf<T>,
 			auto_compound: Percent,
-			delegation_count: u32,
 			candidate_delegation_count: u32,
 			candidate_auto_compounding_delegation_count: u32,
+			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			// check that caller can reserve the amount before any changes to storage
-			ensure!(
-				Self::get_delegator_stakable_free_balance(&delegator) >= amount,
-				Error::<T>::InsufficientBalance
-			);
-			let mut delegator_state = if let Some(mut state) = <DelegatorState<T>>::get(&delegator)
-			{
-				// delegation after first
-				ensure!(
-					amount >= T::MinDelegation::get(),
-					Error::<T>::DelegationBelowMin
-				);
-				ensure!(
-					delegation_count >= state.delegations.0.len() as u32,
-					Error::<T>::TooLowDelegationCountToDelegate
-				);
-				ensure!(
-					(state.delegations.0.len() as u32) < T::MaxDelegationsPerDelegator::get(),
-					Error::<T>::ExceedMaxDelegationsPerDelegator
-				);
-				ensure!(
-					state.add_delegation(Bond {
-						owner: candidate.clone(),
-						amount
-					}),
-					Error::<T>::AlreadyDelegatedCandidate
-				);
-				state
-			} else {
-				// first delegation
-				ensure!(
-					amount >= T::MinDelegatorStk::get(),
-					Error::<T>::DelegatorBondBelowMin
-				);
-				ensure!(!Self::is_candidate(&delegator), Error::<T>::CandidateExists);
-				Delegator::new(delegator.clone(), candidate.clone(), amount)
-			};
-			let mut state = <CandidateInfo<T>>::get(&candidate).ok_or(Error::<T>::CandidateDNE)?;
-			ensure!(
-				candidate_delegation_count >= state.delegation_count,
-				Error::<T>::TooLowCandidateDelegationCountToDelegate
-			);
-			// set auto-compound config
-			Self::delegation_set_auto_compounding_config(
-				candidate.clone(),
-				delegator.clone(),
+			Self::delegate_with_auto_compound_config(
+				candidate,
+				delegator,
+				amount,
 				auto_compound,
-				delegation_count,
+				candidate_delegation_count,
 				candidate_auto_compounding_delegation_count,
-			)?;
-
-			let (delegator_position, less_total_staked) = state.add_delegation::<T>(
-				&candidate,
-				Bond {
-					owner: delegator.clone(),
-					amount,
-				},
-			)?;
-			// TODO: causes redundant free_balance check
-			delegator_state.adjust_bond_lock::<T>(BondAdjust::Increase(amount))?;
-			// only is_some if kicked the lowest bottom as a consequence of this new delegation
-			let net_total_increase = if let Some(less) = less_total_staked {
-				amount.saturating_sub(less)
-			} else {
-				amount
-			};
-
-			let new_total_locked = <Total<T>>::get().saturating_add(net_total_increase);
-			<Total<T>>::put(new_total_locked);
-			<CandidateInfo<T>>::insert(&candidate, state);
-			<DelegatorState<T>>::insert(&delegator, delegator_state);
-			Self::deposit_event(Event::Delegation {
-				delegator: delegator,
-				locked_amount: amount,
-				candidate: candidate,
-				delegator_position: delegator_position,
-			});
-			Ok(().into())
+				delegation_count,
+			)
 		}
 
 		/// DEPRECATED use batch util with schedule_revoke_delegation for all delegations
@@ -1468,16 +1416,16 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			candidate: T::AccountId,
 			value: Percent,
-			delegation_count_hint: u32,
 			candidate_auto_compounding_delegation_count_hint: u32,
+			delegation_count_hint: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
 			Self::delegation_set_auto_compounding_config(
 				candidate,
 				delegator,
 				value,
-				delegation_count_hint,
 				candidate_auto_compounding_delegation_count_hint,
+				delegation_count_hint,
 			)
 		}
 

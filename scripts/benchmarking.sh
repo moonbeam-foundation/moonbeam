@@ -53,8 +53,7 @@ function bench {
         REPEAT=1
     fi
 
-    WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark pallet \
-        --chain dev \
+    echo WASMTIME_BACKTRACE_DETAILS=1 ${BINARY} benchmark pallet \
         --execution=wasm \
         --wasm-execution=compiled \
         --pallet "${1}" \
@@ -62,7 +61,6 @@ function bench {
         --steps "${STEPS}" \
         --repeat "${REPEAT}" \
         --template=./benchmarking/frame-weight-template.hbs \
-        --record-proof \
         --json-file raw.json \
         --output "${OUTPUT}"
 }

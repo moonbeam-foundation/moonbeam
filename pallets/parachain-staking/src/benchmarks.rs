@@ -1213,7 +1213,7 @@ benchmarks! {
 		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
 
 		use crate::AutoCompoundingDelegations;
-		use crate::auto_compounding::{self, DelegationAutoCompoundConfig};
+		use crate::auto_compounding::DelegationAutoCompoundConfig;
 
 		let min_candidate_stake = min_candidate_stk::<T>();
 		let min_delegator_stake = min_delegator_stk::<T>();
@@ -1237,6 +1237,7 @@ benchmarks! {
 
 		// delegate to x-1 distinct collators from the prime delegator
 		for i in 1..x {
+			log::info!("create collator {:?}", i);
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed.take(),
@@ -1251,6 +1252,7 @@ benchmarks! {
 				0,
 				i,
 			)?;
+			log::info!("delegated to collator {:?}", i);
 		}
 
 		// have y distinct delegators delegate to prime collator, of which z are auto-compounding.
@@ -1266,7 +1268,9 @@ benchmarks! {
 				true,
 				i,
 			)?;
+			log::info!("create delegator {:?}", i);
 			if i <= z {
+				log::info!("set auto-compound {:?}", i);
 				Pallet::<T>::delegation_set_auto_compounding_reward(
 					RawOrigin::Signed(delegator.clone()).into(),
 					prime_candidate.clone(),
@@ -1280,9 +1284,11 @@ benchmarks! {
 				// 	Percent::from_percent(100),
 				// );
 			}
+			log::info!("created delegator {:?}", i);
 		}
 		// <AutoCompoundingDelegations<T>>::insert(prime_candidate.clone(), auto_compounding_state);
 	}: {
+		log::info!("EXEC");
 		Pallet::<T>::delegate_with_auto_compound(
 			RawOrigin::Signed(prime_delegator.clone()).into(),
 			prime_candidate.clone(),
@@ -1294,6 +1300,7 @@ benchmarks! {
 		)?;
 	}
 	verify {
+		log::info!("verify");
 		assert!(Pallet::<T>::is_delegator(&prime_delegator));
 		let actual_auto_compound = <AutoCompoundingDelegations<T>>::get(&prime_candidate)
 			.into_iter()
