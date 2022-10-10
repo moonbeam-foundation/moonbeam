@@ -530,7 +530,14 @@ macro_rules! impl_runtime_apis_plus_common {
 								}
 								.into()
 							})
-							.chain(core::iter::once(MultiAsset { id: Concrete(MultiLocation::parent()), fun: Fungible(u128::MAX) }))
+							.chain(
+								core::iter::once(
+									MultiAsset {
+										id: Concrete(MultiLocation::parent()),
+										fun: Fungible(u128::MAX)
+									}
+								)
+							)
 							.collect::<Vec<_>>();
 
 
