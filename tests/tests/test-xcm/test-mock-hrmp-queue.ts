@@ -271,7 +271,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
         fungible: 1_000_000_000_000_000n,
       },
     };
-    
+
     // How much does the withdraw weight?
     const withdrawWeight = await weightMessage(
       context,
