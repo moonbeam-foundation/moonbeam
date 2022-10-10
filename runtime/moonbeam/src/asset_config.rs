@@ -223,7 +223,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// This is the db write
 		call.get_dispatch_info()
 			.weight
-			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1 as Weight))
+			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))
 	}
 }
 

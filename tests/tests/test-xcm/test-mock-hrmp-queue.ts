@@ -1,6 +1,6 @@
 import "@moonbeam-network/api-augment";
 
-import { BN, u8aToHex } from "@polkadot/util";
+import { BN, hexToU8a, u8aToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ChaChaRng } from "randchacha";
 
@@ -14,9 +14,13 @@ import {
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm, XcmVersionedMultiLocation } from "@polkadot/types/lookup";
+import { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { customWeb3Request } from "../../util/providers";
 
 import { expectOk } from "../../util/expect";
 import { XcmFragment } from "../../util/xcm";
+import { GLMR } from "../../util/constants";
+import { blake2AsHex } from "@polkadot/util-crypto";
 
 // enum to mark how xcmp execution went
 enum XcmpExecution {
@@ -547,5 +551,101 @@ describeDevMoonbeam("Mock XCM - receive horizontal suspend", (context) => {
     // expect that queued messages is equal to the number of sent messages
     const queuedMessages = await context.polkadotApi.query.xcmpQueue.outboundXcmpMessages.entries();
     expect(queuedMessages).to.have.lengthOf(numMessages);
+  });
+});
+
+describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
+  it("Should test that we receive an event per fragment, not per message", async function () {
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => pallet.name === "Balances"
+    ).index;
+
+    const sendingParaId = context.polkadotApi.createType("ParaId", 2000) as any;
+    const sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...sendingParaId.toU8a()])
+    ).padEnd(42, "0");
+
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
+    );
+
+    // we will prove we get two different events with xcmp.queue
+    const xcmFirstFragment = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: 1_000_000_000_000_000n,
+      },
+      weight_limit: new BN(1_000_000_000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
+
+    const xcmSecondFragment = new XcmFragment({
+      fees: {
+        multilocation: [
+          {
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
+            },
+          },
+        ],
+        fungible: 2_000_000_000_000_000n,
+      },
+      weight_limit: new BN(2_000_000_000),
+    })
+      .withdraw_asset()
+      .buy_execution()
+      .as_v2();
+
+    // In order to insert two fragments in one msg, we need to manually build the message
+    const firstEncodedFragment: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmFirstFragment
+    ) as any;
+
+    const secondEncodedFragment: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      xcmSecondFragment
+    ) as any;
+
+    // We first fund each sovereign account with 100
+    // we will only withdraw 1, so no problem on this
+    await expectOk(
+      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
+    );
+
+    let message = [].concat(firstEncodedFragment.toU8a(), secondEncodedFragment.toU8a());
+    const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
+      2000,
+      [...xcmpFormat.toU8a(), ...firstEncodedFragment.toU8a(), ...secondEncodedFragment.toU8a()],
+    ]);
+    await context.createBlock();
+
+    const records = (await context.polkadotApi.query.system.events()) as any;
+    const events = records.filter(
+      ({ event }) => event.section == "xcmpQueue" && event.method == "Success"
+    );
+    expect(events).to.have.lengthOf(2);
+    expect(events[0].event.data[0].toString()).to.be.eq(
+      blake2AsHex(firstEncodedFragment.toU8a()).toString()
+    );
+    expect(events[1].event.data[0].toString()).to.be.eq(
+      blake2AsHex(secondEncodedFragment.toU8a()).toString()
+    );
   });
 });

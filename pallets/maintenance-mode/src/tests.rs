@@ -24,6 +24,7 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
+	weights::Weight,
 };
 
 #[test]
@@ -132,8 +133,8 @@ fn normal_dmp_in_non_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				0
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_ref_time(1)),
+				Weight::zero()
 			);
 		})
 }
@@ -146,8 +147,8 @@ fn maintenance_dmp_in_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				1
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_ref_time(1)),
+				Weight::from_ref_time(1)
 			);
 		})
 }
@@ -158,9 +159,12 @@ fn normal_hooks_in_non_maintenance() {
 		.with_maintenance_mode(false)
 		.build()
 		.execute_with(|| {
-			assert_eq!(ExecutiveHooks::<Test>::on_idle(0, 0), 0);
-			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), 0);
-			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), 0);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_idle(0, Weight::zero()),
+				Weight::zero()
+			);
+			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), Weight::zero());
+			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), Weight::zero());
 			ExecutiveHooks::<Test>::on_finalize(0);
 			ExecutiveHooks::<Test>::offchain_worker(0);
 
@@ -183,9 +187,18 @@ fn maintenance_hooks_in_maintenance() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			assert_eq!(ExecutiveHooks::<Test>::on_idle(0, 0), 1);
-			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), 1);
-			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), 1);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_idle(0, Weight::zero()),
+				Weight::from_ref_time(1)
+			);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_initialize(0),
+				Weight::from_ref_time(1)
+			);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_runtime_upgrade(),
+				Weight::from_ref_time(1)
+			);
 
 			ExecutiveHooks::<Test>::on_finalize(0);
 			ExecutiveHooks::<Test>::offchain_worker(0);

@@ -22,7 +22,7 @@
 
 use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get},
-	weights::{constants::WEIGHT_PER_SECOND, Weight},
+	weights::constants::WEIGHT_PER_SECOND,
 };
 use sp_runtime::traits::Zero;
 use sp_std::marker::PhantomData;
@@ -38,7 +38,7 @@ pub struct FirstAssetTrader<
 	AssetIdInfoGetter: UnitsToWeightRatio<AssetType>,
 	R: TakeRevenue,
 >(
-	Weight,
+	u64,
 	Option<(MultiLocation, u128, u128)>, // id, amount, units_per_second
 	PhantomData<(AssetType, AssetIdInfoGetter, R)>,
 );
@@ -53,7 +53,7 @@ impl<
 	}
 	fn buy_weight(
 		&mut self,
-		weight: Weight,
+		weight: u64,
 		payment: xcm_executor::Assets,
 	) -> Result<xcm_executor::Assets, XcmError> {
 		// can only call one time
@@ -83,7 +83,7 @@ impl<
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
 					let amount = units_per_second.saturating_mul(weight as u128)
-						/ (WEIGHT_PER_SECOND as u128);
+						/ (WEIGHT_PER_SECOND.ref_time() as u128);
 
 					// We dont need to proceed if the amount is 0
 					// For cases (specially tests) where the asset is very cheap with respect
@@ -113,11 +113,12 @@ impl<
 	}
 
 	// Refund weight. We will refund in whatever asset is stored in self.
-	fn refund_weight(&mut self, weight: Weight) -> Option<MultiAsset> {
+	fn refund_weight(&mut self, weight: u64) -> Option<MultiAsset> {
 		if let Some((id, prev_amount, units_per_second)) = self.1.clone() {
 			let weight = weight.min(self.0);
 			self.0 -= weight;
-			let amount = units_per_second * (weight as u128) / (WEIGHT_PER_SECOND as u128);
+			let amount =
+				units_per_second * (weight as u128) / (WEIGHT_PER_SECOND.ref_time() as u128);
 			let amount = amount.min(prev_amount);
 			self.1 = Some((
 				id.clone(),
@@ -204,7 +205,7 @@ mod test {
 		fn get_units_per_second(_asset_type: MultiLocation) -> Option<u128> {
 			// return WEIGHT_PER_SECOND to cancel the division out in buy_weight()
 			// this should make weight and payment amounts directly comparable
-			Some(WEIGHT_PER_SECOND as u128)
+			Some(WEIGHT_PER_SECOND.ref_time() as u128)
 		}
 	}
 
@@ -223,7 +224,7 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as Weight, payment.clone())
+			.buy_weight(amount as u64, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
@@ -243,7 +244,7 @@ mod test {
 			fun: Fungibility::Fungible(100u128),
 		});
 		let buy_one_results = trader
-			.buy_weight(100u32 as Weight, asset_one_payment.clone())
+			.buy_weight(100u64, asset_one_payment.clone())
 			.expect("can buy weight once");
 		assert_eq!(buy_one_results.fungible.len(), 0); // no unused amount
 		assert_eq!(trader.0, 100u64);
@@ -255,7 +256,7 @@ mod test {
 					interior: Junctions::X1(Junction::Parachain(1000))
 				},
 				100,
-				WEIGHT_PER_SECOND as u128
+				WEIGHT_PER_SECOND.ref_time() as u128
 			))
 		);
 
@@ -269,7 +270,7 @@ mod test {
 			fun: Fungibility::Fungible(10_000u128),
 		});
 		assert_eq!(
-			trader.buy_weight(10_000u32 as Weight, asset_two_payment.clone()),
+			trader.buy_weight(10_000u64, asset_two_payment.clone()),
 			Err(XcmError::NotWithdrawable),
 		);
 
@@ -283,7 +284,7 @@ mod test {
 					interior: Junctions::X1(Junction::Parachain(1000))
 				},
 				100,
-				WEIGHT_PER_SECOND as u128
+				WEIGHT_PER_SECOND.ref_time() as u128
 			))
 		);
 	}
@@ -300,7 +301,7 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as Weight, payment.clone())
+			.buy_weight(amount as u64, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
@@ -326,7 +327,7 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as Weight, payment.clone())
+			.buy_weight(amount as u64, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
@@ -369,7 +370,7 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as Weight, payment.clone())
+			.buy_weight(amount as u64, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
@@ -397,7 +398,7 @@ mod test {
 
 		let mut trader: FirstAssetTrader<MultiLocation, (), ()> = FirstAssetTrader::new();
 		let unused = trader
-			.buy_weight(amount as Weight, payment.clone())
+			.buy_weight(amount as u64, payment.clone())
 			.expect("can buy weight once");
 		assert!(unused.is_empty());
 		assert_eq!(trader.0, 1000u64);
