@@ -51,7 +51,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -208,7 +208,7 @@ impl Migration for MockMigration {
 		result
 	}
 	fn migrate(&self, available_weight: Weight) -> Weight {
-		let mut result: Weight = 0u64.into();
+		let mut result = Weight::zero();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_migrate_fn(self.index, available_weight);
 		});

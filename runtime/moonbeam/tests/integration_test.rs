@@ -29,15 +29,17 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
-	weights::{DispatchClass, Weight},
+	weights::{constants::WEIGHT_PER_SECOND, DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 
 use moonbeam_runtime::{
-	asset_config::LocalAssetInstance, currency::GLMR, xcm_config::CurrencyId, AccountId, Balances,
-	BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, System, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	asset_config::LocalAssetInstance,
+	currency::GLMR,
+	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
+	AccountId, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
+	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -2767,6 +2769,45 @@ fn test_xcm_utils_ml_to_account() {
 			.expect_cost(1000)
 			.expect_no_logs()
 			.execute_reverts(|output| output == b"multilocation: Failed multilocation conversion");
+	});
+}
+
+#[test]
+fn test_xcm_utils_weight_message() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
+
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = XcmUtilsPCall::weight_message {
+			message: message.into(),
+		};
+
+		Precompiles::new()
+			.prepare_test(ALICE, xcm_utils_precompile_address, input)
+			.expect_cost(0)
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(expected_weight).build());
+	});
+}
+
+#[test]
+fn test_xcm_utils_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let multilocation = SelfReserve::get();
+
+		let input = XcmUtilsPCall::get_units_per_second { multilocation };
+
+		let expected_units =
+			WEIGHT_PER_SECOND.ref_time() as u128 * moonbeam_runtime::currency::WEIGHT_FEE;
+
+		Precompiles::new()
+			.prepare_test(ALICE, xcm_utils_precompile_address, input)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(expected_units).build());
 	});
 }
 

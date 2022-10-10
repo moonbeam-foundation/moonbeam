@@ -113,7 +113,7 @@ describeDevMoonbeamAllEthTxTypes(
             data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [alith.address]),
           })
         ).result
-      ).equals(bnToHex(100000000000000n, 256));
+      ).equals(bnToHex(100000000000000n, { bitLength: 256 }));
     });
 
     it("allows to call totalSupply", async function () {
@@ -124,7 +124,7 @@ describeDevMoonbeamAllEthTxTypes(
             data: ERC20_INTERFACE.encodeFunctionData("totalSupply", []),
           })
         ).result
-      ).equals(bnToHex(100000000000000n, 256));
+      ).equals(bnToHex(100000000000000n, { bitLength: 256 }));
     });
   },
   true
@@ -195,7 +195,7 @@ describeDevMoonbeamAllEthTxTypes(
             ]),
           })
         ).result
-      ).equals(bnToHex(1000n, 256));
+      ).equals(bnToHex(1000n, { bitLength: 256 }));
     });
   },
   true
