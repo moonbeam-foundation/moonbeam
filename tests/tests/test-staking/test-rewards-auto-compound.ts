@@ -71,16 +71,9 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 1% auto-compound", (conte
           .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
           .signAsync(alith),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 1, 0, 0, 0)
           .signAsync(ethan),
       ])
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 1, 1, 0)
-          .signAsync(ethan)
-      )
     );
   });
 
@@ -107,16 +100,9 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 50% auto-compound", (cont
           .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
           .signAsync(alith),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 50, 0, 0, 0)
           .signAsync(ethan),
       ])
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 50, 1, 0)
-          .signAsync(ethan)
-      )
     );
   });
 
@@ -143,16 +129,9 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 100% auto-compound", (con
           .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
           .signAsync(alith),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 0)
           .signAsync(ethan),
       ])
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 1, 0)
-          .signAsync(ethan)
-      )
     );
   });
 
@@ -179,16 +158,9 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - no revoke requests", (con
           .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
           .signAsync(alith),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 0)
           .signAsync(ethan),
       ])
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 1, 0)
-          .signAsync(ethan)
-      )
     );
   });
 
@@ -217,16 +189,9 @@ describeDevMoonbeam(
             .sudo(context.polkadotApi.tx.parachainStaking.setBlocksPerRound(10))
             .signAsync(alith),
           context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+            .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 0)
             .signAsync(ethan),
         ])
-      );
-      await expectOk(
-        context.createBlock(
-          context.polkadotApi.tx.parachainStaking
-            .delegationSetAutoCompoundingReward(alith.address, 100, 1, 0)
-            .signAsync(ethan)
-        )
       );
       await jumpRounds(
         context,
@@ -266,28 +231,14 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - delegator leave", (contex
           .joinCandidates(MIN_GLMR_STAKING, 1)
           .signAsync(baltathar),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 0)
           .signAsync(ethan),
       ])
     );
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
-          .signAsync(ethan)
-      )
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 2, 0)
-          .signAsync(ethan)
-      )
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(baltathar.address, 100, 2, 0)
+          .delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 1)
           .signAsync(ethan)
       )
     );
@@ -340,28 +291,14 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - candidate leave", (contex
           .joinCandidates(MIN_GLMR_STAKING, 1)
           .signAsync(baltathar),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 0)
           .signAsync(ethan),
       ])
     );
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
-          .signAsync(ethan)
-      )
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 2, 0)
-          .signAsync(ethan)
-      )
-    );
-    await expectOk(
-      context.createBlock(
-        context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(baltathar.address, 100, 2, 0)
+          .delegateWithAutoCompound(baltathar.address, MIN_GLMR_DELEGATOR, 100, 0, 0, 1)
           .signAsync(ethan)
       )
     );
@@ -460,14 +397,14 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 2, 0)
+          .delegationSetAutoCompoundingReward(alith.address, 100, 0, 2)
           .signAsync(ethan)
       )
     );
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(baltathar.address, 100, 2, 0)
+          .delegationSetAutoCompoundingReward(baltathar.address, 100, 0, 2)
           .signAsync(ethan)
       )
     );
