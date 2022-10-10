@@ -40,15 +40,15 @@ pub mod pallet_custom_origins {
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
-		/// Origin able to spend up to 1 KSM from the treasury at once.
+		/// Origin able to spend up to 1 UNIT from the treasury at once.
 		SmallTipper,
-		/// Origin able to spend up to 5 KSM from the treasury at once.
+		/// Origin able to spend up to 5 UNIT from the treasury at once.
 		BigTipper,
-		/// Origin able to spend up to 50 KSM from the treasury at once.
+		/// Origin able to spend up to 50 UNIT from the treasury at once.
 		SmallSpender,
-		/// Origin able to spend up to 500 KSM from the treasury at once.
+		/// Origin able to spend up to 500 UNIT from the treasury at once.
 		MediumSpender,
-		/// Origin able to spend up to 5,000 KSM from the treasury at once.
+		/// Origin able to spend up to 5,000 UNIT from the treasury at once.
 		BigSpender,
 		/// Origin able to dispatch a whitelisted call.
 		WhitelistedCaller,
@@ -124,9 +124,10 @@ pub mod pallet_custom_origins {
 		}
 	}
 
+	// Origins able to spend up to $AMOUNT from the treasury at once
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = Balance> {
-			SmallTipper = 250 * 100 * UNIT,
+			SmallTipper = 250 * UNIT,
 			BigTipper = 1 * KILOUNIT,
 			SmallSpender = 10 * KILOUNIT,
 			MediumSpender = 100 * KILOUNIT,

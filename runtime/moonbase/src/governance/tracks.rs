@@ -78,9 +78,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			decision_deposit: 10_000 * KILOUNIT,
 			prepare_period: 3 * HOURS,
 			decision_period: 28 * DAYS,
-			// TODO: review
 			confirm_period: 10 * MINUTES,
-			// TODO: review
 			min_enactment_period: 30 * MINUTES,
 			min_approval: APP_WHITELISTED_CALLER,
 			min_support: SUP_WHITELISTED_CALLER,
@@ -247,4 +245,18 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 			Err(())
 		}
 	}
+}
+
+#[test]
+//#[should_panic] // comment out to see curve info for all tracks
+fn print_all_approval_and_support_curves() {
+	// decision_period 28 days + confirm_period 2 days
+	for (_, track_info) in TRACKS_DATA {
+		println!("TRACK NAME: {}", track_info.name);
+		println!("Min approval info:");
+		track_info.min_approval.info(30, track_info.name);
+		println!("Min support info:");
+		track_info.min_support.info(30, track_info.name);
+	}
+	assert!(false);
 }
