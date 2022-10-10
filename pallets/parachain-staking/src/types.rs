@@ -109,11 +109,18 @@ pub struct CollatorSnapshot<AccountId, Balance> {
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
 	pub delegations: Vec<Bond<AccountId, Balance>>,
 
+	/// Has delegations set. True if this of CollatorSnapshot has had its delegations set, meaning
+	/// the collator experienced a change in delegations which required the delegations to be set in
+	/// order to preserve the information for later payouts.
+	/// TODO: convert to an option
+	pub has_delegations_set: bool,
+
 	/// The total counted value locked for the collator, including the self bond + total staked by
 	/// top delegators.
 	pub total: Balance,
 }
 
+// TODO: how to handle lazy population here?
 impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
 	fn eq(&self, other: &Self) -> bool {
 		let must_be_true = self.bond == other.bond && self.total == other.total;
@@ -145,6 +152,7 @@ impl<A, B: Default> Default for CollatorSnapshot<A, B> {
 			bond: B::default(),
 			delegations: Vec::new(),
 			total: B::default(),
+			has_delegations_set: false,
 		}
 	}
 }
@@ -1219,6 +1227,7 @@ impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B>
 			bond: other.bond,
 			delegations: other.top_delegations,
 			total: other.total_counted,
+			has_delegations_set: false,
 		}
 	}
 }

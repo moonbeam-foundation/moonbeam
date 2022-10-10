@@ -1527,39 +1527,37 @@ pub mod pallet {
 				// care about the first one we find. It could also not exist at all, in which case
 				// the current "live" TopCandidates info can be used.
 				//
-				// Note that we only want to prune the struct from storage if it exists in the
-				// payout round, otherwise it will be needed later.
+				// Note that we always pull the current_snapshot and remove (take()) it.
 				//
 				// This scan can be costly if there are lots of rounds. A potential optimization
 				// would be to store the oldest round at which the collator changed, although this
 				// alone wouldn't outright prevent scans. (TODO: probably just remove this...)
-				//
-				// TODO: slight redesign: We need other items from the snapshot, which means we need
-				//       to always expect a snapshot but have that snapshot be able to distinguish
-				//       between whether or not its delegations has been copied-to. An empty vec
-				//       is legit (it means a "solo" collator) so that can't be relied upon.
-				let delegations = if <AtStake<T>>::contains_key(paid_for_round, &collator) {
-					// in this case, we have info from our paid for round, so we want to take() it
-					let snapshot = <AtStake<T>>::take(paid_for_round, &collator);
-					snapshot.delegations
+				let current_snapshot = <AtStake<T>>::take(paid_for_round, &collator);
+
+				let delegations = if current_snapshot.has_delegations_set {
+					// in this case, we have our delegations in the current snapshot
+					current_snapshot.delegations
 				} else {
 					// now we scan forward for any copies we can use
-					let mut maybe_snapshot = None;
+					let mut maybe_delegations = None;
 					for round in paid_for_round..<Round<T>>::get().current - 1 {
-						if <AtStake<T>>::contains_key(round, &collator) {
-							maybe_snapshot = <AtStake<T>>::get(round, &collator);
+						let snapshot = <AtStake<T>>::get(round, &collator);
+						if snapshot.has_delegations_set {
+							maybe_delegations = Some(snapshot.delegations);
 							break;
 						}
 					}
 
-					return if let Some(snapshot) = maybe_snapshot {
-						snapshot.delegations
-					} else {
+					if let None = maybe_delegations {
 						// otherwise we use the unchanged TopDelegations info
-						<TopDelegations<T>>::get(&collator)
-							.expect("TODO: make sure this can't happen or handle") // TODO
-							.delegations
+						maybe_delegations = Some(
+							<TopDelegations<T>>::get(&collator)
+								.expect("TODO: make sure this can't happen or handle") // TODO
+								.delegations,
+						)
 					};
+
+					maybe_delegations.expect("All code paths produce a delegations vec, qed")
 				};
 
 				// Take the snapshot of block author and delegations
@@ -1575,7 +1573,8 @@ pub mod pallet {
 						));
 				} else {
 					// pay collator first; commission + due_portion
-					let collator_pct = Perbill::from_rational(state.bond, state.total);
+					let collator_pct =
+						Perbill::from_rational(current_snapshot.bond, current_snapshot.total);
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
@@ -1588,7 +1587,7 @@ pub mod pallet {
 						));
 					// pay delegators due portion
 					for Bond { owner, amount } in delegations {
-						let percent = Perbill::from_rational(amount, state.total);
+						let percent = Perbill::from_rational(amount, current_snapshot.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
 							mint(due, owner.clone());
@@ -1672,7 +1671,7 @@ pub mod pallet {
 				let CountedDelegations {
 					uncounted_stake,
 					rewardable_delegations,
-				} = Self::get_rewardable_delegators(&account);
+				} = Self::get_rewardable_delegators(&account); // TODO: avoid call here
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
 				// TODO: CollatorSnapshot would need to not have the full list of delegations initially,
@@ -1682,8 +1681,9 @@ pub mod pallet {
 				//       all outstanding rounds, but a more-optimized version could update only the most recent.)
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: rewardable_delegations,
+					delegations: Default::default(),
 					total: total_counted,
+					has_delegations_set: false,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
@@ -1719,7 +1719,7 @@ pub mod pallet {
 				.map(|x| (x.delegator, x.action))
 				.collect::<BTreeMap<_, _>>();
 			let mut uncounted_stake = BalanceOf::<T>::zero();
-			let _rewardable_delegations = <TopDelegations<T>>::get(collator)
+			let rewardable_delegations = <TopDelegations<T>>::get(collator)
 				.expect("all members of CandidateQ must be candidates")
 				.delegations
 				.into_iter()
@@ -1753,7 +1753,7 @@ pub mod pallet {
 				.collect();
 			CountedDelegations {
 				uncounted_stake,
-				rewardable_delegations: Default::default(),
+				rewardable_delegations,
 			}
 		}
 	}
