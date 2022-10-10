@@ -91,6 +91,9 @@ type XcmTransactorV1PCall =
 type XcmTransactorV2PCall =
 	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
+// TODO: can we construct a const U256...?
+const BASE_FEE_GENISIS: u128 = 10 * GIGAWEI;
+
 #[test]
 fn verify_randomness_precompile_gas_constants() {
 	let weight_to_gas = |weight| {
@@ -459,7 +462,6 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * UNIT);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
 			// Bob transfers 1000 UNIT to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -467,7 +469,7 @@ fn transfer_through_evm_to_stake() {
 				input: Vec::new(),
 				value: (1_000 * UNIT).into(),
 				gas_limit,
-				max_fee_per_gas: gas_price,
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: None,
 				access_list: Vec::new(),
@@ -858,7 +860,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENISIS.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -1098,7 +1100,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000u64.into();
+			let gas_price: U256 = BASE_FEE_GENISIS.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -2146,12 +2148,26 @@ fn transfer_ed_0_substrate() {
 }
 
 #[test]
+fn initial_gas_fee_is_correct() {
+	use fp_evm::FeeCalculator;
+
+	ExtBuilder::default()
+		.build()
+		.execute_with(|| {
+			let multiplier = TransactionPayment::next_fee_multiplier();
+			assert_eq!(multiplier, Multiplier::from(8u128));
+
+			assert_eq!(FixedGasPrice::min_gas_price(), (10_000_000_000u128.into(), Weight::zero()));
+		});
+}
+
+#[test]
 fn transfer_ed_0_evm() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_000 * 1_000_000_000)) + (1 * WEI),
+				((1 * UNIT) + (21_000 * BASE_FEE_GENISIS)) + (1 * WEI),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -2164,7 +2180,7 @@ fn transfer_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2181,7 +2197,7 @@ fn refund_ed_0_evm() {
 		.with_balances(vec![
 			(
 				AccountId::from(ALICE),
-				((1 * UNIT) + (21_777 * 1_000_000_000)),
+				((1 * UNIT) + (21_777 * BASE_FEE_GENISIS)),
 			),
 			(AccountId::from(BOB), 0),
 		])
@@ -2194,7 +2210,7 @@ fn refund_ed_0_evm() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_777u64,
-				max_fee_per_gas: U256::from(1_000_000_000),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2203,7 +2219,7 @@ fn refund_ed_0_evm() {
 			// ALICE is refunded
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
-				777 * 1_000_000_000,
+				777 * BASE_FEE_GENISIS,
 			);
 		});
 }
@@ -2247,7 +2263,7 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -2259,16 +2275,16 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(2 * GIGAWEI),
-				max_priority_fee_per_gas: Some(U256::from(1 * GIGAWEI)),
+				max_fee_per_gas: U256::from(2 * BASE_FEE_GENISIS),
+				max_priority_fee_per_gas: Some(U256::from(BASE_FEE_GENISIS)),
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
 			})
 			.dispatch(<Runtime as frame_system::Config>::Origin::root()));
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
-			// Fee is 1 GWEI base fee + 1 GWEI tip.
-			let fee = ((2 * GIGAWEI) * 21_000) as f64;
+			// Fee is 1 * base_fee + tip.
+			let fee = ((2 * BASE_FEE_GENISIS) * 21_000) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2280,10 +2296,11 @@ fn total_issuance_after_evm_transaction_with_priority_fee() {
 
 #[test]
 fn total_issuance_after_evm_transaction_without_priority_fee() {
+	use fp_evm::FeeCalculator;
 	ExtBuilder::default()
 		.with_balances(vec![(
 			AccountId::from(BOB),
-			(1 * UNIT) + (21_000 * (2 * GIGAWEI)),
+			(1 * UNIT) + (21_000 * (2 * BASE_FEE_GENISIS)),
 		)])
 		.build()
 		.execute_with(|| {
@@ -2295,7 +2312,7 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 				input: Vec::new(),
 				value: (1 * UNIT).into(),
 				gas_limit: 21_000u64,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -2304,7 +2321,9 @@ fn total_issuance_after_evm_transaction_without_priority_fee() {
 
 			let issuance_after = <Runtime as pallet_evm::Config>::Currency::total_issuance();
 			// Fee is 1 GWEI base fee.
-			let fee = ((1 * GIGAWEI) * 21_000) as f64;
+			let base_fee = FixedGasPrice::min_gas_price().0;
+			assert_eq!(base_fee.as_u128(), BASE_FEE_GENISIS); // hint in case following asserts fail
+			let fee = (base_fee.as_u128() * 21_000u128) as f64;
 			// 80% was burned.
 			let expected_burn = (fee * 0.8) as u128;
 			assert_eq!(issuance_after, issuance_before - expected_burn,);
@@ -2989,7 +3008,7 @@ fn evm_revert_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),
@@ -3028,7 +3047,7 @@ fn evm_success_keeps_substrate_events() {
 				.into(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: 500_000,
-				max_fee_per_gas: U256::from(1 * GIGAWEI),
+				max_fee_per_gas: U256::from(BASE_FEE_GENISIS),
 				max_priority_fee_per_gas: None,
 				nonce: Some(U256::from(0)),
 				access_list: Vec::new(),

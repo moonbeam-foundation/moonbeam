@@ -1687,11 +1687,12 @@ mod fee_tests {
 
 		let call = frame_system::Call::<Runtime>::fill_block {
 			ratio: Perbill::from_rational(
-				block_weight,
+				block_weight.ref_time(),
 				BlockWeights::get()
 					.get(DispatchClass::Normal)
 					.max_total
-					.unwrap(),
+					.unwrap()
+					.ref_time(),
 			),
 		};
 		println!("calling {:?}", call);
@@ -1778,8 +1779,8 @@ mod fee_tests {
 
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
 		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
-			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&extrinsic_weight))
-			+ LengthToFeeImpl::weight_to_fee(&(extrinsic_len as u64))
+			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&Weight::from_ref_time(extrinsic_weight)))
+			+ LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(extrinsic_len as u64))
 			+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
@@ -1793,7 +1794,7 @@ mod fee_tests {
 				&DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::weights::Pays::Yes,
-					weight: extrinsic_weight,
+					weight: Weight::from_ref_time(extrinsic_weight),
 				},
 				tip,
 			);
