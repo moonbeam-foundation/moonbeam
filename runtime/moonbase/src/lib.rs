@@ -400,8 +400,9 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
-	/// Maximum multiplier.
-	pub MaximumMultiplier: Multiplier = Multiplier::from(1_000u128);
+	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 }
 
