@@ -5,7 +5,7 @@
   },
   "relaychain": {
     "chain": "rococo-local",
-    "default_command": "../target/release/polkadot",
+    "default_command": "{{relayBinaryPath}}",
     "default_args": [
       "--no-hardware-benchmarks",
       "-lparachain=debug",
@@ -28,7 +28,7 @@
     {
       "id": 2000,
       "cumulus_based": true,
-      "chain": "moonbase-local",
+      "chain": "{{chain}}",
       "default_args": [
         "--no-hardware-benchmarks",
         "-lparachain=debug",
@@ -37,11 +37,11 @@
       "collators": [
         {
           "name": "alith",
-          "command": "../target/release/moonbeam"
+          "command": "{{binaryPath}}"
         },
         {
           "name": "baltathar",
-          "command": "../target/release/moonbeam"
+          "command": "{{binaryPath}}"
         }
       ]
     }
