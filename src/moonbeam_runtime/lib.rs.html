@@ -1545,6 +1545,14 @@
 <span id="1545">1545</span>
 <span id="1546">1546</span>
 <span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
+<span id="1555">1555</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1913,6 +1921,9 @@
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always &gt; min value.
 	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
+	<span class="doccomment">/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonbeamPrecompiles&lt;Runtime&gt; = MoonbeamPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
 }
 
@@ -1937,8 +1948,13 @@
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-</span><span class="kw">pub type </span>SlowAdjustingFeeUpdate&lt;R&gt; =
-	TargetedFeeAdjustment&lt;R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier&gt;;
+</span><span class="kw">pub type </span>SlowAdjustingFeeUpdate&lt;R&gt; = TargetedFeeAdjustment&lt;
+	R,
+	TargetBlockFullness,
+	AdjustmentVariable,
+	MinimumMultiplier,
+	MaximumMultiplier,
+&gt;;
 
 <span class="kw">use </span>frame_support::traits::FindAuthor;
 <span class="comment">//TODO It feels like this shold be able to work for any T: H160, but I tried for

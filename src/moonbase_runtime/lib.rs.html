@@ -1610,6 +1610,14 @@
 <span id="1610">1610</span>
 <span id="1611">1611</span>
 <span id="1612">1612</span>
+<span id="1613">1613</span>
+<span id="1614">1614</span>
+<span id="1615">1615</span>
+<span id="1616">1616</span>
+<span id="1617">1617</span>
+<span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2012,6 +2020,9 @@
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always &gt; min value.
 	</span><span class="kw">pub </span>MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(<span class="number">1</span>, <span class="number">1_000_000u128</span>);
+	<span class="doccomment">/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonbasePrecompiles&lt;Runtime&gt; = MoonbasePrecompiles::&lt;<span class="kw">_</span>&gt;::new();
 }
 
@@ -2036,8 +2047,13 @@
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-</span><span class="kw">pub type </span>SlowAdjustingFeeUpdate&lt;R&gt; =
-	TargetedFeeAdjustment&lt;R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier&gt;;
+</span><span class="kw">pub type </span>SlowAdjustingFeeUpdate&lt;R&gt; = TargetedFeeAdjustment&lt;
+	R,
+	TargetBlockFullness,
+	AdjustmentVariable,
+	MinimumMultiplier,
+	MaximumMultiplier,
+&gt;;
 
 <span class="doccomment">/// The author inherent provides an AccountId, but pallet evm needs an H160.
 /// This simple adapter makes the conversion for any types T, U such that T: Into&lt;U&gt;
