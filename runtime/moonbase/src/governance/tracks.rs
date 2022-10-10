@@ -58,14 +58,26 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 	(
 		0,
 		pallet_referenda::TrackInfo {
+			// Name of this track.
 			name: "root",
+			// A limit for the number of referenda on this track that can be being decided at once.
+			// For Root origin this should generally be just one.
 			max_deciding: 1,
+			// Amount that must be placed on deposit before a decision can be made.
 			decision_deposit: 1_000 * KILOUNIT,
+			// Amount of time this must be submitted for before a decision can be made.
 			prepare_period: 3 * HOURS,
+			// Amount of time that a decision may take to be approved prior to cancellation.
 			decision_period: 28 * DAYS,
+			// Amount of time that the approval criteria must hold before it can be approved.
 			confirm_period: 3 * HOURS,
+			// Minimum amount of time that an approved proposal must be in the dispatch queue.
 			min_enactment_period: 3 * HOURS,
+			// Minimum aye votes as percentage of overall conviction-weighted votes needed for
+			// approval as a function of time into decision period.
 			min_approval: APP_ROOT,
+			// Minimum pre-conviction aye-votes ("support") as percentage of overall population that
+			// is needed for approval as a function of time into decision period.
 			min_support: SUP_ROOT,
 		},
 	),
