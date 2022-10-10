@@ -5,7 +5,7 @@ import { expect } from "chai";
 
 import { alith } from "../../util/accounts";
 import { RELAY_SOURCE_LOCATION, relayAssetMetadata } from "../../util/assets";
-import { registerForeignAsset, XcmFragment } from "../../util/xcm";
+import { registerForeignAsset, XcmFragment, RESERVE_ASSET_DEPOSITED_WEIGHT, BUY_EXECUTION_WEIGHT } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
@@ -286,6 +286,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
     expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
+    const chargedWeight = BUY_EXECUTION_WEIGHT + RESERVE_ASSET_DEPOSITED_WEIGHT;
     // BuyExecution does not charge for fees because we registered it for not doing so
     // But since there is no error, and the deposit is on the error handler, the assets
     // will be trapped.
@@ -304,7 +305,7 @@ describeDevMoonbeam("Mock XCM - downward transfer claim trapped assets", (contex
         ],
         fungible: 10n * RELAY_TOKEN,
       },
-      weight_limit: new BN(500000000),
+      weight_limit: new BN(chargedWeight.toString()),
     })
       .reserve_asset_deposited()
       .buy_execution()

@@ -12,6 +12,10 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
+  BUY_EXECUTION_WEIGHT,
+  CLEAR_ORIGIN_WEIGHT,
+  WITHDRAW_WEIGHT,
+  DEPOSIT_ASSET_WEIGHT
 } from "../../util/xcm";
 import { customWeb3Request } from "../../util/providers";
 
@@ -327,15 +331,16 @@ describeDevMoonbeam(
     });
 
     it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {
-      // Get Pallet balances index60000000000000n
+      // Get Pallet balances index
       const metadata = await context.polkadotApi.rpc.state.getMetadata();
       const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
         (pallet) => pallet.name === "Balances"
       ).index;
-      // We are charging 100_000_000 weight for every XCM instruction
-      // We are executing 4 instructions
-      // 200_000_000 * 4 * 50000 = 40000000000000
-      // We are charging 40 micro DEV for this operation
+      const chargedWeight = 
+        WITHDRAW_WEIGHT + BUY_EXECUTION_WEIGHT + CLEAR_ORIGIN_WEIGHT + DEPOSIT_ASSET_WEIGHT
+      // We are charging chargedWeight
+      // chargedWeight * 50000 = chargedFee
+      const chargedFee = chargedWeight * 50000n;
       // The rest should be going to the deposit account
       const xcmMessage = new XcmFragment({
         fees: {
@@ -371,12 +376,12 @@ describeDevMoonbeam(
       expect(balance.toString()).to.eq(0n.toString());
 
       // In the case of the random address: we have transferred 100000000000000,
-      // but 20000000000000 have been deducted
+      // but chargedFee have been deducted
       // for weight payment
       let randomBalance = (
         (await context.polkadotApi.query.system.account(random.address)) as any
       ).data.free.toBigInt();
-      let expectedRandomBalance = 68063400000000n;
+      let expectedRandomBalance = transferredBalance - chargedFee;
       expect(randomBalance).to.eq(expectedRandomBalance);
     });
   }
