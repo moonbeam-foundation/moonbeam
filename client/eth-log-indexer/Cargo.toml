@@ -1,0 +1,30 @@
+[package]
+name = "fc-eth-log-indexer"
+authors = [ "PureStake" ]
+edition = "2021"
+homepage = "https://moonbeam.network"
+license = "GPL-3.0-only"
+version = "0.1.0"
+
+[dependencies]
+futures = { version = "0.3.1", features = [ "compat" ] }
+futures-timer = "3.0.2"
+log = "0.4"
+sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "any" ] }
+tokio = { version = "1.13.0", features = [ "macros", "sync" ] }
+ethereum = { version = "0.12.0", features = ["with-codec"] }
+
+# Frontier
+fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", features = [ "rpc_binary_search_estimate" ] }
+
+# Substrate
+sc-client-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+
+[features]
+default = [ "sqlx/sqlite" ]
+sqlite = [ "sqlx/sqlite" ]
+postgres = [ "sqlx/postgres" ]

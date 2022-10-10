@@ -36,6 +36,8 @@ pub use moonbeam_runtime;
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
+
+use sc_client_api::BlockchainEvents;
 use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
@@ -536,6 +538,26 @@ where
 		fee_history_cache: fee_history_cache.clone(),
 	});
 
+	// TEST
+	let indexer_backend = fc_eth_log_indexer::Backend::new(
+		fc_eth_log_indexer::BackendConfig::Sqlite(
+			fc_eth_log_indexer::SqliteBackendConfig {
+				path: "sqlite:///home/telmo/rust/sqlite_playground/test2.db3",
+				create_if_missing: true
+			}
+		),
+		10,
+		client.clone(),
+		overrides.clone()
+	)
+	.await
+	.expect("indexer pool to be created");
+	task_manager.spawn_essential_handle().spawn(
+		"indexer-queue-worker",
+		Some("testsqlite"),
+		fc_eth_log_indexer::SyncWorker::run(backend.clone(), Arc::new(indexer_backend), client.clone().import_notification_stream(), std::time::Duration::from_secs(4)),
+	);
+
 	let ethapi_cmd = rpc_config.ethapi.clone();
 	let tracing_requesters =
 		if ethapi_cmd.contains(&EthApiCmd::Debug) || ethapi_cmd.contains(&EthApiCmd::Trace) {
@@ -1030,6 +1052,26 @@ where
 		rpc_config.eth_statuses_cache,
 		prometheus_registry,
 	));
+
+	// // TEST
+	// let indexer_backend = fc_eth_log_indexer::Backend::new(
+	// 	fc_eth_log_indexer::BackendConfig::Sqlite(
+	// 		fc_eth_log_indexer::SqliteBackendConfig {
+	// 			path: "sqlite:///home/telmo/rust/sqlite_playground/test2.db3",
+	// 			create_if_missing: true
+	// 		}
+	// 	),
+	// 	10,
+	// 	client.clone(),
+	// 	overrides.clone()
+	// )
+	// .await
+	// .expect("indexer pool to be created");
+	// task_manager.spawn_essential_handle().spawn(
+	// 	"indexer-queue-worker",
+	// 	Some("testsqlite"),
+	// 	fc_eth_log_indexer::SyncWorker::run(backend.clone(), Arc::new(indexer_backend), client.clone().import_notification_stream(), std::time::Duration::from_secs(4)),
+	// );
 
 	let rpc_builder = {
 		let client = client.clone();

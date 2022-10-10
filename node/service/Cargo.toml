@@ -15,6 +15,7 @@ derive_more = "0.99"
 exit-future = "0.2"
 flume = "0.10.9"
 futures = { version = "0.3.1", features = [ "compat" ] }
+futures-timer = "3.0.2"
 hex-literal = "0.3.4"
 jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros", "server" ] }
 libsecp256k1 = { version = "0.6", features = [ "hmac" ] }
@@ -43,6 +44,7 @@ moonbeam-rpc-txpool = { path = "../../client/rpc/txpool" }
 moonbeam-vrf = { path = "../../client/vrf" }
 pallet-parachain-staking = { path = "../../pallets/parachain-staking" }
 session-keys-primitives = { path = "../../primitives/session-keys" }
+fc-eth-log-indexer = { path = "../../client/eth-log-indexer" }
 
 # Moonbeam runtimes
 moonbase-runtime = { path = "../../runtime/moonbase", optional = true }
