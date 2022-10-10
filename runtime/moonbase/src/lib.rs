@@ -1779,9 +1779,11 @@ mod fee_tests {
 
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
 		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
-			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&Weight::from_ref_time(extrinsic_weight)))
-			+ LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(extrinsic_len as u64))
-			+ tip;
+			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(
+				&Weight::from_ref_time(extrinsic_weight),
+			)) + LengthToFeeImpl::weight_to_fee(&Weight::from_ref_time(
+			extrinsic_len as u64,
+		)) + tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
 			.build_storage::<Runtime>()

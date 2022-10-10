@@ -27,9 +27,9 @@ use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetTy
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
-	CrowdloanRewards, Ethereum, Event, Executive, TransactionPaymentAsGasPrice, InflationInfo, LocalAssets,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, HOURS,
-	WEEKS,
+	CrowdloanRewards, Ethereum, Event, Executive, InflationInfo, LocalAssets, ParachainStaking,
+	Range, Runtime, System, TransactionConverter, TransactionPaymentAsGasPrice, UncheckedExtrinsic,
+	HOURS, WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
@@ -296,10 +296,10 @@ impl ExtBuilder {
 		.unwrap();
 
 		<pallet_transaction_payment::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
-				&pallet_transaction_payment::GenesisConfig {
-					multiplier: Multiplier::from(8u128),
-				},
-				&mut t,
+			&pallet_transaction_payment::GenesisConfig {
+				multiplier: Multiplier::from(8u128),
+			},
+			&mut t,
 		)
 		.unwrap();
 

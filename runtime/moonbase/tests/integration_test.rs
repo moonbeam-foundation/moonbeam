@@ -2151,14 +2151,15 @@ fn transfer_ed_0_substrate() {
 fn initial_gas_fee_is_correct() {
 	use fp_evm::FeeCalculator;
 
-	ExtBuilder::default()
-		.build()
-		.execute_with(|| {
-			let multiplier = TransactionPayment::next_fee_multiplier();
-			assert_eq!(multiplier, Multiplier::from(8u128));
+	ExtBuilder::default().build().execute_with(|| {
+		let multiplier = TransactionPayment::next_fee_multiplier();
+		assert_eq!(multiplier, Multiplier::from(8u128));
 
-			assert_eq!(TransactionPaymentAsGasPrice::min_gas_price(), (10_000_000_000u128.into(), Weight::zero()));
-		});
+		assert_eq!(
+			TransactionPaymentAsGasPrice::min_gas_price(),
+			(10_000_000_000u128.into(), Weight::zero())
+		);
+	});
 }
 
 #[test]
