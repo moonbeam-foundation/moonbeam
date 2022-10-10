@@ -312,7 +312,7 @@ fn test_ensure_transact_xcm_trough_proxy_ok() {
 			assert_eq!(bob_after.nonce, bob_before.nonce + 1);
 
 			// Bob sent some funds without paying any fees
-			assert_eq!(bob_after.data.free, bob_before.data.free - 21100);
+			assert_eq!(bob_after.data.free, bob_before.data.free - 100);
 
 			// Charlie receive some funds
 			assert_eq!(charlie_after.data.free, charlie_before.data.free + 100);
