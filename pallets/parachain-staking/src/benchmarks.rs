@@ -1109,10 +1109,10 @@ benchmarks! {
 
 
 	set_auto_compound {
-		// x controls number of distinct delegations the prime delegator will have
-		// y controls number of distinct auto-compounding delegations the prime collator will have
-		let x in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
-		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+		// x controls number of distinct auto-compounding delegations the prime collator will have
+		// y controls number of distinct delegations the prime delegator will have
+		let x in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 
 		use crate::AutoCompoundingDelegations;
 		use crate::auto_compounding::{self, DelegationAutoCompoundConfig};
@@ -1140,29 +1140,11 @@ benchmarks! {
 			0,
 		)?;
 
-		// delegate to x-1 distinct collators from the prime delegator
-		for i in 1..x {
-			let collator = create_funded_collator::<T>(
-				"collator",
-				seed.take(),
-				min_candidate_stake,
-				true,
-				i+1,
-			)?;
-			Pallet::<T>::delegate(
-				RawOrigin::Signed(prime_delegator.clone()).into(),
-				collator,
-				min_delegator_stake,
-				0,
-				i,
-			)?;
-		}
-
-		// have y-1 distinct auto-compounding delegators delegate to prime collator
+		// have x-1 distinct auto-compounding delegators delegate to prime collator
 		// we directly set the storage, since benchmarks don't work when the same extrinsic is
 		// called from within the benchmark.
 		let mut auto_compounding_state = <AutoCompoundingDelegations<T>>::get(&prime_candidate);
-		for i in 1..y {
+		for i in 1..x {
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
 				seed.take(),
@@ -1178,13 +1160,31 @@ benchmarks! {
 			);
 		}
 		<AutoCompoundingDelegations<T>>::insert(prime_candidate.clone(), auto_compounding_state);
+
+		// delegate to y-1 distinct collators from the prime delegator
+		for i in 1..y {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed.take(),
+				min_candidate_stake,
+				true,
+				i+1,
+			)?;
+			Pallet::<T>::delegate(
+				RawOrigin::Signed(prime_delegator.clone()).into(),
+				collator,
+				min_delegator_stake,
+				0,
+				i,
+			)?;
+		}
 	}: {
 		Pallet::<T>::set_auto_compound(
 			RawOrigin::Signed(prime_delegator.clone()).into(),
 			prime_candidate.clone(),
 			Percent::from_percent(50),
-			x+1,
-			y+1,
+			x,
+			y,
 		)?;
 	}
 	verify {
