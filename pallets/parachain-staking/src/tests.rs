@@ -8521,7 +8521,7 @@ fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators
 }
 
 #[test]
-fn test_delegation_auto_compounding_reward_fails_if_invalid_delegation_hint() {
+fn test_set_auto_compound_fails_if_invalid_delegation_hint() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
 		.with_candidates(vec![(1, 30)])
@@ -8532,7 +8532,7 @@ fn test_delegation_auto_compounding_reward_fails_if_invalid_delegation_hint() {
 			let delegation_hint = 0; // is however, 1
 
 			assert_noop!(
-				ParachainStaking::delegation_set_auto_compounding_reward(
+				ParachainStaking::set_auto_compound(
 					Origin::signed(2),
 					1,
 					Percent::from_percent(50),
@@ -8545,7 +8545,7 @@ fn test_delegation_auto_compounding_reward_fails_if_invalid_delegation_hint() {
 }
 
 #[test]
-fn test_delegation_auto_compounding_reward_fails_if_invalid_candidate_auto_compounding_hint() {
+fn test_set_auto_compound_fails_if_invalid_candidate_auto_compounding_hint() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
 		.with_candidates(vec![(1, 30)])
@@ -8563,7 +8563,7 @@ fn test_delegation_auto_compounding_reward_fails_if_invalid_candidate_auto_compo
 			let delegation_hint = 1;
 
 			assert_noop!(
-				ParachainStaking::delegation_set_auto_compounding_reward(
+				ParachainStaking::set_auto_compound(
 					Origin::signed(2),
 					1,
 					Percent::from_percent(50),
@@ -8576,14 +8576,14 @@ fn test_delegation_auto_compounding_reward_fails_if_invalid_candidate_auto_compo
 }
 
 #[test]
-fn test_delegation_auto_compounding_reward_inserts_if_not_exists() {
+fn test_set_auto_compound_inserts_if_not_exists() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
 		.with_candidates(vec![(1, 30)])
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
@@ -8606,7 +8606,7 @@ fn test_delegation_auto_compounding_reward_inserts_if_not_exists() {
 }
 
 #[test]
-fn test_delegation_auto_compounding_reward_updates_if_existing() {
+fn test_set_auto_compound_updates_if_existing() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
 		.with_candidates(vec![(1, 30)])
@@ -8621,7 +8621,7 @@ fn test_delegation_auto_compounding_reward_updates_if_existing() {
 				}],
 			);
 
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
@@ -8644,7 +8644,7 @@ fn test_delegation_auto_compounding_reward_updates_if_existing() {
 }
 
 #[test]
-fn test_delegation_auto_compounding_reward_removes_if_auto_compound_zero_percent() {
+fn test_set_auto_compound_removes_if_auto_compound_zero_percent() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 25)])
 		.with_candidates(vec![(1, 30)])
@@ -8659,7 +8659,7 @@ fn test_delegation_auto_compounding_reward_removes_if_auto_compound_zero_percent
 				}],
 			);
 
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::zero(),
@@ -8683,14 +8683,14 @@ fn test_execute_revoke_delegation_removes_auto_compounding_from_state_for_delega
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				3,
 				Percent::from_percent(50),
@@ -8730,14 +8730,14 @@ fn test_execute_leave_delegators_removes_auto_compounding_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				3,
 				Percent::from_percent(50),
@@ -8779,14 +8779,14 @@ fn test_execute_leave_delegators_with_deprecated_status_leaving_removes_auto_com
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				3,
 				Percent::from_percent(50),
@@ -8829,14 +8829,14 @@ fn test_execute_leave_candidates_removes_auto_compounding_state() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				3,
 				Percent::from_percent(50),
@@ -8900,7 +8900,7 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 		])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
@@ -8929,14 +8929,14 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 		.build()
 		.execute_with(|| {
 			(2..=5).for_each(|round| set_author(round, 1, 1));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				1,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(3),
 				1,
 				Percent::from_percent(50),
@@ -8981,21 +8981,21 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 		.build()
 		.execute_with(|| {
 			(2..=6).for_each(|round| set_author(round, 1, 1));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(0),
 				0,
 				1,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(3),
 				1,
 				Percent::from_percent(50),
 				1,
 				1,
 			));
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(4),
 				1,
 				Percent::from_percent(100),
@@ -9071,7 +9071,7 @@ fn test_migrated_at_stake_handles_deprecated_storage_value() {
 			// assert MigratedAtStake storage is updated at round 2, and set auto-compound value
 			roll_to_round_begin(2);
 			assert_eq!(Some(2), <MigratedAtStake<Test>>::get());
-			assert_ok!(ParachainStaking::delegation_set_auto_compounding_reward(
+			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
 				1,
 				Percent::from_percent(50),

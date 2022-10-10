@@ -397,14 +397,14 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(alith.address, 100, 0, 2)
+          .setAutoCompound(alith.address, 100, 0, 2)
           .signAsync(ethan)
       )
     );
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegationSetAutoCompoundingReward(baltathar.address, 100, 0, 2)
+          .setAutoCompound(baltathar.address, 100, 0, 2)
           .signAsync(ethan)
       )
     );

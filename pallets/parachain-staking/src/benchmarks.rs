@@ -1108,7 +1108,7 @@ benchmarks! {
 	}
 
 
-	delegation_set_auto_compounding_reward {
+	set_auto_compound {
 		// x controls number of distinct delegations the prime delegator will have
 		// y controls number of distinct auto-compounding delegations the prime collator will have
 		let x in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
@@ -1179,7 +1179,7 @@ benchmarks! {
 		}
 		<AutoCompoundingDelegations<T>>::insert(prime_candidate.clone(), auto_compounding_state);
 	}: {
-		Pallet::<T>::delegation_set_auto_compounding_reward(
+		Pallet::<T>::set_auto_compound(
 			RawOrigin::Signed(prime_delegator.clone()).into(),
 			prime_candidate.clone(),
 			Percent::from_percent(50),
@@ -1248,7 +1248,7 @@ benchmarks! {
 				i,
 			)?;
 			if i <= y {
-				Pallet::<T>::delegation_set_auto_compounding_reward(
+				Pallet::<T>::set_auto_compound(
 					RawOrigin::Signed(delegator.clone()).into(),
 					prime_candidate.clone(),
 					Percent::from_percent(100),

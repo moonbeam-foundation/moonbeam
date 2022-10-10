@@ -116,7 +116,7 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn base_on_initialize() -> Weight;
 	#[rustfmt::skip]
-	fn delegation_set_auto_compounding_reward(x: u32, y: u32, ) -> Weight;
+	fn set_auto_compound(x: u32, y: u32, ) -> Weight;
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
@@ -476,7 +476,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegatorState (r:1 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	#[rustfmt::skip]
-	fn delegation_set_auto_compounding_reward(x: u32, y: u32, ) -> Weight {
+	fn set_auto_compound(x: u32, y: u32, ) -> Weight {
 		Weight::from_ref_time(70_303_000 as u64)
 			// Standard Error: 17_000
 			.saturating_add(Weight::from_ref_time(69_000 as u64).saturating_mul(x as u64))
@@ -843,7 +843,7 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking DelegatorState (r:1 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:1)
 	#[rustfmt::skip]
-	fn delegation_set_auto_compounding_reward(x: u32, y: u32, ) -> Weight {
+	fn set_auto_compound(x: u32, y: u32, ) -> Weight {
 		Weight::from_ref_time(70_303_000 as u64)
 			// Standard Error: 17_000
 			.saturating_add(Weight::from_ref_time(69_000 as u64).saturating_mul(x as u64))
