@@ -185,43 +185,13 @@ export async function injectHrmpMessage(
   await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
 
+// Weight a particular message using the xcm utils precompile
 export async function weightMessage(context: DevTestContext, message?: XcmVersionedXcm) {
   const result = await web3EthCall(context.web3, {
     to: PRECOMPILE_XCM_UTILS_ADDRESS,
     data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [message.toU8a()]),
   });
   return BigInt(result.result);
-}
-
-export async function withdrawWeight(context: DevTestContext) {
-  let config = {
-    fees: {
-      multilocation: [
-        {
-          parents: 0,
-          interior: {
-            Here: null,
-          },
-        },
-      ],
-      fungible: 0n,
-    },
-  };
-  let message = new XcmFragment(config).withdraw_asset().as_v2();
-
-  return await weightMessage(context, context.polkadotApi.createType("XcmVersionedXcm", message));
-}
-
-export async function buyExecutionWeight(context: DevTestContext) {
-  let config = {
-    fees: {
-      multilocation: [],
-      fungible: 0n,
-    },
-  };
-  let message = new XcmFragment(config).buy_execution().as_v2();
-
-  return await weightMessage(context, context.polkadotApi.createType("XcmVersionedXcm", message));
 }
 
 export async function injectHrmpMessageAndSeal(
@@ -283,7 +253,8 @@ export class XcmFragment {
     return this;
   }
 
-  // Add a `BuyExecution` instruction
+  // Add one or more `BuyExecution` instruction
+  // if weight_limit is not set in config, then we put unlimited
   buy_execution(multilocation_index: number = 0, repeat: bigint = 1n): this {
     const weightLimit =
       this.config.weight_limit != null
@@ -426,6 +397,8 @@ export class XcmFragment {
     };
   }
 
+  // Overrides the weight limit of the first buyExeuction encountered
+  // with the measured weight
   async override_weight(context: DevTestContext): Promise<this> {
     const message: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",

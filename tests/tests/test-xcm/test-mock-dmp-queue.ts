@@ -16,7 +16,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    let numMsgs = 50;
+    const numMsgs = 50;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
@@ -36,7 +36,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we get out of the loop of the execution (we reach the threshold limit), to then
     // go on idle
 
-    let config = {
+    const config = {
       fees: {
         multilocation: [
           {
@@ -50,7 +50,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     };
 
-    let withdrawWeight = await weightMessage(
+    const withdrawWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",
@@ -58,7 +58,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-    let buyExecutionWeight = await weightMessage(
+    const buyExecutionWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",

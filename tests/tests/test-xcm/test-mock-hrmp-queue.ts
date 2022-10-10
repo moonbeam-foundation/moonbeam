@@ -52,14 +52,14 @@ export async function calculateShufflingAndExecution(
   let indices = Array.from(Array(numParaMsgs).keys());
   let shouldItExecute = new Array(numParaMsgs).fill(false);
 
-  let seed = await context.polkadotApi.query.system.parentHash();
-  let rng = new ChaChaRng(seed);
+  const seed = await context.polkadotApi.query.system.parentHash();
+  const rng = new ChaChaRng(seed);
 
   const signedBlock = await context.polkadotApi.rpc.chain.getBlock();
   const apiAt = await context.polkadotApi.at(signedBlock.block.header.hash);
   const queueConfig = (await apiAt.query.xcmpQueue.queueConfig()) as any;
-  let decay = queueConfig.weightRestrictDecay.toBigInt();
-  let thresholdWeight = queueConfig.thresholdWeight.toBigInt();
+  const decay = queueConfig.weightRestrictDecay.toBigInt();
+  const thresholdWeight = queueConfig.thresholdWeight.toBigInt();
 
   for (let i = 0; i < numParaMsgs; i++) {
     let rand = rng.nextU32();
@@ -132,7 +132,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     };
 
-    let withdrawWeight = await weightMessage(
+    const withdrawWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",
@@ -140,7 +140,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
-    let buyExecutionWeight = await weightMessage(
+    const buyExecutionWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
         "XcmVersionedXcm",
@@ -690,7 +690,6 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
     );
 
-    let message = [].concat(firstEncodedFragment.toU8a(), secondEncodedFragment.toU8a());
     const xcmpFormat: XcmpMessageFormat = context.polkadotApi.createType(
       "XcmpMessageFormat",
       "ConcatenatedVersionedXcm"
