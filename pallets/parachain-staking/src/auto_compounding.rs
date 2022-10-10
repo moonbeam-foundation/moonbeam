@@ -87,7 +87,7 @@ impl<T: Config> Pallet<T> {
 		candidate_auto_compounding_delegation_count_hint: u32,
 		delegation_count_hint: u32,
 	) -> DispatchResultWithPostInfo {
-		// check that caller can reserve the amount before any changes to storage
+		// check that caller can lock the amount before any changes to storage
 		ensure!(
 			Self::get_delegator_stakable_free_balance(&delegator) >= amount,
 			Error::<T>::InsufficientBalance
