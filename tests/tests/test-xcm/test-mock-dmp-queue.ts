@@ -50,6 +50,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       },
     };
 
+    // How much does the withdraw weight?
     const withdrawWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
@@ -58,6 +59,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       )
     );
 
+    // How much does the buyExecution weight?
     const buyExecutionWeight = await weightMessage(
       context,
       context.polkadotApi.createType(
