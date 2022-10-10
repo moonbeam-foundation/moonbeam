@@ -843,6 +843,7 @@ fn delegate_works() {
 				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
+				auto_compound: sp_runtime::Percent::zero(),
 			}
 			.into();
 			// Assert that the events vector contains the one expected

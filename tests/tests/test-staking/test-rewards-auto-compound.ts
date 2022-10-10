@@ -416,11 +416,6 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       .map(() => generateKeyringPair());
     newDelegator = delegator;
 
-    console.log(
-      context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toString(),
-      context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toString()
-    );
-
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.sudo
