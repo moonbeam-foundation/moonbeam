@@ -15,7 +15,7 @@ describeDevMoonbeam(
           privateKey: ALITH_PRIVATE_KEY,
           to: baltathar.address,
           gas: 12_000_000,
-          gasPrice: 1_000_000_000,
+          gasPrice: 10_000_000_000,
           value: 512,
         })
       );

@@ -23,7 +23,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
     let data = inspect.result.queued[alith.address.toLowerCase()][context.web3.utils.toHex(1)];
     expect(data).to.not.be.undefined;
     expect(data).to.be.equal(
-      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 1000000000 wei"
+      "0x0000000000000000000000000000000000000000: 0 wei + 1048576 gas x 10000000000 wei"
     );
   });
 
@@ -36,7 +36,7 @@ describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
       blockNumber: null,
       from: alith.address.toLowerCase(),
       gas: "0x100000",
-      gasPrice: "0x3b9aca00",
+      gasPrice: "0x2540be400",
       hash: txHash,
       nonce: context.web3.utils.toHex(1),
       to: "0x0000000000000000000000000000000000000000",
