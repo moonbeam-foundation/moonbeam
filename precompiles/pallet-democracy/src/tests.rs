@@ -21,7 +21,7 @@ use crate::{
 		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
 		Runtime,
 	},
-	SELECTOR_LOG_PROPOSED,
+	SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -516,6 +516,17 @@ fn second_works() {
 					DemocracyEvent::Seconded {
 						seconder: Alice,
 						prop_index: 0
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_SECONDED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.build(),
+						)
 					}
 					.into(),
 					EvmEvent::Executed {

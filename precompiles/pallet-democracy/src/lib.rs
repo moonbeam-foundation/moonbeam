@@ -52,6 +52,9 @@ type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 /// Solidity selector of the Proposed log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(uint32,uint256)");
 
+/// Solidity selector of the Seconded log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_SECONDED: [u8; 32] = keccak256!("Seconded(uint32,address)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -208,6 +211,7 @@ where
 		prop_index: SolidityConvert<U256, u32>,
 		seconds_upper_bound: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32)?;
 		let prop_index = prop_index.converted();
 		let seconds_upper_bound = seconds_upper_bound.converted();
 
@@ -223,6 +227,16 @@ where
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_SECONDED,
+			H256::from_low_u64_be(prop_index as u64), // proposal index,
+			EvmDataWriter::new()
+				.write::<Address>(handle.context().caller.into())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
