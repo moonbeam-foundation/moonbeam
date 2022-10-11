@@ -32,4 +32,5 @@ export async function expectOk<
   } else {
     expect(block.result.successful, block.result.error?.name).to.be.true;
   }
+  return block;
 }

@@ -99,7 +99,7 @@ export const createTransaction = async (
       data: options.data,
     }));
 
-  const maxFeePerGas = options.maxFeePerGas || 10_000_000_000;
+  const maxFeePerGas = options.maxFeePerGas || BigInt(await context.web3.eth.getGasPrice());
   const accessList = options.accessList || [];
   const nonce =
     options.nonce != null

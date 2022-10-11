@@ -22,9 +22,12 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   });
 
   it("should be disabled (no reaped account on 0 balance)", async function () {
-    const base_fee = await context.web3.eth.getGasPrice();
+    const txFeePerGas =
+      context.ethTransactionType == "EIP1559"
+        ? BigInt(await context.web3.eth.getGasPrice())
+        : MIN_GAS_PRICE;
     const { block, result } = await context.createBlock(
-      createTransfer(context, alith.address, 10n * GLMR - 21000n * base_fee, {
+      createTransfer(context, alith.address, 10n * GLMR - 21000n * txFeePerGas, {
         from: randomWeb3Account.address,
         privateKey: randomWeb3Account.privateKey,
         gas: 21000,
