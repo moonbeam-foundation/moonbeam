@@ -113,7 +113,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, pallet_custom_origins, referenda::*};
+use governance::{councils::*, pallet_custom_origins, referenda::*, IdentityAdmin};
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -564,8 +564,8 @@ impl pallet_identity::Config for Runtime {
 	type MaxAdditionalFields = ConstU32<100>;
 	type MaxRegistrars = ConstU32<20>;
 	type Slashed = Treasury;
-	type ForceOrigin = IdentityForceOrigin;
-	type RegistrarOrigin = IdentityRegistrarOrigin;
+	type ForceOrigin = EitherOfDiverse<IdentityForceOrigin, IdentityAdmin>;
+	type RegistrarOrigin = EitherOfDiverse<IdentityRegistrarOrigin, IdentityAdmin>;
 	type WeightInfo = pallet_identity::weights::SubstrateWeight<Runtime>;
 }
 

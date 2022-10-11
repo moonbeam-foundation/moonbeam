@@ -249,7 +249,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				origins::Origin::WhitelistedCaller => Ok(1),
 				// General admin
 				origins::Origin::Treasurer => Ok(10),
-				origins::Origin::GeneralAdmin => Ok(11),
+				origins::Origin::IdentityAdmin => Ok(11),
 				// Referendum admins
 				origins::Origin::ReferendumCanceller => Ok(12),
 				origins::Origin::ReferendumKiller => Ok(13),

@@ -24,7 +24,7 @@ use super::*;
 
 mod origins;
 pub use origins::{
-	pallet_custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender,
+	pallet_custom_origins, IdentityAdmin, ReferendumCanceller, ReferendumKiller, Spender,
 	WhitelistedCaller,
 };
 mod tracks;

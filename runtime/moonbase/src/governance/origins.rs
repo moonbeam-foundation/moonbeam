@@ -34,8 +34,8 @@ pub mod pallet_custom_origins {
 	pub enum Origin {
 		/// Origin for spending (any amount of) funds.
 		Treasurer,
-		/// Origin for managing the registrar.
-		GeneralAdmin,
+		/// Origin for managing the identity registrar.
+		IdentityAdmin,
 		/// Origin able to cancel referenda.
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
@@ -85,7 +85,7 @@ pub mod pallet_custom_origins {
 		() => {}
 	}
 	decl_unit_ensures!(
-		GeneralAdmin,
+		IdentityAdmin,
 		ReferendumCanceller,
 		ReferendumKiller,
 		WhitelistedCaller,
@@ -132,6 +132,7 @@ pub mod pallet_custom_origins {
 			SmallSpender = 10 * KILOUNIT,
 			MediumSpender = 100 * KILOUNIT,
 			BigSpender = 1_000 * KILOUNIT,
+			Treasurer = Balance::max_value(),
 		}
 	}
 }
