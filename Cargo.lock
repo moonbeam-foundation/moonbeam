@@ -5049,6 +5049,7 @@ dependencies = [
  "pallet-balances",
  "pallet-base-fee",
  "pallet-collective",
+ "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
  "pallet-ethereum",
@@ -5081,10 +5082,12 @@ dependencies = [
  "pallet-migrations",
  "pallet-moonbeam-orbiters",
  "pallet-parachain-staking",
+ "pallet-preimage",
  "pallet-proxy",
  "pallet-proxy-genesis-companion",
  "pallet-randomness",
  "pallet-randomness-collective-flip",
+ "pallet-referenda",
  "pallet-scheduler",
  "pallet-society",
  "pallet-sudo",
@@ -5093,6 +5096,7 @@ dependencies = [
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-treasury",
  "pallet-utility",
+ "pallet-whitelist",
  "pallet-xcm",
  "pallet-xcm-transactor",
  "parachain-info",
@@ -6748,6 +6752,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-conviction-voting"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-crowdloan-rewards"
 version = "0.6.0"
 source = "git+https://github.com/purestake/crowdloan-rewards?branch=moonbeam-polkadot-v0.9.29#306eb802dfc52280fb8d2ac7f7b4d9e1f5019175"
@@ -7782,6 +7803,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-referenda"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
+dependencies = [
+ "assert_matches",
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "pallet-scheduler"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
@@ -8006,6 +8045,20 @@ dependencies = [
  "log",
  "parity-scale-codec",
  "scale-info",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-whitelist"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-api",
  "sp-runtime",
  "sp-std",
 ]
@@ -13609,9 +13662,9 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "digest 0.10.3",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 

@@ -14,9 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! New governance configurations for the Moonbase runtime.
-
-use super::*;
+//! Governance configurations
 
 pub mod councils;
 mod democracy;
+pub mod referenda;
+
+use super::*;
+
+mod origins;
+pub use origins::{
+	pallet_custom_origins, GeneralAdmin, ReferendumCanceller, ReferendumKiller, Spender,
+	WhitelistedCaller,
+};
+mod tracks;
+pub use tracks::TracksInfo;

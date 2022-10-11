@@ -113,7 +113,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::councils::*;
+use governance::{councils::*, pallet_custom_origins, referenda::*};
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -476,6 +476,7 @@ impl pallet_evm::Config for Runtime {
 
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
+	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -488,8 +489,20 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = ConstU32<50>;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type PreimageProvider = ();
-	type NoPreimagePostponement = ();
+	// Preimage provider with which we look up call hashes to get the call
+	type PreimageProvider = Preimage;
+	// Number of blocks to postpone execution for when the item is delayed
+	type NoPreimagePostponement = NoPreimagePostponement;
+}
+
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
+	type Event = Event;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type MaxSize = ConstU32<{ 4096 * 1024 }>;
+	type BaseDeposit = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type ByteDeposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 }
 
 parameter_types! {
@@ -526,7 +539,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	type SpendOrigin = TreasurySpender;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -1179,6 +1192,11 @@ construct_runtime! {
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
+		Origins: pallet_custom_origins::{Origin} = 43,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}
 }
 
