@@ -71,7 +71,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			// For Root origin this should generally be just one.
 			max_deciding: 1,
 			// Amount that must be placed on deposit before a decision can be made.
-			decision_deposit: 1_000 * KILOUNIT,
+			decision_deposit: 1_000 * KILOUNIT * SUPPLY_FACTOR,
 			// Amount of time this must be submitted for before a decision can be made.
 			prepare_period: 3 * HOURS,
 			// Amount of time that a decision may take to be approved prior to cancellation.
@@ -94,7 +94,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "whitelisted_caller",
 			max_deciding: 10,
-			decision_deposit: 10_000 * KILOUNIT,
+			decision_deposit: 100 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 3 * HOURS,
 			decision_period: 28 * DAYS,
 			confirm_period: 10 * MINUTES,
@@ -108,7 +108,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "treasurer",
 			max_deciding: 10,
-			decision_deposit: 5 * KILOUNIT,
+			decision_deposit: 5 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
@@ -122,7 +122,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "identity_admin",
 			max_deciding: 10,
-			decision_deposit: 5 * KILOUNIT,
+			decision_deposit: 5 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
@@ -136,7 +136,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "referendum_canceller",
 			max_deciding: 1_000,
-			decision_deposit: 50 * KILOUNIT,
+			decision_deposit: 50 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
@@ -150,7 +150,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "referendum_killer",
 			max_deciding: 1_000,
-			decision_deposit: 50 * KILOUNIT,
+			decision_deposit: 50 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
@@ -164,7 +164,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "small_tipper",
 			max_deciding: 200,
-			decision_deposit: 5 * 100 * UNIT,
+			decision_deposit: 500 * UNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
@@ -178,7 +178,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "big_tipper",
 			max_deciding: 100,
-			decision_deposit: 50 * 100 * UNIT,
+			decision_deposit: 5 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 6 * HOURS,
@@ -192,7 +192,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "small_spender",
 			max_deciding: 50,
-			decision_deposit: 500 * 100 * UNIT,
+			decision_deposit: 50 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 12 * HOURS,
@@ -206,7 +206,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "medium_spender",
 			max_deciding: 20,
-			decision_deposit: 1_500 * 100 * UNIT,
+			decision_deposit: 150 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 24 * HOURS,
@@ -220,7 +220,7 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 		pallet_referenda::TrackInfo {
 			name: "big_spender",
 			max_deciding: 10,
-			decision_deposit: 5 * KILOUNIT,
+			decision_deposit: 500 * KILOUNIT * SUPPLY_FACTOR,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 48 * HOURS,
