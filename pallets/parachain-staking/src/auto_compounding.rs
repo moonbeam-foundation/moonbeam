@@ -45,22 +45,12 @@ pub fn set_delegation_config<AccountId: Eq + Ord>(
 	delegator: AccountId,
 	value: Percent,
 ) {
-	let mut delegation = match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator))
-	{
-		Ok(index) => &mut delegations_config[index],
+	match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+		Ok(index) => delegations_config[index].value = value,
 		Err(index) => {
-			delegations_config.insert(
-				index,
-				DelegationAutoCompoundConfig {
-					delegator,
-					value: Percent::zero(),
-				},
-			);
-			delegations_config.last_mut().expect("cannot fail; qed")
+			delegations_config.insert(index, DelegationAutoCompoundConfig { delegator, value })
 		}
-	};
-
-	delegation.value = value;
+	}
 }
 
 /// Removes the auto-compounding value for a delegation.
@@ -242,10 +232,12 @@ impl<T: Config> Pallet<T> {
 
 	/// Returns the value of auto-compound, if it exists for a given delegation, zero otherwise.
 	pub fn delegation_auto_compound(collator: &T::AccountId, delegator: &T::AccountId) -> Percent {
-		<AutoCompoundingDelegations<T>>::get(collator)
-			.iter()
-			.find(|d| &d.delegator == delegator)
-			.map_or_else(|| Percent::zero(), |d| d.value.clone())
+		match <AutoCompoundingDelegations<T>>::get(collator)
+			.binary_search_by(|d| d.delegator.cmp(&delegator))
+		{
+			Ok(index) => delegations_config[index].value.clone(),
+			Err(_) => Percent::zero(),
+		}
 	}
 }
 
