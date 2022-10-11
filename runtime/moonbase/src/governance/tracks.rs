@@ -23,6 +23,10 @@ const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
 }
 use pallet_referenda::Curve;
+// make_linear(numerator, denominator, min, max) is a linear decreasing curve
+// length = numerator/denominator s.t. denominator is decision_period in days
+// curve starts at max and decreases linearly to min over length, then stays at min
+// make_reciprocal() TODO
 const APP_ROOT: Curve = Curve::make_reciprocal(4, 28, percent(80), percent(50), percent(100));
 const SUP_ROOT: Curve = Curve::make_linear(28, 28, percent(0), percent(50));
 const APP_TREASURER: Curve = Curve::make_reciprocal(4, 28, percent(80), percent(50), percent(100));
@@ -262,13 +266,18 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 #[test]
 #[should_panic] // comment out to see curve info for all tracks
 fn print_all_approval_and_support_curves() {
-	// decision_period 28 days + confirm_period 2 days
+	// decision_period 28 days
 	for (_, track_info) in TRACKS_DATA {
 		println!("TRACK NAME: {}", track_info.name);
 		println!("Min approval info:");
-		track_info.min_approval.info(30, track_info.name);
+		let decision_period_days = track_info.decision_period / DAYS;
+		track_info
+			.min_approval
+			.info(decision_period_days, track_info.name);
 		println!("Min support info:");
-		track_info.min_support.info(30, track_info.name);
+		track_info
+			.min_support
+			.info(decision_period_days, track_info.name);
 	}
 	assert!(false);
 }
