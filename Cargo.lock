@@ -5037,6 +5037,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5094,6 +5095,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
  "parachain-info",
  "parity-scale-codec",
@@ -5478,6 +5480,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5533,6 +5536,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
  "parachain-info",
  "parity-scale-codec",
@@ -5574,6 +5578,7 @@ dependencies = [
  "frame-system",
  "impl-trait-for-tuples",
  "log",
+ "moonbeam-xcm-benchmarks",
  "pallet-asset-manager",
  "pallet-author-inherent",
  "pallet-author-mapping",
@@ -5732,6 +5737,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "moonbeam-xcm-benchmarks"
+version = "0.2.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "pallet-balances",
+ "pallet-xcm-benchmarks",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-builder",
+ "xcm-executor",
+ "xcm-primitives",
+]
+
+[[package]]
 name = "moonkey"
 version = "0.1.1"
 dependencies = [
@@ -5773,6 +5801,7 @@ dependencies = [
  "moonbeam-rpc-primitives-debug",
  "moonbeam-rpc-primitives-txpool",
  "moonbeam-runtime-common",
+ "moonbeam-xcm-benchmarks",
  "nimbus-primitives",
  "orml-traits",
  "orml-xcm-support",
@@ -5828,6 +5857,7 @@ dependencies = [
  "pallet-treasury",
  "pallet-utility",
  "pallet-xcm",
+ "pallet-xcm-benchmarks",
  "pallet-xcm-transactor",
  "parachain-info",
  "parity-scale-codec",
@@ -8022,6 +8052,23 @@ dependencies = [
  "scale-info",
  "serde",
  "sp-core",
+ "sp-runtime",
+ "sp-std",
+ "xcm",
+ "xcm-executor",
+]
+
+[[package]]
+name = "pallet-xcm-benchmarks"
+version = "0.9.29"
+source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.29#5c8fafac735b10236a76ef04803d60b3f81225ad"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "parity-scale-codec",
+ "scale-info",
  "sp-runtime",
  "sp-std",
  "xcm",
@@ -14509,6 +14556,7 @@ name = "xcm-executor"
 version = "0.9.29"
 source = "git+https://github.com/purestake/polkadot?branch=moonbeam-polkadot-v0.9.29#3e0eaf29a81d926f787658bd0e6890010eedfdb7"
 dependencies = [
+ "frame-benchmarking",
  "frame-support",
  "impl-trait-for-tuples",
  "log",
