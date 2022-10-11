@@ -844,9 +844,8 @@ impl InstanceFilter<Call> for ProxyType {
 					c,
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
-						| Call::CouncilCollective(..)
-						| Call::Democracy(..) | Call::Identity(..)
-						| Call::TechCommitteeCollective(..)
+						| Call::Democracy(..) | Call::CouncilCollective(..)
+						| Call::Identity(..) | Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -1459,18 +1458,18 @@ mod tests {
 		assert_eq!(FixedGasPrice::min_gas_price().0, (100 * GIGAWEI).into());
 
 		// democracy minimums
-		// assert_eq!(
-		// 	get!(pallet_democracy, MinimumDeposit, u128),
-		// 	Balance::from(400 * GLMR)
-		// );
-		// assert_eq!(
-		// 	get!(pallet_democracy, PreimageByteDeposit, u128),
-		// 	Balance::from(10 * MILLIGLMR)
-		// );
-		// assert_eq!(
-		// 	get!(pallet_treasury, ProposalBondMinimum, u128),
-		// 	Balance::from(100 * GLMR)
-		// );
+		assert_eq!(
+			get!(pallet_democracy, MinimumDeposit, u128),
+			Balance::from(400 * GLMR)
+		);
+		assert_eq!(
+			get!(pallet_democracy, PreimageByteDeposit, u128),
+			Balance::from(10 * MILLIGLMR)
+		);
+		assert_eq!(
+			get!(pallet_treasury, ProposalBondMinimum, u128),
+			Balance::from(100 * GLMR)
+		);
 
 		// pallet_identity deposits
 		assert_eq!(
