@@ -49,6 +49,9 @@ type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 
+/// Solidity selector of the Proposed log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(uint32,uint256)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -168,6 +171,10 @@ where
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	#[precompile::public("propose(bytes32,uint256)")]
 	fn propose(handle: &mut impl PrecompileHandle, proposal_hash: H256, value: U256) -> EvmResult {
+		handle.record_log_costs_manual(2, 32)?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
+
 		let proposal_hash = proposal_hash.into();
 		let value = Self::u256_to_amount(value).in_field("value")?;
 
@@ -183,6 +190,14 @@ where
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_PROPOSED,
+			H256::from_low_u64_be(prop_count as u64), // proposal index,
+			EvmDataWriter::new().write::<U256>(value.into()).build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}

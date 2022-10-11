@@ -176,4 +176,10 @@ interface Democracy {
     ///
     /// @param encodedProposal The scale-encoded proposal whose hash has been submitted on-chain.
     function noteImminentPreimage(bytes memory encodedProposal) external;
+
+    /// @dev A motion has been proposed by a public account.
+    /// @custom:selector d89e173ca5c9fd0ec38f2b01995c4f1748210f686fa189a6b8d189c210444924
+    /// @param proposalIndex uint32 Index of the proposal.
+    /// @param deposit uint256 Amount of tokens deposited.
+    event Proposed(uint32 indexed proposalIndex, uint256 deposit);
 }

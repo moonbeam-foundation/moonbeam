@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{
-	events, roll_to,
-	Account::{self, Alice, Bob, Precompile},
-	Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
+use crate::{
+	mock::{
+		events, roll_to,
+		Account::{self, Alice, Bob, Precompile},
+		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
+		Runtime,
+	},
+	SELECTOR_LOG_PROPOSED,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -26,7 +30,7 @@ use pallet_democracy::{
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 use std::{convert::TryInto, str::from_utf8};
 
@@ -441,6 +445,15 @@ fn propose_works() {
 					DemocracyEvent::Proposed {
 						proposal_index: 0,
 						deposit: 100
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_PROPOSED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new().write::<U256>(100.into()).build(),
+						)
 					}
 					.into(),
 					EvmEvent::Executed {
