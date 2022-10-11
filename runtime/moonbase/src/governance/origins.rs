@@ -18,7 +18,7 @@ pub use pallet_custom_origins::*;
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
 	use crate::{
-		currency::{KILOUNIT, UNIT},
+		currency::{KILOUNIT, SUPPLY_FACTOR, UNIT},
 		Balance,
 	};
 	use frame_support::pallet_prelude::*;
@@ -127,11 +127,11 @@ pub mod pallet_custom_origins {
 	// Origins able to spend up to $AMOUNT from the treasury at once
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = Balance> {
-			SmallTipper = 250 * UNIT,
-			BigTipper = 1 * KILOUNIT,
-			SmallSpender = 10 * KILOUNIT,
-			MediumSpender = 100 * KILOUNIT,
-			BigSpender = 1_000 * KILOUNIT,
+			SmallTipper = 250 * UNIT * SUPPLY_FACTOR,
+			BigTipper = 1 * KILOUNIT * SUPPLY_FACTOR,
+			SmallSpender = 10 * KILOUNIT * SUPPLY_FACTOR,
+			MediumSpender = 100 * KILOUNIT * SUPPLY_FACTOR,
+			BigSpender = 1_000 * KILOUNIT * SUPPLY_FACTOR,
 			Treasurer = Balance::max_value(),
 		}
 	}
