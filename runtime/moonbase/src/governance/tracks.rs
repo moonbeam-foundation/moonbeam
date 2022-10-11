@@ -260,7 +260,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 }
 
 #[test]
-//#[should_panic] // comment out to see curve info for all tracks
+#[should_panic] // comment out to see curve info for all tracks
 fn print_all_approval_and_support_curves() {
 	// decision_period 28 days + confirm_period 2 days
 	for (_, track_info) in TRACKS_DATA {
