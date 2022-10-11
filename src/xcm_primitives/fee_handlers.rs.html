@@ -418,6 +418,8 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -605,6 +607,8 @@
 	</span><span class="kw">fn </span>payment_is_supported(asset_type: AssetType) -&gt; bool;
 	<span class="comment">// Get units per second from asset type
 	</span><span class="kw">fn </span>get_units_per_second(asset_type: AssetType) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt;;
+	<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+	</span><span class="kw">fn </span>set_units_per_second(_asset_type: AssetType, _fee_per_second: u128) {}
 }
 
 <span class="attribute">#[cfg(test)]

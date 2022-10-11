@@ -574,6 +574,10 @@
 <span id="574">574</span>
 <span id="575">575</span>
 <span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -616,10 +620,10 @@
 <span class="kw">use </span>xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
-	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,
+	CurrencyAdapter <span class="kw">as </span>XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, LocationInverter,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds,
 };
 
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
@@ -794,7 +798,11 @@
 }
 
 <span class="doccomment">/// Xcm Weigher shared between multiple Xcm-related configs.
-</span><span class="kw">pub type </span>XcmWeigher = FixedWeightBounds&lt;UnitWeightCost, Call, MaxInstructions&gt;;
+</span><span class="kw">pub type </span>XcmWeigher = WeightInfoBounds&lt;
+	moonbeam_xcm_benchmarks::weights::XcmWeight&lt;Runtime, Call&gt;,
+	Call,
+	MaxInstructions,
+&gt;;
 
 <span class="comment">// Allow paid executions
 </span><span class="kw">pub type </span>XcmBarrier = (
@@ -1115,7 +1123,7 @@
 		CurrencyIdtoMultiLocation&lt;AsAssetType&lt;AssetId, AssetType, AssetManager&gt;&gt;;
 	<span class="kw">type </span>XcmSender = XcmRouter;
 	<span class="kw">type </span>SelfLocation = SelfLocation;
-	<span class="kw">type </span>Weigher = xcm_builder::FixedWeightBounds&lt;UnitWeightCost, Call, MaxInstructions&gt;;
+	<span class="kw">type </span>Weigher = XcmWeigher;
 	<span class="kw">type </span>LocationInverter = LocationInverter&lt;Ancestry&gt;;
 	<span class="kw">type </span>BaseXcmWeight = BaseXcmWeight;
 	<span class="kw">type </span>AssetTransactor = AssetTransactors;

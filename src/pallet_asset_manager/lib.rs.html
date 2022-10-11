@@ -689,6 +689,17 @@
 <span id="689">689</span>
 <span id="690">690</span>
 <span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -856,6 +867,17 @@
 		}
 		<span class="kw">fn </span>get_units_per_second(asset_type: T::ForeignAssetType) -&gt; <span class="prelude-ty">Option</span>&lt;u128&gt; {
 			AssetTypeUnitsPerSecond::&lt;T&gt;::get(asset_type)
+		}
+		<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+		</span><span class="kw">fn </span>set_units_per_second(asset_type: T::ForeignAssetType, fee_per_second: u128) {
+			<span class="comment">// Grab supported assets
+			</span><span class="kw">let </span><span class="kw-2">mut </span>supported_assets = SupportedFeePaymentAssets::&lt;T&gt;::get();
+			<span class="comment">// Only if the asset is not supported we need to push it
+			</span><span class="kw">if let </span><span class="prelude-val">Err</span>(index) = supported_assets.binary_search(<span class="kw-2">&amp;</span>asset_type) {
+				supported_assets.insert(index, asset_type.clone());
+				SupportedFeePaymentAssets::&lt;T&gt;::put(supported_assets);
+			}
+			AssetTypeUnitsPerSecond::&lt;T&gt;::insert(<span class="kw-2">&amp;</span>asset_type, <span class="kw-2">&amp;</span>fee_per_second);
 		}
 	}
 

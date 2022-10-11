@@ -654,6 +654,109 @@
 <span id="654">654</span>
 <span id="655">655</span>
 <span id="656">656</span>
+<span id="657">657</span>
+<span id="658">658</span>
+<span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
+<span id="670">670</span>
+<span id="671">671</span>
+<span id="672">672</span>
+<span id="673">673</span>
+<span id="674">674</span>
+<span id="675">675</span>
+<span id="676">676</span>
+<span id="677">677</span>
+<span id="678">678</span>
+<span id="679">679</span>
+<span id="680">680</span>
+<span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
+<span id="694">694</span>
+<span id="695">695</span>
+<span id="696">696</span>
+<span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
+<span id="707">707</span>
+<span id="708">708</span>
+<span id="709">709</span>
+<span id="710">710</span>
+<span id="711">711</span>
+<span id="712">712</span>
+<span id="713">713</span>
+<span id="714">714</span>
+<span id="715">715</span>
+<span id="716">716</span>
+<span id="717">717</span>
+<span id="718">718</span>
+<span id="719">719</span>
+<span id="720">720</span>
+<span id="721">721</span>
+<span id="722">722</span>
+<span id="723">723</span>
+<span id="724">724</span>
+<span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1112,6 +1215,7 @@
 					Vec&lt;frame_support::traits::StorageInfo&gt;,
 				) {
 					<span class="kw">use </span>frame_benchmarking::{list_benchmark, Benchmarking, BenchmarkList};
+					<span class="kw">use </span>moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks;
 					<span class="kw">use </span>frame_support::traits::StorageInfoTrait;
 					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
 					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
@@ -1123,6 +1227,7 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
+					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
 
@@ -1136,6 +1241,12 @@
 					<span class="macro">list_benchmark!</span>(list, extra, pallet_asset_manager, PalletAssetManagerBench::&lt;Runtime&gt;);
 					<span class="macro">list_benchmark!</span>(list, extra, xcm_transactor, XcmTransactorBench::&lt;Runtime&gt;);
 					<span class="macro">list_benchmark!</span>(list, extra, pallet_randomness, RandomnessBench::&lt;Runtime&gt;);
+					<span class="macro">list_benchmark!</span>(
+						list,
+						extra,
+						moonbeam_xcm_benchmarks_generic,
+						MoonbeamXcmGenericBench::&lt;Runtime&gt;
+					);
 
 					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1149,8 +1260,95 @@
 						add_benchmark, BenchmarkBatch, Benchmarking, TrackedStorageKey,
 					};
 
+					<span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
+					<span class="kw">use </span>frame_benchmarking::BenchmarkError;
+
 					<span class="kw">use </span>frame_system_benchmarking::Pallet <span class="kw">as </span>SystemBench;
 					<span class="kw">impl </span>frame_system_benchmarking::Config <span class="kw">for </span>Runtime {}
+
+					<span class="kw">impl </span>moonbeam_xcm_benchmarks::Config <span class="kw">for </span>Runtime {}
+					<span class="kw">impl </span>moonbeam_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {}
+
+					<span class="kw">use </span>pallet_asset_manager::Config <span class="kw">as </span>PalletAssetManagerConfig;
+
+					<span class="kw">impl </span>pallet_xcm_benchmarks::Config <span class="kw">for </span>Runtime {
+						<span class="kw">type </span>XcmConfig = xcm_config::XcmExecutorConfig;
+						<span class="kw">type </span>AccountIdConverter = xcm_config::LocationToAccountId;
+						<span class="kw">fn </span>valid_destination() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						}
+						<span class="kw">fn </span>worst_case_holding() -&gt; MultiAssets {
+						<span class="comment">// 100 fungibles
+							</span><span class="kw">const </span>HOLDING_FUNGIBLES: u32 = <span class="number">100</span>;
+							<span class="kw">let </span>fungibles_amount: u128 = <span class="number">100</span>;
+							<span class="kw">let </span>assets = (<span class="number">0</span>..HOLDING_FUNGIBLES).map(|i| {
+								<span class="kw">let </span>location: MultiLocation = GeneralIndex(i <span class="kw">as </span>u128).into();
+								MultiAsset {
+									id: Concrete(location),
+									fun: Fungible(fungibles_amount * i <span class="kw">as </span>u128),
+								}
+								.into()
+							})
+							.chain(
+								core::iter::once(
+									MultiAsset {
+										id: Concrete(MultiLocation::parent()),
+										fun: Fungible(u128::MAX)
+									}
+								)
+							)
+							.collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+
+
+							<span class="kw">for </span>(i, asset) <span class="kw">in </span>assets.iter().enumerate() {
+								<span class="kw">if let </span>MultiAsset {
+									id: Concrete(location),
+									fun: Fungible(<span class="kw">_</span>)
+								} = asset {
+									&lt;AssetManager <span class="kw">as </span>xcm_primitives::AssetTypeGetter&lt;
+										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::AssetId,
+										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
+									&gt;::set_asset_type_asset_id(
+										location.clone().into(),
+										i <span class="kw">as </span>u128
+									);
+									<span class="comment">// set 1-1
+									</span>&lt;AssetManager <span class="kw">as </span>xcm_primitives::UnitsToWeightRatio&lt;
+										&lt;Runtime <span class="kw">as </span>PalletAssetManagerConfig&gt;::ForeignAssetType&gt;
+									&gt;::set_units_per_second(
+										location.clone().into(),
+										<span class="number">1_000_000_000_000u128
+									</span>);
+								}
+							}
+							assets.into()
+						}
+					}
+
+					<span class="kw">impl </span>pallet_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {
+						<span class="kw">type </span>Call = Call;
+
+						<span class="kw">fn </span>worst_case_response() -&gt; (u64, Response) {
+							(<span class="number">0u64</span>, Response::Version(Default::default()))
+						}
+
+						<span class="kw">fn </span>transact_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						}
+
+						<span class="kw">fn </span>subscribe_origin() -&gt; <span class="prelude-ty">Result</span>&lt;MultiLocation, BenchmarkError&gt; {
+							<span class="prelude-val">Ok</span>(MultiLocation::parent())
+						}
+
+						<span class="kw">fn </span>claimable_asset() -&gt; <span class="prelude-ty">Result</span>&lt;(MultiLocation, MultiLocation, MultiAssets), BenchmarkError&gt; {
+							<span class="kw">let </span>origin = MultiLocation::parent();
+							<span class="kw">let </span>assets: MultiAssets = (Concrete(MultiLocation::parent()), <span class="number">1_000u128</span>).into();
+							<span class="kw">let </span>ticket = MultiLocation { parents: <span class="number">0</span>, interior: Here };
+							<span class="prelude-val">Ok</span>((origin, ticket, assets))
+						}
+					}
+
+					<span class="kw">use </span>moonbeam_xcm_benchmarks::generic::benchmarking <span class="kw">as </span>MoonbeamXcmBenchmarks;
 
 					<span class="kw">use </span>pallet_crowdloan_rewards::Pallet <span class="kw">as </span>PalletCrowdloanRewardsBench;
 					<span class="kw">use </span>pallet_parachain_staking::Pallet <span class="kw">as </span>ParachainStakingBench;
@@ -1161,6 +1359,7 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
+					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
 						<span class="comment">// Block Number
@@ -1270,6 +1469,13 @@
 						batches,
 						pallet_randomness,
 						RandomnessBench::&lt;Runtime&gt;
+					);
+
+					<span class="macro">add_benchmark!</span>(
+						params,
+						batches,
+						moonbeam_xcm_benchmarks_generic,
+						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
 
 					<span class="kw">if </span>batches.is_empty() {

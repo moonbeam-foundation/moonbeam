@@ -25,6 +25,7 @@ var sourcesIndex = JSON.parse('{\
 "moonbeam_runtime_common":["",[],["apis.rs","impl_moonbeam_xcm_call.rs","impl_moonbeam_xcm_call_tracing.rs","impl_on_charge_evm_transaction.rs","impl_self_contained_call.rs","lib.rs","migrations.rs"]],\
 "moonbeam_service":["",[["chain_spec",[],["fake_spec.rs","mod.rs","moonbase.rs","moonbeam.rs","moonriver.rs","test_spec.rs"]],["rpc",[],["tracing.rs"]]],["client.rs","lib.rs","rpc.rs"]],\
 "moonbeam_vrf":["",[],["lib.rs"]],\
+"moonbeam_xcm_benchmarks":["",[["weights",[],["mod.rs","moonbeam_xcm_benchmarks_fungible.rs","moonbeam_xcm_benchmarks_generic.rs"]]],["lib.rs"]],\
 "moonkey":["",[],["main.rs"]],\
 "moonriver_runtime":["",[],["asset_config.rs","lib.rs","precompiles.rs","xcm_config.rs"]],\
 "pallet_asset_manager":["",[],["lib.rs","migrations.rs","weights.rs"]],\
