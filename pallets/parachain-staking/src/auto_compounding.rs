@@ -29,6 +29,7 @@ use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
 use sp_runtime::Percent;
 use sp_std::vec::Vec;
+use sp_std::prelude::*;
 
 /// Represents the auto-compounding amount for a delegation.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
@@ -37,43 +38,43 @@ pub struct DelegationAutoCompoundConfig<AccountId> {
 	pub value: Percent,
 }
 
-/// Sets the auto-compounding value for a delegation.
-pub fn set_delegation_config<AccountId: Eq>(
+/// Sets the auto-compounding value for a delegation. The `delegations_config` must be a sorted
+/// vector for binary_search to work.
+pub fn set_delegation_config<AccountId: Eq + Ord>(
 	delegations_config: &mut Vec<DelegationAutoCompoundConfig<AccountId>>,
 	delegator: AccountId,
 	value: Percent,
 ) {
-	let maybe_delegation = delegations_config
-		.iter_mut()
-		.find(|entry| entry.delegator == delegator);
-
-	let mut delegation = if let Some(delegation) = maybe_delegation {
-		delegation
-	} else {
-		delegations_config.push(DelegationAutoCompoundConfig {
-			delegator,
-			value: Percent::zero(),
-		});
-		delegations_config.last_mut().expect("cannot fail; qed")
-	};
+	let mut delegation = match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+        Ok(index) => {
+			&mut delegations_config[index]
+		},
+        Err(index) => {
+            delegations_config.insert(index, DelegationAutoCompoundConfig {
+				delegator,
+				value: Percent::zero(),
+			});
+            delegations_config.last_mut().expect("cannot fail; qed")
+        }
+    };
 
 	delegation.value = value;
 }
 
-/// Removes the auto-compounding value for a delegation.
-pub fn remove_delegation_config<AccountId: Eq>(
+/// Removes the auto-compounding value for a delegation. 
+/// Returns `true` if the entry was removed, `false` otherwise. The `delegations_config` must be a
+/// sorted vector for binary_search to work.
+pub fn remove_delegation_config<AccountId: Eq + Ord>(
 	delegations_config: &mut Vec<DelegationAutoCompoundConfig<AccountId>>,
 	delegator: &AccountId,
 ) -> bool {
-	if let Some(index) = delegations_config
-		.iter()
-		.position(|entry| &entry.delegator == delegator)
-	{
-		delegations_config.remove(index);
-		true
-	} else {
-		false
-	}
+	match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+        Ok(index) => {
+			delegations_config.remove(index);
+			true
+		},
+        Err(_) => false,
+    }
 }
 
 impl<T: Config> Pallet<T> {
