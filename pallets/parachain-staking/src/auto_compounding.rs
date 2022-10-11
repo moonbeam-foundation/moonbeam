@@ -236,6 +236,14 @@ impl<T: Config> Pallet<T> {
 			<AutoCompoundingDelegations<T>>::insert(candidate, auto_compounding_state);
 		}
 	}
+
+	/// Returns the value of auto-compound, if it exists for a given delegation, zero otherwise.
+	pub fn delegation_auto_compound(collator: &T::AccountId, delegator: &T::AccountId) -> Percent {
+		<AutoCompoundingDelegations<T>>::get(collator)
+			.iter()
+			.find(|d| &d.delegator == delegator)
+			.map_or_else(|| Percent::zero(), |d| d.value.clone())
+	}
 }
 
 #[cfg(test)]

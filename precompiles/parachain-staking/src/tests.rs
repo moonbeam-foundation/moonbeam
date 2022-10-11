@@ -19,11 +19,13 @@ use crate::mock::{
 	Account::{self, Alice, Bob, Bogus, Charlie, Precompile},
 	Call, ExtBuilder, Origin, PCall, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
 };
+use core::str::from_utf8;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
 use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
+use sp_runtime::Percent;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
@@ -559,6 +561,52 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 }
 
 #[test]
+fn delegation_auto_compound_returns_value_if_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_auto_compounding_delegations(vec![(Charlie, Alice, 50, Percent::from_percent(50))])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(50u8);
+		})
+}
+
+#[test]
+fn delegation_auto_compound_returns_zero_if_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_delegations(vec![(Charlie, Alice, 50)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(0u8);
+		})
+}
+
+#[test]
 fn join_candidates_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1_000)])
@@ -843,7 +891,7 @@ fn delegate_works() {
 				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
-				auto_compound: sp_runtime::Percent::zero(),
+				auto_compound: Percent::zero(),
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -1154,6 +1202,100 @@ fn cancel_delegator_bonded_less_works() {
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn delegate_with_auto_compound_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let input_data = PCall::delegate_with_auto_compound {
+				candidate: Address(Alice.into()),
+				amount: 1_000.into(),
+				auto_compound: 50,
+				candidate_delegation_count: 0.into(),
+				candidate_auto_compounding_delegation_count: 0.into(),
+				delegator_delegation_count: 0.into(),
+			}
+			.into();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+			assert!(ParachainStaking::is_delegator(&Bob));
+
+			let expected: crate::mock::Event = StakingEvent::Delegation {
+				delegator: Bob,
+				locked_amount: 1_000,
+				candidate: Alice,
+				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+					new_total: 2_000,
+				},
+				auto_compound: Percent::from_percent(50),
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn set_auto_compound_works_if_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_delegations(vec![(Bob, Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			let input_data = PCall::set_auto_compound {
+				candidate: Address(Alice.into()),
+				value: 50,
+				candidate_auto_compounding_delegation_count: 0.into(),
+				delegator_delegation_count: 1.into(),
+			}
+			.into();
+
+			// Make sure the call goes through successfully
+			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+			assert_eq!(
+				ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+				Percent::from_percent(50)
+			);
+
+			let expected: crate::mock::Event = StakingEvent::DelegationAutoCompoundingSet {
+				candidate: Alice,
+				delegator: Bob,
+				value: Percent::from_percent(50),
+			}
+			.into();
+			// Assert that the events vector contains the one expected
+			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn set_auto_compound_fails_if_not_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::set_auto_compound {
+						candidate: Address(Alice.into()),
+						value: 50,
+						candidate_auto_compounding_delegation_count: 0.into(),
+						delegator_delegation_count: 0.into(),
+					},
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("DelegatorDNE"));
 		});
 }
 
