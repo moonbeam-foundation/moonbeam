@@ -20,12 +20,12 @@ use crate::mock::{
 	Call, ExtBuilder, Origin, PCall, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
 };
 use core::str::from_utf8;
+use frame_support::sp_runtime::Percent;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
 use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
-use sp_runtime::Percent;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
