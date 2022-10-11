@@ -34,9 +34,9 @@ const APP_ROOT: Curve = Curve::make_reciprocal(4, 28, percent(80), percent(50), 
 const SUP_ROOT: Curve = Curve::make_linear(28, 28, percent(0), percent(50));
 const APP_TREASURER: Curve = Curve::make_reciprocal(4, 28, percent(80), percent(50), percent(100));
 const SUP_TREASURER: Curve = Curve::make_linear(28, 28, percent(0), percent(50));
-const APP_GENERAL_ADMIN: Curve =
+const APP_IDENTITY_ADMIN: Curve =
 	Curve::make_reciprocal(4, 28, percent(80), percent(50), percent(100));
-const SUP_GENERAL_ADMIN: Curve =
+const SUP_IDENTITY_ADMIN: Curve =
 	Curve::make_reciprocal(7, 28, percent(10), percent(0), percent(50));
 const APP_REFERENDUM_CANCELLER: Curve = Curve::make_linear(17, 28, percent(50), percent(100));
 const SUP_REFERENDUM_CANCELLER: Curve =
@@ -120,15 +120,15 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 	(
 		11,
 		pallet_referenda::TrackInfo {
-			name: "general_admin",
+			name: "identity_admin",
 			max_deciding: 10,
 			decision_deposit: 5 * KILOUNIT,
 			prepare_period: 4,
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
 			min_enactment_period: 2 * DAYS,
-			min_approval: APP_GENERAL_ADMIN,
-			min_support: SUP_GENERAL_ADMIN,
+			min_approval: APP_IDENTITY_ADMIN,
+			min_support: SUP_IDENTITY_ADMIN,
 		},
 	),
 	(
