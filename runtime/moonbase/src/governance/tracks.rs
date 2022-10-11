@@ -17,7 +17,7 @@
 //! Track configurations for governance.
 
 use super::*;
-use crate::currency::{KILOUNIT, UNIT};
+use crate::currency::{KILOUNIT, SUPPLY_FACTOR, UNIT};
 
 const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
