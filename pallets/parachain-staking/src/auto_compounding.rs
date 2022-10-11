@@ -232,9 +232,8 @@ impl<T: Config> Pallet<T> {
 
 	/// Returns the value of auto-compound, if it exists for a given delegation, zero otherwise.
 	pub fn delegation_auto_compound(collator: &T::AccountId, delegator: &T::AccountId) -> Percent {
-		match <AutoCompoundingDelegations<T>>::get(collator)
-			.binary_search_by(|d| d.delegator.cmp(&delegator))
-		{
+		let delegations_config = <AutoCompoundingDelegations<T>>::get(collator);
+		match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
 			Ok(index) => delegations_config[index].value.clone(),
 			Err(_) => Percent::zero(),
 		}
