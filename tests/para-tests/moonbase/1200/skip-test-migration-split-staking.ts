@@ -7,9 +7,9 @@ import { sendAllStreamAndWaitLast } from "../../../util/transactions";
 
 // This test will run on local until the new runtime is available
 
-const runtimeVersion = "runtime-1200"; // TODO: replace by `runtime-1200`
+const runtimeTag = "runtime-1200"; // TODO: replace by `runtime-1200`
 describeParachain(
-  `Runtime ${runtimeVersion} migration`,
+  `Runtime ${runtimeTag} migration`,
   {
     parachain: {
       chain: "moonbase-local",
@@ -96,7 +96,7 @@ describeParachain(
       expect(candidateStatePreMigration.bottomDelegations).to.be.length(60);
       process.stdout.write(`✅: ${candidateStatePreMigration.delegators.length} delegators\n`);
 
-      await context.upgradeRuntime(alith, "moonbase", runtimeVersion);
+      await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag });
 
       process.stdout.write("Checking candidateState post-migration is empty...");
       expect(

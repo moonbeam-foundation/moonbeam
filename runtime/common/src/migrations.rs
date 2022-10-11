@@ -288,7 +288,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 2 * db_weights.read;
+		let mut weight: Weight = db_weights.reads(2);
 		// BaseFeePerGas storage value
 		{
 			let item: &[u8] = b"BaseFeePerGas";
@@ -587,7 +587,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeeElasticity<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 1 * db_weights.read;
+		let mut weight: Weight = db_weights.reads(1);
 		// Elasticity storage value
 		{
 			let item: &[u8] = b"Elasticity";
