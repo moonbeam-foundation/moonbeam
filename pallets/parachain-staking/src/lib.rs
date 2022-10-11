@@ -1523,33 +1523,34 @@ pub mod pallet {
 				let mut amt_due = total_paid;
 
 				// Scan for a copy of the state which would be identical to the state at the time of
-				// the payout round. This could occur at any future snapshot, in which case we just
-				// care about the first one we find. It could also not exist at all, in which case
-				// the current "live" TopCandidates info can be used.
+				// the payout round. This could occur at the future snapshot or any future snapshot.
+				// For future snapshots, we just care about the first one we find. It could also not
+				// exist at all, in which case the current "live" TopCandidates info can be used.
 				//
-				// Note that we always pull the current_snapshot and remove (take()) it.
+				// Note that we always pull the current_snapshot and remove (take()) it, even if it
+				// doesn't have a useful delegations copy.
 				//
 				// This scan can be costly if there are lots of rounds. A potential optimization
 				// would be to store the oldest round at which the collator changed, although this
 				// alone wouldn't outright prevent scans. (TODO: probably just remove this...)
 				let current_snapshot = <AtStake<T>>::take(paid_for_round, &collator);
 
-				let delegations = if current_snapshot.has_delegations_set {
-					// in this case, we have our delegations in the current snapshot
-					current_snapshot.delegations
-				} else {
+				let delegations = current_snapshot.delegations.unwrap_or_else(|| {
 					// now we scan forward for any copies we can use
 					let mut maybe_delegations = None;
+					// TODO: should this be -1 here? I don't think so after review...
 					for round in paid_for_round..<Round<T>>::get().current - 1 {
 						let snapshot = <AtStake<T>>::get(round, &collator);
-						if snapshot.has_delegations_set {
-							maybe_delegations = Some(snapshot.delegations);
+						if snapshot.delegations.is_some() {
+							maybe_delegations = snapshot.delegations;
 							break;
 						}
 					}
 
 					if let None = maybe_delegations {
-						// otherwise we use the unchanged TopDelegations info
+						// if we found no snapshots with a copy of delegations we can use, it is
+						// because it didn't change the entire time. we can just use the currently
+						// stored TopDelegations.
 						maybe_delegations = Some(
 							<TopDelegations<T>>::get(&collator)
 								.expect("TODO: make sure this can't happen or handle") // TODO
@@ -1558,7 +1559,7 @@ pub mod pallet {
 					};
 
 					maybe_delegations.expect("All code paths produce a delegations vec, qed")
-				};
+				});
 
 				// Take the snapshot of block author and delegations
 				let num_delegators = delegations.len();
@@ -1639,8 +1640,12 @@ pub mod pallet {
 				// set this round AtStake to last round AtStake
 				for (account, snapshot) in <AtStake<T>>::iter_prefix(last_round) {
 					collator_count = collator_count.saturating_add(1u32);
+					/*
+					 * TODO: can't compute now, it should be copied to the snapshot or available
+					 * somewhere else
 					delegation_count =
 						delegation_count.saturating_add(snapshot.delegations.len() as u32);
+					*/
 					total = total.saturating_add(snapshot.total);
 					total_per_candidate.insert(account.clone(), snapshot.total);
 					<AtStake<T>>::insert(now, account, snapshot);
@@ -1674,16 +1679,10 @@ pub mod pallet {
 				} = Self::get_rewardable_delegators(&account); // TODO: avoid call here
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
-				// TODO: CollatorSnapshot would need to not have the full list of delegations initially,
-				//       it would need to be empty.
-				//       Then, whenever there is a change to the top delagators, the appropriate snapshots
-				//       would need to be updated. (A first pass could naively update snapshots for
-				//       all outstanding rounds, but a more-optimized version could update only the most recent.)
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
-					delegations: Default::default(),
+					delegations: None,
 					total: total_counted,
-					has_delegations_set: false,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {

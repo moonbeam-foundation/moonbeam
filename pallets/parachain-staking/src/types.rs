@@ -107,19 +107,19 @@ pub struct CollatorSnapshot<AccountId, Balance> {
 	/// The rewardable delegations. This list is a subset of total delegators, where certain
 	/// delegators are adjusted based on their scheduled
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
-	pub delegations: Vec<Bond<AccountId, Balance>>,
-
-	/// Has delegations set. True if this of CollatorSnapshot has had its delegations set, meaning
-	/// the collator experienced a change in delegations which required the delegations to be set in
-	/// order to preserve the information for later payouts.
-	/// TODO: convert to an option
-	pub has_delegations_set: bool,
+	///
+	/// This is optional to support deferedd delegations state copies. If None, it means that the
+	/// delegations for this collator + round have not been copied yet, which is because they have
+	/// not changed since the round started. If populated, it means that the delegations have since
+	/// changed and were copied before they were modified.
+	pub delegations: Option<Vec<Bond<AccountId, Balance>>>,
 
 	/// The total counted value locked for the collator, including the self bond + total staked by
 	/// top delegators.
 	pub total: Balance,
 }
 
+/*
 // TODO: how to handle lazy population here?
 impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
 	fn eq(&self, other: &Self) -> bool {
@@ -127,6 +127,9 @@ impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
 		if !must_be_true {
 			return false;
 		}
+		// TODO: review. or remove..? CollatorSnapshot comparing is very vague when it comes to lazy
+		// population of delegations.
+
 		for (
 			Bond {
 				owner: o1,
@@ -145,14 +148,14 @@ impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
 		true
 	}
 }
+*/
 
 impl<A, B: Default> Default for CollatorSnapshot<A, B> {
 	fn default() -> CollatorSnapshot<A, B> {
 		CollatorSnapshot {
 			bond: B::default(),
-			delegations: Vec::new(),
+			delegations: None,
 			total: B::default(),
-			has_delegations_set: false,
 		}
 	}
 }
@@ -1225,9 +1228,9 @@ impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B>
 	fn from(other: CollatorCandidate<A, B>) -> CollatorSnapshot<A, B> {
 		CollatorSnapshot {
 			bond: other.bond,
-			delegations: other.top_delegations,
+			// TODO: this is vague now, how is this From used? can we remove?
+			delegations: None,
 			total: other.total_counted,
-			has_delegations_set: false,
 		}
 	}
 }
