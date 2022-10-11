@@ -6754,7 +6754,7 @@ dependencies = [
 [[package]]
 name = "pallet-conviction-voting"
 version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.26#1feefe43adb03362951b4f4f3d4ced9dac60c852"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
 dependencies = [
  "assert_matches",
  "frame-benchmarking",
@@ -7792,6 +7792,21 @@ name = "pallet-recovery"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
 dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-referenda"
+version = "4.0.0-dev"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
+dependencies = [
  "assert_matches",
  "frame-benchmarking",
  "frame-support",
@@ -8037,7 +8052,7 @@ dependencies = [
 [[package]]
 name = "pallet-whitelist"
 version = "4.0.0-dev"
-source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.26#1feefe43adb03362951b4f4f3d4ced9dac60c852"
+source = "git+https://github.com/purestake/substrate?branch=moonbeam-polkadot-v0.9.29#047da514445b644ccd50f7ab8bc11b7f388025a3"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -13647,9 +13662,9 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "digest 0.10.3",
- "rand 0.7.3",
+ "rand 0.8.5",
  "static_assertions",
 ]
 

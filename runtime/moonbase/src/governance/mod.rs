@@ -18,7 +18,7 @@
 
 pub mod councils;
 mod democracy;
-pub mod gov2;
+pub mod referenda;
 
 use super::*;
 
