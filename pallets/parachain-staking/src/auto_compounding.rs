@@ -28,8 +28,8 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_runtime::traits::Saturating;
 use sp_runtime::Percent;
-use sp_std::vec::Vec;
 use sp_std::prelude::*;
+use sp_std::vec::Vec;
 
 /// Represents the auto-compounding amount for a delegation.
 #[derive(Clone, Eq, PartialEq, Encode, Decode, RuntimeDebug, TypeInfo, PartialOrd, Ord)]
@@ -45,23 +45,25 @@ pub fn set_delegation_config<AccountId: Eq + Ord>(
 	delegator: AccountId,
 	value: Percent,
 ) {
-	let mut delegation = match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
-        Ok(index) => {
-			&mut delegations_config[index]
-		},
-        Err(index) => {
-            delegations_config.insert(index, DelegationAutoCompoundConfig {
-				delegator,
-				value: Percent::zero(),
-			});
-            delegations_config.last_mut().expect("cannot fail; qed")
-        }
-    };
+	let mut delegation = match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator))
+	{
+		Ok(index) => &mut delegations_config[index],
+		Err(index) => {
+			delegations_config.insert(
+				index,
+				DelegationAutoCompoundConfig {
+					delegator,
+					value: Percent::zero(),
+				},
+			);
+			delegations_config.last_mut().expect("cannot fail; qed")
+		}
+	};
 
 	delegation.value = value;
 }
 
-/// Removes the auto-compounding value for a delegation. 
+/// Removes the auto-compounding value for a delegation.
 /// Returns `true` if the entry was removed, `false` otherwise. The `delegations_config` must be a
 /// sorted vector for binary_search to work.
 pub fn remove_delegation_config<AccountId: Eq + Ord>(
@@ -69,12 +71,12 @@ pub fn remove_delegation_config<AccountId: Eq + Ord>(
 	delegator: &AccountId,
 ) -> bool {
 	match delegations_config.binary_search_by(|d| d.delegator.cmp(&delegator)) {
-        Ok(index) => {
+		Ok(index) => {
 			delegations_config.remove(index);
 			true
-		},
-        Err(_) => false,
-    }
+		}
+		Err(_) => false,
+	}
 }
 
 impl<T: Config> Pallet<T> {
