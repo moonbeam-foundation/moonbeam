@@ -17,8 +17,9 @@
 //! Types for parachain-staking
 
 use crate::{
-	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
+	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
+	Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	pallet_prelude::*,
@@ -697,7 +698,7 @@ impl<
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
 			);
-			<Pallet<T>>::delegation_remove_auto_compounding_config(
+			<AutoCompoundDelegations<T>>::remove_auto_compound(
 				&candidate,
 				&lowest_bottom_to_be_kicked.owner,
 			);

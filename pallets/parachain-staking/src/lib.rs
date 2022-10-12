@@ -48,7 +48,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-mod auto_compounding;
+mod auto_compound;
 mod delegation_requests;
 pub mod inflation;
 pub mod migrations;
@@ -68,7 +68,7 @@ use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
 use weights::WeightInfo;
 
-pub use auto_compounding::DelegationAutoCompoundConfig;
+pub use auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 pub use delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 pub use pallet::*;
 pub use traits::*;
@@ -80,8 +80,8 @@ pub mod pallet {
 	use crate::delegation_requests::{
 		CancelledScheduledRequest, DelegationAction, ScheduledRequest,
 	};
-	use crate::DelegationAutoCompoundConfig;
 	use crate::{set::OrderedSet, traits::*, types::*, InflationInfo, Range, WeightInfo};
+	use crate::{AutoCompoundConfig, AutoCompoundDelegations};
 	use frame_support::pallet_prelude::*;
 	use frame_support::traits::{
 		tokens::WithdrawReasons, Currency, Get, Imbalance, LockIdentifier, LockableCurrency,
@@ -527,7 +527,7 @@ pub mod pallet {
 		_,
 		Blake2_128Concat,
 		T::AccountId,
-		Vec<DelegationAutoCompoundConfig<T::AccountId>>,
+		Vec<AutoCompoundConfig<T::AccountId>>,
 		ValueQuery,
 	>;
 
@@ -1016,7 +1016,7 @@ pub mod pallet {
 						&bond.owner,
 						&mut delegator,
 					);
-					Self::delegation_remove_auto_compounding_config(&candidate, &bond.owner);
+					<AutoCompoundDelegations<T>>::remove_auto_compound(&candidate, &bond.owner);
 
 					if remaining.is_zero() {
 						// we do not remove the scheduled delegation requests from other collators
@@ -1298,7 +1298,7 @@ pub mod pallet {
 			delegation_count: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegate_with_auto_compound_config(
+			<AutoCompoundDelegations<T>>::delegate_with_auto_compound(
 				candidate,
 				delegator,
 				amount,
@@ -1419,7 +1419,7 @@ pub mod pallet {
 			delegation_count_hint: u32,
 		) -> DispatchResultWithPostInfo {
 			let delegator = ensure_signed(origin)?;
-			Self::delegation_set_auto_compounding_config(
+			<AutoCompoundDelegations<T>>::set_auto_compound(
 				candidate,
 				delegator,
 				value,
@@ -1482,6 +1482,13 @@ pub mod pallet {
 				balance = balance.saturating_sub(info.bond);
 			}
 			balance
+		}
+		/// Returns a delegations auto-compound value.
+		pub fn delegation_auto_compound(
+			candidate: &T::AccountId,
+			delegator: &T::AccountId,
+		) -> Percent {
+			<AutoCompoundDelegations<T>>::auto_compound(candidate, delegator)
 		}
 		/// Caller must ensure candidate is active before calling
 		pub(crate) fn update_active(candidate: T::AccountId, total: BalanceOf<T>) {
@@ -1914,7 +1921,7 @@ pub mod pallet {
 					rewards: amount_transferred.peek(),
 				});
 
-				let compound_amount = compound_percent * amount_transferred.peek();
+				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				if compound_amount.is_zero() {
 					return;
 				}

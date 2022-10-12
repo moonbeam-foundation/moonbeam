@@ -1107,15 +1107,13 @@ benchmarks! {
 		assert_eq!(start + 1u32.into(), end);
 	}
 
-
 	set_auto_compound {
 		// x controls number of distinct auto-compounding delegations the prime collator will have
 		// y controls number of distinct delegations the prime delegator will have
 		let x in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
 		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 
-		use crate::AutoCompoundingDelegations;
-		use crate::auto_compounding::{self, DelegationAutoCompoundConfig};
+		use crate::auto_compound::AutoCompoundDelegations;
 
 		let min_candidate_stake = min_candidate_stk::<T>();
 		let min_delegator_stake = min_delegator_stk::<T>();
@@ -1143,7 +1141,7 @@ benchmarks! {
 		// have x-1 distinct auto-compounding delegators delegate to prime collator
 		// we directly set the storage, since benchmarks don't work when the same extrinsic is
 		// called from within the benchmark.
-		let mut auto_compounding_state = <AutoCompoundingDelegations<T>>::get(&prime_candidate);
+		let mut auto_compounding_state = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate);
 		for i in 1..x {
 			let delegator = create_funded_delegator::<T>(
 				"delegator",
@@ -1153,13 +1151,12 @@ benchmarks! {
 				true,
 				i,
 			)?;
-			auto_compounding::set_delegation_config(
-				&mut auto_compounding_state,
+			auto_compounding_state.set_for_delegator(
 				delegator,
 				Percent::from_percent(100),
 			);
 		}
-		<AutoCompoundingDelegations<T>>::insert(prime_candidate.clone(), auto_compounding_state);
+		auto_compounding_state.set_storage(&prime_candidate);
 
 		// delegate to y-1 distinct collators from the prime delegator
 		for i in 1..y {
@@ -1188,13 +1185,9 @@ benchmarks! {
 		)?;
 	}
 	verify {
-		let actual_auto_compound = <AutoCompoundingDelegations<T>>::get(&prime_candidate)
-			.into_iter()
-			.find(|d| d.delegator == prime_delegator);
-		let expected_auto_compound = Some(DelegationAutoCompoundConfig{
-			delegator: prime_delegator,
-			value: Percent::from_percent(50)
-		});
+		let actual_auto_compound = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate)
+			.get_for_delegator(&prime_delegator);
+		let expected_auto_compound = Some(Percent::from_percent(50));
 		assert_eq!(
 			expected_auto_compound,
 			actual_auto_compound,
@@ -1212,8 +1205,7 @@ benchmarks! {
 		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
 		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
 
-		use crate::AutoCompoundingDelegations;
-		use crate::auto_compounding::DelegationAutoCompoundConfig;
+		use crate::auto_compound::AutoCompoundDelegations;
 
 		let min_candidate_stake = min_candidate_stk::<T>();
 		let min_delegator_stake = min_delegator_stk::<T>();
@@ -1288,13 +1280,9 @@ benchmarks! {
 	}
 	verify {
 		assert!(Pallet::<T>::is_delegator(&prime_delegator));
-		let actual_auto_compound = <AutoCompoundingDelegations<T>>::get(&prime_candidate)
-			.into_iter()
-			.find(|d| d.delegator == prime_delegator);
-		let expected_auto_compound = Some(DelegationAutoCompoundConfig{
-			delegator: prime_delegator,
-			value: Percent::from_percent(50)
-		});
+		let actual_auto_compound = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate)
+			.get_for_delegator(&prime_delegator);
+		let expected_auto_compound = Some(Percent::from_percent(50));
 		assert_eq!(
 			expected_auto_compound,
 			actual_auto_compound,

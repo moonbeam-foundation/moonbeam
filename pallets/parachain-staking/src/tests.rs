@@ -21,7 +21,7 @@
 //! 2. Monetary Governance
 //! 3. Public (Collator, Nominator)
 //! 4. Miscellaneous Property-Based Tests
-use crate::auto_compounding::DelegationAutoCompoundConfig;
+use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
@@ -29,10 +29,10 @@ use crate::mock::{
 };
 use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
-	assert_tail_eq, set::OrderedSet, AtStake, AutoCompoundingDelegations, Bond, BottomDelegations,
-	CandidateInfo, CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus,
-	DelegationScheduledRequests, Delegations, DelegatorAdded, DelegatorState, DelegatorStatus,
-	Error, Event, MigratedAtStake, Range, TopDelegations, DELEGATOR_LOCK_ID,
+	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
+	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
+	Delegations, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, MigratedAtStake,
+	Range, TopDelegations, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -8552,13 +8552,11 @@ fn test_set_auto_compound_fails_if_invalid_candidate_auto_compounding_hint() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundingDelegations<Test>>::insert(
-				1,
-				vec![DelegationAutoCompoundConfig {
-					delegator: 2,
-					value: Percent::from_percent(10),
-				}],
-			);
+			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
+				delegator: 2,
+				value: Percent::from_percent(10),
+			}])
+			.set_storage(&1);
 			let candidate_auto_compounding_delegation_count_hint = 0; // is however, 1
 			let delegation_hint = 1;
 
@@ -8596,7 +8594,7 @@ fn test_set_auto_compound_inserts_if_not_exists() {
 				value: Percent::from_percent(50),
 			});
 			assert_eq!(
-				vec![DelegationAutoCompoundConfig {
+				vec![AutoCompoundConfig {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
@@ -8613,13 +8611,11 @@ fn test_set_auto_compound_updates_if_existing() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundingDelegations<Test>>::insert(
-				1,
-				vec![DelegationAutoCompoundConfig {
-					delegator: 2,
-					value: Percent::from_percent(10),
-				}],
-			);
+			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
+				delegator: 2,
+				value: Percent::from_percent(10),
+			}])
+			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
@@ -8634,7 +8630,7 @@ fn test_set_auto_compound_updates_if_existing() {
 				value: Percent::from_percent(50),
 			});
 			assert_eq!(
-				vec![DelegationAutoCompoundConfig {
+				vec![AutoCompoundConfig {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
@@ -8651,13 +8647,11 @@ fn test_set_auto_compound_removes_if_auto_compound_zero_percent() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			<AutoCompoundingDelegations<Test>>::insert(
-				1,
-				vec![DelegationAutoCompoundConfig {
-					delegator: 2,
-					value: Percent::from_percent(10),
-				}],
-			);
+			<AutoCompoundDelegations<Test>>::new(vec![AutoCompoundConfig {
+				delegator: 2,
+				value: Percent::from_percent(10),
+			}])
+			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
 				Origin::signed(2),
@@ -9239,7 +9233,7 @@ fn test_delegate_with_auto_compound_sets_auto_compound_config() {
 				auto_compound: Percent::from_percent(50),
 			});
 			assert_eq!(
-				vec![DelegationAutoCompoundConfig {
+				vec![AutoCompoundConfig {
 					delegator: 2,
 					value: Percent::from_percent(50),
 				}],
