@@ -292,7 +292,6 @@ where
 		let mut auto_compounding_state = Self::get_storage(candidate);
 		if auto_compounding_state.remove_for_delegator(delegator) {
 			auto_compounding_state.set_storage(&candidate);
-			// <AutoCompoundingDelegationsStorage<T>>::insert(candidate, auto_compounding_state);
 		}
 	}
 
