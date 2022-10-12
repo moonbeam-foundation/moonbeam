@@ -409,7 +409,7 @@ pub mod pallet {
 			new_per_round_inflation_max: Perbill,
 		},
 		/// Auto-compounding reward percent was set for a delegation.
-		DelegationAutoCompoundingSet {
+		AutoCompoundSet {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 			value: Percent,

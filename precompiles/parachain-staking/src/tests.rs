@@ -1266,7 +1266,7 @@ fn set_auto_compound_works_if_delegation() {
 				Percent::from_percent(50)
 			);
 
-			let expected: crate::mock::Event = StakingEvent::DelegationAutoCompoundingSet {
+			let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
 				candidate: Alice,
 				delegator: Bob,
 				value: Percent::from_percent(50),

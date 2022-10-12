@@ -8588,7 +8588,7 @@ fn test_set_auto_compound_inserts_if_not_exists() {
 				0,
 				1,
 			));
-			assert_event_emitted!(Event::DelegationAutoCompoundingSet {
+			assert_event_emitted!(Event::AutoCompoundSet {
 				candidate: 1,
 				delegator: 2,
 				value: Percent::from_percent(50),
@@ -8624,7 +8624,7 @@ fn test_set_auto_compound_updates_if_existing() {
 				1,
 				1,
 			));
-			assert_event_emitted!(Event::DelegationAutoCompoundingSet {
+			assert_event_emitted!(Event::AutoCompoundSet {
 				candidate: 1,
 				delegator: 2,
 				value: Percent::from_percent(50),
@@ -8660,7 +8660,7 @@ fn test_set_auto_compound_removes_if_auto_compound_zero_percent() {
 				1,
 				1,
 			));
-			assert_event_emitted!(Event::DelegationAutoCompoundingSet {
+			assert_event_emitted!(Event::AutoCompoundSet {
 				candidate: 1,
 				delegator: 2,
 				value: Percent::zero(),

@@ -129,9 +129,7 @@ describeDevMoonbeam("Staking - Set Auto-Compound - insert new config", (context)
       .toJSON()
       .find((d) => d.delegator === ethan.address);
     const delegationAutoCompoundEvents = result.events.reduce((acc, event) => {
-      if (
-        context.polkadotApi.events.parachainStaking.DelegationAutoCompoundingSet.is(event.event)
-      ) {
+      if (context.polkadotApi.events.parachainStaking.AutoCompoundSet.is(event.event)) {
         acc.push({
           candidate: event.event.data[0].toString(),
           delegator: event.event.data[1].toString(),
@@ -192,9 +190,7 @@ describeDevMoonbeam("Staking - Set Auto-Compound - update existing config", (con
       .toJSON()
       .find((d) => d.delegator === ethan.address);
     const delegationAutoCompoundEvents = result.events.reduce((acc, event) => {
-      if (
-        context.polkadotApi.events.parachainStaking.DelegationAutoCompoundingSet.is(event.event)
-      ) {
+      if (context.polkadotApi.events.parachainStaking.AutoCompoundSet.is(event.event)) {
         acc.push({
           candidate: event.event.data[0].toString(),
           delegator: event.event.data[1].toString(),
@@ -257,9 +253,7 @@ describeDevMoonbeam(
         .toJSON()
         .find((d) => d.delegator === ethan.address);
       const delegationAutoCompoundEvents = result.events.reduce((acc, event) => {
-        if (
-          context.polkadotApi.events.parachainStaking.DelegationAutoCompoundingSet.is(event.event)
-        ) {
+        if (context.polkadotApi.events.parachainStaking.AutoCompoundSet.is(event.event)) {
           acc.push({
             candidate: event.event.data[0].toString(),
             delegator: event.event.data[1].toString(),
