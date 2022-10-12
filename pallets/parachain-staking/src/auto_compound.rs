@@ -21,7 +21,6 @@ use crate::pallet::{
 	Config, DelegatorState, Error, Event, Pallet, Total,
 };
 use crate::types::{Bond, BondAdjust, Delegator};
-use core::marker::PhantomData;
 use frame_support::ensure;
 use frame_support::traits::Get;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -41,41 +40,34 @@ pub struct AutoCompoundConfig<AccountId> {
 
 /// Represents the auto-compounding [Delegations] for `T: Config`
 #[derive(Clone, Eq, PartialEq, RuntimeDebug)]
-pub struct AutoCompoundDelegations<T: frame_system::Config> {
-	inner: Vec<AutoCompoundConfig<T::AccountId>>,
-	_phantom: PhantomData<T>,
-}
+pub struct AutoCompoundDelegations<T: frame_system::Config>(Vec<AutoCompoundConfig<T::AccountId>>);
 
 impl<T> AutoCompoundDelegations<T>
 where
 	T: Config,
 {
-	/// Creates a new instance of [AutoCompoundingDelegations].
-	pub fn new(delegations: Vec<AutoCompoundConfig<T::AccountId>>) -> Self {
-		Self {
-			inner: delegations,
-			_phantom: Default::default(),
-		}
+	/// Creates a new instance of [AutoCompoundingDelegations] from a vector of sorted_delegations.
+	/// This is used for testing purposes only.
+	#[cfg(test)]
+	pub fn new(sorted_delegations: Vec<AutoCompoundConfig<T::AccountId>>) -> Self {
+		Self(sorted_delegations)
 	}
 
 	/// Retrieves an instance of [AutoCompoundingDelegations] storage as [AutoCompoundDelegations].
 	pub fn get_storage(candidate: &T::AccountId) -> Self {
-		Self {
-			inner: <AutoCompoundingDelegationsStorage<T>>::get(candidate),
-			_phantom: Default::default(),
-		}
+		Self(<AutoCompoundingDelegationsStorage<T>>::get(candidate))
 	}
 
 	/// Inserts the current state to [AutoCompoundingDelegations] storage.
 	pub fn set_storage(self, candidate: &T::AccountId) {
-		<AutoCompoundingDelegationsStorage<T>>::insert(candidate, self.inner)
+		<AutoCompoundingDelegationsStorage<T>>::insert(candidate, self.0)
 	}
 
 	/// Retrieves the auto-compounding value for a delegation. The `delegations_config` must be a
 	/// sorted vector for binary_search to work.
 	pub fn get_for_delegator(&self, delegator: &T::AccountId) -> Option<Percent> {
-		match self.inner.binary_search_by(|d| d.delegator.cmp(&delegator)) {
-			Ok(index) => Some(self.inner[index].value),
+		match self.0.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+			Ok(index) => Some(self.0[index].value),
 			Err(_) => None,
 		}
 	}
@@ -83,17 +75,17 @@ where
 	/// Sets the auto-compounding value for a delegation. The `delegations_config` must be a sorted
 	/// vector for binary_search to work.
 	pub fn set_for_delegator(&mut self, delegator: T::AccountId, value: Percent) -> bool {
-		match self.inner.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+		match self.0.binary_search_by(|d| d.delegator.cmp(&delegator)) {
 			Ok(index) => {
-				if self.inner[index].value == value {
+				if self.0[index].value == value {
 					false
 				} else {
-					self.inner[index].value = value;
+					self.0[index].value = value;
 					true
 				}
 			}
 			Err(index) => {
-				self.inner
+				self.0
 					.insert(index, AutoCompoundConfig { delegator, value });
 				true
 			}
@@ -104,9 +96,9 @@ where
 	/// Returns `true` if the entry was removed, `false` otherwise. The `delegations_config` must be a
 	/// sorted vector for binary_search to work.
 	pub fn remove_for_delegator(&mut self, delegator: &T::AccountId) -> bool {
-		match self.inner.binary_search_by(|d| d.delegator.cmp(&delegator)) {
+		match self.0.binary_search_by(|d| d.delegator.cmp(&delegator)) {
 			Ok(index) => {
-				self.inner.remove(index);
+				self.0.remove(index);
 				true
 			}
 			Err(_) => false,
@@ -115,19 +107,19 @@ where
 
 	/// Returns the length of the inner vector.
 	pub fn len(&self) -> u32 {
-		self.inner.len() as u32
+		self.0.len() as u32
 	}
 
 	/// Returns a reference to the inner vector.
 	#[cfg(test)]
 	pub fn inner(&self) -> &Vec<AutoCompoundConfig<T::AccountId>> {
-		&self.inner
+		&self.0
 	}
 
 	/// Converts the [AutoCompoundDelegations] into the inner vector.
 	#[cfg(test)]
 	pub fn into_inner(self) -> Vec<AutoCompoundConfig<T::AccountId>> {
-		self.inner
+		self.0
 	}
 
 	// -- pallet functions --
