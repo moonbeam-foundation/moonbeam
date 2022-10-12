@@ -34,16 +34,10 @@ pub mod pallet_custom_origins {
 	pub enum Origin {
 		/// Origin for spending (any amount of) funds.
 		Treasurer,
-		/// Origin for managing the identity registrar.
-		IdentityAdmin,
 		/// Origin able to cancel referenda.
 		ReferendumCanceller,
 		/// Origin able to kill referenda.
 		ReferendumKiller,
-		/// Origin able to spend up to 250 UNIT from the treasury at once.
-		SmallTipper,
-		/// Origin able to spend up to 1,000 UNIT from the treasury at once.
-		BigTipper,
 		/// Origin able to spend up to 10,000 UNIT from the treasury at once.
 		SmallSpender,
 		/// Origin able to spend up to 100,000 UNIT from the treasury at once.
@@ -127,11 +121,9 @@ pub mod pallet_custom_origins {
 	// Origins able to spend up to $AMOUNT from the treasury at once
 	decl_ensure! {
 		pub type Spender: EnsureOrigin<Success = Balance> {
-			SmallTipper = 250 * UNIT * SUPPLY_FACTOR,
-			BigTipper = 1 * KILOUNIT * SUPPLY_FACTOR,
-			SmallSpender = 10 * KILOUNIT * SUPPLY_FACTOR,
-			MediumSpender = 100 * KILOUNIT * SUPPLY_FACTOR,
-			BigSpender = 1_000 * KILOUNIT * SUPPLY_FACTOR,
+			SmallSpender = 200 * UNIT * SUPPLY_FACTOR,
+			MediumSpender = 2000 * UNIT * SUPPLY_FACTOR,
+			BigSpender = 10000 * UNIT * SUPPLY_FACTOR,
 			Treasurer = Balance::max_value(),
 		}
 	}
