@@ -50,7 +50,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_maintenance_mode":["",[],["lib.rs","types.rs"]],\
 "pallet_migrations":["",[],["lib.rs"]],\
 "pallet_moonbeam_orbiters":["",[],["lib.rs","types.rs","weights.rs"]],\
-"pallet_parachain_staking":["",[],["delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]],\
+"pallet_parachain_staking":["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]],\
 "pallet_proxy_genesis_companion":["",[],["lib.rs"]],\
 "pallet_randomness":["",[],["lib.rs","types.rs","vrf.rs","weights.rs"]],\
 "pallet_xcm_transactor":["",[],["lib.rs","migrations.rs","weights.rs"]],\

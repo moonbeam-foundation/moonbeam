@@ -695,6 +695,13 @@
 <span id="695">695</span>
 <span id="696">696</span>
 <span id="697">697</span>
+<span id="698">698</span>
+<span id="699">699</span>
+<span id="700">700</span>
+<span id="701">701</span>
+<span id="702">702</span>
+<span id="703">703</span>
+<span id="704">704</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -717,7 +724,7 @@
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-<span class="kw">use crate</span>::{Delegator, DelegatorStatus};
+<span class="kw">use crate</span>::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
 <span class="kw">use </span>frame_support::ensure;
 <span class="kw">use </span>frame_support::traits::Get;
 <span class="kw">use </span>frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -944,6 +951,9 @@
 
 				<span class="comment">// remove delegation from delegator state
 				</span>state.rm_delegation::&lt;T&gt;(<span class="kw-2">&amp;</span>collator);
+
+				<span class="comment">// remove delegation from auto-compounding info
+				</span>&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
 
 				<span class="comment">// remove delegation from collator state delegations
 				</span><span class="self">Self</span>::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)<span class="question-mark">?</span>;
@@ -1176,6 +1186,7 @@
 				}
 
 				<span class="self">Self</span>::delegation_remove_request_with_state(<span class="kw-2">&amp;</span>bond.owner, <span class="kw-2">&amp;</span>delegator, <span class="kw-2">&amp;mut </span>state);
+				&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>bond.owner, <span class="kw-2">&amp;</span>delegator);
 			}
 			&lt;DelegatorState&lt;T&gt;&gt;::remove(<span class="kw-2">&amp;</span>delegator);
 			<span class="self">Self</span>::deposit_event(Event::DelegatorLeft {
@@ -1222,7 +1233,10 @@
 
 			<span class="comment">// remove the scheduled request, since it is fulfilled
 			</span>scheduled_requests.remove(request_idx).action.amount();
-			updated_scheduled_requests.push((collator, scheduled_requests));
+			updated_scheduled_requests.push((collator.clone(), scheduled_requests));
+
+			<span class="comment">// remove the auto-compounding entry for the delegation
+			</span>&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(<span class="kw-2">&amp;</span>collator, <span class="kw-2">&amp;</span>delegator);
 		}
 
 		<span class="comment">// set state.total so that state.adjust_bond_lock will remove lock

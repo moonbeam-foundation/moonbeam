@@ -1671,6 +1671,90 @@
 <span id="1671">1671</span>
 <span id="1672">1672</span>
 <span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1690,8 +1774,9 @@
 </span><span class="doccomment">//! Types for parachain-staking
 
 </span><span class="kw">use crate</span>::{
-	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
+	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
+	Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 <span class="kw">use </span>frame_support::{
 	pallet_prelude::<span class="kw-2">*</span>,
@@ -1771,6 +1856,24 @@
 	}
 }
 
+<span class="attribute">#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+</span><span class="kw">pub struct </span>BondWithAutoCompound&lt;AccountId, Balance&gt; {
+	<span class="kw">pub </span>owner: AccountId,
+	<span class="kw">pub </span>amount: Balance,
+	<span class="kw">pub </span>auto_compound: Percent,
+}
+
+<span class="kw">impl</span>&lt;A: Decode, B: Default&gt; Default <span class="kw">for </span>BondWithAutoCompound&lt;A, B&gt; {
+	<span class="kw">fn </span>default() -&gt; BondWithAutoCompound&lt;A, B&gt; {
+		BondWithAutoCompound {
+			owner: A::decode(<span class="kw-2">&amp;mut </span>sp_runtime::traits::TrailingZeroInput::zeroes())
+				.expect(<span class="string">&quot;infinite length input; no invalid inputs for type; qed&quot;</span>),
+			amount: B::default(),
+			auto_compound: Percent::zero(),
+		}
+	}
+}
+
 <span class="attribute">#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 </span><span class="doccomment">/// Snapshot of collator state at the start of the round for which they are selected
 </span><span class="kw">pub struct </span>CollatorSnapshot&lt;AccountId, Balance&gt; {
@@ -1780,7 +1883,7 @@
 	<span class="doccomment">/// The rewardable delegations. This list is a subset of total delegators, where certain
 	/// delegators are adjusted based on their scheduled
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
-	</span><span class="kw">pub </span>delegations: Vec&lt;Bond&lt;AccountId, Balance&gt;&gt;,
+	</span><span class="kw">pub </span>delegations: Vec&lt;BondWithAutoCompound&lt;AccountId, Balance&gt;&gt;,
 
 	<span class="doccomment">/// The total counted value locked for the collator, including the self bond + total staked by
 	/// top delegators.
@@ -1794,17 +1897,19 @@
 			<span class="kw">return </span><span class="bool-val">false</span>;
 		}
 		<span class="kw">for </span>(
-			Bond {
+			BondWithAutoCompound {
 				owner: o1,
 				amount: a1,
+				auto_compound: c1,
 			},
-			Bond {
+			BondWithAutoCompound {
 				owner: o2,
 				amount: a2,
+				auto_compound: c2,
 			},
 		) <span class="kw">in </span><span class="self">self</span>.delegations.iter().zip(other.delegations.iter())
 		{
-			<span class="kw">if </span>o1 != o2 || a1 != a2 {
+			<span class="kw">if </span>o1 != o2 || a1 != a2 || c1 != c2 {
 				<span class="kw">return </span><span class="bool-val">false</span>;
 			}
 		}
@@ -2350,6 +2455,10 @@
 				<span class="kw-2">&amp;</span>lowest_bottom_to_be_kicked.owner,
 				<span class="kw-2">&amp;mut </span>delegator_state,
 			);
+			&lt;AutoCompoundDelegations&lt;T&gt;&gt;::remove_auto_compound(
+				<span class="kw-2">&amp;</span>candidate,
+				<span class="kw-2">&amp;</span>lowest_bottom_to_be_kicked.owner,
+			);
 
 			Pallet::&lt;T&gt;::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
@@ -2881,7 +2990,15 @@
 	<span class="kw">fn </span>from(other: CollatorCandidate&lt;A, B&gt;) -&gt; CollatorSnapshot&lt;A, B&gt; {
 		CollatorSnapshot {
 			bond: other.bond,
-			delegations: other.top_delegations,
+			delegations: other
+				.top_delegations
+				.into_iter()
+				.map(|d| BondWithAutoCompound {
+					owner: d.owner,
+					amount: d.amount,
+					auto_compound: Percent::zero(),
+				})
+				.collect(),
 			total: other.total_counted,
 		}
 	}
@@ -3060,11 +3177,14 @@
 			<span class="prelude-val">None
 		</span>}
 	}
-	<span class="kw">pub fn </span>increase_delegation&lt;T: Config&gt;(
+
+	<span class="doccomment">/// Increases the delegation amount and returns `true` if the delegation is part of the
+	/// TopDelegations set, `false` otherwise.
+	</span><span class="kw">pub fn </span>increase_delegation&lt;T: Config&gt;(
 		<span class="kw-2">&amp;mut </span><span class="self">self</span>,
 		candidate: AccountId,
 		amount: Balance,
-	) -&gt; DispatchResult
+	) -&gt; <span class="prelude-ty">Result</span>&lt;bool, sp_runtime::DispatchError&gt;
 	<span class="kw">where
 		</span>BalanceOf&lt;T&gt;: From&lt;Balance&gt;,
 		T::AccountId: From&lt;AccountId&gt;,
@@ -3100,13 +3220,7 @@
 				&lt;Total&lt;T&gt;&gt;::put(new_total_staked);
 				<span class="kw">let </span>nom_st: Delegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; = <span class="self">self</span>.clone().into();
 				&lt;DelegatorState&lt;T&gt;&gt;::insert(<span class="kw-2">&amp;</span>delegator_id, nom_st);
-				Pallet::&lt;T&gt;::deposit_event(Event::DelegationIncreased {
-					delegator: delegator_id,
-					candidate: candidate_id,
-					amount: balance_amt,
-					in_top: in_top,
-				});
-				<span class="kw">return </span><span class="prelude-val">Ok</span>(());
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(in_top);
 			}
 		}
 		<span class="prelude-val">Err</span>(Error::&lt;T&gt;::DelegationDNE.into())
@@ -3247,6 +3361,60 @@
 		</span><span class="kw">pub </span>requests: PendingDelegationRequests&lt;AccountId, Balance&gt;,
 		<span class="doccomment">/// Status for this delegator
 		</span><span class="kw">pub </span>status: DelegatorStatus,
+	}
+
+	<span class="comment">// CollatorSnapshot
+
+	</span><span class="attribute">#[deprecated(note = <span class="string">&quot;use CollatorSnapshot with BondWithAutoCompound delegations&quot;</span>)]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	</span><span class="doccomment">/// Snapshot of collator state at the start of the round for which they are selected
+	</span><span class="kw">pub struct </span>CollatorSnapshot&lt;AccountId, Balance&gt; {
+		<span class="doccomment">/// The total value locked by the collator.
+		</span><span class="kw">pub </span>bond: Balance,
+
+		<span class="doccomment">/// The rewardable delegations. This list is a subset of total delegators, where certain
+		/// delegators are adjusted based on their scheduled
+		/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
+		</span><span class="kw">pub </span>delegations: Vec&lt;Bond&lt;AccountId, Balance&gt;&gt;,
+
+		<span class="doccomment">/// The total counted value locked for the collator, including the self bond + total staked by
+		/// top delegators.
+		</span><span class="kw">pub </span>total: Balance,
+	}
+
+	<span class="kw">impl</span>&lt;A: PartialEq, B: PartialEq&gt; PartialEq <span class="kw">for </span>CollatorSnapshot&lt;A, B&gt; {
+		<span class="kw">fn </span>eq(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
+			<span class="kw">let </span>must_be_true = <span class="self">self</span>.bond == other.bond &amp;&amp; <span class="self">self</span>.total == other.total;
+			<span class="kw">if </span>!must_be_true {
+				<span class="kw">return </span><span class="bool-val">false</span>;
+			}
+			<span class="kw">for </span>(
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) <span class="kw">in </span><span class="self">self</span>.delegations.iter().zip(other.delegations.iter())
+			{
+				<span class="kw">if </span>o1 != o2 || a1 != a2 {
+					<span class="kw">return </span><span class="bool-val">false</span>;
+				}
+			}
+			<span class="bool-val">true
+		</span>}
+	}
+
+	<span class="kw">impl</span>&lt;A, B: Default&gt; Default <span class="kw">for </span>CollatorSnapshot&lt;A, B&gt; {
+		<span class="kw">fn </span>default() -&gt; CollatorSnapshot&lt;A, B&gt; {
+			CollatorSnapshot {
+				bond: B::default(),
+				delegations: Vec::new(),
+				total: B::default(),
+			}
+		}
 	}
 }
 
