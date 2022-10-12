@@ -9243,7 +9243,7 @@ fn test_delegate_with_auto_compound_sets_auto_compound_config() {
 }
 
 #[test]
-fn test_delegate_with_auto_compound_emits_event_for_zero_auto_compound() {
+fn test_delegate_with_auto_compound_skips_storage_but_emits_event_for_zero_auto_compound() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 30), (2, 10)])
 		.with_candidates(vec![(1, 30)])
@@ -9258,6 +9258,7 @@ fn test_delegate_with_auto_compound_emits_event_for_zero_auto_compound() {
 				0,
 				0,
 			));
+			assert_eq!(0, ParachainStaking::auto_compounding_delegations(&1).len(),);
 			assert_last_event!(MetaEvent::ParachainStaking(Event::Delegation {
 				delegator: 2,
 				locked_amount: 10,
@@ -9576,5 +9577,27 @@ fn test_delegate_with_auto_compound_cannot_delegate_more_than_max_delegations() 
 				),
 				Error::<Test>::ExceedMaxDelegationsPerDelegator,
 			);
+		});
+}
+
+#[test]
+fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compound() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 30), (2, 20), (3, 30)])
+		.with_candidates(vec![(1, 30)])
+		.with_auto_compounding_delegations(vec![(3, 1, 10, Percent::from_percent(50))])
+		.build()
+		.execute_with(|| {
+			// We already have an auto-compounding delegation from 3 -> 1, so the hint validation
+			// would cause a failure if the auto-compounding isn't skipped properly.
+			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 1, 0,));
+			assert_eq!(1, ParachainStaking::auto_compounding_delegations(&1).len(),);
+			assert_last_event!(MetaEvent::ParachainStaking(Event::Delegation {
+				delegator: 2,
+				locked_amount: 10,
+				candidate: 1,
+				delegator_position: DelegatorAdded::AddedToTop { new_total: 50 },
+				auto_compound: Percent::zero(),
+			}));
 		});
 }
