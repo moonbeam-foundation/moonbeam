@@ -50,7 +50,7 @@ impl<T> AutoCompoundDelegations<T>
 where
 	T: Config,
 {
-	/// Creates a new instance of [Delegations].
+	/// Creates a new instance of [AutoCompoundingDelegations].
 	pub fn new(delegations: Vec<AutoCompoundConfig<T::AccountId>>) -> Self {
 		Self {
 			inner: delegations,
@@ -297,7 +297,7 @@ where
 	}
 
 	/// Returns the value of auto-compound, if it exists for a given delegation, zero otherwise.
-	pub fn auto_compound(candidate: &T::AccountId, delegator: &T::AccountId) -> Percent {
+	pub(crate) fn auto_compound(candidate: &T::AccountId, delegator: &T::AccountId) -> Percent {
 		let delegations_config = Self::get_storage(candidate);
 		delegations_config
 			.get_for_delegator(&delegator)
