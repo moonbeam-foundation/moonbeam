@@ -276,7 +276,7 @@ where
 		if state_updated {
 			auto_compounding_state.set_storage(&candidate);
 		}
-		
+
 		<Pallet<T>>::deposit_event(Event::DelegationAutoCompoundingSet {
 			candidate,
 			delegator,
