@@ -75,7 +75,7 @@ where
 	/// sorted vector for binary_search to work.
 	pub fn get_for_delegator(&self, delegator: &T::AccountId) -> Option<Percent> {
 		match self.inner.binary_search_by(|d| d.delegator.cmp(&delegator)) {
-			Ok(index) => Some(self.inner[index].value.clone()),
+			Ok(index) => Some(self.inner[index].value),
 			Err(_) => None,
 		}
 	}
@@ -119,11 +119,13 @@ where
 	}
 
 	/// Returns a reference to the inner vector.
+	#[cfg(test)]
 	pub fn inner(&self) -> &Vec<AutoCompoundConfig<T::AccountId>> {
 		&self.inner
 	}
 
 	/// Converts the [AutoCompoundDelegations] into the inner vector.
+	#[cfg(test)]
 	pub fn into_inner(self) -> Vec<AutoCompoundConfig<T::AccountId>> {
 		self.inner
 	}

@@ -36,8 +36,22 @@ class Perthing {
     return this.divNearest(this.perthing.mul(value), this.unit);
   }
 
+  ofCeil(value: BN): BN {
+    return this.divCeil(this.perthing.mul(value), this.unit);
+  }
+
   toString(): string {
     return `${this.perthing.toString()}`;
+  }
+
+  divCeil(a: any, num: BN) {
+    var dm = a.divmod(num);
+
+    // Fast case - exact division
+    if (dm.mod.isZero()) return dm.div;
+
+    // Round up
+    return dm.div.negative !== 0 ? dm.div.isubn(1) : dm.div.iaddn(1);
   }
 
   divNearest(a: any, num: BN) {

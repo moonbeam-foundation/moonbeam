@@ -88,7 +88,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 1% auto-compound", (conte
     expect(
       compoundedEvent.amount.toString(),
       "delegator did not get 1% of their rewarded auto-compounded"
-    ).to.equal(new Percent(1).of(rewardedEvent.amount).toString());
+    ).to.equal(new Percent(1).ofCeil(rewardedEvent.amount).toString());
   });
 });
 
@@ -117,7 +117,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - 50% auto-compound", (cont
     expect(
       compoundedEvent.amount.toString(),
       "delegator did not get 50% of their rewarded auto-compounded"
-    ).to.equal(new Percent(50).of(rewardedEvent.amount).toString());
+    ).to.equal(new Percent(50).ofCeil(rewardedEvent.amount).toString());
   });
 });
 
