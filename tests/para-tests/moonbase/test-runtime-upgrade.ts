@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import child_process from "child_process";
-import { alith } from "../../util/accounts";
 import { describeParachain } from "../../util/setup-para-tests";
 
 // This test will run on local until the new runtime is available
@@ -85,13 +84,8 @@ describeParachain(
         // ~200000 + init 60000 + error marging 140000
         this.timeout(400000);
 
-        const currentVersion = await (
-          (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
-        ).unwrap();
-        expect(currentVersion.toJSON()).to.deep.equal({
-          specVersion: Number(baseRuntime),
-          specName: "moonbase",
-        });
+        const currentVersion = await context.polkadotApiParaone.rpc.state.getRuntimeVersion();
+        expect(currentVersion.specVersion.toJSON()).to.equal(Number(baseRuntime));
         console.log(
           `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
             `${currentVersion.specVersion.toString()}`
@@ -99,13 +93,9 @@ describeParachain(
 
         await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag: RUNTIME_VERSION });
 
-        process.stdout.write(`Checking on-chain runtime version ${localVersion}...`);
         expect(
-          await (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()).toJSON()
-        ).to.deep.equal({
-          specVersion: Number(localVersion),
-          specName: "moonbase",
-        });
+          (await context.polkadotApiParaone.rpc.state.getRuntimeVersion()).specVersion.toJSON()
+        ).to.equal(Number(localVersion));
         process.stdout.write("✅\n");
 
         process.stdout.write("Waiting extra block being produced...");
