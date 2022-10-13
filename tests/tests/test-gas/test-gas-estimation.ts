@@ -12,6 +12,7 @@ import { getAllContracts, getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 
 chaiUse(chaiAsPromised);
 
@@ -183,19 +184,19 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
 
     const batchSomeGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSome", callParameters),
     });
 
     const batchSomeUntilFailureGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSomeUntilFailure", callParameters),
     });
 
     const batchAllGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchAll", callParameters),
     });
 

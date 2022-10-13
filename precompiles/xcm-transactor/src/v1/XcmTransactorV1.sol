@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The XcmTransactorV1 contract's address.
+address constant XCM_TRANSACTOR_V1_ADDRESS = 0x0000000000000000000000000000000000000806;
+
+/// @dev The XcmTransactorV1 contract's instance.
+XcmTransactorV1 constant XCM_TRANSACTOR_V1_CONTRACT = XcmTransactorV1(
+    XCM_TRANSACTOR_V1_ADDRESS
+);
+
 /// @author The Moonbeam Team
 /// @title Xcm Transactor Interface
 /// @dev The interface through which solidity contracts will interact with xcm transactor pallet
@@ -17,7 +25,7 @@ interface XcmTransactorV1 {
     /// @param index The index of which we want to retrieve the account
     /// @return owner The owner of the derivative index
     ///
-    function indexToAccount(uint16 index) external view returns(address owner);
+    function indexToAccount(uint16 index) external view returns (address owner);
 
     /// DEPRECATED, replaced by transactInfoWithSigned
     /// Get transact info of a multilocation
@@ -67,7 +75,7 @@ interface XcmTransactorV1 {
     /// @dev The token transfer burns/transfers the corresponding amount before sending
     /// @param transactor The transactor to be used
     /// @param index The index to be used
-    /// @param feeAsset The asset in which we want to pay fees. 
+    /// @param feeAsset The asset in which we want to pay fees.
     /// It has to be a reserve of the destination chain
     /// @param weight The weight we want to buy in the destination chain
     /// @param innerCall The inner call to be executed in the destination chain

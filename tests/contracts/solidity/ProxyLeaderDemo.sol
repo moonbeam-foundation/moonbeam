@@ -6,7 +6,6 @@ import "../../../precompiles/proxy/Proxy.sol";
 /// @notice Smart contract to demonstrate how to use requestLocalVRFRandomWords
 contract ProxyLeaderDemo {
     /// @notice The Proxy Precompile Interface
-    // Proxy public proxy = Proxy(0x000000000000000000000000000000000000080b);
 
     /// @notice The pool doesn't accept additional participants
     /// @param value The value that was given

@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The ParachainStaking contract's address.
+address constant PARACHAIN_STAKING_ADDRESS = 0x0000000000000000000000000000000000000800;
+
+/// @dev The ParachainStaking contract's instance.
+ParachainStaking constant PARACHAIN_STAKING_CONTRACT = ParachainStaking(
+    PARACHAIN_STAKING_ADDRESS
+);
+
 /// @author The Moonbeam Team
 /// @title Pallet Parachain Staking Interface
 /// @dev The interface through which solidity contracts will interact with Parachain Staking

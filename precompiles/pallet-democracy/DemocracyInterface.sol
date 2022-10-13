@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Democracy contract's address.
+address constant DEMOCRACY_ADDRESS = 0x0000000000000000000000000000000000000803;
+
+/// @dev The Democracy contract's instance.
+Democracy constant DEMOCRACY_CONTRACT = Democracy(DEMOCRACY_ADDRESS);
+
 /// @author The Moonbeam Team
 /// @title Pallet Democracy Interface
 /// @dev The interface through which solidity contracts will interact with pallet-democracy.
