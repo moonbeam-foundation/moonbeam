@@ -173,5 +173,10 @@ then
   while true; do sleep 5; done
 fi
 echo "Done !!"
+<<<<<<< Updated upstream
 
 [[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
+=======
+kill $PID
+[[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
+>>>>>>> Stashed changes
