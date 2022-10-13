@@ -31,6 +31,12 @@ members = [
 	"runtime/moonriver",
 ]
 
+[patch."https://github.com/purestake/evm"]
+evm = { git = "https://github.com/purestake/evm-private", branch = "moonbeam-polkadot-v0.9.26" }
+evm-core = { git = "https://github.com/purestake/evm-private", branch = "moonbeam-polkadot-v0.9.26" }
+evm-gasometer = { git = "https://github.com/purestake/evm-private", branch = "moonbeam-polkadot-v0.9.26" }
+evm-runtime = { git = "https://github.com/purestake/evm-private", branch = "moonbeam-polkadot-v0.9.26" }
+
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]
