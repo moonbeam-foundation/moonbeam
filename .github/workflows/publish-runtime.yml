@@ -27,7 +27,9 @@ jobs:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - name: Copy scripts
-        run: cp -R scripts /tmp/original-scripts
+        run: |
+          ls -la scripts/
+          cp -R scripts /tmp/original-scripts
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.to }}
