@@ -236,9 +236,10 @@ impl<T: Config> Pallet<T> {
 		// We use a global nonce instead the user nonce for all Xcm->Ethereum transactions to avoid
 		// this.
 		let current_nonce = Self::nonce();
-		let error_weight = T::DbWeight::get().reads(1 as Weight);
+		let error_weight = T::DbWeight::get().reads(1);
 
-		let transaction: Option<Transaction> = xcm_transaction.into_transaction_v2(current_nonce);
+		let transaction: Option<Transaction> =
+			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
 		if let Some(transaction) = transaction {
 			let transaction_data: TransactionData = (&transaction).into();
 

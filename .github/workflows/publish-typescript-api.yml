@@ -1,0 +1,30 @@
+name: Publish Typescript API
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: full sha to build the npm package from
+        required: true
+
+jobs:
+  create-tracing-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.sha }}
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      - name: Build typescript API
+        run: |
+          cd typescript-api
+          npm install
+          npm run build
+      - name: Publish typescript API
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: typescript-api/package.json

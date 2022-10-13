@@ -18,12 +18,12 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{
 		Account::{self, Alice, Bob, Charlie, Precompile},
-		ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
+		ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
 	},
 };
-use frame_support::dispatch::Encode;
-use precompile_utils::{solidity, testing::*};
-use sp_core::H256;
+use frame_support::{assert_ok, dispatch::Encode};
+use precompile_utils::{data::Address, solidity, testing::*};
+use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -543,5 +543,69 @@ fn multiple_propose_increase_index() {
 			)
 			.expect_log(log_proposed(Precompile, Bob, 1, proposal_hash, 2))
 			.execute_returns_encoded(1u32);
+	});
+}
+
+#[test]
+fn view_members() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Bob, Precompile, PCall::members {})
+			.expect_no_logs()
+			.execute_returns_encoded(vec![Address(Bob.into()), Address(Charlie.into())]);
+	});
+}
+
+#[test]
+fn view_no_prime() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(Bob, Precompile, PCall::prime {})
+			.expect_no_logs()
+			.execute_returns_encoded(Address(H160::zero()));
+	});
+}
+
+#[test]
+fn view_some_prime() {
+	ExtBuilder::default().build().execute_with(|| {
+		assert_ok!(pallet_collective::Pallet::<
+			Runtime,
+			pallet_collective::Instance1,
+		>::set_members(
+			Origin::root(), vec![Alice, Bob], Some(Alice), 2
+		));
+
+		precompiles()
+			.prepare_test(Bob, Precompile, PCall::prime {})
+			.expect_no_logs()
+			.execute_returns_encoded(Address(Alice.into()));
+	});
+}
+
+#[test]
+fn view_is_member() {
+	ExtBuilder::default().build().execute_with(|| {
+		precompiles()
+			.prepare_test(
+				Bob,
+				Precompile,
+				PCall::is_member {
+					account: Address(Bob.into()),
+				},
+			)
+			.expect_no_logs()
+			.execute_returns_encoded(true);
+
+		precompiles()
+			.prepare_test(
+				Bob,
+				Precompile,
+				PCall::is_member {
+					account: Address(Alice.into()),
+				},
+			)
+			.expect_no_logs()
+			.execute_returns_encoded(false);
 	});
 }

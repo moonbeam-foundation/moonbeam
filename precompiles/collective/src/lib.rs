@@ -24,7 +24,7 @@ use frame_support::{
 	dispatch::Dispatchable,
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, Pays, PostDispatchInfo},
+	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -96,6 +96,7 @@ where
 	Runtime::Call: From<pallet_collective::Call<Runtime, Instance>>,
 	<Runtime as pallet_collective::Config<Instance>>::Proposal: From<Runtime::Call>,
 	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::AccountId: Into<H160>,
 	H256: From<<Runtime as frame_system::Config>::Hash>
 		+ Into<<Runtime as frame_system::Config>::Hash>,
 {
@@ -238,7 +239,7 @@ where
 			pallet_collective::Call::<Runtime, Instance>::close {
 				proposal_hash: proposal_hash.into(),
 				index: proposal_index,
-				proposal_weight_bound,
+				proposal_weight_bound: Weight::from_ref_time(proposal_weight_bound),
 				length_bound,
 			},
 		)?;
@@ -265,6 +266,52 @@ where
 		let hash = hash::<Runtime>(&proposal);
 
 		Ok(hash)
+	}
+
+	#[precompile::public("proposals()")]
+	#[precompile::view]
+	fn proposals(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<H256>> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let proposals = pallet_collective::Pallet::<Runtime, Instance>::proposals();
+		let proposals: Vec<_> = proposals.into_iter().map(|hash| hash.into()).collect();
+
+		Ok(proposals)
+	}
+
+	#[precompile::public("members()")]
+	#[precompile::view]
+	fn members(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Address>> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let members = pallet_collective::Pallet::<Runtime, Instance>::members();
+		let members: Vec<_> = members.into_iter().map(|id| Address(id.into())).collect();
+
+		Ok(members)
+	}
+
+	#[precompile::public("isMember(address)")]
+	#[precompile::view]
+	fn is_member(handle: &mut impl PrecompileHandle, account: Address) -> EvmResult<bool> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let account = Runtime::AddressMapping::into_account_id(account.into());
+
+		let is_member = pallet_collective::Pallet::<Runtime, Instance>::is_member(&account);
+
+		Ok(is_member)
+	}
+
+	#[precompile::public("prime()")]
+	#[precompile::view]
+	fn prime(handle: &mut impl PrecompileHandle) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let prime = pallet_collective::Pallet::<Runtime, Instance>::prime()
+			.map(|prime| prime.into())
+			.unwrap_or(H160::zero());
+
+		Ok(Address(prime))
 	}
 }
 

@@ -25,8 +25,7 @@ use frame_system::EnsureRoot;
 
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
-	traits::{Hash, IdentityLookup},
+	traits::{BlakeTwo256, Hash, IdentityLookup},
 	AccountId32,
 };
 
@@ -46,6 +45,7 @@ use xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{traits::JustTry, Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
@@ -53,21 +53,22 @@ use xcm_simulator::{
 pub type AccountId = AccountId32;
 pub type Balance = u128;
 pub type AssetId = u128;
+pub type BlockNumber = u32;
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 }
 
 impl frame_system::Config for Runtime {
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
-	type BlockNumber = u64;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = ::sp_runtime::traits::BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
@@ -218,7 +219,7 @@ pub type XcmOriginToTransactDispatchOrigin = (
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
-	pub UnitWeightCost: Weight = 100;
+	pub UnitWeightCost: XcmV2Weight = 100;
 	pub const MaxInstructions: u32 = 100;
 }
 
@@ -354,7 +355,7 @@ pub mod mock_msg_queue {
 			sender: ParaId,
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::Call>,
-			max_weight: Weight,
+			max_weight: XcmV2Weight,
 		) -> Result<Weight, XcmError> {
 			let hash = Encode::using_encoded(&xcm, T::Hashing::hash);
 			let (result, event) = match Xcm::<T::Call>::try_from(xcm) {
@@ -362,10 +363,14 @@ pub mod mock_msg_queue {
 					let location = MultiLocation::new(1, Junctions::X1(Parachain(sender.into())));
 					match T::XcmExecutor::execute_xcm(location, xcm, max_weight) {
 						Outcome::Error(e) => (Err(e.clone()), Event::Fail(Some(hash), e)),
-						Outcome::Complete(w) => (Ok(w), Event::Success(Some(hash))),
+						Outcome::Complete(w) => {
+							(Ok(Weight::from_ref_time(w)), Event::Success(Some(hash)))
+						}
 						// As far as the caller is concerned, this was dispatched without error, so
 						// we just report the weight used.
-						Outcome::Incomplete(w, e) => (Ok(w), Event::Fail(Some(hash), e)),
+						Outcome::Incomplete(w, e) => {
+							(Ok(Weight::from_ref_time(w)), Event::Fail(Some(hash), e))
+						}
 					}
 				}
 				Err(()) => (
@@ -391,7 +396,8 @@ pub mod mock_msg_queue {
 				let mut remaining_fragments = &data_ref[..];
 				while !remaining_fragments.is_empty() {
 					if let Ok(xcm) = VersionedXcm::<T::Call>::decode(&mut remaining_fragments) {
-						let _ = Self::handle_xcmp_message(sender, sent_at, xcm, max_weight);
+						let _ =
+							Self::handle_xcmp_message(sender, sent_at, xcm, max_weight.ref_time());
 					} else {
 						debug_assert!(false, "Invalid incoming XCMP message data");
 					}
@@ -418,7 +424,7 @@ pub mod mock_msg_queue {
 						Self::deposit_event(Event::UnsupportedVersion(id));
 					}
 					Ok(Ok(x)) => {
-						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit);
+						let outcome = T::XcmExecutor::execute_xcm(Parent, x, limit.ref_time());
 
 						Self::deposit_event(Event::ExecutedDownward(id, outcome));
 					}

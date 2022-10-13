@@ -166,6 +166,17 @@ pub mod pallet {
 		fn get_units_per_second(asset_type: T::ForeignAssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		fn set_units_per_second(asset_type: T::ForeignAssetType, fee_per_second: u128) {
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+			// Only if the asset is not supported we need to push it
+			if let Err(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.insert(index, asset_type.clone());
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+			}
+			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &fee_per_second);
+		}
 	}
 
 	#[pallet::config]

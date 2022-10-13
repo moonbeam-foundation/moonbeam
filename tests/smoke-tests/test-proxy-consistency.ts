@@ -15,7 +15,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -23,6 +23,7 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
   //             Displays PalletProxyProxyDefinition
   //           Then add the type in the import from "@polkadot/types/lookup"
   const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
+  let proxyAccList = [];
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -69,12 +70,18 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
       }
       count += query.length;
 
+      // let delegates = [];
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const proxyData of query) {
         let accountId = `0x${proxyData[0].toHex().slice(-40)}`;
         last_key = proxyData[0].toString();
         proxiesPerAccount[accountId] = proxyData[1][0].toArray();
+        // proxyData[1][0].forEach((item) => delegates.push(item.delegate.toHuman()));
+        proxyAccList.push(accountId);
       }
+
+      // Remove duplicates
+      // proxyAccList = [...new Set(delegates)];
 
       // Debug logs to make sure it keeps progressing
       // TEMPLATE: Adapt log line
@@ -106,16 +113,18 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
     }
 
     // TEMPLATE: Write nice logging for your test if it fails :)
-    console.log("Failed accounts with too many proxies:");
-    console.log(
-      failedProxies
-        .map(({ accountId, proxiesCount }) => {
-          return `accountId: ${accountId} - ${chalk.red(
-            proxiesCount.toString().padStart(4, " ")
-          )} proxies (expected max: ${maxProxies})`;
-        })
-        .join(`\n`)
-    );
+    if (failedProxies.length > 0) {
+      debug("Failed accounts with too many proxies:");
+      debug(
+        failedProxies
+          .map(({ accountId, proxiesCount }) => {
+            return `accountId: ${accountId} - ${chalk.red(
+              proxiesCount.toString().padStart(4, " ")
+            )} proxies (expected max: ${maxProxies})`;
+          })
+          .join(`\n`)
+      );
+    }
 
     // Make sure the test fails after we print the errors
     // TEMPLATE: Adapt variable & text
@@ -166,6 +175,27 @@ describeSmokeSuite(`Verify number of proxies per account`, { wssUrl, relayWssUrl
 
     // TEMPLATE: Updates the log line
     debug(`Verified maximum allowed proxies constant`);
+  });
+
+  it("should only be possible for proxies of non-smart contract accounts", async function () {
+    this.timeout(60000);
+
+    // For each account with a registered proxy, check whether it is a non-SC address
+    await Promise.all(
+      proxyAccList.map(async (address) => {
+        const resp = await apiAt.query.evm.accountCodes(address);
+        const contract = resp.toJSON() == "0x" ? false : true;
+        // create results array of whether account is contract or not
+        return { address, contract };
+      })
+    ).then((results) => {
+      results.forEach((item) => {
+        // External accounts aka wallet account aka non-contract address
+        if (item.contract)
+          debug(`Proxy account for non-external address detected: ${item.address} `);
+      });
+      expect(results.every((item) => item.contract == false)).to.be.true;
+    });
   });
 });
 
