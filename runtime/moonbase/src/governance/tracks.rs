@@ -23,7 +23,7 @@ const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
 }
 use pallet_referenda::Curve;
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -60,8 +60,14 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			decision_period: 14 * DAYS,
 			confirm_period: 10 * MINUTES,
 			min_enactment_period: 30 * MINUTES,
-			min_approval: Curve::make_reciprocal(1, 14 * 24, percent(96), percent(50), percent(100));
-			min_support: Curve::make_reciprocal(1, 14 * 24, percent(4), percent(2), percent(50));
+			min_approval: Curve::make_reciprocal(
+				1,
+				14 * 24,
+				percent(96),
+				percent(50),
+				percent(100),
+			),
+			min_support: Curve::make_reciprocal(1, 14 * 24, percent(4), percent(2), percent(50)),
 		},
 	),
 	(
@@ -88,8 +94,8 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			decision_period: 14 * DAYS,
 			confirm_period: 3 * HOURS,
 			min_enactment_period: 10 * MINUTES,
-			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100));
-			min_support: Curve::make_reciprocal(1, 14, percent(4), percent(2), percent(50));
+			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(1, 14, percent(4), percent(2), percent(50)),
 		},
 	),
 	(
@@ -102,8 +108,8 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 11
 			decision_period: 28 * DAYS,
 			confirm_period: 3 * HOURS,
 			min_enactment_period: 10 * MINUTES,
-			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100));
-			min_support: Curve::make_reciprocal(1, 14, percent(4), percent(2), percent(50));
+			min_approval: Curve::make_reciprocal(1, 14, percent(96), percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(1, 14, percent(4), percent(2), percent(50)),
 		},
 	),
 	(
@@ -166,12 +172,12 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 		} else if let Ok(custom_origin) = origins::Origin::try_from(id.clone()) {
 			match custom_origin {
 				origins::Origin::WhitelistedCaller => Ok(1),
-				// General admin
+				// Unlimited spender
 				origins::Origin::Treasurer => Ok(10),
 				// Referendum admins
 				origins::Origin::ReferendumCanceller => Ok(11),
 				origins::Origin::ReferendumKiller => Ok(12),
-
+				// Limited spenders
 				origins::Origin::SmallSpender => Ok(13),
 				origins::Origin::MediumSpender => Ok(14),
 				origins::Origin::BigSpender => Ok(15),

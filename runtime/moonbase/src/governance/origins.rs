@@ -18,7 +18,7 @@ pub use pallet_custom_origins::*;
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
 	use crate::{
-		currency::{KILOUNIT, SUPPLY_FACTOR, UNIT},
+		currency::{SUPPLY_FACTOR, UNIT},
 		Balance,
 	};
 	use frame_support::pallet_prelude::*;
@@ -78,12 +78,7 @@ pub mod pallet_custom_origins {
 		};
 		() => {}
 	}
-	decl_unit_ensures!(
-		IdentityAdmin,
-		ReferendumCanceller,
-		ReferendumKiller,
-		WhitelistedCaller,
-	);
+	decl_unit_ensures!(ReferendumCanceller, ReferendumKiller, WhitelistedCaller,);
 
 	macro_rules! decl_ensure {
 		(
