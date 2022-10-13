@@ -98,7 +98,7 @@ describeParachain(
         );
 
         await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag: RUNTIME_VERSION });
-        process.stdout.write("Waiting extra block for storage values to update...");
+        process.stdout.write("Waiting extra block for storage values to update...\n");
         await context.waitBlocks(1);
 
         process.stdout.write(`Checking on-chain runtime version ${localVersion}...`);
