@@ -14,7 +14,20 @@ on:
 jobs:
   ####### Build runtimes with srtool #######
 
+  setup-scripts:
+    runs-on: self-hosted
+    steps:
+      - name: Get Timestamp
+        run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
+      - name: Upload scripts
+        uses: actions/upload-artifact@v3
+          with:
+            name: original-scripts
+            path: scripts
+
   build-srtool-runtimes:
+    needs: ["setup-scripts"]
     runs-on: self-hosted
     strategy:
       matrix:
@@ -27,11 +40,6 @@ jobs:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - uses: actions/checkout@v3
-      - name: Copy scripts
-        run: |
-          ls -la scripts/
-          cp -R scripts /tmp/original-scripts
-      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
@@ -40,6 +48,11 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Download original scripts
+        uses: actions/download-artifact@v3
+        with:
+          name: original-scripts
+          path: original-scripts
       - name: Build & Push purestake/srtool image
         if: github.repository == 'purestake/moonbeam'
         run: |
@@ -63,7 +76,7 @@ jobs:
           GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
-        run: /tmp/original-scripts/build-runtime-srtool.sh
+        run: ./original-scripts/build-runtime-srtool.sh
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
