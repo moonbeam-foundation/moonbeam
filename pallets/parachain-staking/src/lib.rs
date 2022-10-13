@@ -1536,26 +1536,28 @@ pub mod pallet {
 				let current_snapshot = <AtStake<T>>::take(paid_for_round, &collator);
 
 				let delegations = current_snapshot.delegations.unwrap_or_else(|| {
+					log::warn!("no current delegations, scanning for relevant future snapshots...");
 					// now we scan forward for any copies we can use
 					let mut maybe_delegations = None;
 					// TODO: should this be -1 here? I don't think so after review...
 					for round in paid_for_round..<Round<T>>::get().current - 1 {
+						log::warn!("scanning round {}", round);
 						let snapshot = <AtStake<T>>::get(round, &collator);
 						if snapshot.delegations.is_some() {
+							log::warn!("found usable snapshot in round {}", round);
 							maybe_delegations = snapshot.delegations;
 							break;
 						}
 					}
 
 					if let None = maybe_delegations {
+						log::warn!("no future snapshots usable, falling back to current TopDelegations...");
 						// if we found no snapshots with a copy of delegations we can use, it is
 						// because it didn't change the entire time. we can just use the currently
 						// stored TopDelegations.
-						maybe_delegations = Some(
-							<TopDelegations<T>>::get(&collator)
-								.expect("TODO: make sure this can't happen or handle") // TODO
-								.delegations,
-						)
+						let counted_delegations =
+							Pallet::<T>::get_rewardable_delegators(&collator);
+						maybe_delegations = Some(counted_delegations.rewardable_delegations);
 					};
 
 					maybe_delegations.expect("All code paths produce a delegations vec, qed")
@@ -1712,7 +1714,7 @@ pub mod pallet {
 		//         * CountedDelegations loses the rewardable_delegations field
 		//         * CollatorSnapshot's delegations vec is lazily populated when any change to TopDelegations occurs
 		// We may also need to track the number of counted delegators similarly to uncounted_stake.
-		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
+		pub(crate) fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))

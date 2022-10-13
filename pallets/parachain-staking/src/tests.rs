@@ -8515,3 +8515,153 @@ fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators
 			);
 		});
 }
+
+#[test]
+fn test_cow_no_changes_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 20)])
+		.build()
+		.execute_with(|| {
+			// Make no changes and ensure that rewards are properly paid for several blocks.
+			set_author(1, 1, 100);
+			roll_to_round_end(2);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 2,
+						collator_account: 1,
+						total_exposed_amount: 40,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 5,
+						round: 2,
+						selected_collators_number: 1,
+						total_balance: 40,
+					},
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			set_author(2, 1, 100);
+			roll_to_round_end(3);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 3,
+						collator_account: 1,
+						total_exposed_amount: 40,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 10,
+						round: 3,
+						selected_collators_number: 1,
+						total_balance: 40,
+					},
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 1,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"Collator selection and/or round start and/or rewards did not occur properly"
+			);
+
+			// repeat for following rounds...
+			for round in 3..5 {
+
+				set_author(round, 1, 100);
+				roll_to_round_end(round + 1);
+				assert_eq_last_events!(
+					vec![
+						Event::<Test>::CollatorChosen {
+							round: round + 1,
+							collator_account: 1,
+							total_exposed_amount: 40,
+						},
+						Event::<Test>::NewRound {
+							starting_block: round * 5,
+							round: round + 1,
+							selected_collators_number: 1,
+							total_balance: 40,
+						},
+						Event::<Test>::Rewarded {
+							account: 1,
+							rewards: 1,
+						},
+						Event::<Test>::Rewarded {
+							account: 2,
+							rewards: 1,
+						},
+					],
+					"Collator selection and/or round start and/or rewards did not occur properly"
+				);
+			}
+		});
+}
+
+#[test]
+fn test_cow_after_bond_less_scheduled() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20)])
+		.with_candidates(vec![(1, 20)])
+		.with_delegations(vec![(2, 1, 20)])
+		.build()
+		.execute_with(|| {
+			// delegator 2 immediately requests bond less, this is executed in round 1
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
+				Origin::signed(2),
+				1,
+				10
+			));
+
+			// first round should not be affected
+			// we roll to round 3 end which should include initial round payouts
+			set_author(1, 1, 100);
+			roll_to_round_end(3);
+			assert_eq_last_events!(
+				vec![
+					// round 2 should have 40 total bond
+					Event::<Test>::CollatorChosen {
+						round: 2,
+						collator_account: 1,
+						total_exposed_amount: 40,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 5,
+						round: 2,
+						selected_collators_number: 1,
+						total_balance: 40,
+					},
+
+					// round 3 should have 30 (taking the bond less into account)
+					Event::<Test>::CollatorChosen {
+						round: 3,
+						collator_account: 1,
+						total_exposed_amount: 30,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 10,
+						round: 3,
+						selected_collators_number: 1,
+						total_balance: 30,
+					},
+
+					// first round payout should be unaffected, rewards should be equal
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 1,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 1,
+					},
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+		});
+}
