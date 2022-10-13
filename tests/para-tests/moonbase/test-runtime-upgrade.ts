@@ -85,7 +85,10 @@ describeParachain(
         this.timeout(400000);
 
         const currentVersion = await context.polkadotApiParaone.rpc.state.getRuntimeVersion();
-        expect(currentVersion.specVersion.toJSON()).to.equal(Number(baseRuntime));
+        expect(currentVersion.toJSON()).to.include({
+          specVersion: Number(baseRuntime),
+          specName: "moonbase",
+        });
         console.log(
           `Current runtime: ✅ runtime ${currentVersion.specName.toString()} ` +
             `${currentVersion.specVersion.toString()}`
@@ -94,12 +97,22 @@ describeParachain(
         await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag: RUNTIME_VERSION });
 
         expect(
-          (await context.polkadotApiParaone.rpc.state.getRuntimeVersion()).specVersion.toJSON()
-        ).to.equal(Number(localVersion));
+          (await context.polkadotApiParaone.rpc.state.getRuntimeVersion()).toJSON()
+        ).to.include({
+          specVersion: Number(localVersion),
+          specName: "moonbase",
+        });
         process.stdout.write("✅\n");
 
         process.stdout.write("Waiting extra block being produced...");
-        await context.waitBlocks(4); // Make sure the new runtime is producing blocks
+        await context.waitBlocks(1); // Wait 1 block so storage updates
+        expect(
+          (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()).toJSON()
+        ).to.deep.equal({
+          specVersion: Number(localVersion),
+          specName: "moonbase",
+        });
+        await context.waitBlocks(3); // Make sure the new runtime is producing blocks
         process.stdout.write(`✅ total ${context.blockNumber} block produced\n`);
       });
     }
