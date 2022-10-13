@@ -283,6 +283,7 @@
 <span id="283">283</span>
 <span id="284">284</span>
 <span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -523,7 +524,8 @@
 		</span><span class="kw">let </span>current_nonce = <span class="self">Self</span>::nonce();
 		<span class="kw">let </span>error_weight = T::DbWeight::get().reads(<span class="number">1</span>);
 
-		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; = xcm_transaction.into_transaction_v2(current_nonce);
+		<span class="kw">let </span>transaction: <span class="prelude-ty">Option</span>&lt;Transaction&gt; =
+			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(transaction) = transaction {
 			<span class="kw">let </span>transaction_data: TransactionData = (<span class="kw-2">&amp;</span>transaction).into();
 
