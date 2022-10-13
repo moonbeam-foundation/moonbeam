@@ -8607,58 +8607,74 @@ fn test_cow_no_changes_works() {
 #[test]
 fn test_cow_after_bond_less_scheduled() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20)])
-		.with_candidates(vec![(1, 20)])
-		.with_delegations(vec![(2, 1, 20)])
+		.with_balances(vec![(1, 2000), (2, 2000)])
+		.with_candidates(vec![(1, 2000)])
+		.with_delegations(vec![(2, 1, 2000)])
 		.build()
 		.execute_with(|| {
 			// delegator 2 immediately requests bond less, this is executed in round 1
+			assert_eq!(1, ParachainStaking::round().current);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
 				Origin::signed(2),
 				1,
-				10
+				1000
 			));
 
-			// first round should not be affected
-			// we roll to round 3 end which should include initial round payouts
+			// roll through round 2 and look at round change events
 			set_author(1, 1, 100);
-			roll_to_round_end(3);
+			roll_to_round_end(2);
 			assert_eq_last_events!(
 				vec![
-					// round 2 should have 40 total bond
+					Event::<Test>::DelegationDecreaseScheduled {
+						delegator: 2,
+						candidate: 1,
+						amount_to_decrease: 1000,
+						execute_round: 3,
+					},
+
+					// bond still counts towards totals
 					Event::<Test>::CollatorChosen {
 						round: 2,
 						collator_account: 1,
-						total_exposed_amount: 40,
+						total_exposed_amount: 4000,
 					},
 					Event::<Test>::NewRound {
 						starting_block: 5,
 						round: 2,
 						selected_collators_number: 1,
-						total_balance: 40,
+						total_balance: 4000,
 					},
+				],
+				"Round change events incorrect"
+			);
 
-					// round 3 should have 30 (taking the bond less into account)
+			// roll through round 3 and look at payouts
+			set_author(2, 1, 100);
+			roll_to_round_end(3);
+			assert_eq_last_events!(
+				vec![
+					// bond less still should not impact totals (it never will)
 					Event::<Test>::CollatorChosen {
 						round: 3,
 						collator_account: 1,
-						total_exposed_amount: 30,
+						total_exposed_amount: 4000,
 					},
 					Event::<Test>::NewRound {
 						starting_block: 10,
 						round: 3,
 						selected_collators_number: 1,
-						total_balance: 30,
+						total_balance: 4000,
 					},
 
-					// first round payout should be unaffected, rewards should be equal
+					// round 1 payouts should also be unaffected by bond less
+					// (this is because the bond change request occurred in that round)
 					Event::<Test>::Rewarded {
 						account: 1,
-						rewards: 1,
+						rewards: 200,
 					},
 					Event::<Test>::Rewarded {
 						account: 2,
-						rewards: 1,
+						rewards: 160,
 					},
 				],
 				"Collator selection and/or round start did not occur properly"

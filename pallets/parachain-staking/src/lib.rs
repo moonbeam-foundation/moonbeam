@@ -1533,35 +1533,71 @@ pub mod pallet {
 				// This scan can be costly if there are lots of rounds. A potential optimization
 				// would be to store the oldest round at which the collator changed, although this
 				// alone wouldn't outright prevent scans. (TODO: probably just remove this...)
-				let current_snapshot = <AtStake<T>>::take(paid_for_round, &collator);
-
-				let delegations = current_snapshot.delegations.unwrap_or_else(|| {
+				let (delegations, delegation_requests) = {
 					log::warn!("no current delegations, scanning for relevant future snapshots...");
 					// now we scan forward for any copies we can use
 					let mut maybe_delegations = None;
+					let mut maybe_delegation_requests = None;
 					// TODO: should this be -1 here? I don't think so after review...
 					for round in paid_for_round..<Round<T>>::get().current - 1 {
 						log::warn!("scanning round {}", round);
 						let snapshot = <AtStake<T>>::get(round, &collator);
 						if snapshot.delegations.is_some() {
-							log::warn!("found usable snapshot in round {}", round);
+							log::warn!("found usable snapshot delegations in round {}", round);
 							maybe_delegations = snapshot.delegations;
+						}
+						if snapshot.delegation_requests.is_some() {
+							log::warn!("found usable snapshot delegation reqs in round {}", round);
+							maybe_delegation_requests = snapshot.delegation_requests;
+						}
+
+						if maybe_delegations.is_some() && maybe_delegation_requests.is_some() {
 							break;
 						}
 					}
 
+					// if we found no snapshots with a copy of delegations or delegation requests we
+					// can use, it is because it didn't change the entire time. we can just use the
+					// current values instead.
 					if let None = maybe_delegations {
 						log::warn!("no future snapshots usable, falling back to current TopDelegations...");
-						// if we found no snapshots with a copy of delegations we can use, it is
-						// because it didn't change the entire time. we can just use the currently
-						// stored TopDelegations.
 						let counted_delegations =
 							Pallet::<T>::get_rewardable_delegators(&collator);
 						maybe_delegations = Some(counted_delegations.rewardable_delegations);
 					};
+					if let None = maybe_delegation_requests {
+						log::warn!("no future snapshots usable, falling back to current TopDelegations...");
+						let delegation_requests =
+							Pallet::<T>::delegation_scheduled_requests(&collator);
+						maybe_delegation_requests = Some(delegation_requests
+							.into_iter()
+							.map(|request| {
+								Bond {
+									owner: request.delegator,
+									amount: match request.action {
+										DelegationAction::Revoke(amount) => amount,
+										DelegationAction::Decrease(amount) => amount,
+									},
+								}
+							})
+							.collect());
+					}
 
-					maybe_delegations.expect("All code paths produce a delegations vec, qed")
-				});
+					(
+						maybe_delegations.expect("All code paths produce a delegations vec, qed"),
+						maybe_delegation_requests.expect("All code paths produce a req vec, qed"),
+					)
+				};
+
+				// always take the current round
+				let current_snapshot = <AtStake<T>>::take(paid_for_round, &collator);
+
+				// we iterate delegations in any order, but we'll need to quickly look up
+				// specific requests by id in no particular order, so we convert to a BTreeMap
+				let delegation_requests = delegation_requests
+					.into_iter()
+					.map(|bond| (bond.owner, bond.amount))
+					.collect::<BTreeMap<_, _>>();
 
 				// Take the snapshot of block author and delegations
 				let num_delegators = delegations.len();
@@ -1590,7 +1626,13 @@ pub mod pallet {
 						));
 					// pay delegators due portion
 					for Bond { owner, amount } in delegations {
-						let percent = Perbill::from_rational(amount, current_snapshot.total);
+						// reduce the rewardable amount by any pending request
+						let counted_amount = if let Some(reduction) = delegation_requests.get(&owner) {
+							amount.saturating_sub(*reduction)
+						} else {
+							amount
+						};
+						let percent = Perbill::from_rational(counted_amount, current_snapshot.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
 							mint(due, owner.clone());
@@ -1684,6 +1726,7 @@ pub mod pallet {
 				let snapshot = CollatorSnapshot {
 					bond: state.bond,
 					delegations: None,
+					delegation_requests: None,
 					total: total_counted,
 				};
 				<AtStake<T>>::insert(now, account, snapshot);
@@ -1756,6 +1799,70 @@ pub mod pallet {
 				uncounted_stake,
 				rewardable_delegations,
 			}
+		}
+
+		/// Copies a candidate's top delegations for later use in reward payouts if needed. This
+		/// must be called before any change to the top delegations (add, remove, shift, change
+		/// amount, etc.) 
+		///
+		/// Returns whether or not a copy was needed/made.
+		/// 
+		/// TODO: elaborate / de-duplicate
+		/// also, TODO: improve name
+		pub(crate) fn cow_top_delegators_if_needed(candidate: &T::AccountId) -> bool {
+			let now = <Round<T>>::get().current;
+			if now == 0 {
+				return false;
+			}
+
+			let mut snapshot = <AtStake<T>>::get(now - 1, &candidate.clone());
+			if snapshot.delegations.is_none() {
+				// TODO: optimize by letting caller pass in values
+				let counted_delegations = Pallet::<T>::get_rewardable_delegators(&candidate.clone());
+				snapshot.delegations = Some(counted_delegations.rewardable_delegations);
+				<AtStake<T>>::insert(now, &candidate.clone(), snapshot);
+
+				return true;
+			}
+			false
+		}
+
+		/// Copies a candidate's delegation requests for later use in reward payouts if needed. This
+		/// must be called before any change to the requests (executing, cancelling, adding).
+		///
+		/// Returns whether or not a copy was needed/made.
+		/// 
+		/// TODO: elaborate / de-duplicate
+		/// also, TODO: improve name
+		pub(crate) fn cow_delegation_requests_if_needed(candidate: &T::AccountId) -> bool {
+			let now = <Round<T>>::get().current;
+			if now == 0 {
+				return false;
+			}
+
+			let mut snapshot = <AtStake<T>>::get(now - 1, &candidate.clone());
+			if snapshot.delegation_requests.is_none() {
+
+				// TODO: optimize by letting caller pass this in
+				let requests = <DelegationScheduledRequests<T>>::get(&candidate.clone());
+				snapshot.delegation_requests = Some(
+					requests
+					.into_iter()
+					.map(|request| {
+						Bond {
+							owner: request.delegator,
+							amount: match request.action {
+								DelegationAction::Revoke(amount) => amount,
+								DelegationAction::Decrease(amount) => amount,
+							},
+						}
+					})
+					.collect());
+				<AtStake<T>>::insert(now, &candidate.clone(), snapshot);
+
+				return true;
+			}
+			false
 		}
 	}
 

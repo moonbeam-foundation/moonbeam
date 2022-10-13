@@ -114,6 +114,10 @@ pub struct CollatorSnapshot<AccountId, Balance> {
 	/// changed and were copied before they were modified.
 	pub delegations: Option<Vec<Bond<AccountId, Balance>>>,
 
+	/// The delegation requests which impact this snapshot. Like the optional delegations, this is
+	/// lazily populated as needed. Not sorted.
+	pub delegation_requests: Option<Vec<Bond<AccountId, Balance>>>,
+
 	/// The total counted value locked for the collator, including the self bond + total staked by
 	/// top delegators.
 	pub total: Balance,
@@ -155,6 +159,7 @@ impl<A, B: Default> Default for CollatorSnapshot<A, B> {
 		CollatorSnapshot {
 			bond: B::default(),
 			delegations: None,
+			delegation_requests: None,
 			total: B::default(),
 		}
 	}
@@ -1230,6 +1235,7 @@ impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B>
 			bond: other.bond,
 			// TODO: this is vague now, how is this From used? can we remove?
 			delegations: None,
+			delegation_requests: None,
 			total: other.total_counted,
 		}
 	}

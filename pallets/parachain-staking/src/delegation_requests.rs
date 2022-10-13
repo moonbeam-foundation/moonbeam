@@ -150,29 +150,9 @@ impl<T: Config> Pallet<T> {
 			<Error<T>>::DelegatorBondBelowMin
 		);
 
+		Pallet::<T>::cow_delegation_requests_if_needed(&collator);
+
 		let now = <Round<T>>::get().current;
-
-		// copy over top delegations if needed
-		if now > 0 {
-			// TODO: and also round length > 0?
-			log::warn!("delegation_schedule_bond_decrease() maybe copying delegation data...");
-			let mut snapshot = <AtStake<T>>::get(now, &collator.clone());
-
-			if snapshot.delegations.is_none() {
-				log::warn!("copy required");
-				/*
-				let top_delegations = <TopDelegations<T>>::get(collator.clone())
-					.ok_or(<Error<T>>::CandidateDNE)?;
-				// TODO: this doesn't properly reduce delegations by pending delegation changes )=
-				snapshot.delegations = Some(top_delegations.delegations);
-				*/
-
-				let counted_delegations = Pallet::<T>::get_rewardable_delegators(&collator.clone());
-				snapshot.delegations = Some(counted_delegations.rewardable_delegations);
-				<AtStake<T>>::insert(now, &collator.clone(), snapshot);
-			}
-		}
-
 		let when = now.saturating_add(T::RevokeDelegationDelay::get());
 		scheduled_requests.push(ScheduledRequest {
 			delegator: delegator.clone(),
@@ -182,7 +162,6 @@ impl<T: Config> Pallet<T> {
 		state.less_total = state.less_total.saturating_add(decrease_amount);
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
-		// here we would need to also modify collator state to increase the uncounted_stake
 
 		Self::deposit_event(Event::DelegationDecreaseScheduled {
 			delegator,
