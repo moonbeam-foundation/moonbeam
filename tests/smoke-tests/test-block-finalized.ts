@@ -1,8 +1,8 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { expect } from "chai";
-import { checkBlockFinalized, getBlockTime } from "../util/block";
+import { checkBlockFinalized, getBlockTime, fetchHistoricBlockNum } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import pLimit from "p-limit";
+import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:block-finalized");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
@@ -20,7 +20,7 @@ describeSmokeSuite(
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
     });
 
-    // TODO: Coordinate with Ops to make sure ETH RPC url is propagated before enabling this test
+    // TODO: Coordinate with Ops to make sure ETH RPC url is propagated
     it("should have a recently finalized eth block", async function () {
       const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
       if (specVersion < 1900) {
@@ -33,51 +33,42 @@ describeSmokeSuite(
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
     });
 
-    it("should have only finalized blocks in the past two hours.", async function () {
+    it("should have only finalized blocks in the past two hours", async function () {
       this.slow(10000);
+      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
+        await context.polkadotApi.rpc.chain.getFinalizedHead()
+      );
 
-      const finalHash = await context.polkadotApi.rpc.chain.getFinalizedHead();
-      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(finalHash);
       const lastBlockNumber = signedBlock.block.header.number.toNumber();
       const lastBlockTime = getBlockTime(signedBlock);
-      const limit = pLimit(5);
+      const limiter = new Bottleneck({ maxConcurrent: 5 });
 
       // Target time here is set to be 2 hours, possible parameterize this in future
       const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
+      debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
 
-      const fetchBlockTime = async (blockNum) => {
-        const hash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
-        const block = await context.polkadotApi.rpc.chain.getBlock(hash);
-        return getBlockTime(block);
-      };
-
-      const fetchHistoricBlockNum = async (blockNumber, targetTime) => {
-        return fetchBlockTime(blockNumber).then(async (time) => {
-          if (time < targetTime) {
-            return blockNumber;
-          } else {
-            return fetchHistoricBlockNum(
-              (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
-              targetTime
-            );
-          }
-        });
-      };
-
-      const firstBlockNumber = await fetchHistoricBlockNum(lastBlockNumber, firstBlockTime);
+      const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
+        context.polkadotApi,
+        lastBlockNumber,
+        firstBlockTime
+      )) as number;
 
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
       const promises = (() => {
         const length = lastBlockNumber - firstBlockNumber;
         return Array.from({ length }, (_, i) => firstBlockNumber + i);
-      })().map((num) => limit(() => checkBlockFinalized(context.polkadotApi, num)));
+      })().map((num) => limiter.schedule(() => checkBlockFinalized(context.polkadotApi, num)));
 
       const results = await Promise.all(promises);
-      results.forEach((item) => {
-        if (!item.finalized) debug(`Historic block #${item.number} is unfinalized!`);
-      });
-      expect(results.every((item) => item.finalized)).to.be.true;
+
+      const unfinalizedBlocks = results.filter((item) => !item.finalized);
+      expect(
+        unfinalizedBlocks,
+        `The following blocks were not finalized ${unfinalizedBlocks
+          .map((a) => a.number)
+          .join(", ")}`
+      ).to.be.empty;
     });
   }
 );

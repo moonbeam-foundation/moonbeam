@@ -349,10 +349,10 @@ export async function jumpRounds(context: DevTestContext, count: Number): Promis
   return jumpToRound(context, round);
 }
 
-export const getBlockTime = (signedBlock: any) => {
-  const item = signedBlock.block.extrinsics.find((item) => item.method.section == "timestamp");
-  return item.method.args[0].toNumber();
-};
+export const getBlockTime = (signedBlock: any) =>
+  signedBlock.block.extrinsics
+    .find((item) => item.method.section == "timestamp")
+    .method.args[0].toNumber();
 
 export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
   return {
@@ -360,4 +360,28 @@ export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
     finalized: (await api.rpc.moon.isBlockFinalized(await api.rpc.chain.getBlockHash(number)))
       .isTrue,
   };
+};
+
+const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
+  const hash = await api.rpc.chain.getBlockHash(blockNum);
+  const block = await api.rpc.chain.getBlock(hash);
+  return getBlockTime(block);
+};
+
+export const fetchHistoricBlockNum = async (
+  api: ApiPromise,
+  blockNumber: number,
+  targetTime: number
+) => {
+  return fetchBlockTime(api, blockNumber).then((time) => {
+    if (time < targetTime) {
+      return blockNumber;
+    } else {
+      return fetchHistoricBlockNum(
+        api,
+        (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
+        targetTime
+      );
+    }
+  });
 };
