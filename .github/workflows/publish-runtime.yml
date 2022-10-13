@@ -27,7 +27,7 @@ jobs:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
       - name: Copy scripts
-        run: cp -R scripts original-scripts
+        run: cp -R scripts /tmp/original-scripts
       - uses: actions/checkout@v2
         with:
           ref: ${{ github.event.inputs.to }}
@@ -60,7 +60,7 @@ jobs:
           GH_WORKFLOW_MATRIX_CHAIN: ${{ matrix.chain }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE: ${{ matrix.srtool_image }}
           GH_WORKFLOW_MATRIX_SRTOOL_IMAGE_TAG: ${{ matrix.srtool_image_tag }}
-        run: ./original-scripts/build-runtime-srtool.sh
+        run: /tmp/original-scripts/build-runtime-srtool.sh
       - name: Summary
         run: |
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.chain }}-srtool-digest.json
