@@ -26,11 +26,12 @@ jobs:
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
+      - uses: actions/checkout@v3
       - name: Copy scripts
         run: |
           ls -la scripts/
           cp -R scripts /tmp/original-scripts
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           ref: ${{ github.event.inputs.to }}
       - name: Login to DockerHub
