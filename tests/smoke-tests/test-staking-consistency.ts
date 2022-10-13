@@ -3,11 +3,11 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { AccountId20 } from "@polkadot/types/interfaces/runtime";
 import { StorageKey, Option } from "@polkadot/types";
 import type {
-  ParachainStakingDelegator,
-  ParachainStakingDelegations,
-  ParachainStakingCandidateMetadata,
-  ParachainStakingBond,
-  ParachainStakingSetOrderedSetBond,
+  PalletParachainStakingDelegator,
+  PalletParachainStakingDelegations,
+  PalletParachainStakingCandidateMetadata,
+  PalletParachainStakingBond,
+  PalletParachainStakingSetOrderedSet,
 } from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -21,14 +21,17 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
   let maxTopDelegationsPerCandidate: number = 0;
-  let allCandidateInfo: [StorageKey<[AccountId20]>, Option<ParachainStakingCandidateMetadata>][];
-  let candidatePool: ParachainStakingSetOrderedSetBond;
-  let allDelegatorState: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegator>][];
-  let allTopDelegations: [StorageKey<[AccountId20]>, Option<ParachainStakingDelegations>][];
+  let allCandidateInfo: [
+    StorageKey<[AccountId20]>,
+    Option<PalletParachainStakingCandidateMetadata>
+  ][];
+  let candidatePool: PalletParachainStakingSetOrderedSet;
+  let allDelegatorState: [StorageKey<[AccountId20]>, Option<PalletParachainStakingDelegator>][];
+  let allTopDelegations: [StorageKey<[AccountId20]>, Option<PalletParachainStakingDelegations>][];
   let delegatorsPerCandidates: {
     [index: string]: {
       delegator: string;
-      delegation: ParachainStakingBond;
+      delegation: PalletParachainStakingBond;
     }[];
   };
   let blocksPerRound: number;
@@ -69,7 +72,7 @@ describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (conte
       {} as {
         [key: `0x${string}`]: {
           delegator: `0x${string}`;
-          delegation: ParachainStakingBond;
+          delegation: PalletParachainStakingBond;
         }[];
       }
     );
