@@ -193,7 +193,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         {
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+            requireWeightAtMost: new BN(525_000_000).add(new BN(100_000_000)), // 21_000 gas limit
             call: {
               encoded: transferCallEncoded,
             },
@@ -255,7 +255,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         {
           Transact: {
             originType: "SovereignAccount",
-            requireWeightAtMost: new BN(525_000_000), // 21_000 gas limit
+            requireWeightAtMost: new BN(525_000_000).add(new BN(25_000_000)), // 21_000 gas limit
             call: {
               encoded: transferCallEncoded,
             },
@@ -275,7 +275,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
         data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("execute", [
           receivedMessage.toU8a(),
-          2_000_000_000
+          4_000_000_000
         ]),
       })
     );
