@@ -34,7 +34,7 @@ describeSmokeSuite(
     });
 
     it("should have only finalized blocks in the past two hours", async function () {
-      this.slow(10000);
+      this.timeout(120000);
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
         await context.polkadotApi.rpc.chain.getFinalizedHead()
       );
