@@ -13,14 +13,16 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::mock::*;
-use crate::Action;
+use crate::mock::{
+	sent_xcm, Balances, ExtBuilder, PCall, PrecompilesValue, Runtime, System,
+	TestAccount::{self, *},
+	TestPrecompiles,
+};
 
 use codec::Encode;
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::H160;
-use xcm::latest::prelude::*;
-use xcm::VersionedXcm;
+use sp_core::{H160, U256};
+use xcm::prelude::*;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
 	PrecompilesValue::get()
@@ -28,15 +30,15 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 
 #[test]
 fn test_selector_enum() {
-	assert_eq!(Action::MultiLocationToAddress as u32, 0x343b3e00);
+	assert!(PCall::multilocation_to_address_selectors().contains(&0x343b3e00));
 }
 
 #[test]
 fn test_get_account_parent() {
 	ExtBuilder::default().build().execute_with(|| {
-		let input = EvmDataWriter::new_with_selector(Action::MultiLocationToAddress)
-			.write(MultiLocation::parent())
-			.build();
+		let input = PCall::multilocation_to_address {
+			multilocation: MultiLocation::parent(),
+		};
 
 		let expected_address: H160 = TestAccount::Parent.into();
 
@@ -55,12 +57,12 @@ fn test_get_account_parent() {
 #[test]
 fn test_get_account_sibling() {
 	ExtBuilder::default().build().execute_with(|| {
-		let input = EvmDataWriter::new_with_selector(Action::MultiLocationToAddress)
-			.write(MultiLocation {
+		let input = PCall::multilocation_to_address {
+			multilocation: MultiLocation {
 				parents: 1,
 				interior: Junctions::X1(Junction::Parachain(2000u32)),
-			})
-			.build();
+			},
+		};
 
 		let expected_address: H160 = TestAccount::SiblingParachain(2000u32).into();
 
@@ -79,18 +81,35 @@ fn test_get_account_sibling() {
 #[test]
 fn test_executor_clear_origin() {
 	ExtBuilder::default().build().execute_with(|| {
-		let xcm_to_execute = Bytes(VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode());
+		let xcm_to_execute = VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
 
-		let input = EvmDataWriter::new_with_selector(Action::XcmExecute)
-			.write(xcm_to_execute)
-			.write(10000u64)
-			.build();
+		let input = PCall::xcm_execute {
+			message: xcm_to_execute.into(),
+			weight: 10000u64,
+		};
 
 		precompiles()
 			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
 			.expect_cost(100001000)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
+	})
+}
+
+#[test]
+fn test_weight_message() {
+	ExtBuilder::default().build().execute_with(|| {
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = PCall::weight_message {
+			message: message.into(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(0)
+			.expect_no_logs()
+			.execute_returns_encoded(1000u64);
 	});
 }
 
@@ -98,22 +117,20 @@ fn test_executor_clear_origin() {
 fn test_executor_send() {
 	ExtBuilder::default().build().execute_with(|| {
 		let withdrawn_asset: MultiAsset = (MultiLocation::parent(), 1u128).into();
-		let xcm_to_execute = Bytes(
-			VersionedXcm::<()>::V2(Xcm(vec![
-				WithdrawAsset(vec![withdrawn_asset].into()),
-				InitiateReserveWithdraw {
-					assets: MultiAssetFilter::Wild(All),
-					reserve: MultiLocation::parent(),
-					xcm: Xcm(vec![]),
-				},
-			]))
-			.encode(),
-		);
+		let xcm_to_execute = VersionedXcm::<()>::V2(Xcm(vec![
+			WithdrawAsset(vec![withdrawn_asset].into()),
+			InitiateReserveWithdraw {
+				assets: MultiAssetFilter::Wild(All),
+				reserve: MultiLocation::parent(),
+				xcm: Xcm(vec![]),
+			},
+		]))
+		.encode();
 
-		let input = EvmDataWriter::new_with_selector(Action::XcmExecute)
-			.write(xcm_to_execute)
-			.write(10000u64)
-			.build();
+		let input = PCall::xcm_execute {
+			message: xcm_to_execute.into(),
+			weight: 10000u64,
+		};
 
 		precompiles()
 			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
@@ -148,19 +165,17 @@ fn test_executor_transact() {
 			}
 			.encode();
 			encoded.append(&mut call_bytes);
-			let xcm_to_execute = Bytes(
-				VersionedXcm::<()>::V2(Xcm(vec![Transact {
-					origin_type: OriginKind::SovereignAccount,
-					require_weight_at_most: 1_000_000_000u64,
-					call: encoded.into(),
-				}]))
-				.encode(),
-			);
+			let xcm_to_execute = VersionedXcm::<()>::V2(Xcm(vec![Transact {
+				origin_type: OriginKind::SovereignAccount,
+				require_weight_at_most: 1_000_000_000u64,
+				call: encoded.into(),
+			}]))
+			.encode();
 
-			let input = EvmDataWriter::new_with_selector(Action::XcmExecute)
-				.write(xcm_to_execute)
-				.write(2000000000u64)
-				.build();
+			let input = PCall::xcm_execute {
+				message: xcm_to_execute.into(),
+				weight: 2000000000u64,
+			};
 
 			precompiles()
 				.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
@@ -171,6 +186,21 @@ fn test_executor_transact() {
 			// Transact executed
 			assert_eq!(System::account(TestAccount::Bob).data.free, 100);
 		});
+}
+
+#[test]
+fn test_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let input = PCall::get_units_per_second {
+			multilocation: MultiLocation::parent(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(1)
+			.expect_no_logs()
+			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
+	});
 }
 
 #[test]
@@ -186,7 +216,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,

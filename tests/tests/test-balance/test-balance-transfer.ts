@@ -33,6 +33,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
 describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
+    await context.createBlock();
     await customWeb3Request(context.web3, "eth_sendRawTransaction", [
       await createTransfer(context, randomAccount.address, 512),
     ]);
@@ -45,14 +46,14 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
 
   it("should decrease from account", async function () {
     // 21000 covers the cost of the transaction
-    expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
+    expect(await context.web3.eth.getBalance(alith.address, 2)).to.equal(
       (ALITH_GENESIS_TRANSFERABLE_BALANCE - 512n - 21000n * 1_000_000_000n).toString()
     );
   });
 
   it("should increase to account", async function () {
-    expect(await context.web3.eth.getBalance(randomAccount.address, 0)).to.equal("0");
-    expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal("512");
+    expect(await context.web3.eth.getBalance(randomAccount.address, 1)).to.equal("0");
+    expect(await context.web3.eth.getBalance(randomAccount.address, 2)).to.equal("512");
   });
 
   it("should reflect balance identically on polkadot/web3", async function () {
@@ -85,7 +86,6 @@ describeDevMoonbeam("Balance transfer - Multiple transfers", (context) => {
       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 2 }),
       createTransfer(context, baltathar.address, 10n ** 18n, { nonce: 3 }),
     ]);
-    console.log(result);
     expect(result.filter((r) => r.successful)).to.be.length(4);
   });
 });

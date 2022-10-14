@@ -288,7 +288,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 2 * db_weights.read;
+		let mut weight: Weight = db_weights.reads(2);
 		// BaseFeePerGas storage value
 		{
 			let item: &[u8] = b"BaseFeePerGas";
@@ -565,6 +565,88 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	}
 }
 
+/// BaseFee pallet, set Elasticity to zero.
+/// This migration needs to be applied before or at the same time we introduce:
+/// https://github.com/paritytech/frontier/pull/794
+pub struct BaseFeeElasticity<T>(PhantomData<T>);
+impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeeElasticity<T> {
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		let module: &[u8] = b"BaseFee";
+		// Elasticity storage value
+		{
+			let item: &[u8] = b"Elasticity";
+			let value = get_storage_value::<Permill>(module, item, &[]).unwrap_or(Permill::zero());
+			Self::set_temp_storage(value, "elasticity_pre_upgrade");
+		}
+
+		Ok(())
+	}
+
+	fn on_runtime_upgrade() -> Weight {
+		let module: &[u8] = b"BaseFee";
+		let db_weights = T::DbWeight::get();
+		let mut weight: Weight = db_weights.reads(1);
+		// Elasticity storage value
+		{
+			let item: &[u8] = b"Elasticity";
+			let current_value =
+				get_storage_value::<Permill>(module, item, &[]).unwrap_or(Permill::zero());
+			if !current_value.is_zero() {
+				// Set Elasticity to zero, which results in constant BaseFeePerGas
+				let write = pallet_base_fee::Pallet::<T>::set_elasticity_inner(Permill::zero());
+				weight = weight.saturating_add(write);
+			}
+		}
+		weight
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		let pre_value =
+			Self::get_temp_storage::<Permill>("elasticity_pre_upgrade").unwrap_or(Permill::zero());
+		if !pre_value.is_zero() {
+			// Verify the storage after the upgrade is Permill::zero
+			let module: &[u8] = b"BaseFee";
+			// Elasticity storage value
+			{
+				let item: &[u8] = b"Elasticity";
+				let value = get_storage_value::<Permill>(module, item, &[]);
+				assert_eq!(value, Some(Permill::zero()));
+			}
+		}
+
+		Ok(())
+	}
+}
+
+pub struct MigrateBaseFeeElasticity<T>(PhantomData<T>);
+// This is not strictly a migration, just an `on_runtime_upgrade` alternative to open a democracy
+// proposal to set this values through an extrinsic.
+impl<T: BaseFeeConfig> Migration for MigrateBaseFeeElasticity<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Base_Fee_Elasticity"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		BaseFeeElasticity::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		BaseFeeElasticity::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		BaseFeeElasticity::<T>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -628,6 +710,8 @@ where
 
 		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
+		let migration_elasticity = MigrateBaseFeeElasticity::<Runtime>(Default::default());
+
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -665,6 +749,7 @@ where
 			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
+			Box::new(migration_elasticity),
 		]
 	}
 }

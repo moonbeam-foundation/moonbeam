@@ -84,8 +84,8 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
       batchSomeUntilFailureResult.result
     );
 
-    expect(batchAllReceipt["gasUsed"]).to.equal(43932);
-    expect(batchSomeReceipt["gasUsed"]).to.equal(43932);
-    expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(43932);
+    expect(batchAllReceipt["gasUsed"]).to.equal(44932);
+    expect(batchSomeReceipt["gasUsed"]).to.equal(44932);
+    expect(batchSomeUntilFailureReceipt["gasUsed"]).to.equal(44932);
   });
 });

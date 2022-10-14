@@ -181,6 +181,7 @@ benchmarks! {
 	}
 
 	prepare_fulfillment {
+		let x in 1..T::MaxRandomWords::get().into();
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();
 		fund_user::<T>(H160::default(), more);
 		let result = Pallet::<T>::request_randomness(Request {
@@ -188,7 +189,7 @@ benchmarks! {
 			contract_address: H160::default(),
 			fee: BalanceOf::<T>::zero(),
 			gas_limit: 100u64,
-			num_words: 100u8,
+			num_words: x as u8,
 			salt: H256::default(),
 			info: RequestType::Local(10u32.into())
 		});
@@ -197,10 +198,11 @@ benchmarks! {
 		RandomnessResults::<T>::insert(RequestType::Local(10u32.into()), result);
 		frame_system::Pallet::<T>::set_block_number(10u32.into());
 	}: {
-		let result = Pallet::<T>::prepare_fulfillment(0u64);
-		assert!(result.is_ok(), "Prepare Fulfillment Failed");
+		let fulfillment_args = Pallet::<T>::prepare_fulfillment(0u64);
+		assert!(fulfillment_args.is_ok(), "Prepare Fulfillment Failed");
+		assert_eq!(fulfillment_args.unwrap().randomness.len(), x as usize);
 	}
-	verify { }
+	verify {}
 
 	finish_fulfillment {
 		let more = <<T as Config>::Deposit as Get<BalanceOf<T>>>::get();

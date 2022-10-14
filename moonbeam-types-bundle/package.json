@@ -1,6 +1,6 @@
 {
   "name": "moonbeam-types-bundle",
-  "version": "2.0.7",
+  "version": "2.0.9",
   "description": "Bundled types to instantiate the Polkadot JS api with a Moonbeam network",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
     "url": "git+https://github.com/PureStake/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "^8.8.2",
+    "@polkadot/api": "^9.4.2",
     "typescript": "^4.7.4"
   },
   "devDependencies": {

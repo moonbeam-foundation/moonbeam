@@ -6,6 +6,8 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { expectOk } from "../../util/expect";
+import { XcmFragment, weightMessage } from "../../util/xcm";
+import { GLMR } from "../../util/constants";
 
 describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
   it("Should test DMP on_initialization and on_idle", async function () {
@@ -14,7 +16,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
       (pallet) => pallet.name === "Balances"
     ).index;
 
-    let numMsgs = 50;
+    const numMsgs = 50;
     // let's target half of then being executed
 
     // xcmp reserved is BLOCK/4
@@ -24,61 +26,55 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // we want half of numParaMsgs to be executed. That give us how much each message weights
     const weightPerMessage = (totalDmpWeight * BigInt(2)) / BigInt(numMsgs);
 
-    const weightPerXcmInst = 100_000_000n;
     // Now we need to construct the message. This needs to:
-    // - pass barrier (withdraw + clearOrigin*n buyExecution)
-    // - fail in buyExecution, so that the previous instruction weights are counted
+    // - pass barrier (withdraw + buyExecution + unlimited buyExecution*n)
     // we know at least 2 instructions are needed per message (withdrawAsset + buyExecution)
-    // how many clearOrigins do we need to append?
+    // how many unlimited buyExecutions do we need to append?
 
     // we will bias this number. The reason is we want to test the decay, and therefore we need
     // an unbalanced number of messages executed. We specifically need that at some point
     // we get out of the loop of the execution (we reach the threshold limit), to then
     // go on idle
 
-    // for that reason, we multiply times 2
-    const clearOriginsPerMessage = (weightPerMessage - weightPerXcmInst * 2n) / weightPerXcmInst;
-
-    const instructions = [
-      {
-        WithdrawAsset: [
+    const config = {
+      fees: {
+        multilocation: [
           {
-            id: {
-              Concrete: {
-                parents: 0,
-                interior: {
-                  X1: { PalletInstance: balancesPalletIndex },
-                },
-              },
+            parents: 0,
+            interior: {
+              X1: { PalletInstance: balancesPalletIndex },
             },
-            fun: { Fungible: 1 },
           },
         ],
+        fungible: 1_000_000_000_000_000n,
       },
-      ...Array(Number(clearOriginsPerMessage)).fill({
-        ClearOrigin: null,
-      }),
-      {
-        BuyExecution: {
-          fees: {
-            id: {
-              Concrete: {
-                parents: 0,
-                interior: {
-                  X1: { PalletInstance: balancesPalletIndex },
-                },
-              },
-            },
-            fun: { Fungible: 1 },
-          },
-          weightLimit: { Limited: new BN(20000000000) },
-        },
-      },
-    ];
-
-    const xcmMessage = {
-      V2: instructions,
     };
+
+    // How much does the withdraw weight?
+    const withdrawWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).withdraw_asset().as_v2()
+      )
+    );
+
+    // How much does the buyExecution weight?
+    const buyExecutionWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config).buy_execution().as_v2()
+      )
+    );
+
+    const unlimitedBuyExecutionsPerMessage =
+      (weightPerMessage - withdrawWeight) / buyExecutionWeight;
+
+    const xcmMessage = new XcmFragment(config)
+      .withdraw_asset()
+      .buy_execution(0, unlimitedBuyExecutionsPerMessage)
+      .as_v2();
 
     const receivedMessage: XcmVersionedXcm = context.polkadotApi.createType(
       "XcmVersionedXcm",
@@ -97,7 +93,7 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
     // We first fund the parent sovereign account with 1000
     // we will only withdraw 1, so no problem on this
     await expectOk(
-      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1000n))
+      context.createBlock(context.polkadotApi.tx.balances.transfer(sovereignAddress, 1n * GLMR))
     );
 
     // now we start injecting messages
@@ -130,14 +126,14 @@ describeDevMoonbeam("Mock XCMP - test XCMP execution", (context) => {
 
     // OnInitialization
     eventsExecutedOnInitialization.forEach((e) => {
-      if (e.toString().includes("tooExpensive")) {
+      if (e.toString().includes("ExecutedDownward.")) {
         executedOnInitialization += 1;
       }
     });
 
     // OnIdle
     eventsExecutedOnIdle.forEach((e) => {
-      if (e.toString().includes("tooExpensive")) {
+      if (e.toString().includes("ExecutedDownward")) {
         executedOnIdle += 1;
       }
     });

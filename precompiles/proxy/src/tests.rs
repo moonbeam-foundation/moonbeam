@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	mock::{
-		Account::{Alice, Bob, Charlie, Precompile},
-		Call, Event, ExtBuilder, Origin, PrecompilesValue, ProxyType, Runtime,
-	},
-	Action,
+use crate::mock::{
+	Account::{Alice, Bob, Charlie, Precompile},
+	Call, Event, ExtBuilder, Origin, PCall, PrecompilesValue, ProxyType, Runtime,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
@@ -29,7 +26,7 @@ use pallet_proxy::{
 use precompile_utils::{
 	assert_event_emitted, assert_event_not_emitted, prelude::*, solidity, testing::*,
 };
-use sp_core::H160;
+use sp_core::{H160, U256};
 use std::str::from_utf8;
 
 #[test]
@@ -51,10 +48,10 @@ fn test_unimplemented_selector_reverts() {
 }
 
 #[test]
-fn test_selectors_match_with_actions() {
-	assert_eq!(Action::AddProxy as u32, 0x74a34dd3);
-	assert_eq!(Action::RemoveProxy as u32, 0xfef3f708);
-	assert_eq!(Action::RemoveProxies as u32, 0x14a5b5fa);
+fn selectors() {
+	assert!(PCall::add_proxy_selectors().contains(&0x74a34dd3));
+	assert!(PCall::remove_proxy_selectors().contains(&0xfef3f708));
+	assert!(PCall::remove_proxies_selectors().contains(&0x14a5b5fa));
 }
 
 #[test]
@@ -63,16 +60,15 @@ fn test_add_proxy_fails_if_invalid_value_for_proxy_type() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(10u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: 10,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|o| o == b"proxyType: Failed decoding value to ProxyType");
 		})
@@ -87,20 +83,19 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
@@ -115,20 +110,19 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Nothing as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Nothing as u8,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
@@ -143,20 +137,19 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Any as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Any as u8,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|o| o == b"Cannot add more than one proxy");
 		})
@@ -168,16 +161,15 @@ fn test_add_proxy_succeeds() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::AddProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(1)
-						.build(),
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
 				)
 				.execute_returns(vec![]);
 			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
@@ -208,20 +200,19 @@ fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(10u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::remove_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: 10,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|o| o == b"proxyType: Failed decoding value to ProxyType");
 		})
@@ -233,16 +224,15 @@ fn test_remove_proxy_fails_if_proxy_not_exist() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::remove_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 0,
+					},
 				)
 				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotFound"));
 		})
@@ -257,20 +247,19 @@ fn test_remove_proxy_succeeds() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveProxy)
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::remove_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 0,
+					},
 				)
 				.execute_returns(vec![]);
 			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyRemoved {
@@ -294,22 +283,18 @@ fn test_remove_proxies_succeeds() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Charlie,
 				proxy_type: ProxyType::Any,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
 			PrecompilesValue::get()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveProxies).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::remove_proxies {})
 				.execute_returns(vec![]);
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
@@ -324,11 +309,7 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveProxies).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::remove_proxies {})
 				.execute_returns(vec![]);
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
@@ -342,20 +323,18 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			let bob: H160 = Bob.into();
-			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsProxy)
-						.write::<Address>(alice.into())
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 0,
+					},
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -368,24 +347,22 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
-			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsProxy)
-						.write::<Address>(alice.into())
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Any as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Any as u8,
+						delay: 0,
+					},
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -398,24 +375,22 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 1u64,
+				delay: 1,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
-			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsProxy)
-						.write::<Address>(alice.into())
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Any as u8)
-						.write::<u32>(0)
-						.build(),
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Any as u8,
+						delay: 0,
+					},
 				)
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 		})
 }
 
@@ -428,24 +403,22 @@ fn test_is_proxy_returns_true_if_proxy() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 1u64,
+				delay: 1,
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let bob: H160 = Bob.into();
-			let alice: H160 = Alice.into();
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsProxy)
-						.write::<Address>(alice.into())
-						.write::<Address>(bob.into())
-						.write::<u8>(ProxyType::Something as u8)
-						.write::<u32>(1)
-						.build(),
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
 				)
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 
@@ -462,7 +435,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if Action::try_from(selector).is_err() {
+			if !PCall::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -474,8 +447,6 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 	}
 }
 
-use sp_core::U256;
-
 #[test]
 fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 	ExtBuilder::default()
@@ -486,17 +457,17 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
-				delay: 0u64,
+				delay: 0,
 			})
 			.dispatch(Origin::signed(Alice)));
 
 			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::Any
-			let bob: H160 = Bob.into();
-			let add_proxy_precompile = EvmDataWriter::new_with_selector(Action::AddProxy)
-				.write::<Address>(bob.into())
-				.write::<u8>(ProxyType::Any as u8)
-				.write::<u32>(0)
-				.build();
+			let add_proxy_precompile = PCall::add_proxy {
+				delegate: Address(Bob.into()),
+				proxy_type: ProxyType::Any as u8,
+				delay: 0,
+			}
+			.into();
 
 			let evm_call = Call::Evm(EvmCall::call {
 				source: Alice.into(),
@@ -525,5 +496,54 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 				proxy_type: ProxyType::Any,
 				delay: 0,
 			}));
+		})
+}
+
+#[test]
+fn fails_if_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
+				)
+				.execute_reverts(|output| output == b"Batch not callable by smart contracts");
+		})
+}
+
+#[test]
+fn succeed_if_called_by_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			// Set dummy code to Alice address as it if was a precompile.
+			pallet_evm::AccountCodes::<Runtime>::insert(
+				H160::from(Alice),
+				vec![0x60, 0x00, 0x60, 0x00, 0xfd],
+			);
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
+				)
+				.execute_returns(vec![]);
 		})
 }

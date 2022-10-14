@@ -8,8 +8,15 @@ import {
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 import { XcmpMessageFormat } from "@polkadot/types/interfaces";
+import { PRECOMPILE_XCM_UTILS_ADDRESS } from "../util/constants";
+import { web3EthCall } from "../util/providers";
+import { getCompiled } from "../util/contracts";
 
 import { AssetMetadata } from "./assets";
+import { ethers } from "ethers";
+
+const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
+const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
 // Creates and returns the tx that overrides the paraHRMP existence
 // This needs to be inserted at every block in which you are willing to test
@@ -178,6 +185,15 @@ export async function injectHrmpMessage(
   await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [paraId, totalMessage]);
 }
 
+// Weight a particular message using the xcm utils precompile
+export async function weightMessage(context: DevTestContext, message?: XcmVersionedXcm) {
+  const result = await web3EthCall(context.web3, {
+    to: PRECOMPILE_XCM_UTILS_ADDRESS,
+    data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [message.toU8a()]),
+  });
+  return BigInt(result.result);
+}
+
 export async function injectHrmpMessageAndSeal(
   context: DevTestContext,
   paraId: number,
@@ -186,4 +202,222 @@ export async function injectHrmpMessageAndSeal(
   await injectHrmpMessage(context, paraId, message);
   // Create a block in which the XCM will be executed
   await context.createBlock();
+}
+
+interface XcmFragmentConfig {
+  fees: {
+    multilocation: any[];
+    fungible: bigint;
+  };
+  weight_limit?: BN;
+  descend_origin?: string;
+  beneficiary?: string;
+}
+
+export class XcmFragment {
+  config: XcmFragmentConfig;
+  instructions: any[];
+
+  constructor(config: XcmFragmentConfig) {
+    this.config = config;
+    this.instructions = [];
+  }
+
+  // Add a `ReserveAssetDeposited` instruction
+  reserve_asset_deposited(): this {
+    this.instructions.push({
+      ReserveAssetDeposited: this.config.fees.multilocation.map((multilocation) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: this.config.fees.fungible },
+        };
+      }, this),
+    });
+    return this;
+  }
+
+  // Add a `WithdrawAsset` instruction
+  withdraw_asset(): this {
+    this.instructions.push({
+      WithdrawAsset: this.config.fees.multilocation.map((multilocation) => {
+        return {
+          id: {
+            Concrete: multilocation,
+          },
+          fun: { Fungible: this.config.fees.fungible },
+        };
+      }, this),
+    });
+    return this;
+  }
+
+  // Add one or more `BuyExecution` instruction
+  // if weight_limit is not set in config, then we put unlimited
+  buy_execution(multilocation_index: number = 0, repeat: bigint = 1n): this {
+    const weightLimit =
+      this.config.weight_limit != null
+        ? { Limited: this.config.weight_limit }
+        : { Unlimited: null };
+    for (var i = 0; i < repeat; i++) {
+      this.instructions.push({
+        BuyExecution: {
+          fees: {
+            id: {
+              Concrete: this.config.fees.multilocation[multilocation_index],
+            },
+            fun: { Fungible: this.config.fees.fungible },
+          },
+          weightLimit: weightLimit,
+        },
+      });
+    }
+    return this;
+  }
+
+  // Add a `ClaimAsset` instruction
+  claim_asset(): this {
+    this.instructions.push({
+      ClaimAsset: {
+        assets: [
+          {
+            id: {
+              Concrete: this.config.fees.multilocation[0],
+            },
+            fun: { Fungible: this.config.fees.fungible },
+          },
+        ],
+        // Ticket seems to indicate the version of the assets
+        ticket: {
+          parents: 0,
+          interior: { X1: { GeneralIndex: 2 } },
+        },
+      },
+    });
+    return this;
+  }
+
+  // Add a `ClearOrigin` instruction
+  clear_origin(repeat: bigint = 1n): this {
+    for (var i = 0; i < repeat; i++) {
+      this.instructions.push({ ClearOrigin: null as any });
+    }
+    return this;
+  }
+
+  // Add a `DescendOrigin` instruction
+  descend_origin(): this {
+    if (this.config.descend_origin != null) {
+      this.instructions.push({
+        DescendOrigin: {
+          X1: {
+            AccountKey20: {
+              network: "Any",
+              key: this.config.descend_origin,
+            },
+          },
+        },
+      });
+    } else {
+      console.warn("!Building a DescendOrigin instruction without a configured descend_origin");
+    }
+    return this;
+  }
+
+  // Add a `DepositAsset` instruction
+  deposit_asset(max_assets: bigint = 1n): this {
+    if (this.config.beneficiary == null) {
+      console.warn("!Building a DepositAsset instruction without a configured beneficiary");
+    }
+    this.instructions.push({
+      DepositAsset: {
+        assets: { Wild: "All" },
+        maxAssets: max_assets,
+        beneficiary: {
+          parents: 0,
+          interior: { X1: { AccountKey20: { network: "Any", key: this.config.beneficiary } } },
+        },
+      },
+    });
+    return this;
+  }
+
+  // Add a `SetErrorHandler` instruction, appending all the nested instructions
+  set_error_handler_with(callbacks: Function[]): this {
+    let error_instructions = [];
+    callbacks.forEach((cb) => {
+      cb.call(this);
+      // As each method in the class pushes to the instruction stack, we pop
+      error_instructions.push(this.instructions.pop());
+    });
+    this.instructions.push({
+      SetErrorHandler: error_instructions,
+    });
+    return this;
+  }
+
+  // Add a `SetAppendix` instruction, appending all the nested instructions
+  set_appendix_with(callbacks: Function[]): this {
+    let appendix_instructions = [];
+    callbacks.forEach((cb) => {
+      cb.call(this);
+      // As each method in the class pushes to the instruction stack, we pop
+      appendix_instructions.push(this.instructions.pop());
+    });
+    this.instructions.push({
+      SetAppendix: appendix_instructions,
+    });
+    return this;
+  }
+
+  // Add a `Trap` instruction
+  trap(): this {
+    this.instructions.push({
+      Trap: 0,
+    });
+    return this;
+  }
+
+  // Utility function to support functional style method call chaining bound to `this` context
+  with(callback: Function): this {
+    return callback.call(this);
+  }
+
+  // Pushes the given instruction
+  push_any(instruction: any): this {
+    this.instructions.push(instruction);
+    return this;
+  }
+
+  // Returns a V2 fragment payload
+  as_v2(): any {
+    return {
+      V2: this.instructions,
+    };
+  }
+
+  // Overrides the weight limit of the first buyExeuction encountered
+  // with the measured weight
+  async override_weight(context: DevTestContext): Promise<this> {
+    const message: XcmVersionedXcm = context.polkadotApi.createType(
+      "XcmVersionedXcm",
+      this.as_v2()
+    ) as any;
+
+    const instructions = message.asV2;
+    for (var i = 0; i < instructions.length; i++) {
+      if (instructions[i].isBuyExecution == true) {
+        let newWeight = await weightMessage(context, message);
+        this.instructions[i] = {
+          BuyExecution: {
+            fees: instructions[i].asBuyExecution.fees,
+            weightLimit: { Limited: newWeight },
+          },
+        };
+        break;
+      }
+    }
+    return this;
+  }
 }

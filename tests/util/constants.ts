@@ -40,8 +40,8 @@ export const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 
 // Current implementation is limiting block transactions to 75% of the block gas limit
 export const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
-// 400_000_000 Weight per extrinsics
-export const EXTRINSIC_BASE_COST = 250_000_000 / GAS_PER_WEIGHT;
+export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
+export const EXTRINSIC_BASE_COST = EXTRINSIC_BASE_WEIGHT / GAS_PER_WEIGHT;
 
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
 // minus the block initialization (10%) and minus the extrinsic base cost.
@@ -69,6 +69,7 @@ export const PRECOMPILE_XCM_TRANSACTOR_ADDRESS_V2 = "0x0000000000000000000000000
 export const PRECOMPILE_COUNCIL_ADDRESS = "0x000000000000000000000000000000000000080e";
 export const PRECOMPILE_TECH_COMMITTEE_ADDRESS = "0x000000000000000000000000000000000000080f";
 export const PRECOMPILE_TREASURY_COUNCIL_ADDRESS = "0x0000000000000000000000000000000000000810";
+export const PRECOMPILE_DISPATCH_ADDRESS = "0x0000000000000000000000000000000000000401";
 
 export const MINUTES = 60 / 12;
 export const HOURS = MINUTES * 60;

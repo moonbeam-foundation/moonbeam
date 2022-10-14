@@ -106,14 +106,14 @@ where
 	/// Cost of a Substrate DB write in gas.
 	pub fn db_write_gas_cost() -> u64 {
 		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().write,
+			<Runtime as frame_system::Config>::DbWeight::get().writes(1),
 		)
 	}
 
 	/// Cost of a Substrate DB read in gas.
 	pub fn db_read_gas_cost() -> u64 {
 		<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
-			<Runtime as frame_system::Config>::DbWeight::get().read,
+			<Runtime as frame_system::Config>::DbWeight::get().reads(1),
 		)
 	}
 }

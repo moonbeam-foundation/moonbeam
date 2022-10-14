@@ -29,11 +29,12 @@ pub use moonbeam_runtime::{
 	xcm_config::AssetType,
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, HOURS,
+	WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill};
+use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -128,7 +129,7 @@ pub struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -197,7 +198,10 @@ impl ExtBuilder {
 	}
 
 	pub fn with_delegations(mut self, delegations: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.delegations = delegations;
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
 		self
 	}
 
@@ -250,6 +254,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: Perbill::from_percent(20),
+			parachain_bond_reserve_percent: Percent::from_percent(30),
+			blocks_per_round: 6 * HOURS,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

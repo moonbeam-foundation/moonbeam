@@ -19,9 +19,13 @@ use ethereum::{
 	TransactionAction, TransactionSignature, TransactionV2,
 };
 use ethereum_types::{H160, H256, U256};
+use frame_support::{traits::ConstU32, BoundedVec};
 use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 use sp_std::vec::Vec;
+
+/// Max. allowed size of 65_536 bytes.
+pub const MAX_ETHEREUM_XCM_INPUT_SIZE: u32 = 2u32.pow(16);
 
 /// Ensure that a proxy between `delegator` and `delegatee` exists in order to deny or grant
 /// permission to do xcm-transact to `transact_through_proxy`.
@@ -71,7 +75,7 @@ pub struct EthereumXcmTransactionV1 {
 	/// Value to be transfered.
 	pub value: U256,
 	/// Input data for a contract call.
-	pub input: Vec<u8>,
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
@@ -84,27 +88,27 @@ pub struct EthereumXcmTransactionV2 {
 	pub action: TransactionAction,
 	/// Value to be transfered.
 	pub value: U256,
-	/// Input data for a contract call.
-	pub input: Vec<u8>,
+	/// Input data for a contract call. Max. size 65_536 bytes.
+	pub input: BoundedVec<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>,
 	/// Map of addresses to be pre-paid to warm storage.
 	pub access_list: Option<Vec<(H160, Vec<H256>)>>,
 }
 
 pub trait XcmToEthereum {
-	fn into_transaction_v2(&self, base_fee: U256, nonce: U256) -> Option<TransactionV2>;
+	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2>;
 }
 
 impl XcmToEthereum for EthereumXcmTransaction {
-	fn into_transaction_v2(&self, base_fee: U256, nonce: U256) -> Option<TransactionV2> {
+	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
 		match self {
-			EthereumXcmTransaction::V1(v1_tx) => v1_tx.into_transaction_v2(base_fee, nonce),
-			EthereumXcmTransaction::V2(v2_tx) => v2_tx.into_transaction_v2(base_fee, nonce),
+			EthereumXcmTransaction::V1(v1_tx) => v1_tx.into_transaction_v2(nonce, chain_id),
+			EthereumXcmTransaction::V2(v2_tx) => v2_tx.into_transaction_v2(nonce, chain_id),
 		}
 	}
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV1 {
-	fn into_transaction_v2(&self, base_fee: U256, nonce: U256) -> Option<TransactionV2> {
+	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
 		// We dont support creates for now
 		if self.action == TransactionAction::Create {
 			return None;
@@ -122,7 +126,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 			EthereumXcmFee::Manual(fee_config) => {
 				(fee_config.gas_price, fee_config.max_fee_per_gas)
 			}
-			EthereumXcmFee::Auto => (None, Some(base_fee)),
+			EthereumXcmFee::Auto => (None, Some(U256::zero())),
 		};
 		match (gas_price, max_fee) {
 			(Some(gas_price), None) => {
@@ -130,13 +134,13 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 				if let Some(ref access_list) = self.access_list {
 					// Eip-2930
 					Some(TransactionV2::EIP2930(EIP2930Transaction {
-						chain_id: 0,
+						chain_id,
 						nonce,
 						gas_price,
 						gas_limit: self.gas_limit,
 						action: self.action,
 						value: self.value,
-						input: self.input.clone(),
+						input: self.input.to_vec(),
 						access_list: from_tuple_to_access_list(access_list),
 						odd_y_parity: true,
 						r: rs_id(),
@@ -150,7 +154,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 						gas_limit: self.gas_limit,
 						action: self.action,
 						value: self.value,
-						input: self.input.clone(),
+						input: self.input.to_vec(),
 						signature: TransactionSignature::new(42, rs_id(), rs_id())?,
 					}))
 				}
@@ -158,14 +162,14 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 			(None, Some(max_fee)) => {
 				// Eip-1559
 				Some(TransactionV2::EIP1559(EIP1559Transaction {
-					chain_id: 0,
+					chain_id,
 					nonce,
 					max_fee_per_gas: max_fee,
 					max_priority_fee_per_gas: U256::zero(),
 					gas_limit: self.gas_limit,
 					action: self.action,
 					value: self.value,
-					input: self.input.clone(),
+					input: self.input.to_vec(),
 					access_list: if let Some(ref access_list) = self.access_list {
 						from_tuple_to_access_list(access_list)
 					} else {
@@ -182,7 +186,7 @@ impl XcmToEthereum for EthereumXcmTransactionV1 {
 }
 
 impl XcmToEthereum for EthereumXcmTransactionV2 {
-	fn into_transaction_v2(&self, _base_fee: U256, nonce: U256) -> Option<TransactionV2> {
+	fn into_transaction_v2(&self, nonce: U256, chain_id: u64) -> Option<TransactionV2> {
 		// We dont support creates for now
 		if self.action == TransactionAction::Create {
 			return None;
@@ -197,14 +201,14 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 		};
 		// Eip-1559
 		Some(TransactionV2::EIP1559(EIP1559Transaction {
-			chain_id: 0,
+			chain_id,
 			nonce,
 			max_fee_per_gas: U256::zero(),
 			max_priority_fee_per_gas: U256::zero(),
 			gas_limit: self.gas_limit,
 			action: self.action,
 			value: self.value,
-			input: self.input.clone(),
+			input: self.input.to_vec(),
 			access_list: if let Some(ref access_list) = self.access_list {
 				from_tuple_to_access_list(access_list)
 			} else {
@@ -217,29 +221,43 @@ impl XcmToEthereum for EthereumXcmTransactionV2 {
 	}
 }
 
+/// The EthereumXcmTracingStatus storage key.
+pub const ETHEREUM_XCM_TRACING_STORAGE_KEY: &[u8] = b":ethereum_xcm_tracing";
+
+/// The current EthereumXcmTransaction trace status.
+#[derive(Clone, Debug, Encode, Decode, PartialEq, Eq)]
+pub enum EthereumXcmTracingStatus {
+	/// A full block trace.
+	Block,
+	/// A single transaction.
+	Transaction(H256),
+	/// Exit signal.
+	TransactionExited,
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
 	#[test]
 	fn test_into_ethereum_tx_with_auto_fee_v1() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			fee_payment: EthereumXcmFee::Auto,
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
-			input: vec![1u8],
+			value: U256::zero(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
-		let nonce = U256::from(0);
-		let base_fee = U256::from(1);
+		let nonce = U256::zero();
 		let expected_tx = Some(TransactionV2::EIP1559(EIP1559Transaction {
-			chain_id: 0,
+			chain_id: 111,
 			nonce,
-			max_fee_per_gas: base_fee,
+			max_fee_per_gas: U256::zero(),
 			max_priority_fee_per_gas: U256::zero(),
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
+			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
 			odd_y_parity: true,
@@ -247,41 +265,35 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(base_fee, nonce),
-			expected_tx
-		);
+		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
 	}
 
 	#[test]
 	fn test_legacy_v1() {
 		let xcm_transaction = EthereumXcmTransactionV1 {
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-				gas_price: Some(U256::from(1)),
+				gas_price: Some(U256::zero()),
 				max_fee_per_gas: None,
 			}),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
-			input: vec![1u8],
+			value: U256::zero(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
-		let nonce = U256::from(0);
-		let gas_price = U256::from(1);
+		let nonce = U256::zero();
 		let expected_tx = Some(TransactionV2::Legacy(LegacyTransaction {
 			nonce,
-			gas_price,
-			gas_limit: U256::from(1),
+			gas_price: U256::zero(),
+			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
+			value: U256::zero(),
 			input: vec![1u8],
 			signature: TransactionSignature::new(42, rs_id(), rs_id()).unwrap(),
 		}));
 
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(gas_price, nonce),
-			expected_tx
-		);
+		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
 	}
 	#[test]
 	fn test_eip_2930_v1() {
@@ -296,26 +308,26 @@ mod tests {
 		};
 
 		let xcm_transaction = EthereumXcmTransactionV1 {
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			fee_payment: EthereumXcmFee::Manual(ManualEthereumXcmFee {
-				gas_price: Some(U256::from(1)),
+				gas_price: Some(U256::zero()),
 				max_fee_per_gas: None,
 			}),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
-			input: vec![1u8],
+			value: U256::zero(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: access_list.clone(),
 		};
 
-		let nonce = U256::from(0);
-		let gas_price = U256::from(1);
+		let nonce = U256::zero();
 		let expected_tx = Some(TransactionV2::EIP2930(EIP2930Transaction {
-			chain_id: 0,
+			chain_id: 111,
 			nonce,
-			gas_price,
-			gas_limit: U256::from(1),
+			gas_price: U256::zero(),
+			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
+			value: U256::zero(),
 			input: vec![1u8],
 			access_list: from_tuple_to_access_list(&access_list.unwrap()),
 			odd_y_parity: true,
@@ -323,31 +335,28 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(gas_price, nonce),
-			expected_tx
-		);
+		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
 	}
 
 	#[test]
 	fn test_eip1559_v2() {
 		let xcm_transaction = EthereumXcmTransactionV2 {
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
-			input: vec![1u8],
+			value: U256::zero(),
+			input: BoundedVec::<u8, ConstU32<MAX_ETHEREUM_XCM_INPUT_SIZE>>::try_from(vec![1u8])
+				.unwrap(),
 			access_list: None,
 		};
-		let nonce = U256::from(0);
-		let base_fee = U256::from(0);
+		let nonce = U256::zero();
 		let expected_tx = Some(TransactionV2::EIP1559(EIP1559Transaction {
-			chain_id: 0,
+			chain_id: 111,
 			nonce,
-			max_fee_per_gas: U256::from(0),
+			max_fee_per_gas: U256::zero(),
 			max_priority_fee_per_gas: U256::zero(),
-			gas_limit: U256::from(1),
+			gas_limit: U256::one(),
 			action: TransactionAction::Call(H160::default()),
-			value: U256::from(0),
+			value: U256::zero(),
 			input: vec![1u8],
 			access_list: vec![],
 			odd_y_parity: true,
@@ -355,9 +364,6 @@ mod tests {
 			s: H256::from_low_u64_be(1u64),
 		}));
 
-		assert_eq!(
-			xcm_transaction.into_transaction_v2(base_fee, nonce),
-			expected_tx
-		);
+		assert_eq!(xcm_transaction.into_transaction_v2(nonce, 111), expected_tx);
 	}
 }

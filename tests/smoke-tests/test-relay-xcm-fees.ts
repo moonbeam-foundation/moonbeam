@@ -34,6 +34,22 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
   conditionalIt("should have value over relay expected fees", async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
+    const paraRuntime = context.polkadotApi.runtimeVersion.specName.toString();
+    const relayVersion = context.relayApi.runtimeVersion.specVersion.toNumber();
+
+    // skip test if runtime inconsistency. The storage is set for
+    // specific runtimes, so does not make sense to compare non-matching runtimes
+    let skipTestRuntimeInconsistency =
+      (relayRuntime.startsWith("polkadot") && paraRuntime.startsWith("moonbeam")) ||
+      (relayRuntime.startsWith("kusama") && paraRuntime.startsWith("moonriver")) ||
+      (relayRuntime.startsWith("westend") && paraRuntime.startsWith("moonbase"))
+        ? false
+        : true;
+
+    if (skipTestRuntimeInconsistency) {
+      debug(`Relay and Para runtimes dont match, skipping test`);
+      return;
+    }
     const relayMultiLocation: MultiLocation = context.polkadotApi.createType(
       "MultiLocation",
       JSON.parse('{ "parents": 1, "interior": "Here" }')
@@ -59,8 +75,12 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
         : units / 100n;
     const coef = cent / 10n;
 
-    const relayBaseWeight =
-      relayApiAt.consts.system.blockWeights.perClass.normal.baseExtrinsic.toBigInt();
+    // the blockWeights structure has been modified around 9300 to include reftime.
+    const relayBaseExtrinsic = relayApiAt.consts.system.blockWeights.perClass.normal
+      .baseExtrinsic as any;
+    const relayBaseWeight = relayBaseExtrinsic.refTime
+      ? relayBaseExtrinsic.refTime.toBigInt()
+      : relayBaseExtrinsic.toBigInt();
 
     const expectedFeePerSecond = (coef * seconds) / relayBaseWeight;
 

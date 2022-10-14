@@ -85,8 +85,7 @@ use sp_runtime::{
 	transaction_validity::{
 		InvalidTransaction, TransactionSource, TransactionValidity, TransactionValidityError,
 	},
-	ApplyExtrinsicResult, FixedPointNumber, Perbill, Percent, Permill, Perquintill,
-	SaturatedConversion,
+	ApplyExtrinsicResult, FixedPointNumber, Perbill, Permill, Perquintill, SaturatedConversion,
 };
 use sp_std::{
 	convert::{From, Into},
@@ -96,7 +95,7 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use nimbus_primitives::{CanAuthor, NimbusId};
+use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
@@ -140,7 +139,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(2);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -174,7 +173,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: create_runtime_str!("moonbase"),
 	impl_name: create_runtime_str!("moonbase"),
 	authoring_version: 4,
-	spec_version: 1800,
+	spec_version: 1900,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 2,
@@ -191,12 +190,12 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
+const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
 // Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
 // TODO: we should use benchmarking's overhead feature to measure this
-pub const EXTRINSIC_BASE_WEIGHT: Weight = 10000 * WEIGHT_PER_GAS;
+pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(10000 * WEIGHT_PER_GAS);
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
@@ -373,22 +372,22 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
 
 pub struct MoonbeamGasWeightMapping;
 
 impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
 	fn gas_to_weight(gas: u64) -> Weight {
-		gas.saturating_mul(WEIGHT_PER_GAS)
+		Weight::from_ref_time(gas.saturating_mul(WEIGHT_PER_GAS))
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
+		u64::try_from(weight.ref_time().wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
 	}
 }
 
 parameter_types! {
 	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
@@ -401,6 +400,9 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
 }
 
@@ -409,7 +411,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
+			Weight::zero(),
 		)
 	}
 }
@@ -425,8 +427,13 @@ impl FeeCalculator for FixedGasPrice {
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
+	R,
+	TargetBlockFullness,
+	AdjustmentVariable,
+	MinimumMultiplier,
+	MaximumMultiplier,
+>;
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
 /// This simple adapter makes the conversion for any types T, U such that T: Into<U>
@@ -702,11 +709,12 @@ impl pallet_ethereum_xcm::Config for Runtime {
 	type XcmEthereumOrigin = pallet_ethereum_xcm::EnsureXcmEthereumTransaction;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type EnsureProxy = EthereumXcmEnsureProxy;
+	type ControllerOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {
-	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
-	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -722,13 +730,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 }
 
 impl parachain_info::Config for Runtime {}
-
-parameter_types! {
-	/// Default fixed percent a collator takes off the top of due rewards
-	pub const DefaultCollatorCommission: Perbill = Perbill::from_percent(20);
-	/// Default percent of inflation set aside for parachain bond every round
-	pub const DefaultParachainBondReservePercent: Percent = Percent::from_percent(30);
-}
 
 pub struct OnCollatorPayout;
 impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
@@ -753,8 +754,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MonetaryGovernanceOrigin = EnsureRoot<AccountId>;
 	/// Minimum round length is 2 minutes (10 * 12 second block times)
 	type MinBlocksPerRound = ConstU32<10>;
-	/// Blocks per round
-	type DefaultBlocksPerRound = ConstU32<{ 2 * HOURS }>;
 	/// Rounds before the collator leaving the candidates request can be executed
 	type LeaveCandidatesDelay = ConstU32<2>;
 	/// Rounds before the candidate bond increase/decrease can be executed
@@ -775,8 +774,6 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MaxBottomDelegationsPerCandidate = ConstU32<50>;
 	/// Maximum delegations per delegator
 	type MaxDelegationsPerDelegator = ConstU32<100>;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	/// Minimum stake required to become a collator
 	type MinCollatorStk = ConstU128<{ 1000 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	/// Minimum stake required to be reserved to be a candidate
@@ -973,6 +970,7 @@ impl Contains<Call> for MaintenanceFilter {
 			Call::PolkadotXcm(_) => false,
 			Call::Treasury(_) => false,
 			Call::XcmTransactor(_) => false,
+			Call::EthereumXcm(_) => false,
 			_ => true,
 		}
 	}
@@ -1019,8 +1017,8 @@ impl Contains<Call> for NormalFilter {
 				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
-			// We filter EVM calls as allowing these calls can cause potential attack vectors
-			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
+			// lead to unexpected scenarios.
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
@@ -1050,7 +1048,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
+		DmpQueue::handle_dmp_messages(iter, Weight::zero())
 	}
 }
 
@@ -1059,6 +1057,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_initialize(n)
 	}
 }
@@ -1071,33 +1070,38 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 // we need to provide it here
 impl OnIdle<BlockNumber> for MaintenanceHooks {
 	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
-		0
+		Weight::zero()
 	}
 }
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::offchain_worker(n)
 	}
 }
@@ -1113,6 +1117,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
+	#[allow(deprecated)]
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
 	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
@@ -1123,6 +1128,7 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 
 parameter_types! {
 	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
+	pub DefaultElasticity: Permill = Permill::zero();
 }
 
 pub struct BaseFeeThreshold;
@@ -1142,8 +1148,8 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+	type DefaultElasticity = DefaultElasticity;
 }
 
 parameter_types! {
@@ -1270,7 +1276,7 @@ construct_runtime! {
 		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config<T>, Event} = 35,
 		LocalAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>} = 36,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event<T>} = 37,
-		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Origin} = 38,
+		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = 38,
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,

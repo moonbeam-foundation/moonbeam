@@ -8,12 +8,15 @@ export NETWORK=${NETWORK:-"moonbeam"} #moonbase-alpha for alphanet
 export PORT_PREFIX=${PORT_PREFIX:-"51"}
 export ROOT_FOLDER=${ROOT_FOLDER:-"/data"}
 export GIT_TAG=${GIT_TAG:-"master"}
+export GIT_TEST_TAG=${GIT_TEST_TAG:-$GIT_TAG}
 export SKIP_INTERMEDIATE_RUNTIME=${SKIP_INTERMEDIATE_RUNTIME:-false}
 export FORCE_COMPILED_WASM=${FORCE_COMPILED_WASM:-true}
 export SINGLE_PARACHAIN_NODE=${SINGLE_PARACHAIN_NODE:-true}
 export SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 export SKIP_COMPILATION=${SKIP_COMPILATION:-false}
 export SKIP_STATE_MODIFICATION=${SKIP_STATE_MODIFICATION:-false}
+export KEEP_RUNNING=${KEEP_RUNNING:-false}
+export USE_LOCAL_CLIENT=${USE_LOCAL_CLIENT:-false}
 
 export BINARY_PATH=${BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/moonbeam};
 export RELAY_BINARY_PATH=${RELAY_BINARY_PATH:-$ROOT_FOLDER/moonbeam/binaries/polkadot};
@@ -26,12 +29,15 @@ echo "NETWORK: ${NETWORK}"
 echo "PORT_PREFIX: ${PORT_PREFIX}"
 echo "ROOT_FOLDER: ${ROOT_FOLDER}"
 echo "GIT_TAG: ${GIT_TAG}"
+echo "GIT_TEST_TAG: ${GIT_TEST_TAG}"
 echo "SKIP_INTERMEDIATE_RUNTIME: ${SKIP_INTERMEDIATE_RUNTIME}"
 echo "FORCE_COMPILED_WASM: ${FORCE_COMPILED_WASM}"
 echo "SINGLE_PARACHAIN_NODE: ${SINGLE_PARACHAIN_NODE}"
 echo "SKIP_DOWNLOAD: ${SKIP_DOWNLOAD}"
 echo "SKIP_COMPILATION: ${SKIP_COMPILATION}"
 echo "SKIP_STATE_MODIFICATION: ${SKIP_STATE_MODIFICATION}"
+echo "KEEP_RUNNING: ${KEEP_RUNNING}"
+echo "USE_LOCAL_CLIENT: ${USE_LOCAL_CLIENT}"
 echo "BINARY_PATH: ${BINARY_PATH}"
 echo "RELAY_BINARY_PATH: ${RELAY_BINARY_PATH}"
 echo "SPEC_FILE: ${SPEC_FILE}"
@@ -70,7 +76,7 @@ then
     MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
     POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | .tag_name' | grep '^v' | head -1`
 
-    if [[ ! -f $BINARY_PATH ]]
+    if [[ ! -f $BINARY_PATH && $USE_LOCAL_CLIENT != "true" ]]
     then
         echo "Downloading moonbeam ${MOONBEAM_CLIENT_TAG}"
         wget -q https://github.com/PureStake/moonbeam/releases/download/${MOONBEAM_CLIENT_TAG}/moonbeam \
@@ -86,11 +92,6 @@ then
         chmod uog+x $RELAY_BINARY_PATH
     fi
 
-    echo " - moonbeam binary: $BINARY_PATH"
-    echo "   - $($BINARY_PATH --version)"
-    echo " - polkadot binary: $RELAY_BINARY_PATH"
-    echo "   - $($RELAY_BINARY_PATH --version)"
-
     echo "Retrieving ${NETWORK} state... (few minutes)"
     wget -q https://s3.us-east-2.amazonaws.com/snapshots.moonbeam.network/${NETWORK}/latest/${NETWORK}-state.json \
         -O $ROOT_FOLDER/states/${NETWORK}-state.json; 
@@ -104,17 +105,27 @@ then
     git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
+    if [[ $USE_LOCAL_CLIENT == "true" ]]
+    then
+        cargo build --release -p moonbeam
+        cp target/release/moonbeam $BINARY_PATH
+    fi
+
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm ci
+    npm install
     cd $ROOT_FOLDER/moonbeam/tools
-    npm ci
+    npm install
 
     cd $ROOT_FOLDER/moonbeam/tests
-    git checkout crystalin-fork-test-preparation
+    git checkout $GIT_TEST_TAG
     npm ci
 fi
 
+echo " - moonbeam binary: $BINARY_PATH"
+echo "   - $($BINARY_PATH --version)"
+echo " - polkadot binary: $RELAY_BINARY_PATH"
+echo "   - $($RELAY_BINARY_PATH --version)"
 
 if [[ $SKIP_STATE_MODIFICATION != true ]]
 then
@@ -141,17 +152,26 @@ export WSS_URL=ws://localhost:51102
 echo "Running fork tests... (10 minutes)"
 SUCCESS_UPGRADE=false
 DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
-  "Failed to do runtime upgrade"
+  echo "Failed to do runtime upgrade"
 
 if [[ $SUCCESS_UPGRADE == "true" ]]
 then
+    SUCCESS_TEST=false
     echo "Running smoke tests... (10 minutes)"
-    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
+    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test && \
+    SUCCESS_TEST=true ||echo "Failed to pass smoke test"
 fi
 
 echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
 
+echo "[Upgrade $SUCCESS_UPGRADE, Test: $($SUCCESS_TEST && echo "Passed" || echo "Failed")]"
+
+if [[ $KEEP_RUNNING == "true" ]]
+then
+  while true; do sleep 5; done
+fi
 echo "Done !!"
-[[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
+
+[[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
