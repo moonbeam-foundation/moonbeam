@@ -200,8 +200,15 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
+pub fn open_frontier_backend<C>(
+	client: Arc<C>,
+	config: &Configuration,
+) -> Result<Arc<fc_db::Backend<Block>>, String>
+where
+	C: sp_blockchain::HeaderBackend<Block>,
+{
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
+		client,
 		&fc_db::DatabaseSettings {
 			source: match config.database {
 				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
@@ -401,7 +408,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(config)?;
+	let frontier_backend = open_frontier_backend(client.clone(), config)?;
 
 	let frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
