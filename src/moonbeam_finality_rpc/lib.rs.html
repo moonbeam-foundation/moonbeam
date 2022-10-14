@@ -110,6 +110,7 @@
 <span id="110">110</span>
 <span id="111">111</span>
 <span id="112">112</span>
+<span id="113">113</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -199,13 +200,14 @@
 	client: <span class="kw-2">&amp;</span>C,
 	raw_hash: H256,
 ) -&gt; RpcResult&lt;bool&gt; {
-	<span class="kw">let </span>substrate_hash = <span class="kw">match </span>frontier_backend_client::load_hash::&lt;B&gt;(backend, raw_hash)<span class="question-mark">? </span>{
-		<span class="comment">// If we find this hash in the frontier data base, we know it is an eth hash
-		</span><span class="prelude-val">Some</span>(BlockId::Hash(hash)) =&gt; hash,
-		<span class="prelude-val">Some</span>(BlockId::Number(<span class="kw">_</span>)) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;is_canon test only works with hashes.&quot;</span>),
-		<span class="comment">// Otherwise, we assume this is a Substrate hash.
-		</span><span class="prelude-val">None </span>=&gt; raw_hash,
-	};
+	<span class="kw">let </span>substrate_hash =
+		<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B, C&gt;(client, backend, raw_hash)<span class="question-mark">? </span>{
+			<span class="comment">// If we find this hash in the frontier data base, we know it is an eth hash
+			</span><span class="prelude-val">Some</span>(BlockId::Hash(hash)) =&gt; hash,
+			<span class="prelude-val">Some</span>(BlockId::Number(<span class="kw">_</span>)) =&gt; <span class="macro">panic!</span>(<span class="string">&quot;is_canon test only works with hashes.&quot;</span>),
+			<span class="comment">// Otherwise, we assume this is a Substrate hash.
+			</span><span class="prelude-val">None </span>=&gt; raw_hash,
+		};
 
 	<span class="comment">// First check whether the block is in the best chain
 	</span><span class="kw">if </span>!is_canon(client, substrate_hash) {

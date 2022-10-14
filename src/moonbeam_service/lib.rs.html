@@ -1272,6 +1272,13 @@
 <span id="1272">1272</span>
 <span id="1273">1273</span>
 <span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1474,8 +1481,15 @@
 
 <span class="comment">// TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-</span><span class="kw">pub fn </span>open_frontier_backend(config: <span class="kw-2">&amp;</span>Configuration) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;fc_db::Backend&lt;Block&gt;&gt;, String&gt; {
+</span><span class="kw">pub fn </span>open_frontier_backend&lt;C&gt;(
+	client: Arc&lt;C&gt;,
+	config: <span class="kw-2">&amp;</span>Configuration,
+) -&gt; <span class="prelude-ty">Result</span>&lt;Arc&lt;fc_db::Backend&lt;Block&gt;&gt;, String&gt;
+<span class="kw">where
+	</span>C: sp_blockchain::HeaderBackend&lt;Block&gt;,
+{
 	<span class="prelude-val">Ok</span>(Arc::new(fc_db::Backend::&lt;Block&gt;::new(
+		client,
 		<span class="kw-2">&amp;</span>fc_db::DatabaseSettings {
 			source: <span class="kw">match </span>config.database {
 				DatabaseSource::RocksDb { .. } =&gt; DatabaseSource::RocksDb {
@@ -1675,7 +1689,7 @@
 	<span class="kw">let </span>filter_pool: <span class="prelude-ty">Option</span>&lt;FilterPool&gt; = <span class="prelude-val">Some</span>(Arc::new(Mutex::new(BTreeMap::new())));
 	<span class="kw">let </span>fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	<span class="kw">let </span>frontier_backend = open_frontier_backend(config)<span class="question-mark">?</span>;
+	<span class="kw">let </span>frontier_backend = open_frontier_backend(client.clone(), config)<span class="question-mark">?</span>;
 
 	<span class="kw">let </span>frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());

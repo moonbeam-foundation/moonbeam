@@ -588,6 +588,13 @@
 <span id="588">588</span>
 <span id="589">589</span>
 <span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -893,7 +900,11 @@
 				<span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;&#39;pending&#39; blocks are not supported&quot;</span>))
 			}
 			RequestBlockId::Hash(eth_hash) =&gt; {
-				<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B&gt;(frontier_backend.as_ref(), eth_hash) {
+				<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B, C&gt;(
+					client.as_ref(),
+					frontier_backend.as_ref(),
+					eth_hash,
+				) {
 					<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(id)) =&gt; <span class="prelude-val">Ok</span>(id),
 					<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
 					<span class="prelude-val">Err</span>(e) =&gt; <span class="prelude-val">Err</span>(e),
@@ -1024,12 +1035,15 @@
 			<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
 		};
 
-		<span class="kw">let </span>reference_id =
-			<span class="kw">match </span>frontier_backend_client::load_hash::&lt;B&gt;(frontier_backend.as_ref(), hash) {
-				<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; hash,
-				<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
-				<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
-			};
+		<span class="kw">let </span>reference_id = <span class="kw">match </span>frontier_backend_client::load_hash::&lt;B, C&gt;(
+			client.as_ref(),
+			frontier_backend.as_ref(),
+			hash,
+		) {
+			<span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(hash)) =&gt; hash,
+			<span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(internal_err(<span class="string">&quot;Block hash not found&quot;</span>.to_string())),
+			<span class="prelude-val">Err</span>(e) =&gt; <span class="kw">return </span><span class="prelude-val">Err</span>(e),
+		};
 		<span class="comment">// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		</span><span class="kw">let </span>api = client.runtime_api();
 		<span class="comment">// Get Blockchain backend
