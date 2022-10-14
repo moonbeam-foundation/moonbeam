@@ -3,7 +3,7 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
-const debug = require("debug")("smoke:proxy");
+const debug = require("debug")("smoke:weights");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
@@ -18,7 +18,7 @@ interface BlockLimits {
   operational: BN;
 }
 
-describeSmokeSuite(`Verify block weight per class`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }, (context) => {
   let blockLimits: BlockLimits;
   let blockWeights: [BlockWeights?] = [];
 
@@ -98,5 +98,9 @@ describeSmokeSuite(`Verify block weight per class`, { wssUrl, relayWssUrl }, (co
       );
     }
     debug(`Verified operational dispatch class`);
+  });
+
+  it.only("block weights correspond to gas used", async () => {
+    console.log("hello timbo!")
   });
 });

@@ -2,21 +2,55 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
+import {
+  alith,
+  ALITH_PRIVATE_KEY,
+  baltathar,
+  BALTATHAR_ADDRESS,
+  BALTATHAR_PRIVATE_KEY,
+  charleth,
+  CHARLETH_PRIVATE_KEY,
+} from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { EXTRINSIC_GAS_LIMIT, EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "../../util/constants";
-import { createTransaction, ALITH_TRANSACTION_TEMPLATE } from "../../util/transactions";
+import {
+  createTransaction,
+  createTransfer,
+  ALITH_TRANSACTION_TEMPLATE,
+} from "../../util/transactions";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
 // transaction application. Specifically, it accounts for weight before a transaction by multiplying
 // GasToWeight by gas_price, but does not adjust this afterwards. This leads to accounting for too
 // much weight in a block.
 describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
+  it("should correctly refund weight from excess gas_limit supplied", async function () {
+    const gasAmount = Math.floor(EXTRINSIC_GAS_LIMIT * 0.8);
+    const tx_1 = await createTransfer(context, baltathar.address, 1, {
+      gas: gasAmount,
+    });
+    const tx_2 = await createTransfer(context, charleth.address, 1, {
+      gas: gasAmount,
+      privateKey: BALTATHAR_PRIVATE_KEY,
+    });
+    const tx_3 = await createTransfer(context, alith.address, 1, {
+      gas: gasAmount,
+      privateKey: CHARLETH_PRIVATE_KEY,
+    });
+
+    const { result } = await context.createBlock([tx_1, tx_2, tx_3]);
+    result.forEach((item) => {
+      if (item.successful == false) {
+        console.error(`\tTxn: ${item.hash} not included in block`);
+      }
+      expect(item.successful, "Not all txns are successfully included in block").to.be.true;
+    });
+  });
+
   it("should account for weight used", async function () {
     this.timeout(10000);
-
     const { block, result } = await context.createBlock(
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
