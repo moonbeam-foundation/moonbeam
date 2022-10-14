@@ -20,35 +20,13 @@ import {
   createTransfer,
   ALITH_TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
+import { isTemplateExpression } from "typescript";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
 // transaction application. Specifically, it accounts for weight before a transaction by multiplying
 // GasToWeight by gas_price, but does not adjust this afterwards. This leads to accounting for too
 // much weight in a block.
 describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
-  it("should correctly refund weight from excess gas_limit supplied", async function () {
-    const gasAmount = Math.floor(EXTRINSIC_GAS_LIMIT * 0.8);
-    const tx_1 = await createTransfer(context, baltathar.address, 1, {
-      gas: gasAmount,
-    });
-    const tx_2 = await createTransfer(context, charleth.address, 1, {
-      gas: gasAmount,
-      privateKey: BALTATHAR_PRIVATE_KEY,
-    });
-    const tx_3 = await createTransfer(context, alith.address, 1, {
-      gas: gasAmount,
-      privateKey: CHARLETH_PRIVATE_KEY,
-    });
-
-    const { result } = await context.createBlock([tx_1, tx_2, tx_3]);
-    result.forEach((item) => {
-      if (item.successful == false) {
-        console.error(`\tTxn: ${item.hash} not included in block`);
-      }
-      expect(item.successful, "Not all txns are successfully included in block").to.be.true;
-    });
-  });
-
   it("should account for weight used", async function () {
     this.timeout(10000);
     const { block, result } = await context.createBlock(
@@ -58,6 +36,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
         maxFeePerGas: 1_000_000_000,
         maxPriorityFeePerGas: 0,
         to: baltathar.address,
+        nonce: 0,
         data: null,
       })
     );
@@ -75,5 +54,29 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     let normalWeight = blockWeightsUsed.normal;
 
     expect(normalWeight.toBigInt()).to.equal(EXPECTED_WEIGHT);
+  });
+
+  it("should correctly refund weight from excess gas_limit supplied", async function () {
+    const gasAmount = Math.floor(EXTRINSIC_GAS_LIMIT * 0.8);
+    const tx_1 = await createTransfer(context, baltathar.address, 1, {
+      gas: gasAmount,
+      nonce: 1,
+    });
+    const tx_2 = await createTransfer(context, charleth.address, 1, {
+      gas: gasAmount,
+      privateKey: BALTATHAR_PRIVATE_KEY,
+      nonce: 0,
+    });
+    const tx_3 = await createTransfer(context, alith.address, 1, {
+      gas: gasAmount,
+      privateKey: CHARLETH_PRIVATE_KEY,
+      nonce: 0,
+    });
+
+    const fails = (await context.createBlock([tx_1, tx_2, tx_3])).result.filter(
+      (a) => !a.successful
+    );
+    expect(fails, `Transactions ${fails.map((a) => a.hash).join(", ")} have failed to be included`)
+      .to.be.empty;
   });
 });
