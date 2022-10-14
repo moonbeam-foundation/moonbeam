@@ -174,4 +174,5 @@ then
 fi
 echo "Done !!"
 
+kill $PID
 [[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
