@@ -31,6 +31,7 @@ use pallet_evm::PrecompileOutput;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
 use sp_std::boxed::Box;
+use sp_std::vec;
 use sp_std::vec::Vec;
 use sp_std::{fmt::Debug, marker::PhantomData};
 use xcm::{latest::prelude::*, VersionedXcm, MAX_XCM_DECODE_DEPTH};
