@@ -2,15 +2,15 @@ import "@moonbeam-network/api-augment/moonbase";
 import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-import Bottleneck from "bottleneck"
-import {ethers} from "ethers"
+import Bottleneck from "bottleneck";
+import { ethers } from "ethers";
 import { EXTRINSIC_GAS_LIMIT, EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "../util/constants";
+import { fetchHistoricBlockNum, getBlockTime } from "../util/block";
 
-const debug = require("debug")("smoke:weight-general");
-
+const debug = require("debug")("smoke:block-weight");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
-const ethUrl = process.env.ETH_URL || null;
+const ethRpcUrl = process.env.ETH_URL || null;
 
 interface BlockWeights {
   hash: string;
@@ -22,44 +22,84 @@ interface BlockLimits {
   operational: BN;
 }
 
-describeSmokeSuite(`Verify weights of blocks being produced`, { wssUrl, relayWssUrl }, (context) => {
-  let blockLimits: BlockLimits;
-  let blockWeights: [BlockWeights?] = [];
-  const blocks: any[] = []
+describeSmokeSuite(
+  `Verify weights of blocks being produced`,
+  { wssUrl, relayWssUrl, ethRpcUrl },
+  (context) => {
 
-  before("Retrieve past hour's worth of blocks", async function () {
-    const limiter = new Bottleneck({
-        minTime: 100,
-        maxConcurrent: 5
-    })
+    const limiter = new Bottleneck({ maxConcurrent: 5 });
+    let firstBlockNumber: number
+    let lastBlockNumber: number
 
-    const result = await limiter.schedule(()=> context.polkadotApi.rpc.chain.getBlock("0xc2fa80d3f80e13cac860182fb91107c819b1fc4b2032ba74991866f242102fd2"))
-    blocks.push(result)
-  });
+    before("Retrieve past hour's worth of blocks", async function () {
+      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
+        await context.polkadotApi.rpc.chain.getFinalizedHead()
+      );
+
+      lastBlockNumber = signedBlock.block.header.number.toNumber();
+      const lastBlockTime = getBlockTime(signedBlock);
+
+      // Target time here is set to be 1 hours, possible parameterize this in future
+      const firstBlockTime = lastBlockTime - 5 * 60 * 60 * 1000;
+      debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
+      firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
+        context.polkadotApi,
+        lastBlockNumber,
+        firstBlockTime
+      )) as number;
+    });
 
 
-  it("should have a block weight to its transactions weight", async function () {
-    console.log("Hello timbo")
-    console.log(blocks[0].block.header.number.toNumber())
-    console.log(blocks[0].block.extrinsics.toHuman())
-    const exts = blocks[0].block.extrinsics.filter((item)=>{
-        console.log(item.toHuman())
-        return item.method.section.toString()== "ethereum"})
-    // console.log((exts[0].toJSON()))
-    console.log(exts)
+    // Despite being a naive test, this will flag up any egregiously heavy blocks in prod for 
+    // further inspection
+    it("should roughly have a block weight mostly composed of transactions", async function () {
+      this.timeout(120000);
+      debug(
+        `Checking if #${firstBlockNumber} - #${lastBlockNumber} block weights.`
+      );
 
-    const magicBlockNumber = 2070542
-    const subBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(magicBlockNumber)
-    const apiAt = await context.polkadotApi.at(subBlockHash)
-    
-    const blockWeight = await apiAt.query.system.blockWeight()
-    console.log("weight of block: " + JSON.stringify(blockWeight))
-    const provider = new ethers.providers.JsonRpcProvider(ethUrl)
-    
-    // console.log(await provider.getBlock(magicBlockNumber))
-    const blockGas = (await provider.getBlock(magicBlockNumber)).gasUsed.toBigInt()
-    console.log( "gas used by block: "+ Number(blockGas))
-    console.log("gas into weight calc: "+ Number(blockGas * WEIGHT_PER_GAS))
-  });
+      const checkBlockWeight = async (blockNum: number) => {
+        /////// Check that if a Block is heavy, that it is because of extrinsics
+        const apiAt = await context.polkadotApi.at(
+          await context.polkadotApi.rpc.chain.getBlockHash(blockNum)
+        );
 
-});
+        const normalWeight = (await apiAt.query.system.blockWeight()).normal.toNumber();
+        const maxWeight = apiAt.consts.system.blockWeights.perClass.normal.maxTotal.toString();
+        const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
+
+        const actualWeightUsed = normalWeight / Number(maxWeight);
+        if (actualWeightUsed > 0.2) {
+          const gasUsed = ethBlock.header.gasUsed.toBigInt();
+          const weightCalc = gasUsed * WEIGHT_PER_GAS;
+          const newRatio = (normalWeight - Number(weightCalc)) / Number(maxWeight);
+          debug(
+            `Block #${blockNum} is ${(actualWeightUsed * 100).toFixed(2)}% full with ${
+              ethBlock.transactions.length
+            } transactions, non-transaction weight: ${(newRatio * 100).toFixed(2)}%`
+          );
+          return { blockNum, nonTxn: newRatio };
+        }
+      };
+
+      const promises = (() => {
+        const length = lastBlockNumber - firstBlockNumber;
+        return Array.from({ length }, (_, i) => firstBlockNumber + i);
+      })().map((num) => limiter.schedule(() => checkBlockWeight(num)));
+
+      const results = await Promise.all(promises);
+      const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 0.2);
+      expect(
+        nonTxnHeavyBlocks,
+        `These blocks have non-txn weights >20%, please investigate: ${nonTxnHeavyBlocks
+          .map((a) => a.blockNum)
+          .join(", ")}`
+      ).to.be.empty;
+    });
+  }
+
+  /// TODO: Write new test for looking at sum of weights by looking at events extrinsic success
+  /// and fails compared to normal block weight
+
+
+);

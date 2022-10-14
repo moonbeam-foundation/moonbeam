@@ -66,6 +66,7 @@
     "bottleneck": "^2.19.5",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
+    "chai-roughly": "^1.0.0",
     "chalk": "^4.0.1",
     "debug": "^4.3.2",
     "eth-object": "github:aurora-is-near/eth-object#master",
