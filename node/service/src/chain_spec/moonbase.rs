@@ -25,11 +25,12 @@ use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{
-	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig,
-	InflationInfo, MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	currency::{KILOUNIT, UNIT},
+	AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig, BaseFeeConfig,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
 	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
@@ -51,7 +52,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	// We prefund the standard dev accounts plus Gerald
 	let mut accounts = generate_accounts(parent_mnemonic, num_accounts.unwrap_or(10));
 	accounts.push(AccountId::from(hex!(
-		"6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b"
+		"6d6f646c70632f74727372790000000000000000"
 	)));
 
 	ChainSpec::from_genesis(
