@@ -8,31 +8,10 @@ use sp_runtime::{
 };
 use sqlx::{
 	sqlite::{SqliteConnectOptions, SqlitePool, SqlitePoolOptions, SqliteQueryResult, SqliteRow},
-	ConnectOptions, Connection, Database as DatabaseT, Error, QueryBuilder, Row, Sqlite,
+	ConnectOptions, Error, QueryBuilder, Row, Sqlite,
 };
 use std::str::FromStr;
 use std::sync::Arc;
-
-// On sqlx::any:
-//
-// sqlx allows to be generic over the created pool using the Any types, and automatically infers the
-// backend parsing the connection options.
-//
-// https://github.com/launchbadge/sqlx/issues/1978 describes a lifetime issue when using an AnyPool + QueryBuilder,
-// which in practice renders useless the Any type for complex builder queries.
-//
-// Until that issue is resolved we just use the Sqlite as our primary target namespace, although our design supports effortlessly switching to Any.
-
-struct Log {
-	block_number: i32,
-	address: Vec<u8>,
-	topic_1: Vec<u8>,
-	topic_2: Vec<u8>,
-	topic_3: Vec<u8>,
-	topic_4: Vec<u8>,
-	transaction_index: i32,
-	substrate_block_hash: Vec<u8>,
-}
 
 pub struct SqliteBackendConfig {
 	pub path: &'static str,
@@ -45,7 +24,6 @@ pub enum BackendConfig {
 
 pub struct Backend<Client, Block: BlockT, BE> {
 	pool: SqlitePool,
-	config: BackendConfig,
 	client: Arc<Client>,
 	overrides: Arc<OverrideHandle<Block>>,
 	_marker: std::marker::PhantomData<BE>,
@@ -66,21 +44,20 @@ where
 		let any_pool = SqlitePoolOptions::new()
 			.max_connections(pool_size)
 			.connect_lazy_with(
-				Self::any_connect_options(&config)?
+				Self::connect_options(&config)?
 					.disable_statement_logging()
 					.clone(),
 			);
 		let _ = Self::create_if_not_exists(&any_pool).await?;
 		Ok(Self {
 			pool: any_pool,
-			config,
 			client,
 			overrides,
 			_marker: Default::default(),
 		})
 	}
 
-	fn any_connect_options(config: &BackendConfig) -> Result<SqliteConnectOptions, Error> {
+	fn connect_options(config: &BackendConfig) -> Result<SqliteConnectOptions, Error> {
 		match config {
 			BackendConfig::Sqlite(config) => {
 				let config = sqlx::sqlite::SqliteConnectOptions::from_str(config.path)?
@@ -105,8 +82,7 @@ where
 		query.execute(self.pool()).await
 	}
 
-	// pub fn outer_fn(&self, tx: &mut sqlx::Transaction<'_, Sqlite>) {
-	pub fn spawn_insert_logs(&self) {
+	pub fn spawn_logs_task(&self) {
 		let pool = self.pool().clone();
 		let client = self.client.clone();
 		let overrides = self.overrides.clone();
@@ -130,13 +106,13 @@ where
                     // which is not possible because we want to update the sync_status table right away to avoid race conditions
 					Ok(result) => {
 						tokio::task::spawn_blocking(move || async move {
-							Self::spawn_insert_logs_blocking(client, overrides, &pool, result).await
+							Self::spawn_logs_task_inner(client, overrides, &pool, result).await
 						})
 						.await
 						.map_err(|_| Error::Protocol("tokio blocking task failed".to_string()))?
 						.await
 					}
-					Err(e) => Err(Error::Protocol("Db was busy in UPDATE `sync_status` failed, will try again".to_string())),
+					Err(_) => Err(Error::Protocol("Db locked in UPDATE `sync_status` failed, will try again".to_string())),
 				}
 			}
 			.await
@@ -144,15 +120,13 @@ where
 		});
 	}
 
-	async fn spawn_insert_logs_blocking(
+	async fn spawn_logs_task_inner(
 		client: Arc<Client>,
 		overrides: Arc<OverrideHandle<Block>>,
 		pool: &SqlitePool,
 		rows: Vec<SqliteRow>,
 	) -> Result<(), Error> {
 		let mut tx = pool.begin().await.unwrap();
-		println!("!!!!!!!!!! >> --");
-		let mut logs: Vec<Log> = vec![];
 		for row in rows.iter() {
 			if let Ok(bytes) = row.try_get::<Vec<u8>, _>(0) {
 				let substrate_block_hash = H256::from_slice(&bytes[..]);
@@ -175,13 +149,15 @@ where
 
 				let receipts = handler.current_receipts(&id).unwrap_or_default();
 
-				for (index, receipt) in receipts.iter().enumerate() {
+				for (transaction_index, receipt) in receipts.iter().enumerate() {
 					let receipt_logs = match receipt {
 						ethereum::ReceiptV3::Legacy(d)
 						| ethereum::ReceiptV3::EIP2930(d)
 						| ethereum::ReceiptV3::EIP1559(d) => &d.logs,
 					};
-					for log in receipt_logs {
+					let transaction_index = transaction_index as i32;
+					for (log_index, log) in receipt_logs.iter().enumerate() {
+						let log_index = log_index as i32;
 						let address = log.address.as_bytes().to_owned();
 						let topic_1 = log
 							.topics
@@ -207,9 +183,7 @@ where
 							.unwrap_or(&H256::zero())
 							.as_bytes()
 							.to_owned();
-						let transaction_index = index as i32;
 						let substrate_block_hash = bytes.clone();
-						// ! query macro requires DATABASE_URL env variable
 						let _ = sqlx::query!(
 							"INSERT INTO logs(
                                 block_number,
@@ -218,15 +192,17 @@ where
                                 topic_2,
                                 topic_3,
                                 topic_4,
+                                log_index,
                                 transaction_index,
                                 substrate_block_hash)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
 							substrate_block_number,
 							address,
 							topic_1,
 							topic_2,
 							topic_3,
 							topic_4,
+							log_index,
 							transaction_index,
 							substrate_block_hash,
 						)
@@ -240,12 +216,10 @@ where
 				// and log/error on the id for cases like hash IS NULL.
 			}
 		}
-		// transaction commit
 		tx.commit().await
 	}
 
 	async fn create_if_not_exists(pool: &SqlitePool) -> Result<SqliteQueryResult, Error> {
-        // TODO define a unique index for `logs`, maybe log index + tx index + substrate block hahs
 		sqlx::query(
 			"BEGIN;
             CREATE TABLE IF NOT EXISTS logs (
@@ -256,8 +230,14 @@ where
                 topic_2 BLOB NOT NULL,
                 topic_3 BLOB NOT NULL,
                 topic_4 BLOB NOT NULL,
+                log_index INTEGER NOT NULL,
                 transaction_index INTEGER NOT NULL,
-                substrate_block_hash BLOB NOT NULL
+                substrate_block_hash BLOB NOT NULL,
+				UNIQUE (
+                    log_index,
+                    transaction_index,
+                    substrate_block_hash
+                )
             );
             CREATE TABLE IF NOT EXISTS sync_status (
                 substrate_block_hash BLOB NOT NULL PRIMARY KEY,

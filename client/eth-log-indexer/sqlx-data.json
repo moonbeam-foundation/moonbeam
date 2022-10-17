@@ -1,0 +1,31 @@
+{
+  "db": "SQLite",
+  "5d82a455de403e5d85ae2e58dd0805d4166072db34c051359f0c7f26d6f4adcd": {
+    "describe": {
+      "columns": [
+        {
+          "name": "substrate_block_hash",
+          "ordinal": 0,
+          "type_info": "Blob"
+        }
+      ],
+      "nullable": [
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT substrate_block_hash FROM sync_status WHERE substrate_block_hash = ?1"
+  },
+  "640fe09b8425967857fd0443c9c5c198e0e47e1f0b0fdcd89f82d616579fa9e6": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 9
+      }
+    },
+    "query": "INSERT INTO logs(\n                                block_number,\n                                address,\n                                topic_1,\n                                topic_2,\n                                topic_3,\n                                topic_4,\n                                log_index,\n                                transaction_index,\n                                substrate_block_hash)\n                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  }
+}

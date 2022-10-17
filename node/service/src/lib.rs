@@ -557,7 +557,7 @@ where
 			backend.clone(),
 			Arc::new(indexer_backend),
 			client.clone().import_notification_stream(),
-			std::time::Duration::from_secs(4),
+			std::time::Duration::from_secs(1),
 		),
 	);
 

@@ -7,7 +7,6 @@ use sp_runtime::{
 	generic::BlockId,
 	traits::{BlakeTwo256, Block as BlockT},
 };
-use sqlx::Row;
 use std::{sync::Arc, time::Duration};
 
 const BATCH_SIZE: usize = 1000;
@@ -28,30 +27,20 @@ where
 	) -> impl Future<Output = ()> {
 		async move {
 			let mut hashes: Vec<Block::Hash> = vec![];
-			let mut foo_db: Vec<Block::Hash> = vec![];
 
-			let interval_fut = futures_timer::Delay::new(interval);
+			let import_interval = futures_timer::Delay::new(interval);
 			let backend = substrate_backend.blockchain();
 			let notifications = notifications.fuse();
-			futures::pin_mut!(interval_fut, notifications);
-
-			let mut db_status_data =
-				sqlx::query("SELECT substrate_block_hash FROM sync_status WHERE status = 0")
-					.fetch_all(indexer_backend.pool())
-					.await
-					.expect("query `sync_status` table")
-					.iter()
-					.map(|any_row| H256::from_slice(&any_row.try_get::<Vec<u8>, _>(0).unwrap()[..]))
-					.collect::<Vec<H256>>();
+			futures::pin_mut!(import_interval, notifications);
 
 			loop {
 				futures::select! {
-					_ = (&mut interval_fut).fuse() => {
+					_ = (&mut import_interval).fuse() => {
 						println!("##################################################################");
 						let leaves = backend.leaves();
 						if let Ok(mut leaves) = leaves {
 							while let Some(leaf) = leaves.pop() {
-								if !Self::batch(Arc::clone(&indexer_backend), &mut hashes, &mut db_status_data, leaf).await {
+								if !Self::batch(Arc::clone(&indexer_backend), &mut hashes, leaf, false).await {
 									break;
 								}
 								if let Ok(Some(header)) = backend.header(BlockId::Hash(leaf)) {
@@ -60,10 +49,10 @@ where
 								}
 							}
 						}
-						interval_fut.reset(interval);
+						import_interval.reset(interval);
 					},
-					imported = notifications.next() => {
-						println!("--> Whatever");
+					notification = notifications.next() => if let Some(notification) = notification {
+						let _ = Self::batch(Arc::clone(&indexer_backend), &mut hashes, notification.hash, true).await;
 					}
 				}
 			}
@@ -73,25 +62,24 @@ where
 	pub async fn batch(
 		indexer_backend: Arc<crate::Backend<Client, Block, Backend>>,
 		hashes: &mut Vec<Block::Hash>,
-		db_status_data: &mut Vec<Block::Hash>,
 		hash: Block::Hash,
+		notified: bool,
 	) -> bool {
-		if hashes.contains(&hash) || db_status_data.contains(&hash) {
+		let bytes = hash.as_bytes();
+		let already_synced =
+			sqlx::query!("SELECT substrate_block_hash FROM sync_status WHERE substrate_block_hash = ?1", bytes)
+				.fetch_one(indexer_backend.pool())
+				.await;
+		if hashes.contains(&hash) || already_synced.is_ok() {
 			println!("XXXXXXXXXXXXXXXXX CONTAINS");
 			false
-		} else if hashes.len() < BATCH_SIZE {
+		} else if !notified && hashes.len() < BATCH_SIZE {
 			hashes.push(hash);
 			true
 		} else {
 			hashes.push(hash);
-			indexer_backend.insert_sync_status(hashes).await; // TODO handle err
-			indexer_backend.spawn_insert_logs(); // Spawn actual logs task
-			db_status_data.append(hashes);
-			println!(
-				"!!!!!!!!! DB has now {:?} block hashes",
-				db_status_data.len()
-			);
-			println!("!!!!!!!!!");
+			let _ = indexer_backend.insert_sync_status(hashes).await; // TODO handle err
+			indexer_backend.spawn_logs_task(); // Spawn actual logs task
 			hashes.clear();
 			true
 		}
