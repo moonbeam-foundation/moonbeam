@@ -8679,5 +8679,37 @@ fn test_cow_after_bond_less_scheduled() {
 				],
 				"Collator selection and/or round start did not occur properly"
 			);
+
+			// roll through round 4 and look for payouts of round 2, which should include the
+			// effects of the bond change
+			set_author(3, 1, 100);
+			roll_to_round_end(4);
+			assert_eq_last_events!(
+				vec![
+					// bond less still should not impact totals (it never will)
+					Event::<Test>::CollatorChosen {
+						round: 4,
+						collator_account: 1,
+						total_exposed_amount: 4000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 15,
+						round: 4,
+						selected_collators_number: 1,
+						total_balance: 4000,
+					},
+
+					// round 2 payouts should be affected by bond less request
+					Event::<Test>::Rewarded {
+						account: 1,
+						rewards: 160,
+					},
+					Event::<Test>::Rewarded {
+						account: 2,
+						rewards: 58,
+					},
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
 		});
 }

@@ -1561,9 +1561,8 @@ pub mod pallet {
 					// current values instead.
 					if let None = maybe_delegations {
 						log::warn!("no future snapshots usable, falling back to current TopDelegations...");
-						let counted_delegations =
-							Pallet::<T>::get_rewardable_delegators(&collator);
-						maybe_delegations = Some(counted_delegations.rewardable_delegations);
+						maybe_delegations =
+							Some(<TopDelegations<T>>::get(&collator).unwrap_or_default().delegations)
 					};
 					if let None = maybe_delegation_requests {
 						log::warn!("no future snapshots usable, falling back to current TopDelegations...");
@@ -1757,7 +1756,7 @@ pub mod pallet {
 		//         * CountedDelegations loses the rewardable_delegations field
 		//         * CollatorSnapshot's delegations vec is lazily populated when any change to TopDelegations occurs
 		// We may also need to track the number of counted delegators similarly to uncounted_stake.
-		pub(crate) fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
+		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
