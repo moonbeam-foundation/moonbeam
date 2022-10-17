@@ -53,7 +53,7 @@ describeSmokeSuite(
         lastBlockNumber,
         firstBlockTime
       )) as number;
-  
+
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
       const promises = (() => {
