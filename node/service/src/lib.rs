@@ -544,7 +544,7 @@ where
 			path: "sqlite:///home/telmo/rust/sqlite_playground/test2.db3",
 			create_if_missing: true,
 		}),
-		10,
+		100,
 		client.clone(),
 		overrides.clone(),
 	)

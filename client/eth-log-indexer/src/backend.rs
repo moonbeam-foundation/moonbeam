@@ -72,6 +72,10 @@ where
 		&self.pool
 	}
 
+	pub fn client(&self) -> Arc<Client> {
+		self.client.clone()
+	}
+
 	pub async fn insert_sync_status(&self, hashes: &Vec<H256>) -> Result<SqliteQueryResult, Error> {
 		let mut builder: QueryBuilder<Sqlite> =
 			QueryBuilder::new("INSERT INTO sync_status(substrate_block_hash) ");
@@ -116,7 +120,7 @@ where
 				}
 			}
 			.await
-			.map_err(|e| println!(":( Error occurred: {:?}", e));
+			.map_err(|e| println!("Indexer error: {:?}", e));
 		});
 	}
 
@@ -240,7 +244,8 @@ where
                 )
             );
             CREATE TABLE IF NOT EXISTS sync_status (
-                substrate_block_hash BLOB NOT NULL PRIMARY KEY,
+                id INTEGER PRIMARY KEY,
+                substrate_block_hash BLOB NOT NULL,
                 status INTEGER DEFAULT 0 NOT NULL
             );
             CREATE INDEX IF NOT EXISTS block_number_idx ON logs (

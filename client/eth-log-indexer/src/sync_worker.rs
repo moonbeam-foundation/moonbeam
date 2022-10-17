@@ -8,6 +8,7 @@ use sp_runtime::{
 	traits::{BlakeTwo256, Block as BlockT},
 };
 use std::{sync::Arc, time::Duration};
+use sqlx::Row;
 
 const BATCH_SIZE: usize = 1000;
 
@@ -31,14 +32,28 @@ where
 			let import_interval = futures_timer::Delay::new(interval);
 			let backend = substrate_backend.blockchain();
 			let notifications = notifications.fuse();
-			futures::pin_mut!(import_interval, notifications);
 
+			let existing = sqlx::query("SELECT substrate_block_hash FROM sync_status ORDER BY id DESC LIMIT 1")
+				.fetch_one(indexer_backend.pool())
+				.await;
+
+			futures::pin_mut!(import_interval, notifications);
 			loop {
 				futures::select! {
 					_ = (&mut import_interval).fuse() => {
 						println!("##################################################################");
 						let leaves = backend.leaves();
 						if let Ok(mut leaves) = leaves {
+							if let Ok(ref row) = existing {
+								let client = indexer_backend.client();
+								let hash = H256::from_slice(&row.try_get::<Vec<u8>, _>(0).unwrap_or_default()[..]);
+								if let Ok(Some(number)) = client.number(hash) {
+									if let Ok(Some(header)) = client.header(sp_runtime::generic::BlockId::Number(number)) {
+										println!("--> continue syncing {:?}", header.parent_hash());
+										leaves.push(*header.parent_hash());
+									}
+								}
+							}
 							while let Some(leaf) = leaves.pop() {
 								if !Self::batch(Arc::clone(&indexer_backend), &mut hashes, leaf, false).await {
 									break;
@@ -67,21 +82,24 @@ where
 	) -> bool {
 		let bytes = hash.as_bytes();
 		let already_synced =
-			sqlx::query!("SELECT substrate_block_hash FROM sync_status WHERE substrate_block_hash = ?1", bytes)
+			sqlx::query!("SELECT id FROM sync_status WHERE substrate_block_hash = ?1", bytes)
 				.fetch_one(indexer_backend.pool())
 				.await;
-		if hashes.contains(&hash) || already_synced.is_ok() {
-			println!("XXXXXXXXXXXXXXXXX CONTAINS");
-			false
-		} else if !notified && hashes.len() < BATCH_SIZE {
-			hashes.push(hash);
-			true
-		} else {
-			hashes.push(hash);
-			let _ = indexer_backend.insert_sync_status(hashes).await; // TODO handle err
-			indexer_backend.spawn_logs_task(); // Spawn actual logs task
-			hashes.clear();
-			true
+		if already_synced.is_ok() {
+			println!("XX already synced {:?}", hash);
+			return false;
 		}
+		if !hashes.contains(&hash) {
+			if !notified && hashes.len() < BATCH_SIZE {
+				hashes.push(hash);
+			} else {
+				println!("--> batch");
+				hashes.push(hash);
+				let _ = indexer_backend.insert_sync_status(hashes).await; // TODO handle err
+				indexer_backend.spawn_logs_task(); // Spawn actual logs task
+				hashes.clear();
+			}
+		}
+		true
 	}
 }
