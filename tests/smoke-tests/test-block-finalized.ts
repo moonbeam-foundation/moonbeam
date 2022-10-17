@@ -21,7 +21,6 @@ describeSmokeSuite(
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
     });
 
-    // TODO: Coordinate with Ops to make sure ETH RPC url is propagated
     it("should have a recently finalized eth block", async function () {
       const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
       if (specVersion < 1900) {
@@ -44,7 +43,6 @@ describeSmokeSuite(
       const lastBlockTime = getBlockTime(signedBlock);
       const limiter = new Bottleneck({ maxConcurrent: 5 });
 
-      // Target time here is set to be 2 hours, possible parameterize this in future
       const firstBlockTime = lastBlockTime - timePeriod;
       debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
 
