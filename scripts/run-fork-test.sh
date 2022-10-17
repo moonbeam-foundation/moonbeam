@@ -59,7 +59,9 @@ fi
 echo "Preparation..."
 echo " - moonbeam: ${GIT_TAG} [folder: ${ROOT_FOLDER} - port-prefix: ${PORT_PREFIX}]"
 echo " -  network: ${NETWORK} [runtime: ${RUNTIME_NAME} - id: ${PARA_ID}]"
-trap "trap - TERM && kill -- -$$" INT TERM EXIT
+
+# Forces child processes to exit when this script exits
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 mkdir -p $ROOT_FOLDER/states
 cd $ROOT_FOLDER
@@ -103,11 +105,11 @@ then
     echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
     cd $ROOT_FOLDER/moonbeam
     git checkout $GIT_TAG
-    cargo build --release -p ${RUNTIME_NAME}-runtime
+    cargo build --quiet --release -p ${RUNTIME_NAME}-runtime
 
     if [[ $USE_LOCAL_CLIENT == "true" ]]
     then
-        cargo build --release -p moonbeam
+        cargo build --quiet --release -p moonbeam
         cp target/release/moonbeam $BINARY_PATH
     fi
 
@@ -151,15 +153,17 @@ export WSS_URL=ws://localhost:51102
 # Run the fork test (without spawning the node using DEBUG_MODE)
 echo "Running fork tests... (10 minutes)"
 SUCCESS_UPGRADE=false
-DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
+DEBUG_MODE=true DEBUG=test:setup* npm run fork-test -- --reporter min && \
+  SUCCESS_UPGRADE=true || \
   echo "Failed to do runtime upgrade"
 
 if [[ $SUCCESS_UPGRADE == "true" ]]
 then
     SUCCESS_TEST=false
     echo "Running smoke tests... (10 minutes)"
-    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test && \
-    SUCCESS_TEST=true ||echo "Failed to pass smoke test"
+    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* \
+      npm run smoke-test -- --reporter min && \
+      SUCCESS_TEST=true ||echo "Failed to pass smoke test"
 fi
 
 echo "Retrieving runtime stats..."
@@ -174,5 +178,7 @@ then
 fi
 echo "Done !!"
 
-kill $PID
+kill $PID || \
+  kill $(ps aux | grep spawn-fork-node.ts | grep -v grep | tr -s ' ' | cut -f2 -d ' ') || \
+  echo "PID not found"
 [[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
