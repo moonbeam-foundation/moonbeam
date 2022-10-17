@@ -115,13 +115,13 @@ then
 
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm install
+    npm install --quiet
     cd $ROOT_FOLDER/moonbeam/tools
-    npm install
+    npm install --quiet
 
     cd $ROOT_FOLDER/moonbeam/tests
     git checkout $GIT_TEST_TAG
-    npm ci
+    npm ci --quiet
 fi
 
 echo " - moonbeam binary: $BINARY_PATH"
