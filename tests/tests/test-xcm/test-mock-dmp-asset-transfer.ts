@@ -39,7 +39,7 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     await context.createBlock();
 
     // Make sure the state has ALITH's to DOT tokens
-    let alith_dot_balance = (
+    const alith_dot_balance = (
       (await context.polkadotApi.query.assets.account(assetId, alith.address)) as any
     )
       .unwrap()

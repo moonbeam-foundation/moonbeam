@@ -29,15 +29,18 @@ use frame_support::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,
 	},
-	weights::{DispatchClass, Weight},
+	weights::{constants::WEIGHT_PER_SECOND, DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
 use moonbase_runtime::{
-	asset_config::AssetRegistrarMetadata, asset_config::LocalAssetInstance, get,
-	xcm_config::AssetType, AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call,
-	CrowdloanRewards, Event, LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
-	RuntimeBlockWeights, System, TransactionPayment, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	asset_config::AssetRegistrarMetadata,
+	asset_config::LocalAssetInstance,
+	get,
+	xcm_config::{AssetType, SelfReserve},
+	AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call, CrowdloanRewards, Event,
+	LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, System,
+	TransactionPayment, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use polkadot_parachain::primitives::Sibling;
 use precompile_utils::testing::MockHandle;
@@ -46,6 +49,7 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
 use xcm_primitives::Account20Hash;
 
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
@@ -1859,7 +1863,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1911,7 +1915,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2503,7 +2507,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(18619)
+				.expect_cost(18931)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2543,7 +2547,7 @@ fn transact_through_signed_precompile_works_v2() {
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(18619)
+				.expect_cost(18931)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2625,7 +2629,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [1u8; 32].into(),
 					},
 				)
-				.expect_cost(15388)
+				.expect_cost(15981)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2647,7 +2651,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						new_nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15190)
+				.expect_cost(15621)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2668,7 +2672,7 @@ fn author_mapping_precompile_associate_update_and_clear() {
 						nimbus_id: [2u8; 32].into(),
 					},
 				)
-				.expect_cost(15447)
+				.expect_cost(16153)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2711,7 +2715,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16280)
+				.expect_cost(16849)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2736,7 +2740,7 @@ fn author_mapping_register_and_set_keys() {
 							.into(),
 					},
 				)
-				.expect_cost(16280)
+				.expect_cost(16849)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -2833,6 +2837,46 @@ fn test_xcm_utils_ml_tp_account() {
 }
 
 #[test]
+fn test_xcm_utils_weight_message() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let expected_weight: xcm_primitives::XcmV2Weight =
+			XcmWeight::<moonbase_runtime::Runtime, Call>::clear_origin();
+
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = XcmUtilsPCall::weight_message {
+			message: message.into(),
+		};
+
+		Precompiles::new()
+			.prepare_test(ALICE, xcm_utils_precompile_address, input)
+			.expect_cost(0)
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(expected_weight).build());
+	});
+}
+
+#[test]
+fn test_xcm_utils_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
+		let multilocation = SelfReserve::get();
+
+		let input = XcmUtilsPCall::get_units_per_second { multilocation };
+
+		let expected_units =
+			WEIGHT_PER_SECOND.ref_time() as u128 * moonbase_runtime::currency::WEIGHT_FEE;
+
+		Precompiles::new()
+			.prepare_test(ALICE, xcm_utils_precompile_address, input)
+			.expect_cost(1000)
+			.expect_no_logs()
+			.execute_returns(EvmDataWriter::new().write(expected_units).build());
+	});
+}
+
+#[test]
 fn precompile_existence() {
 	ExtBuilder::default().build().execute_with(|| {
 		let precompiles = Precompiles::new();
@@ -2913,14 +2957,14 @@ fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 		let size_bytes = 0;
 		let tip = 0;
 		let dispatch_info = DispatchInfo {
-			weight: 0,
+			weight: Weight::zero(),
 			class: DispatchClass::Normal,
 			pays_fee: Pays::Yes,
 		};
 
 		assert_eq!(
 			TransactionPayment::compute_fee(size_bytes, &dispatch_info, tip),
-			EXTRINSIC_BASE_WEIGHT as u128 * currency::WEIGHT_FEE,
+			EXTRINSIC_BASE_WEIGHT.ref_time() as u128 * currency::WEIGHT_FEE,
 		);
 	});
 }

@@ -3,16 +3,27 @@ import "@polkadot/api-augment";
 import { ApiPromise } from "@polkadot/api";
 import chalk from "chalk";
 import { ethers } from "ethers";
+import { ILoader, Environment } from "nunjucks";
+
+import fs from "fs";
 
 import zombie from "@parity/zombienet";
 import { HttpProvider } from "web3-core";
 import { EnhancedWeb3, provideEthersApi, provideWeb3Api } from "./providers";
 import { Network } from "@parity/zombienet/dist/network";
+import {
+  getMoonbeamDockerBinary,
+  getMoonbeamReleaseBinary,
+  getPlainSpecsFromTag,
+  getPolkadotReleaseBinary,
+} from "./binaries";
+import { ParaTestOptions } from "./para-node";
+import { BINARY_PATH, RELAY_BINARY_PATH } from "./constants";
+import { UpgradePreferences, upgradeRuntime } from "./upgrade";
 
 const debug = require("debug")("test:setup");
 
 const ZOMBIENET_CREDENTIALS = process.env.ZOMBIENET_CREDENTIALS || "./zombienet/moonbase.env";
-const ZOMBIENET_CONFIG = process.env.ZOMBIENET_CONFIG || "../zombienet/default-config.json";
 
 let network: Network;
 export interface ZombieTestContext {
@@ -21,6 +32,7 @@ export interface ZombieTestContext {
   createPolkadotApiParachain: (parachainNumber: number) => Promise<ApiPromise>;
   createPolkadotApiParachains: () => Promise<ApiPromise>;
   createPolkadotApiRelaychains: () => Promise<ApiPromise>;
+  upgradeRuntime: (preferences: UpgradePreferences) => Promise<number>;
   waitBlocks: (count: number) => Promise<number>; // return current block when the promise resolves
   blockNumber: number;
   network: Network;
@@ -36,11 +48,33 @@ export interface ParachainApis {
   apis: ApiPromise[];
 }
 
+export class RelativeLoader implements ILoader {
+  constructor(private paths: string[]) {}
+  getSource(name: string) {
+    const fullPath = require.resolve(name, {
+      paths: this.paths,
+    });
+
+    return {
+      src: fs.readFileSync(fullPath, "utf-8"),
+      path: fullPath,
+      noCache: true,
+    };
+  }
+}
+
 export interface InternalZombieTestContext extends ZombieTestContext {
   _web3Providers: HttpProvider[];
 }
+export interface ZombieTestConfig {
+  runtime: "moonbase" | "moonriver" | "moonbeam";
+}
 
-export function describeZombienet(title: string, cb: (context: InternalZombieTestContext) => void) {
+export function describeZombienet(
+  title: string,
+  options: ParaTestOptions,
+  cb: (context: InternalZombieTestContext) => void
+) {
   describe(title, function () {
     // Increases timeout for tests as they rely on real block production
     this.timeout(32000);
@@ -51,9 +85,50 @@ export function describeZombienet(title: string, cb: (context: InternalZombieTes
 
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Test ZombieNet", async function () {
-      this.timeout(120000);
+      this.timeout(320000);
       try {
-        const networkConfig = require(ZOMBIENET_CONFIG);
+        // Retrieve the correct binary/specs
+
+        const paraBinary =
+          !options.parachain.binary || options.parachain.binary == "local"
+            ? BINARY_PATH
+            : await getMoonbeamReleaseBinary(options.parachain.binary);
+        console.log(options.parachain);
+        const paraSpecs =
+          "spec" in options.parachain
+            ? options.parachain.spec
+            : !("runtime" in options.parachain) || options.parachain.runtime == "local"
+            ? options.parachain.chain || "moonbase-local"
+            : await getPlainSpecsFromTag(
+                options.parachain.chain || "moonbase-local",
+                options.parachain.runtime
+              );
+        const chainSpecCommand =
+          "runtime" in options.parachain
+            ? await getMoonbeamDockerBinary(options.parachain.runtime)
+            : paraBinary;
+
+        const relayBinary =
+          !options?.relaychain?.binary || options?.relaychain?.binary == "local"
+            ? RELAY_BINARY_PATH
+            : await getPolkadotReleaseBinary(options.relaychain.binary);
+
+        const networkFile = "zombienet/default-config.json";
+
+        const env = new Environment();
+        const templateContent = fs.readFileSync(networkFile).toString();
+        const content = env.renderString(templateContent, {
+          ...process.env,
+          binaryPath: paraBinary,
+          relayBinaryPath: relayBinary,
+          chain: paraSpecs,
+          runtime: "moonbase",
+          // see https://github.com/paritytech/zombienet/issues/467
+          chainSpecCommand, // not yet working :(
+        });
+        console.log(content);
+        const networkConfig = JSON.parse(content);
+
         network = await zombie.start(ZOMBIENET_CREDENTIALS, networkConfig, {
           spawnConcurrency: 10,
         });
@@ -64,7 +139,7 @@ export function describeZombienet(title: string, cb: (context: InternalZombieTes
         context.blockNumber = 0;
         context._web3Providers = [];
 
-        context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
+        context.createWeb3 = async (protocol: "ws" | "http" = "ws") => {
           if (protocol == "http") {
             throw new Error("http protocol is not yet supported by zombienet");
           }
@@ -96,6 +171,8 @@ export function describeZombienet(title: string, cb: (context: InternalZombieTes
 
           return apiPromises[0] as any;
         };
+        context.upgradeRuntime = (preferences) =>
+          upgradeRuntime(context.polkadotApiParaone, preferences);
         context.createPolkadotApiRelaychains = async () => {
           const apiPromises = await Promise.all(
             Object.values(network.relay).map(async (relay) => {

@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 
 import { ApiPromise } from "@polkadot/api";
 import {
@@ -134,7 +134,6 @@ export const verifyBlockFees = async (
   debug(`========= Checking block ${fromBlockNumber}...${toBlockNumber}`);
   let sumBlockFees = 0n;
   let sumBlockBurnt = 0n;
-  let blockCount = 0;
 
   // Get from block hash and totalSupply
   const fromPreBlockHash = (await api.rpc.chain.getBlockHash(fromBlockNumber - 1)).toString();
@@ -152,7 +151,6 @@ export const verifyBlockFees = async (
     api,
     { from: fromBlockNumber, to: toBlockNumber, concurrency: 5 },
     async (blockDetails) => {
-      blockCount++;
       let blockFees = 0n;
       let blockBurnt = 0n;
 
@@ -187,11 +185,9 @@ export const verifyBlockFees = async (
 
             // We are only interested in fee paying extrinsics:
             // Either ethereum transactions or signed extrinsics with fees (substrate tx)
-            // TODO: sudo should not have paysFee
             if (
-              dispatchInfo.paysFee.isYes &&
-              extrinsic.method.section !== "sudo" &&
-              (!extrinsic.signer.isEmpty || extrinsic.method.section == "ethereum")
+              (dispatchInfo.paysFee.isYes && !extrinsic.signer.isEmpty) ||
+              extrinsic.method.section == "ethereum"
             ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
@@ -258,12 +254,20 @@ export const verifyBlockFees = async (
             const deposit = (event.data[0] as any).toBigInt();
             // Compare deposit event amont to what should have been sent to deposit
             // (if they don't match, which is not a desired behavior)
-            expect(txFees - txBurnt).to.eq(deposit);
-            if (txFees - txBurnt !== deposit) {
-              debug("Desposit Amount Discrepancy!");
-              debug(`fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}`);
-              debug(`       deposit : ${deposit.toString().padStart(30, " ")}`);
-            }
+            expect(
+              txFees - txBurnt,
+              `Desposit Amount Discrepancy!\n` +
+                `    Block: #${blockDetails.block.header.number.toString()}\n` +
+                `Extrinsic: ${extrinsic.method.section}.${extrinsic.method.method}\n` +
+                `     Args: \n` +
+                extrinsic.args.map((arg) => `          - ${arg.toString()}`).join("\n") +
+                `   Events: \n` +
+                events
+                  .map(({ data, method, section }) => `          - ${section}.${method}:: ${data}`)
+                  .join("\n") +
+                `     fees not burnt : ${(txFees - txBurnt).toString().padStart(30, " ")}\n` +
+                `            deposit : ${deposit.toString().padStart(30, " ")}`
+            ).to.eq(deposit);
           }
         }
       }
@@ -344,3 +348,40 @@ export async function jumpRounds(context: DevTestContext, count: Number): Promis
 
   return jumpToRound(context, round);
 }
+
+export const getBlockTime = (signedBlock: any) =>
+  signedBlock.block.extrinsics
+    .find((item) => item.method.section == "timestamp")
+    .method.args[0].toNumber();
+
+export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
+  return {
+    number,
+    finalized: (await api.rpc.moon.isBlockFinalized(await api.rpc.chain.getBlockHash(number)))
+      .isTrue,
+  };
+};
+
+const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
+  const hash = await api.rpc.chain.getBlockHash(blockNum);
+  const block = await api.rpc.chain.getBlock(hash);
+  return getBlockTime(block);
+};
+
+export const fetchHistoricBlockNum = async (
+  api: ApiPromise,
+  blockNumber: number,
+  targetTime: number
+) => {
+  return fetchBlockTime(api, blockNumber).then((time) => {
+    if (time < targetTime) {
+      return blockNumber;
+    } else {
+      return fetchHistoricBlockNum(
+        api,
+        (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
+        targetTime
+      );
+    }
+  });
+};

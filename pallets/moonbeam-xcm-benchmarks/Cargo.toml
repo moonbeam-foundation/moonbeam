@@ -1,0 +1,58 @@
+[package]
+name = "moonbeam-xcm-benchmarks"
+authors = [ "PureStake" ]
+edition = "2021"
+version = "0.2.0"
+
+[dependencies]
+log = { version = "0.4", default-features = false }
+serde = { version = "1.0.124", optional = true }
+
+# Moonbeam
+xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
+
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+parity-scale-codec = { version = "3.0.0", optional = true, default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", optional = true, default-features = false, features = [ "derive" ] }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+
+# Polkadot / XCM
+pallet-xcm-benchmarks = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", optional = true, default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+
+# Benchmarks
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", optional = true, default-features = false }
+
+[dev-dependencies]
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+xcm-builder = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29" }
+xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29" }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-benchmarking/std",
+	"frame-support/std",
+	"frame-system/std",
+	"parity-scale-codec/std",
+	"serde",
+	"sp-std/std",
+	"xcm-primitives/std",
+	"xcm/std",
+]
+
+try-runtime = [ "frame-support/try-runtime" ]
+
+runtime-benchmarks = [
+	"frame-benchmarking",
+	"frame-system/runtime-benchmarks",
+	"pallet-xcm-benchmarks",
+	"parity-scale-codec",
+	"scale-info",
+	"xcm/runtime-benchmarks",
+]

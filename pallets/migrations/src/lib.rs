@@ -121,7 +121,7 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
 
-			let mut weight: Weight = 0u64.into();
+			let mut weight = Weight::zero();
 			// TODO: derive a suitable value here, which is probably something < max_block
 			let available_weight: Weight = T::BlockWeights::get().max_block;
 
@@ -263,7 +263,7 @@ pub mod pallet {
 	}
 
 	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
-		let mut weight: Weight = 0u64.into();
+		let mut weight = Weight::zero();
 
 		for migration in &T::MigrationsList::get_migrations() {
 			let migration_name = migration.friendly_name();
@@ -288,7 +288,7 @@ pub mod pallet {
 						migration_name,
 					);
 
-					0u64.into()
+					Weight::zero()
 				};
 
 				log::info!( target: "pallet-migrations",

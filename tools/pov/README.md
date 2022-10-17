@@ -52,3 +52,11 @@ The above command overrides the parameters `x` and `y` and creates three benchma
 The original compiled ranges (e.g. `x in 1 .. 100`) are completely ignored, and substituted with the exact command-line parameters defined via `--params` (e.g. `x = 10 50 100`).
 
 3. The execution above will create a `output.json` containing information for the above scenarios and would also open a chart-wise comparison in the browser.
+
+4. Analyze multiple results (optional)
+
+```
+ts-node tools/pov/index.ts analyze --input output-1.json output-2.json output-3.json
+```
+
+The above command will chart out all the input data on the same chart for better comparisons.

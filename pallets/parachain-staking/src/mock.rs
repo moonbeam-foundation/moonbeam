@@ -54,7 +54,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -149,8 +149,8 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [delegator, collator, delegation_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, delegation_amount, auto_compound_percent]
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -198,6 +198,17 @@ impl ExtBuilder {
 	pub(crate) fn with_delegations(
 		mut self,
 		delegations: Vec<(AccountId, AccountId, Balance)>,
+	) -> Self {
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
+		self
+	}
+
+	pub(crate) fn with_auto_compounding_delegations(
+		mut self,
+		delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	) -> Self {
 		self.delegations = delegations;
 		self
