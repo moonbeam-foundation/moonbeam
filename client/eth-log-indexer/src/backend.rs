@@ -13,6 +13,18 @@ use sqlx::{
 use std::str::FromStr;
 use std::sync::Arc;
 
+struct Log {
+	block_number: i32,
+	address: Vec<u8>,
+	topic_1: Vec<u8>,
+	topic_2: Vec<u8>,
+	topic_3: Vec<u8>,
+	topic_4: Vec<u8>,
+	log_index: i32,
+	transaction_index: i32,
+	substrate_block_hash: Vec<u8>,
+}
+
 pub struct SqliteBackendConfig {
 	pub path: &'static str,
 	pub create_if_missing: bool,
@@ -105,18 +117,45 @@ where
 				.fetch_all(&pool)
 				.await
 				{
-                    // TODO important on error we need to rollback the sync_status changes.
-                    // Is that or use the same tx for both the sync_status sync and the actual blocking task,
-                    // which is not possible because we want to update the sync_status table right away to avoid race conditions
+					// TODO important on error we need to rollback the sync_status changes.
 					Ok(result) => {
-						tokio::task::spawn_blocking(move || async move {
-							Self::spawn_logs_task_inner(client, overrides, &pool, result).await
+						let logs = tokio::task::spawn_blocking(move || {
+							Self::spawn_logs_task_inner(client, overrides, result)
 						})
 						.await
-						.map_err(|_| Error::Protocol("tokio blocking task failed".to_string()))?
-						.await
+						.map_err(|_| Error::Protocol("tokio blocking task failed".to_string()))?;
+						let mut tx = pool.begin().await.unwrap();
+						for log in logs.iter() {
+							let _ = sqlx::query!(
+								"INSERT INTO logs(
+							        block_number,
+							        address,
+							        topic_1,
+							        topic_2,
+							        topic_3,
+							        topic_4,
+							        log_index,
+							        transaction_index,
+							        substrate_block_hash)
+							    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+								log.block_number,
+								log.address,
+								log.topic_1,
+								log.topic_2,
+								log.topic_3,
+								log.topic_4,
+								log.log_index,
+								log.transaction_index,
+								log.substrate_block_hash,
+							)
+							.execute(&mut tx)
+							.await?;
+						}
+						tx.commit().await
 					}
-					Err(_) => Err(Error::Protocol("Db locked in UPDATE `sync_status` failed, will try again".to_string())),
+					Err(_) => Err(Error::Protocol(
+						"Db locked in UPDATE `sync_status` failed, will try again".to_string(),
+					)),
 				}
 			}
 			.await
@@ -124,13 +163,12 @@ where
 		});
 	}
 
-	async fn spawn_logs_task_inner(
+	fn spawn_logs_task_inner(
 		client: Arc<Client>,
 		overrides: Arc<OverrideHandle<Block>>,
-		pool: &SqlitePool,
 		rows: Vec<SqliteRow>,
-	) -> Result<(), Error> {
-		let mut tx = pool.begin().await.unwrap();
+	) -> Vec<Log> {
+		let mut logs: Vec<Log> = vec![];
 		for row in rows.iter() {
 			if let Ok(bytes) = row.try_get::<Vec<u8>, _>(0) {
 				let substrate_block_hash = H256::from_slice(&bytes[..]);
@@ -161,57 +199,37 @@ where
 					};
 					let transaction_index = transaction_index as i32;
 					for (log_index, log) in receipt_logs.iter().enumerate() {
-						let log_index = log_index as i32;
-						let address = log.address.as_bytes().to_owned();
-						let topic_1 = log
-							.topics
-							.get(0)
-							.unwrap_or(&H256::zero())
-							.as_bytes()
-							.to_owned();
-						let topic_2 = log
-							.topics
-							.get(1)
-							.unwrap_or(&H256::zero())
-							.as_bytes()
-							.to_owned();
-						let topic_3 = log
-							.topics
-							.get(2)
-							.unwrap_or(&H256::zero())
-							.as_bytes()
-							.to_owned();
-						let topic_4 = log
-							.topics
-							.get(3)
-							.unwrap_or(&H256::zero())
-							.as_bytes()
-							.to_owned();
-						let substrate_block_hash = bytes.clone();
-						let _ = sqlx::query!(
-							"INSERT INTO logs(
-                                block_number,
-                                address,
-                                topic_1,
-                                topic_2,
-                                topic_3,
-                                topic_4,
-                                log_index,
-                                transaction_index,
-                                substrate_block_hash)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-							substrate_block_number,
-							address,
-							topic_1,
-							topic_2,
-							topic_3,
-							topic_4,
-							log_index,
+						logs.push(Log {
+							block_number: substrate_block_number,
+							address: log.address.as_bytes().to_owned(),
+							topic_1: log
+								.topics
+								.get(0)
+								.unwrap_or(&H256::zero())
+								.as_bytes()
+								.to_owned(),
+							topic_2: log
+								.topics
+								.get(1)
+								.unwrap_or(&H256::zero())
+								.as_bytes()
+								.to_owned(),
+							topic_3: log
+								.topics
+								.get(2)
+								.unwrap_or(&H256::zero())
+								.as_bytes()
+								.to_owned(),
+							topic_4: log
+								.topics
+								.get(3)
+								.unwrap_or(&H256::zero())
+								.as_bytes()
+								.to_owned(),
+							log_index: log_index as i32,
 							transaction_index,
-							substrate_block_hash,
-						)
-						.execute(&mut tx)
-						.await?;
+							substrate_block_hash: bytes.clone(),
+						});
 					}
 				}
 			} else {
@@ -220,7 +238,7 @@ where
 				// and log/error on the id for cases like hash IS NULL.
 			}
 		}
-		tx.commit().await
+		logs
 	}
 
 	async fn create_if_not_exists(pool: &SqlitePool) -> Result<SqliteQueryResult, Error> {

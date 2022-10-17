@@ -7,8 +7,8 @@ use sp_runtime::{
 	generic::BlockId,
 	traits::{BlakeTwo256, Block as BlockT},
 };
-use std::{sync::Arc, time::Duration};
 use sqlx::Row;
+use std::{sync::Arc, time::Duration};
 
 const BATCH_SIZE: usize = 1000;
 
@@ -33,9 +33,11 @@ where
 			let backend = substrate_backend.blockchain();
 			let notifications = notifications.fuse();
 
-			let existing = sqlx::query("SELECT substrate_block_hash FROM sync_status ORDER BY id DESC LIMIT 1")
-				.fetch_one(indexer_backend.pool())
-				.await;
+			let existing = sqlx::query(
+				"SELECT substrate_block_hash FROM sync_status ORDER BY id DESC LIMIT 1",
+			)
+			.fetch_one(indexer_backend.pool())
+			.await;
 
 			futures::pin_mut!(import_interval, notifications);
 			loop {
@@ -49,7 +51,7 @@ where
 								let hash = H256::from_slice(&row.try_get::<Vec<u8>, _>(0).unwrap_or_default()[..]);
 								if let Ok(Some(number)) = client.number(hash) {
 									if let Ok(Some(header)) = client.header(sp_runtime::generic::BlockId::Number(number)) {
-										println!("--> continue syncing {:?}", header.parent_hash());
+										println!("--> resuming syncing operation at {:?}", header.parent_hash());
 										leaves.push(*header.parent_hash());
 									}
 								}
@@ -81,10 +83,12 @@ where
 		notified: bool,
 	) -> bool {
 		let bytes = hash.as_bytes();
-		let already_synced =
-			sqlx::query!("SELECT id FROM sync_status WHERE substrate_block_hash = ?1", bytes)
-				.fetch_one(indexer_backend.pool())
-				.await;
+		let already_synced = sqlx::query!(
+			"SELECT id FROM sync_status WHERE substrate_block_hash = ?1",
+			bytes
+		)
+		.fetch_one(indexer_backend.pool())
+		.await;
 		if already_synced.is_ok() {
 			println!("XX already synced {:?}", hash);
 			return false;

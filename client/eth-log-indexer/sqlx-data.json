@@ -1,6 +1,6 @@
 {
   "db": "SQLite",
-  "640fe09b8425967857fd0443c9c5c198e0e47e1f0b0fdcd89f82d616579fa9e6": {
+  "3b5cbc25908027600dfededa95f40815db4b0df553d2cf3dd4ce211345466a5e": {
     "describe": {
       "columns": [],
       "nullable": [],
@@ -8,7 +8,7 @@
         "Right": 9
       }
     },
-    "query": "INSERT INTO logs(\n                                block_number,\n                                address,\n                                topic_1,\n                                topic_2,\n                                topic_3,\n                                topic_4,\n                                log_index,\n                                transaction_index,\n                                substrate_block_hash)\n                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+    "query": "INSERT INTO logs(\n\t\t\t\t\t\t\t        block_number,\n\t\t\t\t\t\t\t        address,\n\t\t\t\t\t\t\t        topic_1,\n\t\t\t\t\t\t\t        topic_2,\n\t\t\t\t\t\t\t        topic_3,\n\t\t\t\t\t\t\t        topic_4,\n\t\t\t\t\t\t\t        log_index,\n\t\t\t\t\t\t\t        transaction_index,\n\t\t\t\t\t\t\t        substrate_block_hash)\n\t\t\t\t\t\t\t    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
   },
   "d1e094172eb182418f12344b18e753b54cd734304b393ae4f01425420c2b1396": {
     "describe": {
