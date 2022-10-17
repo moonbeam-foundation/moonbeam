@@ -36,7 +36,8 @@ jobs:
         run: |
           cd typescript-api
           npm install @polkadot/api@latest
-      - name: regenerate typescrpit api with new runtime metadata
+          npm run build
+      - name: regenerate typescript api with new runtime metadata
         run: |
           cd typescript-api
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
