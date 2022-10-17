@@ -30,15 +30,18 @@ jobs:
           package: typescript-api/package.json
 
   update-polkadot-js-for-tests-and-tools:
-    - name: Use Node.js 16.x
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16.x
-    - name: Upgrade polkadotjs for tests
-      run: |
-        cd tests
-        npm install @polkadot/api@latest
-    - name: Upgrade polkadotjs for tools
-      run: |
-        cd tools
-        npm install @polkadot/api@latest
+    runs-on: ubuntu-latest
+    needs: ["publish-typescript-api"]
+    steps:
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+      - name: Upgrade polkadotjs for tests
+        run: |
+          cd tests
+          npm install @polkadot/api@latest
+      - name: Upgrade polkadotjs for tools
+        run: |
+          cd tools
+          npm install @polkadot/api@latest
