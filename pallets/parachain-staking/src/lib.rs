@@ -62,6 +62,8 @@ mod mock;
 mod set;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod cow_tests;
 
 use frame_support::pallet;
 pub use inflation::{InflationInfo, Range};
