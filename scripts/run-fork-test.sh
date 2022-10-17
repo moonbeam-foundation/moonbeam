@@ -178,7 +178,7 @@ then
 fi
 echo "Done !!"
 
-kill $PID || \
+kill $PID 2> /dev/null > /dev/null || \
   kill $(ps aux | grep spawn-fork-node.ts | grep -v grep | tr -s ' ' | cut -f2 -d ' ') || \
   echo "PID not found"
 [[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1
