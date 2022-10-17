@@ -21,7 +21,7 @@ use crate::{
 		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
 		Runtime,
 	},
-	SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
+	SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED, SELECTOR_LOG_STANDARD_VOTE,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -586,6 +586,20 @@ fn standard_vote_aye_works() {
 						}
 					}
 					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(true)
+								.write::<U256>(100000.into())
+								.write::<u8>(0)
+								.build(),
+						),
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}
@@ -657,6 +671,20 @@ fn standard_vote_nay_conviction_works() {
 							},
 							balance: 100000
 						}
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(false)
+								.write::<U256>(100000.into())
+								.write::<u8>(3)
+								.build(),
+						),
 					}
 					.into(),
 					EvmEvent::Executed {

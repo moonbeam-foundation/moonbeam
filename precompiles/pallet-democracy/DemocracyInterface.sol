@@ -188,4 +188,19 @@ interface Democracy {
     /// @param proposalIndex uint32 Index of the proposal.
     /// @param seconder address Address of the seconder.
     event Seconded(uint32 indexed proposalIndex, address seconder);
+
+    /// @dev An account made a standard vote.
+    /// @custom:selector 057363260bf880d3658601ecff97e75b67a22f38b7066c0e47e2d170477579c3
+    /// @param referendumIndex uint32 Index of the referendum.
+    /// @param voter address Address of the voter.
+    /// @param aye bool Is it a vote for or against the referendum.
+    /// @param voteAmount uint256 Amount used to vote.
+    /// @param conviction uint8 Conviction of the vote.
+    event StandardVote(
+        uint32 indexed referendumIndex,
+        address voter,
+        bool aye,
+        uint256 voteAmount,
+        uint8 conviction
+    );
 }

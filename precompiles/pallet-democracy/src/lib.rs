@@ -55,6 +55,10 @@ pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(uint32,uint256)
 /// Solidity selector of the Seconded log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_SECONDED: [u8; 32] = keccak256!("Seconded(uint32,address)");
 
+/// Solidity selector of the StandardVote log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_STANDARD_VOTE: [u8; 32] =
+	keccak256!("StandardVote(uint32,address,bool,uint256,uint8)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -251,27 +255,44 @@ where
 		conviction: SolidityConvert<U256, u8>,
 	) -> EvmResult {
 		let ref_index = ref_index.converted();
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let vote_amount_balance = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
-		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
-			RevertReason::custom("Must be an integer between 0 and 6 included")
-				.in_field("conviction")
-		})?;
+		let conviction_enum: Conviction =
+			conviction.clone().converted().try_into().map_err(|_| {
+				RevertReason::custom("Must be an integer between 0 and 6 included")
+					.in_field("conviction")
+			})?;
 
 		let vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
+			vote: Vote {
+				aye,
+				conviction: conviction_enum,
+			},
+			balance: vote_amount_balance,
 		};
 
 		log::trace!(target: "democracy-precompile",
 			"Voting {:?} on referendum #{:?}, with conviction {:?}",
-			aye, ref_index, conviction
+			aye, ref_index, conviction_enum
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_STANDARD_VOTE,
+			H256::from_low_u64_be(ref_index as u64), // referendum index,
+			EvmDataWriter::new()
+				.write::<Address>(handle.context().caller.into())
+				.write::<bool>(aye)
+				.write::<U256>(vote_amount)
+				.write::<u8>(conviction.converted())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
