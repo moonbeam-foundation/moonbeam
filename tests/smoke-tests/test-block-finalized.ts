@@ -7,6 +7,7 @@ const debug = require("debug")("smoke:block-finalized");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const ethRpcUrl = process.env.ETH_URL || null;
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 
 describeSmokeSuite(
   `Parachain blocks should be finalized..`,
@@ -44,7 +45,7 @@ describeSmokeSuite(
       const limiter = new Bottleneck({ maxConcurrent: 5 });
 
       // Target time here is set to be 2 hours, possible parameterize this in future
-      const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
+      const firstBlockTime = lastBlockTime - timePeriod;
       debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
 
       const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
@@ -52,7 +53,7 @@ describeSmokeSuite(
         lastBlockNumber,
         firstBlockTime
       )) as number;
-
+  
       debug(`Checking if blocks #${firstBlockNumber} - #${lastBlockNumber} are finalized.`);
 
       const promises = (() => {
