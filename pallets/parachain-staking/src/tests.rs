@@ -8605,7 +8605,7 @@ fn test_cow_no_changes_works() {
 }
 
 #[test]
-fn test_cow_after_bond_less_scheduled() {
+fn test_cow_after_bond_less() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 2000), (2, 2000)])
 		.with_candidates(vec![(1, 2000)])
@@ -8620,7 +8620,8 @@ fn test_cow_after_bond_less_scheduled() {
 				1000
 			));
 
-			// roll through round 2 and look at round change events
+			// roll through round 2 and look at round change events, they should not be affected by
+			// the request
 			set_author(1, 1, 100);
 			roll_to_round_end(2);
 			assert_eq_last_events!(
@@ -8653,7 +8654,7 @@ fn test_cow_after_bond_less_scheduled() {
 			roll_to_round_end(3);
 			assert_eq_last_events!(
 				vec![
-					// bond less still should not impact totals (it never will)
+					// bond less still should not impact totals (it won't until executed)
 					Event::<Test>::CollatorChosen {
 						round: 3,
 						collator_account: 1,
@@ -8681,7 +8682,7 @@ fn test_cow_after_bond_less_scheduled() {
 			);
 
 			// roll through round 4 and look for payouts of round 2, which should include the
-			// effects of the bond change
+			// effects of the bond request for payout but not for total collator backing
 			set_author(3, 1, 100);
 			roll_to_round_end(4);
 			assert_eq_last_events!(
@@ -8708,6 +8709,78 @@ fn test_cow_after_bond_less_scheduled() {
 						account: 2,
 						rewards: 58,
 					},
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			// now execute the bond request, it should change:
+			// payouts in the upcoming round (paid several blocks later)
+			// total collator backing, observed in the round change following execution
+			assert_ok!(ParachainStaking::execute_delegation_request(
+				Origin::signed(2),
+				2,
+				1
+			));
+
+			set_author(4, 1, 100);
+			roll_to_round_end(5);
+			assert_eq_last_events!(
+				vec![
+					// the executed bond less should take effect now
+					Event::<Test>::CollatorChosen {
+						round: 5,
+						collator_account: 1,
+						total_exposed_amount: 3000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 20,
+						round: 5,
+						selected_collators_number: 1,
+						total_balance: 3000,
+					},
+
+					// round 3 payouts should be affected by bond less execute
+					Event::<Test>::Rewarded { account: 1, rewards: 168, },
+					Event::<Test>::Rewarded { account: 2, rewards: 61, },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			// round 6 and 7 should look similar: delegations unchanged from execute
+			set_author(5, 1, 100);
+			set_author(6, 1, 100);
+			roll_to_round_end(7);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 6,
+						collator_account: 1,
+						total_exposed_amount: 3000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 25,
+						round: 6,
+						selected_collators_number: 1,
+						total_balance: 3000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 176, },
+					Event::<Test>::Rewarded { account: 2, rewards: 64, },
+
+					Event::<Test>::CollatorChosen {
+						round: 7,
+						collator_account: 1,
+						total_exposed_amount: 3000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 30,
+						round: 7,
+						selected_collators_number: 1,
+						total_balance: 3000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 185, },
+					Event::<Test>::Rewarded { account: 2, rewards: 67, },
 				],
 				"Collator selection and/or round start did not occur properly"
 			);
