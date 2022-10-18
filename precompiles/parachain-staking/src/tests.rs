@@ -1243,6 +1243,55 @@ fn delegate_with_auto_compound_works() {
 }
 
 #[test]
+fn delegate_with_auto_compound_cap_hundred_percent_if_above() {
+	for auto_compound_percent in [100, 101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::delegate_with_auto_compound {
+					candidate: Address(Alice.into()),
+					amount: 1_000.into(),
+					auto_compound: auto_compound_percent.clone(),
+					candidate_delegation_count: 0.into(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 0.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert!(ParachainStaking::is_delegator(&Bob));
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(100),
+					"The auto-compound value was not 100% for input '{}'",
+					auto_compound_percent,
+				);
+
+				let expected: crate::mock::Event = StakingEvent::Delegation {
+					delegator: Bob,
+					locked_amount: 1_000,
+					candidate: Alice,
+					delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+						new_total: 2_000,
+					},
+					auto_compound: Percent::from_percent(100),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(
+					events().contains(&expected),
+					"The auto-compound event was not 100% for input '{}'",
+					auto_compound_percent,
+				);
+			});
+	}
+}
+
+#[test]
 fn set_auto_compound_works_if_delegation() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
@@ -1275,6 +1324,49 @@ fn set_auto_compound_works_if_delegation() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
+}
+
+#[test]
+fn set_auto_compound_percent_cap_hundred_percent_if_above() {
+	for auto_compound_percent in [100, 101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::set_auto_compound {
+					candidate: Address(Alice.into()),
+					value: auto_compound_percent.clone(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 1.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(100),
+					"The auto-compound value was not 100% for input '{}'",
+					auto_compound_percent,
+				);
+
+				let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
+					candidate: Alice,
+					delegator: Bob,
+					value: Percent::from_percent(100),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(
+					events().contains(&expected),
+					"The auto-compound event was not 100% for input '{}'",
+					auto_compound_percent,
+				);
+			});
+	}
 }
 
 #[test]

@@ -1,10 +1,13 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
+import { expect, use as chaiUse } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, charleth, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
+
+chaiUse(chaiAsPromised);
 
 describeDevMoonbeam("Staking - Delegate With Auto-Compound - bond less than min", (context) => {
   it("should fail", async () => {
@@ -169,6 +172,18 @@ describeDevMoonbeam("Staking - Delegate With Auto-Compound - wrong delegation hi
     );
     expect(block.result.successful).to.be.false;
     expect(block.result.error.name).to.equal("TooLowDelegationCountToDelegate");
+  });
+});
+
+describeDevMoonbeam("Staking - Delegate With Auto-Compound - 101%", (context) => {
+  it("should fail", async () => {
+    await expect(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking
+          .delegateWithAutoCompound(alith.address, MIN_GLMR_DELEGATOR, 101, 0, 0, 0)
+          .signAsync(ethan)
+      )
+    ).to.eventually.be.rejectedWith("Value is greater than allowed maximum!");
   });
 });
 
