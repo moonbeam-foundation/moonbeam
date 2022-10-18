@@ -1540,8 +1540,7 @@ pub mod pallet {
 					// now we scan forward for any copies we can use
 					let mut maybe_delegations = None;
 					let mut maybe_delegation_requests = None;
-					// TODO: should this be -1 here? I don't think so after review...
-					for round in paid_for_round..<Round<T>>::get().current - 1 {
+					for round in paid_for_round..<Round<T>>::get().current {
 						log::warn!("scanning round {}", round);
 						let snapshot = <AtStake<T>>::get(round, &collator);
 						if snapshot.delegations.is_some() && maybe_delegations.is_none() {
