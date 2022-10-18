@@ -7,7 +7,11 @@ const debug = require("debug")("smoke:block-finalized");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const ethRpcUrl = process.env.ETH_URL || null;
-const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
+const timePeriod = process.env.TIME_PERIOD
+  ? Number(process.env.TIME_PERIOD)
+  : process.env.BLOCK_TO_WAIT
+  ? Number(process.env.BLOCK_TO_WAIT) * 12 * 1000
+  : 2 * 60 * 60 * 1000;
 
 describeSmokeSuite(
   `Parachain blocks should be finalized..`,
@@ -33,7 +37,9 @@ describeSmokeSuite(
       expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
     });
 
-    it("should have only finalized blocks in the past two hours", async function () {
+    it(`should have only finalized blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(
+      2
+    )} hours`, async function () {
       this.timeout(120000);
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
         await context.polkadotApi.rpc.chain.getFinalizedHead()

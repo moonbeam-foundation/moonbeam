@@ -8,10 +8,10 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 const BLOCK_WINDOW = process.env.BATCH_OF
-? parseInt(process.env.BATCH_OF)
-: process.env.BLOCK_TO_WAIT
-? parseInt(process.env.BLOCK_TO_WAIT)
-: 300;;
+  ? parseInt(process.env.BATCH_OF)
+  : process.env.BLOCK_TO_WAIT
+  ? parseInt(process.env.BLOCK_TO_WAIT)
+  : 300;
 
 // Ethereum use Patricia trees for the various trees in blocks.
 // Since we're going to check that no transactions means an empty receipt
