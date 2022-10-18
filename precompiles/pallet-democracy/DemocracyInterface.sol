@@ -203,4 +203,10 @@ interface Democracy {
         uint256 voteAmount,
         uint8 conviction
     );
+
+    /// @dev An account delegated some voting power to another account
+    /// @custom:selector 4bc154dd35d6a5cb9206482ecb473cdbf2473006d6bce728b9cc0741bcc59ea2
+    /// @param who address Address of the delegator.
+    /// @param target address Address of the delegatee.
+    event Delegated(address indexed who, address target);
 }

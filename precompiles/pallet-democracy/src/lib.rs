@@ -59,6 +59,9 @@ pub const SELECTOR_LOG_SECONDED: [u8; 32] = keccak256!("Seconded(uint32,address)
 pub const SELECTOR_LOG_STANDARD_VOTE: [u8; 32] =
 	keccak256!("StandardVote(uint32,address,bool,uint256,uint8)");
 
+/// Solidity selector of the Delegated log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_DELEGATED: [u8; 32] = keccak256!("Delegated(address,address)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -338,9 +341,8 @@ where
 			representative, conviction, amount
 		);
 
-		let representative = Runtime::AddressMapping::into_account_id(representative.into());
-		let to: <Runtime::Lookup as StaticLookup>::Source =
-			Runtime::Lookup::unlookup(representative.clone());
+		let to = Runtime::AddressMapping::into_account_id(representative.into());
+		let to: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(to.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
@@ -349,6 +351,16 @@ where
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_DELEGATED,
+			handle.context().caller,
+			EvmDataWriter::new()
+				.write::<Address>(representative)
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}

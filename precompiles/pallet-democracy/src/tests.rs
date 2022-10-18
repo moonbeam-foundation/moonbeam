@@ -21,7 +21,8 @@ use crate::{
 		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
 		Runtime,
 	},
-	SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED, SELECTOR_LOG_STANDARD_VOTE,
+	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
+	SELECTOR_LOG_STANDARD_VOTE,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -848,6 +849,17 @@ fn delegate_works() {
 					DemocracyEvent::Delegated {
 						who: Alice,
 						target: Bob
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_DELEGATED,
+							H160::from(Alice),
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Bob).into())
+								.build(),
+						),
 					}
 					.into(),
 					EvmEvent::Executed {
