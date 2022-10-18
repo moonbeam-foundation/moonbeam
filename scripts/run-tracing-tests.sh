@@ -22,5 +22,5 @@ fi
 
 echo "Run tracing tests…"
 cd tests
-ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/test-*.ts'
+ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
 cd ..
