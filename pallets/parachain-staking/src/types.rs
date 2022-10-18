@@ -629,8 +629,7 @@ impl<
 	where
 		BalanceOf<T>: Into<Balance> + From<Balance>,
 	{
-		// here-ish we would need to update collator state (as we do elsewhere)
-		// and also lazily populate past round snapshots
+		Pallet::<T>::cow_top_delegators_if_needed(&candidate);
 		let mut less_total_staked = None;
 		let mut top_delegations = <TopDelegations<T>>::get(candidate)
 			.expect("CandidateInfo existence => TopDelegations existence");

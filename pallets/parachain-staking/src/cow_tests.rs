@@ -408,3 +408,97 @@ fn test_cow_after_bond_less_and_cancel() {
 			);
 		});
 }
+
+#[test]
+fn test_cow_top_delegations_gets_appended_to() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 2000), (2, 2000), (3, 2000)])
+		.with_candidates(vec![(1, 2000)])
+		.with_delegations(vec![(2, 1, 2000)])
+		.with_collator_commission(Some(Perbill::zero()))
+		.build()
+		.execute_with(|| {
+			// steps:
+			//   1. start with known delegations
+			//   2. add new delegator
+			//   3. show that rounds are not affected until N+2
+
+			// in round 2 a new delegator joins and effectively appends a new entry into the top
+			// delegations
+			set_author(1, 1, 100);
+			roll_to_round_begin(2);
+			assert_ok!(ParachainStaking::delegate(Origin::signed(3), 1, 2000, 2, 2));
+
+			// roll to round 4, we should get payouts for round 1 and 2 without delegator 3 getting
+			// any rewards yet. the collator selection should reflect the new bond, though.
+			set_author(2, 1, 100);
+			set_author(3, 1, 100);
+			roll_to_round_end(4);
+			assert_eq_last_events!(
+				vec![
+					// the new delegation from round 2 comes before round change events
+					Event::<Test>::Delegation {
+						delegator: 3,
+						locked_amount: 2000,
+						candidate: 1,
+						delegator_position: DelegatorAdded::AddedToTop { new_total: 6000 },
+					},
+					Event::<Test>::CollatorChosen {
+						round: 3,
+						collator_account: 1,
+						total_exposed_amount: 6000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 10,
+						round: 3,
+						selected_collators_number: 1,
+						total_balance: 6000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 150 },
+					Event::<Test>::Rewarded { account: 2, rewards: 150 },
+
+					Event::<Test>::CollatorChosen {
+						round: 4,
+						collator_account: 1,
+						total_exposed_amount: 6000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 15,
+						round: 4,
+						selected_collators_number: 1,
+						total_balance: 6000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 157 },
+					Event::<Test>::Rewarded { account: 2, rewards: 157 },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			// round 5 should include round 3 payouts, which should contain the new delegator's
+			// first payouts
+			set_author(4, 1, 100);
+			roll_to_round_end(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 5,
+						collator_account: 1,
+						total_exposed_amount: 6000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 20,
+						round: 5,
+						selected_collators_number: 1,
+						total_balance: 6000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 110 },
+					Event::<Test>::Rewarded { account: 2, rewards: 110 },
+					Event::<Test>::Rewarded { account: 3, rewards: 110 },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+		});
+}
