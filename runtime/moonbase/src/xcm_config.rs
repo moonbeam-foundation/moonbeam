@@ -40,10 +40,10 @@ use sp_core::{H160, H256};
 use xcm_builder::{
 	AccountKey20Aliases, AllowKnownQueryResponses, AllowSubscriptionsFrom,
 	AllowTopLevelPaidExecutionFrom, AsPrefixedGeneralIndex, ConvertedConcreteAssetId,
-	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
-	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents,
+	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FungiblesAdapter, LocationInverter,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountKey20AsNative, SovereignSignedViaLocation, TakeWeightCredit, UsingComponents,
+	WeightInfoBounds,
 };
 
 use xcm::latest::prelude::*;
@@ -218,7 +218,11 @@ parameter_types! {
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+pub type XcmWeigher = WeightInfoBounds<
+	moonbeam_xcm_benchmarks::weights::XcmWeight<Runtime, Call>,
+	Call,
+	MaxInstructions,
+>;
 
 // Allow paid executions
 pub type XcmBarrier = (
@@ -539,7 +543,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type Weigher = XcmWeigher;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;

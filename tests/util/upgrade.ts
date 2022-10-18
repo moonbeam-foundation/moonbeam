@@ -119,11 +119,13 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           }
           if (options.waitMigration) {
             const blockToWait = (await api.rpc.chain.getHeader()).number.toNumber() + 1;
-            const subBlocks = await api.rpc.chain.subscribeNewHeads(async (header) => {
-              if (header.number.toNumber() == blockToWait) {
-                subBlocks();
-                resolve(blockToWait);
-              }
+            await new Promise(async (resolve) => {
+              const subBlocks = await api.rpc.chain.subscribeNewHeads(async (header) => {
+                if (header.number.toNumber() == blockToWait) {
+                  subBlocks();
+                  resolve(blockToWait);
+                }
+              });
             });
           }
           resolve(blockNumber);

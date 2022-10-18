@@ -10,10 +10,35 @@ import { strict as assert } from "node:assert";
 
 const exec = util.promisify(execProcess);
 
+const openCmd = (() => {
+  switch (process.platform) {
+    case "darwin":
+      return "open";
+    case "win32":
+      return "start";
+    default:
+      return "xdg-open";
+  }
+})();
+
 async function main() {
   const argv = yargs(process.argv.slice(2))
     .usage("Usage: $0")
     .version("1.0.0")
+    .command("analyze", "analyze multiple PoV analysis", (yargs) => {
+      yargs
+        .option("input", {
+          type: "string",
+          describe: "Input JSON files",
+          array: true,
+        })
+        .option("output", {
+          type: "string",
+          default: "output-analyze.html",
+          describe: "The output HTML file",
+        })
+        .demandOption(["input"]);
+    })
     .command("view", "view a PoV analysis", (yargs) => {
       yargs
         .option("input", {
@@ -81,6 +106,9 @@ async function main() {
       break;
     case "view":
       await view(argv.input, argv.output, argv.open);
+      break;
+    case "analyze":
+      await analyze(argv.input, argv.output);
       break;
   }
 
@@ -420,20 +448,236 @@ async function view(input: string, output: string, open: boolean) {
   );
   // editorconfig-checker-enable
 
-  const openCmd = (() => {
-    switch (process.platform) {
-      case "darwin":
-        return "open";
-      case "win32":
-        return "start";
-      default:
-        return "xdg-open";
-    }
-  })();
-
   if (open) {
     await exec(`${openCmd} ${output}`);
   }
+}
+
+async function analyze(inputs: string[], output: string) {
+  const dataMultiple = inputs.map((input) => JSON.parse(fs.readFileSync(input).toString("utf-8")));
+
+  const labels = dataMultiple[0].map((x: any) => x["parameters"].join(","));
+  const proofSizeMultiple = dataMultiple.map((data: any) => data.map((x: any) => x["proofSize"]));
+  const totalReadsMultiple = dataMultiple.map((data: any) => data.map((x: any) => x["totalReads"]));
+  const totalWritesMultiple = dataMultiple.map((data: any) =>
+    data.map((x: any) => x["totalWrites"])
+  );
+  const extrinsicTimeMultiple = dataMultiple.map((data: any) =>
+    data.map((x: any) => x["extrinsicTime"])
+  );
+
+  function random_rgb() {
+    const o = Math.round;
+    const r = Math.random;
+    const s = 255;
+    return `rgba(${o(r() * s)},${o(r() * s)},${o(r() * s)},1.0)`;
+  }
+  const colors = new Array(inputs.length).fill(0).map((x) => random_rgb());
+
+  // editorconfig-checker-disable
+  fs.writeFileSync(
+    output,
+    `<html>
+    <head>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js" integrity="sha512-QSkVNOCYLtj73J4hbmVoOV6KVZuMluZlioC+trLpewV8qMjsWqlIQvkn1KGX2StWvPMdWGBqim1xlC8krl1EKQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+      <style>
+        .chart {
+          display: inline-block;
+          width: 1000px;
+          height: 600px;
+          margin: 10px;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="chart">
+        <canvas id="proof-size"></canvas>
+      </div>  
+      <div class="chart">
+        <canvas id="reads-writes"></canvas>
+      </div>  
+      <div class="chart">
+        <canvas id="extrinsic-time"></canvas>
+      </div>
+      <script>
+        /*
+        ${JSON.stringify(colors, null, 2)}
+        ${JSON.stringify(proofSizeMultiple, null, 2)}
+        */
+        const rawData = ${JSON.stringify(dataMultiple)};
+
+        const proofSize = new Chart(
+          document.getElementById('proof-size').getContext('2d'), 
+          {
+            type: 'line',
+            data: {
+              labels: ${JSON.stringify(labels)},
+              datasets: ${JSON.stringify(
+                proofSizeMultiple.map((p, i) => ({
+                  label: inputs[i],
+                  data: p,
+                  fill: false,
+                  borderColor: colors[i],
+                  tension: 0.1,
+                }))
+              )}
+            },
+            options: {
+              responsive: true,
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Parameter Groups",
+                    font: { weight: "bold" }
+                  }
+                },
+                y: {
+                  title: {
+                    display: true,
+                    text: "Size (bytes)",
+                    font: { weight: "bold" }
+                  }
+                }
+              },
+              plugins: {
+                legend: {
+                  position: 'top',
+                },
+                title: {
+                  display: true,
+                  text: 'Proof Size'
+                },
+              },
+            },
+          });
+
+          function flattenStorageInfo(si) {
+            const info = [];
+            Object.entries(si).forEach(([pallet, value]) => {
+              Object.entries(value).forEach(([storage, rw]) => {
+                info.push(pallet + " " + storage + " r:"+rw.reads + " w:"+rw.writes);
+              });
+            });
+            return info.join("\\n");
+          }
+          const footerReadsWrites = (tooltipItems) => {
+            const inputIndex = tooltipItems[0].datasetIndex % ${inputs.length};
+            return flattenStorageInfo(rawData[inputIndex][tooltipItems[0].dataIndex]["storageInfo"])
+          };
+          const readWrite = new Chart(
+            document.getElementById('reads-writes').getContext('2d'), 
+            {
+              type: 'line',
+              data: {
+                labels: ${JSON.stringify(labels)},
+                datasets: ${JSON.stringify([
+                  ...totalReadsMultiple.map((p, i) => ({
+                    label: `Reads - ${inputs[i]}`,
+                    data: p,
+                    fill: false,
+                    borderColor: colors[i].replace("1.0", "0.5"),
+                    tension: 0.1,
+                    index: i,
+                  })),
+                  ...totalWritesMultiple.map((p, i) => ({
+                    label: `Writes - ${inputs[i]}`,
+                    data: p,
+                    fill: false,
+                    borderColor: colors[i],
+                    borderDash: [5, 5],
+                    tension: 0.1,
+                    index: i,
+                  })),
+                ])}
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Parameter Groups",
+                      font: { weight: "bold" }
+                    }
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: "Counts",
+                      font: { weight: "bold" }
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  title: {
+                    display: true,
+                    text: 'Read/Writes'
+                  },
+                  tooltip: {
+                    callbacks: {
+                      footer: footerReadsWrites,
+                    }
+                  },
+                },
+              },
+            });
+
+          const extrinsicTime = new Chart(
+            document.getElementById('extrinsic-time').getContext('2d'), 
+            {
+              type: 'line',
+              data: {
+                labels: ${JSON.stringify(labels)},
+                datasets: ${JSON.stringify(
+                  extrinsicTimeMultiple.map((p, i) => ({
+                    label: inputs[i],
+                    data: p,
+                    fill: false,
+                    borderColor: colors[i],
+                    tension: 0.1,
+                  }))
+                )}
+              },
+              options: {
+                responsive: true,
+                scales: {
+                  x: {
+                    title: {
+                      display: true,
+                      text: "Parameter Groups",
+                      font: { weight: "bold" }
+                    }
+                  },
+                  y: {
+                    title: {
+                      display: true,
+                      text: "Time (nanoseconds)",
+                      font: { weight: "bold" }
+                    }
+                  }
+                },
+                plugins: {
+                  legend: {
+                    position: 'top',
+                  },
+                  title: {
+                    display: true,
+                    text: 'Extrinsic Time'
+                  },
+                },
+              },
+            });
+      </script>
+    <body>
+  </html>`
+  );
+  // editorconfig-checker-enable
+
+  await exec(`${openCmd} ${output}`);
 }
 
 main().catch((err) => console.error(`ERR! ${err}`));

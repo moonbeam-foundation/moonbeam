@@ -117,7 +117,7 @@ pub struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -186,7 +186,10 @@ impl ExtBuilder {
 	}
 
 	pub fn with_delegations(mut self, delegations: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.delegations = delegations;
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
 		self
 	}
 

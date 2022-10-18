@@ -185,6 +185,8 @@ pub trait UnitsToWeightRatio<AssetType> {
 	fn payment_is_supported(asset_type: AssetType) -> bool;
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
+	#[cfg(feature = "runtime-benchmarks")]
+	fn set_units_per_second(_asset_type: AssetType, _fee_per_second: u128) {}
 }
 
 #[cfg(test)]

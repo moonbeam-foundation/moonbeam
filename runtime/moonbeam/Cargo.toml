@@ -26,6 +26,7 @@ session-keys-primitives = { path = "../../primitives/session-keys", default-feat
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 # Moonbeam pallets
+moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false }
 pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
 pallet-crowdloan-rewards = { git = "https://github.com/purestake/crowdloan-rewards", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
@@ -126,6 +127,7 @@ orml-traits = { git = "https://github.com/purestake/open-runtime-module-library"
 orml-xcm-support = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+pallet-xcm-benchmarks = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", optional = true, default-features = false }
 polkadot-core-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
@@ -262,6 +264,7 @@ runtime-benchmarks = [
 	"frame-system-benchmarking",
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
+	"moonbeam-xcm-benchmarks/runtime-benchmarks",
 	"pallet-asset-manager/runtime-benchmarks",
 	"pallet-author-inherent/runtime-benchmarks",
 	"pallet-author-mapping/runtime-benchmarks",
@@ -275,6 +278,7 @@ runtime-benchmarks = [
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
+	"pallet-xcm-benchmarks",
 	"pallet-xcm-transactor/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"session-keys-primitives/runtime-benchmarks",

@@ -23,7 +23,7 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
   //             Displays PalletProxyProxyDefinition
   //           Then add the type in the import from "@polkadot/types/lookup"
   const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
-  let proxyAccList = [];
+  const proxyAccList = [];
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -70,18 +70,13 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
       }
       count += query.length;
 
-      // let delegates = [];
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const proxyData of query) {
         let accountId = `0x${proxyData[0].toHex().slice(-40)}`;
         last_key = proxyData[0].toString();
         proxiesPerAccount[accountId] = proxyData[1][0].toArray();
-        // proxyData[1][0].forEach((item) => delegates.push(item.delegate.toHuman()));
         proxyAccList.push(accountId);
       }
-
-      // Remove duplicates
-      // proxyAccList = [...new Set(delegates)];
 
       // Debug logs to make sure it keeps progressing
       // TEMPLATE: Adapt log line
@@ -181,21 +176,17 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     this.timeout(60000);
 
     // For each account with a registered proxy, check whether it is a non-SC address
-    await Promise.all(
+    const results = await Promise.all(
       proxyAccList.map(async (address) => {
         const resp = await apiAt.query.evm.accountCodes(address);
         const contract = resp.toJSON() == "0x" ? false : true;
-        // create results array of whether account is contract or not
         return { address, contract };
       })
-    ).then((results) => {
-      results.forEach((item) => {
-        // External accounts aka wallet account aka non-contract address
-        if (item.contract)
-          debug(`Proxy account for non-external address detected: ${item.address} `);
-      });
-      expect(results.every((item) => item.contract == false)).to.be.true;
+    );
+    results.forEach((item) => {
+      if (item.contract) debug(`Proxy account for non-external address detected: ${item.address} `);
     });
+    expect(results.every((item) => item.contract == false)).to.be.true;
   });
 });
 
