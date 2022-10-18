@@ -1728,10 +1728,7 @@ pub mod pallet {
 				collator_count = collator_count.saturating_add(1u32);
 				delegation_count = delegation_count.saturating_add(state.delegation_count);
 				total = total.saturating_add(state.total_counted);
-				let CountedDelegations {
-					uncounted_stake,
-					rewardable_delegations,
-				} = Self::get_rewardable_delegators(&account); // TODO: avoid call here
+				let uncounted_stake = Self::get_uncounted_stake(&account); // TODO: avoid call here
 				let total_counted = state.total_counted.saturating_sub(uncounted_stake);
 
 				let snapshot = CollatorSnapshot {
@@ -1752,15 +1749,16 @@ pub mod pallet {
 			(collator_count, delegation_count, total)
 		}
 
-		/// Apply the delegator intent for revoke and decrease in order to build the
-		/// effective list of delegators with their intended bond amount.
+		/// Return the uncounted stake for a collator.
 		///
-		/// This will:
-		/// - if [DelegationChange::Revoke] is outstanding, set the bond amount to 0.
-		/// - if [DelegationChange::Decrease] is outstanding, subtract the bond by specified amount.
-		/// - else, do nothing
+		/// Replaces old get_rewardable_delegators() and is a stop-gap in removing this part of
+		/// round change altogether.
 		///
-		/// The intended bond amounts will be used while calculating rewards.
+		/// To remove the iteration of pending delegation requests, we will need to also track the
+		/// uncounted amount every time there is a change to top delegations or a pending request.
+		///
+		/// Original notes:
+		///
 		// TODO: this entire fn can become unnecessary (including the iteration of TopDelegations)
 		//       with some changes:
 		//         * new uncounted_stake field on CollatorCandidate
@@ -1768,48 +1766,15 @@ pub mod pallet {
 		//         * CountedDelegations loses the rewardable_delegations field
 		//         * CollatorSnapshot's delegations vec is lazily populated when any change to TopDelegations occurs
 		// We may also need to track the number of counted delegators similarly to uncounted_stake.
-		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
-			let requests = <DelegationScheduledRequests<T>>::get(collator)
+		fn get_uncounted_stake(collator: &T::AccountId) -> BalanceOf<T> {
+			<DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
-				.map(|x| (x.delegator, x.action))
-				.collect::<BTreeMap<_, _>>();
-			let mut uncounted_stake = BalanceOf::<T>::zero();
-			let rewardable_delegations = <TopDelegations<T>>::get(collator)
-				.expect("all members of CandidateQ must be candidates")
-				.delegations
-				.into_iter()
-				.map(|mut bond| {
-					bond.amount = match requests.get(&bond.owner) {
-						None => bond.amount,
-						Some(DelegationAction::Revoke(_)) => {
-							log::warn!(
-								"reward for delegator '{:?}' set to zero due to pending \
-								revoke request",
-								bond.owner
-							);
-							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
-							BalanceOf::<T>::zero()
-						}
-						Some(DelegationAction::Decrease(amount)) => {
-							log::warn!(
-								"reward for delegator '{:?}' reduced by set amount due to pending \
-								decrease request",
-								bond.owner
-							);
-							uncounted_stake = uncounted_stake.saturating_add(*amount);
-							bond.amount.saturating_sub(*amount)
-						}
-					};
-
-					// here-ish we would need to update collator state (as we do elsewhere)
-					// and also lazily populate past round snapshots
-					bond
+				.fold(BalanceOf::<T>::zero(), |acc, request| {
+					acc + match request.action {
+						DelegationAction::Revoke(amount) => amount,
+						DelegationAction::Decrease(amount) => amount,
+					}
 				})
-				.collect();
-			CountedDelegations {
-				uncounted_stake,
-				rewardable_delegations,
-			}
 		}
 
 		/// Copies a candidate's top delegations for later use in reward payouts if needed. This
