@@ -42,6 +42,7 @@ fn test_cow_no_changes_works() {
 		.with_balances(vec![(1, 20), (2, 20)])
 		.with_candidates(vec![(1, 20)])
 		.with_delegations(vec![(2, 1, 20)])
+		.with_collator_commission(Some(Perbill::zero()))
 		.build()
 		.execute_with(|| {
 			// Make no changes and ensure that rewards are properly paid for several blocks.
@@ -125,11 +126,12 @@ fn test_cow_no_changes_works() {
 }
 
 #[test]
-fn test_cow_after_bond_less() {
+fn test_cow_after_bond_less_and_execute() {
 	ExtBuilder::default()
 		.with_balances(vec![(1, 2000), (2, 2000)])
 		.with_candidates(vec![(1, 2000)])
 		.with_delegations(vec![(2, 1, 2000)])
+		.with_collator_commission(Some(Perbill::zero()))
 		.build()
 		.execute_with(|| {
 			// delegator 2 immediately requests bond less, this is executed in round 1
@@ -191,11 +193,11 @@ fn test_cow_after_bond_less() {
 					// (this is because the bond change request occurred in that round)
 					Event::<Test>::Rewarded {
 						account: 1,
-						rewards: 200,
+						rewards: 100,
 					},
 					Event::<Test>::Rewarded {
 						account: 2,
-						rewards: 160,
+						rewards: 100,
 					},
 				],
 				"Collator selection and/or round start did not occur properly"
@@ -223,11 +225,11 @@ fn test_cow_after_bond_less() {
 					// round 2 payouts should be affected by bond less request
 					Event::<Test>::Rewarded {
 						account: 1,
-						rewards: 160,
+						rewards: 140,
 					},
 					Event::<Test>::Rewarded {
 						account: 2,
-						rewards: 58,
+						rewards: 70,
 					},
 				],
 				"Collator selection and/or round start did not occur properly"
@@ -260,8 +262,8 @@ fn test_cow_after_bond_less() {
 					},
 
 					// round 3 payouts should be affected by bond less execute
-					Event::<Test>::Rewarded { account: 1, rewards: 168, },
-					Event::<Test>::Rewarded { account: 2, rewards: 61, },
+					Event::<Test>::Rewarded { account: 1, rewards: 147, },
+					Event::<Test>::Rewarded { account: 2, rewards: 73, },
 				],
 				"Collator selection and/or round start did not occur properly"
 			);
@@ -284,8 +286,8 @@ fn test_cow_after_bond_less() {
 						total_balance: 3000,
 					},
 
-					Event::<Test>::Rewarded { account: 1, rewards: 176, },
-					Event::<Test>::Rewarded { account: 2, rewards: 64, },
+					Event::<Test>::Rewarded { account: 1, rewards: 154, },
+					Event::<Test>::Rewarded { account: 2, rewards: 77, },
 
 					Event::<Test>::CollatorChosen {
 						round: 7,
@@ -299,8 +301,108 @@ fn test_cow_after_bond_less() {
 						total_balance: 3000,
 					},
 
-					Event::<Test>::Rewarded { account: 1, rewards: 185, },
-					Event::<Test>::Rewarded { account: 2, rewards: 67, },
+					Event::<Test>::Rewarded { account: 1, rewards: 162, },
+					Event::<Test>::Rewarded { account: 2, rewards: 81, },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+		});
+}
+
+#[test]
+fn test_cow_after_bond_less_and_cancel() {
+	ExtBuilder::default()
+		.with_balances(vec![(1, 2000), (2, 2000)])
+		.with_candidates(vec![(1, 2000)])
+		.with_delegations(vec![(2, 1, 2000)])
+		.with_collator_commission(Some(Perbill::zero()))
+		.build()
+		.execute_with(|| {
+			// delegator 2 immediately requests bond less, this is executed in round 1
+			assert_eq!(1, ParachainStaking::round().current);
+			assert_ok!(ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 1000));
+
+			// in round 2, delegator cancels
+			set_author(1, 1, 100);
+			roll_to_round_begin(2);
+			assert_ok!(ParachainStaking::cancel_delegation_request(Origin::signed(2), 1));
+
+			// roll to round 3, we should get round 1 payouts now, which should include the
+			// candidate's full bond
+			set_author(2, 1, 100);
+			roll_to_round_end(3);
+			assert_eq_last_events!(
+				vec![
+					// the delegation cancel from round 2 comes before round change events
+					Event::<Test>::CancelledDelegationRequest {
+						delegator: 2,
+						collator: 1,
+						cancelled_request: CancelledScheduledRequest {
+							when_executable: 3,
+							action: DelegationAction::Decrease(1000),
+						}
+					},
+					Event::<Test>::CollatorChosen {
+						round: 3,
+						collator_account: 1,
+						total_exposed_amount: 4000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 10,
+						round: 3,
+						selected_collators_number: 1,
+						total_balance: 4000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 100 },
+					Event::<Test>::Rewarded { account: 2, rewards: 100 },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			// round 4 should include reduced payouts for delegator @ round 2
+			set_author(3, 1, 100);
+			roll_to_round_end(4);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 4,
+						collator_account: 1,
+						total_exposed_amount: 4000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 15,
+						round: 4,
+						selected_collators_number: 1,
+						total_balance: 4000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 140 },
+					Event::<Test>::Rewarded { account: 2, rewards: 70 },
+				],
+				"Collator selection and/or round start did not occur properly"
+			);
+
+			// round 5 should include payouts for round 3 which respect the cancel (back to larger
+			// rewards)
+			set_author(4, 1, 100);
+			roll_to_round_end(5);
+			assert_eq_last_events!(
+				vec![
+					Event::<Test>::CollatorChosen {
+						round: 5,
+						collator_account: 1,
+						total_exposed_amount: 4000,
+					},
+					Event::<Test>::NewRound {
+						starting_block: 20,
+						round: 5,
+						selected_collators_number: 1,
+						total_balance: 4000,
+					},
+
+					Event::<Test>::Rewarded { account: 1, rewards: 110 },
+					Event::<Test>::Rewarded { account: 2, rewards: 110 },
 				],
 				"Collator selection and/or round start did not occur properly"
 			);

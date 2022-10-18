@@ -153,6 +153,8 @@ pub(crate) struct ExtBuilder {
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
+	// commission paid to collator
+	collator_commission: Option<Perbill>,
 }
 
 impl Default for ExtBuilder {
@@ -180,6 +182,7 @@ impl Default for ExtBuilder {
 					max: Perbill::from_percent(5),
 				},
 			},
+			collator_commission: None,
 		}
 	}
 }
@@ -209,6 +212,11 @@ impl ExtBuilder {
 		self
 	}
 
+	pub(crate) fn with_collator_commission(mut self, commission: Option<Perbill>) -> Self {
+		self.collator_commission = commission;
+		self
+	}
+
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut t = frame_system::GenesisConfig::default()
 			.build_storage::<Test>()
@@ -223,7 +231,7 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
-			collator_commission: DefaultCollatorCommission::get(),
+			collator_commission: self.collator_commission.unwrap_or(DefaultCollatorCommission::get()),
 			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
 			blocks_per_round: DefaultBlocksPerRound::get(),
 		}

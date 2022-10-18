@@ -180,9 +180,13 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
-		let request =
-			Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests)
-				.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
+		let request = Self::cancel_request_with_state(
+			&collator,
+			&delegator,
+			&mut state,
+			&mut scheduled_requests,
+		)
+		.ok_or(<Error<T>>::PendingDelegationRequestDNE)?;
 
 		<DelegationScheduledRequests<T>>::insert(collator.clone(), scheduled_requests);
 		<DelegatorState<T>>::insert(delegator.clone(), state);
@@ -196,6 +200,7 @@ impl<T: Config> Pallet<T> {
 	}
 
 	fn cancel_request_with_state(
+		collator: &T::AccountId,
 		delegator: &T::AccountId,
 		state: &mut Delegator<T::AccountId, BalanceOf<T>>,
 		scheduled_requests: &mut Vec<ScheduledRequest<T::AccountId, BalanceOf<T>>>,
@@ -203,6 +208,8 @@ impl<T: Config> Pallet<T> {
 		let request_idx = scheduled_requests
 			.iter()
 			.position(|req| &req.delegator == delegator)?;
+
+		Pallet::<T>::cow_delegation_requests_if_needed(&collator);
 
 		let request = scheduled_requests.remove(request_idx);
 		let amount = request.action.amount();
@@ -361,8 +368,12 @@ impl<T: Config> Pallet<T> {
 			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
 
 			// cancel any existing requests
-			let request =
-				Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests);
+			let request = Self::cancel_request_with_state(
+				&collator,
+				&delegator,
+				&mut state,
+				&mut scheduled_requests,
+			);
 			let request = match request {
 				Some(revoke_req) if matches!(revoke_req.action, DelegationAction::Revoke(_)) => {
 					existing_revoke_count += 1;
@@ -433,7 +444,12 @@ impl<T: Config> Pallet<T> {
 		for bond in state.delegations.0.clone() {
 			let collator = bond.owner.clone();
 			let mut scheduled_requests = <DelegationScheduledRequests<T>>::get(&collator);
-			Self::cancel_request_with_state(&delegator, &mut state, &mut scheduled_requests);
+			Self::cancel_request_with_state(
+				&collator,
+				&delegator,
+				&mut state,
+				&mut scheduled_requests,
+			);
 			updated_scheduled_requests.push((collator, scheduled_requests));
 		}
 
@@ -623,7 +639,7 @@ mod tests {
 			},
 		];
 		let removed_request =
-			<Pallet<Test>>::cancel_request_with_state(&1, &mut state, &mut scheduled_requests);
+			<Pallet<Test>>::cancel_request_with_state(&2, &1, &mut state, &mut scheduled_requests);
 
 		assert_eq!(
 			removed_request,
@@ -674,7 +690,7 @@ mod tests {
 			action: DelegationAction::Decrease(50),
 		}];
 		let removed_request =
-			<Pallet<Test>>::cancel_request_with_state(&1, &mut state, &mut scheduled_requests);
+			<Pallet<Test>>::cancel_request_with_state(&2, &1, &mut state, &mut scheduled_requests);
 
 		assert_eq!(removed_request, None,);
 		assert_eq!(
