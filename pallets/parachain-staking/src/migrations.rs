@@ -88,76 +88,65 @@ impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
 	#[allow(deprecated)]
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		// let mut num_to_update = 0u32;
-		// let mut rounds_candidates = vec![];
-		// for ((round, candidate), state) in storage_key_iter::<
-		// 	(RoundIndex, T::AccountId),
-		// 	OldCollatorSnapshot<T::AccountId, BalanceOf<T>>,
-		// 	Twox64Concat,
-		// >(Self::PALLET_PREFIX, Self::AT_STAKE_PREFIX)
-		// {
-		// 	num_to_update = num_to_update.saturating_add(1);
-		// 	rounds_candidates.push((round.clone(), candidate.clone()));
-		// 	let mut delegation_str = vec![];
-		// 	for d in state.delegations {
-		// 		delegation_str.push(format!(
-		// 			"owner={:?}_amount={:?}_autoCompound=0",
-		// 			d.owner, d.amount
-		// 		));
-		// 	}
-		// 	log::info!(
-		// 		"storing {:?} - {:?}",
-		// 		candidate,
-		// 		format!("round_{:?}_candidate_{:?}", round, candidate)
-		// 	);
-		// 	Self::set_temp_storage(
-		// 		format!(
-		// 			"bond={:?}_total={:?}_delegations={:?}",
-		// 			state.bond, state.total, delegation_str
-		// 		),
-		// 		&*format!("round_{:?}_candidate_{:?}", round, candidate),
-		// 	);
-		// }
-		// Self::set_temp_storage(format!("{:?}", rounds_candidates), "rounds_candidates");
-		// Self::set_temp_storage(num_to_update, "num_to_update");
+		type Twox64Hash = [u8; 8];
+
+		let mut num_to_update = 0u32;
+		let mut rounds_candidates = vec![];
+		for ((round, _, candidate), state) in storage_key_iter::<
+			(RoundIndex, Twox64Hash, T::AccountId),
+			OldCollatorSnapshot<T::AccountId, BalanceOf<T>>,
+			Twox64Concat,
+		>(Self::PALLET_PREFIX, Self::AT_STAKE_PREFIX)
+		{
+			num_to_update = num_to_update.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound=0%",
+					d.owner, d.amount
+				));
+			}
+			Self::set_temp_storage(
+				format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				),
+				&*format!("round_{:?}_candidate_{:?}", round, candidate),
+			);
+		}
+		Self::set_temp_storage(format!("{:?}", rounds_candidates), "rounds_candidates");
+		Self::set_temp_storage(num_to_update, "num_to_update");
 		Ok(())
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		// let mut num_updated = 0u32;
-		// let mut rounds_candidates = vec![];
-		// for (round, candidate, state) in <AtStake<T>>::iter() {
-		// 	num_updated = num_updated.saturating_add(1);
-		// 	rounds_candidates.push((round.clone(), candidate.clone()));
-		// 	let mut delegation_str = vec![];
-		// 	for d in state.delegations {
-		// 		delegation_str.push(format!(
-		// 			"owner={:?}_amount={:?}_autoCompound={:?}",
-		// 			d.owner, d.amount, d.auto_compound
-		// 		));
-		// 	}
-		// 	log::info!(
-		// 		"reading {:?} - {}",
-		// 		candidate,
-		// 		format!("round_{:?}_candidate_{:?}", round, candidate)
-		// 	);
-		// 	assert_eq!(
-		// 		Some(format!(
-		// 			"bond={:?}_total={:?}_delegations={:?}",
-		// 			state.bond, state.total, delegation_str
-		// 		)),
-		// 		Self::get_temp_storage(&*format!("round_{:?}_candidate_{:?}", round, candidate))
-		// 	);
-		// }
-		// assert_eq!(
-		// 	Some(format!("{:?}", rounds_candidates)),
-		// 	Self::get_temp_storage("rounds_candidates")
-		// );
-		// assert_eq!(
-		// 	Some(format!("{:?}", num_updated)),
-		// 	Self::get_temp_storage("num_to_update")
-		// );
+		let mut num_updated = 0u32;
+		let mut rounds_candidates = vec![];
+		for (round, candidate, state) in <AtStake<T>>::iter() {
+			num_updated = num_updated.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound={:?}",
+					d.owner, d.amount, d.auto_compound
+				));
+			}
+			assert_eq!(
+				Some(format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				)),
+				Self::get_temp_storage(&*format!("round_{:?}_candidate_{:?}", round, candidate))
+			);
+		}
+		assert_eq!(
+			Some(format!("{:?}", rounds_candidates)),
+			Self::get_temp_storage("rounds_candidates")
+		);
+		assert_eq!(Some(num_updated), Self::get_temp_storage("num_to_update"));
 		Ok(())
 	}
 }
