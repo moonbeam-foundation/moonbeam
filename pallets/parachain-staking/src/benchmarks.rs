@@ -1041,7 +1041,8 @@ benchmarks! {
 
 		<AtStake<T>>::insert(round_for_payout, &sole_collator, CollatorSnapshot {
 			bond: 1_000u32.into(),
-			delegations,
+			delegations: Some(delegations),
+			delegation_requests: None, // TODO: make sure we're measuring worst case here
 			total: 1_000_000u32.into(),
 		});
 
