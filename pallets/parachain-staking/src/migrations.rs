@@ -21,11 +21,14 @@
 use crate::delegation_requests::{DelegationAction, ScheduledRequest};
 use crate::pallet::{DelegationScheduledRequests, DelegatorState, Total};
 #[allow(deprecated)]
-use crate::types::deprecated::{DelegationChange, Delegator as OldDelegator};
-use crate::types::Delegator;
+use crate::types::deprecated::{
+	CollatorSnapshot as OldCollatorSnapshot, DelegationChange, Delegator as OldDelegator,
+};
+use crate::types::{CollatorSnapshot, Delegator};
 use crate::{
-	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CapacityStatus,
-	CollatorCandidate, Config, Delegations, Event, Pallet, Points, Round, Staked, TopDelegations,
+	AtStake, BalanceOf, Bond, BondWithAutoCompound, BottomDelegations, CandidateInfo,
+	CandidateMetadata, CapacityStatus, CollatorCandidate, Config, Delegations, Event, Pallet,
+	Points, Round, RoundIndex, Staked, TopDelegations,
 };
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
@@ -42,7 +45,122 @@ use frame_support::{
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::string::String;
 use sp_runtime::traits::{Saturating, Zero};
-use sp_std::{convert::TryInto, vec::Vec};
+use sp_runtime::Percent;
+use sp_std::{convert::TryInto, vec, vec::Vec};
+
+/// Migration `AtStake` storage item to include auto-compound value
+pub struct MigrateAtStakeAutoCompound<T>(PhantomData<T>);
+impl<T: Config> MigrateAtStakeAutoCompound<T> {
+	const PALLET_PREFIX: &'static [u8] = b"ParachainStaking";
+	const AT_STAKE_PREFIX: &'static [u8] = b"AtStake";
+}
+impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(target: "MigrateAtStakeAutoCompound", "running migration to add auto-compound values");
+		let mut reads = 0u64;
+		let mut writes = 0u64;
+
+		#[allow(deprecated)]
+		<AtStake<T>>::translate(
+			|_, _, old_state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>>| {
+				reads = reads.saturating_add(1);
+				writes = writes.saturating_add(1);
+
+				Some(CollatorSnapshot {
+					bond: old_state.bond,
+					delegations: old_state
+						.delegations
+						.into_iter()
+						.map(|d| BondWithAutoCompound {
+							owner: d.owner,
+							amount: d.amount,
+							auto_compound: Percent::zero(),
+						})
+						.collect(),
+					total: old_state.total,
+				})
+			},
+		);
+
+		T::DbWeight::get().reads_writes(reads, writes)
+	}
+
+	#[allow(deprecated)]
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		// let mut num_to_update = 0u32;
+		// let mut rounds_candidates = vec![];
+		// for ((round, candidate), state) in storage_key_iter::<
+		// 	(RoundIndex, T::AccountId),
+		// 	OldCollatorSnapshot<T::AccountId, BalanceOf<T>>,
+		// 	Twox64Concat,
+		// >(Self::PALLET_PREFIX, Self::AT_STAKE_PREFIX)
+		// {
+		// 	num_to_update = num_to_update.saturating_add(1);
+		// 	rounds_candidates.push((round.clone(), candidate.clone()));
+		// 	let mut delegation_str = vec![];
+		// 	for d in state.delegations {
+		// 		delegation_str.push(format!(
+		// 			"owner={:?}_amount={:?}_autoCompound=0",
+		// 			d.owner, d.amount
+		// 		));
+		// 	}
+		// 	log::info!(
+		// 		"storing {:?} - {:?}",
+		// 		candidate,
+		// 		format!("round_{:?}_candidate_{:?}", round, candidate)
+		// 	);
+		// 	Self::set_temp_storage(
+		// 		format!(
+		// 			"bond={:?}_total={:?}_delegations={:?}",
+		// 			state.bond, state.total, delegation_str
+		// 		),
+		// 		&*format!("round_{:?}_candidate_{:?}", round, candidate),
+		// 	);
+		// }
+		// Self::set_temp_storage(format!("{:?}", rounds_candidates), "rounds_candidates");
+		// Self::set_temp_storage(num_to_update, "num_to_update");
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		// let mut num_updated = 0u32;
+		// let mut rounds_candidates = vec![];
+		// for (round, candidate, state) in <AtStake<T>>::iter() {
+		// 	num_updated = num_updated.saturating_add(1);
+		// 	rounds_candidates.push((round.clone(), candidate.clone()));
+		// 	let mut delegation_str = vec![];
+		// 	for d in state.delegations {
+		// 		delegation_str.push(format!(
+		// 			"owner={:?}_amount={:?}_autoCompound={:?}",
+		// 			d.owner, d.amount, d.auto_compound
+		// 		));
+		// 	}
+		// 	log::info!(
+		// 		"reading {:?} - {}",
+		// 		candidate,
+		// 		format!("round_{:?}_candidate_{:?}", round, candidate)
+		// 	);
+		// 	assert_eq!(
+		// 		Some(format!(
+		// 			"bond={:?}_total={:?}_delegations={:?}",
+		// 			state.bond, state.total, delegation_str
+		// 		)),
+		// 		Self::get_temp_storage(&*format!("round_{:?}_candidate_{:?}", round, candidate))
+		// 	);
+		// }
+		// assert_eq!(
+		// 	Some(format!("{:?}", rounds_candidates)),
+		// 	Self::get_temp_storage("rounds_candidates")
+		// );
+		// assert_eq!(
+		// 	Some(format!("{:?}", num_updated)),
+		// 	Self::get_temp_storage("num_to_update")
+		// );
+		Ok(())
+	}
+}
 
 /// Migration to move delegator requests towards a delegation, from [DelegatorState] into
 /// [DelegationScheduledRequests] storage item.
