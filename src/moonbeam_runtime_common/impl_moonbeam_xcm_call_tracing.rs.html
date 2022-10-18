@@ -103,6 +103,8 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -149,6 +151,7 @@
 								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							};
 							<span class="kw">use </span>frame_support::storage::unhashed;
+							<span class="kw">use </span>frame_support::traits::Get;
 
 							<span class="kw">let </span>dispatch_call = || {
 								Call::dispatch(
@@ -176,7 +179,8 @@
 									// is done using environmental, the rest dispatched normally.
 									</span>EthereumXcmTracingStatus::Transaction(traced_transaction_hash) =&gt; {
 										<span class="kw">let </span>transaction_hash = xcm_transaction.into_transaction_v2(
-											EthereumXcm::nonce()
+											EthereumXcm::nonce(),
+											&lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::ChainId::get()
 										)
 										.expect(<span class="string">&quot;Invalid transaction conversion&quot;</span>)
 										.hash();
