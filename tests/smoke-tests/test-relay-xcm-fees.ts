@@ -19,7 +19,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, 
   let relayApiAt: ApiDecoration<"promise"> = null;
 
   before("Setup api", async function () {
-    if (process.env.SKIP_RELAY_TESTS) this.skip()
+    if (process.env.SKIP_RELAY_TESTS) this.skip();
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
