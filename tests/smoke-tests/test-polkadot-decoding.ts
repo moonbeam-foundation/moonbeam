@@ -4,7 +4,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 1000;
+const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
 describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
@@ -20,7 +20,7 @@ describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (con
   // This test simply load all the storage items to make sure they can be loaded.
   // It prevents issue where a storage item type is modified but the data is not correctly
   // migrated.
-  it("should be decodable", async function () {
+  it.only("should be decodable", async function () {
     this.timeout(600000); // 1 hour should be enough
     const modules = Object.keys(context.polkadotApi.query);
     for (const moduleName of modules) {
@@ -32,6 +32,7 @@ describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (con
         continue;
       }
       for (const fn of fns) {
+        console.log(moduleName, fn);
         if (moduleName == "evm" && ["accountStorages", "accountCodes"].includes(fn)) {
           // This is just H256 entries and quite big
           continue;
