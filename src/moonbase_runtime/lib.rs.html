@@ -1536,88 +1536,6 @@
 <span id="1536">1536</span>
 <span id="1537">1537</span>
 <span id="1538">1538</span>
-<span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
-<span id="1600">1600</span>
-<span id="1601">1601</span>
-<span id="1602">1602</span>
-<span id="1603">1603</span>
-<span id="1604">1604</span>
-<span id="1605">1605</span>
-<span id="1606">1606</span>
-<span id="1607">1607</span>
-<span id="1608">1608</span>
-<span id="1609">1609</span>
-<span id="1610">1610</span>
-<span id="1611">1611</span>
-<span id="1612">1612</span>
-<span id="1613">1613</span>
-<span id="1614">1614</span>
-<span id="1615">1615</span>
-<span id="1616">1616</span>
-<span id="1617">1617</span>
-<span id="1618">1618</span>
-<span id="1619">1619</span>
-<span id="1620">1620</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1731,7 +1649,9 @@
 <span class="kw">pub type </span>Precompiles = MoonbasePrecompiles&lt;Runtime&gt;;
 
 <span class="kw">pub mod </span>asset_config;
+<span class="kw">pub mod </span>governance;
 <span class="kw">pub mod </span>xcm_config;
+<span class="kw">use </span>governance::{councils::<span class="kw-2">*</span>, pallet_custom_origins, referenda::<span class="kw-2">*</span>};
 
 <span class="doccomment">/// UNIT, the native token, uses 18 decimals of precision.
 </span><span class="kw">pub mod </span>currency {
@@ -2094,6 +2014,7 @@
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
+	<span class="kw">pub const </span>NoPreimagePostponement: <span class="prelude-ty">Option</span>&lt;u32&gt; = <span class="prelude-val">Some</span>(<span class="number">10</span>);
 }
 
 <span class="kw">impl </span>pallet_scheduler::Config <span class="kw">for </span>Runtime {
@@ -2106,111 +2027,20 @@
 	<span class="kw">type </span>MaxScheduledPerBlock = ConstU32&lt;<span class="number">50</span>&gt;;
 	<span class="kw">type </span>WeightInfo = pallet_scheduler::weights::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = EqualPrivilegeOnly;
-	<span class="kw">type </span>PreimageProvider = ();
-	<span class="kw">type </span>NoPreimagePostponement = ();
+	<span class="comment">// Preimage provider with which we look up call hashes to get the call
+	</span><span class="kw">type </span>PreimageProvider = Preimage;
+	<span class="comment">// Number of blocks to postpone execution for when the item is delayed
+	</span><span class="kw">type </span>NoPreimagePostponement = NoPreimagePostponement;
 }
 
-<span class="kw">type </span>CouncilInstance = pallet_collective::Instance1;
-<span class="kw">type </span>TechCommitteeInstance = pallet_collective::Instance2;
-<span class="kw">type </span>TreasuryCouncilInstance = pallet_collective::Instance3;
-
-<span class="kw">impl </span>pallet_collective::Config&lt;CouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
-	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
-	<span class="doccomment">/// The maximum number of proposals that can be open in the council at once.
-	</span><span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="doccomment">/// The maximum number of council members.
-	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
-}
-
-<span class="kw">impl </span>pallet_collective::Config&lt;TechCommitteeInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
-	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
-	<span class="doccomment">/// The maximum number of proposals that can be open in the technical committee at once.
-	</span><span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="doccomment">/// The maximum number of technical committee members.
-	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
-}
-
-<span class="kw">impl </span>pallet_collective::Config&lt;TreasuryCouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
-	<span class="doccomment">/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
-	<span class="doccomment">/// The maximum number of proposals that can be open in the treasury council at once.
-	</span><span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">20</span>&gt;;
-	<span class="doccomment">/// The maximum number of treasury council members.
-	</span><span class="kw">type </span>MaxMembers = ConstU32&lt;<span class="number">9</span>&gt;;
-	<span class="kw">type </span>DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	<span class="kw">type </span>WeightInfo = pallet_collective::weights::SubstrateWeight&lt;Runtime&gt;;
-}
-<span class="comment">// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
-// block as a round change.
-</span><span class="kw">const </span>ENACTMENT_OFFSET: u32 = <span class="number">300</span>;
-
-<span class="kw">impl </span>pallet_democracy::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Proposal = Call;
+<span class="kw">impl </span>pallet_preimage::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>WeightInfo = pallet_preimage::weights::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>Event = Event;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>EnactmentPeriod = ConstU32&lt;{ <span class="number">1 </span>* DAYS + ENACTMENT_OFFSET }&gt;;
-	<span class="kw">type </span>LaunchPeriod = ConstU32&lt;{ <span class="number">1 </span>* DAYS }&gt;;
-	<span class="kw">type </span>VotingPeriod = ConstU32&lt;{ <span class="number">5 </span>* DAYS }&gt;;
-	<span class="kw">type </span>VoteLockingPeriod = ConstU32&lt;{ <span class="number">1 </span>* DAYS }&gt;;
-	<span class="kw">type </span>FastTrackVotingPeriod = ConstU32&lt;{ <span class="number">4 </span>* HOURS }&gt;;
-	<span class="kw">type </span>MinimumDeposit = ConstU128&lt;{ <span class="number">4 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
-	<span class="doccomment">/// To decide what their next motion is.
-	</span><span class="kw">type </span>ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilInstance, <span class="number">1</span>, <span class="number">2</span>&gt;;
-	<span class="doccomment">/// To have the next scheduled referendum be a straight majority-carries vote.
-	</span><span class="kw">type </span>ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilInstance, <span class="number">3</span>, <span class="number">5</span>&gt;;
-	<span class="doccomment">/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
-	</span><span class="kw">type </span>ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilInstance, <span class="number">3</span>, <span class="number">5</span>&gt;;
-	<span class="doccomment">/// To allow a shorter voting/enactment period for external proposals.
-	</span><span class="kw">type </span>FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, TechCommitteeInstance, <span class="number">1</span>, <span class="number">2</span>&gt;;
-	<span class="doccomment">/// To instant fast track.
-	</span><span class="kw">type </span>InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, TechCommitteeInstance, <span class="number">3</span>, <span class="number">5</span>&gt;;
-	<span class="comment">// To cancel a proposal which has been passed.
-	</span><span class="kw">type </span>CancellationOrigin = EitherOfDiverse&lt;
-		EnsureRoot&lt;AccountId&gt;,
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, CouncilInstance, <span class="number">3</span>, <span class="number">5</span>&gt;,
-	&gt;;
-	<span class="comment">// To cancel a proposal before it has been passed.
-	</span><span class="kw">type </span>CancelProposalOrigin = EitherOfDiverse&lt;
-		EnsureRoot&lt;AccountId&gt;,
-		pallet_collective::EnsureProportionAtLeast&lt;AccountId, TechCommitteeInstance, <span class="number">3</span>, <span class="number">5</span>&gt;,
-	&gt;;
-	<span class="kw">type </span>BlacklistOrigin = EnsureRoot&lt;AccountId&gt;;
-	<span class="comment">// Any single technical committee member may veto a coming council proposal, however they can
-	// only do it once and it lasts only for the cooloff period.
-	</span><span class="kw">type </span>VetoOrigin = pallet_collective::EnsureMember&lt;AccountId, TechCommitteeInstance&gt;;
-	<span class="kw">type </span>CooloffPeriod = ConstU32&lt;{ <span class="number">7 </span>* DAYS }&gt;;
-	<span class="kw">type </span>PreimageByteDeposit = ConstU128&lt;{ currency::STORAGE_BYTE_FEE }&gt;;
-	<span class="kw">type </span>Slash = ();
-	<span class="kw">type </span>InstantAllowed = ConstBool&lt;<span class="bool-val">true</span>&gt;;
-	<span class="kw">type </span>Scheduler = Scheduler;
-	<span class="kw">type </span>MaxVotes = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>OperationalPreimageOrigin = pallet_collective::EnsureMember&lt;AccountId, CouncilInstance&gt;;
-	<span class="kw">type </span>PalletsOrigin = OriginCaller;
-	<span class="kw">type </span>WeightInfo = pallet_democracy::weights::SubstrateWeight&lt;Runtime&gt;;
-	<span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">100</span>&gt;;
+	<span class="kw">type </span>ManagerOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>MaxSize = ConstU32&lt;{ <span class="number">4096 </span>* <span class="number">1024 </span>}&gt;;
+	<span class="kw">type </span>BaseDeposit = ConstU128&lt;{ <span class="number">5 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
+	<span class="kw">type </span>ByteDeposit = ConstU128&lt;{ <span class="number">1 </span>* currency::UNIT * currency::SUPPLY_FACTOR }&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2247,8 +2077,8 @@
 	<span class="kw">type </span>WeightInfo = pallet_treasury::weights::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>SpendFunds = ();
 	<span class="kw">type </span>ProposalBondMaximum = ();
-	<span class="kw">type </span>SpendOrigin = frame_support::traits::NeverEnsureOrigin&lt;Balance&gt;; <span class="comment">// Same as Polkadot
-</span>}
+	<span class="kw">type </span>SpendOrigin = TreasurySpender;
+}
 
 <span class="kw">type </span>IdentityForceOrigin = EitherOfDiverse&lt;
 	EnsureRoot&lt;AccountId&gt;,
@@ -2497,8 +2327,9 @@
 					c,
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
-						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::Identity(..) | Call::TechCommitteeCollective(..)
+						| Call::CouncilCollective(..)
+						| Call::Democracy(..) | Call::Identity(..)
+						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -2899,6 +2730,11 @@
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Event&lt;T&gt;, Inherent} = <span class="number">39</span>,
 		TreasuryCouncilCollective:
 			pallet_collective::&lt;Instance3&gt;::{Pallet, Call, Storage, Event&lt;T&gt;, Origin&lt;T&gt;, Config&lt;T&gt;} = <span class="number">40</span>,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">41</span>,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">42</span>,
+		Origins: pallet_custom_origins::{Origin} = <span class="number">43</span>,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">44</span>,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">45</span>,
 	}
 }
 

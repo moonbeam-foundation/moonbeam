@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AlarmInterval",""],["MaxBalance",""],["SubmissionDeposit",""],["UndecidingTimeout",""],["VoteLockingPeriod",""]],"type":[["TreasurySpender",""]]};
