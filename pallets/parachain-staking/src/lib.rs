@@ -1826,9 +1826,10 @@ pub mod pallet {
 			let mut snapshot = <AtStake<T>>::get(now, &candidate.clone());
 			if snapshot.delegations.is_none() {
 				// TODO: optimize by letting caller pass in values
-				let counted_delegations =
-					Pallet::<T>::get_rewardable_delegators(&candidate.clone());
-				snapshot.delegations = Some(counted_delegations.rewardable_delegations);
+				let top_delegations = <TopDelegations<T>>::get(candidate)
+					.unwrap_or_default()
+					.delegations;
+				snapshot.delegations = Some(top_delegations);
 				<AtStake<T>>::insert(now, &candidate.clone(), snapshot);
 
 				return true;
