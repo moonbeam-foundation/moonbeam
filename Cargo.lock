@@ -2520,17 +2520,28 @@ dependencies = [
 name = "fc-eth-log-indexer"
 version = "0.1.0"
 dependencies = [
+ "beefy-primitives",
  "ethereum",
+ "ethereum-types",
  "fc-rpc",
+ "fp-storage",
  "futures 0.3.24",
  "futures-timer",
  "log",
+ "moonbase-runtime",
+ "parity-scale-codec",
+ "sc-block-builder",
  "sc-client-api",
+ "sc-client-db",
  "sp-api",
  "sp-blockchain",
+ "sp-consensus",
  "sp-core",
+ "sp-io",
  "sp-runtime",
  "sqlx",
+ "substrate-test-runtime-client",
+ "tempfile",
  "tokio",
 ]
 

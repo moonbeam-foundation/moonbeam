@@ -24,6 +24,21 @@ sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moon
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
 
+[dev-dependencies]
+moonbase-runtime = { path = "../../runtime/moonbase" }
+codec = { package = "parity-scale-codec", version = "3.0.0" }
+tempfile = "3.3.0"
+# Frontier
+fp-storage = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29" }
+# Substrate
+beefy-primitives = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sc-client-db = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-consensus = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+ethereum-types = { version = "0.13.1" }
+
 [features]
 default = [ "sqlx/sqlite" ]
 sqlite = [ "sqlx/sqlite" ]
