@@ -42,7 +42,7 @@ use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
 		MigrateAtStakeAutoCompound, PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitDelegatorStateIntoDelegationScheduledRequests,
+		RemovePaidRoundsFromAtStake, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
 };
@@ -149,6 +149,30 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingMigrateAtStakeAuto
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		MigrateAtStakeAutoCompound::<T>::post_upgrade()
+	}
+}
+
+/// Migrate `AtStake` storage item to remove entries for paid-out rounds
+pub struct ParachainStakingRemovePaidRoundsFromAtStake<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingRemovePaidRoundsFromAtStake<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Remove_Paid_Rounds_From_At_Stake"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		RemovePaidRoundsFromAtStake::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		RemovePaidRoundsFromAtStake::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		RemovePaidRoundsFromAtStake::<T>::post_upgrade()
 	}
 }
 
@@ -735,6 +759,8 @@ where
 		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
 		let migration_elasticity = MigrateBaseFeeElasticity::<Runtime>(Default::default());
+		let staking_remove_at_stake_paid_rounds =
+			ParachainStakingRemovePaidRoundsFromAtStake::<Runtime>(Default::default());
 		let staking_at_stake_auto_compound =
 			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
 		vec![
@@ -775,6 +801,7 @@ where
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
 			Box::new(migration_elasticity),
+			Box::new(staking_remove_at_stake_paid_rounds),
 			Box::new(staking_at_stake_auto_compound),
 		]
 	}
