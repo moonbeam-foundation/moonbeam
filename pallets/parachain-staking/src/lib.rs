@@ -1767,6 +1767,7 @@ pub mod pallet {
 		//         * CollatorSnapshot's delegations vec is lazily populated when any change to TopDelegations occurs
 		// We may also need to track the number of counted delegators similarly to uncounted_stake.
 		fn get_uncounted_stake(collator: &T::AccountId) -> BalanceOf<T> {
+			// TODO: this is wrong, it will count bottom delegations!!
 			<DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.fold(BalanceOf::<T>::zero(), |acc, request| {
