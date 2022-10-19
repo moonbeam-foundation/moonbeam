@@ -32,16 +32,11 @@ describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (con
         continue;
       }
       for (const fn of fns) {
-        console.log(moduleName, fn);
         if (moduleName == "evm" && ["accountStorages", "accountCodes"].includes(fn)) {
           // This is just H256 entries and quite big
           continue;
         }
 
-        if (moduleName == "parachainStaking" && fn == "atStake") {
-          debug("ParachainStaking:AtStake currently has known issues. Skipping");
-          continue;
-        }
         const keys = Object.keys(module[fn]);
         if (keys.includes("keysPaged")) {
           // Map item
