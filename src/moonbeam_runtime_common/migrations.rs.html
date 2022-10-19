@@ -753,6 +753,59 @@
 <span id="753">753</span>
 <span id="754">754</span>
 <span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -796,8 +849,8 @@
 <span class="kw">use </span>pallet_migrations::{GetMigrations, Migration};
 <span class="kw">use </span>pallet_parachain_staking::{
 	migrations::{
-		PatchIncorrectDelegationSums, PurgeStaleStorage,
-		SplitDelegatorStateIntoDelegationScheduledRequests,
+		MigrateAtStakeAutoCompound, PatchIncorrectDelegationSums, PurgeStaleStorage,
+		RemovePaidRoundsFromAtStake, SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config <span class="kw">as </span>ParachainStakingConfig,
 };
@@ -880,6 +933,54 @@
 	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		PatchIncorrectDelegationSums::&lt;T&gt;::post_upgrade()
+	}
+}
+
+<span class="doccomment">/// Migrate `AtStake` storage item to contain 0% auto-compound values
+</span><span class="kw">pub struct </span>ParachainStakingMigrateAtStakeAutoCompound&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: ParachainStakingConfig&gt; Migration <span class="kw">for </span>ParachainStakingMigrateAtStakeAutoCompound&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Parachain_Staking_Migrate_At_Stake_AutoCompound&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		MigrateAtStakeAutoCompound::&lt;T&gt;::on_runtime_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		MigrateAtStakeAutoCompound::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		MigrateAtStakeAutoCompound::&lt;T&gt;::post_upgrade()
+	}
+}
+
+<span class="doccomment">/// Migrate `AtStake` storage item to remove entries for paid-out rounds
+</span><span class="kw">pub struct </span>ParachainStakingRemovePaidRoundsFromAtStake&lt;T&gt;(PhantomData&lt;T&gt;);
+<span class="kw">impl</span>&lt;T: ParachainStakingConfig&gt; Migration <span class="kw">for </span>ParachainStakingRemovePaidRoundsFromAtStake&lt;T&gt; {
+	<span class="kw">fn </span>friendly_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
+		<span class="string">&quot;MM_Parachain_Staking_Remove_Paid_Rounds_From_At_Stake&quot;
+	</span>}
+
+	<span class="kw">fn </span>migrate(<span class="kw-2">&amp;</span><span class="self">self</span>, _available_weight: Weight) -&gt; Weight {
+		RemovePaidRoundsFromAtStake::&lt;T&gt;::on_runtime_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		RemovePaidRoundsFromAtStake::&lt;T&gt;::pre_upgrade()
+	}
+
+	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		RemovePaidRoundsFromAtStake::&lt;T&gt;::post_upgrade()
 	}
 }
 
@@ -1466,7 +1567,10 @@
 		// let xcm_supported_assets = XcmPaymentSupportedAssets::&lt;Runtime&gt;(Default::default());
 
 		</span><span class="kw">let </span>migration_elasticity = MigrateBaseFeeElasticity::&lt;Runtime&gt;(Default::default());
-
+		<span class="kw">let </span>staking_remove_at_stake_paid_rounds =
+			ParachainStakingRemovePaidRoundsFromAtStake::&lt;Runtime&gt;(Default::default());
+		<span class="kw">let </span>staking_at_stake_auto_compound =
+			ParachainStakingMigrateAtStakeAutoCompound::&lt;Runtime&gt;(Default::default());
 		<span class="macro">vec!</span>[
 			<span class="comment">// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -1505,6 +1609,8 @@
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
 			</span>Box::new(migration_elasticity),
+			Box::new(staking_remove_at_stake_paid_rounds),
+			Box::new(staking_at_stake_auto_compound),
 		]
 	}
 }

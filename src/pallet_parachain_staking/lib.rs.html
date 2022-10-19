@@ -1878,41 +1878,6 @@
 <span id="1878">1878</span>
 <span id="1879">1879</span>
 <span id="1880">1880</span>
-<span id="1881">1881</span>
-<span id="1882">1882</span>
-<span id="1883">1883</span>
-<span id="1884">1884</span>
-<span id="1885">1885</span>
-<span id="1886">1886</span>
-<span id="1887">1887</span>
-<span id="1888">1888</span>
-<span id="1889">1889</span>
-<span id="1890">1890</span>
-<span id="1891">1891</span>
-<span id="1892">1892</span>
-<span id="1893">1893</span>
-<span id="1894">1894</span>
-<span id="1895">1895</span>
-<span id="1896">1896</span>
-<span id="1897">1897</span>
-<span id="1898">1898</span>
-<span id="1899">1899</span>
-<span id="1900">1900</span>
-<span id="1901">1901</span>
-<span id="1902">1902</span>
-<span id="1903">1903</span>
-<span id="1904">1904</span>
-<span id="1905">1905</span>
-<span id="1906">1906</span>
-<span id="1907">1907</span>
-<span id="1908">1908</span>
-<span id="1909">1909</span>
-<span id="1910">1910</span>
-<span id="1911">1911</span>
-<span id="1912">1912</span>
-<span id="1913">1913</span>
-<span id="1914">1914</span>
-<span id="1915">1915</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2496,11 +2461,6 @@
 		CollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;,
 		ValueQuery,
 	&gt;;
-
-	<span class="doccomment">/// Migration storage holding value for collators already migrated to the new snapshot variant
-	</span><span class="attribute">#[pallet::storage]
-	#[pallet::getter(<span class="kw">fn </span>migrated_at_stake)]
-	</span><span class="kw">pub type </span>MigratedAtStake&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, RoundIndex, OptionQuery&gt;;
 
 	<span class="attribute">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>delayed_payouts)]
@@ -3447,6 +3407,10 @@
 					// clean up storage items that we no longer need
 					</span>&lt;DelayedPayouts&lt;T&gt;&gt;::remove(paid_for_round);
 					&lt;Points&lt;T&gt;&gt;::remove(paid_for_round);
+
+					<span class="comment">// remove up to 1000 candidates that did not produce any blocks for
+					// the given round
+					</span><span class="kw">let _ </span>= &lt;AtStake&lt;T&gt;&gt;::clear_prefix(paid_for_round, <span class="number">1000</span>, <span class="prelude-val">None</span>);
 				}
 				result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
 			</span>} <span class="kw">else </span>{
@@ -3487,36 +3451,7 @@
 				<span class="kw">let </span><span class="kw-2">mut </span>amt_due = total_paid;
 				<span class="comment">// Take the snapshot of block author and delegations
 
-				// Decode [CollatorSnapshot] depending upon when the storage was migrated
-				</span><span class="kw">let </span>is_at_stake_migrated = &lt;MigratedAtStake&lt;T&gt;&gt;::get()
-					.map_or(<span class="bool-val">false</span>, |migrated_at_round| {
-						paid_for_round &gt;= migrated_at_round
-					});
-				<span class="attribute">#[allow(deprecated)]
-				</span><span class="kw">let </span>state = <span class="kw">if </span>is_at_stake_migrated {
-					<span class="kw">let </span>at_stake: CollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
-						&lt;AtStake&lt;T&gt;&gt;::take(paid_for_round, <span class="kw-2">&amp;</span>collator);
-					at_stake
-				} <span class="kw">else </span>{
-					<span class="comment">// storage still not migrated, decode as deprecated CollatorSnapshot.
-					</span><span class="kw">let </span>key = &lt;AtStake&lt;T&gt;&gt;::hashed_key_for(paid_for_round, <span class="kw-2">&amp;</span>collator);
-					<span class="kw">let </span>at_stake: deprecated::CollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
-						frame_support::storage::unhashed::get(<span class="kw-2">&amp;</span>key).unwrap_or_default();
-
-					CollatorSnapshot {
-						bond: at_stake.bond,
-						delegations: at_stake
-							.delegations
-							.into_iter()
-							.map(|d| BondWithAutoCompound {
-								owner: d.owner,
-								amount: d.amount,
-								auto_compound: Percent::zero(),
-							})
-							.collect(),
-						total: at_stake.total,
-					}
-				};
+				</span><span class="kw">let </span>state = &lt;AtStake&lt;T&gt;&gt;::take(paid_for_round, <span class="kw-2">&amp;</span>collator);
 
 				<span class="kw">let </span>num_delegators = state.delegations.len();
 				<span class="kw">if </span>state.delegations.is_empty() {
@@ -3662,11 +3597,6 @@
 					delegations: rewardable_delegations,
 					total: total_counted,
 				};
-				&lt;MigratedAtStake&lt;T&gt;&gt;::mutate(|v| {
-					<span class="kw">if </span>v.is_none() {
-						<span class="kw-2">*</span>v = <span class="prelude-val">Some</span>(now);
-					}
-				});
 				&lt;AtStake&lt;T&gt;&gt;::insert(now, account, snapshot);
 				<span class="self">Self</span>::deposit_event(Event::CollatorChosen {
 					round: now,
