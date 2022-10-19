@@ -71,11 +71,14 @@ impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
 		// validate only from `max_unpaid_round`, since we have some stale entries and this adds
 		// to the PoV size during try-runtime
 		<AtStake<T>>::translate(
-			|state_round, _, old_state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>>| {
+			|round, candidate, old_state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>>| {
 				reads = reads.saturating_add(1);
 				writes = writes.saturating_add(1);
 
-				log::info!(target: "MigrateAtStakeAutoCompound", "translate {:?}", state_round);
+				log::info!(
+					target: "MigrateAtStakeAutoCompound",
+					"migration from old format round {:?}, candidate {:?}", round, candidate
+				);
 				Some(CollatorSnapshot {
 					bond: old_state.bond,
 					delegations: old_state
@@ -219,7 +222,7 @@ impl<T: Config> OnRuntimeUpgrade for RemovePaidRoundsFromAtStake<T> {
 			.iter()
 			.for_each(|round| {
 				writes = writes.saturating_add(1);
-				log::info!(target: "RemovePaidRoundsFromAtStake", "removing {:?}", round);
+				log::info!(target: "RemovePaidRoundsFromAtStake", "removing round {:?}", round);
 				<AtStake<T>>::remove_prefix(round, None);
 			});
 
