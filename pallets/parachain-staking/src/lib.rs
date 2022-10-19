@@ -1532,6 +1532,9 @@ pub mod pallet {
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
+					// remove any AwardedPts entries that are left over. this will happen any time a
+					// selected collator produces no blocks for the entire round.
+					<AwardedPts<T>>::iter_prefix(paid_for_round).drain().collect();
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {
