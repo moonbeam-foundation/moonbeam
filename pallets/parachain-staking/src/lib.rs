@@ -1527,6 +1527,10 @@ pub mod pallet {
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
+
+					// remove up to 1000 candidates that did not produce any blocks for
+					// the given round
+					let _ = <AtStake<T>>::clear_prefix(paid_for_round, 1000, None);
 				}
 				result.1 // weight consumed by pay_one_collator_reward
 			} else {

@@ -7094,6 +7094,49 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 }
 
 #[test]
+fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_producing_blocks() {
+	use crate::*;
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
+		.build()
+		.execute_with(|| {
+			// candidate 3 will not produce blocks
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+
+			// reflects genesis?
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+
+			roll_to_round_begin(2);
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+			assert!(<AtStake<Test>>::contains_key(1, 3));
+			assert!(<AwardedPts<Test>>::contains_key(1, 1));
+			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
+			assert!(<Staked<Test>>::contains_key(1));
+			assert!(<Points<Test>>::contains_key(1));
+			roll_to_round_begin(3);
+			assert!(<DelayedPayouts<Test>>::contains_key(1));
+
+			// all storage items must be cleaned up
+			roll_to_round_begin(4);
+			assert!(!<AtStake<Test>>::contains_key(1, 1));
+			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			assert!(!<AtStake<Test>>::contains_key(1, 3));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
+			assert!(!<Staked<Test>>::contains_key(1));
+			assert!(!<Points<Test>>::contains_key(1));
+			assert!(!<DelayedPayouts<Test>>::contains_key(1));
+		});
+}
+
+#[test]
 fn deferred_payment_steady_state_event_flow() {
 	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 
