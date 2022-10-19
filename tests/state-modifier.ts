@@ -82,6 +82,7 @@ async function main(inputFile: string, outputFile?: string) {
   // let selectedCollator = null;
   let totalIssuance: bigint = 0n;
   let validationData: string = "";
+  let roundNumber: bigint = 0n;
   let alithAccountData;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
@@ -109,6 +110,9 @@ async function main(inputFile: string, outputFile?: string) {
     }
     if (line.startsWith(alithBalancePrefix)) {
       alithAccountData = line.split('"')[3];
+    }
+    if (line.startsWith(roundLinePrefix)) {
+      roundNumber = hexToBigInt(line.split('"')[3].slice(0, 2 + 8), { isLe: true });
     }
   }
   // We make sure the collator is not an orbiter
@@ -184,14 +188,15 @@ async function main(inputFile: string, outputFile?: string) {
     } else if (line.startsWith(roundLinePrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainStaking.Round`)}\n\t${line}`);
       const roundLength = 100; // blocks (more than collators, short to make it faster)
-      const roundNumber = nToHex(1, { isLe: true, bitLength: 32 }).slice(2);
+      // Using the real round number;
+      // const roundNumber = nToHex(1, { isLe: true, bitLength: 32 }).slice(2);
       // see https://github.com/polkadot-js/api/issues/5262
       const firstBlock = "0".padStart((32 / 8) * 2, "0");
       const length = nToHex(roundLength, { isLe: true, bitLength: 32 }).slice(2);
-      let newLine = `        "${storageKey(
-        "ParachainStaking",
-        "Round"
-      )}": "0x${roundNumber}${firstBlock}${length}",\n`;
+      let newLine = `        "${storageKey("ParachainStaking", "Round")}": "${nToHex(
+        Number(roundNumber),
+        { isLe: true, bitLength: 32 }
+      )}${firstBlock}${length}",\n`;
       console.log(
         ` ${chalk.green(`  + Adding ParachainStaking.Round (${roundLength} blocks)`)}\n\t${newLine}`
       );
