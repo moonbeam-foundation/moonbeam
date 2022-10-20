@@ -241,6 +241,7 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
 	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
 	type AddressMapping = TestAccount;
