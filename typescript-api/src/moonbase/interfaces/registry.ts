@@ -46,6 +46,7 @@ import type {
   FpRpcTransactionStatus,
   FrameSupportDispatchRawOrigin,
   FrameSupportPalletId,
+  FrameSupportScheduleDispatchTime,
   FrameSupportScheduleLookupError,
   FrameSupportScheduleMaybeHashed,
   FrameSupportTokensMiscBalanceStatus,
@@ -53,9 +54,11 @@ import type {
   FrameSupportWeightsDispatchInfo,
   FrameSupportWeightsPays,
   FrameSupportWeightsPerDispatchClassU32,
-  FrameSupportWeightsPerDispatchClassU64,
+  FrameSupportWeightsPerDispatchClassWeight,
   FrameSupportWeightsPerDispatchClassWeightsPerClass,
+  FrameSupportWeightsPostDispatchInfo,
   FrameSupportWeightsRuntimeDbWeight,
+  FrameSupportWeightsWeightV2Weight,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemError,
@@ -72,6 +75,7 @@ import type {
   FrameSystemLimitsWeightsPerClass,
   FrameSystemPhase,
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
+  MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
   MoonbaseRuntimeRuntime,
@@ -118,6 +122,17 @@ import type {
   PalletCollectiveEvent,
   PalletCollectiveRawOrigin,
   PalletCollectiveVotes,
+  PalletConvictionVotingCall,
+  PalletConvictionVotingConviction,
+  PalletConvictionVotingDelegations,
+  PalletConvictionVotingError,
+  PalletConvictionVotingEvent,
+  PalletConvictionVotingTally,
+  PalletConvictionVotingVoteAccountVote,
+  PalletConvictionVotingVoteCasting,
+  PalletConvictionVotingVoteDelegating,
+  PalletConvictionVotingVotePriorLock,
+  PalletConvictionVotingVoteVoting,
   PalletCrowdloanRewardsCall,
   PalletCrowdloanRewardsError,
   PalletCrowdloanRewardsEvent,
@@ -141,6 +156,7 @@ import type {
   PalletEthereumEvent,
   PalletEthereumRawOrigin,
   PalletEthereumXcmCall,
+  PalletEthereumXcmError,
   PalletEthereumXcmRawOrigin,
   PalletEvmCall,
   PalletEvmError,
@@ -163,7 +179,9 @@ import type {
   PalletMoonbeamOrbitersCurrentOrbiter,
   PalletMoonbeamOrbitersError,
   PalletMoonbeamOrbitersEvent,
+  PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
+  PalletParachainStakingBondWithAutoCompound,
   PalletParachainStakingCall,
   PalletParachainStakingCandidateBondLessRequest,
   PalletParachainStakingCandidateMetadata,
@@ -184,6 +202,10 @@ import type {
   PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
   PalletParachainStakingSetOrderedSet,
+  PalletPreimageCall,
+  PalletPreimageError,
+  PalletPreimageEvent,
+  PalletPreimageRequestStatus,
   PalletProxyAnnouncement,
   PalletProxyCall,
   PalletProxyError,
@@ -197,6 +219,13 @@ import type {
   PalletRandomnessRequestInfo,
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
+  PalletReferendaCall,
+  PalletReferendaDecidingStatus,
+  PalletReferendaDeposit,
+  PalletReferendaError,
+  PalletReferendaEvent,
+  PalletReferendaReferendumInfo,
+  PalletReferendaReferendumStatus,
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
@@ -215,6 +244,9 @@ import type {
   PalletUtilityCall,
   PalletUtilityError,
   PalletUtilityEvent,
+  PalletWhitelistCall,
+  PalletWhitelistError,
+  PalletWhitelistEvent,
   PalletXcmCall,
   PalletXcmError,
   PalletXcmEvent,
@@ -246,6 +278,7 @@ import type {
   SpRuntimeDigest,
   SpRuntimeDigestDigestItem,
   SpRuntimeDispatchError,
+  SpRuntimeDispatchErrorWithPostInfo,
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeTokenError,
@@ -341,6 +374,7 @@ declare module "@polkadot/types/types/registry" {
     FpRpcTransactionStatus: FpRpcTransactionStatus;
     FrameSupportDispatchRawOrigin: FrameSupportDispatchRawOrigin;
     FrameSupportPalletId: FrameSupportPalletId;
+    FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
     FrameSupportScheduleLookupError: FrameSupportScheduleLookupError;
     FrameSupportScheduleMaybeHashed: FrameSupportScheduleMaybeHashed;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
@@ -348,9 +382,11 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportWeightsDispatchInfo: FrameSupportWeightsDispatchInfo;
     FrameSupportWeightsPays: FrameSupportWeightsPays;
     FrameSupportWeightsPerDispatchClassU32: FrameSupportWeightsPerDispatchClassU32;
-    FrameSupportWeightsPerDispatchClassU64: FrameSupportWeightsPerDispatchClassU64;
+    FrameSupportWeightsPerDispatchClassWeight: FrameSupportWeightsPerDispatchClassWeight;
     FrameSupportWeightsPerDispatchClassWeightsPerClass: FrameSupportWeightsPerDispatchClassWeightsPerClass;
+    FrameSupportWeightsPostDispatchInfo: FrameSupportWeightsPostDispatchInfo;
     FrameSupportWeightsRuntimeDbWeight: FrameSupportWeightsRuntimeDbWeight;
+    FrameSupportWeightsWeightV2Weight: FrameSupportWeightsWeightV2Weight;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemError: FrameSystemError;
@@ -367,6 +403,7 @@ declare module "@polkadot/types/types/registry" {
     FrameSystemLimitsWeightsPerClass: FrameSystemLimitsWeightsPerClass;
     FrameSystemPhase: FrameSystemPhase;
     MoonbaseRuntimeAssetConfigAssetRegistrarMetadata: MoonbaseRuntimeAssetConfigAssetRegistrarMetadata;
+    MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin: MoonbaseRuntimeGovernanceOriginsPalletCustomOriginsOrigin;
     MoonbaseRuntimeOriginCaller: MoonbaseRuntimeOriginCaller;
     MoonbaseRuntimeProxyType: MoonbaseRuntimeProxyType;
     MoonbaseRuntimeRuntime: MoonbaseRuntimeRuntime;
@@ -413,6 +450,17 @@ declare module "@polkadot/types/types/registry" {
     PalletCollectiveEvent: PalletCollectiveEvent;
     PalletCollectiveRawOrigin: PalletCollectiveRawOrigin;
     PalletCollectiveVotes: PalletCollectiveVotes;
+    PalletConvictionVotingCall: PalletConvictionVotingCall;
+    PalletConvictionVotingConviction: PalletConvictionVotingConviction;
+    PalletConvictionVotingDelegations: PalletConvictionVotingDelegations;
+    PalletConvictionVotingError: PalletConvictionVotingError;
+    PalletConvictionVotingEvent: PalletConvictionVotingEvent;
+    PalletConvictionVotingTally: PalletConvictionVotingTally;
+    PalletConvictionVotingVoteAccountVote: PalletConvictionVotingVoteAccountVote;
+    PalletConvictionVotingVoteCasting: PalletConvictionVotingVoteCasting;
+    PalletConvictionVotingVoteDelegating: PalletConvictionVotingVoteDelegating;
+    PalletConvictionVotingVotePriorLock: PalletConvictionVotingVotePriorLock;
+    PalletConvictionVotingVoteVoting: PalletConvictionVotingVoteVoting;
     PalletCrowdloanRewardsCall: PalletCrowdloanRewardsCall;
     PalletCrowdloanRewardsError: PalletCrowdloanRewardsError;
     PalletCrowdloanRewardsEvent: PalletCrowdloanRewardsEvent;
@@ -436,6 +484,7 @@ declare module "@polkadot/types/types/registry" {
     PalletEthereumEvent: PalletEthereumEvent;
     PalletEthereumRawOrigin: PalletEthereumRawOrigin;
     PalletEthereumXcmCall: PalletEthereumXcmCall;
+    PalletEthereumXcmError: PalletEthereumXcmError;
     PalletEthereumXcmRawOrigin: PalletEthereumXcmRawOrigin;
     PalletEvmCall: PalletEvmCall;
     PalletEvmError: PalletEvmError;
@@ -458,7 +507,9 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
     PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
     PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
+    PalletParachainStakingAutoCompoundAutoCompoundConfig: PalletParachainStakingAutoCompoundAutoCompoundConfig;
     PalletParachainStakingBond: PalletParachainStakingBond;
+    PalletParachainStakingBondWithAutoCompound: PalletParachainStakingBondWithAutoCompound;
     PalletParachainStakingCall: PalletParachainStakingCall;
     PalletParachainStakingCandidateBondLessRequest: PalletParachainStakingCandidateBondLessRequest;
     PalletParachainStakingCandidateMetadata: PalletParachainStakingCandidateMetadata;
@@ -479,6 +530,10 @@ declare module "@polkadot/types/types/registry" {
     PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
     PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
     PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
+    PalletPreimageCall: PalletPreimageCall;
+    PalletPreimageError: PalletPreimageError;
+    PalletPreimageEvent: PalletPreimageEvent;
+    PalletPreimageRequestStatus: PalletPreimageRequestStatus;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
     PalletProxyError: PalletProxyError;
@@ -492,6 +547,13 @@ declare module "@polkadot/types/types/registry" {
     PalletRandomnessRequestInfo: PalletRandomnessRequestInfo;
     PalletRandomnessRequestState: PalletRandomnessRequestState;
     PalletRandomnessRequestType: PalletRandomnessRequestType;
+    PalletReferendaCall: PalletReferendaCall;
+    PalletReferendaDecidingStatus: PalletReferendaDecidingStatus;
+    PalletReferendaDeposit: PalletReferendaDeposit;
+    PalletReferendaError: PalletReferendaError;
+    PalletReferendaEvent: PalletReferendaEvent;
+    PalletReferendaReferendumInfo: PalletReferendaReferendumInfo;
+    PalletReferendaReferendumStatus: PalletReferendaReferendumStatus;
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
@@ -510,6 +572,9 @@ declare module "@polkadot/types/types/registry" {
     PalletUtilityCall: PalletUtilityCall;
     PalletUtilityError: PalletUtilityError;
     PalletUtilityEvent: PalletUtilityEvent;
+    PalletWhitelistCall: PalletWhitelistCall;
+    PalletWhitelistError: PalletWhitelistError;
+    PalletWhitelistEvent: PalletWhitelistEvent;
     PalletXcmCall: PalletXcmCall;
     PalletXcmError: PalletXcmError;
     PalletXcmEvent: PalletXcmEvent;
@@ -541,6 +606,7 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeDigest: SpRuntimeDigest;
     SpRuntimeDigestDigestItem: SpRuntimeDigestDigestItem;
     SpRuntimeDispatchError: SpRuntimeDispatchError;
+    SpRuntimeDispatchErrorWithPostInfo: SpRuntimeDispatchErrorWithPostInfo;
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeTokenError: SpRuntimeTokenError;
