@@ -1894,17 +1894,6 @@
 /// u64 works for approximations because Weight is a very small unit compared to gas.
 </span><span class="kw">pub const </span>WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
 
-<span class="kw">pub struct </span>MoonbeamGasWeightMapping;
-
-<span class="kw">impl </span>pallet_evm::GasWeightMapping <span class="kw">for </span>MoonbeamGasWeightMapping {
-	<span class="kw">fn </span>gas_to_weight(gas: u64) -&gt; Weight {
-		Weight::from_ref_time(gas.saturating_mul(WEIGHT_PER_GAS))
-	}
-	<span class="kw">fn </span>weight_to_gas(weight: Weight) -&gt; u64 {
-		u64::try_from(weight.ref_time().wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX <span class="kw">as </span>u64)
-	}
-}
-
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>BlockGasLimit: U256
 		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
@@ -1924,6 +1913,7 @@
 	/// as a safety net.
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonriverPrecompiles&lt;Runtime&gt; = MoonriverPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
+	<span class="kw">pub </span>WeightPerGas: u64 = WEIGHT_PER_GAS;
 }
 
 <span class="kw">pub struct </span>FixedGasPrice;
@@ -1979,7 +1969,8 @@
 
 <span class="kw">impl </span>pallet_evm::Config <span class="kw">for </span>Runtime {
 	<span class="kw">type </span>FeeCalculator = FixedGasPrice;
-	<span class="kw">type </span>GasWeightMapping = MoonbeamGasWeightMapping;
+	<span class="kw">type </span>GasWeightMapping = pallet_evm::FixedGasWeightMapping&lt;<span class="self">Self</span>&gt;;
+	<span class="kw">type </span>WeightPerGas = WeightPerGas;
 	<span class="kw">type </span>BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>CallOrigin = EnsureAddressRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>WithdrawOrigin = EnsureAddressNever&lt;AccountId&gt;;
@@ -3106,6 +3097,15 @@
 			),
 			<span class="number">50
 		</span>);
+	}
+
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>configured_base_extrinsic_weight_is_evm_compatible() {
+		<span class="kw">let </span>min_ethereum_transaction_weight = WeightPerGas::get() * <span class="number">21_000</span>;
+		<span class="kw">let </span>base_extrinsic = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get()
+			.get(frame_support::weights::DispatchClass::Normal)
+			.base_extrinsic;
+		<span class="macro">assert!</span>(base_extrinsic.ref_time() &lt;= min_ethereum_transaction_weight);
 	}
 }
 </code></pre></div>

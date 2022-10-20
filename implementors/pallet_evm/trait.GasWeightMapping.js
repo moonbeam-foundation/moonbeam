@@ -1,5 +1,0 @@
-(function() {var implementors = {
-"moonbase_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonbase_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbase_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]],
-"moonbeam_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonbeam_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonbeam_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]],
-"moonriver_runtime":[["impl GasWeightMapping for <a class=\"struct\" href=\"moonriver_runtime/struct.MoonbeamGasWeightMapping.html\" title=\"struct moonriver_runtime::MoonbeamGasWeightMapping\">MoonbeamGasWeightMapping</a>"]]
-};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
