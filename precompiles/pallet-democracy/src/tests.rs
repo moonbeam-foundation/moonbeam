@@ -22,7 +22,7 @@ use crate::{
 		Runtime,
 	},
 	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
-	SELECTOR_LOG_STANDARD_VOTE,
+	SELECTOR_LOG_STANDARD_VOTE, SELECTOR_LOG_UNDELEGATED,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -926,6 +926,10 @@ fn undelegate_works() {
 					}
 					.into(),
 					DemocracyEvent::Undelegated { account: Alice }.into(),
+					EvmEvent::Log {
+						log: log2(Precompile, SELECTOR_LOG_UNDELEGATED, H160::from(Alice), [],),
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}

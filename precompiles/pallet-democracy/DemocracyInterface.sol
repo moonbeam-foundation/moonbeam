@@ -209,4 +209,9 @@ interface Democracy {
     /// @param who address Address of the delegator.
     /// @param target address Address of the delegatee.
     event Delegated(address indexed who, address target);
+
+    /// @dev An account undelegated.
+    /// @custom:selector 42176493fdfcada70cc1bcf321c9a2314e9571a9fe53c54a5385a1eeac8bc1d7
+    /// @param who address Address of the delegator.
+    event Undelegated(address indexed who);
 }

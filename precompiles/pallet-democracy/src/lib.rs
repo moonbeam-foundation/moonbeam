@@ -62,6 +62,9 @@ pub const SELECTOR_LOG_STANDARD_VOTE: [u8; 32] =
 /// Solidity selector of the Delegated log, which is the Keccak of the Log signature.
 pub const SELECTOR_LOG_DELEGATED: [u8; 32] = keccak256!("Delegated(address,address)");
 
+/// Solidity selector of the Undelegated log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_UNDELEGATED: [u8; 32] = keccak256!("Undelegated(address)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -257,6 +260,7 @@ where
 		vote_amount: U256,
 		conviction: SolidityConvert<U256, u8>,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32 * 4)?;
 		let ref_index = ref_index.converted();
 		let vote_amount_balance = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
@@ -329,6 +333,7 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32)?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -368,10 +373,19 @@ where
 	#[precompile::public("unDelegate()")]
 	#[precompile::public("un_delegate()")]
 	fn un_delegate(handle: &mut impl PrecompileHandle) -> EvmResult {
+		handle.record_log_costs_manual(2, 0)?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::undelegate {};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_UNDELEGATED,
+			handle.context().caller,
+			[],
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
