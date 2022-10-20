@@ -1531,8 +1531,7 @@ pub mod pallet {
 					// remove all candidates that did not produce any blocks for
 					// the given round. The weight is added based on the number of backend
 					// items removed.
-					let remove_result =
-						<AtStake<T>>::clear_prefix(paid_for_round, 20, None);
+					let remove_result = <AtStake<T>>::clear_prefix(paid_for_round, 20, None);
 					result
 						.1
 						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
