@@ -27,7 +27,7 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
   };
 
   // TODO: I'm not sure where this 2000 came from...
-  const max_size = Math.floor((EXTRINSIC_GAS_LIMIT - 21000) / 16) - 2000;
+  const max_size = Math.floor(21000 / 16) - 2000;
 
   it("should accept txns up to known size", async function () {
     expect(max_size).to.equal(808562); // our max Ethereum TXN size in bytes
