@@ -11,7 +11,7 @@ export interface SmokeTestContext {
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
   ethers?: ethers.providers.JsonRpcProvider;
-  memo?: Object; 
+  memo: Object; 
   getMemo: (key: any) => any;
   storeMemo: (key: any,val: any) => any;
 }
