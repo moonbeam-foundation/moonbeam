@@ -5,12 +5,29 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { fetchHistoricBlockNum, getBlockTime } from "../util/block";
 import { WEIGHT_PER_GAS } from "../util/constants";
+import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const limiter = new Bottleneck({ maxConcurrent: 10 });
+
+interface BlockInfo {
+  blockNum: number;
+  hash: string;
+  weights: {
+    normal: BN;
+    operational: BN;
+    mandatory: BN;
+  };
+  events: FrameSystemEventRecord[];
+}
+
+interface BlockLimits {
+  normal: BN;
+  operational: BN;
+}
 
 describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }, (context) => {
   before("Retrieve all weight limits and usage", async function () {
@@ -23,7 +40,7 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
     const lastBlockNumber = signedBlock.block.header.number.toNumber();
     const lastBlockTime = getBlockTime(signedBlock);
 
-    const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
+    const firstBlockTime = lastBlockTime - 2* 60 * 60 * 1000;
     debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
     const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
       context.polkadotApi,
@@ -39,15 +56,19 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
       const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
       const apiAt = await context.polkadotApi.at(blockHash);
       const specVersion = apiAt.consts.system.version.specVersion.toNumber();
+      const events = await apiAt.query.system.events();
 
       if (specVersion >= 1700) {
-        const { normal, operational } = await apiAt.query.system.blockWeight();
+        const { normal, operational, mandatory } = await apiAt.query.system.blockWeight();
         return {
+          blockNum,
           hash: blockHash.toString(),
           weights: {
             normal,
             operational,
+            mandatory
           },
+          events
         };
       }
     };
@@ -60,58 +81,76 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
       normal: new BN(limits.perClass.normal.maxTotal.toJSON() as number),
       operational: new BN(limits.perClass.operational.maxTotal.toJSON() as number),
     });
-    context.storeMemo("blockWeights", results);
-    context.storeMemo("blockNumArray", blockNumArray);
+    context.storeMemo("blockInfoArray", results);
+  });
+
+  // This test is more for verifying that the test code is correctly returning good quality data
+  // that the rest of the test suite performs verification on
+  it("should be returning unique block hashes in array", async () => {
+    const hashes = context.getMemo("blockInfoArray").map((a) => a.hash);
+    const set = new Set(hashes);
+    expect(hashes.length, "Duplicate hashes in retrieved data, investigate test").to.be.equal(
+      set.size
+    );
   });
 
   // Normal class
   it("normal usage should be less than normal dispatch class limits", async function () {
-    const blockLimits = context.getMemo("blockLimits");
-    const blockWeights = context.getMemo("blockWeights");
-    for (const block of blockWeights) {
-      let used = block.weights.normal;
-      let allowed = blockLimits.normal;
-      expect(used.lte(allowed)).to.be.eq(
-        true,
-        `${block.hash} normal usage above allowed. Used ${used} and allowed ${allowed}.`
-      );
-    }
-    debug(`Verified normal dispatch class`);
+    const blockLimits: BlockLimits = context.getMemo("blockLimits");
+    const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
+
+    const overweight = blockInfoArray
+      .filter((a) => a.weights.normal.gt(blockLimits.normal))
+      .map((a) => {
+        debug(`Block #${a.blockNum} has weight ${Number(a.weights.normal)} which is above limit!`);
+        return a;
+      });
+    expect(
+      overweight,
+      `These blocks have normal weights in excess of limit, investigate: ${overweight
+        .map((a) => a.blockNum)
+        .join(", ")}`
+    ).to.be.empty;
   });
 
   // Operational class
   it("operational usage should be less than operational dispatch class limits", async function () {
-    const blockLimits = context.getMemo("blockLimits");
-    const blockWeights = context.getMemo("blockWeights");
-    for (const block of blockWeights) {
-      let used = block.weights.operational;
-      let allowed = blockLimits.operational;
-      expect(used.lte(allowed)).to.be.eq(
-        true,
-        `${block.hash} operational usage above allowed. Used ${used} and allowed ${allowed}.`
-      );
-    }
-    debug(`Verified operational dispatch class`);
+    const blockLimits: BlockLimits = context.getMemo("blockLimits");
+    const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
+
+    const overweight = blockInfoArray
+      .filter((a) => a.weights.normal.gt(blockLimits.operational))
+      .map((a) => {
+        debug(
+          `Block #${a.blockNum} has weight ${Number(a.weights.operational)} which is above limit!`
+        );
+        return a;
+      });
+    expect(
+      overweight,
+      `These blocks have operational weights in excess of limit, investigate: ${overweight
+        .map((a) => a.blockNum)
+        .join(", ")}`
+    ).to.be.empty;
   });
 
   // This will test that when Block is 20%+ full, its normal weight is mostly explained
   // by eth signed transactions.
   it("should roughly have a block weight mostly composed of transactions", async function () {
     this.timeout(120000);
-    const blockNumArray = context.getMemo("blockNumArray");
+    const blockLimits: BlockLimits = context.getMemo("blockLimits");
+    const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
     debug(
-      `Checking #${blockNumArray[0]} - #${
-        blockNumArray[blockNumArray.length - 1]
+      `Checking #${blockInfoArray[0].blockNum} - #${
+        blockInfoArray[blockInfoArray.length - 1].blockNum
       } block weight proportions.`
     );
 
-    const checkBlockWeight = async (blockNum: number) => {
-      const apiAt = await context.polkadotApi.at(
-        await context.polkadotApi.rpc.chain.getBlockHash(blockNum)
-      );
+    const checkBlockWeight = async (blockInfo: BlockInfo) => {
+      const apiAt = await context.polkadotApi.at(blockInfo.hash);
 
-      const normalWeight = (await apiAt.query.system.blockWeight()).normal.toNumber();
-      const maxWeight = apiAt.consts.system.blockWeights.perClass.normal.maxTotal.toString();
+      const normalWeight = Number(blockInfo.weights.normal)
+      const maxWeight = blockLimits.normal
       const ethBlock = (await apiAt.query.ethereum.currentBlock()).unwrap();
 
       const actualWeightUsed = normalWeight / Number(maxWeight);
@@ -121,17 +160,17 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
         const newRatio = (normalWeight - Number(weightCalc)) / Number(maxWeight);
         if (newRatio > 0.2) {
           debug(
-            `Block #${blockNum} is ${(actualWeightUsed * 100).toFixed(2)}% full with ${
+            `Block #${blockInfo.blockNum} is ${(actualWeightUsed * 100).toFixed(2)}% full with ${
               ethBlock.transactions.length
             } transactions, non-transaction weight: ${(newRatio * 100).toFixed(2)}%`
           );
         }
-        return { blockNum, nonTxn: newRatio };
+        return { blockNum: blockInfo.blockNum, nonTxn: newRatio };
       }
     };
 
     const results = await Promise.all(
-      blockNumArray.map((num) => limiter.schedule(() => checkBlockWeight(num)))
+      blockInfoArray.map((blockInfo) => limiter.schedule(() => checkBlockWeight(blockInfo)))
     );
     const nonTxnHeavyBlocks = results.filter((a) => a && a.nonTxn > 0.2);
     expect(
@@ -144,39 +183,33 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
 
   // This will test that the total normal weight reported is roughly the sum of normal class
   // weight events emitted by signed extrinsics
-  it("should have total normal weight matching the signed extrinsics", async function () {
+  it.only("should have total normal weight matching the signed extrinsics", async function () {
     this.timeout(120000);
-    const blockNumArray = context.getMemo("blockNumArray");
+    const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
     debug(
-      `Checking if #${blockNumArray[0]} - #${
-        blockNumArray[blockNumArray.length - 1]
+      `Checking if #${blockInfoArray[0].blockNum} - #${
+        blockInfoArray[blockInfoArray.length - 1].blockNum
       } extrinsic weights sum up.`
     );
 
-    const checkWeights = async (blockNum: number) => {
-      const hash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
-      const apiAt = await context.polkadotApi.at(hash);
-      const events = await apiAt.query.system.events();
-
-      const signedExtTotal = events
+    const checkWeights = (blockInfo: BlockInfo) => {
+      const signedExtTotal = blockInfo.events
         .filter((a) => a.event.method == "ExtrinsicSuccess" || a.event.method == "ExtrinsicFailed")
         .filter((a) => (a.event.data as any).dispatchInfo.class.toString() != "Mandatory")
         .reduce((acc, curr) => acc + (curr.event.data as any).dispatchInfo.weight.toNumber(), 0);
-
-      const normalWeights = (await apiAt.query.system.blockWeight()).normal.toNumber();
+      const normalWeights = Number(blockInfo.weights.normal)
       const difference = (normalWeights - signedExtTotal) / signedExtTotal;
       if (difference > 0.2) {
         debug(
-          `Block #${blockNum} signed extrinsic weight - reported: ${signedExtTotal},  accounted: ${normalWeights} (${
+          `Block #${blockInfo.blockNum} signed extrinsic weight - reported: ${signedExtTotal},  accounted: ${normalWeights} (${
             difference > 0 ? "+" : "-"
           }${(difference * 100).toFixed(2)}%).`
         );
       }
-      return { blockNum, signedExtTotal, normalWeights, difference };
+      return { blockNum: blockInfo.blockNum, signedExtTotal, normalWeights, difference };
     };
 
-    const promises = blockNumArray.map((num) => limiter.schedule(() => checkWeights(num)));
-    const results = await Promise.all(promises);
+    const results = blockInfoArray.map((blockInfo) => checkWeights(blockInfo));
     const heavyweights = results.filter((a) => a.difference > 0.2);
     expect(
       heavyweights,
@@ -190,18 +223,16 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
   // property of  ethereum.currentBlock()
   it("should have total gas charged similar to eth extrinsics", async function () {
     this.timeout(120000);
-    const blockNumArray = context.getMemo("blockNumArray");
+    const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray")
     debug(
-      `Checking if #${blockNumArray[0]} - #${
-        blockNumArray[blockNumArray.length - 1]
+      `Checking if #${blockInfoArray[0].blockNum} - #${
+        blockInfoArray[blockInfoArray.length - 1].blockNum
       } weights match gasUsed`
     );
 
-    const compareGasToWeight = async (blockNum: number) => {
-      const hash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
-      const apiAt = await context.polkadotApi.at(hash);
-      const allEvents = await apiAt.query.system.events();
-      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(hash);
+    const compareGasToWeight = async (blockInfo: BlockInfo) => {
+      const apiAt = await context.polkadotApi.at(blockInfo.hash);
+      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(blockInfo.hash);
       const gasUsed = (await apiAt.query.ethereum.currentBlock())
         .unwrap()
         .header.gasUsed.toNumber();
@@ -210,7 +241,7 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
       const ethTxnsWeight = signedBlock.block.extrinsics
         .map((item, index) => {
           if (item.method.method == "transact" && item.method.section == "ethereum") {
-            return allEvents
+            return blockInfo.events
               .filter(({ phase }) => phase.isApplyExtrinsic && phase.asApplyExtrinsic.eq(index))
               .filter(
                 ({ event }) =>
@@ -230,16 +261,16 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
 
       if (difference > 0) {
         debug(
-          `Block #${blockNum} has a ${((difference / ethTxnsWeight) * 100).toFixed(
+          `Block #${blockInfo.blockNum} has a ${((difference / ethTxnsWeight) * 100).toFixed(
             2
           )}% discrepancy between eth gas used and weight charged. `
         );
       }
-      return { blockNum, gasWeight, ethTxnsWeight, difference };
+      return { blockNum: blockInfo.blockNum, gasWeight, ethTxnsWeight, difference };
     };
 
     const results = await Promise.all(
-      blockNumArray.map((num) => limiter.schedule(() => compareGasToWeight(num)))
+      blockInfoArray.map((blockInfo) => limiter.schedule(() => compareGasToWeight(blockInfo)))
     );
     const discrepancies = results.filter((a) => a.difference > 0);
     expect(
@@ -250,6 +281,8 @@ describeSmokeSuite(`Verify weights of published blocks`, { wssUrl, relayWssUrl }
     ).to.be.empty;
   });
 
-  // TODO: WRite a test to make sure there are no duplicate hashes in block weights map
-  // TODO: Create a combined results array to further speed it up (do in is before all)
 });
+
+// Check normal used is
+
+// Check gas used = successful eth transactions only
