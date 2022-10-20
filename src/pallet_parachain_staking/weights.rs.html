@@ -861,10 +861,6 @@
 <span id="861">861</span>
 <span id="862">862</span>
 <span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1286,7 +1282,6 @@
 	// Storage: ParachainStaking DelegationScheduledRequests (r:9 w:0)
 	// Storage: ParachainStaking TopDelegations (r:9 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:9 w:0)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:10)
@@ -1298,18 +1293,17 @@
 	</span><span class="kw">fn </span>round_transition_on_initialize(x: u32, y: u32, ) -&gt; Weight {
 		Weight::from_ref_time(<span class="number">363_268_000 </span><span class="kw">as </span>u64)
 			<span class="comment">// Standard Error: 1_140_000
-			</span>.saturating_add(Weight::from_ref_time(<span class="number">47_699_000 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64))
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">43_560_000 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64))
 			<span class="comment">// Standard Error: 3_000
-			</span>.saturating_add(Weight::from_ref_time(<span class="number">142_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">181 </span><span class="kw">as </span>u64))
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">139_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">180 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">4 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64)))
-			.saturating_add(T::DbWeight::get().writes(<span class="number">172 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">171 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64)))
 	}
 	<span class="comment">// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	// Storage: ParachainStaking Points (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:0)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:0)
@@ -1318,7 +1312,7 @@
 		Weight::from_ref_time(<span class="number">61_374_000 </span><span class="kw">as </span>u64)
 			<span class="comment">// Standard Error: 5_000
 			</span>.saturating_add(Weight::from_ref_time(<span class="number">15_651_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
-			.saturating_add(T::DbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().reads(<span class="number">7 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().reads((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64)))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().writes((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64)))
@@ -1659,7 +1653,6 @@
 	// Storage: ParachainStaking DelegationScheduledRequests (r:9 w:0)
 	// Storage: ParachainStaking TopDelegations (r:9 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:9 w:0)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:10)
@@ -1671,18 +1664,17 @@
 	</span><span class="kw">fn </span>round_transition_on_initialize(x: u32, y: u32, ) -&gt; Weight {
 		Weight::from_ref_time(<span class="number">363_268_000 </span><span class="kw">as </span>u64)
 			<span class="comment">// Standard Error: 1_140_000
-			</span>.saturating_add(Weight::from_ref_time(<span class="number">47_699_000 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64))
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">43_560_000 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64))
 			<span class="comment">// Standard Error: 3_000
-			</span>.saturating_add(Weight::from_ref_time(<span class="number">142_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
-			.saturating_add(RocksDbWeight::get().reads(<span class="number">181 </span><span class="kw">as </span>u64))
+			</span>.saturating_add(Weight::from_ref_time(<span class="number">139_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">180 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().reads((<span class="number">4 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64)))
-			.saturating_add(RocksDbWeight::get().writes(<span class="number">172 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">171 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().writes((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(x <span class="kw">as </span>u64)))
 	}
 	<span class="comment">// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	// Storage: ParachainStaking Points (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:0)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:0)
@@ -1691,7 +1683,7 @@
 		Weight::from_ref_time(<span class="number">61_374_000 </span><span class="kw">as </span>u64)
 			<span class="comment">// Standard Error: 5_000
 			</span>.saturating_add(Weight::from_ref_time(<span class="number">15_651_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
-			.saturating_add(RocksDbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">7 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().reads((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64)))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">3 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().writes((<span class="number">1 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64)))

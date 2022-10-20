@@ -1878,6 +1878,11 @@
 <span id="1878">1878</span>
 <span id="1879">1879</span>
 <span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3408,12 +3413,17 @@
 					</span>&lt;DelayedPayouts&lt;T&gt;&gt;::remove(paid_for_round);
 					&lt;Points&lt;T&gt;&gt;::remove(paid_for_round);
 
-					<span class="comment">// remove up to 1000 candidates that did not produce any blocks for
-					// the given round
-					</span><span class="kw">let _ </span>= &lt;AtStake&lt;T&gt;&gt;::clear_prefix(paid_for_round, <span class="number">1000</span>, <span class="prelude-val">None</span>);
-				}
-				result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
-			</span>} <span class="kw">else </span>{
+					<span class="comment">// remove all candidates that did not produce any blocks for
+					// the given round. The weight is added based on the number of backend
+					// items removed.
+					</span><span class="kw">let </span>remove_result = &lt;AtStake&lt;T&gt;&gt;::clear_prefix(paid_for_round, <span class="number">20</span>, <span class="prelude-val">None</span>);
+					result
+						.<span class="number">1
+						</span>.saturating_add(T::DbWeight::get().writes(remove_result.backend <span class="kw">as </span>u64))
+				} <span class="kw">else </span>{
+					result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
+				</span>}
+			} <span class="kw">else </span>{
 				Weight::from_ref_time(<span class="number">0u64</span>)
 			}
 		}
