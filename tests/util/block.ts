@@ -191,8 +191,6 @@ export const verifyBlockFees = async (
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasFee = (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
-                console.log(dispatchInfo.weight);
-                console.log(gasFee);
                 let ethTxWrapper = extrinsic.method.args[0] as any;
                 let gasPrice;
                 // Transaction is an enum now with as many variants as supported transaction types.
