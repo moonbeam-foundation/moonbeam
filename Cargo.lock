@@ -5080,6 +5080,7 @@ dependencies = [
  "pallet-evm-precompile-xcm-utils",
  "pallet-evm-precompile-xtokens",
  "pallet-evm-precompileset-assets-erc20",
+ "pallet-governance-origins",
  "pallet-identity",
  "pallet-maintenance-mode",
  "pallet-migrations",
@@ -7478,6 +7479,16 @@ dependencies = [
  "sp-arithmetic",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-governance-origins"
+version = "0.1.0"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "parity-scale-codec",
+ "scale-info",
 ]
 
 [[package]]

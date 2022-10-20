@@ -1,0 +1,21 @@
+[package]
+name = "pallet-governance-origins"
+authors = [ "PureStake" ]
+description = "Custom origins for governance interventions"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+
+[features]
+default = [ "std" ]
+std = [
+	"frame-support/std",
+	"frame-system/std",
+	"scale-info/std",
+]
+runtime-benchmarks = []

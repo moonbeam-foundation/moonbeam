@@ -113,7 +113,7 @@ pub type Precompiles = MoonbasePrecompiles<Runtime>;
 pub mod asset_config;
 pub mod governance;
 pub mod xcm_config;
-use governance::{councils::*, pallet_custom_origins, referenda::*};
+use governance::{councils::*, referenda::*};
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -1194,7 +1194,7 @@ construct_runtime! {
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
 		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
 		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
-		Origins: pallet_custom_origins::{Origin} = 43,
+		Origins: pallet_governance_origins::{Origin} = 43,
 		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
 		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}

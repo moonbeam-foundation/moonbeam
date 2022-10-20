@@ -49,9 +49,16 @@ parameter_types! {
 parameter_types! {
 	pub const MaxBalance: Balance = Balance::max_value();
 }
-pub type TreasurySpender = EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, Spender>;
+pub type TreasurySpender =
+	EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, pallet_governance_origins::Spender>;
 
-impl origins::pallet_custom_origins::Config for Runtime {}
+impl pallet_governance_origins::Config for Runtime {
+	type Currency = Balance;
+	type MaxSmallSpenderSpend = ConstU128<{ 200 * UNIT * SUPPLY_FACTOR }>;
+	type MaxMediumSpenderSpend = ConstU128<{ 2000 * UNIT * SUPPLY_FACTOR }>;
+	type MaxBigSpenderSpend = ConstU128<{ 10000 * UNIT * SUPPLY_FACTOR }>;
+	type MaxTreasurerSpend = MaxBalance;
+}
 
 // purpose of this pallet is to queue calls to be dispatched as by root for later
 impl pallet_whitelist::Config for Runtime {

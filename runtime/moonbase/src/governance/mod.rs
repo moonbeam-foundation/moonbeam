@@ -22,9 +22,8 @@ pub mod referenda;
 
 use super::*;
 
-mod origins;
-pub use origins::{
-	pallet_custom_origins, ReferendumCanceller, ReferendumKiller, Spender, WhitelistedCaller,
+pub use pallet_governance_origins::{
+	governance_origins, ReferendumCanceller, ReferendumKiller, Spender, WhitelistedCaller,
 };
 mod tracks;
 pub use tracks::TracksInfo;
