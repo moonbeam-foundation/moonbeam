@@ -172,11 +172,13 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 		pub BlockGasLimit: U256 = U256::max_value();
 		pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+		pub const WeightPerGas: u64 = 1;
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
