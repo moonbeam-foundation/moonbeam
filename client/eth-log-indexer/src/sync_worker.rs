@@ -58,7 +58,6 @@ where
 		loop {
 			futures::select! {
 				_ = (&mut import_interval).fuse() => {
-					println!("#############");
 					let leaves = backend.leaves();
 					if let Ok(mut leaves) = leaves {
 						if let Some(hash) = resume_at {
@@ -86,6 +85,9 @@ where
 					import_interval.reset(interval);
 				},
 				notification = notifications.next() => if let Some(notification) = notification {
+					// TODO
+					// Notification may enter before the timer loop in case of not major syncing.
+					// Make sure we index the notified hash + its parents until we hit a known hash.
 					let _ = Self::batch(
 						Arc::clone(&indexer_backend),
 						batch_size,
@@ -99,7 +101,7 @@ where
 		}
 	}
 
-	pub async fn batch(
+	async fn batch(
 		indexer_backend: Arc<crate::Backend<Client, Block, Backend>>,
 		batch_size: usize,
 		current_batch: &mut Vec<Block::Hash>,

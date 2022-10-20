@@ -89,7 +89,7 @@ where
 		self.client.clone()
 	}
 
-	pub async fn insert_sync_status(&self, hashes: &Vec<H256>) -> Result<SqliteQueryResult, Error> {
+	pub(crate) async fn insert_sync_status(&self, hashes: &Vec<H256>) -> Result<SqliteQueryResult, Error> {
 		let mut builder: QueryBuilder<Sqlite> =
 			QueryBuilder::new("INSERT INTO sync_status(substrate_block_hash) ");
 		builder.push_values(hashes, |mut b, hash| {
@@ -99,7 +99,7 @@ where
 		query.execute(self.pool()).await
 	}
 
-	pub fn spawn_logs_task(&self, batch_size: usize) {
+	pub(crate) fn spawn_logs_task(&self, batch_size: usize) {
 		let pool = self.pool().clone();
 		let client = self.client.clone();
 		let overrides = self.overrides.clone();
@@ -145,6 +145,7 @@ where
 							)
 						})?;
 						let mut tx = pool.begin().await.map_err(|e| (to_index.clone(), e))?;
+						// TODO VERIFY statements limit per transaction in sqlite if any  
 						for log in logs.iter() {
 							let _ = sqlx::query!(
 								"INSERT OR IGNORE INTO logs(
