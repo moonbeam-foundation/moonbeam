@@ -125,11 +125,12 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
+	pub const WeightPerGas: u64 = 1;
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<Account>;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = IdentityAddressMapping;
