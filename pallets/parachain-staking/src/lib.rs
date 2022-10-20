@@ -1532,7 +1532,7 @@ pub mod pallet {
 					// the given round. The weight is added based on the number of backend
 					// items removed.
 					let remove_result =
-						<AtStake<T>>::clear_prefix(paid_for_round, u32::max_value(), None);
+						<AtStake<T>>::clear_prefix(paid_for_round, 20, None);
 					result
 						.1
 						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
