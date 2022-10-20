@@ -55,7 +55,7 @@ impl<T: Config> MigrateAtStakeAutoCompound<T> {
 	/// Get keys for the `AtStake` storage for the rounds up to `RewardPaymentDelay` rounds ago.
 	/// We migrate only the last unpaid rounds due to the presence of stale entries in `AtStake`
 	/// which significantly increase the PoV size.
-	fn unpaid_rounds_keys() -> Vec<(RoundIndex, T::AccountId, Vec<u8>)> {
+	fn unpaid_rounds_keys() -> impl Iterator<Item = (RoundIndex, T::AccountId, Vec<u8>)> {
 		let current_round = <Round<T>>::get().current;
 		let max_unpaid_round = current_round.saturating_sub(T::RewardPaymentDelay::get());
 		(max_unpaid_round..=current_round)
@@ -66,7 +66,6 @@ impl<T: Config> MigrateAtStakeAutoCompound<T> {
 					(round, candidate, key)
 				})
 			})
-			.collect::<Vec<_>>()
 	}
 }
 impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
