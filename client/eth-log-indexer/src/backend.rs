@@ -13,16 +13,17 @@ use sqlx::{
 use std::str::FromStr;
 use std::sync::Arc;
 
-struct Log {
-	block_number: i32,
-	address: Vec<u8>,
-	topic_1: Vec<u8>,
-	topic_2: Vec<u8>,
-	topic_3: Vec<u8>,
-	topic_4: Vec<u8>,
-	log_index: i32,
-	transaction_index: i32,
-	substrate_block_hash: Vec<u8>,
+#[derive(Debug, Eq, PartialEq)]
+pub struct Log {
+	pub block_number: i32,
+	pub address: Vec<u8>,
+	pub topic_1: Vec<u8>,
+	pub topic_2: Vec<u8>,
+	pub topic_3: Vec<u8>,
+	pub topic_4: Vec<u8>,
+	pub log_index: i32,
+	pub transaction_index: i32,
+	pub substrate_block_hash: Vec<u8>,
 }
 
 pub struct SqliteBackendConfig<'a> {
