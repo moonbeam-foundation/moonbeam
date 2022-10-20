@@ -850,126 +850,6 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
-<span id="853">853</span>
-<span id="854">854</span>
-<span id="855">855</span>
-<span id="856">856</span>
-<span id="857">857</span>
-<span id="858">858</span>
-<span id="859">859</span>
-<span id="860">860</span>
-<span id="861">861</span>
-<span id="862">862</span>
-<span id="863">863</span>
-<span id="864">864</span>
-<span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
-<span id="933">933</span>
-<span id="934">934</span>
-<span id="935">935</span>
-<span id="936">936</span>
-<span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
-<span id="959">959</span>
-<span id="960">960</span>
-<span id="961">961</span>
-<span id="962">962</span>
-<span id="963">963</span>
-<span id="964">964</span>
-<span id="965">965</span>
-<span id="966">966</span>
-<span id="967">967</span>
-<span id="968">968</span>
-<span id="969">969</span>
-<span id="970">970</span>
-<span id="971">971</span>
-<span id="972">972</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1011,6 +891,7 @@
 <span class="kw">use </span>frame_support::{
 	migration::storage_key_iter,
 	pallet_prelude::PhantomData,
+	storage,
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
@@ -1018,54 +899,60 @@
 </span><span class="kw">use </span>scale_info::prelude::string::String;
 <span class="kw">use </span>sp_runtime::traits::{Saturating, Zero};
 <span class="kw">use </span>sp_runtime::Percent;
-<span class="kw">use </span>sp_std::collections::btree_set::BTreeSet;
 <span class="kw">use </span>sp_std::{convert::TryInto, vec, vec::Vec};
 
-<span class="doccomment">/// Migration `AtStake` storage item to include auto-compound value
+<span class="doccomment">/// Migrate `AtStake` storage item to include auto-compound value for unpaid rounds.
 </span><span class="kw">pub struct </span>MigrateAtStakeAutoCompound&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: Config&gt; MigrateAtStakeAutoCompound&lt;T&gt; {
-	<span class="kw">const </span>PALLET_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;ParachainStaking&quot;</span>;
-	<span class="kw">const </span>AT_STAKE_PREFIX: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>[u8] = <span class="string">b&quot;AtStake&quot;</span>;
+	<span class="doccomment">/// Get keys for the `AtStake` storage for the rounds up to `RewardPaymentDelay` rounds ago.
+	/// We migrate only the last unpaid rounds due to the presence of stale entries in `AtStake`
+	/// which significantly increase the PoV size.
+	</span><span class="kw">fn </span>unpaid_rounds_keys() -&gt; <span class="kw">impl </span>Iterator&lt;Item = (RoundIndex, T::AccountId, Vec&lt;u8&gt;)&gt; {
+		<span class="kw">let </span>current_round = &lt;Round&lt;T&gt;&gt;::get().current;
+		<span class="kw">let </span>max_unpaid_round = current_round.saturating_sub(T::RewardPaymentDelay::get());
+		(max_unpaid_round..=current_round)
+			.into_iter()
+			.flat_map(|round| {
+				&lt;AtStake&lt;T&gt;&gt;::iter_key_prefix(round).map(<span class="kw">move </span>|candidate| {
+					<span class="kw">let </span>key = &lt;AtStake&lt;T&gt;&gt;::hashed_key_for(round.clone(), candidate.clone());
+					(round, candidate, key)
+				})
+			})
+	}
 }
 <span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>MigrateAtStakeAutoCompound&lt;T&gt; {
 	<span class="attribute">#[allow(deprecated)]
 	</span><span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-		<span class="kw">use </span>sp_std::collections::btree_set::BTreeSet;
-
-		<span class="macro">log::info!</span>(target: <span class="string">&quot;MigrateAtStakeAutoCompound&quot;</span>, <span class="string">&quot;running migration to add auto-compound values&quot;</span>);
+		<span class="macro">log::info!</span>(
+			target: <span class="string">&quot;MigrateAtStakeAutoCompound&quot;</span>,
+			<span class="string">&quot;running migration to add auto-compound values&quot;
+		</span>);
 		<span class="kw">let </span><span class="kw-2">mut </span>reads = <span class="number">0u64</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>writes = <span class="number">0u64</span>;
-
-		<span class="kw">let </span>max_unpaid_round = &lt;Round&lt;T&gt;&gt;::get()
-			.current
-			.saturating_sub(T::RewardPaymentDelay::get());
-
-		<span class="comment">// validate only from `max_unpaid_round`, since we have some stale entries and this adds
-		// to the PoV size during try-runtime
-		</span>&lt;AtStake&lt;T&gt;&gt;::translate(
-			|round, candidate, old_state: OldCollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;| {
-				reads = reads.saturating_add(<span class="number">1</span>);
-				writes = writes.saturating_add(<span class="number">1</span>);
-
-				<span class="macro">log::info!</span>(
-					target: <span class="string">&quot;MigrateAtStakeAutoCompound&quot;</span>,
-					<span class="string">&quot;migration from old format round {:?}, candidate {:?}&quot;</span>, round, candidate
-				);
-				<span class="prelude-val">Some</span>(CollatorSnapshot {
-					bond: old_state.bond,
-					delegations: old_state
-						.delegations
-						.into_iter()
-						.map(|d| BondWithAutoCompound {
-							owner: d.owner,
-							amount: d.amount,
-							auto_compound: Percent::zero(),
-						})
-						.collect(),
-					total: old_state.total,
-				})
-			},
-		);
+		<span class="kw">for </span>(round, candidate, key) <span class="kw">in </span><span class="self">Self</span>::unpaid_rounds_keys() {
+			<span class="kw">let </span>old_state: OldCollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
+				storage::unhashed::get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;unable to decode value&quot;</span>);
+			reads = reads.saturating_add(<span class="number">1</span>);
+			writes = writes.saturating_add(<span class="number">1</span>);
+			<span class="macro">log::info!</span>(
+				target: <span class="string">&quot;MigrateAtStakeAutoCompound&quot;</span>,
+				<span class="string">&quot;migration from old format round {:?}, candidate {:?}&quot;</span>, round, candidate
+			);
+			<span class="kw">let </span>new_state = CollatorSnapshot {
+				bond: old_state.bond,
+				delegations: old_state
+					.delegations
+					.into_iter()
+					.map(|d| BondWithAutoCompound {
+						owner: d.owner,
+						amount: d.amount,
+						auto_compound: Percent::zero(),
+					})
+					.collect(),
+				total: old_state.total,
+			};
+			storage::unhashed::put(<span class="kw-2">&amp;</span>key, <span class="kw-2">&amp;</span>new_state);
+		}
 
 		T::DbWeight::get().reads_writes(reads, writes)
 	}
@@ -1073,38 +960,28 @@
 	<span class="attribute">#[allow(deprecated)]
 	#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
 	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::storage;
-
 		<span class="kw">let </span><span class="kw-2">mut </span>num_to_update = <span class="number">0u32</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>rounds_candidates = <span class="macro">vec!</span>[];
+		<span class="kw">for </span>(round, candidate, key) <span class="kw">in </span><span class="self">Self</span>::unpaid_rounds_keys() {
+			<span class="kw">let </span>state: OldCollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
+				storage::unhashed::get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;unable to decode value&quot;</span>);
 
-		<span class="comment">// validate only from `max_unpaid_round`, since we have some stale entries and this adds
-		// to the PoV size during try-runtime
-		</span><span class="kw">let </span>current_round = &lt;Round&lt;T&gt;&gt;::get().current;
-		<span class="kw">let </span>max_unpaid_round = current_round.saturating_sub(T::RewardPaymentDelay::get());
-		<span class="kw">for </span>round <span class="kw">in </span>max_unpaid_round..=current_round {
-			<span class="kw">for </span>candidate <span class="kw">in </span>&lt;AtStake&lt;T&gt;&gt;::iter_key_prefix(round) {
-				<span class="kw">let </span>key = &lt;AtStake&lt;T&gt;&gt;::hashed_key_for(round.clone(), candidate.clone());
-				<span class="kw">let </span>state: OldCollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
-					storage::unhashed::get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;unable to decode value&quot;</span>);
-
-				num_to_update = num_to_update.saturating_add(<span class="number">1</span>);
-				rounds_candidates.push((round.clone(), candidate.clone()));
-				<span class="kw">let </span><span class="kw-2">mut </span>delegation_str = <span class="macro">vec!</span>[];
-				<span class="kw">for </span>d <span class="kw">in </span>state.delegations {
-					delegation_str.push(<span class="macro">format!</span>(
-						<span class="string">&quot;owner={:?}_amount={:?}_autoCompound=0%&quot;</span>,
-						d.owner, d.amount
-					));
-				}
-				<span class="self">Self</span>::set_temp_storage(
-					<span class="macro">format!</span>(
-						<span class="string">&quot;bond={:?}_total={:?}_delegations={:?}&quot;</span>,
-						state.bond, state.total, delegation_str
-					),
-					<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate),
-				);
+			num_to_update = num_to_update.saturating_add(<span class="number">1</span>);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			<span class="kw">let </span><span class="kw-2">mut </span>delegation_str = <span class="macro">vec!</span>[];
+			<span class="kw">for </span>d <span class="kw">in </span>state.delegations {
+				delegation_str.push(<span class="macro">format!</span>(
+					<span class="string">&quot;owner={:?}_amount={:?}_autoCompound=0%&quot;</span>,
+					d.owner, d.amount
+				));
 			}
+			<span class="self">Self</span>::set_temp_storage(
+				<span class="macro">format!</span>(
+					<span class="string">&quot;bond={:?}_total={:?}_delegations={:?}&quot;</span>,
+					state.bond, state.total, delegation_str
+				),
+				<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate),
+			);
 		}
 
 		rounds_candidates.sort();
@@ -1117,19 +994,8 @@
 	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>num_updated = <span class="number">0u32</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>rounds_candidates = <span class="macro">vec!</span>[];
-		<span class="kw">let </span>max_unpaid_round = &lt;Round&lt;T&gt;&gt;::get()
-			.current
-			.saturating_sub(T::RewardPaymentDelay::get());
-		<span class="kw">for </span>(round, candidate, state) <span class="kw">in </span>&lt;AtStake&lt;T&gt;&gt;::iter() {
-			<span class="kw">if </span>round &lt; max_unpaid_round {
-				<span class="macro">log::warn!</span>(
-					target: <span class="string">&quot;MigrateAtStakeAutoCompound&quot;</span>,
-					<span class="string">&quot;skipping storage check for round {:?}, this round entry should not exist&quot;</span>,
-					round
-				);
-				<span class="kw">continue</span>;
-			}
-
+		<span class="kw">for </span>(round, candidate, <span class="kw">_</span>) <span class="kw">in </span><span class="self">Self</span>::unpaid_rounds_keys() {
+			<span class="kw">let </span>state = &lt;AtStake&lt;T&gt;&gt;::get(<span class="kw-2">&amp;</span>round, <span class="kw-2">&amp;</span>candidate);
 			num_updated = num_updated.saturating_add(<span class="number">1</span>);
 			rounds_candidates.push((round.clone(), candidate.clone()));
 			<span class="kw">let </span><span class="kw-2">mut </span>delegation_str = <span class="macro">vec!</span>[];
@@ -1157,112 +1023,6 @@
 			<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;rounds_candidates&quot;</span>)
 		);
 		<span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(num_updated), <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;num_to_update&quot;</span>));
-		<span class="prelude-val">Ok</span>(())
-	}
-}
-
-<span class="doccomment">/// Removes old entries for paid rounds from the `AtStake` storage item.
-</span><span class="kw">pub struct </span>RemovePaidRoundsFromAtStake&lt;T&gt;(PhantomData&lt;T&gt;);
-<span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>RemovePaidRoundsFromAtStake&lt;T&gt; {
-	<span class="attribute">#[allow(deprecated)]
-	</span><span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
-		<span class="kw">use </span>sp_std::collections::btree_set::BTreeSet;
-
-		<span class="kw">let </span><span class="kw-2">mut </span>reads = <span class="number">0u64</span>;
-		<span class="kw">let </span><span class="kw-2">mut </span>writes = <span class="number">0u64</span>;
-		<span class="kw">let </span>max_unpaid_round = &lt;Round&lt;T&gt;&gt;::get()
-			.current
-			.saturating_sub(T::RewardPaymentDelay::get());
-
-		<span class="macro">log::info!</span>(
-			target: <span class="string">&quot;RemovePaidRoundsFromAtStake&quot;</span>,
-			<span class="string">&quot;running migration to remove entries for paid rounds &lt; {:?}&quot;</span>,
-			max_unpaid_round,
-		);
-
-		<span class="comment">// Remove all the keys that are older than the last possible unpaid round. As an additional
-		// check we also verify that the `Points` &amp; `DelayedPayouts` storage item have already been
-		// removed to avoid the risk to removing the snapshot with outstanding errors.
-		</span>&lt;AtStake&lt;T&gt;&gt;::iter_keys()
-			.filter(|(round, <span class="kw">_</span>)| {
-				round &lt; <span class="kw-2">&amp;</span>max_unpaid_round
-					&amp;&amp; !&lt;Points&lt;T&gt;&gt;::contains_key(round)
-					&amp;&amp; !&lt;DelayedPayouts&lt;T&gt;&gt;::contains_key(round)
-			})
-			.map(|(round, <span class="kw">_</span>)| round)
-			.collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;()
-			.iter()
-			.for_each(|round| {
-				writes = writes.saturating_add(<span class="number">1</span>);
-				<span class="macro">log::info!</span>(target: <span class="string">&quot;RemovePaidRoundsFromAtStake&quot;</span>, <span class="string">&quot;removing round {:?}&quot;</span>, round);
-				&lt;AtStake&lt;T&gt;&gt;::remove_prefix(round, <span class="prelude-val">None</span>);
-			});
-
-		T::DbWeight::get().reads_writes(reads, writes)
-	}
-
-	<span class="attribute">#[allow(deprecated)]
-	#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">let </span>max_unpaid_round = &lt;Round&lt;T&gt;&gt;::get()
-			.current
-			.saturating_sub(T::RewardPaymentDelay::get());
-
-		<span class="kw">let </span>rounds_to_keep = &lt;AtStake&lt;T&gt;&gt;::iter_keys()
-			.filter(|(round, <span class="kw">_</span>)| {
-				<span class="kw">if </span>round &gt;= <span class="kw-2">&amp;</span>max_unpaid_round {
-					<span class="bool-val">true
-				</span>} <span class="kw">else </span>{
-					<span class="kw">let </span>points_exist = &lt;Points&lt;T&gt;&gt;::contains_key(round);
-					<span class="kw">let </span>delayed_payouts_exist = &lt;DelayedPayouts&lt;T&gt;&gt;::contains_key(round);
-					<span class="kw">if </span>points_exist {
-						<span class="macro">log::info!</span>(
-							target: <span class="string">&quot;RemovePaidRoundsFromAtStake&quot;</span>,
-							<span class="string">&quot;Points storage still exists for round {:?}, max_unpaid_round {:?}, \
-							entry will not be removed&quot;</span>,
-							round,
-							max_unpaid_round
-						);
-					};
-					<span class="kw">if </span>delayed_payouts_exist {
-						<span class="macro">log::info!</span>(
-							target: <span class="string">&quot;RemovePaidRoundsFromAtStake&quot;</span>,
-							<span class="string">&quot;DelayedPayouts storage still exists for round {:?}, max_unpaid_round {:?}, \
-							entry will not be removed&quot;</span>,
-							round,
-							max_unpaid_round
-						);
-					};
-					points_exist || delayed_payouts_exist
-				}
-			})
-			.map(|(round, <span class="kw">_</span>)| round)
-			.collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;();
-		<span class="self">Self</span>::set_temp_storage(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, rounds_to_keep), <span class="string">&quot;rounds_to_keep&quot;</span>);
-		<span class="prelude-val">Ok</span>(())
-	}
-
-	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">let </span>max_unpaid_round = &lt;Round&lt;T&gt;&gt;::get()
-			.current
-			.saturating_sub(T::RewardPaymentDelay::get());
-		<span class="kw">let </span>rounds_kept = &lt;AtStake&lt;T&gt;&gt;::iter_keys()
-			.map(|(round, <span class="kw">_</span>)| {
-				<span class="macro">assert!</span>(
-					round &gt;= max_unpaid_round,
-					<span class="string">&quot;unexpected stale round storage item, max_unpaid_round={:?}, got={:?}&quot;</span>,
-					max_unpaid_round,
-					round
-				);
-				round
-			})
-			.collect::&lt;BTreeSet&lt;<span class="kw">_</span>&gt;&gt;();
-
-		<span class="macro">assert_eq!</span>(
-			<span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, rounds_kept)),
-			<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;rounds_to_keep&quot;</span>)
-		);
 		<span class="prelude-val">Ok</span>(())
 	}
 }
