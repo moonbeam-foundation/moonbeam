@@ -120,7 +120,7 @@ describeSmokeSuite(
     });
 
     // Operational class
-    it("operational usage should be less than operational dispatch class limits", async function () {
+    it("operational usage should be less than dispatch class limits", async function () {
       const blockLimits: BlockLimits = context.getMemo("blockLimits");
       const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
 
@@ -209,11 +209,10 @@ describeSmokeSuite(
         const difference = (normalWeights - signedExtTotal) / signedExtTotal;
         if (difference > 0.2) {
           debug(
-            `Block #${
-              blockInfo.blockNum
-            } signed extrinsic weight - reported: ${signedExtTotal},  accounted: ${normalWeights} (${
-              difference > 0 ? "+" : "-"
-            }${(difference * 100).toFixed(2)}%).`
+            `Block #${blockInfo.blockNum} signed extrinsic weight - reported: ${signedExtTotal}, 
+            accounted: ${normalWeights} (${difference > 0 ? "+" : "-"}${(difference * 100).toFixed(
+              2
+            )}%).`
           );
         }
         return { blockNum: blockInfo.blockNum, signedExtTotal, normalWeights, difference };
@@ -283,9 +282,8 @@ describeSmokeSuite(
       const discrepancies = results.filter((a) => a.difference > 0);
       expect(
         discrepancies,
-        `These blocks have mismatching gas used vs charged weight, please investigate: ${discrepancies
-          .map((a) => a.blockNum)
-          .join(", ")}`
+        `These blocks have mismatching gas used vs charged weight, 
+        please investigate: ${discrepancies.map((a) => a.blockNum).join(", ")}`
       ).to.be.empty;
     });
   }
