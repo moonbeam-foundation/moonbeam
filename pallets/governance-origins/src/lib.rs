@@ -13,10 +13,10 @@
 
 //! Custom origins for governance interventions.
 
-pub use governance_origins::*;
+pub use pallet_governance_origins::*;
 
 #[frame_support::pallet]
-pub mod governance_origins {
+pub mod pallet_governance_origins {
 	use frame_support::{pallet_prelude::*, traits::Currency};
 
 	type BalanceOf<T> =

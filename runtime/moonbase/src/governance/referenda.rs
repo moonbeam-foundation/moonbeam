@@ -49,8 +49,10 @@ parameter_types! {
 parameter_types! {
 	pub const MaxBalance: Balance = Balance::max_value();
 }
-pub type TreasurySpender =
-	EitherOf<EnsureRootWithSuccess<AccountId, MaxBalance>, pallet_governance_origins::Spender>;
+pub type TreasurySpender = EitherOf<
+	EnsureRootWithSuccess<AccountId, MaxBalance>,
+	pallet_governance_origins::Spender<Runtime>,
+>;
 
 impl pallet_governance_origins::Config for Runtime {
 	type Currency = Balance;
