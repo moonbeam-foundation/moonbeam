@@ -34,6 +34,9 @@ describeSmokeSuite(
   `Verify weights of blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours`,
   { wssUrl, relayWssUrl },
   (context) => {
+    let blockLimits: BlockLimits;
+    let blockInfoArray: BlockInfo[];
+
     before("Retrieve all weight limits and usage", async function () {
       this.timeout(240000);
 
@@ -77,21 +80,19 @@ describeSmokeSuite(
         }
       };
 
-      const results = await Promise.all(
-        blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
-      );
-
-      context.storeMemo("blockLimits", {
+      blockLimits = {
         normal: new BN(limits.perClass.normal.maxTotal.toJSON() as number),
         operational: new BN(limits.perClass.operational.maxTotal.toJSON() as number),
-      });
-      context.storeMemo("blockInfoArray", results);
+      };
+      blockInfoArray = await Promise.all(
+        blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
+      );
     });
 
     // This test is more for verifying that the test code is correctly returning good quality data
     // that the rest of the test suite performs verification on
     it("should be returning unique block hashes in array", async () => {
-      const hashes = context.getMemo("blockInfoArray").map((a) => a.hash);
+      const hashes = blockInfoArray.map((a) => a.hash);
       const set = new Set(hashes);
       expect(hashes.length, "Duplicate hashes in retrieved data, investigate test").to.be.equal(
         set.size
@@ -100,9 +101,6 @@ describeSmokeSuite(
 
     // Normal class
     it("normal usage should be less than normal dispatch class limits", async function () {
-      const blockLimits: BlockLimits = context.getMemo("blockLimits");
-      const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
-
       const overweight = blockInfoArray
         .filter((a) => a.weights.normal.gt(blockLimits.normal))
         .map((a) => {
@@ -121,9 +119,6 @@ describeSmokeSuite(
 
     // Operational class
     it("operational usage should be less than dispatch class limits", async function () {
-      const blockLimits: BlockLimits = context.getMemo("blockLimits");
-      const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
-
       const overweight = blockInfoArray
         .filter((a) => a.weights.operational.gt(blockLimits.operational))
         .map((a) => {
@@ -144,8 +139,6 @@ describeSmokeSuite(
     // by eth signed transactions.
     it("should roughly have a block weight mostly composed of transactions", async function () {
       this.timeout(120000);
-      const blockLimits: BlockLimits = context.getMemo("blockLimits");
-      const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
       debug(
         `Checking #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -191,7 +184,6 @@ describeSmokeSuite(
     // weight events emitted by signed extrinsics
     it("should have total normal weight matching the signed extrinsics", async function () {
       this.timeout(120000);
-      const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -232,7 +224,6 @@ describeSmokeSuite(
     // property of  ethereum.currentBlock()
     it("should have total gas charged similar to eth extrinsics", async function () {
       this.timeout(120000);
-      const blockInfoArray: BlockInfo[] = context.getMemo("blockInfoArray");
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum

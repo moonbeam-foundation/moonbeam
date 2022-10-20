@@ -11,9 +11,6 @@ export interface SmokeTestContext {
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
   ethers?: ethers.providers.JsonRpcProvider;
-  memo: Object;
-  getMemo: (key: any) => any;
-  storeMemo: (key: any, val: any) => any;
 }
 
 export type SmokeTestOptions = {
@@ -72,13 +69,6 @@ export function describeSmokeSuite(
       await context.polkadotApi.disconnect();
       await context.relayApi.disconnect();
     });
-
-    // To pass common setup state between tests
-    context.memo = {};
-    context.getMemo = (key) => context.memo[key];
-    context.storeMemo = (key, val) => {
-      context.memo[key] = val;
-    };
 
     cb(context);
   });
