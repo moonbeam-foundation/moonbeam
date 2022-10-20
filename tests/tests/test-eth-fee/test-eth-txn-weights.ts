@@ -6,7 +6,7 @@ import { alith, ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { EXTRINSIC_GAS_LIMIT, EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "../../util/constants";
+import { EXTRINSIC_GAS_LIMIT, WEIGHT_PER_GAS } from "../../util/constants";
 import { createTransaction, ALITH_TRANSACTION_TEMPLATE } from "../../util/transactions";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
@@ -29,7 +29,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     );
 
     const EXPECTED_GAS_USED = 21_000n;
-    const EXPECTED_WEIGHT = EXPECTED_GAS_USED * WEIGHT_PER_GAS + BigInt(EXTRINSIC_BASE_WEIGHT);
+    const EXPECTED_WEIGHT = EXPECTED_GAS_USED * WEIGHT_PER_GAS;
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(BigInt(receipt.gasUsed)).to.equal(EXPECTED_GAS_USED);

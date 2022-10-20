@@ -11,7 +11,7 @@ import {
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { expect } from "chai";
 
-import { WEIGHT_PER_GAS } from "./constants";
+import { WEIGHT_PER_GAS, EXTRINSIC_BASE_WEIGHT } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 
 import type { Block } from "@polkadot/types/interfaces/runtime/types";
@@ -170,7 +170,6 @@ export const verifyBlockFees = async (
 
         let txFees = 0n;
         let txBurnt = 0n;
-
         // For every extrinsic, iterate over every event
         // and search for ExtrinsicSuccess or ExtrinsicFailed
         for (const event of events) {
@@ -191,7 +190,9 @@ export const verifyBlockFees = async (
             ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
-                const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
+                const gasFee = (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
+                console.log(dispatchInfo.weight);
+                console.log(gasFee);
                 let ethTxWrapper = extrinsic.method.args[0] as any;
                 let gasPrice;
                 // Transaction is an enum now with as many variants as supported transaction types.
