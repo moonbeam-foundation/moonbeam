@@ -55,7 +55,7 @@ pub type TreasurySpender = EitherOf<
 >;
 
 impl pallet_governance_origins::Config for Runtime {
-	type Currency = Balance;
+	type Currency = Balances;
 	type MaxSmallSpenderSpend = ConstU128<{ 200 * UNIT * SUPPLY_FACTOR }>;
 	type MaxMediumSpenderSpend = ConstU128<{ 2000 * UNIT * SUPPLY_FACTOR }>;
 	type MaxBigSpenderSpend = ConstU128<{ 10000 * UNIT * SUPPLY_FACTOR }>;

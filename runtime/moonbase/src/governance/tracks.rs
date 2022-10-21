@@ -169,18 +169,18 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				frame_system::RawOrigin::Root => Ok(0),
 				_ => Err(()),
 			}
-		} else if let Ok(custom_origin) = origins::Origin::try_from(id.clone()) {
+		} else if let Ok(custom_origin) = governance_origins::Origin::try_from(id.clone()) {
 			match custom_origin {
-				origins::Origin::WhitelistedCaller => Ok(1),
+				governance_origins::Origin::WhitelistedCaller => Ok(1),
 				// Unlimited spender
-				origins::Origin::Treasurer => Ok(10),
+				governance_origins::Origin::Treasurer => Ok(10),
 				// Referendum admins
-				origins::Origin::ReferendumCanceller => Ok(11),
-				origins::Origin::ReferendumKiller => Ok(12),
+				governance_origins::Origin::ReferendumCanceller => Ok(11),
+				governance_origins::Origin::ReferendumKiller => Ok(12),
 				// Limited spenders
-				origins::Origin::SmallSpender => Ok(13),
-				origins::Origin::MediumSpender => Ok(14),
-				origins::Origin::BigSpender => Ok(15),
+				governance_origins::Origin::SmallSpender => Ok(13),
+				governance_origins::Origin::MediumSpender => Ok(14),
+				governance_origins::Origin::BigSpender => Ok(15),
 			}
 		} else {
 			Err(())
