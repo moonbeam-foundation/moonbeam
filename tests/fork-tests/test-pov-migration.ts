@@ -1,3 +1,4 @@
+import { expect } from "chai";
 import child_process from "child_process";
 import { alith } from "../util/accounts";
 
@@ -86,7 +87,7 @@ describeParachain(
   },
   (context) => {
     it("should not fail", async function () {
-      this.timeout(5000000);
+      this.timeout(10 * 60 * 1000);
 
       // Wait for chain to start
       await context.waitBlocks(1);
@@ -123,11 +124,15 @@ describeParachain(
         }
       }
 
-      await context.upgradeRuntime({
-        runtimeName: RUNTIME_NAME,
-        runtimeTag: `local`,
-        useGovernance: true,
-      });
+      const result = await Promise.race([
+        context.upgradeRuntime({
+          runtimeName: RUNTIME_NAME,
+          runtimeTag: `local`,
+          useGovernance: true,
+        }),
+        new Promise((resolve) => setTimeout(() => resolve(0), 180_000)), // 2 minutes are enough
+      ]);
+      expect(result, "Runtime upgrade took more than 3 minutes").to.be.at.least(1);
 
       const postCurrentVersion = await (
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
