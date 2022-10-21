@@ -10,6 +10,7 @@ frame-support = { git = "https://github.com/purestake/substrate", branch = "moon
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 
 [features]
 default = [ "std" ]
@@ -18,5 +19,6 @@ std = [
 	"frame-system/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
+	"sp-std/std",
 ]
 runtime-benchmarks = []

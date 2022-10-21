@@ -13,10 +13,10 @@
 
 //! Custom origins for governance interventions.
 
-pub use pallet_governance_origins::*;
+pub use governance_origins::*;
 
 #[frame_support::pallet]
-pub mod pallet_governance_origins {
+pub mod governance_origins {
 	use frame_support::{pallet_prelude::*, traits::Currency};
 
 	type BalanceOf<T> =
@@ -100,7 +100,7 @@ pub mod pallet_governance_origins {
 				$( $item:ident = $success:expr, )*
 			}
 		) => {
-			$vis struct $name<T>(PhantomData<T>);
+			$vis struct $name<T>(sp_std::marker::PhantomData<T>);
 			impl<T: Config, O: Into<Result<Origin, O>> + From<Origin>>
 				EnsureOrigin<O> for $name<T>
 			{
