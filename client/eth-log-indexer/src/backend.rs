@@ -104,11 +104,17 @@ where
 		let client = self.client.clone();
 		let overrides = self.overrides.clone();
 		tokio::task::spawn(async move {
-			let mut to_index: Vec<H256> = vec![];
 			let _ = async {
-				// The overarching update statement, returning the substrate block hashes for this batch.
-				// If the task fails after the update, the returned block hashes will be used to try to
-				// rollback to status 0.
+				// The overarching db transaction for the task.
+				// Due to the async nature of this task, the same work is likely to happen
+				// more than once. For example when a new batch is scheduled when the previous one
+				// didn't finished yet and the new batch happens to select the same substrate
+				// block hashes for the update.
+				// That is expected, we are exchanging extra work for *acid*ity.
+				// There is no case of unique constrain violation or race condition as already
+				// existing entries are ignored.
+				let mut tx = pool.begin().await?;
+				// Update statement returning the substrate block hashes for this batch.
 				let q = format!(
 					"UPDATE sync_status
                     SET status = 1
@@ -119,32 +125,26 @@ where
                          LIMIT {}) RETURNING substrate_block_hash",
 					batch_size
 				);
-				match sqlx::query(&q).fetch_all(&pool).await {
+				match sqlx::query(&q).fetch_all(&mut tx).await {
 					Ok(result) => {
+						let mut to_index: Vec<H256> = vec![];
 						for row in result.iter() {
 							if let Ok(bytes) = row.try_get::<Vec<u8>, _>(0) {
 								to_index.push(H256::from_slice(&bytes[..]));
 							} else {
 								log::error!(
 									target: "eth-log-indexer",
-									"unable to get row value"
+									"unable to decode row value"
 								);
 							}
 						}
-						let to_index = Arc::new(to_index);
-						let to_index_inner = to_index.clone();
 						// Spawn a blocking task to get log data from substrate backend.
 						let logs = tokio::task::spawn_blocking(move || {
-							Self::spawn_logs_task_inner(client, overrides, to_index_inner)
+							Self::spawn_logs_task_inner(client, overrides, &to_index)
 						})
 						.await
-						.map_err(|_| {
-							(
-								to_index.clone(),
-								Error::Protocol("tokio blocking task failed".to_string()),
-							)
-						})?;
-						let mut tx = pool.begin().await.map_err(|e| (to_index.clone(), e))?;
+						.map_err(|_| Error::Protocol("tokio blocking task failed".to_string()))?;
+
 						// TODO VERIFY statements limit per transaction in sqlite if any  
 						for log in logs.iter() {
 							let _ = sqlx::query!(
@@ -170,58 +170,26 @@ where
 								log.substrate_block_hash,
 							)
 							.execute(&mut tx)
-							.await
-							.map_err(|e| (to_index.clone(), e))?;
+							.await?;
 						}
-						tx.commit().await.map_err(|e| (to_index.clone(), e))
+						Ok(tx.commit().await?)
 					}
-					Err(e) => Err((Arc::new(vec![]), e)),
+					Err(e) => Err(e),
 				}
 			}
 			.await
-			.map_err(|(to_rollback, e)| {
-				// On error try to rollback `sync_status` table
-				tokio::task::spawn(async move {
-					let err = |e, to_rollback| {
-						log::error!(
-							target: "eth-log-indexer",
-							"Tried to rollback but failed {:?}. Inconsistent database for {:?}",
-							e,
-							to_rollback
-						);
-					};
-					let mut tx = pool
-						.begin()
-						.await
-						.map_err(|e| err(e, &to_rollback))
-						.unwrap();
-					for hash in to_rollback.iter() {
-						let hash = hash.as_bytes().to_owned();
-						let _ = sqlx::query!(
-							"UPDATE sync_status
-							SET status = 0
-							WHERE substrate_block_hash = ?",
-							hash,
-						)
-						.execute(&mut tx)
-						.await
-						.map_err(|e| err(e, &to_rollback));
-					}
-					let _ = tx.commit().await.map_err(|e| err(e, &to_rollback));
-				});
-				log::error!(
-					target: "eth-log-indexer",
-					"{}",
-					e
-				);
-			});
+			.map_err(|e| log::error!(
+				target: "eth-log-indexer",
+				"{}",
+				e
+			));
 		});
 	}
 
 	fn spawn_logs_task_inner(
 		client: Arc<Client>,
 		overrides: Arc<OverrideHandle<Block>>,
-		hashes: Arc<Vec<H256>>,
+		hashes: &Vec<H256>,
 	) -> Vec<Log> {
 		let mut logs: Vec<Log> = vec![];
 		for substrate_block_hash in hashes.iter() {

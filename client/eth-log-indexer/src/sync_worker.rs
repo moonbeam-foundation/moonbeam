@@ -65,43 +65,64 @@ where
 							leaves.push(hash);
 							resume_at = None;
 						}
-						while let Some(leaf) = leaves.pop() {
-							if !Self::batch(
-								Arc::clone(&indexer_backend),
-								batch_size,
-								&mut current_batch,
-								&mut known_hashes,
-								leaf,
-								false
-							).await {
-								break;
-							}
-							if let Ok(Some(header)) = backend.header(BlockId::Hash(leaf)) {
-								let parent_hash = header.parent_hash();
-								leaves.push(*parent_hash);
-							}
-						}
+						Self::sync_all(
+							&mut leaves,
+							Arc::clone(&indexer_backend),
+							backend,
+							batch_size,
+							&mut current_batch,
+							&mut known_hashes,
+							false
+	
+						).await;
 					}
 					import_interval.reset(interval);
 				},
 				notification = notifications.next() => if let Some(notification) = notification {
-					// TODO
-					// Notification may enter before the timer loop in case of not major syncing.
-					// Make sure we index the notified hash + its parents until we hit a known hash.
-					let _ = Self::batch(
+					let mut leaves = vec![notification.hash];
+					Self::sync_all(
+						&mut leaves,
 						Arc::clone(&indexer_backend),
+						backend,
 						batch_size,
 						&mut current_batch,
 						&mut known_hashes,
-						notification.hash,
 						true
+
 					).await;
 				}
 			}
 		}
 	}
 
-	async fn batch(
+	async fn sync_all(
+		leaves: &mut Vec<Block::Hash>,
+		indexer_backend: Arc<crate::Backend<Client, Block, Backend>>,
+		blockchain_backend: &Backend::Blockchain,
+		batch_size: usize,
+		current_batch: &mut Vec<Block::Hash>,
+		known_hashes: &mut Vec<Block::Hash>,
+		notified: bool,
+	) {
+		while let Some(leaf) = leaves.pop() {
+			if !Self::sync_one(
+				Arc::clone(&indexer_backend),
+				batch_size,
+				current_batch,
+				known_hashes,
+				leaf,
+				notified
+			).await {
+				break;
+			}
+			if let Ok(Some(header)) = blockchain_backend.header(BlockId::Hash(leaf)) {
+				let parent_hash = header.parent_hash();
+				leaves.push(*parent_hash);
+			}
+		}
+	}
+
+	async fn sync_one(
 		indexer_backend: Arc<crate::Backend<Client, Block, Backend>>,
 		batch_size: usize,
 		current_batch: &mut Vec<Block::Hash>,
@@ -140,12 +161,11 @@ where
 #[cfg(test)]
 mod test {
 	use codec::Encode;
-	use fc_rpc::{OverrideHandle, RuntimeApiStorageOverride, SchemaV3Override, StorageOverride};
+	use fc_rpc::{OverrideHandle, SchemaV3Override, StorageOverride};
 	use fp_storage::{
 		EthereumStorageSchema, ETHEREUM_CURRENT_RECEIPTS, PALLET_ETHEREUM, PALLET_ETHEREUM_SCHEMA,
 	};
 	use futures::executor;
-	use moonbase_runtime::RuntimeApi;
 	use sc_block_builder::BlockBuilderProvider;
 	use sc_client_api::BlockchainEvents;
 	use sp_consensus::BlockOrigin;
@@ -175,7 +195,7 @@ mod test {
 		// Backend
 		let backend = builder.backend();
 		// Client
-		let (client, _) = builder.build_with_native_executor::<RuntimeApi, _>(None);
+		let (client, _) = builder.build_with_native_executor::<substrate_test_runtime_client::runtime::RuntimeApi, _>(None);
 		let mut client = Arc::new(client);
 		// Overrides
 		let mut overrides_map = BTreeMap::new();
@@ -186,7 +206,7 @@ mod test {
 		);
 		let overrides = Arc::new(OverrideHandle {
 			schemas: overrides_map,
-			fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+			fallback: Box::new(SchemaV3Override::new(client.clone())),
 		});
 		// Indexer backend
 		let indexer_backend = crate::Backend::new(
@@ -285,14 +305,14 @@ mod test {
 				backend.clone(),
 				Arc::new(indexer_backend),
 				client.clone().import_notification_stream(),
-				11,                                // batch size
+				5,                                // batch size
 				std::time::Duration::from_secs(1), // interval duration
 			)
 			.await
 		});
 
-		// Enough time for the 1st batch in a 1 second interval duration
-		futures_timer::Delay::new(std::time::Duration::from_secs(2)).await;
+		// Enough time for 3 batches in a 1 second interval duration
+		futures_timer::Delay::new(std::time::Duration::from_secs(4)).await;
 
 		// Query db
 		let db_logs = sqlx::query(
@@ -354,7 +374,7 @@ mod test {
 		// Backend
 		let backend = builder.backend();
 		// Client
-		let (client, _) = builder.build_with_native_executor::<RuntimeApi, _>(None);
+		let (client, _) = builder.build_with_native_executor::<substrate_test_runtime_client::runtime::RuntimeApi, _>(None);
 		let mut client = Arc::new(client);
 		// Overrides
 		let mut overrides_map = BTreeMap::new();
@@ -365,7 +385,7 @@ mod test {
 		);
 		let overrides = Arc::new(OverrideHandle {
 			schemas: overrides_map,
-			fallback: Box::new(RuntimeApiStorageOverride::new(client.clone())),
+			fallback: Box::new(SchemaV3Override::new(client.clone())),
 		});
 		// Indexer backend
 		let indexer_backend = crate::Backend::new(
@@ -395,7 +415,7 @@ mod test {
 				backend.clone(),
 				Arc::new(indexer_backend),
 				notification_stream,
-				11,                                // batch size
+				5,                                // batch size
 				std::time::Duration::from_secs(1), // interval duration
 			)
 			.await

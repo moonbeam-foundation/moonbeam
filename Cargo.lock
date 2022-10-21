@@ -2528,7 +2528,6 @@ dependencies = [
  "futures 0.3.24",
  "futures-timer",
  "log",
- "moonbase-runtime",
  "parity-scale-codec",
  "sc-block-builder",
  "sc-client-api",

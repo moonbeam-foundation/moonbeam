@@ -25,7 +25,6 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
 
 [dev-dependencies]
-moonbase-runtime = { path = "../../runtime/moonbase" }
 codec = { package = "parity-scale-codec", version = "3.0.0" }
 tempfile = "3.3.0"
 # Frontier
