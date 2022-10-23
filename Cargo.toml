@@ -23,6 +23,7 @@ members = [
 	"precompiles/parachain-staking",
 	"precompiles/proxy",
 	"precompiles/randomness",
+	"precompiles/referenda",
 	"precompiles/relay-encoder",
 	"precompiles/utils",
 	"precompiles/utils/macro",
