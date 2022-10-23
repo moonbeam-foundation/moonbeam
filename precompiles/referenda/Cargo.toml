@@ -35,7 +35,6 @@ sha3 = "0.9"
 
 # Moonbeam
 precompile-utils = { path = "../utils", features = [ "testing" ] }
-# add pallet-governance-origins
 
 # Substrate
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }

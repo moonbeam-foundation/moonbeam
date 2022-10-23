@@ -78,11 +78,12 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin: pallet_governance_origins::Origin =
-			proposal_origin.try_into().expect("track dne for origin");
+		let proposal_origin: pallet_governance_origins::Origin = proposal_origin
+			.try_into()
+			.map_err(|_| revert("Origin does not exist for u8"))?;
 		let proposal_hash: Runtime::Hash = proposal_hash
 			.try_into()
-			.map_err(|_| revert("Proposal hash input not H256"))?;
+			.map_err(|_| revert("Proposal hash input is not H256"))?;
 		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
 			DispatchTime::At(block_number.into())
 		} else {
@@ -100,6 +101,34 @@ where
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		Ok(())
+	}
+
+	/// Post the Decision Deposit for a referendum.
+	///
+	/// Parameters:
+	/// * index: The index of the submitted referendum whose Decision Deposit is yet to be posted.
+	#[precompile::public("placeDecisionDeposit(uint32)")]
+	fn place_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = ReferendaCall::<Runtime>::place_decision_deposit { index }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
+		Ok(())
+	}
+
+	/// Refund the Decision Deposit for a closed referendum back to the depositor.
+	///
+	/// Parameters:
+	/// * index: The index of a closed referendum whose Decision Deposit has not yet been refunded.
+	#[precompile::public("refundDecisionDeposit(uint32)")]
+	fn refund_decision_deposit(handle: &mut impl PrecompileHandle, index: u32) -> EvmResult {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let call = ReferendaCall::<Runtime>::refund_decision_deposit { index }.into();
+
+		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 		Ok(())
 	}
 }
