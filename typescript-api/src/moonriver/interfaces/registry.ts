@@ -1,6 +1,10 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/types/types/registry";
+
 import type {
   AccountEthereumSignature,
   CumulusPalletDmpQueueCall,
@@ -52,10 +56,9 @@ import type {
   FrameSupportWeightsDispatchInfo,
   FrameSupportWeightsPays,
   FrameSupportWeightsPerDispatchClassU32,
-  FrameSupportWeightsPerDispatchClassWeight,
+  FrameSupportWeightsPerDispatchClassU64,
   FrameSupportWeightsPerDispatchClassWeightsPerClass,
   FrameSupportWeightsRuntimeDbWeight,
-  FrameSupportWeightsWeightV2Weight,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemError,
@@ -161,9 +164,7 @@ import type {
   PalletMoonbeamOrbitersCurrentOrbiter,
   PalletMoonbeamOrbitersError,
   PalletMoonbeamOrbitersEvent,
-  PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
-  PalletParachainStakingBondWithAutoCompound,
   PalletParachainStakingCall,
   PalletParachainStakingCandidateBondLessRequest,
   PalletParachainStakingCandidateMetadata,
@@ -288,7 +289,7 @@ import type {
 } from "@polkadot/types/lookup";
 
 declare module "@polkadot/types/types/registry" {
-  export interface InterfaceTypes {
+  interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
     CumulusPalletDmpQueueCall: CumulusPalletDmpQueueCall;
     CumulusPalletDmpQueueConfigData: CumulusPalletDmpQueueConfigData;
@@ -339,10 +340,9 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportWeightsDispatchInfo: FrameSupportWeightsDispatchInfo;
     FrameSupportWeightsPays: FrameSupportWeightsPays;
     FrameSupportWeightsPerDispatchClassU32: FrameSupportWeightsPerDispatchClassU32;
-    FrameSupportWeightsPerDispatchClassWeight: FrameSupportWeightsPerDispatchClassWeight;
+    FrameSupportWeightsPerDispatchClassU64: FrameSupportWeightsPerDispatchClassU64;
     FrameSupportWeightsPerDispatchClassWeightsPerClass: FrameSupportWeightsPerDispatchClassWeightsPerClass;
     FrameSupportWeightsRuntimeDbWeight: FrameSupportWeightsRuntimeDbWeight;
-    FrameSupportWeightsWeightV2Weight: FrameSupportWeightsWeightV2Weight;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemError: FrameSystemError;
@@ -448,9 +448,7 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
     PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
     PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
-    PalletParachainStakingAutoCompoundAutoCompoundConfig: PalletParachainStakingAutoCompoundAutoCompoundConfig;
     PalletParachainStakingBond: PalletParachainStakingBond;
-    PalletParachainStakingBondWithAutoCompound: PalletParachainStakingBondWithAutoCompound;
     PalletParachainStakingCall: PalletParachainStakingCall;
     PalletParachainStakingCandidateBondLessRequest: PalletParachainStakingCandidateBondLessRequest;
     PalletParachainStakingCandidateMetadata: PalletParachainStakingCandidateMetadata;

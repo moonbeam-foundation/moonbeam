@@ -1,10 +1,16 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/errors";
+
+import type { ApiTypes, AugmentedError } from "@polkadot/api-base/types";
+
+export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>;
 
 declare module "@polkadot/api-base/types/errors" {
-  export interface AugmentedErrors<ApiType extends ApiTypes> {
+  interface AugmentedErrors<ApiType extends ApiTypes> {
     assetManager: {
       AssetAlreadyExists: AugmentedError<ApiType>;
       AssetDoesNotExist: AugmentedError<ApiType>;
@@ -176,62 +182,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Vesting balance too high to send value
        */
       VestingBalance: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    convictionVoting: {
-      /**
-       * The account is already delegating.
-       */
-      AlreadyDelegating: AugmentedError<ApiType>;
-      /**
-       * The account currently has votes attached to it and the operation cannot
-       * succeed until these are removed, either through `unvote` or `reap_vote`.
-       */
-      AlreadyVoting: AugmentedError<ApiType>;
-      /**
-       * The class ID supplied is invalid.
-       */
-      BadClass: AugmentedError<ApiType>;
-      /**
-       * The class must be supplied since it is not easily determinable from the state.
-       */
-      ClassNeeded: AugmentedError<ApiType>;
-      /**
-       * Too high a balance was provided that the account cannot afford.
-       */
-      InsufficientFunds: AugmentedError<ApiType>;
-      /**
-       * Maximum number of votes reached.
-       */
-      MaxVotesReached: AugmentedError<ApiType>;
-      /**
-       * Delegation to oneself makes no sense.
-       */
-      Nonsense: AugmentedError<ApiType>;
-      /**
-       * The actor has no permission to conduct the action.
-       */
-      NoPermission: AugmentedError<ApiType>;
-      /**
-       * The actor has no permission to conduct the action right now but will do
-       * in the future.
-       */
-      NoPermissionYet: AugmentedError<ApiType>;
-      /**
-       * The account is not currently delegating.
-       */
-      NotDelegating: AugmentedError<ApiType>;
-      /**
-       * Poll is not ongoing.
-       */
-      NotOngoing: AugmentedError<ApiType>;
-      /**
-       * The given account did not vote on the poll.
-       */
-      NotVoter: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -512,16 +462,6 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
-    ethereumXcm: {
-      /**
-       * Xcm to Ethereum execution is suspended
-       */
-      EthereumXcmExecutionSuspended: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       */
-      [key: string]: AugmentedError<ApiType>;
-    };
     evm: {
       /**
        * Not enough balance to perform action
@@ -551,10 +491,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Calculating total payment overflowed
        */
       PaymentOverflow: AugmentedError<ApiType>;
-      /**
-       * EVM reentrancy
-       */
-      Reentrancy: AugmentedError<ApiType>;
       /**
        * Undefined error.
        */
@@ -593,10 +529,6 @@ declare module "@polkadot/api-base/types/errors" {
        * The target is invalid.
        */
       InvalidTarget: AugmentedError<ApiType>;
-      /**
-       * The provided judgement was for a different identity.
-       */
-      JudgementForDifferentIdentity: AugmentedError<ApiType>;
       /**
        * Judgement given.
        */
@@ -803,14 +735,11 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
       RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
-      TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
-      TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
-      TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
       /**
@@ -919,36 +848,6 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
-    preimage: {
-      /**
-       * Preimage has already been noted on-chain.
-       */
-      AlreadyNoted: AugmentedError<ApiType>;
-      /**
-       * The user is not authorized to perform this action.
-       */
-      NotAuthorized: AugmentedError<ApiType>;
-      /**
-       * The preimage cannot be removed since it has not yet been noted.
-       */
-      NotNoted: AugmentedError<ApiType>;
-      /**
-       * The preimage request cannot be removed since no outstanding requests exist.
-       */
-      NotRequested: AugmentedError<ApiType>;
-      /**
-       * A preimage may not be removed when there are outstanding requests.
-       */
-      Requested: AugmentedError<ApiType>;
-      /**
-       * Preimage is too large to store on-chain.
-       */
-      TooLarge: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       */
-      [key: string]: AugmentedError<ApiType>;
-    };
     proxy: {
       /**
        * Account is already a proxy.
@@ -1000,56 +899,6 @@ declare module "@polkadot/api-base/types/errors" {
       RequestDNE: AugmentedError<ApiType>;
       RequestFeeOverflowed: AugmentedError<ApiType>;
       RequestHasNotExpired: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    referenda: {
-      /**
-       * The referendum index provided is invalid in this context.
-       */
-      BadReferendum: AugmentedError<ApiType>;
-      /**
-       * The track identifier given was invalid.
-       */
-      BadTrack: AugmentedError<ApiType>;
-      /**
-       * There are already a full complement of referendums in progress for this track.
-       */
-      Full: AugmentedError<ApiType>;
-      /**
-       * Referendum's decision deposit is already paid.
-       */
-      HasDeposit: AugmentedError<ApiType>;
-      /**
-       * The deposit cannot be refunded since none was made.
-       */
-      NoDeposit: AugmentedError<ApiType>;
-      /**
-       * The deposit refunder is not the depositor.
-       */
-      NoPermission: AugmentedError<ApiType>;
-      /**
-       * There was nothing to do in the advancement.
-       */
-      NothingToDo: AugmentedError<ApiType>;
-      /**
-       * Referendum is not ongoing.
-       */
-      NotOngoing: AugmentedError<ApiType>;
-      /**
-       * No track exists for the proposal origin.
-       */
-      NoTrack: AugmentedError<ApiType>;
-      /**
-       * The queue of the track is empty.
-       */
-      QueueEmpty: AugmentedError<ApiType>;
-      /**
-       * Any deposit cannot be refunded until after the decision is over.
-       */
-      Unfinished: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -1245,32 +1094,6 @@ declare module "@polkadot/api-base/types/errors" {
        * Too many calls batched.
        */
       TooManyCalls: AugmentedError<ApiType>;
-      /**
-       * Generic error
-       */
-      [key: string]: AugmentedError<ApiType>;
-    };
-    whitelist: {
-      /**
-       * The call was already whitelisted; No-Op.
-       */
-      CallAlreadyWhitelisted: AugmentedError<ApiType>;
-      /**
-       * The call was not whitelisted.
-       */
-      CallIsNotWhitelisted: AugmentedError<ApiType>;
-      /**
-       * The weight of the decoded call was higher than the witness.
-       */
-      InvalidCallWeightWitness: AugmentedError<ApiType>;
-      /**
-       * The preimage of the call hash could not be loaded.
-       */
-      UnavailablePreImage: AugmentedError<ApiType>;
-      /**
-       * The call could not be decoded.
-       */
-      UndecodableCall: AugmentedError<ApiType>;
       /**
        * Generic error
        */

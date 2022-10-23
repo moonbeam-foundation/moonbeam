@@ -1,7 +1,11 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/storage";
+
+import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from "@polkadot/api-base/types";
 import type { Data } from "@polkadot/types";
 import type {
   BTreeMap,
@@ -38,8 +42,7 @@ import type {
   EthereumReceiptReceiptV3,
   EthereumTransactionTransactionV2,
   FpRpcTransactionStatus,
-  FrameSupportWeightsPerDispatchClassWeight,
-  FrameSupportWeightsWeightV2Weight,
+  FrameSupportWeightsPerDispatchClassU64,
   FrameSystemAccountInfo,
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
@@ -66,7 +69,6 @@ import type {
   PalletIdentityRegistrarInfo,
   PalletIdentityRegistration,
   PalletMoonbeamOrbitersCollatorPoolInfo,
-  PalletParachainStakingAutoCompoundAutoCompoundConfig,
   PalletParachainStakingBond,
   PalletParachainStakingCandidateMetadata,
   PalletParachainStakingCollatorSnapshot,
@@ -100,8 +102,11 @@ import type {
 } from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
+export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
+export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorageEntry<ApiType>;
+
 declare module "@polkadot/api-base/types/storage" {
-  export interface AugmentedQueries<ApiType extends ApiTypes> {
+  interface AugmentedQueries<ApiType extends ApiTypes> {
     assetManager: {
       /**
        * Mapping from an asset id to asset type. This is mostly used when
@@ -355,6 +360,8 @@ declare module "@polkadot/api-base/types/storage" {
       baseFeePerGas: AugmentedQuery<ApiType, () => Observable<U256>, []> &
         QueryableStorageEntry<ApiType, []>;
       elasticity: AugmentedQuery<ApiType, () => Observable<Permill>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      isActive: AugmentedQuery<ApiType, () => Observable<bool>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Generic query
@@ -925,17 +932,6 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [u32, AccountId20]>;
       /**
-       * Stores auto-compounding configuration per collator.
-       */
-      autoCompoundingDelegations: AugmentedQuery<
-        ApiType,
-        (
-          arg: AccountId20 | string | Uint8Array
-        ) => Observable<Vec<PalletParachainStakingAutoCompoundAutoCompoundConfig>>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
        * Points for each collator per round
        */
       awardedPts: AugmentedQuery<
@@ -1234,21 +1230,13 @@ declare module "@polkadot/api-base/types/storage" {
        * The weight we reserve at the beginning of the block for processing DMP
        * messages. This overrides the amount set in the Config trait.
        */
-      reservedDmpWeightOverride: AugmentedQuery<
-        ApiType,
-        () => Observable<Option<FrameSupportWeightsWeightV2Weight>>,
-        []
-      > &
+      reservedDmpWeightOverride: AugmentedQuery<ApiType, () => Observable<Option<u64>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * The weight we reserve at the beginning of the block for processing XCMP
        * messages. This overrides the amount set in the Config trait.
        */
-      reservedXcmpWeightOverride: AugmentedQuery<
-        ApiType,
-        () => Observable<Option<FrameSupportWeightsWeightV2Weight>>,
-        []
-      > &
+      reservedXcmpWeightOverride: AugmentedQuery<ApiType, () => Observable<Option<u64>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * An option which indicates if the relay-chain restricts signalling a
@@ -1538,7 +1526,7 @@ declare module "@polkadot/api-base/types/storage" {
        */
       blockWeight: AugmentedQuery<
         ApiType,
-        () => Observable<FrameSupportWeightsPerDispatchClassWeight>,
+        () => Observable<FrameSupportWeightsPerDispatchClassU64>,
         []
       > &
         QueryableStorageEntry<ApiType, []>;

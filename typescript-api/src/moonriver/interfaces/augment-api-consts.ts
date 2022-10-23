@@ -1,22 +1,27 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/consts";
+
+import type { ApiTypes, AugmentedConst } from "@polkadot/api-base/types";
 import type { Bytes, Option, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec } from "@polkadot/types-codec/types";
-import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
+import type { Perbill, Percent, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSupportWeightsRuntimeDbWeight,
-  FrameSupportWeightsWeightV2Weight,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
   SpVersionRuntimeVersion,
   XcmV1MultiLocation,
 } from "@polkadot/types/lookup";
 
+export type __AugmentedConst<ApiType extends ApiTypes> = AugmentedConst<ApiType>;
+
 declare module "@polkadot/api-base/types/consts" {
-  export interface AugmentedConsts<ApiType extends ApiTypes> {
+  interface AugmentedConsts<ApiType extends ApiTypes> {
     assetManager: {
       /**
        * The basic amount of funds that must be reserved for a local asset.
@@ -259,6 +264,19 @@ declare module "@polkadot/api-base/types/consts" {
        */
       candidateBondLessDelay: u32 & AugmentedConst<ApiType>;
       /**
+       * Default number of blocks per round at genesis
+       */
+      defaultBlocksPerRound: u32 & AugmentedConst<ApiType>;
+      /**
+       * Default commission due to collators, is `CollatorCommission` storage
+       * value in genesis
+       */
+      defaultCollatorCommission: Perbill & AugmentedConst<ApiType>;
+      /**
+       * Default percent of inflation set aside for parachain bond account
+       */
+      defaultParachainBondReservePercent: Percent & AugmentedConst<ApiType>;
+      /**
        * Number of rounds that delegation less requests must wait before executable
        */
       delegationBondLessDelay: u32 & AugmentedConst<ApiType>;
@@ -403,7 +421,7 @@ declare module "@polkadot/api-base/types/consts" {
        * The maximum weight that may be scheduled per block for any
        * dispatchables of less priority than `schedule::HARD_DEADLINE`.
        */
-      maximumWeight: FrameSupportWeightsWeightV2Weight & AugmentedConst<ApiType>;
+      maximumWeight: u64 & AugmentedConst<ApiType>;
       /**
        * The maximum number of scheduled calls in the queue for a single block.
        * Not strictly enforced, but used for weight estimation.
@@ -433,7 +451,7 @@ declare module "@polkadot/api-base/types/consts" {
        */
       dbWeight: FrameSupportWeightsRuntimeDbWeight & AugmentedConst<ApiType>;
       /**
-       * The designated SS58 prefix of this chain.
+       * The designated SS85 prefix of this chain.
        *
        * This replaces the "ss58Format" property declared in the chain spec.
        * Reason is that the runtime should know about the prefix in order to
