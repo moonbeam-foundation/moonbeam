@@ -22,8 +22,6 @@ use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use frame_support::traits::{schedule::DispatchTime, OriginTrait};
 use pallet_evm::AddressMapping;
 use pallet_referenda::Call as ReferendaCall;
-use pallet_referenda::Pallet as ReferendaPallet;
-use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
 use sp_core::H256;
 use sp_std::marker::PhantomData;
@@ -80,18 +78,15 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		// need to expose Origin type here?
-		// <<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin
-		// make governance_utils crate with origins so can use in precompile
 		let proposal_origin: pallet_governance_origins::Origin =
 			proposal_origin.try_into().expect("track dne for origin");
-		// consider trying to convert into RawOrigin first, or directly
-		let proposal_origin: <<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin = proposal_origin.into();
-		let proposal_hash: Runtime::Hash = proposal_hash.try_into().expect("Hash");
-		let enactment_moment = if at {
-			DispatchTime::At(block_number)
+		let proposal_hash: Runtime::Hash = proposal_hash
+			.try_into()
+			.map_err(|_| revert("Proposal hash input not H256"))?;
+		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
+			DispatchTime::At(block_number.into())
 		} else {
-			DispatchTime::After(block_number)
+			DispatchTime::After(block_number.into())
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);

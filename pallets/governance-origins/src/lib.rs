@@ -63,6 +63,23 @@ pub mod governance_origins {
 		WhitelistedCaller,
 	}
 
+	// Should match track data in runtime (TODO: add test to verify this in runtime, for the precompile)
+	impl TryFrom<u8> for Origin {
+		type Error = ();
+		fn try_from(value: u8) -> Result<Origin, ()> {
+			match value {
+				1 => Ok(Origin::WhitelistedCaller),
+				10 => Ok(Origin::Treasurer),
+				11 => Ok(Origin::ReferendumCanceller),
+				12 => Ok(Origin::ReferendumKiller),
+				13 => Ok(Origin::SmallSpender),
+				14 => Ok(Origin::MediumSpender),
+				15 => Ok(Origin::BigSpender),
+				_ => Err(()),
+			}
+		}
+	}
+
 	macro_rules! decl_unit_ensures {
 		( $name:ident: $success_type:ty = $success:expr ) => {
 			pub struct $name;
