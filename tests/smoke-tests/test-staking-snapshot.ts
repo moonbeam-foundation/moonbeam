@@ -8,7 +8,7 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking snapshot`, { wssUrl, relayWssUrl }, function (context) {
+  describeSmokeSuite(`Verify staking round cleanup`, { wssUrl, relayWssUrl }, function (context) {
     it("storage is cleaned for paid-out rounds", async function () {
       this.timeout(500000);
 
@@ -32,8 +32,7 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
   currentRound    ${currentRound.toString()} (#${atBlockNumber} / ${atBlockHash.toString()})
   lastUnpaidRound ${lastUnpaidRound.toString()}`);
 
-      const invalidRounds: { [round: number]: number } = {};
-      let i = 0;
+      const atStakeInvalidRounds: { [round: number]: number } = {};
       let startKey = "";
       while (true) {
         const result = await apiAtBlock.query.parachainStaking.atStake.keysPaged({
@@ -50,19 +49,86 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
           args: [round, _],
         } of result) {
           if (round < lastUnpaidRound) {
-            if (!invalidRounds[round.toNumber()]) {
-              invalidRounds[round.toNumber()] = 0;
+            if (!atStakeInvalidRounds[round.toNumber()]) {
+              atStakeInvalidRounds[round.toNumber()] = 0;
             }
-            invalidRounds[round.toNumber()]++;
+            atStakeInvalidRounds[round.toNumber()]++;
           }
         }
       }
 
-      const invalidRoundsCount = Object.keys(invalidRounds).length;
+      const pointsInvalidRounds: { [round: number]: number } = {};
+      while (true) {
+        const result = await apiAtBlock.query.parachainStaking.points.keysPaged({
+          pageSize: 1000,
+          startKey,
+          args: [],
+        });
+
+        if (result.length === 0) {
+          break;
+        }
+        startKey = result[result.length - 1].toString();
+        for (const {
+          args: [round],
+        } of result) {
+          if (round < lastUnpaidRound) {
+            if (!pointsInvalidRounds[round.toNumber()]) {
+              pointsInvalidRounds[round.toNumber()] = 0;
+            }
+            pointsInvalidRounds[round.toNumber()]++;
+          }
+        }
+      }
+
+      const delayedPayoutsInvalidRounds: { [round: number]: number } = {};
+      while (true) {
+        const result = await apiAtBlock.query.parachainStaking.delayedPayouts.keysPaged({
+          pageSize: 1000,
+          startKey,
+          args: [],
+        });
+
+        if (result.length === 0) {
+          break;
+        }
+        startKey = result[result.length - 1].toString();
+        for (const {
+          args: [round],
+        } of result) {
+          if (round < lastUnpaidRound) {
+            if (!delayedPayoutsInvalidRounds[round.toNumber()]) {
+              delayedPayoutsInvalidRounds[round.toNumber()] = 0;
+            }
+            delayedPayoutsInvalidRounds[round.toNumber()]++;
+          }
+        }
+      }
+
+      const pointsInvalidRoundsCount = Object.keys(pointsInvalidRounds).length;
       expect(
-        invalidRoundsCount,
-        `lastUnpaidRound ${lastUnpaidRound.toString()}, found ${invalidRoundsCount} invalid rounds,\
-         ${Object.entries(invalidRounds).map(([round, count]) => `${round}(${count})`)}`
+        pointsInvalidRoundsCount,
+        `[Points] lastUnpaidRound ${lastUnpaidRound.toString()},\
+        found ${pointsInvalidRoundsCount} invalid rounds: \
+        ${Object.entries(pointsInvalidRounds).map(([round, count]) => `${round}(${count})`)}`
+      ).to.equal(0);
+
+      const delayedPayoutsInvalidRoundsCount = Object.keys(delayedPayoutsInvalidRounds).length;
+      expect(
+        delayedPayoutsInvalidRoundsCount,
+        `[DelayedPayouts] lastUnpaidRound ${lastUnpaidRound.toString()},\
+        found ${delayedPayoutsInvalidRoundsCount} invalid rounds: \
+        ${Object.entries(delayedPayoutsInvalidRounds).map(
+          ([round, count]) => `${round}(${count})`
+        )}`
+      ).to.equal(0);
+
+      const atStakeInvalidRoundsCount = Object.keys(atStakeInvalidRounds).length;
+      expect(
+        atStakeInvalidRoundsCount,
+        `[AtStake] lastUnpaidRound ${lastUnpaidRound.toString()},\
+        found ${atStakeInvalidRoundsCount} invalid rounds: \
+        ${Object.entries(atStakeInvalidRounds).map(([round, count]) => `${round}(${count})`)}`
       ).to.equal(0);
     });
   });
