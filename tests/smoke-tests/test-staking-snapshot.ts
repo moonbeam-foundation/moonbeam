@@ -61,9 +61,8 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       const invalidRoundsCount = Object.keys(invalidRounds).length;
       expect(
         invalidRoundsCount,
-        `lastUnpaidRound ${lastUnpaidRound.toString()}, found ${invalidRoundsCount} invalid rounds: ${Object.entries(
-          invalidRounds
-        ).map(([round, count]) => `${round}(${count})`)}`
+        `lastUnpaidRound ${lastUnpaidRound.toString()}, found ${invalidRoundsCount} invalid rounds,\
+         ${Object.entries(invalidRounds).map(([round, count]) => `${round}(${count})`)}`
       ).to.equal(0);
     });
   });
