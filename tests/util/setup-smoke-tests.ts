@@ -10,7 +10,7 @@ export interface SmokeTestContext {
   // We also provided singleton providers for simplicity
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
-  ethers?: ethers.providers.JsonRpcProvider;
+  ethers?: ethers.providers.WebSocketProvider;
 }
 
 export type SmokeTestOptions = {
@@ -67,6 +67,7 @@ export function describeSmokeSuite(
     after(async function () {
       await context.polkadotApi.disconnect();
       await context.relayApi.disconnect();
+      await context.ethers.destroy();
     });
 
     cb(context);
