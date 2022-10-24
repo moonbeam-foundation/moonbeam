@@ -16,7 +16,6 @@ export interface SmokeTestContext {
 export type SmokeTestOptions = {
   wssUrl: string;
   relayWssUrl: string;
-  ethRpcUrl?: string;
 };
 
 export function describeSmokeSuite(
@@ -52,7 +51,7 @@ export function describeSmokeSuite(
               provider: new WsProvider(options.relayWssUrl),
             })
           : unimplementedApi(),
-        new ethers.providers.JsonRpcProvider(options.ethRpcUrl),
+        new ethers.providers.WebSocketProvider(options.wssUrl),
       ]);
 
       await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);

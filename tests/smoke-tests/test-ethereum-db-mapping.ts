@@ -4,7 +4,6 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:ethereum-mapping");
 
 const wssUrl = process.env.WSS_URL || null;
-const ethRpcUrl = process.env.HTTPS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 // At rpc-level, `*ByNumber` requests always use the canonical block reference given by Substrate.
@@ -13,7 +12,7 @@ const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 describeSmokeSuite(
   `Ethereum secondary DB should contains valid data`,
-  { wssUrl, relayWssUrl, ethRpcUrl },
+  { wssUrl, relayWssUrl },
   (context) => {
     it("should get the same response payload on byNumber and byHash requests", async function () {
       this.timeout(60_000); // 1 minute
