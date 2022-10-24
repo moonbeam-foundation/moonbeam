@@ -15,7 +15,7 @@ describeDevMoonbeam("Trace filter - Gas Loop", (context) => {
   }[] = [
     { count: 0, expectedGas: 21652 },
     { count: 100, expectedGas: 108264 },
-    { count: 1000, expectedGas: 670676 },
+    { count: 1000, expectedGas: 673476 },
   ];
 
   before("Setup: Create 4 blocks with 1 contract loop execution each", async function () {

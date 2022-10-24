@@ -31,8 +31,8 @@ use crate::{
 	assert_eq_events, assert_eq_last_events, assert_event_emitted, assert_last_event,
 	assert_tail_eq, set::OrderedSet, AtStake, Bond, BottomDelegations, CandidateInfo,
 	CandidateMetadata, CandidatePool, CapacityStatus, CollatorStatus, DelegationScheduledRequests,
-	Delegations, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, MigratedAtStake,
-	Range, TopDelegations, DELEGATOR_LOCK_ID,
+	Delegations, DelegatorAdded, DelegatorState, DelegatorStatus, Error, Event, Range,
+	TopDelegations, DELEGATOR_LOCK_ID,
 };
 use frame_support::{assert_noop, assert_ok};
 use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
@@ -7094,6 +7094,49 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 }
 
 #[test]
+fn deferred_payment_and_at_stake_storage_items_cleaned_up_for_candidates_not_producing_blocks() {
+	use crate::*;
+
+	ExtBuilder::default()
+		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
+		.build()
+		.execute_with(|| {
+			// candidate 3 will not produce blocks
+			set_author(1, 1, 1);
+			set_author(1, 2, 1);
+
+			// reflects genesis?
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+
+			roll_to_round_begin(2);
+			assert!(<AtStake<Test>>::contains_key(1, 1));
+			assert!(<AtStake<Test>>::contains_key(1, 2));
+			assert!(<AtStake<Test>>::contains_key(1, 3));
+			assert!(<AwardedPts<Test>>::contains_key(1, 1));
+			assert!(<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
+			assert!(<Staked<Test>>::contains_key(1));
+			assert!(<Points<Test>>::contains_key(1));
+			roll_to_round_begin(3);
+			assert!(<DelayedPayouts<Test>>::contains_key(1));
+
+			// all storage items must be cleaned up
+			roll_to_round_begin(4);
+			assert!(!<AtStake<Test>>::contains_key(1, 1));
+			assert!(!<AtStake<Test>>::contains_key(1, 2));
+			assert!(!<AtStake<Test>>::contains_key(1, 3));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 1));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 2));
+			assert!(!<AwardedPts<Test>>::contains_key(1, 3));
+			assert!(!<Staked<Test>>::contains_key(1));
+			assert!(!<Points<Test>>::contains_key(1));
+			assert!(!<DelayedPayouts<Test>>::contains_key(1));
+		});
+}
+
+#[test]
 fn deferred_payment_steady_state_event_flow() {
 	use frame_support::traits::{Currency, ExistenceRequirement, WithdrawReasons};
 
@@ -9030,101 +9073,6 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					rewards: 8,
 				},
 			]);
-		});
-}
-
-#[allow(deprecated)]
-#[test]
-fn test_migrated_at_stake_handles_deprecated_storage_value() {
-	use crate::deprecated::CollatorSnapshot as DeprecatedCollatorSnapshot;
-	use crate::mock::{AccountId, Balance};
-
-	ExtBuilder::default()
-		.with_balances(vec![(1, 100), (2, 100)])
-		.with_candidates(vec![(1, 100)])
-		.with_delegations(vec![(2, 1, 100)])
-		.build()
-		.execute_with(|| {
-			(1..=6).for_each(|round| set_author(round, 1, 1));
-			roll_to_round_begin(1);
-			// force store deprecated CollatorSnapshot format for round 1
-			frame_support::storage::unhashed::put(
-				&<AtStake<Test>>::hashed_key_for(1, 1),
-				&DeprecatedCollatorSnapshot {
-					bond: 100 as Balance,
-					delegations: vec![Bond {
-						owner: 2 as AccountId,
-						amount: 100 as Balance,
-					}],
-					total: 200 as Balance,
-				},
-			);
-			// reset migrated at storage
-			<MigratedAtStake<Test>>::kill();
-
-			// assert MigratedAtStake storage is updated at round 2, and set auto-compound value
-			roll_to_round_begin(2);
-			assert_eq!(Some(2), <MigratedAtStake<Test>>::get());
-			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
-				1,
-				Percent::from_percent(50),
-				0,
-				1,
-			));
-
-			// assert rewards were correctly given with deprecated CollatorSnapshot
-			roll_to_round_begin(3);
-			assert_eq_last_events!(
-				vec![
-					Event::<Test>::Rewarded {
-						account: 1,
-						rewards: 6,
-					},
-					Event::<Test>::Rewarded {
-						account: 2,
-						rewards: 4,
-					},
-				],
-				"incorrect rewards at round 3 with deprecated CollatorSnapshot",
-			);
-
-			// assert rewards were correctly given with new CollatorSnapshot, but without compound
-			roll_to_round_begin(4);
-			assert_eq_last_events!(
-				vec![
-					Event::<Test>::Rewarded {
-						account: 1,
-						rewards: 6,
-					},
-					Event::<Test>::Rewarded {
-						account: 2,
-						rewards: 4,
-					},
-				],
-				"incorrect rewards without compounding at round 4",
-			);
-
-			// assert rewards were correctly given with new CollatorSnapshot and with compound
-			roll_to_round_begin(5);
-			assert_eq_last_events!(
-				vec![
-					Event::<Test>::Rewarded {
-						account: 1,
-						rewards: 6,
-					},
-					Event::<Test>::Rewarded {
-						account: 2,
-						rewards: 4,
-					},
-					Event::<Test>::Compounded {
-						candidate: 1,
-						delegator: 2,
-						amount: 2,
-					},
-				],
-				"incorrect compounding rewards at round 5",
-			);
 		});
 }
 

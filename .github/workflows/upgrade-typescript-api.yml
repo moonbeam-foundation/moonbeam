@@ -28,7 +28,16 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
-      - name: import runtime
+      - name: Upgrade polkadotjs for moonbeam-types-bundle
+        run: |
+          cd moonbeam-types-bundle
+          npm install @polkadot/api@latest
+      - name: Upgrade polkadotjs for typescript-api
+        run: |
+          cd typescript-api
+          npm install @polkadot/api@latest
+          npm run build
+      - name: regenerate typescript api with new runtime metadata
         run: |
           cd typescript-api
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}

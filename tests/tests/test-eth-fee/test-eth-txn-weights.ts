@@ -42,7 +42,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     );
 
     const EXPECTED_GAS_USED = 21_000n;
-    const EXPECTED_WEIGHT = EXPECTED_GAS_USED * WEIGHT_PER_GAS + BigInt(EXTRINSIC_BASE_WEIGHT);
+    const EXPECTED_WEIGHT = EXPECTED_GAS_USED * WEIGHT_PER_GAS;
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
     expect(BigInt(receipt.gasUsed)).to.equal(EXPECTED_GAS_USED);
