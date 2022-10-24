@@ -484,7 +484,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn parachain_bond_info)]
 	/// Parachain bond config info { account, percent_of_inflation }
-	type ParachainBondInfo<T: Config> =
+	pub(crate) type ParachainBondInfo<T: Config> =
 		StorageValue<_, ParachainBondConfig<T::AccountId>, ValueQuery>;
 
 	#[pallet::storage]
@@ -1469,7 +1469,7 @@ pub mod pallet {
 			});
 			Ok(())
 		}
-		fn prepare_staking_payouts(now: RoundIndex) {
+		pub(crate) fn prepare_staking_payouts(now: RoundIndex) {
 			// payout is now - delay rounds ago => now - delay > 0 else return early
 			let delay = T::RewardPaymentDelay::get();
 			if now <= delay {
@@ -1654,7 +1654,7 @@ pub mod pallet {
 		}
 		/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, delegation_count, total staked]
-		fn select_top_candidates(now: RoundIndex) -> (u32, u32, BalanceOf<T>) {
+		pub(crate) fn select_top_candidates(now: RoundIndex) -> (u32, u32, BalanceOf<T>) {
 			let (mut collator_count, mut delegation_count, mut total) =
 				(0u32, 0u32, BalanceOf::<T>::zero());
 			// choose the top TotalSelected qualified candidates, ordered by stake
@@ -1743,7 +1743,7 @@ pub mod pallet {
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
-		fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
+		pub(crate) fn get_rewardable_delegators(collator: &T::AccountId) -> CountedDelegations<T> {
 			let requests = <DelegationScheduledRequests<T>>::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))

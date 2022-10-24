@@ -19,7 +19,8 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest, ParachainBondInfo, ParachainBondConfig, Staked
+	Points, Range, Round, ScheduledRequest, ParachainBondInfo, ParachainBondConfig, Staked,
+	TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -1017,6 +1018,95 @@ benchmarks! {
 		});
 
 	}: { Pallet::<T>::prepare_staking_payouts(round); }
+	verify {
+	}
+
+	get_rewardable_delegators {
+		let y in 0..50; // num delegators
+		
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
+
+		let collator = create_funded_collator::<T>(
+			"collator",
+			0,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			1,
+		)?;
+
+		// create delegators
+		for i in 0..y {
+			let seed = USER_SEED + i + 1;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				collator.clone(),
+				true,
+				i,
+			)?;
+		}
+
+		let mut results = None;
+
+	}: { results = Some(Pallet::<T>::get_rewardable_delegators(&collator)); }
+	verify {
+		let counted_delegations = results.expect("get_rewardable_delegators returned some results");
+		assert!(counted_delegations.uncounted_stake == 0u32.into());
+		assert!(counted_delegations.rewardable_delegations.len() as u32 == y);
+		let top_delegations = <TopDelegations<T>>::get(collator.clone())
+			.expect("delegations were set for collator through delegate() calls");
+		assert!(top_delegations.delegations.len() as u32 == y);
+	}
+
+	select_top_candidates {
+		let x in 0..50; // num collators
+		let y in 0..50; // num delegators
+		
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
+
+		let mut seed = USER_SEED + 1;
+
+		for _ in 0..x {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				true,
+				999999,
+			)?;
+			seed += 1;
+
+			// create delegators
+			for _ in 0..y {
+				let delegator = create_funded_delegator::<T>(
+					"delegator",
+					seed,
+					min_candidate_stk::<T>() * 1_000_000u32.into(),
+					collator.clone(),
+					true,
+					9999999,
+				)?;
+				seed += 1;
+			}
+		}
+
+		let mut results = None;
+	}: { results = Some(Pallet::<T>::select_top_candidates(1)); }
 	verify {
 	}
 
