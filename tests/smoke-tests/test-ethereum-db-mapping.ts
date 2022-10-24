@@ -16,12 +16,14 @@ describeSmokeSuite(
   { wssUrl, relayWssUrl, ethRpcUrl },
   (context) => {
     it("should get the same response payload on byNumber and byHash requests", async function () {
-      this.timeout(6_000_000); // 30 minutes
+      this.timeout(60_000); // 1 minute
       // As we are testing rpc-level functionality the height at which we access secondary db data
       // is irrelevant. We can just select some arbitrary block numbers to verify block hashes.
       const latestBlockNumber = await context.ethers.getBlockNumber();
-      // We asume we only want to run the test in a live chain.
+      // We asume we only want to run the test if there is enough blocks.
       if (latestBlockNumber > 10000) {
+        let failedCheckpoints = [];
+
         const checkPoint_1 = latestBlockNumber - 10;
         const checkPoint_2 = latestBlockNumber - 100;
         const checkPoint_3 = latestBlockNumber - 1000;
@@ -32,8 +34,11 @@ describeSmokeSuite(
         for (const block of blocks) {
           const byNumber = await context.ethers.getBlock(block);
           const byHash = await context.ethers.getBlock(byNumber.hash);
-          expect(byNumber).to.be.deep.eq(byHash);
+          if (JSON.stringify(byNumber) !== JSON.stringify(byHash)) {
+            failedCheckpoints.push(block);
+          }
         }
+        expect(failedCheckpoints).to.be.empty;
       }
     });
   }
