@@ -38,7 +38,10 @@ describeSmokeSuite(
             failedCheckpoints.push(block);
           }
         }
-        expect(failedCheckpoints).to.be.empty;
+        expect(failedCheckpoints.length).to.be.eq(
+          0,
+          `Inconsistency found at ${JSON.stringify(failedCheckpoints)}`
+        );
       }
     });
   }
