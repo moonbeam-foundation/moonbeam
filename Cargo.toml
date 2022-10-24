@@ -18,6 +18,7 @@ members = [
 	"precompiles/batch",
 	"precompiles/call-permit",
 	"precompiles/collective",
+	"precompiles/conviction-voting",
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
