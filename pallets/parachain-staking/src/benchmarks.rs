@@ -19,7 +19,7 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest,
+	Points, Range, Round, ScheduledRequest, ParachainBondInfo, ParachainBondConfig, Staked
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -991,6 +991,33 @@ benchmarks! {
 		}
 		// Round transitions
 		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
+	}
+
+	prepare_staking_payouts {
+		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get();
+		let round = reward_delay + 2u32;
+		let payout_round = round - reward_delay;
+		// may need:
+		//  <Points<T>>
+		//  <Staked<T>>
+		//  <ParachainBondInfo<T>>
+		//  ensure parachain bond account exists so that deposit_into_existing succeeds
+		<Points<T>>::insert(payout_round, 100);
+		<Staked<T>>::insert(payout_round, min_candidate_stk::<T>());
+
+		// set an account in the bond config so that we will measure the payout to it
+		let account = create_funded_user::<T>(
+			"parachain_bond",
+			0,
+			min_candidate_stk::<T>(),
+		).0;
+		<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			account,
+			percent: Percent::from_percent(50),
+		});
+
+	}: { Pallet::<T>::prepare_staking_payouts(round); }
+	verify {
 	}
 
 	pay_one_collator_reward {
