@@ -11,6 +11,13 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
   describeSmokeSuite(`Verify staking snapshot`, { wssUrl, relayWssUrl }, function (context) {
     it("storage is cleaned for paid-out rounds", async function () {
       this.timeout(500000);
+
+      const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
+      if (specVersion < 1900) {
+        debug(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
+        this.skip();
+      }
+
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
         : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
