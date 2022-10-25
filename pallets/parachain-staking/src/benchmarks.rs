@@ -906,11 +906,11 @@ benchmarks! {
 			)?;
 		}
 
-		let mut results = None;
+		let mut _results = None;
 
-	}: { results = Some(Pallet::<T>::get_rewardable_delegators(&collator)); }
+	}: { _results = Some(Pallet::<T>::get_rewardable_delegators(&collator)); }
 	verify {
-		let counted_delegations = results.expect("get_rewardable_delegators returned some results");
+		let counted_delegations = _results.expect("get_rewardable_delegators returned some results");
 		assert!(counted_delegations.uncounted_stake == 0u32.into());
 		assert!(counted_delegations.rewardable_delegations.len() as u32 == y);
 		let top_delegations = <TopDelegations<T>>::get(collator.clone())
@@ -957,8 +957,7 @@ benchmarks! {
 			}
 		}
 
-		let mut results = None;
-	}: { results = Some(Pallet::<T>::select_top_candidates(1)); }
+	}: { Some(Pallet::<T>::select_top_candidates(1)); }
 	verify {
 	}
 
