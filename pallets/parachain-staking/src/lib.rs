@@ -436,7 +436,7 @@ pub mod pallet {
 				// pay all stakers for T::RewardPaymentDelay rounds ago
 				weight = weight.saturating_add(Self::prepare_staking_payouts(round.current));
 				// select top collator candidates for next round
-				let (extra_weight, collator_count, delegation_count, total_staked) =
+				let (extra_weight, collator_count, _delegation_count, total_staked) =
 					Self::select_top_candidates(round.current);
 				weight = weight.saturating_add(extra_weight);
 				// start next round
