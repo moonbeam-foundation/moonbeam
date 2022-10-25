@@ -1,10 +1,10 @@
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-
+const debug = require("debug")("smoke:decoding");
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 1000;
+const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
 describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (context) => {
   let atBlockNumber: number = 0;
@@ -36,6 +36,7 @@ describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (con
           // This is just H256 entries and quite big
           continue;
         }
+
         const keys = Object.keys(module[fn]);
         if (keys.includes("keysPaged")) {
           // Map item

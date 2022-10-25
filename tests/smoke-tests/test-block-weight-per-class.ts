@@ -25,7 +25,14 @@ describeSmokeSuite(`Verify block weight per class`, { wssUrl, relayWssUrl }, (co
   before("Retrieve all weight limits and usage", async function () {
     this.timeout(240000);
     // Number of total blocks we want to test
-    const batchOf = process.env.BATCH_OF ? parseInt(process.env.BATCH_OF) : 300;
+    const batchOf = process.env.ROUNDS_TO_WAIT
+      ? Math.floor(
+          context.polkadotApi.consts.parachainStaking.defaultBlocksPerRound.toNumber() *
+            Number(process.env.ROUND_TO_WAIT)
+        )
+      : process.env.BATCH_OF
+      ? parseInt(process.env.BATCH_OF)
+      : 300;
     // Number of blocks to resolve at once
     const concurrency = process.env.CONCURRENCY ? parseInt(process.env.CONCURRENCY) : 10;
 
