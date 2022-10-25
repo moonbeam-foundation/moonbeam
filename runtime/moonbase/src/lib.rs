@@ -1003,12 +1003,9 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::destroy { .. } => false,
 				_ => true,
 			},
-			// We just want to enable this in case of live chains, since the default version
-			// is populated at genesis
+			// Enable all polkadotXcm pallet features on moonbase
 			Call::PolkadotXcm(method) => match method {
-				pallet_xcm::Call::execute { .. } => true,
-				pallet_xcm::Call::send { .. } => true,
-				_ => false,
+				_ => true,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
