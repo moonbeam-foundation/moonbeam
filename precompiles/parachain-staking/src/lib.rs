@@ -557,6 +557,14 @@ where
 		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
 		delegator_delegation_count: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		if auto_compound > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("auto_compound")
+					.into(),
+			);
+		}
+
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let auto_compound = Percent::from_percent(auto_compound);
 		let candidate_delegation_count = candidate_delegation_count.converted();
@@ -749,6 +757,14 @@ where
 		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
 		delegator_delegation_count: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		if value > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("value")
+					.into(),
+			);
+		}
+
 		let value = Percent::from_percent(value);
 		let candidate_auto_compounding_delegation_count_hint =
 			candidate_auto_compounding_delegation_count.converted();

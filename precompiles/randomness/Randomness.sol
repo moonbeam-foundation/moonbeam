@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Randomness contract's address.
+address constant RANDOMNESS_ADDRESS = 0x0000000000000000000000000000000000000809;
+
+/// @dev The Randomness contract's instance.
+Randomness constant RANDOMNESS_CONTRACT = Randomness(RANDOMNESS_ADDRESS);
+
 /// @dev Maximum number of random words being requested
 uint32 constant MAX_RANDOM_WORDS = 100;
 /// @dev Minimum number of blocks before a request can be fulfilled for Local VRF Request

@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.3;
 
+/// @dev The Randomness contract's address.
+address constant RANDOMNESS_ADDRESS = 0x0000000000000000000000000000000000000809;
+
 /** ****************************************************************************
  * @notice Interface for contracts using VRF randomness
  * *****************************************************************************
@@ -112,10 +115,10 @@ abstract contract RandomnessConsumer {
         uint256 requestId,
         uint256[] memory randomWords
     ) external {
-        if (msg.sender != 0x0000000000000000000000000000000000000809) {
+        if (msg.sender != RANDOMNESS_ADDRESS) {
             revert OnlyRandomnessPrecompileCanFulfill(
                 msg.sender,
-                0x0000000000000000000000000000000000000809
+                RANDOMNESS_ADDRESS
             );
         }
         fulfillRandomWords(requestId, randomWords);

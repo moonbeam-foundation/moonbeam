@@ -1,6 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Collective Council contract's address.
+address constant COLLECTIVE_COUNCIL_ADDRESS = 0x000000000000000000000000000000000000080e;
+/// @dev The Collective Technical Committee contract's address.
+address constant COLLECTIVE_TECHNICAL_ADDRESS = 0x000000000000000000000000000000000000080F;
+/// @dev The Collective Treasury Council contract's address.
+address constant COLLECTIVE_TREASURY_ADDRESS = 0x0000000000000000000000000000000000000810;
+
+/// @dev The Collective Council contract's instance.
+Collective constant COLLECTIVE_COUNCIL_CONTRACT = Collective(
+    COLLECTIVE_COUNCIL_ADDRESS
+);
+/// @dev The Collective Technical Committee contract's instance.
+Collective constant COLLECTIVE_TECHNICAL_CONTRACT = Collective(
+    COLLECTIVE_TECHNICAL_ADDRESS
+);
+/// @dev The Collective Treasury Council contract's instance.
+Collective constant COLLECTIVE_TREASURY_CONTRACT = Collective(
+    COLLECTIVE_TREASURY_ADDRESS
+);
+
 /// @title Collective precompile
 /// Allows to interact with Substrate pallet_collective from the EVM.
 /// Addresses:
