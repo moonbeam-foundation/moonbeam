@@ -4,17 +4,13 @@ pragma solidity >=0.8.3;
 import "../../../precompiles/xtokens/Xtokens.sol";
 
 contract XtokensInstance is Xtokens {
-    /// The Xtokens wrapper at the known pre-compile address.
-    Xtokens public xtokens =
-        Xtokens(0x0000000000000000000000000000000000000804);
-
     function transfer(
         address currencyAddress,
         uint256 amount,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer(currencyAddress, amount, destination, weight);
+        XTOKENS_CONTRACT.transfer(currencyAddress, amount, destination, weight);
     }
 
     function transferWithFee(
@@ -24,7 +20,7 @@ contract XtokensInstance is Xtokens {
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transferWithFee(
+        XTOKENS_CONTRACT.transferWithFee(
             currencyAddress,
             amount,
             fee,
@@ -39,7 +35,7 @@ contract XtokensInstance is Xtokens {
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transferMultiasset(asset, amount, destination, weight);
+        XTOKENS_CONTRACT.transferMultiasset(asset, amount, destination, weight);
     }
 
     function transferMultiassetWithFee(
@@ -49,7 +45,7 @@ contract XtokensInstance is Xtokens {
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transferMultiassetWithFee(
+        XTOKENS_CONTRACT.transferMultiassetWithFee(
             asset,
             amount,
             fee,
@@ -64,7 +60,7 @@ contract XtokensInstance is Xtokens {
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transferMultiCurrencies(
+        XTOKENS_CONTRACT.transferMultiCurrencies(
             currencies,
             feeItem,
             destination,
@@ -78,6 +74,11 @@ contract XtokensInstance is Xtokens {
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transferMultiAssets(assets, feeItem, destination, weight);
+        XTOKENS_CONTRACT.transferMultiAssets(
+            assets,
+            feeItem,
+            destination,
+            weight
+        );
     }
 }

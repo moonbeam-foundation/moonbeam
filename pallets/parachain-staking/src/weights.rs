@@ -419,7 +419,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: ParachainStaking DelegationScheduledRequests (r:9 w:0)
 	// Storage: ParachainStaking TopDelegations (r:9 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:9 w:0)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:10)
@@ -431,18 +430,17 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight {
 		Weight::from_ref_time(363_268_000 as u64)
 			// Standard Error: 1_140_000
-			.saturating_add(Weight::from_ref_time(47_699_000 as u64).saturating_mul(x as u64))
+			.saturating_add(Weight::from_ref_time(43_560_000 as u64).saturating_mul(x as u64))
 			// Standard Error: 3_000
-			.saturating_add(Weight::from_ref_time(142_000 as u64).saturating_mul(y as u64))
-			.saturating_add(T::DbWeight::get().reads(181 as u64))
+			.saturating_add(Weight::from_ref_time(139_000 as u64).saturating_mul(y as u64))
+			.saturating_add(T::DbWeight::get().reads(180 as u64))
 			.saturating_add(T::DbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
-			.saturating_add(T::DbWeight::get().writes(172 as u64))
+			.saturating_add(T::DbWeight::get().writes(171 as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
 	}
 	// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	// Storage: ParachainStaking Points (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:0)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:0)
@@ -451,7 +449,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_ref_time(61_374_000 as u64)
 			// Standard Error: 5_000
 			.saturating_add(Weight::from_ref_time(15_651_000 as u64).saturating_mul(y as u64))
-			.saturating_add(T::DbWeight::get().reads(8 as u64))
+			.saturating_add(T::DbWeight::get().reads(7 as u64))
 			.saturating_add(T::DbWeight::get().reads((1 as u64).saturating_mul(y as u64)))
 			.saturating_add(T::DbWeight::get().writes(3 as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(y as u64)))
@@ -792,7 +790,6 @@ impl WeightInfo for () {
 	// Storage: ParachainStaking DelegationScheduledRequests (r:9 w:0)
 	// Storage: ParachainStaking TopDelegations (r:9 w:0)
 	// Storage: ParachainStaking AutoCompoundingDelegations (r:9 w:0)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:1)
 	// Storage: ParachainStaking Total (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
 	// Storage: ParachainStaking AtStake (r:1 w:10)
@@ -804,18 +801,17 @@ impl WeightInfo for () {
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight {
 		Weight::from_ref_time(363_268_000 as u64)
 			// Standard Error: 1_140_000
-			.saturating_add(Weight::from_ref_time(47_699_000 as u64).saturating_mul(x as u64))
+			.saturating_add(Weight::from_ref_time(43_560_000 as u64).saturating_mul(x as u64))
 			// Standard Error: 3_000
-			.saturating_add(Weight::from_ref_time(142_000 as u64).saturating_mul(y as u64))
-			.saturating_add(RocksDbWeight::get().reads(181 as u64))
+			.saturating_add(Weight::from_ref_time(139_000 as u64).saturating_mul(y as u64))
+			.saturating_add(RocksDbWeight::get().reads(180 as u64))
 			.saturating_add(RocksDbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
-			.saturating_add(RocksDbWeight::get().writes(172 as u64))
+			.saturating_add(RocksDbWeight::get().writes(171 as u64))
 			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
 	}
 	// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
 	// Storage: ParachainStaking Points (r:1 w:0)
 	// Storage: ParachainStaking AwardedPts (r:2 w:1)
-	// Storage: ParachainStaking MigratedAtStake (r:1 w:0)
 	// Storage: ParachainStaking AtStake (r:1 w:1)
 	// Storage: System Account (r:1 w:1)
 	// Storage: MoonbeamOrbiters OrbiterPerRound (r:1 w:0)
@@ -824,7 +820,7 @@ impl WeightInfo for () {
 		Weight::from_ref_time(61_374_000 as u64)
 			// Standard Error: 5_000
 			.saturating_add(Weight::from_ref_time(15_651_000 as u64).saturating_mul(y as u64))
-			.saturating_add(RocksDbWeight::get().reads(8 as u64))
+			.saturating_add(RocksDbWeight::get().reads(7 as u64))
 			.saturating_add(RocksDbWeight::get().reads((1 as u64).saturating_mul(y as u64)))
 			.saturating_add(RocksDbWeight::get().writes(3 as u64))
 			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(y as u64)))

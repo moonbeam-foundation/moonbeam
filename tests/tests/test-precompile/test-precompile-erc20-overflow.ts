@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { generateKeyringPair } from "../../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -19,7 +20,7 @@ describeDevMoonbeam("Precompile ERC20 - Transfering through precompile", (contex
 
     const { result } = await context.createBlock(
       createTransaction(context, {
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         data: batchInterface.encodeFunctionData("batchAll", [
           [randomAccount.address],
           [`${(2n ** 128n + 5_000_000_000_000_000_000n).toString()}`],

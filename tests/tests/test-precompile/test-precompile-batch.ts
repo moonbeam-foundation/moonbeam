@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith, ALITH_PRIVATE_KEY, baltathar, charleth } from "../../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
@@ -16,7 +17,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
     let batchAllTx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         gas: "0x110000",
         value: "0x00",
         nonce: 0,
@@ -33,7 +34,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
     let batchSomeTx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         gas: "0x120000",
         value: "0x00",
         nonce: 1,
@@ -50,7 +51,7 @@ describeDevMoonbeamAllEthTxTypes("Batch - All functions should consume the same 
     let batchSomeUntilFailureTx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         gas: "0x130000",
         value: "0x00",
         nonce: 2,

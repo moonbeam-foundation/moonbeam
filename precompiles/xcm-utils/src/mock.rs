@@ -307,13 +307,14 @@ pub fn precompile_address() -> H160 {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub const WeightPerGas: u64 = 1;
 }
 
 /// A mapping function that converts Ethereum gas to Substrate weight
 /// We are mocking this 1-1 to test db read charges too
 pub struct MockGasWeightMapping;
 impl GasWeightMapping for MockGasWeightMapping {
-	fn gas_to_weight(gas: u64) -> Weight {
+	fn gas_to_weight(gas: u64, _without_base_weight: bool) -> Weight {
 		Weight::from_ref_time(gas)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
@@ -324,6 +325,7 @@ impl GasWeightMapping for MockGasWeightMapping {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MockGasWeightMapping;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
 	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
 	type AddressMapping = TestAccount;

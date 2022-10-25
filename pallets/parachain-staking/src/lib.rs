@@ -582,11 +582,6 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
-	/// Migration storage holding value for collators already migrated to the new snapshot variant
-	#[pallet::storage]
-	#[pallet::getter(fn migrated_at_stake)]
-	pub type MigratedAtStake<T: Config> = StorageValue<_, RoundIndex, OptionQuery>;
-
 	#[pallet::storage]
 	#[pallet::getter(fn delayed_payouts)]
 	/// Delayed payouts
@@ -1532,8 +1527,17 @@ pub mod pallet {
 					// clean up storage items that we no longer need
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
+
+					// remove all candidates that did not produce any blocks for
+					// the given round. The weight is added based on the number of backend
+					// items removed.
+					let remove_result = <AtStake<T>>::clear_prefix(paid_for_round, 20, None);
+					result
+						.1
+						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
+				} else {
+					result.1 // weight consumed by pay_one_collator_reward
 				}
-				result.1 // weight consumed by pay_one_collator_reward
 			} else {
 				Weight::from_ref_time(0u64)
 			}
@@ -1572,36 +1576,7 @@ pub mod pallet {
 				let mut amt_due = total_paid;
 				// Take the snapshot of block author and delegations
 
-				// Decode [CollatorSnapshot] depending upon when the storage was migrated
-				let is_at_stake_migrated = <MigratedAtStake<T>>::get()
-					.map_or(false, |migrated_at_round| {
-						paid_for_round >= migrated_at_round
-					});
-				#[allow(deprecated)]
-				let state = if is_at_stake_migrated {
-					let at_stake: CollatorSnapshot<T::AccountId, BalanceOf<T>> =
-						<AtStake<T>>::take(paid_for_round, &collator);
-					at_stake
-				} else {
-					// storage still not migrated, decode as deprecated CollatorSnapshot.
-					let key = <AtStake<T>>::hashed_key_for(paid_for_round, &collator);
-					let at_stake: deprecated::CollatorSnapshot<T::AccountId, BalanceOf<T>> =
-						frame_support::storage::unhashed::get(&key).unwrap_or_default();
-
-					CollatorSnapshot {
-						bond: at_stake.bond,
-						delegations: at_stake
-							.delegations
-							.into_iter()
-							.map(|d| BondWithAutoCompound {
-								owner: d.owner,
-								amount: d.amount,
-								auto_compound: Percent::zero(),
-							})
-							.collect(),
-						total: at_stake.total,
-					}
-				};
+				let state = <AtStake<T>>::take(paid_for_round, &collator);
 
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
@@ -1747,11 +1722,6 @@ pub mod pallet {
 					delegations: rewardable_delegations,
 					total: total_counted,
 				};
-				<MigratedAtStake<T>>::mutate(|v| {
-					if v.is_none() {
-						*v = Some(now);
-					}
-				});
 				<AtStake<T>>::insert(now, account, snapshot);
 				Self::deposit_event(Event::CollatorChosen {
 					round: now,
