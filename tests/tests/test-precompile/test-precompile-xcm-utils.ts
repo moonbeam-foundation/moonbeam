@@ -285,6 +285,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       await context.polkadotApi.query.system.account(random.address)
     ).data.free.toBigInt();
 
-    expect(testAccountBalance).to.eq(1n * GLMR);
+    // Transfer did not go through
+    expect(testAccountBalance).to.eq(0n * GLMR);
   });
 });
