@@ -9,7 +9,7 @@ const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 
 describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssUrl }, (context) => {
-  it.only("should have a recently finalized block", async function () {
+  it("should have a recently finalized block", async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);
     const diff = Date.now() - getBlockTime(block);
@@ -17,7 +17,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssU
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
   });
 
-  it.only("should have a recently finalized eth block", async function () {
+  it("should have a recently finalized eth block", async function () {
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
     if (specVersion < 1900) {
       debug(`ChainSpec ${specVersion} does not support Finalized BlockTag, skipping test`);
