@@ -6,22 +6,91 @@ import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { HexString } from "@polkadot/util/types";
+import {
+  PalletParachainStakingCandidateMetadata,
+  PalletParachainStakingCollatorSnapshot,
+} from "@polkadot/types/lookup";
+import { ApiDecoration } from "@polkadot/api/types";
+import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:staking");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
+const limiter = new Bottleneck({ maxConcurrent: 5 });
 
-if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
-    it("rewards are given as expected", async function () {
+describeSmokeSuite(
+  `Verify ParachainStaking rewards...`,
+  { wssUrl, relayWssUrl },
+  function (context) {
+    let atStakeSnapshot;
+    let apiAt: ApiDecoration<"promise">;
+    
+
+    before("Common Setup", async function () {
+      if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
+        debug("Skip Block Consistency flag set, skipping staking rewards tests.");
+        this.skip();
+      }
+
+      const atBlockNumber = process.env.BLOCK_NUMBER
+        ? parseInt(process.env.BLOCK_NUMBER)
+        : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+      const nowBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
+      apiAt = await context.polkadotApi.at(nowBlockHash);
+      const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
+      const prevRound = nowRound - 1;
+
+      debug(`Verifying previous block's staking round ${prevRound}`);
+      atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(prevRound);
+    });
+
+    it("should snapshot the selected candidates for that round.", async function () {
+      const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
+      const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
+
+      const extras = atStakeSnapshot.filter((item) => selectedCandidates.some((a) => item == a));
+      expect(atStakeSnapshot.length).to.be.equal(totalSelected);
+      expect(extras, `Non-selected candidates in snapshot: ${extras.map((a) => a[0]).join(", ")}`)
+        .to.be.empty;
+    });
+
+    it.only("should snapshot the current global statistics for each selected candidate.", async function () {
+      const timbo= () => atStakeSnapshot.map(async (item) => {
+        const bond =
+          item[1].bond ==
+          (
+            (await apiAt.query.parachainStaking.candidateInfo(
+              item[0]
+            )) as PalletParachainStakingCandidateMetadata
+          ).bond;
+        return { collator: item[0], bond };
+      });
+      const results = limiter.schedule(async() => {
+        const allTasks = atStakeSnapshot.map(async (item) => {
+          const bond =
+            item[1].bond ==
+            (
+              (await apiAt.query.parachainStaking.candidateInfo(
+                item[0]
+              )) as PalletParachainStakingCandidateMetadata
+            ).bond;
+          return { collator: item[0], bond };
+        return Promise.all(allTasks)
+      });
+
+      console.log(results)
+    });
+  })
+
+    it.skip("rewards are given as expected", async function () {
       this.timeout(500000);
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
         : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
       await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
     });
-  });
-}
+  }
+);
 
 async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);

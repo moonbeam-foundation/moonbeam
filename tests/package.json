@@ -39,7 +39,7 @@
     "para-test": "mocha -r ts-node/register 'para-tests/**/test-*.ts'",
     "para-test-single": "mocha -r ts-node/register 'para-tests-no-ci/test-xcm-para.ts'",
     "smoke-test": "mocha -r ts-node/register 'smoke-tests/**/test-*.ts'",
-    "smoke-test-single": "mocha -r ts-node/register 'smoke-tests/test-ethereum-current-consistency.ts'",
+    "smoke-test-single": "mocha -r ts-node/register 'smoke-tests/test-staking-rewards.ts'",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
