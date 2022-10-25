@@ -444,7 +444,7 @@ jobs:
           cd ../tests
           npm ci
           npm run build
-          node_modules/.bin/mocha --exit --parallel -j 2 'tracing-tests/**/test-*.js'
+          node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
   typescript-para-tests:
     runs-on: self-hosted

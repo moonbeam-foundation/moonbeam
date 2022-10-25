@@ -1207,74 +1207,137 @@ fn cancel_delegator_bonded_less_works() {
 
 #[test]
 fn delegate_with_auto_compound_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = PCall::delegate_with_auto_compound {
-				candidate: Address(Alice.into()),
-				amount: 1_000.into(),
-				auto_compound: 50,
-				candidate_delegation_count: 0.into(),
-				candidate_auto_compounding_delegation_count: 0.into(),
-				delegator_delegation_count: 0.into(),
-			}
-			.into();
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::delegate_with_auto_compound {
+					candidate: Address(Alice.into()),
+					amount: 1_000.into(),
+					auto_compound: auto_compound_percent,
+					candidate_delegation_count: 0.into(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 0.into(),
+				}
+				.into();
 
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
 
-			assert!(ParachainStaking::is_delegator(&Bob));
+				assert!(ParachainStaking::is_delegator(&Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation {
-				delegator: Bob,
-				locked_amount: 1_000,
-				candidate: Alice,
-				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
-					new_total: 2_000,
-				},
-				auto_compound: Percent::from_percent(50),
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
+				let expected: crate::mock::Event = StakingEvent::Delegation {
+					delegator: Bob,
+					locked_amount: 1_000,
+					candidate: Alice,
+					delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+						new_total: 2_000,
+					},
+					auto_compound: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn delegate_with_auto_compound_returns_error_if_percent_above_hundred() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::delegate_with_auto_compound {
+							candidate: Address(Alice.into()),
+							amount: 1_000.into(),
+							auto_compound: auto_compound_percent,
+							candidate_delegation_count: 0.into(),
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 0.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output).unwrap().contains(
+							"auto_compound: Must be an integer between 0 and 100 included",
+						)
+					});
+			});
+	}
 }
 
 #[test]
 fn set_auto_compound_works_if_delegation() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = PCall::set_auto_compound {
-				candidate: Address(Alice.into()),
-				value: 50,
-				candidate_auto_compounding_delegation_count: 0.into(),
-				delegator_delegation_count: 1.into(),
-			}
-			.into();
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::set_auto_compound {
+					candidate: Address(Alice.into()),
+					value: auto_compound_percent,
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 1.into(),
+				}
+				.into();
 
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
 
-			assert_eq!(
-				ParachainStaking::delegation_auto_compound(&Alice, &Bob),
-				Percent::from_percent(50)
-			);
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(auto_compound_percent)
+				);
 
-			let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
-				candidate: Alice,
-				delegator: Bob,
-				value: Percent::from_percent(50),
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
+				let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
+					candidate: Alice,
+					delegator: Bob,
+					value: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_returns_error_if_value_above_hundred_percent() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::set_auto_compound {
+							candidate: Address(Alice.into()),
+							value: auto_compound_percent,
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 1.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output)
+							.unwrap()
+							.contains("value: Must be an integer between 0 and 100 included")
+					});
+			});
+	}
 }
 
 #[test]

@@ -380,17 +380,31 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
         ),
       ])
     );
+
+    // fill all delegations, we split this into two blocks as it will not fit into one
     await expectOk(
       context.createBlock([
-        // delegate a lower amount from Ethan, so they are kicked when new delegation comes
         context.polkadotApi.tx.parachainStaking
           .delegate(baltathar.address, MIN_GLMR_DELEGATOR, 0, 1)
           .signAsync(ethan),
-        ...otherDelegators.map((d) =>
-          context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 1)
-            .signAsync(d)
-        ),
+        ...otherDelegators
+          .slice(0, 150)
+          .map((d) =>
+            context.polkadotApi.tx.parachainStaking
+              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 1)
+              .signAsync(d)
+          ),
+      ])
+    );
+    await expectOk(
+      context.createBlock([
+        ...otherDelegators
+          .slice(150)
+          .map((d) =>
+            context.polkadotApi.tx.parachainStaking
+              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 1)
+              .signAsync(d)
+          ),
       ])
     );
 
@@ -435,6 +449,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       await context.polkadotApi.query.parachainStaking.autoCompoundingDelegations(
         baltathar.address
       );
+
     expect(autoCompoundDelegationsAlithAfter.toJSON()).to.be.empty;
     expect(autoCompoundDelegationsBaltatharAfter.toJSON()).to.not.be.empty;
   });

@@ -2,14 +2,10 @@
 pragma solidity >=0.8.3;
 
 import "../../../precompiles/randomness/Randomness.sol";
-import "../../../precompiles/randomness/RandomnessConsumer.sol";
+import {RandomnessConsumer} from "../../../precompiles/randomness/RandomnessConsumer.sol";
 
 /// @notice Smart contract to demonstrate how to use requestLocalVRFRandomWords
 contract RandomnessLotteryDemo is RandomnessConsumer {
-    /// @notice The Randomness Precompile Interface
-    Randomness public randomness =
-        Randomness(0x0000000000000000000000000000000000000809);
-
     /// @notice The lottery has requested random words and is waiting for fulfillment
     error WaitingFulfillment();
 
@@ -124,7 +120,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     {
         /// Because this contract can only perform 1 random request at a time,
         /// We only need to have 1 required deposit.
-        uint256 requiredDeposit = randomness.requiredDeposit();
+        uint256 requiredDeposit = RANDOMNESS_CONTRACT.requiredDeposit();
         if (msg.value < requiredDeposit) {
             revert DepositTooLow(msg.value, requiredDeposit);
         }
@@ -138,9 +134,8 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     }
 
     function status() external view returns (LotteryStatus) {
-        Randomness.RequestStatus requestStatus = randomness.getRequestStatus(
-            requestId
-        );
+        Randomness.RequestStatus requestStatus = RANDOMNESS_CONTRACT
+            .getRequestStatus(requestId);
         if (requestStatus == Randomness.RequestStatus.DoesNotExist) {
             return LotteryStatus.OpenForRegistration;
         }
@@ -156,7 +151,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     function participate() external payable {
         /// We check we haven't started the randomness request yet
         if (
-            randomness.getRequestStatus(requestId) !=
+            RANDOMNESS_CONTRACT.getRequestStatus(requestId) !=
             Randomness.RequestStatus.DoesNotExist
         ) {
             revert WaitingFulfillment();
@@ -173,7 +168,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     function startLottery() external payable onlyOwner {
         /// We check we haven't started the randomness request yet
         if (
-            randomness.getRequestStatus(requestId) !=
+            RANDOMNESS_CONTRACT.getRequestStatus(requestId) !=
             Randomness.RequestStatus.DoesNotExist
         ) {
             revert WaitingFulfillment();
@@ -194,7 +189,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
         /// We verify there is enough balance on the contract to pay for the deposit.
         /// This would fail only if the deposit amount required is changed in the
         /// Randomness Precompile.
-        uint256 requiredDeposit = 1000000000000000000; // TODO replace with randomness.requiredDeposit();
+        uint256 requiredDeposit = 1000000000000000000; // TODO replace with RANDOMNESS_CONTRACT.requiredDeposit();
         if (address(this).balance < jackpot + requiredDeposit) {
             revert DepositTooLow(
                 address(this).balance - jackpot,
@@ -207,7 +202,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             /// with a delay of VRF_BLOCKS_DELAY blocks
             /// Refund after fulfillment will go back to the caller of this function
             /// globalRequestCount is used as salt to be unique for each request
-            requestId = randomness.requestLocalVRFRandomWords(
+            requestId = RANDOMNESS_CONTRACT.requestLocalVRFRandomWords(
                 msg.sender,
                 fee,
                 FULFILLMENT_GAS_LIMIT,
@@ -220,7 +215,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
             /// Babe Epoch Randomness requires a longer delay (depending on the relaychain)
             /// Refund after fulfillment will go back to the caller of this function
             /// globalRequestCount is used as salt to be unique for each request
-            requestId = randomness.requestRelayBabeEpochRandomWords(
+            requestId = RANDOMNESS_CONTRACT.requestRelayBabeEpochRandomWords(
                 msg.sender,
                 fee,
                 FULFILLMENT_GAS_LIMIT,
@@ -234,7 +229,7 @@ contract RandomnessLotteryDemo is RandomnessConsumer {
     /// @dev This is needed if the gas price increase significantly before
     /// @dev the request is fulfilled
     function increaseRequestFee() external payable {
-        randomness.increaseRequestFee(requestId, msg.value);
+        RANDOMNESS_CONTRACT.increaseRequestFee(requestId, msg.value);
     }
 
     /// @dev This function is called only by the fulfillment callback
