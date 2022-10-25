@@ -19,7 +19,7 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest, ParachainBondInfo, ParachainBondConfig, Staked,
+	ParachainBondConfig, ParachainBondInfo, Points, Range, Round, ScheduledRequest, Staked,
 	TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
@@ -875,7 +875,7 @@ benchmarks! {
 
 	get_rewardable_delegators {
 		let y in 0..50; // num delegators
-		
+
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
 			ideal: Perbill::one(),
@@ -921,7 +921,7 @@ benchmarks! {
 	select_top_candidates {
 		let x in 0..50; // num collators
 		let y in 0..50; // num delegators
-		
+
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
 			ideal: Perbill::one(),
