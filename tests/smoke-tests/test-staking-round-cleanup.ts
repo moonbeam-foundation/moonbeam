@@ -1,11 +1,50 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
+import { ApiPromise } from "@polkadot/api";
+import type { ApiTypes } from "@polkadot/api-base/types";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import { BN } from "@polkadot/util";
+import { expect } from "chai";
+import { QueryableStorageEntry } from "@polkadot/api/types";
+import { u32 } from "@polkadot/types";
+import type { AccountId20 } from "@polkadot/types/interfaces";
+
 const debug = require("debug")("smoke:staking");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
+
+type InvalidRounds = { [round: number]: number };
+
+async function getKeysBeforeRound<
+  T extends QueryableStorageEntry<"promise", [u32] | [u32, AccountId20]>
+>(lastUnpaidRound: BN, storage: T): Promise<InvalidRounds> {
+  const invalidRounds: InvalidRounds = {};
+  let startKey = "";
+  while (true) {
+    const result = await storage.keysPaged({
+      pageSize: 1000,
+      startKey,
+      args: [],
+    });
+
+    if (result.length === 0) {
+      break;
+    }
+    startKey = result[result.length - 1].toString();
+    for (const {
+      args: [round],
+    } of result) {
+      if (round.lt(lastUnpaidRound)) {
+        if (!invalidRounds[round.toNumber()]) {
+          invalidRounds[round.toNumber()] = 0;
+        }
+        invalidRounds[round.toNumber()]++;
+      }
+    }
+  }
+  return invalidRounds;
+}
 
 if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
   describeSmokeSuite(`Verify staking round cleanup`, { wssUrl, relayWssUrl }, function (context) {
@@ -32,78 +71,31 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
   currentRound    ${currentRound.toString()} (#${atBlockNumber} / ${atBlockHash.toString()})
   lastUnpaidRound ${lastUnpaidRound.toString()}`);
 
-      const atStakeInvalidRounds: { [round: number]: number } = {};
-      let startKey = "";
-      while (true) {
-        const result = await apiAtBlock.query.parachainStaking.atStake.keysPaged({
-          pageSize: 1000,
-          startKey,
-          args: [],
-        });
+      const awardedPtsInvalidRounds = await getKeysBeforeRound(
+        lastUnpaidRound,
+        apiAtBlock.query.parachainStaking.awardedPts
+      );
 
-        if (result.length === 0) {
-          break;
-        }
-        startKey = result[result.length - 1].toString();
-        for (const {
-          args: [round, _],
-        } of result) {
-          if (round < lastUnpaidRound) {
-            if (!atStakeInvalidRounds[round.toNumber()]) {
-              atStakeInvalidRounds[round.toNumber()] = 0;
-            }
-            atStakeInvalidRounds[round.toNumber()]++;
-          }
-        }
-      }
+      const pointsInvalidRounds = await getKeysBeforeRound(
+        lastUnpaidRound,
+        apiAtBlock.query.parachainStaking.points
+      );
+      const delayedPayoutsInvalidRounds = await getKeysBeforeRound(
+        lastUnpaidRound,
+        apiAtBlock.query.parachainStaking.delayedPayouts
+      );
+      const atStakeInvalidRounds = await getKeysBeforeRound(
+        lastUnpaidRound,
+        apiAtBlock.query.parachainStaking.atStake
+      );
 
-      const pointsInvalidRounds: { [round: number]: number } = {};
-      while (true) {
-        const result = await apiAtBlock.query.parachainStaking.points.keysPaged({
-          pageSize: 1000,
-          startKey,
-          args: [],
-        });
-
-        if (result.length === 0) {
-          break;
-        }
-        startKey = result[result.length - 1].toString();
-        for (const {
-          args: [round],
-        } of result) {
-          if (round < lastUnpaidRound) {
-            if (!pointsInvalidRounds[round.toNumber()]) {
-              pointsInvalidRounds[round.toNumber()] = 0;
-            }
-            pointsInvalidRounds[round.toNumber()]++;
-          }
-        }
-      }
-
-      const delayedPayoutsInvalidRounds: { [round: number]: number } = {};
-      while (true) {
-        const result = await apiAtBlock.query.parachainStaking.delayedPayouts.keysPaged({
-          pageSize: 1000,
-          startKey,
-          args: [],
-        });
-
-        if (result.length === 0) {
-          break;
-        }
-        startKey = result[result.length - 1].toString();
-        for (const {
-          args: [round],
-        } of result) {
-          if (round < lastUnpaidRound) {
-            if (!delayedPayoutsInvalidRounds[round.toNumber()]) {
-              delayedPayoutsInvalidRounds[round.toNumber()] = 0;
-            }
-            delayedPayoutsInvalidRounds[round.toNumber()]++;
-          }
-        }
-      }
+      const awardedPtsInvalidRoundsCount = Object.keys(awardedPtsInvalidRounds).length;
+      expect(
+        awardedPtsInvalidRoundsCount,
+        `[AwardedPts] lastUnpaidRound ${lastUnpaidRound.toString()},\
+        found ${awardedPtsInvalidRoundsCount} invalid rounds: \
+        ${Object.entries(awardedPtsInvalidRounds).map(([round, count]) => `${round}(${count})`)}`
+      ).to.equal(0);
 
       const pointsInvalidRoundsCount = Object.keys(pointsInvalidRounds).length;
       expect(
