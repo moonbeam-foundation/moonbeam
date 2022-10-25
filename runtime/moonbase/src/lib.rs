@@ -1003,10 +1003,6 @@ impl Contains<Call> for NormalFilter {
 				pallet_assets::Call::destroy { .. } => false,
 				_ => true,
 			},
-			// Enable all polkadotXcm pallet features on moonbase
-			Call::PolkadotXcm(method) => match method {
-				_ => true,
-			},
 			// We filter anonymous proxy as they make "reserve" inconsistent
 			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
 			Call::Proxy(method) => match method {

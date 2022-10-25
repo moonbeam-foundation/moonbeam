@@ -11,10 +11,7 @@ import { generateKeyringPair } from "../../util/accounts";
 import { BN } from "@polkadot/util";
 import type { XcmVersionedXcm } from "@polkadot/types/lookup";
 import { descendOriginFromAddress } from "../../util/xcm";
-import {
-  ALITH_TRANSACTION_TEMPLATE,
-  createTransaction,
-} from "../../util/transactions";
+import { ALITH_TRANSACTION_TEMPLATE, createTransaction } from "../../util/transactions";
 
 export const CLEAR_ORIGIN_WEIGHT = 8_268_000n;
 
@@ -182,12 +179,9 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
   it("allows to execute a custom xcm message", async function () {
     let random = generateKeyringPair();
 
-    const transferCall = context.polkadotApi.tx.balances.transfer(
-      random.address,
-      1n * GLMR
-    );
+    const transferCall = context.polkadotApi.tx.balances.transfer(random.address, 1n * GLMR);
     const transferCallEncoded = transferCall?.method.toHex();
-    
+
     const xcmMessage = {
       V2: [
         {
@@ -198,7 +192,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
               encoded: transferCallEncoded,
             },
           },
-        }
+        },
       ],
     };
 
@@ -211,15 +205,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+        data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
           receivedMessage.toU8a(),
-          2_000_000_000
+          2_000_000_000,
         ]),
       })
     );
 
-     // Tokens transferred
-     const testAccountBalance = (
+    // Tokens transferred
+    const testAccountBalance = (
       await context.polkadotApi.query.system.account(random.address)
     ).data.free.toBigInt();
 
@@ -231,7 +225,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
   it("allows to execute a custom xcm message evm and evvm", async function () {
     let random = generateKeyringPair();
 
-    const ethTx =  {
+    const ethTx = {
       V1: {
         gas_limit: 21000,
         fee_payment: {
@@ -245,11 +239,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
         value: 1n * GLMR,
         input: [],
         access_list: null,
-      }
+      },
     };
     const transferCall = context.polkadotApi.tx.ethereumXcm.transact(ethTx as any);
     const transferCallEncoded = transferCall?.method.toHex();
-    
+
     const xcmMessage = {
       V2: [
         {
@@ -260,7 +254,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
               encoded: transferCallEncoded,
             },
           },
-        }
+        },
       ],
     };
 
@@ -273,15 +267,15 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
+        data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
           receivedMessage.toU8a(),
-          4_000_000_000
+          4_000_000_000,
         ]),
       })
     );
 
-     // Tokens transferred
-     const testAccountBalance = (
+    // Tokens transferred
+    const testAccountBalance = (
       await context.polkadotApi.query.system.account(random.address)
     ).data.free.toBigInt();
 
