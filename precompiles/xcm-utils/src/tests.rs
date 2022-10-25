@@ -122,7 +122,7 @@ fn test_executor_clear_origin() {
 
 		precompiles()
 			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
-			.expect_cost(100001000)
+			.expect_cost(100001001)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
 	})
@@ -149,7 +149,7 @@ fn test_executor_send() {
 
 		precompiles()
 			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
-			.expect_cost(100002000)
+			.expect_cost(100002001)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
 
@@ -193,7 +193,7 @@ fn test_executor_transact() {
 
 			precompiles()
 				.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
-				.expect_cost(1100001000)
+				.expect_cost(1100001001)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().build());
 
@@ -223,6 +223,28 @@ fn test_send_clear_origin() {
 		// Lets make sure the message is as expected
 		assert!(sent_message.0.contains(&ClearOrigin));
 	})
+}
+
+#[test]
+fn execute_fails_if_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			let xcm_to_execute = VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+			let input = PCall::xcm_execute {
+				message: xcm_to_execute.into(),
+				weight: 10000u64,
+			};
+
+			PrecompilesValue::get()
+				.prepare_test(Alice, Precompile, input)
+				.execute_reverts(|output| output == b"XcmExecute not callable by smart contracts");
+		})
 }
 
 #[test]

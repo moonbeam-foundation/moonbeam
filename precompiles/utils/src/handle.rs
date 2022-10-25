@@ -41,6 +41,10 @@ pub trait PrecompileHandleExt: PrecompileHandle {
 		T: num_enum::TryFromPrimitive<Primitive = u32>;
 
 	#[must_use]
+	/// Read the selector from the input data.
+	fn read_u32_selector(&self) -> MayRevert<u32>;
+
+	#[must_use]
 	/// Returns a reader of the input, skipping the selector.
 	fn read_after_selector(&self) -> MayRevert<EvmDataReader>;
 }
@@ -79,6 +83,12 @@ impl<T: PrecompileHandle> PrecompileHandleExt for T {
 		S: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
 		EvmDataReader::read_selector(self.input())
+	}
+
+	#[must_use]
+	/// Read the selector from the input data as u32.
+	fn read_u32_selector(&self) -> MayRevert<u32> {
+		EvmDataReader::read_u32_selector(self.input())
 	}
 
 	#[must_use]
