@@ -3,6 +3,7 @@ import { MockProvider } from "@polkadot/rpc-provider/mock";
 import { TypeRegistry } from "@polkadot/types";
 import { types } from "moonbeam-types-bundle";
 import { ethers } from "ethers";
+import { getApi } from "./apis";
 
 const debug = require("debug")("test:setup");
 
@@ -10,7 +11,7 @@ export interface SmokeTestContext {
   // We also provided singleton providers for simplicity
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
-  ethers?: ethers.providers.WebSocketProvider;
+  ethers: ethers.providers.WebSocketProvider;
 }
 
 export type SmokeTestOptions = {
@@ -40,35 +41,17 @@ export function describeSmokeSuite(
       this.timeout(10000);
 
       [context.polkadotApi, context.relayApi, context.ethers] = await Promise.all([
-        ApiPromise.create({
-          initWasm: false,
-          provider: new WsProvider(options.wssUrl),
-          typesBundle: types,
-        }),
-        options.relayWssUrl
-          ? ApiPromise.create({
-              initWasm: false,
-              provider: new WsProvider(options.relayWssUrl),
-            })
-          : unimplementedApi(),
-        new ethers.providers.WebSocketProvider(options.wssUrl),
+        await getApi("parachain", options.wssUrl),
+        options.relayWssUrl ? await getApi("relay", options.relayWssUrl) : unimplementedApi(),
+        await getApi("ethers", options.wssUrl),
       ]);
 
       await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);
-      // Necessary hack to allow polkadotApi to finish its internal metadata loading
-      // apiPromise.isReady unfortunately doesn't wait for those properly
-      await new Promise((resolve) => {
-        setTimeout(resolve, 100);
-      });
 
       debug(`Setup ready [${options.wssUrl}] for ${this.currentTest.title}`);
     });
 
-    after(async function () {
-      await context.polkadotApi.disconnect();
-      await context.relayApi.disconnect();
-      await context.ethers.destroy();
-    });
+    // after(async function () {});
 
     cb(context);
   });
