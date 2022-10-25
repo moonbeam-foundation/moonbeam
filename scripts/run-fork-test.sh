@@ -152,7 +152,6 @@ sleep 5
 
 export RELAY_WSS_URL=ws://localhost:51002
 export WSS_URL=ws://localhost:51102
-export ETH_URL=http://127.0.0.1:51101
 # Run the fork test (without spawning the node using DEBUG_MODE)
 echo "Running fork tests... (10 minutes)"
 SUCCESS_UPGRADE=false
