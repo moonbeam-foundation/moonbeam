@@ -18,8 +18,8 @@ use crate::mock::{
 	TestAccount::{self, *},
 	TestPrecompiles,
 };
-
 use codec::Encode;
+use frame_support::traits::PalletInfo;
 use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, U256};
 use xcm::prelude::*;
@@ -79,6 +79,38 @@ fn test_get_account_sibling() {
 }
 
 #[test]
+fn test_weight_message() {
+	ExtBuilder::default().build().execute_with(|| {
+		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = PCall::weight_message {
+			message: message.into(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(0)
+			.expect_no_logs()
+			.execute_returns_encoded(1000u64);
+	});
+}
+
+#[test]
+fn test_get_units_per_second() {
+	ExtBuilder::default().build().execute_with(|| {
+		let input = PCall::get_units_per_second {
+			multilocation: MultiLocation::parent(),
+		};
+
+		precompiles()
+			.prepare_test(Alice, Precompile, input)
+			.expect_cost(1)
+			.expect_no_logs()
+			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
+	});
+}
+
+#[test]
 fn test_executor_clear_origin() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_to_execute = VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
@@ -94,23 +126,6 @@ fn test_executor_clear_origin() {
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
 	})
-}
-
-#[test]
-fn test_weight_message() {
-	ExtBuilder::default().build().execute_with(|| {
-		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
-
-		let input = PCall::weight_message {
-			message: message.into(),
-		};
-
-		precompiles()
-			.prepare_test(Alice, Precompile, input)
-			.expect_cost(0)
-			.expect_no_logs()
-			.execute_returns_encoded(1000u64);
-	});
 }
 
 #[test]
@@ -145,7 +160,6 @@ fn test_executor_send() {
 	});
 }
 
-use frame_support::traits::PalletInfo;
 #[test]
 fn test_executor_transact() {
 	ExtBuilder::default()
@@ -189,18 +203,26 @@ fn test_executor_transact() {
 }
 
 #[test]
-fn test_get_units_per_second() {
+fn test_send_clear_origin() {
 	ExtBuilder::default().build().execute_with(|| {
-		let input = PCall::get_units_per_second {
-			multilocation: MultiLocation::parent(),
+		let xcm_to_send = VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
+
+		let input = PCall::xcm_send {
+			dest: MultiLocation::parent(),
+			message: xcm_to_send.into(),
 		};
 
 		precompiles()
-			.prepare_test(Alice, Precompile, input)
-			.expect_cost(1)
+			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.expect_cost(100000000)
 			.expect_no_logs()
-			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
-	});
+			.execute_returns(EvmDataWriter::new().build());
+
+		let sent_messages = sent_xcm();
+		let (_, sent_message) = sent_messages.first().unwrap();
+		// Lets make sure the message is as expected
+		assert!(sent_message.0.contains(&ClearOrigin));
+	})
 }
 
 #[test]

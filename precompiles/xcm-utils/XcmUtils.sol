@@ -21,12 +21,6 @@ interface XcmUtils {
         view
         returns (address account);
 
-    /// Execute custom xcm message
-    /// @custom:selector 511d474e
-    /// @param message The multilocation that we want to know to which account maps to
-    /// @param maxWeight The account the multilocation maps to in this chain
-    function execute(bytes memory message, uint64 maxWeight) external view;
-
     /// Get the weight that a message will consume in our chain
     /// @custom:selector 25d54154
     /// @param message scale encoded xcm mversioned xcm message
@@ -42,4 +36,17 @@ interface XcmUtils {
         external
         view
         returns (uint256 unitsPerSecond);
+
+    /// Execute custom xcm message
+    /// @custom:selector 34334a02
+    /// @param message The versioned message to be executed scale encoded
+    /// @param maxWeight The maximum weight to be consumed
+    function xcmExecute(bytes memory message, uint64 maxWeight) external view;
+
+
+    /// Send custom xcm message
+    /// @custom:selector 98600e64
+    /// @param dest The destination chain to which send this message
+    /// @param message The versioned message to be sent scale-encoded
+    function xcmSend(Multilocation memory dest, bytes memory message) external view;
 }

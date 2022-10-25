@@ -169,7 +169,7 @@ where
 		result
 	}
 
-	#[precompile::public("execute(bytes,uint64)")]
+	#[precompile::public("xcmExecute(bytes,uint64)")]
 	fn xcm_execute(
 		handle: &mut impl PrecompileHandle,
 		message: BoundedBytes<GetXcmSizeLimit>,
@@ -189,6 +189,33 @@ where
 		let call = pallet_xcm::Call::<Runtime>::execute {
 			message: Box::new(xcm),
 			max_weight: frame_support::weights::Weight::from_ref_time(weight),
+		};
+
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("xcmSend((uint8,bytes[]),bytes)")]
+	fn xcm_send(
+		handle: &mut impl PrecompileHandle,
+		dest: MultiLocation,
+		message: BoundedBytes<GetXcmSizeLimit>,
+	) -> EvmResult {
+		let message: Vec<u8> = message.into();
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let message: Vec<_> = message.to_vec();
+		let xcm = xcm::VersionedXcm::<()>::decode_all_with_depth_limit(
+			xcm::MAX_XCM_DECODE_DEPTH,
+			&mut message.as_slice(),
+		)
+		.map_err(|_e| RevertReason::custom("Failed xcm decoding").in_field("message"))?;
+
+		let call = pallet_xcm::Call::<Runtime>::send {
+			dest: Box::new(dest.into()),
+			message: Box::new(xcm),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
