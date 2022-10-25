@@ -11,8 +11,8 @@ num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
-precompile-utils = { path = "../utils", default-features = false }
 pallet-governance-origins = { path = "../../pallets/governance-origins", default-features = false }
+precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
@@ -49,7 +49,7 @@ std = [
 	"frame-support/std",
 	"frame-system/std",
 	"pallet-evm/std",
-    "pallet-governance-origins/std",
+	"pallet-governance-origins/std",
 	"pallet-preimage/std",
 	"parity-scale-codec/std",
 	"parity-scale-codec/std",
