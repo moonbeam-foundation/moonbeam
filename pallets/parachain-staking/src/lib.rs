@@ -1531,7 +1531,7 @@ pub mod pallet {
 					// remove all candidates that did not produce any blocks for
 					// the given round. The weight is added based on the number of backend
 					// items removed.
-					let remove_result = <AtStake<T>>::clear_prefix(paid_for_round, 20, None);
+					let remove_result = <AwardedPts<T>>::clear_prefix(paid_for_round, 20, None);
 					result
 						.1
 						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
@@ -1567,16 +1567,18 @@ pub mod pallet {
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			if let Some((collator, pts)) =
-				<AwardedPts<T>>::iter_prefix(paid_for_round).drain().next()
+			if let Some(collator, state) = <AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
+				// Take the awarded points for the collator
+				let pts = <AwardedPts<T>>::take(paid_for_round, &collator);
+				if pts == 0 {
+					return (None, Weight::from_ref_time(0u64.into()));
+				}
+
 				let mut extra_weight = Weight::zero();
 				let pct_due = Perbill::from_rational(pts, total_points);
 				let total_paid = pct_due * payout_info.total_staking_reward;
 				let mut amt_due = total_paid;
-				// Take the snapshot of block author and delegations
-
-				let state = <AtStake<T>>::take(paid_for_round, &collator);
 
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
