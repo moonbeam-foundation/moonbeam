@@ -13,6 +13,11 @@ export interface SmokeTestContext {
   ethers?: ethers.providers.WebSocketProvider;
 }
 
+export interface InternalSmokeTestContext extends SmokeTestContext {
+  // used for lazy loading
+  _ethers?: ethers.providers.WebSocketProvider;
+}
+
 export type SmokeTestOptions = {
   wssUrl: string;
   relayWssUrl: string;
@@ -33,13 +38,13 @@ export function describeSmokeSuite(
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
-    let context: SmokeTestContext = {} as SmokeTestContext;
+    let context: InternalSmokeTestContext = {} as InternalSmokeTestContext;
 
     // Making sure the Moonbeam node has started
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
-      [context.polkadotApi, context.relayApi, context.ethers] = await Promise.all([
+      [context.polkadotApi, context.relayApi] = await Promise.all([
         ApiPromise.create({
           initWasm: false,
           provider: new WsProvider(options.wssUrl),
@@ -51,8 +56,17 @@ export function describeSmokeSuite(
               provider: new WsProvider(options.relayWssUrl),
             })
           : unimplementedApi(),
-        new ethers.providers.WebSocketProvider(options.wssUrl),
+        ,
       ]);
+
+      Object.defineProperty(context, "ethers", {
+        get: function () {
+          if (!context._ethers) {
+            context._ethers = new ethers.providers.WebSocketProvider(options.wssUrl);
+          }
+          return context._ethers;
+        },
+      });
 
       await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);
       // Necessary hack to allow polkadotApi to finish its internal metadata loading
@@ -65,9 +79,9 @@ export function describeSmokeSuite(
     });
 
     after(async function () {
-      await context.polkadotApi.disconnect();
-      await context.relayApi.disconnect();
-      await context.ethers.destroy();
+      await (context.polkadotApi && context.polkadotApi).disconnect();
+      await (context.relayApi && context.relayApi).disconnect();
+      await (context._ethers && context._ethers.destroy());
     });
 
     cb(context);
