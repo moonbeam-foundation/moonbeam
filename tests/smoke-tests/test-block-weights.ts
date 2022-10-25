@@ -56,7 +56,7 @@ describeSmokeSuite(
       )) as number;
 
       const length = lastBlockNumber - firstBlockNumber;
-      const blockNumArray = Object.freeze(Array.from({ length }, (_, i) => firstBlockNumber + i));
+      const blockNumArray = Array.from({ length }, (_, i) => firstBlockNumber + i);
       const limits = context.polkadotApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {
