@@ -1006,8 +1006,8 @@ impl Contains<Call> for NormalFilter {
 			// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
 			Call::PolkadotXcm(method) => match method {
-				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				pallet_xcm::Call::execute { .. } => true,
+				pallet_xcm::Call::send { .. } => true,
 				_ => false,
 			},
 			// We filter anonymous proxy as they make "reserve" inconsistent

@@ -211,7 +211,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("execute", [
+        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
           receivedMessage.toU8a(),
           2_000_000_000
         ]),
@@ -273,7 +273,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
         to: PRECOMPILE_XCM_UTILS_ADDRESS,
-        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("execute", [
+        data:  XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("xcmExecute", [
           receivedMessage.toU8a(),
           4_000_000_000
         ]),
@@ -285,7 +285,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       await context.polkadotApi.query.system.account(random.address)
     ).data.free.toBigInt();
 
-    // Transfer did not go through
+    // Transfer did not go through, EVM reentrancy NOT POSSIBLE
     expect(testAccountBalance).to.eq(0n * GLMR);
   });
 });
