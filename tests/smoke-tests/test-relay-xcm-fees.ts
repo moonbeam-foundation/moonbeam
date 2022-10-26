@@ -30,7 +30,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
     );
   });
 
-  it.only("should have value over relay expected fees", async function () {
+  it("should have value over relay expected fees", async function () {
     // Load data
     const relayRuntime = context.relayApi.runtimeVersion.specName.toString();
     const paraRuntime = context.polkadotApi.runtimeVersion.specName.toString();
