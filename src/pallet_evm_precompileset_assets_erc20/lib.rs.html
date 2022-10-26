@@ -789,6 +789,12 @@
 <span id="789">789</span>
 <span id="790">790</span>
 <span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -940,6 +946,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;totalSupply()&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>total_supply(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -950,6 +957,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;balanceOf(address)&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>balance_of(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -970,6 +978,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;allowance(address,address)&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>allowance(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1165,6 +1174,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;name()&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>name(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1179,6 +1189,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;symbol()&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>symbol(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
@@ -1193,6 +1204,7 @@
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;decimals()&quot;</span>)]
+	#[precompile::view]
 	</span><span class="kw">fn </span>decimals(
 		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,

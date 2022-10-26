@@ -469,6 +469,111 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -510,6 +615,18 @@
 	<span class="kw">pub </span>cost: u64,
 	<span class="kw">pub </span>logs: Vec&lt;Log&gt;,
 }
+
+<span class="kw">pub fn </span>decode_revert_message(encoded: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>[u8] {
+	<span class="kw">let </span>encoded_len = encoded.len();
+	<span class="comment">// selector 4 + offset 32 + string length 32
+	</span><span class="kw">if </span>encoded_len &gt; <span class="number">68 </span>{
+		<span class="kw">let </span>message_len = encoded[<span class="number">36</span>..<span class="number">68</span>].iter().sum::&lt;u8&gt;();
+		<span class="kw">if </span>encoded_len &gt;= <span class="number">68 </span>+ message_len <span class="kw">as </span>usize {
+			<span class="kw">return </span><span class="kw-2">&amp;</span>encoded[<span class="number">68</span>..<span class="number">68 </span>+ message_len <span class="kw">as </span>usize];
+		}
+	}
+	<span class="string">b&quot;decode_revert_message: error&quot;
+</span>}
 
 <span class="kw">pub trait </span>SubcallTrait: FnMut(Subcall) -&gt; SubcallOutput + <span class="lifetime">&#39;static </span>{}
 
@@ -755,18 +872,6 @@
 		res
 	}
 
-	<span class="kw">fn </span>decode_revert_message(encoded: <span class="kw-2">&amp;</span>[u8]) -&gt; <span class="kw-2">&amp;</span>[u8] {
-		<span class="kw">let </span>encoded_len = encoded.len();
-		<span class="comment">// selector 4 + offset 32 + string length 32
-		</span><span class="kw">if </span>encoded_len &gt; <span class="number">68 </span>{
-			<span class="kw">let </span>message_len = encoded[<span class="number">36</span>..<span class="number">68</span>].iter().sum::&lt;u8&gt;();
-			<span class="kw">if </span>encoded_len &gt;= <span class="number">68 </span>+ message_len <span class="kw">as </span>usize {
-				<span class="kw">return </span><span class="kw-2">&amp;</span>encoded[<span class="number">68</span>..<span class="number">68 </span>+ message_len <span class="kw">as </span>usize];
-			}
-		}
-		<span class="string">b&quot;decode_revert_message: error&quot;
-	</span>}
-
 	<span class="doccomment">/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
 	</span><span class="kw">pub fn </span>execute_some(<span class="kw-2">mut </span><span class="self">self</span>) {
@@ -788,7 +893,7 @@
 
 		<span class="kw">match </span>res {
 			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
-				<span class="kw">let </span>decoded = <span class="self">Self</span>::decode_revert_message(<span class="kw-2">&amp;</span>output);
+				<span class="kw">let </span>decoded = decode_revert_message(<span class="kw-2">&amp;</span>output);
 				<span class="macro">eprintln!</span>(
 					<span class="string">&quot;Revert message (bytes): {:?}&quot;</span>,
 					sp_core::hexdisplay::HexDisplay::from(<span class="kw-2">&amp;</span>decoded)
@@ -833,7 +938,7 @@
 
 		<span class="kw">match </span>res {
 			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
-				<span class="kw">let </span>decoded = <span class="self">Self</span>::decode_revert_message(<span class="kw-2">&amp;</span>output);
+				<span class="kw">let </span>decoded = decode_revert_message(<span class="kw-2">&amp;</span>output);
 				<span class="kw">if </span>!check(decoded) {
 					<span class="macro">eprintln!</span>(
 						<span class="string">&quot;Revert message (bytes): {:?}&quot;</span>,
@@ -904,6 +1009,111 @@
 			.field(<span class="string">&quot;data&quot;</span>, <span class="kw-2">&amp;</span>bytes)
 			.field(<span class="string">&quot;data_utf8&quot;</span>, <span class="kw-2">&amp;</span>message)
 			.finish()
+	}
+}
+
+<span class="kw">pub struct </span>PrecompilesModifierTester&lt;P&gt; {
+	precompiles: P,
+	handle: MockHandle,
+}
+
+<span class="kw">impl</span>&lt;P: PrecompileSet&gt; PrecompilesModifierTester&lt;P&gt; {
+	<span class="kw">pub fn </span>new(precompiles: P, from: <span class="kw">impl </span>Into&lt;H160&gt;, to: <span class="kw">impl </span>Into&lt;H160&gt;) -&gt; <span class="self">Self </span>{
+		<span class="kw">let </span>to = to.into();
+		<span class="kw">let </span><span class="kw-2">mut </span>handle = MockHandle::new(
+			to.clone(),
+			Context {
+				address: to,
+				caller: from.into(),
+				apparent_value: U256::zero(),
+			},
+		);
+
+		handle.gas_limit = u64::MAX;
+
+		<span class="self">Self </span>{
+			precompiles,
+			handle,
+		}
+	}
+
+	<span class="kw">fn </span>is_view(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: u32) -&gt; bool {
+		<span class="comment">// View: calling with static should not revert with static-related message.
+		</span><span class="kw">let </span>handle = <span class="kw-2">&amp;mut </span><span class="self">self</span>.handle;
+		handle.is_static = <span class="bool-val">true</span>;
+		handle.context.apparent_value = U256::zero();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		<span class="kw">let </span>res = <span class="self">self</span>.precompiles.execute(handle);
+
+		<span class="kw">match </span>res {
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
+				<span class="kw">let </span>decoded = decode_revert_message(<span class="kw-2">&amp;</span>output);
+
+				<span class="macro">dbg!</span>(decoded) != <span class="string">b&quot;Can&#39;t call non-static function in static context&quot;
+			</span>}
+			<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;tried to check view modifier on unknown precompile&quot;</span>),
+		}
+	}
+
+	<span class="kw">fn </span>is_payable(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selector: u32) -&gt; bool {
+		<span class="comment">// Payable: calling with value should not revert with payable-related message.
+		</span><span class="kw">let </span>handle = <span class="kw-2">&amp;mut </span><span class="self">self</span>.handle;
+		handle.is_static = <span class="bool-val">false</span>;
+		handle.context.apparent_value = U256::one();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		<span class="kw">let </span>res = <span class="self">self</span>.precompiles.execute(handle);
+
+		<span class="kw">match </span>res {
+			<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(PrecompileFailure::Revert { output, .. })) =&gt; {
+				<span class="kw">let </span>decoded = decode_revert_message(<span class="kw-2">&amp;</span>output);
+
+				decoded != <span class="string">b&quot;Function is not payable&quot;
+			</span>}
+			<span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+			<span class="prelude-val">None </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;tried to check payable modifier on unknown precompile&quot;</span>),
+		}
+	}
+
+	<span class="kw">pub fn </span>test_view_modifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selectors: <span class="kw-2">&amp;</span>[u32]) {
+		<span class="kw">for </span><span class="kw-2">&amp;</span>s <span class="kw">in </span>selectors {
+			<span class="macro">assert!</span>(
+				<span class="self">self</span>.is_view(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a view function.&quot;
+			</span>);
+			<span class="macro">assert!</span>(
+				!<span class="self">self</span>.is_payable(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a non-payable function.&quot;
+			</span>)
+		}
+	}
+
+	<span class="kw">pub fn </span>test_payable_modifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selectors: <span class="kw-2">&amp;</span>[u32]) {
+		<span class="kw">for </span><span class="kw-2">&amp;</span>s <span class="kw">in </span>selectors {
+			<span class="macro">assert!</span>(
+				!<span class="self">self</span>.is_view(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a non-view function.&quot;
+			</span>);
+			<span class="macro">assert!</span>(
+				<span class="self">self</span>.is_payable(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a payable function.&quot;
+			</span>);
+		}
+	}
+
+	<span class="kw">pub fn </span>test_default_modifier(<span class="kw-2">&amp;mut </span><span class="self">self</span>, selectors: <span class="kw-2">&amp;</span>[u32]) {
+		<span class="kw">for </span><span class="kw-2">&amp;</span>s <span class="kw">in </span>selectors {
+			<span class="macro">assert!</span>(
+				!<span class="self">self</span>.is_view(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a non-view function.&quot;
+			</span>);
+			<span class="macro">assert!</span>(
+				!<span class="self">self</span>.is_payable(s),
+				<span class="string">&quot;Function doesn&#39;t behave like a non-payable function.&quot;
+			</span>);
+		}
 	}
 }
 
