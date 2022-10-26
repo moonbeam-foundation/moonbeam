@@ -459,40 +459,6 @@ macro_rules! assert_tail_eq {
 	};
 }
 
-/// Panics if an event is not found in the system log of events
-#[macro_export]
-macro_rules! assert_event_emitted {
-	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_some(),
-					"Event {:?} was not found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
-	};
-}
-
-/// Panics if an event is found in the system log of events
-#[macro_export]
-macro_rules! assert_event_not_emitted {
-	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_none(),
-					"Event {:?} was found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
-	};
-}
-
 // Same storage changes as ParachainStaking::on_finalize
 pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
