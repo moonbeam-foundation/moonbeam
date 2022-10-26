@@ -31,7 +31,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it(`should have only finalized blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(
     2
   )} hours`, async function () {
-    this.timeout(120000);
+    this.timeout(480000);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
       await context.polkadotApi.rpc.chain.getFinalizedHead()
     );

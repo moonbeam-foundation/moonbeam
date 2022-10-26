@@ -35,7 +35,7 @@ describeSmokeSuite(
     let blockInfoArray: BlockInfo[];
 
     before("Retrieve all weight limits and usage", async function () {
-      this.timeout(240000);
+      this.timeout(480000);
 
       const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
         await context.polkadotApi.rpc.chain.getFinalizedHead()
@@ -135,7 +135,7 @@ describeSmokeSuite(
     // This will test that when Block is 20%+ full, its normal weight is mostly explained
     // by eth signed transactions.
     it("should roughly have a block weight mostly composed of transactions", async function () {
-      this.timeout(120000);
+      this.timeout(480000);
       debug(
         `Checking #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -180,7 +180,7 @@ describeSmokeSuite(
     // This will test that the total normal weight reported is roughly the sum of normal class
     // weight events emitted by signed extrinsics
     it("should have total normal weight matching the signed extrinsics", async function () {
-      this.timeout(120000);
+      this.timeout(480000);
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -220,7 +220,7 @@ describeSmokeSuite(
     // This test will compare the total weight of eth transactions versus the reported gasUsed
     // property of  ethereum.currentBlock()
     it("should have total gas charged similar to eth extrinsics", async function () {
-      this.timeout(120000);
+      this.timeout(480000);
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
