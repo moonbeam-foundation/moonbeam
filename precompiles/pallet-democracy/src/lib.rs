@@ -284,8 +284,8 @@ where
 		})?;
 
 		log::trace!(target: "democracy-precompile",
-			"Delegating vote to {:?} with balance {:?} and {:?}",
-			representative, conviction, amount
+			"Delegating vote to {:?} with balance {:?} and conviction {:?}",
+			representative, amount, conviction,
 		);
 
 		let representative = Runtime::AddressMapping::into_account_id(representative.into());
