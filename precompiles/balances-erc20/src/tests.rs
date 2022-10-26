@@ -70,6 +70,32 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let mut tester =
+				PrecompilesModifierTester::new(precompiles(), Account::Alice, Account::Precompile);
+
+			tester.test_view_modifier(PCall::balance_of_selectors());
+			tester.test_view_modifier(PCall::total_supply_selectors());
+			tester.test_default_modifier(PCall::approve_selectors());
+			tester.test_view_modifier(PCall::allowance_selectors());
+			tester.test_default_modifier(PCall::transfer_selectors());
+			tester.test_default_modifier(PCall::transfer_from_selectors());
+			tester.test_view_modifier(PCall::name_selectors());
+			tester.test_view_modifier(PCall::symbol_selectors());
+			tester.test_view_modifier(PCall::decimals_selectors());
+			tester.test_payable_modifier(PCall::deposit_selectors());
+			tester.test_default_modifier(PCall::withdraw_selectors());
+			tester.test_view_modifier(PCall::eip2612_nonces_selectors());
+			tester.test_default_modifier(PCall::eip2612_permit_selectors());
+			tester.test_view_modifier(PCall::eip2612_domain_separator_selectors());
+		});
+}
+
+#[test]
 fn get_total_supply() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])

@@ -86,6 +86,26 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_view_modifier(PCall::deposit_of_selectors());
+		tester.test_view_modifier(PCall::finished_referendum_info_selectors());
+		tester.test_view_modifier(PCall::lowest_unbaked_selectors());
+		tester.test_view_modifier(PCall::ongoing_referendum_info_selectors());
+		tester.test_default_modifier(PCall::propose_selectors());
+		tester.test_view_modifier(PCall::public_prop_count_selectors());
+		tester.test_default_modifier(PCall::remove_vote_selectors());
+		tester.test_default_modifier(PCall::second_selectors());
+		tester.test_default_modifier(PCall::standard_vote_selectors());
+		tester.test_default_modifier(PCall::un_delegate_selectors());
+		tester.test_default_modifier(PCall::unlock_selectors());
+	});
+}
+
+#[test]
 fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.

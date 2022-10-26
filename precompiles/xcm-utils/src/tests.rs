@@ -31,6 +31,19 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 #[test]
 fn test_selector_enum() {
 	assert!(PCall::multilocation_to_address_selectors().contains(&0x343b3e00));
+	assert!(PCall::weight_message_selectors().contains(&0x25d54154));
+	assert!(PCall::get_units_per_second_selectors().contains(&0x3f0f65db));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::multilocation_to_address_selectors());
+		tester.test_view_modifier(PCall::weight_message_selectors());
+		tester.test_view_modifier(PCall::get_units_per_second_selectors());
+	});
 }
 
 #[test]
