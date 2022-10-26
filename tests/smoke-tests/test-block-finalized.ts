@@ -26,7 +26,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssU
 
     const timestamp = (await context.ethers.getBlock("finalized")).timestamp;
     const diff = Date.now() - timestamp * 1000;
-    debug(`Last finalized block was ${diff / 1000} seconds ago`);
+    debug(`Last finalized eth block was ${diff / 1000} seconds ago`);
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
   });
 

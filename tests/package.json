@@ -38,8 +38,9 @@
     "tracing-test-single": "ETHAPI_CMD='--ethapi=txpool,debug,trace' FORCE_WASM_EXECUTION='true' FORCE_COMPILED_WASM='true' WASM_RUNTIME_OVERRIDES='moonbase-overrides' mocha -r ts-node/register 'tracing-tests/test-trace-filter.ts'",
     "para-test": "mocha -r ts-node/register 'para-tests/**/test-*.ts'",
     "para-test-single": "mocha -r ts-node/register 'para-tests-no-ci/test-xcm-para.ts'",
-    "smoke-test": "mocha -r ts-node/register --require ./util/smokeFixtures.ts 'smoke-tests/**/test-*.ts' --exit",
-    "smoke-test-single": "mocha -r ts-node/register --require ./util/smokeFixtures.ts 'smoke-tests/test-ethereum-current-consistency.ts' --exit",
+    "smoke-test": "npm run mocha -- 'smoke-tests/**/test-*.ts'",
+    "smoke-test-single": "npm run mocha -- 'smoke-tests/test-ethereum-current-consistency.ts'",
+    "mocha": "mocha -r ts-node/register --require ./util/smokeFixtures.ts ",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
@@ -83,8 +84,7 @@
     "tcp-port-used": "^1.0.2",
     "ts-node": "^10.8.1",
     "typescript": "^4.7.4",
-    "web3": "^1.8.0",
-    "wtfnode": "^0.9.1"
+    "web3": "^1.8.0"
   },
   "devDependencies": {
     "@types/tcp-port-used": "^1.0.1"

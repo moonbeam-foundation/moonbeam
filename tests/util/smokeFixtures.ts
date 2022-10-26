@@ -1,5 +1,4 @@
 import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
-import WtfNode from "wtfnode";
 const debug = require("debug")("smoke:mocha-setup");
 
 const wssUrl = process.env.WSS_URL || null;
@@ -18,6 +17,4 @@ export function mochaGlobalTeardown() {
   SubstrateApi.close(ApiType.ParaChain);
   SubstrateApi.close(ApiType.RelayChain);
   EthersApi.close();
-  // Uncomment below when  trying to diagnose dangling connections
-  // ${WtfNode.dump()
 }

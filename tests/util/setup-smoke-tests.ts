@@ -1,6 +1,4 @@
 import { ApiPromise } from "@polkadot/api";
-import { MockProvider } from "@polkadot/rpc-provider/mock";
-import { TypeRegistry } from "@polkadot/types";
 import { providers } from "ethers";
 import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
 
@@ -8,7 +6,7 @@ const debug = require("debug")("test:setup");
 
 export interface SmokeTestContext {
   polkadotApi: ApiPromise;
-  relayApi: ApiPromise;
+  relayApi?: ApiPromise;
   ethers: providers.WebSocketProvider;
 }
 
@@ -38,41 +36,18 @@ export function describeSmokeSuite(
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
-      [context.polkadotApi, context.relayApi, context.ethers] = await Promise.all([
-        await SubstrateApi.api(ApiType.ParaChain, options.wssUrl),
-        options.relayWssUrl
-          ? await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl)
-          : unimplementedApi(),
-        EthersApi.api(options.wssUrl),
-      ]);
+      context.polkadotApi = await SubstrateApi.api(ApiType.ParaChain, options.wssUrl)
+      await context.polkadotApi.isReadyOrError
 
-      await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);
+      if (options.relayWssUrl){
+        context.relayApi = await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl)
+        await context.relayApi.isReadyOrError
+      }
 
+      context.ethers = EthersApi.api(options.wssUrl)
       debug(`Setup ready [${options.wssUrl}] for ${this.currentTest.title}`);
     });
 
     cb(context);
   });
-}
-
-async function unimplementedApi() {
-  return new Proxy(
-    await ApiPromise.create({
-      initWasm: false,
-      provider: new MockProvider(new TypeRegistry()),
-    }),
-    {
-      get(target, prop, receiver) {
-        switch (prop) {
-          case "isReady":
-            return Promise.resolve(true);
-          case "tx":
-          case "query":
-          case "consts":
-            throw new Error("unimplemented! Requires `RELAY_WSS_URL` parameter");
-        }
-        return Reflect.get(target, prop, receiver);
-      },
-    }
-  );
 }

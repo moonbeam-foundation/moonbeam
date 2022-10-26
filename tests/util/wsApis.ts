@@ -31,8 +31,10 @@ export class SubstrateApi {
   }
 
   disconnect() {
-    this._api.disconnect();
-    delete this._api;
+    if (this._api) {
+      this._api.disconnect();
+      delete this._api;
+    }
   }
 
   public static async api(networkType: ApiType, wssUrl: string) {
