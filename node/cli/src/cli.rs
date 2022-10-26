@@ -73,6 +73,9 @@ pub enum Subcommand {
 	/// Key management cli utilities
 	#[clap(subcommand)]
 	Key(KeyCmd),
+
+	/// Frontier db meta columns information.
+	FrontierDb(fc_cli::FrontierDbCmd),
 }
 
 #[derive(Debug, Parser)]

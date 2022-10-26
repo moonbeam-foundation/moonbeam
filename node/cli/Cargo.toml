@@ -37,6 +37,9 @@ polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "
 polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
 polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26" }
 
+# Frontier
+fc-cli = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.26" }
+
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.26" }
 

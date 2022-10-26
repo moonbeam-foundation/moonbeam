@@ -689,6 +689,53 @@ pub fn run() -> Result<()> {
 				You can enable it at build time with `--features try-runtime`."
 			.into()),
 		Some(Subcommand::Key(cmd)) => Ok(cmd.run(&cli)?),
+		Some(Subcommand::FrontierDb(cmd)) => {
+			let runner = cli.create_runner(cmd)?;
+			let chain_spec = &runner.config().chain_spec;
+			match chain_spec {
+				#[cfg(feature = "moonriver-native")]
+				spec if spec.is_moonriver() => {
+					return runner.sync_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonriver_runtime::RuntimeApi,
+							service::MoonriverExecutor,
+						>(&mut config, false)?;
+						cmd.run::<_, service::moonriver_runtime::opaque::Block>(
+							params.client,
+							params.other.4,
+						)
+					})
+				}
+				#[cfg(feature = "moonbeam-native")]
+				spec if spec.is_moonbeam() => {
+					return runner.sync_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonbeam_runtime::RuntimeApi,
+							service::MoonbeamExecutor,
+						>(&mut config, false)?;
+						cmd.run::<_, service::moonbeam_runtime::opaque::Block>(
+							params.client,
+							params.other.4,
+						)
+					})
+				}
+				#[cfg(feature = "moonbase-native")]
+				_ => {
+					return runner.sync_run(|mut config| {
+						let params = service::new_partial::<
+							service::moonbase_runtime::RuntimeApi,
+							service::MoonbaseExecutor,
+						>(&mut config, false)?;
+						cmd.run::<_, service::moonbase_runtime::opaque::Block>(
+							params.client,
+							params.other.4,
+						)
+					})
+				}
+				#[cfg(not(feature = "moonbase-native"))]
+				_ => panic!("invalid chain spec"),
+			}
+		}
 		None => {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
