@@ -9,7 +9,7 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
 
-const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 1 * 60 * 60 * 1000;
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 24); // 1 hour -> 2.5 minute timeout
 const limiter = new Bottleneck({ maxConcurrent: 10 });
 
