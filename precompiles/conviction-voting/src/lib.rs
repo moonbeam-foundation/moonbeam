@@ -85,9 +85,7 @@ where
 		vote_amount: U256,
 		conviction: SolidityConvert<U256, u8>,
 	) -> EvmResult {
-		let poll_index: IndexOf<Runtime> = poll_index.converted().try_into().map_err(|_| {
-			RevertReason::custom("Poll index does not match type").in_field("poll_index")
-		})?;
+		let poll_index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -118,9 +116,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let index: IndexOf<Runtime> = poll_index.converted().try_into().map_err(|_| {
-			RevertReason::custom("Poll index does not match type").in_field("index")
-		})?;
+		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 
 		log::trace!(
 			target: "conviction-voting-precompile",
@@ -143,12 +139,8 @@ where
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
 		let class: Option<ClassOf<Runtime>> =
-			Some(class.converted().try_into().map_err(|_| {
-				RevertReason::custom("Class does not match type").in_field("class")
-			})?);
-		let index: IndexOf<Runtime> = poll_index.converted().try_into().map_err(|_| {
-			RevertReason::custom("Poll index does not match type").in_field("index")
-		})?;
+			Some(Self::u16_to_class(class.converted()).in_field("class")?);
+		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 
 		log::trace!(
 			target: "conviction-voting-precompile",
@@ -170,13 +162,8 @@ where
 		class: SolidityConvert<U256, u16>,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let class: ClassOf<Runtime> = class
-			.converted()
-			.try_into()
-			.map_err(|_| RevertReason::custom("Class does not match type").in_field("class"))?;
-		let index: IndexOf<Runtime> = poll_index.converted().try_into().map_err(|_| {
-			RevertReason::custom("Poll index does not match type").in_field("index")
-		})?;
+		let class = Self::u16_to_class(class.converted()).in_field("class")?;
+		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 
 		let target = Runtime::AddressMapping::into_account_id(target.into());
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -207,10 +194,7 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
-		let class: ClassOf<Runtime> = class
-			.converted()
-			.try_into()
-			.map_err(|_| RevertReason::custom("Class does not match type").in_field("class"))?;
+		let class = Self::u16_to_class(class.converted()).in_field("class")?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -219,8 +203,8 @@ where
 		})?;
 
 		log::trace!(target: "conviction-voting-precompile",
-			"Delegating vote to {:?} with balance {:?} and {:?}",
-			representative, conviction, amount
+			"Delegating vote to {:?} with balance {:?} and conviction {:?}",
+			representative, amount, conviction
 		);
 
 		let representative = Runtime::AddressMapping::into_account_id(representative.into());
@@ -243,10 +227,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		class: SolidityConvert<U256, u16>,
 	) -> EvmResult {
-		let class: ClassOf<Runtime> = class
-			.converted()
-			.try_into()
-			.map_err(|_| RevertReason::custom("Class does not match type").in_field("class"))?;
+		let class = Self::u16_to_class(class.converted()).in_field("class")?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
@@ -260,18 +241,15 @@ where
 		class: SolidityConvert<U256, u16>,
 		target: Address,
 	) -> EvmResult {
-		let class: ClassOf<Runtime> = class
-			.converted()
-			.try_into()
-			.map_err(|_| RevertReason::custom("Class does not match type").in_field("class"))?;
+		let class: ClassOf<Runtime> = Self::u16_to_class(class.converted()).in_field("class")?;
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
 			Runtime::Lookup::unlookup(target.clone());
 
 		log::trace!(
-			target: "democracy-precompile",
-			"Unlocking democracy tokens for {:?}", target
+			target: "conviction-voting-precompile",
+			"Unlocking conviction-voting tokens for {:?}", target
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -280,6 +258,16 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+	fn u32_to_index(index: u32) -> MayRevert<IndexOf<Runtime>> {
+		index
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("index type").into())
+	}
+	fn u16_to_class(class: u16) -> MayRevert<ClassOf<Runtime>> {
+		class
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("class type").into())
 	}
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
 		value
