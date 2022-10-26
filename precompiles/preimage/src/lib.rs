@@ -73,14 +73,12 @@ where
 	/// * hash: The preimage cleared from the runtime storage
 	#[precompile::public("unnotePreimage(bytes32)")]
 	fn unnote_preimage(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult {
+		let hash: Runtime::Hash = hash
+			.try_into()
+			.map_err(|_| revert("H256 is Runtime::Hash"))?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = PreimageCall::<Runtime>::unnote_preimage {
-			hash: hash
-				.try_into()
-				.map_err(|_| revert("H256 is Runtime::Hash"))?,
-		}
-		.into();
+		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 

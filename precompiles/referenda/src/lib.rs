@@ -31,6 +31,8 @@ use sp_std::marker::PhantomData;
 // #[cfg(test)]
 // mod tests;
 
+type OriginOf<Runtime> = <<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin;
+
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
 
@@ -40,8 +42,7 @@ where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_referenda::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
-	<<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin:
-		From<pallet_governance_origins::Origin>,
+	OriginOf<Runtime>: From<pallet_governance_origins::Origin>,
 	<Runtime as frame_system::Config>::Hash: TryFrom<H256>,
 	<Runtime as frame_system::Config>::Call:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
@@ -64,9 +65,10 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		let proposal_origin: pallet_governance_origins::Origin = proposal_origin
+		let gov_origin: pallet_governance_origins::Origin = proposal_origin
 			.try_into()
 			.map_err(|_| revert("Origin does not exist for u8"))?;
+		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
 		let proposal_hash: Runtime::Hash = proposal_hash
 			.try_into()
 			.map_err(|_| revert("Proposal hash input is not H256"))?;
@@ -79,7 +81,7 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = ReferendaCall::<Runtime>::submit {
-			proposal_origin: Box::new(proposal_origin.into()),
+			proposal_origin,
 			proposal_hash,
 			enactment_moment,
 		}

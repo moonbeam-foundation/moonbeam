@@ -85,7 +85,10 @@ where
 		vote_amount: U256,
 		conviction: SolidityConvert<U256, u8>,
 	) -> EvmResult {
-		let poll_index = poll_index.converted();
+		let poll_index: IndexOf<Runtime> = poll_index
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Poll index does not match type"))?;
 		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -104,13 +107,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::vote {
-			poll_index: poll_index
-				.try_into()
-				.map_err(|_| revert("Poll index does not match type"))?,
-			vote,
-		}
-		.into();
+		let call = ConvictionVotingCall::<Runtime>::vote { poll_index, vote }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -122,21 +119,19 @@ where
 		handle: &mut impl PrecompileHandle,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let poll_index: u32 = poll_index.converted();
+		let index: IndexOf<Runtime> = poll_index
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Poll index does not match type"))?;
 
 		log::trace!(
 			target: "conviction-voting-precompile",
 			"Removing vote from poll {:?}",
-			poll_index
+			index
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::remove_vote {
-			class: None,
-			index: poll_index
-				.try_into()
-				.map_err(|_| revert("Poll index does not match type"))?,
-		};
+		let call = ConvictionVotingCall::<Runtime>::remove_vote { class: None, index };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -149,26 +144,25 @@ where
 		class: SolidityConvert<U256, u16>,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let class: u16 = class.converted();
-		let poll_index: u32 = poll_index.converted();
+		let class: Option<ClassOf<Runtime>> = Some(
+			class
+				.converted()
+				.try_into()
+				.map_err(|_| revert("Class does not match type"))?,
+		);
+		let index: IndexOf<Runtime> = poll_index
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Poll index does not match type"))?;
 
 		log::trace!(
 			target: "conviction-voting-precompile",
 			"Removing vote from poll {:?}",
-			poll_index
+			index
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::remove_vote {
-			class: Some(
-				class
-					.try_into()
-					.map_err(|_| revert("Class does not match type"))?,
-			),
-			index: poll_index
-				.try_into()
-				.map_err(|_| revert("Poll index does not match type"))?,
-		};
+		let call = ConvictionVotingCall::<Runtime>::remove_vote { class, index };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -181,8 +175,14 @@ where
 		class: SolidityConvert<U256, u16>,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let class: u16 = class.converted();
-		let poll_index: u32 = poll_index.converted();
+		let class: ClassOf<Runtime> = class
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Class does not match type"))?;
+		let index: IndexOf<Runtime> = poll_index
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Poll index does not match type"))?;
 
 		let target = Runtime::AddressMapping::into_account_id(target.into());
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -191,18 +191,14 @@ where
 		log::trace!(
 			target: "conviction-voting-precompile",
 			"Removing other vote from poll {:?}",
-			poll_index
+			index
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::remove_other_vote {
 			target,
-			class: class
-				.try_into()
-				.map_err(|_| revert("Class does not match type"))?,
-			index: poll_index
-				.try_into()
-				.map_err(|_| revert("Poll index does not match type"))?,
+			class,
+			index,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -217,7 +213,10 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
-		let class = class.converted();
+		let class: ClassOf<Runtime> = class
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Class does not match type"))?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -235,9 +234,7 @@ where
 			Runtime::Lookup::unlookup(representative.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = ConvictionVotingCall::<Runtime>::delegate {
-			class: class
-				.try_into()
-				.map_err(|_| revert("Class does not match type"))?,
+			class,
 			to,
 			conviction,
 			balance: amount,
@@ -252,13 +249,12 @@ where
 		handle: &mut impl PrecompileHandle,
 		class: SolidityConvert<U256, u16>,
 	) -> EvmResult {
-		let class = class.converted();
+		let class: ClassOf<Runtime> = class
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Class does not match type"))?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::undelegate {
-			class: class
-				.try_into()
-				.map_err(|_| revert("Class does not match type"))?,
-		};
+		let call = ConvictionVotingCall::<Runtime>::undelegate { class };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
@@ -270,7 +266,10 @@ where
 		class: SolidityConvert<U256, u16>,
 		target: Address,
 	) -> EvmResult {
-		let class = class.converted();
+		let class: ClassOf<Runtime> = class
+			.converted()
+			.try_into()
+			.map_err(|_| revert("Class does not match type"))?;
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -282,12 +281,7 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = ConvictionVotingCall::<Runtime>::unlock {
-			class: class
-				.try_into()
-				.map_err(|_| revert("Class does not match type"))?,
-			target,
-		};
+		let call = ConvictionVotingCall::<Runtime>::unlock { class, target };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
