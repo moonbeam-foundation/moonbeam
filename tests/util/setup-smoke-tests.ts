@@ -10,20 +10,16 @@ export interface SmokeTestContext {
   ethers: providers.WebSocketProvider;
 }
 
-export type SmokeTestOptions = {
-  wssUrl: string;
-  relayWssUrl: string;
-};
+// export type SmokeTestOptions = {
+//   wssUrl: string;
+//   relayWssUrl: string;
+// };
 
 export function describeSmokeSuite(
   title: string,
-  options: SmokeTestOptions,
+  // options: SmokeTestOptions,
   cb: (context: SmokeTestContext) => void
 ) {
-  if (!options.wssUrl) {
-    throw Error(`Missing wssUrl parameter (use WSS_URL=... npm run smoke-test)`);
-  }
-
   describe(title, function () {
     // Set timeout to 5000 for all tests.
     this.timeout(23700);
@@ -36,16 +32,13 @@ export function describeSmokeSuite(
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
-      context.polkadotApi = await SubstrateApi.api(ApiType.ParaChain, options.wssUrl);
-      await context.polkadotApi.isReadyOrError;
+      [context.polkadotApi, context.relayApi] = await Promise.all([
+        SubstrateApi.api(ApiType.ParaChain),
+        SubstrateApi.api(ApiType.RelayChain),
+      ]);
+      context.ethers = EthersApi.api();
 
-      if (options.relayWssUrl) {
-        context.relayApi = await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl);
-        await context.relayApi.isReadyOrError;
-      }
-
-      context.ethers = EthersApi.api(options.wssUrl);
-      debug(`Setup ready [${options.wssUrl}] for ${this.currentTest.title}`);
+      debug(`APIs retrieved for ${this.currentTest.title}`);
     });
 
     cb(context);

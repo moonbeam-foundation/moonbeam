@@ -11,9 +11,6 @@ import type { AccountId20 } from "@polkadot/types/interfaces";
 
 const debug = require("debug")("smoke:staking");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 type InvalidRounds = { [round: number]: number };
 
 async function getKeysBeforeRound<
@@ -47,7 +44,7 @@ async function getKeysBeforeRound<
 }
 
 if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking round cleanup`, { wssUrl, relayWssUrl }, function (context) {
+  describeSmokeSuite(`Verify staking round cleanup`, function (context) {
     it("storage is cleaned for paid-out rounds", async function () {
       this.timeout(500000);
 

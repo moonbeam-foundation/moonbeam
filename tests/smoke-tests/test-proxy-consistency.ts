@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
@@ -11,11 +10,8 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify account proxies created`, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see

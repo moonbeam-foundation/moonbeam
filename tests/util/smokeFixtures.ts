@@ -5,10 +5,11 @@ const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
 
 export async function mochaGlobalSetup() {
-  await SubstrateApi.api(ApiType.ParaChain, wssUrl);
-  if (relayWssUrl) {
-    await SubstrateApi.api(ApiType.RelayChain, relayWssUrl);
+  if (!wssUrl) {
+    throw Error(`Missing wssUrl parameter (use WSS_URL=... npm run smoke-test)`);
   }
+  await SubstrateApi.api(ApiType.ParaChain, wssUrl);
+  await SubstrateApi.api(ApiType.RelayChain, relayWssUrl);
   EthersApi.api(wssUrl);
   debug(`ApiConnections created.`);
 }

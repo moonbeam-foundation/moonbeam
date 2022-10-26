@@ -5,9 +5,6 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:proxy");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 interface BlockWeights {
   hash: string;
   weights: BlockLimits;
@@ -18,7 +15,7 @@ interface BlockLimits {
   operational: BN;
 }
 
-describeSmokeSuite(`Verify block weight per class`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify block weight per class`, (context) => {
   let blockLimits: BlockLimits;
   let blockWeights: [BlockWeights?] = [];
 

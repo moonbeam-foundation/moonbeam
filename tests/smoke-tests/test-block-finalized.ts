@@ -4,11 +4,9 @@ import { checkBlockFinalized, getBlockTime, fetchHistoricBlockNum } from "../uti
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:block-finalized");
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 
-describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it("should have a recently finalized block", async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);

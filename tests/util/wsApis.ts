@@ -18,15 +18,20 @@ export class SubstrateApi {
   private _provider?: WsProvider;
 
   async connect(wssUrl: string, options: ApiOptions) {
-    this._provider = new WsProvider(wssUrl);
-    this._api = await ApiPromise.create({ provider: this._provider, ...options });
+    if (!wssUrl) {
+      this._api = null;
+    } else {
+      this._provider = new WsProvider(wssUrl);
+      this._api = await ApiPromise.create({ provider: this._provider, ...options });
 
-    // Necessary hack to allow polkadotApi to finish its internal metadata loading
-    // apiPromise.isReady unfortunately doesn't wait for those properly
-    await new Promise((resolve) => {
-      setTimeout(resolve, 100);
-    });
-    await this._api?.isReadyOrError;
+      // Necessary hack to allow polkadotApi to finish its internal metadata loading
+      // apiPromise.isReady unfortunately doesn't wait for those properly
+      await new Promise((resolve) => {
+        setTimeout(resolve, 100);
+      });
+      await this._api?.isReadyOrError;
+    }
+
     return this;
   }
 
@@ -37,7 +42,7 @@ export class SubstrateApi {
     }
   }
 
-  public static async api(networkType: ApiType, wssUrl: string) {
+  public static async api(networkType: ApiType, wssUrl?: string) {
     switch (networkType) {
       case ApiType.RelayChain:
         if (!relayApi) {
@@ -91,7 +96,7 @@ export class EthersApi {
     delete this._api;
   }
 
-  public static api(wssUrl) {
+  public static api(wssUrl?: string) {
     if (!ethApi) {
       ethApi = new EthersApi().connect(wssUrl);
     }
