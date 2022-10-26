@@ -10,25 +10,18 @@ export interface SmokeTestContext {
   ethers: providers.WebSocketProvider;
 }
 
-// export type SmokeTestOptions = {
-//   wssUrl: string;
-//   relayWssUrl: string;
-// };
-
 export function describeSmokeSuite(
   title: string,
   // options: SmokeTestOptions,
   cb: (context: SmokeTestContext) => void
 ) {
   describe(title, function () {
-    // Set timeout to 5000 for all tests.
     this.timeout(23700);
 
     // The context is initialized empty to allow passing a reference
     // and to be filled once the node information is retrieved
     let context: SmokeTestContext = {} as SmokeTestContext;
 
-    // Making sure the Moonbeam node has started
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
