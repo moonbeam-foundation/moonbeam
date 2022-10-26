@@ -10,10 +10,7 @@ export interface SmokeTestContext {
   ethers: providers.WebSocketProvider;
 }
 
-export function describeSmokeSuite(
-  title: string,
-  cb: (context: SmokeTestContext) => void
-) {
+export function describeSmokeSuite(title: string, cb: (context: SmokeTestContext) => void) {
   describe(title, function () {
     this.timeout(23700);
 
