@@ -75,7 +75,7 @@ where
 	fn unnote_preimage(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult {
 		let hash: Runtime::Hash = hash
 			.try_into()
-			.map_err(|_| revert("H256 is Runtime::Hash"))?;
+			.map_err(|_| RevertReason::custom("H256 is Runtime::Hash").in_field("hash"))?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
 		let call = PreimageCall::<Runtime>::unnote_preimage { hash }.into();

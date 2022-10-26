@@ -65,13 +65,14 @@ where
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
-		let gov_origin: pallet_governance_origins::Origin = proposal_origin
-			.try_into()
-			.map_err(|_| revert("Origin does not exist for u8"))?;
+		let gov_origin: pallet_governance_origins::Origin =
+			proposal_origin.try_into().map_err(|_| {
+				RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
+			})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
-		let proposal_hash: Runtime::Hash = proposal_hash
-			.try_into()
-			.map_err(|_| revert("Proposal hash input is not H256"))?;
+		let proposal_hash: Runtime::Hash = proposal_hash.try_into().map_err(|_| {
+			RevertReason::custom("Proposal hash input is not H256").in_field("proposal_hash")
+		})?;
 		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
 			DispatchTime::At(block_number.into())
 		} else {
