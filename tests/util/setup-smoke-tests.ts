@@ -12,7 +12,6 @@ export interface SmokeTestContext {
 
 export function describeSmokeSuite(
   title: string,
-  // options: SmokeTestOptions,
   cb: (context: SmokeTestContext) => void
 ) {
   describe(title, function () {
