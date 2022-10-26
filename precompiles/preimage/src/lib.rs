@@ -19,6 +19,7 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::traits::ConstU32;
 use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
@@ -29,6 +30,9 @@ use sp_std::marker::PhantomData;
 // mod mock;
 // #[cfg(test)]
 // mod tests;
+
+pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
+type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 
 /// A precompile to wrap the functionality from pallet-preimage.
 pub struct PreimagePrecompile<Runtime>(PhantomData<Runtime>);
@@ -49,13 +53,14 @@ where
 	/// Parameters:
 	/// * bytes: The preimage registered on-chain
 	#[precompile::public("notePreimage(bytes32)")]
-	fn note_preimage(handle: &mut impl PrecompileHandle, bytes: H256) -> EvmResult {
+	fn note_preimage(
+		handle: &mut impl PrecompileHandle,
+		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
+	) -> EvmResult {
+		let bytes = encoded_proposal.into();
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 
-		let call = PreimageCall::<Runtime>::note_preimage {
-			bytes: bytes.0.to_vec(),
-		}
-		.into();
+		let call = PreimageCall::<Runtime>::note_preimage { bytes }.into();
 
 		<RuntimeHelper<Runtime>>::try_dispatch(handle, Some(origin).into(), call)?;
 

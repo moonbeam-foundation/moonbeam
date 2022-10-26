@@ -36,6 +36,22 @@ use sp_std::marker::PhantomData;
 type BalanceOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
+type IndexOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as Polling<
+	Tally<
+		<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
+			<Runtime as frame_system::Config>::AccountId,
+		>>::Balance,
+		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
+	>,
+>>::Index;
+type ClassOf<Runtime> = <<Runtime as pallet_conviction_voting::Config>::Polls as Polling<
+	Tally<
+		<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
+			<Runtime as frame_system::Config>::AccountId,
+		>>::Balance,
+		<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
+	>,
+>>::Class;
 
 /// A precompile to wrap the functionality from pallet-conviction-voting.
 pub struct ConvictionVotingPrecompile<Runtime>(PhantomData<Runtime>);
@@ -51,22 +67,8 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ConvictionVotingCall<Runtime>>,
-	<<Runtime as pallet_conviction_voting::Config>::Polls as Polling<
-		Tally<
-			<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
-				<Runtime as frame_system::Config>::AccountId,
-			>>::Balance,
-			<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
-		>,
-	>>::Index: TryFrom<u32>,
-	<<Runtime as pallet_conviction_voting::Config>::Polls as Polling<
-		Tally<
-			<<Runtime as pallet_conviction_voting::Config>::Currency as Currency<
-				<Runtime as frame_system::Config>::AccountId,
-			>>::Balance,
-			<Runtime as pallet_conviction_voting::Config>::MaxTurnout,
-		>,
-	>>::Class: TryFrom<u16>,
+	IndexOf<Runtime>: TryFrom<u32>,
+	ClassOf<Runtime>: TryFrom<u16>,
 {
 	/// Vote in a poll.
 	///
