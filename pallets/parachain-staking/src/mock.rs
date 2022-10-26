@@ -252,6 +252,7 @@ pub(crate) fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
+	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
 	ParachainStaking::on_initialize(System::block_number());
@@ -264,6 +265,7 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut block = System::block_number();
 	while block < n {
 		block = roll_one_block();
+		println!("{} {:#?}", block, events());
 		num_blocks += 1;
 	}
 	num_blocks
@@ -284,10 +286,6 @@ pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	roll_to(block)
 }
 
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
-}
-
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 	System::events()
 		.into_iter()
@@ -302,50 +300,132 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-/// Assert input equal to the last event emitted
+/// Asserts that some events were never emitted.
 #[macro_export]
-macro_rules! assert_last_event {
+macro_rules! assert_no_events {
+	() => {
+		similar_asserts::assert_eq!(Vec::<Event<Test>>::new(), crate::mock::events())
+	};
+}
+
+/// Asserts that emitted events match exactly the given input.
+#[macro_export]
+macro_rules! assert_events_eq {
 	($event:expr) => {
-		match &$event {
-			e => assert_eq!(*e, crate::mock::last_event()),
-		}
+		similar_asserts::assert_eq!(vec![$event], crate::mock::events());
+	};
+	($($events:expr,)+) => {
+		similar_asserts::assert_eq!(vec![$($events,)+], crate::mock::events());
 	};
 }
 
-/// Compares the system events with passed in events
-/// Prints highlighted diff iff assert_eq fails
+/// Asserts that some emitted events match the given input.
 #[macro_export]
-macro_rules! assert_eq_events {
-	($events:expr) => {
-		match &$events {
-			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
-		}
+macro_rules! assert_events_emitted {
+	($event:expr) => {
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n {:?}",
+			e,
+			crate::mock::events()
+		));
+	};
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n {:?}",
+			e,
+			crate::mock::events()
+		));
 	};
 }
 
-/// Compares the last N system events with passed in events, where N is the length of events passed
-/// in.
-///
-/// Prints highlighted diff iff assert_eq fails.
-/// The last events from frame_system will be taken in order to match the number passed to this
-/// macro. If there are insufficient events from frame_system, they will still be compared; the
-/// output may or may not be helpful.
-///
-/// Examples:
-/// If frame_system has events [A, B, C, D, E] and events [C, D, E] are passed in, the result would
-/// be a successful match ([C, D, E] == [C, D, E]).
-///
-/// If frame_system has events [A, B, C, D] and events [B, C] are passed in, the result would be an
-/// error and a hopefully-useful diff will be printed between [C, D] and [B, C].
-///
-/// Note that events are filtered to only match parachain-staking (see events()).
+/// Asserts that some events were never emitted.
 #[macro_export]
-macro_rules! assert_eq_last_events {
-	($events:expr $(,)?) => {
-		assert_tail_eq!($events, crate::mock::events());
+macro_rules! assert_events_not_emitted {
+	($event:expr) => {
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n {:?}",
+			e,
+			crate::mock::events()
+		));
 	};
-	($events:expr, $($arg:tt)*) => {
-		assert_tail_eq!($events, crate::mock::events(), $($arg)*);
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n {:?}",
+			e,
+			crate::mock::events()
+		));
+	};
+}
+
+/// Asserts that the emitted events are exactly equal to the input patterns.
+#[macro_export]
+macro_rules! assert_events_eq_match {
+	($index:expr;) => {
+		assert_eq!(
+			$index,
+			crate::mock::events().len(),
+			"Found {} extra event(s): \n {:?}",
+			crate::mock::events().len()-$index,
+			crate::mock::events()
+		);
+	};
+	($index:expr; $event:pat_param, $($events:pat_param,)*) => {
+		assert!(
+			matches!(
+				crate::mock::events().get($index),
+				Some($event),
+			),
+			"Event {:#?} was not found at index {}: \n {:?}",
+			stringify!($event),
+			$index,
+			crate::mock::events()
+		);
+		assert_events_eq_match!($index+1; $($events,)*);
+	};
+	($($events:pat_param,)+) => {
+		assert_events_eq_match!(0; $($events,)+);
+	};
+}
+
+/// Asserts that some emitted events match the input patterns.
+#[macro_export]
+macro_rules! assert_events_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| matches!(x, $event)),
+			"Event {:?} was not found in events: \n {:?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_emitted_match!($event);
+		$(
+			assert_events_emitted_match!($events);
+		)+
+	};
+}
+
+/// Asserts that the input patterns match none of the emitted events.
+#[macro_export]
+macro_rules! assert_events_not_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| !matches!(x, $event)),
+			"Event {:?} was unexpectedly found in events: \n {:?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_not_emitted_match!($event);
+		$(
+			assert_events_not_emitted_match!($events);
+		)+
 	};
 }
 
