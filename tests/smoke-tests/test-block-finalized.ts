@@ -23,6 +23,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssU
       debug(`ChainSpec ${specVersion} does not support Finalized BlockTag, skipping test`);
       this.skip();
     }
+
     const timestamp = (await context.ethers.getBlock("finalized")).timestamp;
     const diff = Date.now() - timestamp * 1000;
     debug(`Last finalized block was ${diff / 1000} seconds ago`);

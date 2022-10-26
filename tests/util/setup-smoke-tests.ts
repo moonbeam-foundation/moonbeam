@@ -1,17 +1,15 @@
-import { ApiPromise, WsProvider } from "@polkadot/api";
+import { ApiPromise } from "@polkadot/api";
 import { MockProvider } from "@polkadot/rpc-provider/mock";
 import { TypeRegistry } from "@polkadot/types";
-import { types } from "moonbeam-types-bundle";
-import { ethers } from "ethers";
-import { getApi } from "./apis";
+import { providers } from "ethers";
+import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
 
 const debug = require("debug")("test:setup");
 
 export interface SmokeTestContext {
-  // We also provided singleton providers for simplicity
   polkadotApi: ApiPromise;
   relayApi: ApiPromise;
-  ethers: ethers.providers.WebSocketProvider;
+  ethers: providers.WebSocketProvider;
 }
 
 export type SmokeTestOptions = {
@@ -41,17 +39,17 @@ export function describeSmokeSuite(
       this.timeout(10000);
 
       [context.polkadotApi, context.relayApi, context.ethers] = await Promise.all([
-        await getApi("parachain", options.wssUrl),
-        options.relayWssUrl ? await getApi("relay", options.relayWssUrl) : unimplementedApi(),
-        await getApi("ethers", options.wssUrl),
+        await SubstrateApi.api(ApiType.ParaChain, options.wssUrl),
+        options.relayWssUrl
+          ? await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl)
+          : unimplementedApi(),
+        EthersApi.api(options.wssUrl),
       ]);
 
       await Promise.all([context.polkadotApi.isReady, context.relayApi.isReady]);
 
       debug(`Setup ready [${options.wssUrl}] for ${this.currentTest.title}`);
     });
-
-    // after(async function () {});
 
     cb(context);
   });

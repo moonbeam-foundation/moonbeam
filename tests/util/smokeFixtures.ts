@@ -1,0 +1,23 @@
+import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
+import WtfNode from "wtfnode";
+const debug = require("debug")("smoke:block-finalized");
+
+const wssUrl = process.env.WSS_URL || null;
+const relayWssUrl = process.env.RELAY_WSS_URL || null;
+
+export async function mochaGlobalSetup() {
+  await SubstrateApi.api(ApiType.ParaChain, wssUrl);
+  if (relayWssUrl) {
+    await SubstrateApi.api(ApiType.RelayChain, relayWssUrl);
+  }
+  EthersApi.api(wssUrl);
+  debug(`ApiConnections created.`);
+}
+
+export function mochaGlobalTeardown() {
+  SubstrateApi.close(ApiType.ParaChain);
+  SubstrateApi.close(ApiType.RelayChain);
+  EthersApi.close();
+  // Uncomment below when  trying to diagnose dangling connections
+  // ${WtfNode.dump()
+}
