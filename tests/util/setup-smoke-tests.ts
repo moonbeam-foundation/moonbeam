@@ -36,15 +36,15 @@ export function describeSmokeSuite(
     before("Starting Moonbeam Smoke Suite", async function () {
       this.timeout(10000);
 
-      context.polkadotApi = await SubstrateApi.api(ApiType.ParaChain, options.wssUrl)
-      await context.polkadotApi.isReadyOrError
+      context.polkadotApi = await SubstrateApi.api(ApiType.ParaChain, options.wssUrl);
+      await context.polkadotApi.isReadyOrError;
 
-      if (options.relayWssUrl){
-        context.relayApi = await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl)
-        await context.relayApi.isReadyOrError
+      if (options.relayWssUrl) {
+        context.relayApi = await SubstrateApi.api(ApiType.RelayChain, options.relayWssUrl);
+        await context.relayApi.isReadyOrError;
       }
 
-      context.ethers = EthersApi.api(options.wssUrl)
+      context.ethers = EthersApi.api(options.wssUrl);
       debug(`Setup ready [${options.wssUrl}] for ${this.currentTest.title}`);
     });
 
