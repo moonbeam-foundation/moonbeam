@@ -5,6 +5,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
+const timeout = Math.floor(timePeriod / 24);
 
 describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it("should have a recently finalized block", async function () {
@@ -31,7 +32,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it(`should have only finalized blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(
     2
   )} hours`, async function () {
-    this.timeout(120000);
+    this.timeout(timeout);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
       await context.polkadotApi.rpc.chain.getFinalizedHead()
     );
