@@ -9,8 +9,6 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const limiter = new Bottleneck({ maxConcurrent: 10 });
 
@@ -32,7 +30,6 @@ interface BlockLimits {
 
 describeSmokeSuite(
   `Verify weights of blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours`,
-  { wssUrl, relayWssUrl },
   (context) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
