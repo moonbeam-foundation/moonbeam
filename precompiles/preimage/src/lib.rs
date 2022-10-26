@@ -52,7 +52,7 @@ where
 	///
 	/// Parameters:
 	/// * bytes: The preimage registered on-chain
-	#[precompile::public("notePreimage(bytes32)")]
+	#[precompile::public("notePreimage(bytes)")]
 	fn note_preimage(
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
