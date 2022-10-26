@@ -82,6 +82,46 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_delegator_selectors());
+		tester.test_view_modifier(PCall::is_candidate_selectors());
+		tester.test_view_modifier(PCall::is_selected_candidate_selectors());
+		tester.test_view_modifier(PCall::points_selectors());
+		tester.test_view_modifier(PCall::min_delegation_selectors());
+		tester.test_view_modifier(PCall::candidate_count_selectors());
+		tester.test_view_modifier(PCall::round_selectors());
+		tester.test_view_modifier(PCall::candidate_delegation_count_selectors());
+		tester.test_view_modifier(PCall::delegator_delegation_count_selectors());
+		tester.test_view_modifier(PCall::selected_candidates_selectors());
+		tester.test_view_modifier(PCall::delegation_request_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_exit_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_request_is_pending_selectors());
+		tester.test_default_modifier(PCall::join_candidates_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::execute_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::go_offline_selectors());
+		tester.test_default_modifier(PCall::go_online_selectors());
+		tester.test_default_modifier(PCall::candidate_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::execute_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
+		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
+		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
