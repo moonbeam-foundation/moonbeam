@@ -14,13 +14,10 @@ import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:staking");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
 const limiter = new Bottleneck({ maxConcurrent: 5 });
 
 describeSmokeSuite(
   `Verify ParachainStaking rewards...`,
-  { wssUrl, relayWssUrl },
   function (context) {
     let atStakeSnapshot;
     let apiAt: ApiDecoration<"promise">;
@@ -44,7 +41,7 @@ describeSmokeSuite(
       atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(prevRound);
     });
 
-    it("should snapshot the selected candidates for that round.", async function () {
+    it.only("should snapshot the selected candidates for that round.", async function () {
       const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
       const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
 

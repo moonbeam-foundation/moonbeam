@@ -56,12 +56,19 @@ orml-traits = { git = "https://github.com/purestake/open-runtime-module-library"
 [features]
 default = [ "std" ]
 std = [
+	"codec/std",
 	"frame-support/std",
 	"frame-system/std",
+	"orml-traits/std",
+	"pallet-balances/std",
 	"pallet-evm/std",
+	"pallet-timestamp/std",
+	"polkadot-parachain/std",
 	"precompile-utils/std",
 	"sp-core/std",
+	"sp-io/std",
 	"sp-std/std",
+	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm-primitives/std",
 ]

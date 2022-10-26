@@ -53,6 +53,18 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_contributor_selectors());
+		tester.test_view_modifier(PCall::reward_info_selectors());
+		tester.test_default_modifier(PCall::claim_selectors());
+		tester.test_default_modifier(PCall::update_reward_address_selectors());
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
