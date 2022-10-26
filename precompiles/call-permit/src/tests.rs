@@ -43,6 +43,20 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+			tester.test_default_modifier(PCall::dispatch_selectors());
+			tester.test_view_modifier(PCall::nonces_selectors());
+			tester.test_view_modifier(PCall::domain_separator_selectors());
+		});
+}
+
+#[test]
 fn valid_permit_returns() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])

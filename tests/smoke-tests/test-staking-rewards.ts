@@ -8,11 +8,8 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { HexString } from "@polkadot/util/types";
 const debug = require("debug")("smoke:staking");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking rewards`, { wssUrl, relayWssUrl }, function (context) {
+  describeSmokeSuite(`Verify staking rewards`, function (context) {
     it("rewards are given as expected", async function () {
       this.timeout(500000);
       const atBlockNumber = process.env.BLOCK_NUMBER
