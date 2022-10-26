@@ -7,10 +7,7 @@ import { MultiLocation } from "@polkadot/types/interfaces";
 import { it } from "mocha";
 const debug = require("debug")("smoke:treasury");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
-describeSmokeSuite(`Verify XCM weight fees for relay`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
