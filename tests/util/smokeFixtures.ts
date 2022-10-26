@@ -1,6 +1,6 @@
 import { SubstrateApi, EthersApi, ApiType } from "./wsApis";
 import WtfNode from "wtfnode";
-const debug = require("debug")("smoke:block-finalized");
+const debug = require("debug")("smoke:mocha-setup");
 
 const wssUrl = process.env.WSS_URL || null;
 const relayWssUrl = process.env.RELAY_WSS_URL || null;
