@@ -63,8 +63,15 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
         // const bondVerify = (await checkBond(coll[0])).eqn(coll[1].bond)
 
-        console.log(JSON.stringify(coll));
-        console.log(JSON.stringify(coll[0][1]));
+        const [
+          {
+            args: [_, accountId],
+          },
+          { bond, total, delegations },
+        ] = coll;
+        console.log(accountId.toString());
+        console.log(bond.toString());
+        console.log(total.toString());
         // console.log(coll[1].bond);
         // if (index <5) {
         //   console.log(candidate)
