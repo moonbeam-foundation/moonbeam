@@ -50,6 +50,11 @@ cumulus-test-relay-sproof-builder = { git = "https://github.com/purestake/cumulu
 [features]
 default = [ "std" ]
 std = [
+	"codec/std",
+	"cumulus-pallet-parachain-system/std",
+	"cumulus-primitives-core/std",
+	"cumulus-primitives-parachain-inherent/std",
+	"cumulus-test-relay-sproof-builder/std",
 	"fp-evm/std",
 	"frame-support/std",
 	"frame-system/std",
