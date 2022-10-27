@@ -703,6 +703,36 @@ fn test_assert_events_eq_fails_if_event_missing() {
 
 #[test]
 #[should_panic]
+fn test_assert_events_eq_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 200,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
 fn test_assert_events_eq_fails_if_event_wrong_order() {
 	ExtBuilder::default().build().execute_with(|| {
 		inject_test_events();
@@ -863,6 +893,21 @@ fn test_assert_events_eq_match_fails_if_event_missing() {
 		assert_events_eq_match!(
 			ParachainStakingEvent::CollatorChosen { .. },
 			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::Rewarded { .. },
 		);
 	});
 }
