@@ -17,7 +17,8 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
+	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -325,7 +326,7 @@ macro_rules! assert_events_emitted {
 	($event:expr) => {
 		[$event].into_iter().for_each(|e| assert!(
 			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
-			"Event {:?} was not found in events: \n {:?}",
+			"Event {:?} was not found in events: \n{:#?}",
 			e,
 			crate::mock::events()
 		));
@@ -333,7 +334,7 @@ macro_rules! assert_events_emitted {
 	($($events:expr,)+) => {
 		[$($events,)+].into_iter().for_each(|e| assert!(
 			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
-			"Event {:?} was not found in events: \n {:?}",
+			"Event {:?} was not found in events: \n{:#?}",
 			e,
 			crate::mock::events()
 		));
@@ -346,7 +347,7 @@ macro_rules! assert_events_not_emitted {
 	($event:expr) => {
 		[$event].into_iter().for_each(|e| assert!(
 			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
-			"Event {:?} was unexpectedly found in events: \n {:?}",
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
 			e,
 			crate::mock::events()
 		));
@@ -354,7 +355,7 @@ macro_rules! assert_events_not_emitted {
 	($($events:expr,)+) => {
 		[$($events,)+].into_iter().for_each(|e| assert!(
 			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
-			"Event {:?} was unexpectedly found in events: \n {:?}",
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
 			e,
 			crate::mock::events()
 		));
@@ -368,7 +369,7 @@ macro_rules! assert_events_eq_match {
 		assert_eq!(
 			$index,
 			crate::mock::events().len(),
-			"Found {} extra event(s): \n {:?}",
+			"Found {} extra event(s): \n{:#?}",
 			crate::mock::events().len()-$index,
 			crate::mock::events()
 		);
@@ -379,12 +380,15 @@ macro_rules! assert_events_eq_match {
 				crate::mock::events().get($index),
 				Some($event),
 			),
-			"Event {:#?} was not found at index {}: \n {:?}",
+			"Event {:#?} was not found at index {}: \n{:#?}",
 			stringify!($event),
 			$index,
 			crate::mock::events()
 		);
 		assert_events_eq_match!($index+1; $($events,)*);
+	};
+	($event:pat_param) => {
+		assert_events_eq_match!(0; $event,);
 	};
 	($($events:pat_param,)+) => {
 		assert_events_eq_match!(0; $($events,)+);
@@ -397,7 +401,7 @@ macro_rules! assert_events_emitted_match {
 	($event:pat_param) => {
 		assert!(
 			crate::mock::events().into_iter().any(|x| matches!(x, $event)),
-			"Event {:?} was not found in events: \n {:?}",
+			"Event {:?} was not found in events: \n{:#?}",
 			stringify!($event),
 			crate::mock::events()
 		);
@@ -416,7 +420,7 @@ macro_rules! assert_events_not_emitted_match {
 	($event:pat_param) => {
 		assert!(
 			crate::mock::events().into_iter().any(|x| !matches!(x, $event)),
-			"Event {:?} was unexpectedly found in events: \n {:?}",
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
 			stringify!($event),
 			crate::mock::events()
 		);
@@ -680,4 +684,330 @@ fn assert_tail_eq_panics_on_longer_tail() {
 #[should_panic]
 fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
 	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 50,
+			},
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			delegator: 3,
+			scheduled_exit: 4,
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 50,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { rewards: 50, .. },
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq_match!(ParachainStakingEvent::Rewarded { account: 1, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				..
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			..
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 50, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 100, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(
+			ParachainStakingEvent::CollatorChosen {
+				total_exposed_amount: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+fn inject_test_events() {
+	[
+		ParachainStakingEvent::CollatorChosen {
+			round: 2,
+			collator_account: 1,
+			total_exposed_amount: 10,
+		},
+		ParachainStakingEvent::NewRound {
+			starting_block: 10,
+			round: 2,
+			selected_collators_number: 1,
+			total_balance: 10,
+		},
+		ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		},
+	]
+	.into_iter()
+	.for_each(System::deposit_event);
 }
