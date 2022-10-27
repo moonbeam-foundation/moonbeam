@@ -1567,7 +1567,8 @@ pub mod pallet {
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			if let Some((collator, state)) = <AtStake<T>>::iter_prefix(paid_for_round).drain().next()
+			if let Some((collator, state)) =
+				<AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
 				// Take the awarded points for the collator
 				let pts = <AwardedPts<T>>::take(paid_for_round, &collator);
