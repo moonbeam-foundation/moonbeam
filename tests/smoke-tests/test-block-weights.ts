@@ -141,6 +141,12 @@ describeSmokeSuite(
     // by eth signed transactions.
     it("should roughly have a block weight mostly composed of transactions", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -186,6 +192,12 @@ describeSmokeSuite(
     // weight events emitted by signed extrinsics
     it("should have total normal weight matching the signed extrinsics", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -240,6 +252,12 @@ describeSmokeSuite(
     // property of  ethereum.currentBlock()
     it("should have total gas charged similar to eth extrinsics", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
