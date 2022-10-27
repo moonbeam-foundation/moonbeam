@@ -6,7 +6,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
-describeSmokeSuite(`Ethereum contract bytecode should not be large`, (context) => {
+describeSmokeSuite(`Ethereum contract bytecode should not be large...`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 
@@ -35,8 +35,8 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large`, (context) =
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
 
-    let doOneRequest = async () => {
-      let query = await apiAt.query.evm.accountCodes.entriesPaged({
+    const doOneRequest = async () => {
+      const query = await apiAt.query.evm.accountCodes.entriesPaged({
         args: [],
         pageSize: limit,
         startKey: last_key,
@@ -63,7 +63,7 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large`, (context) =
 
     await new Promise<void>((resolve) => {
       const run = async () => {
-        let done = await doOneRequest();
+        const done = await doOneRequest();
         if (done) {
           resolve();
         } else {
@@ -84,7 +84,6 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large`, (context) =
     // https://github.com/etclabscore/core-geth/blob/master/params/vars/protocol_params.go
     const MAX_CONTRACT_SIZE_BYTES = 24576;
     const MAX_CONTRACT_SIZE_HEX = 2 + 2 * MAX_CONTRACT_SIZE_BYTES;
-
     const failedContractCodes: { accountId: string; codesize: number }[] = [];
 
     for (const accountId of Object.keys(accountCodeSizesByAddress)) {
@@ -94,20 +93,14 @@ describeSmokeSuite(`Ethereum contract bytecode should not be large`, (context) =
       }
     }
 
-    console.log("Failed account codes (too long):");
-    console.log(
-      failedContractCodes
-        .map(({ accountId, codesize }) => {
-          return `accountId: ${accountId} - ${chalk.red(codesize)} bytes`;
-        })
-        .join(`\n`)
-    );
+    expect(
+      failedContractCodes.length,
+      `Failed account codes (too long): ${failedContractCodes
+        .map(({ accountId, codesize }) => `accountId: ${accountId} - ${chalk.red(codesize)} bytes`)
+        .join(`, `)}`
+    ).to.equal(0);
 
-    // Make sure the test fails after we print the errors
-    expect(failedContractCodes.length, "Failed contract code max length").to.equal(0);
-
-    // Additional debug logs
-    let numAccounts = Object.keys(accountCodeSizesByAddress).length;
+    const numAccounts = Object.keys(accountCodeSizesByAddress).length;
     debug(`Verified ${numAccounts} total account codes (at #${atBlockNumber})`);
   });
 });

@@ -5,7 +5,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
-const timeout = Math.floor(timePeriod / 24);
+const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
 describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it("should have a recently finalized block", async function () {
