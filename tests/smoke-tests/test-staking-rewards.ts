@@ -69,16 +69,22 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           },
           { bond, total, delegations },
         ] = coll;
-        console.log(accountId.toString());
-        console.log(bond.toString());
-        console.log(total.toString());
+        // console.log(accountId.toString());
+        // console.log(bond.toString());
+        // console.log(total.toString());
+        if (index == 7) {
+          console.log(await checkBond(accountId));
+          console.log(bond);
+        }
+
+        const bondVerify = bond == (await checkBond(accountId));
         // console.log(coll[1].bond);
         // if (index <5) {
         //   console.log(candidate)
         //   console.log(JSON.stringify(candidate))
 
         // }
-        return { collator: coll[0].toString(), bondVerify: null };
+        return { collator: accountId.toString(), bondVerify };
       });
 
       return Promise.all(allTasks);
