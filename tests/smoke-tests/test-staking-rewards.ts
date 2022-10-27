@@ -321,7 +321,10 @@ totalBondReward               ${totalBondReward} \
     if (specVersion >= 1900) {
       const expectedAutoCompoundedDelegators = new Set(
         Object.entries(stakedValue[rewarded.collator].delegators)
-          .filter(([_, { autoCompound }]) => !autoCompound.value().isZero())
+          .filter(
+            ([key, { autoCompound }]) =>
+              !autoCompound.value().isZero() && expectedRewardedDelegators.has(key)
+          )
           .map(([key, _]) => key)
       );
       const notAutoCompounded = new Set(
