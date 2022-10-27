@@ -136,12 +136,15 @@ pub mod pallet {
 	{
 		/// Xcm Transact an Ethereum transaction.
 		/// Weight: Gas limit plus the db read involving the suspension check
-		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
-			match xcm_transaction {
-				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
-			}
-		}).saturating_add(T::DbWeight::get().reads(1)))]
+		#[pallet::weight({
+			let without_base_extrinsic_weight = false;
+			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+				match xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
+		})]
 		pub fn transact(
 			origin: OriginFor<T>,
 			xcm_transaction: EthereumXcmTransaction,
@@ -162,12 +165,15 @@ pub mod pallet {
 
 		/// Xcm Transact an Ethereum transaction through proxy.
 		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
-		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
-			match xcm_transaction {
-				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
-			}
-		}).saturating_add(T::DbWeight::get().reads(2)))]
+		#[pallet::weight({
+			let without_base_extrinsic_weight = false;
+			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+				match xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(2))
+		})]
 		pub fn transact_through_proxy(
 			origin: OriginFor<T>,
 			transact_as: H160,
@@ -238,7 +244,8 @@ impl<T: Config> Pallet<T> {
 		let current_nonce = Self::nonce();
 		let error_weight = T::DbWeight::get().reads(1);
 
-		let transaction: Option<Transaction> = xcm_transaction.into_transaction_v2(current_nonce);
+		let transaction: Option<Transaction> =
+			xcm_transaction.into_transaction_v2(current_nonce, T::ChainId::get());
 		if let Some(transaction) = transaction {
 			let transaction_data: TransactionData = (&transaction).into();
 

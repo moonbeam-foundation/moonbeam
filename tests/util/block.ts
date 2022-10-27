@@ -1,4 +1,4 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 
 import { ApiPromise } from "@polkadot/api";
 import {
@@ -11,7 +11,7 @@ import {
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { expect } from "chai";
 
-import { WEIGHT_PER_GAS } from "./constants";
+import { WEIGHT_PER_GAS, EXTRINSIC_BASE_WEIGHT } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 
 import type { Block } from "@polkadot/types/interfaces/runtime/types";
@@ -170,7 +170,6 @@ export const verifyBlockFees = async (
 
         let txFees = 0n;
         let txBurnt = 0n;
-
         // For every extrinsic, iterate over every event
         // and search for ExtrinsicSuccess or ExtrinsicFailed
         for (const event of events) {
@@ -191,7 +190,8 @@ export const verifyBlockFees = async (
             ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
-                const gasFee = dispatchInfo.weight.toBigInt() / WEIGHT_PER_GAS;
+                const gasFee =
+                  (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
                 let ethTxWrapper = extrinsic.method.args[0] as any;
                 let gasPrice;
                 // Transaction is an enum now with as many variants as supported transaction types.
@@ -347,3 +347,40 @@ export async function jumpRounds(context: DevTestContext, count: Number): Promis
 
   return jumpToRound(context, round);
 }
+
+export const getBlockTime = (signedBlock: any) =>
+  signedBlock.block.extrinsics
+    .find((item) => item.method.section == "timestamp")
+    .method.args[0].toNumber();
+
+export const checkBlockFinalized = async (api: ApiPromise, number: number) => {
+  return {
+    number,
+    finalized: (await api.rpc.moon.isBlockFinalized(await api.rpc.chain.getBlockHash(number)))
+      .isTrue,
+  };
+};
+
+const fetchBlockTime = async (api: ApiPromise, blockNum: number) => {
+  const hash = await api.rpc.chain.getBlockHash(blockNum);
+  const block = await api.rpc.chain.getBlock(hash);
+  return getBlockTime(block);
+};
+
+export const fetchHistoricBlockNum = async (
+  api: ApiPromise,
+  blockNumber: number,
+  targetTime: number
+) => {
+  return fetchBlockTime(api, blockNumber).then((time) => {
+    if (time < targetTime) {
+      return blockNumber;
+    } else {
+      return fetchHistoricBlockNum(
+        api,
+        (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
+        targetTime
+      );
+    }
+  });
+};

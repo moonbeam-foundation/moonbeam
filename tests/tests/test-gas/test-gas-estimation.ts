@@ -12,6 +12,7 @@ import { getAllContracts, getCompiled } from "../../util/contracts";
 import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 
 chaiUse(chaiAsPromised);
 
@@ -25,7 +26,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
   });
 
   it("should return correct gas estimation", async function () {
-    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22405);
+    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22409);
   });
 
   it("should work without gas limit", async function () {
@@ -33,15 +34,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         gas: null,
       })
-    ).to.equal(22405);
+    ).to.equal(22409);
   });
 
   it("should work with gas limit", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
-        gas: 22405,
+        gas: 22409,
       })
-    ).to.lessThanOrEqual(22405);
+    ).to.lessThanOrEqual(22409);
   });
 
   it("should ignore from balance (?)", async function () {
@@ -49,7 +50,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         from: "0x0000000000000000000000000000000000000000",
       })
-    ).to.equal(22405);
+    ).to.equal(22409);
   });
 
   it("should not work with a lower gas limit", async function () {
@@ -144,12 +145,12 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) =>
       data: contract.byteCode,
       gasPrice: "0x0",
     });
-    expect(result).to.equal(175831);
+    expect(result).to.equal(167153);
     result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
     });
-    expect(result).to.equal(175831);
+    expect(result).to.equal(167153);
   });
 });
 
@@ -183,19 +184,19 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
 
     const batchSomeGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSome", callParameters),
     });
 
     const batchSomeUntilFailureGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSomeUntilFailure", callParameters),
     });
 
     const batchAllGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchAll", callParameters),
     });
 

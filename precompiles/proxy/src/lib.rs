@@ -55,7 +55,7 @@ where
 		// Check that caller is not a smart contract s.t. no code is inserted into
 		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
 		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
-			Err(revert("Batch not callable by smart contracts"))
+			Err(revert("Proxy not callable by smart contracts"))
 		} else {
 			Ok(())
 		}

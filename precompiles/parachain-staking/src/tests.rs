@@ -19,6 +19,8 @@ use crate::mock::{
 	Account::{self, Alice, Bob, Bogus, Charlie, Precompile},
 	Call, ExtBuilder, Origin, PCall, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
 };
+use core::str::from_utf8;
+use frame_support::sp_runtime::Percent;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
@@ -77,6 +79,46 @@ fn selectors() {
 	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
 	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
 	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_delegator_selectors());
+		tester.test_view_modifier(PCall::is_candidate_selectors());
+		tester.test_view_modifier(PCall::is_selected_candidate_selectors());
+		tester.test_view_modifier(PCall::points_selectors());
+		tester.test_view_modifier(PCall::min_delegation_selectors());
+		tester.test_view_modifier(PCall::candidate_count_selectors());
+		tester.test_view_modifier(PCall::round_selectors());
+		tester.test_view_modifier(PCall::candidate_delegation_count_selectors());
+		tester.test_view_modifier(PCall::delegator_delegation_count_selectors());
+		tester.test_view_modifier(PCall::selected_candidates_selectors());
+		tester.test_view_modifier(PCall::delegation_request_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_exit_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_request_is_pending_selectors());
+		tester.test_default_modifier(PCall::join_candidates_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::execute_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::go_offline_selectors());
+		tester.test_default_modifier(PCall::go_online_selectors());
+		tester.test_default_modifier(PCall::candidate_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::execute_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
+		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
+		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
+	});
 }
 
 #[test]
@@ -559,6 +601,52 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 }
 
 #[test]
+fn delegation_auto_compound_returns_value_if_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_auto_compounding_delegations(vec![(Charlie, Alice, 50, Percent::from_percent(50))])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(50u8);
+		})
+}
+
+#[test]
+fn delegation_auto_compound_returns_zero_if_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_delegations(vec![(Charlie, Alice, 50)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(0u8);
+		})
+}
+
+#[test]
 fn join_candidates_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1_000)])
@@ -843,6 +931,7 @@ fn delegate_works() {
 				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
+				auto_compound: Percent::zero(),
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -1153,6 +1242,163 @@ fn cancel_delegator_bonded_less_works() {
 			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
+		});
+}
+
+#[test]
+fn delegate_with_auto_compound_works() {
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::delegate_with_auto_compound {
+					candidate: Address(Alice.into()),
+					amount: 1_000.into(),
+					auto_compound: auto_compound_percent,
+					candidate_delegation_count: 0.into(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 0.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert!(ParachainStaking::is_delegator(&Bob));
+
+				let expected: crate::mock::Event = StakingEvent::Delegation {
+					delegator: Bob,
+					locked_amount: 1_000,
+					candidate: Alice,
+					delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+						new_total: 2_000,
+					},
+					auto_compound: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn delegate_with_auto_compound_returns_error_if_percent_above_hundred() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::delegate_with_auto_compound {
+							candidate: Address(Alice.into()),
+							amount: 1_000.into(),
+							auto_compound: auto_compound_percent,
+							candidate_delegation_count: 0.into(),
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 0.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output).unwrap().contains(
+							"auto_compound: Must be an integer between 0 and 100 included",
+						)
+					});
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_works_if_delegation() {
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::set_auto_compound {
+					candidate: Address(Alice.into()),
+					value: auto_compound_percent,
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 1.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(auto_compound_percent)
+				);
+
+				let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
+					candidate: Alice,
+					delegator: Bob,
+					value: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_returns_error_if_value_above_hundred_percent() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::set_auto_compound {
+							candidate: Address(Alice.into()),
+							value: auto_compound_percent,
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 1.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output)
+							.unwrap()
+							.contains("value: Must be an integer between 0 and 100 included")
+					});
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_fails_if_not_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::set_auto_compound {
+						candidate: Address(Alice.into()),
+						value: 50,
+						candidate_auto_compounding_delegation_count: 0.into(),
+						delegator_delegation_count: 0.into(),
+					},
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("DelegatorDNE"));
 		});
 }
 

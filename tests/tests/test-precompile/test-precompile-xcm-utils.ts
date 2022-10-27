@@ -10,6 +10,8 @@ import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { descendOriginFromAddress } from "../../util/xcm";
 
+export const CLEAR_ORIGIN_WEIGHT = 8_268_000n;
+
 const XCM_UTILS_CONTRACT = getCompiled("XcmUtils");
 const XCM_UTILSTRANSACTOR_INTERFACE = new ethers.utils.Interface(XCM_UTILS_CONTRACT.contract.abi);
 
@@ -137,8 +139,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
       to: PRECOMPILE_XCM_UTILS_ADDRESS,
       data: XCM_UTILSTRANSACTOR_INTERFACE.encodeFunctionData("weightMessage", [xcm.toU8a()]),
     });
-    const expectedWeight = 200_000_000n;
-    const expectedWeightHex = "0x" + bnToHex(expectedWeight).slice(2).padStart(64, "0");
+    const expectedWeightHex = "0x" + bnToHex(CLEAR_ORIGIN_WEIGHT).slice(2).padStart(64, "0");
 
     expect(result.result).to.equal(expectedWeightHex);
   });

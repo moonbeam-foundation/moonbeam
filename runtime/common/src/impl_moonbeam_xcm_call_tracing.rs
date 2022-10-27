@@ -44,6 +44,7 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								ETHEREUM_XCM_TRACING_STORAGE_KEY
 							};
 							use frame_support::storage::unhashed;
+							use frame_support::traits::Get;
 
 							let dispatch_call = || {
 								Call::dispatch(
@@ -71,7 +72,8 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 									// is done using environmental, the rest dispatched normally.
 									EthereumXcmTracingStatus::Transaction(traced_transaction_hash) => {
 										let transaction_hash = xcm_transaction.into_transaction_v2(
-											EthereumXcm::nonce()
+											EthereumXcm::nonce(),
+											<Runtime as pallet_evm::Config>::ChainId::get()
 										)
 										.expect("Invalid transaction conversion")
 										.hash();

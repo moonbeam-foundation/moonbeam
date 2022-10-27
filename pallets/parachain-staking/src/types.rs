@@ -17,8 +17,9 @@
 //! Types for parachain-staking
 
 use crate::{
-	set::OrderedSet, BalanceOf, BottomDelegations, CandidateInfo, Config, DelegatorState, Error,
-	Event, Pallet, Round, RoundIndex, TopDelegations, Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	auto_compound::AutoCompoundDelegations, set::OrderedSet, BalanceOf, BottomDelegations,
+	CandidateInfo, Config, DelegatorState, Error, Event, Pallet, Round, RoundIndex, TopDelegations,
+	Total, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	pallet_prelude::*,
@@ -98,6 +99,24 @@ impl Default for CollatorStatus {
 	}
 }
 
+#[derive(Clone, Encode, Decode, RuntimeDebug, TypeInfo)]
+pub struct BondWithAutoCompound<AccountId, Balance> {
+	pub owner: AccountId,
+	pub amount: Balance,
+	pub auto_compound: Percent,
+}
+
+impl<A: Decode, B: Default> Default for BondWithAutoCompound<A, B> {
+	fn default() -> BondWithAutoCompound<A, B> {
+		BondWithAutoCompound {
+			owner: A::decode(&mut sp_runtime::traits::TrailingZeroInput::zeroes())
+				.expect("infinite length input; no invalid inputs for type; qed"),
+			amount: B::default(),
+			auto_compound: Percent::zero(),
+		}
+	}
+}
+
 #[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
 /// Snapshot of collator state at the start of the round for which they are selected
 pub struct CollatorSnapshot<AccountId, Balance> {
@@ -107,7 +126,7 @@ pub struct CollatorSnapshot<AccountId, Balance> {
 	/// The rewardable delegations. This list is a subset of total delegators, where certain
 	/// delegators are adjusted based on their scheduled
 	/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
-	pub delegations: Vec<Bond<AccountId, Balance>>,
+	pub delegations: Vec<BondWithAutoCompound<AccountId, Balance>>,
 
 	/// The total counted value locked for the collator, including the self bond + total staked by
 	/// top delegators.
@@ -121,17 +140,19 @@ impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
 			return false;
 		}
 		for (
-			Bond {
+			BondWithAutoCompound {
 				owner: o1,
 				amount: a1,
+				auto_compound: c1,
 			},
-			Bond {
+			BondWithAutoCompound {
 				owner: o2,
 				amount: a2,
+				auto_compound: c2,
 			},
 		) in self.delegations.iter().zip(other.delegations.iter())
 		{
-			if o1 != o2 || a1 != a2 {
+			if o1 != o2 || a1 != a2 || c1 != c2 {
 				return false;
 			}
 		}
@@ -677,6 +698,10 @@ impl<
 				&lowest_bottom_to_be_kicked.owner,
 				&mut delegator_state,
 			);
+			<AutoCompoundDelegations<T>>::remove_auto_compound(
+				&candidate,
+				&lowest_bottom_to_be_kicked.owner,
+			);
 
 			Pallet::<T>::deposit_event(Event::DelegationKicked {
 				delegator: lowest_bottom_to_be_kicked.owner.clone(),
@@ -1208,7 +1233,15 @@ impl<A: Clone, B: Copy> From<CollatorCandidate<A, B>> for CollatorSnapshot<A, B>
 	fn from(other: CollatorCandidate<A, B>) -> CollatorSnapshot<A, B> {
 		CollatorSnapshot {
 			bond: other.bond,
-			delegations: other.top_delegations,
+			delegations: other
+				.top_delegations
+				.into_iter()
+				.map(|d| BondWithAutoCompound {
+					owner: d.owner,
+					amount: d.amount,
+					auto_compound: Percent::zero(),
+				})
+				.collect(),
 			total: other.total_counted,
 		}
 	}
@@ -1387,11 +1420,14 @@ impl<
 			None
 		}
 	}
+
+	/// Increases the delegation amount and returns `true` if the delegation is part of the
+	/// TopDelegations set, `false` otherwise.
 	pub fn increase_delegation<T: Config>(
 		&mut self,
 		candidate: AccountId,
 		amount: Balance,
-	) -> DispatchResult
+	) -> Result<bool, sp_runtime::DispatchError>
 	where
 		BalanceOf<T>: From<Balance>,
 		T::AccountId: From<AccountId>,
@@ -1427,13 +1463,7 @@ impl<
 				<Total<T>>::put(new_total_staked);
 				let nom_st: Delegator<T::AccountId, BalanceOf<T>> = self.clone().into();
 				<DelegatorState<T>>::insert(&delegator_id, nom_st);
-				Pallet::<T>::deposit_event(Event::DelegationIncreased {
-					delegator: delegator_id,
-					candidate: candidate_id,
-					amount: balance_amt,
-					in_top: in_top,
-				});
-				return Ok(());
+				return Ok(in_top);
 			}
 		}
 		Err(Error::<T>::DelegationDNE.into())
@@ -1574,6 +1604,60 @@ pub mod deprecated {
 		pub requests: PendingDelegationRequests<AccountId, Balance>,
 		/// Status for this delegator
 		pub status: DelegatorStatus,
+	}
+
+	// CollatorSnapshot
+
+	#[deprecated(note = "use CollatorSnapshot with BondWithAutoCompound delegations")]
+	#[derive(Encode, Decode, RuntimeDebug, TypeInfo)]
+	/// Snapshot of collator state at the start of the round for which they are selected
+	pub struct CollatorSnapshot<AccountId, Balance> {
+		/// The total value locked by the collator.
+		pub bond: Balance,
+
+		/// The rewardable delegations. This list is a subset of total delegators, where certain
+		/// delegators are adjusted based on their scheduled
+		/// [DelegationChange::Revoke] or [DelegationChange::Decrease] action.
+		pub delegations: Vec<Bond<AccountId, Balance>>,
+
+		/// The total counted value locked for the collator, including the self bond + total staked by
+		/// top delegators.
+		pub total: Balance,
+	}
+
+	impl<A: PartialEq, B: PartialEq> PartialEq for CollatorSnapshot<A, B> {
+		fn eq(&self, other: &Self) -> bool {
+			let must_be_true = self.bond == other.bond && self.total == other.total;
+			if !must_be_true {
+				return false;
+			}
+			for (
+				Bond {
+					owner: o1,
+					amount: a1,
+				},
+				Bond {
+					owner: o2,
+					amount: a2,
+				},
+			) in self.delegations.iter().zip(other.delegations.iter())
+			{
+				if o1 != o2 || a1 != a2 {
+					return false;
+				}
+			}
+			true
+		}
+	}
+
+	impl<A, B: Default> Default for CollatorSnapshot<A, B> {
+		fn default() -> CollatorSnapshot<A, B> {
+			CollatorSnapshot {
+				bond: B::default(),
+				delegations: Vec::new(),
+				total: B::default(),
+			}
+		}
 	}
 }
 

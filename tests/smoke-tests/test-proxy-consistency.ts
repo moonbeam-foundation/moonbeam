@@ -2,7 +2,6 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { expect } from "chai";
-import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 // TEMPLATE: Remove useless types at the end
@@ -11,11 +10,8 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify account proxies created`, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -23,7 +19,7 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
   //             Displays PalletProxyProxyDefinition
   //           Then add the type in the import from "@polkadot/types/lookup"
   const proxiesPerAccount: { [account: string]: PalletProxyProxyDefinition[] } = {};
-  let proxyAccList = [];
+  const proxyAccList = [];
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -70,18 +66,13 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
       }
       count += query.length;
 
-      // let delegates = [];
       // TEMPLATE: convert the data into the format you want (usually a dictionary per account)
       for (const proxyData of query) {
         let accountId = `0x${proxyData[0].toHex().slice(-40)}`;
         last_key = proxyData[0].toString();
         proxiesPerAccount[accountId] = proxyData[1][0].toArray();
-        // proxyData[1][0].forEach((item) => delegates.push(item.delegate.toHuman()));
         proxyAccList.push(accountId);
       }
-
-      // Remove duplicates
-      // proxyAccList = [...new Set(delegates)];
 
       // Debug logs to make sure it keeps progressing
       // TEMPLATE: Adapt log line
@@ -181,21 +172,17 @@ describeSmokeSuite(`Verify account proxies created`, { wssUrl, relayWssUrl }, (c
     this.timeout(60000);
 
     // For each account with a registered proxy, check whether it is a non-SC address
-    await Promise.all(
+    const results = await Promise.all(
       proxyAccList.map(async (address) => {
         const resp = await apiAt.query.evm.accountCodes(address);
         const contract = resp.toJSON() == "0x" ? false : true;
-        // create results array of whether account is contract or not
         return { address, contract };
       })
-    ).then((results) => {
-      results.forEach((item) => {
-        // External accounts aka wallet account aka non-contract address
-        if (item.contract)
-          debug(`Proxy account for non-external address detected: ${item.address} `);
-      });
-      expect(results.every((item) => item.contract == false)).to.be.true;
+    );
+    results.forEach((item) => {
+      if (item.contract) debug(`Proxy account for non-external address detected: ${item.address} `);
     });
+    expect(results.every((item) => item.contract == false)).to.be.true;
   });
 });
 

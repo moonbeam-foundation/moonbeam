@@ -194,11 +194,13 @@ pub type PCall = ParachainStakingPrecompileCall<Runtime>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+	pub const WeightPerGas: u64 = 1;
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
@@ -275,7 +277,7 @@ pub(crate) struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, delegation_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -324,7 +326,21 @@ impl ExtBuilder {
 		mut self,
 		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
-		self.delegations = delegations;
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
+		self
+	}
+
+	pub(crate) fn with_auto_compounding_delegations(
+		mut self,
+		delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
+	) -> Self {
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, d.3))
+			.collect();
 		self
 	}
 

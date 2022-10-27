@@ -41,11 +41,10 @@ export const BLOCK_TX_LIMIT = GAS_PER_SECOND * 0.5;
 // Current implementation is limiting block transactions to 75% of the block gas limit
 export const BLOCK_TX_GAS_LIMIT = BLOCK_TX_LIMIT * 0.75;
 export const EXTRINSIC_BASE_WEIGHT = 250_000_000;
-export const EXTRINSIC_BASE_COST = EXTRINSIC_BASE_WEIGHT / GAS_PER_WEIGHT;
 
 // Maximum extrinsic weight is taken from the max allowed transaction weight per block,
 // minus the block initialization (10%) and minus the extrinsic base cost.
-export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1 - EXTRINSIC_BASE_COST;
+export const EXTRINSIC_GAS_LIMIT = BLOCK_TX_GAS_LIMIT - BLOCK_TX_LIMIT * 0.1;
 
 // Weight per gas mapping
 export const WEIGHT_PER_GAS = 1_000_000_000_000n / 40_000_000n;

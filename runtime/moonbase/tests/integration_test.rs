@@ -36,7 +36,7 @@ use moonbase_runtime::{
 	asset_config::AssetRegistrarMetadata,
 	asset_config::LocalAssetInstance,
 	get,
-	xcm_config::{AssetType, SelfReserve, UnitWeightCost},
+	xcm_config::{AssetType, SelfReserve},
 	AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, Call, CrowdloanRewards, Event,
 	LocalAssets, ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, System,
 	TransactionPayment, XTokens, XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -49,6 +49,7 @@ use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
 use xcm_primitives::Account20Hash;
 
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::GasWeightMapping;
 use pallet_evm::PrecompileSet;
@@ -1864,7 +1865,7 @@ fn xtokens_precompiles_transfer() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![])
 		})
@@ -1916,7 +1917,7 @@ fn xtokens_precompiles_transfer_multiasset() {
 						weight: 4_000_000,
 					},
 				)
-				.expect_cost(24000)
+				.expect_cost(47603)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		})
@@ -2859,7 +2860,8 @@ fn test_xcm_utils_ml_tp_account() {
 fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
-		let expected_weight: xcm_primitives::XcmV2Weight = UnitWeightCost::get();
+		let expected_weight: xcm_primitives::XcmV2Weight =
+			XcmWeight::<moonbase_runtime::Runtime, Call>::clear_origin();
 
 		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
 

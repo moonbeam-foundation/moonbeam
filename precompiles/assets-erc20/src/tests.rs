@@ -84,6 +84,17 @@ fn selectors() {
 	assert!(ForeignPCall::eip2612_permit_selectors().contains(&0xd505accf));
 	assert!(ForeignPCall::eip2612_domain_separator_selectors().contains(&0x3644e515));
 
+	assert!(ForeignPCall::mint_selectors().contains(&0x40c10f19));
+	assert!(ForeignPCall::burn_selectors().contains(&0x9dc29fac));
+	assert!(ForeignPCall::freeze_selectors().contains(&0x8d1fdf2f));
+	assert!(ForeignPCall::thaw_selectors().contains(&0x5ea20216));
+	assert!(ForeignPCall::freeze_asset_selectors().contains(&0xd4937f51));
+	assert!(ForeignPCall::thaw_asset_selectors().contains(&0x51ec2ad7));
+	assert!(ForeignPCall::transfer_ownership_selectors().contains(&0xf2fde38b));
+	assert!(ForeignPCall::set_team_selectors().contains(&0xc7d93c59));
+	assert!(ForeignPCall::set_metadata_selectors().contains(&0x37d2c2f4));
+	assert!(ForeignPCall::clear_metadata_selectors().contains(&0xefb6d432));
+
 	assert_eq!(
 		crate::SELECTOR_LOG_TRANSFER,
 		&Keccak256::digest(b"Transfer(address,address,uint256)")[..]
@@ -93,6 +104,51 @@ fn selectors() {
 		crate::SELECTOR_LOG_APPROVAL,
 		&Keccak256::digest(b"Approval(address,address,uint256)")[..]
 	);
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				Origin::root(),
+				0u128,
+				Account::Alice.into(),
+				true,
+				1
+			));
+			let mut tester = PrecompilesModifierTester::new(
+				precompiles(),
+				Account::Alice,
+				Account::ForeignAssetId(0u128),
+			);
+
+			tester.test_view_modifier(ForeignPCall::balance_of_selectors());
+			tester.test_view_modifier(ForeignPCall::total_supply_selectors());
+			tester.test_default_modifier(ForeignPCall::approve_selectors());
+			tester.test_view_modifier(ForeignPCall::allowance_selectors());
+			tester.test_default_modifier(ForeignPCall::transfer_selectors());
+			tester.test_default_modifier(ForeignPCall::transfer_from_selectors());
+			tester.test_view_modifier(ForeignPCall::name_selectors());
+			tester.test_view_modifier(ForeignPCall::symbol_selectors());
+			tester.test_view_modifier(ForeignPCall::decimals_selectors());
+			tester.test_view_modifier(ForeignPCall::eip2612_nonces_selectors());
+			tester.test_default_modifier(ForeignPCall::eip2612_permit_selectors());
+			tester.test_view_modifier(ForeignPCall::eip2612_domain_separator_selectors());
+
+			tester.test_default_modifier(ForeignPCall::mint_selectors());
+			tester.test_default_modifier(ForeignPCall::burn_selectors());
+			tester.test_default_modifier(ForeignPCall::freeze_selectors());
+			tester.test_default_modifier(ForeignPCall::thaw_selectors());
+			tester.test_default_modifier(ForeignPCall::freeze_asset_selectors());
+			tester.test_default_modifier(ForeignPCall::thaw_asset_selectors());
+			tester.test_default_modifier(ForeignPCall::transfer_ownership_selectors());
+			tester.test_default_modifier(ForeignPCall::set_team_selectors());
+			tester.test_default_modifier(ForeignPCall::set_metadata_selectors());
+			tester.test_default_modifier(ForeignPCall::clear_metadata_selectors());
+		});
 }
 
 #[test]

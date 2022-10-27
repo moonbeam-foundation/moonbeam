@@ -26,6 +26,7 @@ mod tests;
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::sp_runtime::Percent;
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -322,6 +323,26 @@ where
 		Ok(pending)
 	}
 
+	#[precompile::public("delegationAutoCompound(address,address)")]
+	#[precompile::view]
+	fn delegation_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult<u8> {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let value = <pallet_parachain_staking::Pallet<Runtime>>::delegation_auto_compound(
+			&candidate, &delegator,
+		);
+
+		Ok(value.deconstruct())
+	}
+
 	// Runtime Methods (dispatchables)
 
 	#[precompile::public("joinCandidates(uint256,uint256)")]
@@ -526,6 +547,50 @@ where
 		Ok(())
 	}
 
+	#[precompile::public("delegateWithAutoCompound(address,uint256,uint8,uint256,uint256,uint256)")]
+	fn delegate_with_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		amount: U256,
+		auto_compound: u8,
+		candidate_delegation_count: SolidityConvert<U256, u32>,
+		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		if auto_compound > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("auto_compound")
+					.into(),
+			);
+		}
+
+		let amount = Self::u256_to_amount(amount).in_field("amount")?;
+		let auto_compound = Percent::from_percent(auto_compound);
+		let candidate_delegation_count = candidate_delegation_count.converted();
+		let candidate_auto_compounding_delegation_count =
+			candidate_auto_compounding_delegation_count.converted();
+		let delegator_delegation_count = delegator_delegation_count.converted();
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::delegate_with_auto_compound {
+			candidate,
+			amount,
+			auto_compound,
+			candidate_delegation_count,
+			candidate_auto_compounding_delegation_count,
+			delegation_count: delegator_delegation_count,
+		};
+
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
 	/// Deprecated in favor of batch util
 	#[precompile::public("scheduleLeaveDelegators()")]
 	#[precompile::public("schedule_leave_delegators()")]
@@ -677,6 +742,44 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call =
 			pallet_parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
+
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("setAutoCompound(address,uint8,uint256,uint256)")]
+	fn set_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		value: u8,
+		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		if value > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("value")
+					.into(),
+			);
+		}
+
+		let value = Percent::from_percent(value);
+		let candidate_auto_compounding_delegation_count_hint =
+			candidate_auto_compounding_delegation_count.converted();
+		let delegation_count_hint = delegator_delegation_count.converted();
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::set_auto_compound {
+			candidate,
+			value,
+			candidate_auto_compounding_delegation_count_hint,
+			delegation_count_hint,
+		};
 
 		// Dispatch call (if enough gas).
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
