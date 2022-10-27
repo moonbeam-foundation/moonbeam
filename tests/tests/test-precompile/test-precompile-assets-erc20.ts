@@ -329,7 +329,6 @@ describeDevMoonbeamAllEthTxTypes(
           supply: balance,
         }
       );
-      console.log(assetDetails);
 
       await mockAssetBalance(
         context,
