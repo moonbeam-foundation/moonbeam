@@ -266,7 +266,6 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 	let mut block = System::block_number();
 	while block < n {
 		block = roll_one_block();
-		println!("{} {:#?}", block, events());
 		num_blocks += 1;
 	}
 	num_blocks
@@ -302,6 +301,12 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 }
 
 /// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_no_events!();
+/// ```
 #[macro_export]
 macro_rules! assert_no_events {
 	() => {
@@ -310,6 +315,16 @@ macro_rules! assert_no_events {
 }
 
 /// Asserts that emitted events match exactly the given input.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_eq {
 	($event:expr) => {
@@ -321,6 +336,15 @@ macro_rules! assert_events_eq {
 }
 
 /// Asserts that some emitted events match the given input.
+///
+/// # Example
+///
+/// ```
+/// assert_events_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_emitted {
 	($event:expr) => {
@@ -342,6 +366,15 @@ macro_rules! assert_events_emitted {
 }
 
 /// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_not_emitted {
 	($event:expr) => {
@@ -363,6 +396,16 @@ macro_rules! assert_events_not_emitted {
 }
 
 /// Asserts that the emitted events are exactly equal to the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq_match!(
+///		Foo { x: 1, .. },
+///		Bar { .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_eq_match {
 	($index:expr;) => {
@@ -396,6 +439,15 @@ macro_rules! assert_events_eq_match {
 }
 
 /// Asserts that some emitted events match the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_emitted_match {
 	($event:pat_param) => {
@@ -415,6 +467,15 @@ macro_rules! assert_events_emitted_match {
 }
 
 /// Asserts that the input patterns match none of the emitted events.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
 macro_rules! assert_events_not_emitted_match {
 	($event:pat_param) => {
@@ -430,36 +491,6 @@ macro_rules! assert_events_not_emitted_match {
 		$(
 			assert_events_not_emitted_match!($events);
 		)+
-	};
-}
-
-/// Assert that one array is equal to the tail of the other. A more generic and testable version of
-/// assert_eq_last_events.
-#[macro_export]
-macro_rules! assert_tail_eq {
-	($tail:expr, $arr:expr $(,)?) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
-		}
-	};
-	($tail:expr, $arr:expr, $($arg:tt)*) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr, $($arg)*); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..], $($arg)*);
-		}
 	};
 }
 
@@ -646,44 +677,6 @@ fn roll_to_round_end_works() {
 		assert_eq!(System::block_number(), 14);
 		assert_eq!(num_blocks, 5);
 	});
-}
-
-#[test]
-fn assert_tail_eq_works() {
-	assert_tail_eq!(vec![1, 2], vec![0, 1, 2]);
-
-	assert_tail_eq!(vec![1], vec![1]);
-
-	assert_tail_eq!(
-		vec![0u32; 0], // 0 length array
-		vec![0u32; 1]  // 1-length array
-	);
-
-	assert_tail_eq!(vec![0u32, 0], vec![0u32, 0]);
-}
-
-#[test]
-#[should_panic]
-fn assert_tail_eq_panics_on_non_equal_tail() {
-	assert_tail_eq!(vec![2, 2], vec![0, 1, 2]);
-}
-
-#[test]
-#[should_panic]
-fn assert_tail_eq_panics_on_empty_arr() {
-	assert_tail_eq!(vec![2, 2], vec![0u32; 0]);
-}
-
-#[test]
-#[should_panic]
-fn assert_tail_eq_panics_on_longer_tail() {
-	assert_tail_eq!(vec![1, 2, 3], vec![1, 2]);
-}
-
-#[test]
-#[should_panic]
-fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
-	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
 }
 
 #[test]
