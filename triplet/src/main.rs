@@ -5,83 +5,105 @@ use sp_runtime::traits::{BlakeTwo256, Hash};
 use codec::Encode;
 use std::str::FromStr;
 use std::fmt::Write;
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+struct Args {
+	#[arg(long, default_value_t = 1)]
+	block: u32, 
+}
 
 const RANDOM_MATERIAL_LEN: u32 = 81;
 
-fn main() {
-    let index = 66;
-    let subject:[u8; 8] = [102, 105, 108, 116, 101, 114, 0, 227];
+fn compute(args: &Args) {
+	// index should be: block number - 1 % index
+    let index = ((args.block - 1) % RANDOM_MATERIAL_LEN) as usize;
+    let subject:[u8; 8] = [102, 105, 108, 116, 101, 114, 0, 146];
 
-    let expect = "0x5fe7029d8bcf64f7e05f286ad772eea521d4e66cb6cc93d6bfa11ac8e45f2145";
+    let expect = "0x5f363262c183e1fd09886432b05255b935f8cd4399b13a562f8e238177e2f88a";
     // 0x9acdd8c2f25e0fe876441d86c91f133a80c8dcfbb0a3997b3a2ba50580ba23ff, (0, [102, 105, 108, 116, 101, 114, 0, 21], 0x6c6776eca9a28ae89c2ccc1a576e12d3706e909d31fdda1f5c09f22de4a3137c)
     let hash_series: Vec<H256> = vec![
-    H256::from_str("f00bdf0731b15ea9961c2188bf142a6d06fd80536149326c8d6a64c08f621ede").unwrap(),
-    H256::from_str("f55b5fafba7785fe817625e3f4746f80532c9724b6c08bc3ff870f3eab9c548d").unwrap(),
-    H256::from_str("1aa389975db07b57d6cded66eef9a76b4b6d3443e08e23e1d57fb7f4bdffd145").unwrap(),
-    H256::from_str("450fc6cf176eace177dd654276e4751ef3028654461c8c96f3b83fccd63e90d1").unwrap(),
-    H256::from_str("6ec567185a016df312eaa99a83446adb9a94255e7dd64ed27eaf0871cb60a35d").unwrap(),
-    H256::from_str("cc30cdb5024f8d2bd9c51d9623cec9d9959467dd4a8e00162629eab36d355ebd").unwrap(),
-    H256::from_str("6440ae56588f7063583ab106aa7a3d9657378f9bcc73476514c8961fb3f1a6af").unwrap(),
-    H256::from_str("aef14341a5c2f34f189259f9585bc13205d3e88e1a35080014656cbd1e3ca025").unwrap(),
-    H256::from_str("8b705f14320069fec2ec2e779a8f3fa802e128c46ef5e43aa2160fd71095311d").unwrap(),
-    H256::from_str("2a77411397b16bfb0255a896fa52e2747ae77208f4365e7526416a18833a0815").unwrap(),
-    H256::from_str("59c7f012f626027ecb23b532dd52c0d45ef6d907531222f982bb058d5c542f3a").unwrap(),
-    H256::from_str("28f02c70a005e1ae77a04bd122b18f16355d7daa26f545021c1762ad66cc2bdc").unwrap(),
-    H256::from_str("83fc07ec211a9a7bd295939acfae81296a394113d8eab77e0cd78d753fb990eb").unwrap(),
-    H256::from_str("d359b6dfbf4c270abc55cd5dd4d9c0acef4d43f742ae7e1a24b20ecc3975ee60").unwrap(),
-    H256::from_str("1687952c9450b32d83ec94ad0d2ed035be927986e5c4b6d34137e86b17a9d3fa").unwrap(),
-    H256::from_str("01d6fc7895a55c57d2a15993731c78788ced017869b0ff830ff5c685a44e2754").unwrap(),
-    H256::from_str("dfe8b621f541b01e8a2aa9218ac97ae9fac0a3b3281d42b1fc16474c075cb12e").unwrap(),
-    H256::from_str("9854276482a01a510ad0cd3d5c10e54bf3f9de49431435e3ed5176323440c1a0").unwrap(),
-    H256::from_str("3b310bf2b1e3e304cb138f3ca9814002d9c9fe6a7bed56d3cbd3b1098746ef80").unwrap(),
-    H256::from_str("2655b69b4f90d630afc700b0caf69f0624bb8e7f44fd60bd19a362e2c017a6b1").unwrap(),
-    H256::from_str("1aec2e9d50cf5e120372c53faec136725ce01901ce615d21ad1f05f5beadc3aa").unwrap(),
-    H256::from_str("bfdd7042057b531237b037fd59930e9b3f617912adaf27d25b7df505862db932").unwrap(),
-    H256::from_str("057ad0d872d02c6d961ecc36c270bb135e1a688d32da4a7716b9d1017ecde97a").unwrap(),
-    H256::from_str("0d04739b485006e7058bfa10df3dce9776c6968a3a11301530a680a1a4818c4f").unwrap(),
-    H256::from_str("060ef0bb8c17f738173314d82756f7becc749c30fa54bbc68f45a1469b7abac8").unwrap(),
-    H256::from_str("1a8216e8e67820fd5352adaab04a22ef3f0aa744e70afb3da90531d06496bab2").unwrap(),
-    H256::from_str("7f66a9706d0ac704fc71798876c552a551c5d659865876d24f91318eb421e7e0").unwrap(),
-    H256::from_str("c22b8ea8a7fe2c5a2ee7af501458b4a11aca7dc5af8e3b3b4adf49056182d932").unwrap(),
-    H256::from_str("e6690b8c32dfe117511d00bf9f623e62f829ae96eb44a5b633b3febf14df1ec4").unwrap(),
-    H256::from_str("69e490498a38d0fae215754f66a46a22b179c18db2cb587ad40d1e70062658c3").unwrap(),
-    H256::from_str("c004d6d51b1746c44ee90831f145b06e9c13c42eaa4117a8e99fefa89d458ed2").unwrap(),
-    H256::from_str("3b95c042faa6572d21a72a65688433a1548530bda000ee4404e1ac4bde1e806a").unwrap(),
-    H256::from_str("b900aa079d91a3a1facd971a62af7100cc3506e3a524ea616e1159d07b33b7bd").unwrap(),
-    H256::from_str("ea24bd3fe77426837d2c15e63146a7c73eb9b704d305fcd1d4f1b9c5b2e94e97").unwrap(),
-    H256::from_str("2c3cdde7c5d2cfa9771a3c38b8a7d07ce83fef470215d93419707df91dbbdc83").unwrap(),
-    H256::from_str("e507e3467376e5e249ec794d01eb8241fcf5e21f6312cd830871bf41d1ae7a8f").unwrap(),
-    H256::from_str("af046eafe2a0f7e4a04c9fb3ee8cf4681b21b25a7f98ea88c03c78e1983b310e").unwrap(),
-    H256::from_str("4abff8268dbf73d4ed7b86de2a8b4969e1df5b113d850d1f33e7e508923d635e").unwrap(),
-    H256::from_str("394085beda0d802c3d51102504509db28c5357237fb39225531e591599fa71e3").unwrap(),
-    H256::from_str("8b80c127ccbfc6585f77bc2f0b85fbfdb69d89763857627b12c6657434b57d5c").unwrap(),
-    H256::from_str("7811048302bbd296b2a602ef0074148ddfc49d9443368fa0bc9a2783b01a815c").unwrap(),
-    H256::from_str("346f21db5893e131421e00d4e012e5f7c87b31868e16cd2d5a6a2f3b9a2b552a").unwrap(),
-    H256::from_str("9f217779f44b6eff15d3fb8ed781a01099fa5a7805d6a7f1661a65da13a66879").unwrap(),
-    H256::from_str("7cd93e82a9a565e4ba9ac8637d8ac18bcda2a3bd5b4e0a0c98ecae1b1b87a78e").unwrap(),
-    H256::from_str("54b2c90288db85f6b7c09253c2868c99e5c81a78105cec900738bff12b223449").unwrap(),
-    H256::from_str("5088ef6c687a3309a9446fdd85a686f1f8ef15c4f6787487fc1dd62fbd92163a").unwrap(),
-    H256::from_str("13e5f4c8cff0b26e73632dcf17ae8f4154c2fb9e070e839f6457d6c93cc23a09").unwrap(),
-    H256::from_str("dbe277bb346c40bf2a5936731524cb7e865669672a369e5b71040d61604257a9").unwrap(),
-    H256::from_str("45f24040e98c65c67d86dcc0cad2c6cf1163b481918afed4120b095394784dfc").unwrap(),
-    H256::from_str("cacc78b6616546dff82c3f43edd6e8e43602f4f4d12d84e16a1cc6482f5ef438").unwrap(),
-    H256::from_str("bc2f0a7cab116be0a4692e52f0f09d1196862dd6365b5f07c459ad86fffbe6fe").unwrap(),
-    H256::from_str("fb723abd858b44c3fc14cb98295e4fde92f0d172c7ab616b6e721c4620f91537").unwrap(),
-    H256::from_str("63361b24df0994d85ae484aece8e7f05b209488bff3966c672ec21947d482f3f").unwrap(),
-    H256::from_str("30755f12ebdf6b1a11ab67cad792f70035d8244aaefbb2415c53b1e0f04b1704").unwrap(),
-    H256::from_str("7cf4983aa5575ebc49d7df0c720fa7d63a94efee3e407b7e7580bc573eb94536").unwrap(),
-    H256::from_str("c4de394b8e6a469ba1242a0ede1e8e0541b4933331150897121fa900f46fde62").unwrap(),
-    H256::from_str("4d0b8e5b93b160f2005c738dfbab03c09ef705e72fb550bb82cc1280987c6303").unwrap(),
-    H256::from_str("9e389cb99fef7d079b5fc859f7d9c14e54017bfb1e85090f864f2129223351ff").unwrap(),
-    H256::from_str("70bc33d6b56e5cad343aa7cb16f0609d48ec35499a8c0fdf481a789bc26e1498").unwrap(),
-    H256::from_str("10a705ac58abd9f880e6cf2c2573c1742fb82646b19a07572c86c74654fbd30e").unwrap(),
-    H256::from_str("0b25d0d6820f9ebf6af60048cd389872a69a02aea7cd1b24c1abc84a31e6f4ba").unwrap(),
-    H256::from_str("37b1ece42fab52d470b706558c768a23ace55cff793003ee7662a2fb6bf85e7b").unwrap(),
-    H256::from_str("25c9952f7c5c0e5b41d115db1d5f769384971c515c0b321b31ab62e9be8f9246").unwrap(),
-    H256::from_str("e1424448042ce1dd2b727d23217443749ed44a890a825b67f853dcaa60df68ce").unwrap(),
-    H256::from_str("9174cdb572abfa9766f19689bc87ce6320360cfe806e57a60e72d7b410612584").unwrap(),
-    H256::from_str("ba8b274ed8f6637f34bcb095eebcca79c26ee28499d3501f5ea1b7b53c725a69").unwrap(),
-    H256::from_str("85526547b5cc63117ea3b554ee6b5e2fd0fc6a1852e9d821b0285312c945b567").unwrap()
+	H256::from_str("6feaee6e3762885495213a21cc814b3b25119e765d95fa634189b5bf5df04968").unwrap(),
+    H256::from_str("9598326651ed57a7773b3803e80399f964f9f510fc1b6f07e5a693aa169f7792").unwrap(),
+    H256::from_str("c52827a52d0ed88cff1d019443b0e4795cef28b1c9796d17483734b10f37d905").unwrap(),
+    H256::from_str("6b4633d5fe70e565aaf4dc558bb24d2d909e82dab6b05487d92ee73ecb348987").unwrap(),
+    H256::from_str("8f9455e2d9f422d6387a6d29939c824ba92b113772bd9ce9b977409573b9a015").unwrap(),
+    H256::from_str("ac9c66050ffb51c4dd21e92fede1d698556652ea920098f32a503ccc69410aae").unwrap(),
+    H256::from_str("c94036441c42003107b546fb1d405354d415ef72ce66ea0b4ffc9cefb408fa4e").unwrap(),
+    H256::from_str("f7c336d7de9c19562419f311f041b139e138db6273efd4a31b659aa614d2740d").unwrap(),
+    H256::from_str("12d707e610015d95ab89f59420c05b1109af52758ad9a5c1f147928d4e8d07b4").unwrap(),
+    H256::from_str("8e119cc30e5c12e5cc4b01876b8b5a2654bd304cfb4900932cf1c664586417d9").unwrap(),
+    H256::from_str("8a3632d7619893319b7616e301277fbd1a072d4ea6c519cb5809218a87febad2").unwrap(),
+    H256::from_str("e4aef6f001e1378369d8f6d304ca61630f4b0321865a2eba5a69c54542315832").unwrap(),
+    H256::from_str("30451c44a5acece3f0437722e251415fdb4cf33281d75dd3b403923061716db2").unwrap(),
+    H256::from_str("8f8610065011f6d935e38e04ef285881ef4b34d40f698d021123d0fab8346af5").unwrap(),
+    H256::from_str("616cc32b7517f44762959397916b5a6e475edc5c062d7aacbfdfd98416b84171").unwrap(),
+    H256::from_str("68a7447937d2c416a532a4463c553beefbd87791704d1913eb860c73dcf03993").unwrap(),
+    H256::from_str("1bbc7d52349662478f0b2abd03e078949024b903bae84715d87422115a5697b2").unwrap(),
+    H256::from_str("f6ca936b7c5cd5ae2e72af2285685e1506e0946f5f5f1840d19e1f55e80b2402").unwrap(),
+    H256::from_str("9aa371e07bafae7fbd690d47666c6d77c35e9cfa8487255914b4e28c9b943dbd").unwrap(),
+    H256::from_str("4b0fcf79cbc9c7d58b48eb0293cb5f44e060b31886a7ffd9bb79c7e93bdf3947").unwrap(),
+    H256::from_str("78932ac4e7828d14522ac77accebbab442d6fa9c679001452774fdeb9c76e3e9").unwrap(),
+    H256::from_str("a1b07f9233576546bf41fac4e36f9cea358d3be59618772652545bc68f5de915").unwrap(),
+    H256::from_str("9ad25a551e62eea440f1984c181ae39eeca442b5868b9e11446a6f4d1776a26e").unwrap(),
+    H256::from_str("ccf8c18ca01b35a95e491b30f538df5a3c5c9ce348b2a980d9cab032785302cd").unwrap(),
+    H256::from_str("be27413a2183f5905badeb6a510f11f063b8e156a431288496d68d980af8b5a3").unwrap(),
+    H256::from_str("f475d31a7f33ec29e74c32459565aa5094e628f7534adc8fb4c4d894a715a9ef").unwrap(),
+    H256::from_str("124664bc1e53759810d51b031aa68f729200bd56aebba251b7580d27e130a05c").unwrap(),
+    H256::from_str("d58a1d12f2d943f2982d08d69123c201c30045d9bf36a8ef024a40823015ecd6").unwrap(),
+    H256::from_str("643b1b3e657a3eb3bdb5e3307221a2e260f748b155eeb9179188d1f103350837").unwrap(),
+    H256::from_str("b89d68ab2ad03f77f8936d5418481b19af4babbd77eb9fa15834d1a4e0da3c73").unwrap(),
+    H256::from_str("111680878e4830e63b7a0baa8136e38aa6213b2db86d17c9be67beb9d7fd27cb").unwrap(),
+    H256::from_str("43a46fb831077c8b953aef073b4098c4438e8ae319654c34580340434ba1f9b6").unwrap(),
+    H256::from_str("b04564da75c571eb79f097681d8f4d2c63c45c67c18dd128c184bcccd5acbef0").unwrap(),
+    H256::from_str("40f37d650002545325c44df03c0c7ddb0dc496918fada08333ee2f5580b512c2").unwrap(),
+    H256::from_str("08c57025fdd90ed0c86f2abd7bd60b8f192eb025ad56fda3377cc20d276b72e7").unwrap(),
+    H256::from_str("2ff11cd3d3a9ac17b88cb5a76e5769cbbeec85fa9892d07b51700c1c3a581e9f").unwrap(),
+    H256::from_str("4c50c67b0e12225cbfc39c07860c77934e62d099ae2bff4aa0d8593d9fc706e9").unwrap(),
+    H256::from_str("04a82c6b4bb59d07e9ad391f364413bab3fa3a2043a517c873e6e912a72bccef").unwrap(),
+    H256::from_str("90a9b872c72ea3273dfdb729aa4605cee303a59fff89b24e6459ed67b6fba5a7").unwrap(),
+    H256::from_str("9821437e44f7031aae06160ee2720a700e4d9c9b933961abceb33ee1ea167a95").unwrap(),
+    H256::from_str("5c29d916d98e1e4338b598f443061c1c1f3899602d0a7540b1c6951b7afa14e7").unwrap(),
+    H256::from_str("bb8daeb39b7b57ac0390b0eaa1ec33442c0fc2ba95210378ed1f1eafd7c2b476").unwrap(),
+    H256::from_str("dad57d0866a4faddc3fded42b321ea60417ea8fab523ab4aee6c1223fd2bead9").unwrap(),
+    H256::from_str("8ca305bd210f6e4b58dfd0b6b66d55f3dc60e95abd1d079ec0ee4556b0c1eab4").unwrap(),
+    H256::from_str("c578ac42446a8ec4c96c0aec0e4a75e6fd91e2ebb2c8b3b30df093f72327abed").unwrap(),
+    H256::from_str("b991d17037b45259d54ad54248aa8e38f66673c15d59a184dd3aef1db7d5dda8").unwrap(),
+    H256::from_str("6b9ed6ddf4e1233666593f686c21b4adcef200053b845196fc4a3bdcf3920849").unwrap(),
+    H256::from_str("07f7fe04e9a283d48041e3efd77dc4b9735a78344d6381a184cd49f763ea48e8").unwrap(),
+    H256::from_str("842c3ebfd5e1f657a5eb2a7bebf9fca83bc364c63d26eeee2302ece709ae9170").unwrap(),
+    H256::from_str("37ac10030d068dc54751d4c10a7b9c227459e78f776c9bfd98e83252b1bdd011").unwrap(),
+    H256::from_str("733effe8889f3f9c315f56b7755a82ff252aabd6f46cdcdb08153dfc22ab8b5b").unwrap(),
+    H256::from_str("6dfd05e655f7b06b3e6ec287f2b729fbe03de49e0e63cdb2984cd864fb4a4cc4").unwrap(),
+    H256::from_str("657d06131ff530f58b509220d41fd559d141bbb84ba103ed2a2b210a15d333ed").unwrap(),
+    H256::from_str("12043157f7c64e3fe61a492126f5d8e46b99e81094052d1a40432a0ccbed8fda").unwrap(),
+    H256::from_str("8c25d39572e8f282dd11fbf2a1928b5fc1a75c45b067dbdbf43c134122bb9491").unwrap(),
+    H256::from_str("84b67803711fccc5a28554a427cf107eb54ef90cd8f65201b390e6f6894f2c67").unwrap(),
+    H256::from_str("4fe9e411b11626c5c74ffba174b1f5e8ba0c0d231866f1c8e79b86df403da8ab").unwrap(),
+    H256::from_str("fe1c482beca7f3ce49e8187295450af59cfc829fff03fa938c4fcb43edd494e6").unwrap(),
+    H256::from_str("0ccb300f13991b7632d6f2da5199c8e1ca8f67ad0847df8e0e70b97b359a3e3c").unwrap(),
+    H256::from_str("d026a5674fd682f29efb3c408a1c3022d9ccfb8c37100b7d6b111f7904c329c9").unwrap(),
+    H256::from_str("31ebcff9ff2b1d82965a4482b9ffc83adb5148dc3147e9cef01a8aa9d4741bc7").unwrap(),
+    H256::from_str("057c0fe8ee1052d9ea5879e71bcf3b0f63b04c9a31d387e0b48481cc1529521f").unwrap(),
+    H256::from_str("07c6e3e86ad550e0db98537ffd1fc40e626dda31fc06395055e8cb9f2f612bba").unwrap(),
+    H256::from_str("42814c1d6dd67f7b77c50b16f581f8e2cbd74aaed074760b5ae50b607589061a").unwrap(),
+    H256::from_str("52bc6b31d3aaf59f3e0e453049df08a36a92aaf6319f5c2b9314e369afcfa70b").unwrap(),
+    H256::from_str("2c1cd6d06ef3d5f2d97921756db301b54edff106e73fdec2ed628b884ad585cb").unwrap(),
+    H256::from_str("88cda1185231d86b13dcfc0037f56f68d6fc9664172a57a36f7b7dc351c7092b").unwrap(),
+    H256::from_str("5a872018c0c98dcece9cefc79787885bc83a561d4f04377aff4ab3a8122296d6").unwrap(),
+    H256::from_str("f9911e9efb62995b7cfbb6c886438ec0983271d5bcd01bcead162f4c460bb926").unwrap(),
+    H256::from_str("4aef51af702608d1f3bdd137e12d112efbd7e94b3800b3608f6f88c3dc1880f8").unwrap(),
+    H256::from_str("01287b836180c1f40190571c3187c8be5f4ab60deda09949c023242b333d915b").unwrap(),
+    H256::from_str("0d11db790649546859d1bc30e6ca5299ecd7c7b493d22fbc1a7e1e15273217da").unwrap(),
+    H256::from_str("b0b31b286c15850b380580c1859e72ab0b6d073269b587dc0af7c1c3aaba4a57").unwrap(),
+    H256::from_str("05567f0865db1c5d5ca98eed512efcc5b2c629ea0a4f5397c2e251955d1b4efd").unwrap(),
+    H256::from_str("7be4283f70254ceb806392647d847c1dd9b0554cd4897f28ebfaf4117d58fddc").unwrap(),
+    H256::from_str("5c32fa9ce2f99d0ea4ba72e961a63a471ec75c99816e41dfe331d4359e4570d4").unwrap(),
+    H256::from_str("9f7809e0a02b3b406c9e9dc2c4b663b6f75e4ffa9c0c82029066cc6ed90c08c0").unwrap(),
+    H256::from_str("4156e64d984bee0019b6e72e12457ad50abc01069bd7a2be5f8d6e1601db44a4").unwrap(),
+    H256::from_str("60bb6d278e2552939c8d51833b5d5057596d8ab8dae0348afcb0f2e73e927264").unwrap(),
+    H256::from_str("eaabb54a8c87358f3659e94cc3714adb71416fa60847e89d5c02f691e2497870").unwrap(),
+    H256::from_str("a2bf2b628bc31ca24c09c1c80db858be8a105e5a15fad520fb017c702d03b7b1").unwrap(),
     ];
     let seed = if !hash_series.is_empty() {
         println!("hash_series {:?}", hash_series.iter().enumerate().map(|(i, h)| (i as i8, 32 as i8, subject, h).using_encoded(sp_io::hashing::blake2_256).into()).collect::<Vec<H256>>());
@@ -128,4 +150,13 @@ fn main() {
     println!("{}", (16 as i8, 32 as i8, subject, hash_series[15]).using_encoded(|e| format!("{:?}", e)));
     println!("Expected: {}", expect);
     // (seed, block_number.saturating_sub(RANDOM_MATERIAL_LEN.into()))
+}
+
+fn main() {
+	let args = Args::parse();
+
+	println!("using args: {:?}", args);
+
+	compute(&args);
+	
 }
