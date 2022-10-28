@@ -10,12 +10,14 @@ version = "0.12.3"
 [[bin]]
 name = 'triplet'
 path = 'src/main.rs'
+clap = "4.0.18"
 
 [dependencies]
 log = { version = "0.4" }
 safe-mix = { version = "1.0" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-codec = { package = "parity-scale-codec", version = "2.0.0" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+codec = { package = "parity-scale-codec", version = "3.0.0" }
 serde = { version = "1.0.101", optional = true }
+clap = { version = "4.0.18", features = ["derive"] }
