@@ -9568,7 +9568,7 @@ fn test_on_initialize_weights() {
 		let starting_delegator = collator * 1000;
 		for delegator in starting_delegator..starting_delegator + 300 {
 			balances.push((delegator, 100));
-			delegations.push((delegator, collator, 10));
+			delegations.push((collator, delegator, 10));
 		}
 	}
 
