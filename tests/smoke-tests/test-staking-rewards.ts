@@ -253,7 +253,10 @@ totalBondReward               ${totalBondReward} \
   const awardedCollatorCount = awardedCollators.length;
 
   // compute max rounds respecting the current block number and the number of awarded collators
-  const maxRoundChecks = Math.min(latestBlockNumber - nowBlockNumber + 1, awardedCollatorCount);
+  const maxRoundChecks = Math.min(
+    latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
+    awardedCollatorCount
+  );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<HexString>();
