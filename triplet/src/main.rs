@@ -173,7 +173,8 @@ fn main() {
 				.take(RANDOM_MATERIAL_LEN as usize)
 				.enumerate()
 				.map(|(i, h)| H256::from(
-					(i as i8, 32 as i8, subject, h).using_encoded(sp_io::hashing::blake2_256)
+					(i as i8, (subject.len() * 4) as i8, subject, h)
+						.using_encoded(sp_io::hashing::blake2_256)
 				))
 				.triplet_mix()
 		);
@@ -185,7 +186,7 @@ fn main() {
 			.take(RANDOM_MATERIAL_LEN as usize)
 			.enumerate()
 			.map(|(i, h)| {
-				(i as i8, 32 as i8, subject, h)
+				(i as i8, (subject.len() * 4) as i8, subject, h)
 					.using_encoded(sp_io::hashing::blake2_256)
 					.into()
 			})
