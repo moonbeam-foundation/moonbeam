@@ -5,10 +5,6 @@ import "../../../precompiles/call-permit/CallPermit.sol";
 
 /// @notice Smart contract to demonstrate how to use Call Permit precompile
 contract CallPermitDemo {
-    /// @notice The CallPermit Precompile Interface
-    CallPermit public callPermit =
-        CallPermit(0x000000000000000000000000000000000000080a);
-
     /// @notice The bond amount is too low
     error BondAmountTooLow(uint256 value, uint256 required);
 
@@ -65,7 +61,7 @@ contract CallPermitDemo {
             revert AlreadyBonded();
         }
 
-        callPermit.dispatch(
+        CALL_PERMIT_CONTRACT.dispatch(
             from,
             address(this),
             BOND_AMOUNT,

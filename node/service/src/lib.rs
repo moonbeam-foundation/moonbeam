@@ -52,10 +52,10 @@ use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network::NetworkService;
+use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
+	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -200,8 +200,15 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
+pub fn open_frontier_backend<C>(
+	client: Arc<C>,
+	config: &Configuration,
+) -> Result<Arc<fc_db::Backend<Block>>, String>
+where
+	C: sp_blockchain::HeaderBackend<Block>,
+{
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
+		client,
 		&fc_db::DatabaseSettings {
 			source: match config.database {
 				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
@@ -401,7 +408,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(config)?;
+	let frontier_backend = open_frontier_backend(client.clone(), config)?;
 
 	let frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
@@ -474,10 +481,6 @@ where
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
-	if matches!(parachain_config.role, Role::Light) {
-		return Err("Light client not supported!".into());
-	}
-
 	let mut parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&mut parachain_config, false)?;
@@ -957,6 +960,7 @@ where
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
 					additional_digests_provider: maybe_provide_vrf_digest,
+					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
@@ -1122,7 +1126,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role,
+		Configuration, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1239,10 +1243,9 @@ mod tests {
 				path: "db".into(),
 				cache_size: 128,
 			},
-			state_cache_size: 16777216,
-			state_cache_child_ratio: None,
+			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			keep_blocks: KeepBlocks::All,
+			blocks_pruning: sc_service::BlocksPruning::All,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

@@ -1,6 +1,26 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Collective Council contract's address.
+address constant COLLECTIVE_COUNCIL_ADDRESS = 0x000000000000000000000000000000000000080e;
+/// @dev The Collective Technical Committee contract's address.
+address constant COLLECTIVE_TECHNICAL_ADDRESS = 0x000000000000000000000000000000000000080F;
+/// @dev The Collective Treasury Council contract's address.
+address constant COLLECTIVE_TREASURY_ADDRESS = 0x0000000000000000000000000000000000000810;
+
+/// @dev The Collective Council contract's instance.
+Collective constant COLLECTIVE_COUNCIL_CONTRACT = Collective(
+    COLLECTIVE_COUNCIL_ADDRESS
+);
+/// @dev The Collective Technical Committee contract's instance.
+Collective constant COLLECTIVE_TECHNICAL_CONTRACT = Collective(
+    COLLECTIVE_TECHNICAL_ADDRESS
+);
+/// @dev The Collective Treasury Council contract's instance.
+Collective constant COLLECTIVE_TREASURY_CONTRACT = Collective(
+    COLLECTIVE_TREASURY_ADDRESS
+);
+
 /// @title Collective precompile
 /// Allows to interact with Substrate pallet_collective from the EVM.
 /// Addresses:
@@ -76,6 +96,34 @@ interface Collective {
         external
         view
         returns (bytes32 proposalHash);
+
+    /// @dev Get the hashes of active proposals.
+    ///
+    /// @return proposalsHash Hashes of active proposals.
+    ///
+    /// @custom:selector 55ef20e6
+    function proposals() external view returns (bytes32[] memory proposalsHash);
+
+    /// @dev Get the list of members.
+    ///
+    /// @return members List of members.
+    ///
+    /// @custom:selector bdd4d18d
+    function members() external view returns (address[] memory members);
+
+    /// @dev Check if the given account is a member of the collective.
+    ///
+    /// @param account Account to check membership.
+    ///
+    /// @custom:selector a230c524
+    function isMember(address account) external view returns (bool);
+
+    /// @dev Get the prime account if there is one.
+    ///
+    /// @return prime Prime account of 0x00..00 if None.
+    ///
+    /// @custom:selector c7ee005e
+    function prime() external view returns (address prime);
 
     event Executed(bytes32 indexed proposalHash);
     event Proposed(

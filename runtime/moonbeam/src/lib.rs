@@ -91,7 +91,7 @@ use sp_std::{convert::TryFrom, prelude::*};
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use nimbus_primitives::{CanAuthor, NimbusId};
+use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
@@ -133,7 +133,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(2);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -338,22 +338,11 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
-
-pub struct MoonbeamGasWeightMapping;
-
-impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
-	fn gas_to_weight(gas: u64) -> Weight {
-		gas.saturating_mul(WEIGHT_PER_GAS)
-	}
-	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
-	}
-}
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
 
 parameter_types! {
 	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
@@ -366,7 +355,11 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbeamPrecompiles<Runtime> = MoonbeamPrecompiles::<_>::new();
+	pub WeightPerGas: u64 = WEIGHT_PER_GAS;
 }
 
 pub struct FixedGasPrice;
@@ -374,7 +367,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
+			Weight::zero(),
 		)
 	}
 }
@@ -390,8 +383,13 @@ impl FeeCalculator for FixedGasPrice {
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
+	R,
+	TargetBlockFullness,
+	AdjustmentVariable,
+	MinimumMultiplier,
+	MaximumMultiplier,
+>;
 
 use frame_support::traits::FindAuthor;
 //TODO It feels like this shold be able to work for any T: H160, but I tried for
@@ -417,7 +415,8 @@ moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
-	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
@@ -435,6 +434,7 @@ impl pallet_evm::Config for Runtime {
 
 parameter_types! {
 	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
+	pub DefaultElasticity: Permill = Permill::zero();
 }
 
 pub struct BaseFeeThreshold;
@@ -454,8 +454,8 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+	type DefaultElasticity = DefaultElasticity;
 }
 
 parameter_types! {
@@ -715,6 +715,12 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
+
+parameter_types! {
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+}
+
 impl parachain_info::Config for Runtime {}
 
 pub struct OnCollatorPayout;
@@ -997,8 +1003,8 @@ impl Contains<Call> for NormalFilter {
 				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
-			// We filter EVM calls as allowing these calls can cause potential attack vectors
-			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
+			// lead to unexpected scenarios.
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
@@ -1026,7 +1032,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
+		DmpQueue::handle_dmp_messages(iter, Weight::zero())
 	}
 }
 
@@ -1035,6 +1041,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_initialize(n)
 	}
 }
@@ -1047,33 +1054,38 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 // we need to provide it here
 impl OnIdle<BlockNumber> for MaintenanceHooks {
 	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
-		0
+		Weight::zero()
 	}
 }
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
+		#[allow(deprecated)]
 		AllPalletsReversedWithSystemFirst::offchain_worker(n)
 	}
 }
@@ -1089,6 +1101,7 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
 	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
 	// operation
+	#[allow(deprecated)]
 	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
 	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
@@ -1557,5 +1570,14 @@ mod tests {
 			),
 			50
 		);
+	}
+
+	#[test]
+	fn configured_base_extrinsic_weight_is_evm_compatible() {
+		let min_ethereum_transaction_weight = WeightPerGas::get() * 21_000;
+		let base_extrinsic = <Runtime as frame_system::Config>::BlockWeights::get()
+			.get(frame_support::weights::DispatchClass::Normal)
+			.base_extrinsic;
+		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight);
 	}
 }

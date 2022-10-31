@@ -14,15 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	precompile_address_v1, precompile_address_v2, ExtBuilder, Origin, PrecompilesValue, Runtime,
-	TestAccount::*, TestPrecompiles, XcmTransactor,
+	precompile_address_v1, precompile_address_v2, ExtBuilder, Origin, PCallV1, PCallV2,
+	PrecompilesValue, Runtime, TestAccount::*, TestPrecompiles, XcmTransactor,
 };
-use crate::v1::Action as ActionV1;
-use crate::v2::Action as ActionV2;
 
 use frame_support::assert_ok;
 use precompile_utils::{prelude::*, solidity, testing::*};
-use sp_core::{H160, U256};
+use sp_core::H160;
 use sp_std::boxed::Box;
 use xcm::v1::MultiLocation;
 
@@ -31,14 +29,53 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 }
 
 #[test]
-fn test_selector_enum() {
-	assert_eq!(ActionV1::IndexToAccount as u32, 0x3fdc4f36);
-	assert_eq!(ActionV1::TransactInfo as u32, 0xd07d87c3);
-	assert_eq!(
-		ActionV1::TransactThroughDerivativeMultiLocation as u32,
-		0x94a63c54
-	);
-	assert_eq!(ActionV1::TransactThroughDerivative as u32, 0x02ae072d);
+fn selectors() {
+	assert!(PCallV1::index_to_account_selectors().contains(&0x3fdc4f36));
+	assert!(PCallV1::transact_info_selectors().contains(&0xd07d87c3));
+	assert!(PCallV1::transact_info_with_signed_selectors().contains(&0xb689e20c));
+	assert!(PCallV1::fee_per_second_selectors().contains(&0x906c9990));
+	assert!(PCallV1::transact_through_derivative_multilocation_selectors().contains(&0x94a63c54));
+	assert!(PCallV1::transact_through_derivative_selectors().contains(&0x02ae072d));
+	assert!(PCallV1::transact_through_signed_multilocation_selectors().contains(&0x71d31587));
+	assert!(PCallV1::transact_through_signed_selectors().contains(&0x42ca339d));
+
+	assert!(PCallV2::index_to_account_selectors().contains(&0x3fdc4f36));
+	assert!(PCallV2::transact_info_with_signed_selectors().contains(&0xb689e20c));
+	assert!(PCallV2::fee_per_second_selectors().contains(&0x906c9990));
+	assert!(PCallV2::transact_through_derivative_multilocation_selectors().contains(&0xfe430475));
+	assert!(PCallV2::transact_through_derivative_selectors().contains(&0x185de2ae));
+	assert!(PCallV2::transact_through_signed_multilocation_selectors().contains(&0xd7ab340c));
+	assert!(PCallV2::transact_through_signed_selectors().contains(&0xb648f3fe));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester =
+			PrecompilesModifierTester::new(precompiles(), Alice, precompile_address_v1());
+
+		tester.test_view_modifier(PCallV1::index_to_account_selectors());
+		tester.test_view_modifier(PCallV1::transact_info_selectors());
+		tester.test_view_modifier(PCallV1::transact_info_with_signed_selectors());
+		tester.test_view_modifier(PCallV1::fee_per_second_selectors());
+		tester
+			.test_default_modifier(PCallV1::transact_through_derivative_multilocation_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_derivative_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_signed_multilocation_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_signed_selectors());
+
+		let mut tester =
+			PrecompilesModifierTester::new(precompiles(), Alice, precompile_address_v2());
+
+		tester.test_view_modifier(PCallV2::index_to_account_selectors());
+		tester.test_view_modifier(PCallV2::transact_info_with_signed_selectors());
+		tester.test_view_modifier(PCallV2::fee_per_second_selectors());
+		tester
+			.test_default_modifier(PCallV2::transact_through_derivative_multilocation_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_derivative_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_signed_multilocation_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_signed_selectors());
+	});
 }
 
 #[test]
@@ -65,9 +102,7 @@ fn take_index_for_account() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(ActionV1::IndexToAccount)
-				.write(0u16)
-				.build();
+			let input: Vec<_> = PCallV1::index_to_account { index: 0 }.into();
 
 			// Assert that errors since no index is assigned
 			precompiles()
@@ -96,9 +131,10 @@ fn take_transact_info() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(ActionV1::TransactInfo)
-				.write(MultiLocation::parent())
-				.build();
+			let input: Vec<_> = PCallV1::transact_info {
+				multilocation: MultiLocation::parent(),
+			}
+			.into();
 
 			// Assert that errors since no index is assigned
 			precompiles()
@@ -140,9 +176,10 @@ fn take_transact_info_with_signed() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(ActionV1::TransactInfoWithSigned)
-				.write(MultiLocation::parent())
-				.build();
+			let input: Vec<_> = PCallV1::transact_info_with_signed {
+				multilocation: MultiLocation::parent(),
+			}
+			.into();
 
 			// Assert that errors since no index is assigned
 			precompiles()
@@ -185,9 +222,10 @@ fn take_fee_per_second() {
 		.with_balances(vec![(Alice, 1000)])
 		.build()
 		.execute_with(|| {
-			let input = EvmDataWriter::new_with_selector(ActionV1::FeePerSecond)
-				.write(MultiLocation::parent())
-				.build();
+			let input: Vec<_> = PCallV1::fee_per_second {
+				multilocation: MultiLocation::parent(),
+			}
+			.into();
 
 			// Assert that errors
 			precompiles()
@@ -204,7 +242,7 @@ fn take_fee_per_second() {
 				.prepare_test(Alice, Precompile, input)
 				.expect_cost(1)
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u64).build());
+				.execute_returns_encoded(1u64);
 		});
 }
 
@@ -220,7 +258,7 @@ fn test_transact_derivative_multilocation_v2() {
 			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 			// We are transferring asset 0, which we have instructed to be the relay asset
@@ -228,19 +266,17 @@ fn test_transact_derivative_multilocation_v2() {
 				.prepare_test(
 					Alice,
 					precompile_address_v2(),
-					EvmDataWriter::new_with_selector(
-						ActionV2::TransactThroughDerivativeMultiLocation,
-					)
-					.write(0u8)
-					.write(0u16)
-					.write(fee_payer_asset)
-					.write(U256::from(4000000))
-					.write(bytes)
-					.write(total_weight as u128)
-					.write(total_weight)
-					.build(),
+					PCallV2::transact_through_derivative_multilocation {
+						transactor: 0,
+						index: 0,
+						fee_asset: fee_payer_asset,
+						weight: 4000000,
+						inner_call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
 				)
-				.expect_cost(180616000)
+				.expect_cost(194673000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -274,24 +310,22 @@ fn test_transact_derivative_multilocation() {
 			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(
-						ActionV1::TransactThroughDerivativeMultiLocation,
-					)
-					.write(0u8)
-					.write(0u16)
-					.write(fee_payer_asset)
-					.write(U256::from(4000000))
-					.write(bytes)
-					.build(),
+					PCallV1::transact_through_derivative_multilocation {
+						transactor: 0,
+						index: 0,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						inner_call: bytes.into(),
+					},
 				)
-				.expect_cost(180616000)
+				.expect_cost(194673000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -322,22 +356,22 @@ fn test_transact_derivative() {
 				1
 			));
 
-			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(ActionV1::TransactThroughDerivative)
-						.write(0u8)
-						.write(0u16)
-						.write(Address(AssetId(0).into()))
-						.write(U256::from(4000000))
-						.write(bytes)
-						.build(),
+					PCallV1::transact_through_derivative {
+						transactor: 0,
+						index: 0,
+						currency_id: Address(AssetId(0).into()),
+						weight: 4_000_000,
+						inner_call: bytes.into(),
+					},
 				)
-				.expect_cost(180616001)
+				.expect_cost(194673001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -352,7 +386,7 @@ fn test_transact_derivative_v2() {
 			// register index
 			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
 
-			let bytes = Bytes(vec![1u8, 2u8, 3u8]);
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 
@@ -361,17 +395,17 @@ fn test_transact_derivative_v2() {
 				.prepare_test(
 					Alice,
 					precompile_address_v2(),
-					EvmDataWriter::new_with_selector(ActionV2::TransactThroughDerivative)
-						.write(0u8)
-						.write(0u16)
-						.write(Address(AssetId(0).into()))
-						.write(U256::from(4000000))
-						.write(bytes)
-						.write(total_weight as u128)
-						.write(total_weight)
-						.build(),
+					PCallV2::transact_through_derivative {
+						transactor: 0,
+						index: 0,
+						fee_asset: Address(AssetId(0).into()),
+						weight: 4_000_000,
+						inner_call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
 				)
-				.expect_cost(180616001)
+				.expect_cost(194673001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -402,25 +436,21 @@ fn test_transact_signed() {
 			// Destination
 			let dest = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
-
-			let total_weight = 1_000_000_000u64;
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(ActionV1::TransactThroughSigned)
-						.write(dest)
-						.write(Address(AssetId(0).into()))
-						.write(U256::from(4000000))
-						.write(bytes)
-						.write(total_weight as u128)
-						.write(total_weight)
-						.build(),
+					PCallV1::transact_through_signed {
+						dest,
+						fee_asset: Address(AssetId(0).into()),
+						weight: 4_000_000,
+						call: bytes.into(),
+					},
 				)
-				.expect_cost(465476001)
+				.expect_cost(473282001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -435,7 +465,7 @@ fn test_transact_signed_v2() {
 			// Destination
 			let dest = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 
@@ -444,16 +474,16 @@ fn test_transact_signed_v2() {
 				.prepare_test(
 					Alice,
 					precompile_address_v2(),
-					EvmDataWriter::new_with_selector(ActionV2::TransactThroughSigned)
-						.write(dest)
-						.write(Address(AssetId(0).into()))
-						.write(U256::from(4000000))
-						.write(bytes)
-						.write(total_weight as u128)
-						.write(total_weight)
-						.build(),
+					PCallV2::transact_through_signed {
+						dest,
+						fee_asset: Address(AssetId(0).into()),
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
 				)
-				.expect_cost(465476001)
+				.expect_cost(473282001)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -486,21 +516,21 @@ fn test_transact_signed_multilocation() {
 
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			// We are transferring asset 0, which we have instructed to be the relay asset
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(ActionV1::TransactThroughSignedMultiLocation)
-						.write(dest)
-						.write(fee_payer_asset)
-						.write(U256::from(4000000))
-						.write(bytes)
-						.build(),
+					PCallV1::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+					},
 				)
-				.expect_cost(465476000)
+				.expect_cost(473282000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -517,7 +547,7 @@ fn test_transact_signed_multilocation_v2() {
 
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 
@@ -526,16 +556,16 @@ fn test_transact_signed_multilocation_v2() {
 				.prepare_test(
 					Alice,
 					precompile_address_v2(),
-					EvmDataWriter::new_with_selector(ActionV2::TransactThroughSignedMultiLocation)
-						.write(dest)
-						.write(fee_payer_asset)
-						.write(U256::from(4000000))
-						.write(bytes)
-						.write(total_weight as u128)
-						.write(total_weight)
-						.build(),
+					PCallV2::transact_through_signed_multilocation {
+						dest,
+						fee_asset: fee_payer_asset,
+						weight: 4_000_000,
+						call: bytes.into(),
+						fee_amount: u128::from(total_weight).into(),
+						overall_weight: total_weight,
+					},
 				)
-				.expect_cost(465476000)
+				.expect_cost(473282000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -554,7 +584,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if ActionV1::try_from(selector).is_err() {
+			if !PCallV1::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -579,7 +609,7 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			);
 
 			let selector = solidity_fn.compute_selector();
-			if ActionV2::try_from(selector).is_err() {
+			if !PCallV2::supports_selector(selector) {
 				panic!(
 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
 					selector,
@@ -604,7 +634,7 @@ fn test_deprecated_solidity_selectors_are_supported() {
 		"transact_through_signed((uint8,bytes[]),address,uint64,bytes)",
 	] {
 		let selector = solidity::compute_selector(deprecated_function);
-		if ActionV1::try_from(selector).is_err() {
+		if !PCallV1::supports_selector(selector) {
 			panic!(
 				"failed decoding selector 0x{:x} => '{}' as Action",
 				selector, deprecated_function,

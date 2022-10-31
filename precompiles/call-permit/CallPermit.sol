@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The CallPermit contract's address.
+address constant CALL_PERMIT_ADDRESS = 0x000000000000000000000000000000000000080a;
+
+/// @dev The CallPermit contract's instance.
+CallPermit constant CALL_PERMIT_CONTRACT = CallPermit(CALL_PERMIT_ADDRESS);
+
 /// @author The Moonbeam Team
 /// @title Call Permit Interface
 /// @dev The interface aims to be a general-purpose tool to perform gas-less transactions. It uses the EIP-712 standard,

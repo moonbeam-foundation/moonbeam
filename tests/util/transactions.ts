@@ -1,6 +1,5 @@
 import { AccessListish } from "@ethersproject/transactions";
 import { ethers } from "ethers";
-import fetch from "node-fetch";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
 

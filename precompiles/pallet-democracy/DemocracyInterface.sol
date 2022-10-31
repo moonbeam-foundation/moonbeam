@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Democracy contract's address.
+address constant DEMOCRACY_ADDRESS = 0x0000000000000000000000000000000000000803;
+
+/// @dev The Democracy contract's instance.
+Democracy constant DEMOCRACY_CONTRACT = Democracy(DEMOCRACY_ADDRESS);
+
 /// @author The Moonbeam Team
 /// @title Pallet Democracy Interface
 /// @dev The interface through which solidity contracts will interact with pallet-democracy.
@@ -47,7 +53,7 @@ interface Democracy {
     function lowestUnbaked() external view returns (uint256);
 
     /// Get the details about an ongoing referendum.
-    /// @custom:selector e5a18359
+    /// @custom:selector f033b7cd
     ///
     /// @dev This, along with `finishedReferendumInfo`, wraps the pallet's `referendumInfo`
     /// function. It is necessary to split it into two here because Solidity only has c-style enums.
@@ -60,13 +66,13 @@ interface Democracy {
     ///  * The total aye vote (including conviction)
     ///  * The total nay vote (including conviction)
     ///  * The total turnout (not including conviction)
-    function ongoingReferendumInfo(uint256 refIndex)
+    function ongoingReferendumInfo(uint32 refIndex)
         external
         view
         returns (
             uint256,
             bytes32,
-            uint256,
+            uint8,
             uint256,
             uint256,
             uint256,
@@ -74,13 +80,13 @@ interface Democracy {
         );
 
     /// Get the details about a finished referendum.
-    /// @custom:selector 07df495b
+    /// @custom:selector c75abcce
     ///
     /// @dev This, along with `ongoingReferendumInfo`, wraps the pallet's `referendumInfo`
     /// function. It is necessary to split it into two here because Solidity only has c-style enums.
     /// @param refIndex The index of the referendum you are interested in
     /// @return A tuple including whether the referendum passed, and the block at which it finished.
-    function finishedReferendumInfo(uint256 refIndex)
+    function finishedReferendumInfo(uint32 refIndex)
         external
         view
         returns (bool, uint256);

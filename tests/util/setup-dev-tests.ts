@@ -117,12 +117,12 @@ export function describeDevMoonbeam(
       context.createWeb3 = async (protocol: "ws" | "http" = "http") => {
         const provider =
           protocol == "ws"
-            ? await provideWeb3Api(init.wsPort, "ws")
-            : await provideWeb3Api(init.rpcPort, "http");
+            ? await provideWeb3Api(`ws://localhost:${init.wsPort}`)
+            : await provideWeb3Api(`http://localhost:${init.rpcPort}`);
         context._web3Providers.push((provider as any)._provider);
         return provider;
       };
-      context.createEthers = async () => provideEthersApi(init.rpcPort);
+      context.createEthers = async () => provideEthersApi(`http://localhost:${init.rpcPort}`);
       context.createPolkadotApi = async () => {
         const apiPromise = await providePolkadotApi(init.wsPort);
         // We keep track of the polkadotApis to close them at the end of the test

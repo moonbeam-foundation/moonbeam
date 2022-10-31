@@ -1012,7 +1012,7 @@ fn transact_through_derivative_multilocation() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			1 * WEIGHT_PER_SECOND as u128,
+			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
 	});
 
@@ -1323,7 +1323,7 @@ fn transact_through_sovereign() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			1 * WEIGHT_PER_SECOND as u128,
+			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
 	});
 
@@ -2537,7 +2537,7 @@ fn transact_through_signed_multilocation() {
 		assert_ok!(XcmTransactor::set_fee_per_second(
 			parachain::Origin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
-			1 * WEIGHT_PER_SECOND as u128,
+			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
 		ancestry = parachain::Ancestry::get();
 	});

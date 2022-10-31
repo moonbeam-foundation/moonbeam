@@ -6,7 +6,6 @@ import "../../../precompiles/proxy/Proxy.sol";
 /// @notice Smart contract to demonstrate how to use requestLocalVRFRandomWords
 contract ProxyLeaderDemo {
     /// @notice The Proxy Precompile Interface
-    Proxy public proxy = Proxy(0x000000000000000000000000000000000000080b);
 
     /// @notice The pool doesn't accept additional participants
     /// @param value The value that was given
@@ -204,13 +203,13 @@ contract ProxyLeaderDemo {
         delete participants[sender];
 
         if (sender == governor) {
-            proxy.removeProxy(staker, Proxy.ProxyType.Governance, 0);
+            PROXY_CONTRACT.removeProxy(staker, Proxy.ProxyType.Governance, 0);
             emit ProxyRemoved(staker, Proxy.ProxyType.Governance);
             governor = address(0);
         }
 
         if (sender == staker) {
-            proxy.removeProxy(staker, Proxy.ProxyType.Staking, 0);
+            PROXY_CONTRACT.removeProxy(staker, Proxy.ProxyType.Staking, 0);
             emit ProxyRemoved(staker, Proxy.ProxyType.Staking);
             staker = address(0);
         }
@@ -278,23 +277,23 @@ contract ProxyLeaderDemo {
 
         // remove previous governor
         if (governor != address(0)) {
-            proxy.removeProxy(governor, Proxy.ProxyType.Governance, 0);
+            PROXY_CONTRACT.removeProxy(governor, Proxy.ProxyType.Governance, 0);
             emit ProxyRemoved(governor, Proxy.ProxyType.Staking);
         }
 
         // remove previous staker
         if (staker != address(0)) {
-            proxy.removeProxy(staker, Proxy.ProxyType.Staking, 0);
+            PROXY_CONTRACT.removeProxy(staker, Proxy.ProxyType.Staking, 0);
             emit ProxyRemoved(staker, Proxy.ProxyType.Staking);
         }
 
-        proxy.addProxy(winnerGovernor, Proxy.ProxyType.Governance, 0);
+        PROXY_CONTRACT.addProxy(winnerGovernor, Proxy.ProxyType.Governance, 0);
         emit ProxyAdded(winnerGovernor, Proxy.ProxyType.Governance);
 
         // we can only add a single proxy type per account, so ensure that
         // we only add the most permissible proxy
         if (winnerGovernor != winnerStaker) {
-            proxy.addProxy(winnerStaker, Proxy.ProxyType.Staking, 0);
+            PROXY_CONTRACT.addProxy(winnerStaker, Proxy.ProxyType.Staking, 0);
             emit ProxyAdded(winnerStaker, Proxy.ProxyType.Staking);
         }
 
