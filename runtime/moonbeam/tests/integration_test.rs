@@ -40,6 +40,7 @@ use moonbeam_runtime::{
 	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
 use pallet_evm_precompileset_assets_erc20::{
@@ -62,7 +63,6 @@ use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
 use xcm_primitives::Account20Hash;
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =

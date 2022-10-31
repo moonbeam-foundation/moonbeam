@@ -43,7 +43,7 @@ use xcm_builder::{
 	CurrencyAdapter as XcmCurrencyAdapter, EnsureXcmOrigin, FixedWeightBounds, FungiblesAdapter,
 	LocationInverter, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountKey20AsNative, SovereignSignedViaLocation,
-	TakeWeightCredit, UsingComponents, WeightInfoBounds
+	TakeWeightCredit, UsingComponents, WeightInfoBounds,
 };
 
 use xcm::latest::prelude::*;

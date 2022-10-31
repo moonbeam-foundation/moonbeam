@@ -32,6 +32,7 @@ use frame_support::{
 	weights::{constants::WEIGHT_PER_SECOND, DispatchClass, Weight},
 	StorageHasher, Twox128,
 };
+use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
@@ -60,7 +61,6 @@ use xcm::{VersionedMultiAssets, VersionedMultiLocation};
 use xcm_builder::{ParentIsPreset, SiblingParachainConvertsVia};
 use xcm_executor::traits::Convert as XcmConvert;
 use xcm_primitives::Account20Hash;
-use moonbeam_xcm_benchmarks::weights::XcmWeight;
 
 type BatchPCall = pallet_evm_precompile_batch::BatchPrecompileCall<Runtime>;
 type CrowdloanRewardsPCall =
@@ -2659,7 +2659,7 @@ fn test_xcm_utils_weight_message() {
 	ExtBuilder::default().build().execute_with(|| {
 		let xcm_utils_precompile_address = H160::from_low_u64_be(2060);
 		let expected_weight: xcm_primitives::XcmV2Weight =
-		XcmWeight::<moonriver_runtime::Runtime, Call>::clear_origin();
+			XcmWeight::<moonriver_runtime::Runtime, Call>::clear_origin();
 
 		let message: Vec<u8> = xcm::VersionedXcm::<()>::V2(Xcm(vec![ClearOrigin])).encode();
 

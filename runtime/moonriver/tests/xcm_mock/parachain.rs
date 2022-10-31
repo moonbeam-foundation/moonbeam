@@ -54,11 +54,11 @@ use xcm_executor::{traits::JustTry, Config, XcmExecutor};
 use xcm_primitives::XcmV2Weight;
 
 use scale_info::TypeInfo;
+use sp_runtime::traits::Zero;
 use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
 };
-use sp_runtime::traits::Zero;
 
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
