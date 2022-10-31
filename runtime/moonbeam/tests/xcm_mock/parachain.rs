@@ -58,7 +58,7 @@ use xcm_simulator::{
 	DmpMessageHandlerT as DmpMessageHandler, XcmpMessageFormat,
 	XcmpMessageHandlerT as XcmpMessageHandler,
 };
-
+use sp_runtime::traits::Zero;
 pub type AccountId = moonbeam_core_primitives::AccountId;
 pub type Balance = u128;
 pub type AssetId = u128;
@@ -947,7 +947,7 @@ impl pallet_ethereum::Config for Runtime {
 }
 
 parameter_types! {
-	pub ReservedXcmpWeight: Weight = u64::max_value();
+	pub ReservedXcmpWeight: Weight = Weight::from_ref_time(u64::max_value());
 }
 
 #[derive(
@@ -999,7 +999,7 @@ pub struct EthereumXcmEnsureProxy;
 impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 	fn ensure_ok(delegator: AccountId, delegatee: AccountId) -> Result<(), &'static str> {
 		// The EVM implicitely contains an Any proxy, so we only allow for "Any" proxies
-		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, u64> =
+		let def: pallet_proxy::ProxyDefinition<AccountId, ProxyType, BlockNumber> =
 			pallet_proxy::Pallet::<Runtime>::find_proxy(
 				&delegator,
 				&delegatee,
@@ -1011,7 +1011,6 @@ impl xcm_primitives::EnsureProxy<AccountId> for EthereumXcmEnsureProxy {
 		Ok(())
 	}
 }
-
 impl pallet_ethereum_xcm::Config for Runtime {
 	type InvalidEvmTransactionError = pallet_ethereum::InvalidTransactionWrapper;
 	type ValidatedTransaction = pallet_ethereum::ValidatedTransaction<Self>;

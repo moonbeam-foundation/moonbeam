@@ -76,6 +76,8 @@ type LocalAssetsPCall = pallet_evm_precompileset_assets_erc20::Erc20AssetsPrecom
 >;
 type XcmTransactorV1PCall =
 	pallet_evm_precompile_xcm_transactor::v1::XcmTransactorPrecompileV1Call<Runtime>;
+type XcmTransactorV2PCall =
+	pallet_evm_precompile_xcm_transactor::v2::XcmTransactorPrecompileV2Call<Runtime>;
 
 #[test]
 fn xcmp_queue_controller_origin_is_root() {
@@ -2431,7 +2433,7 @@ fn transact_through_signed_precompile_works_v1() {
 						call: bytes.into(),
 					},
 				)
-				.expect_cost(18619)
+				.expect_cost(18931)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2452,7 +2454,7 @@ fn transact_through_signed_precompile_works_v2() {
 
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 
@@ -2467,11 +2469,11 @@ fn transact_through_signed_precompile_works_v2() {
 						fee_asset: fee_payer_asset,
 						weight: 4000000,
 						call: bytes.into(),
-						fee_amount: total_weight,
+						fee_amount: u128::from(total_weight).into(),
 						overall_weight: total_weight,
 					},
 				)
-				.expect_cost(18619)
+				.expect_cost(18931)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 		});
@@ -2492,7 +2494,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 
 			let fee_payer_asset = MultiLocation::parent();
 
-			let bytes: Bytes = vec![1u8, 2u8, 3u8].as_slice().into();
+			let bytes = vec![1u8, 2u8, 3u8];
 
 			let total_weight = 1_000_000_000u64;
 
@@ -2507,7 +2509,7 @@ fn transact_through_signed_cannot_send_to_local_chain() {
 						fee_asset: fee_payer_asset,
 						weight: 4000000,
 						call: bytes.into(),
-						fee_amount: total_weight,
+						fee_amount: u128::from(total_weight).into(),
 						overall_weight: total_weight,
 					},
 				)
