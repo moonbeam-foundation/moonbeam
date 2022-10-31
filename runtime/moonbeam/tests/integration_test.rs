@@ -35,7 +35,7 @@ use frame_support::{
 use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
-	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
+	xcm_config::{CurrencyId, SelfReserve},
 	AccountId, Balances, BaseFee, BlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
 	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,

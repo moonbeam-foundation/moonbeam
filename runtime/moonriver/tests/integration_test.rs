@@ -35,7 +35,7 @@ use frame_support::{
 use moonbeam_xcm_benchmarks::weights::XcmWeight;
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
-	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
+	xcm_config::{CurrencyId, SelfReserve},
 	AssetId, BaseFee, BlockWeights, LocalAssets, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
