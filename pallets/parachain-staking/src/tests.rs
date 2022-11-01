@@ -9552,7 +9552,7 @@ fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compo
 
 #[test]
 fn test_on_initialize_weights() {
-	use crate::mock::{MaxTopDelegationsPerCandidate, System};
+	use crate::mock::System;
 	use crate::weights::{SubstrateWeight as PalletWeights, WeightInfo};
 	use crate::*;
 	use frame_support::{pallet_prelude::*, weights::constants::RocksDbWeight};
@@ -9568,7 +9568,7 @@ fn test_on_initialize_weights() {
 		let starting_delegator = collator * 1000;
 		for delegator in starting_delegator..starting_delegator + 300 {
 			balances.push((delegator, 100));
-			delegations.push((collator, delegator, 10));
+			delegations.push((delegator, collator, 10));
 		}
 	}
 
@@ -9580,30 +9580,35 @@ fn test_on_initialize_weights() {
 		.execute_with(|| {
 			let weight = ParachainStaking::on_initialize(1);
 
-			// both of these asserts should be equivalent
-			assert_eq!(Weight::from_ref_time(11_002_000), weight);
-			assert_eq!(PalletWeights::<Test>::base_on_initialize(), weight);
+			// TODO: build this with proper db reads/writes
+			assert_eq!(Weight::from_ref_time(286_002_000), weight);
 
 			// roll to the end of the round, then run on_init again, we should see round change...
-			roll_to_round_end(1);
+			roll_to_round_end(3);
+			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
-			assert_eq!(Weight::from_ref_time(1504980000), weight);
+			assert_eq!(Weight::from_ref_time(3_017_871_000), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
 			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
 			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
-			// NOTE: i observed this using 5,40 as arguments
+			let num_avg_delegations = 8; // TODO: this should be the same as <TotalSelected<Test>>
 			expected_weight += PalletWeights::<Test>::select_top_candidates(
 				<TotalSelected<Test>>::get(),
-				MaxTopDelegationsPerCandidate::get(),
+				num_avg_delegations,
 			)
 			.ref_time();
 			// Round and Staked writes, done in on-round-change code block inside on_initialize()
 			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
+
+			// add weight for invoking pay_one_collator_reward
+			// (goes away when we skip paying the first collator during round change)
+			let pay_one_collator_reward_weight = 536_374_000;
+			expected_weight += pay_one_collator_reward_weight;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 		});

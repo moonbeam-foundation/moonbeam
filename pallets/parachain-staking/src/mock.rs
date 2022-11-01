@@ -22,7 +22,7 @@ use crate::{
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
-	weights::Weight,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
 use sp_io;
@@ -61,7 +61,7 @@ parameter_types! {
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type Origin = Origin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
