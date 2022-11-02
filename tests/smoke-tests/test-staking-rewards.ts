@@ -16,7 +16,14 @@ import Bottleneck from "bottleneck";
 import { AccountId20 } from "@polkadot/types/interfaces";
 const debug = require("debug")("smoke:staking");
 
-const limiter = new Bottleneck({ maxConcurrent: 5, minTime: 200 });
+const limiter = new Bottleneck({
+  maxConcurrent: 5,
+  minTime: 200,
+  reservoir: 40, 
+  reservoirIncreaseAmount: 2,
+  reservoirIncreaseInterval: 1000, 
+  reservoirIncreaseMaximum: 40,
+});
 
 describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
   let atStakeSnapshot;
@@ -34,17 +41,19 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     const queriedBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
     const queryApi = await context.polkadotApi.at(queriedBlockHash);
-    const queryRound = await queryApi.query.parachainStaking.round()
-    debug(`Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`)
+    const queryRound = await queryApi.query.parachainStaking.round();
+    debug(
+      `Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`
+    );
 
     const prevBlock = queryRound.first.subn(1);
     const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
     apiAt = await context.polkadotApi.at(prevHash);
-    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`)
+    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`);
 
     const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
     const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
-    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`)
+    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`);
     predecessorApiAt = await context.polkadotApi.at(predecessorHash);
 
     const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
@@ -64,7 +73,13 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     ).to.be.empty;
   });
 
+  // after(async function(){
+  //   const timbo = await context.polkadotApi.at("0x213131212s")
+  //   timbo.
+  // })
+
   it.only("should snapshot the current global statistics for each selected candidate.", async function () {
+    this.timeout(120000);
     const results = await limiter.schedule(() => {
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
         const [
@@ -93,7 +108,9 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           .add(bond)
           .eq(total);
 
-        const timbo = delegations.map(async (delegator, index2) => {
+          /// TODO : GET THIS WORKING
+          /// TODO : BREAK THIS OUT INTO ITS OWN TEST BELOW
+        const delegationAmounts = delegations.map(async (delegator, index2) => {
           const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
             (await predecessorApiAt.query.parachainStaking.delegatorState(delegator.owner)) as any
           ).unwrap();
@@ -101,41 +118,26 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
             (candidate) => candidate.owner.toString() == accountId.toString()
           ).amount;
 
+          const scheduledRequest = (
+            (await predecessorApiAt.query.parachainStaking.delegationScheduledRequests(
+              accountId as AccountId20
+            )) as any
+          ).find((a) => {
+            return a.delegator.toString() == delegator.owner.toString();
+          });
+          const subtraction =
+            scheduledRequest === undefined
+              ? "0"
+              : Object.values(scheduledRequest.action.toHuman())[0];
 
-            const request = (await predecessorApiAt.query.parachainStaking.delegationScheduledRequests(accountId as AccountId20) as any)
-            // .find(a => a.delegator == delegator.owner )
+          const match = item.eq(delegator.amount.subn(subtraction));
+          if (!match) {
+            debug(
+              `Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for delegator: ${delegator.owner.toString()} on candidate: ${accountId.toString()}`
+            );
+          }
 
-            if (request){
-              console.log(request.action.)
-            }
-            // const subtraction = request ? Object.values(request.action)[0] : new BN(0)
-            
-            // if (subtraction != new BN(0)){
-            //   console.log(subtraction)
-            // }
-            
-
-
-          // const match = item.eq(delegator.amount);
-
-          // const match = delegatorDelegations.find(candidate=>candidate.owner == accountId)
-          // if (!match) {
-          //   debug(
-          //     `Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for delegator: ${delegator.owner.toString()} on candidate: ${accountId.toString()}`
-          //   );
-          // }
-          // console.log(match)
-          // if (index == 0 && index2 == 0) {
-          //   // console.log(a.owner.toString())
-          //   // const {delegations} = await apiAt.query.parachainStaking.delegatorState(a.owner) as any
-
-          //   const timbo = await limiter.schedule(
-          //     () => apiAt.query.parachainStaking.delegatorState("0x54DEC492C2FDb485F8E8E2aDd1ebC3A4B614f54f") as any
-          //   );
-
-          //   console.log(timbo);
-          // }
-          return;
+          return match;
         });
 
         return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
@@ -145,6 +147,7 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     });
 
     console.log(results[7]);
+    await limiter.disconnect()
   });
 
   it.skip("rewards are given as expected", async function () {
