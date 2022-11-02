@@ -58,6 +58,7 @@ pub mod tracer {
 
 	impl EvmTracer {
 		pub fn new() -> Self {
+			moonbeam_primitives_ext::moonbeam_ext::call_list_new();
 			Self {
 				step_event_filter: moonbeam_primitives_ext::moonbeam_ext::step_event_filter(),
 			}
@@ -81,10 +82,6 @@ pub mod tracer {
 			let f = || gasometer_using(&mut gasometer, f);
 			let f = || evm_using(&mut evm, f);
 			f();
-		}
-
-		pub fn emit_new() {
-			moonbeam_primitives_ext::moonbeam_ext::call_list_new();
 		}
 	}
 
