@@ -259,7 +259,7 @@ pub(crate) fn roll_one_block() -> BlockNumber {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
+pub(crate) fn roll_to(n: BlockNumber) -> u32 {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
