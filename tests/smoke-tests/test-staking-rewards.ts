@@ -9,15 +9,14 @@ import { HexString } from "@polkadot/util/types";
 import {
   PalletParachainStakingCandidateMetadata,
   PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingDelegator,
 } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
-import { promiseTracker } from "@polkadot/api/promise/decorateMethod";
-import { createImportSpecifier } from "typescript";
 import { AccountId20 } from "@polkadot/types/interfaces";
 const debug = require("debug")("smoke:staking");
 
-const limiter = new Bottleneck({ maxConcurrent: 5 });
+const limiter = new Bottleneck({ maxConcurrent: 5, minTime: 200 });
 
 describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
   let atStakeSnapshot;
@@ -54,37 +53,59 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
   });
 
   it.only("should snapshot the current global statistics for each selected candidate.", async function () {
-    const checkBond = async (item: AccountId20) => {
-      return (await apiAt.query.parachainStaking.candidateInfo(item))!.unwrap().bond;
-    };
-
     const results = await limiter.schedule(() => {
-      // const taskArray = []
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
-        // const bondVerify = (await checkBond(coll[0])).eqn(coll[1].bond)
-
         const [
           {
             args: [_, accountId],
           },
           { bond, total, delegations },
         ] = coll;
-        // console.log(accountId.toString());
-        // console.log(bond.toString());
-        // console.log(total.toString());
-        if (index == 7) {
-          console.log(await checkBond(accountId));
-          console.log(bond);
-        }
+        const candidateInfo = (
+          await limiter.schedule(() =>
+            apiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
+          )
+        ).unwrap();
 
-        const bondVerify = bond == (await checkBond(accountId));
-        // console.log(coll[1].bond);
-        // if (index <5) {
-        //   console.log(candidate)
-        //   console.log(JSON.stringify(candidate))
+        const bondsMatch = bond.eq(candidateInfo.bond);
+        const delegationsTotalMatch =
+          delegations.length ==
+          Math.min(
+            candidateInfo.delegationCount.toNumber(),
+            apiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
+          );
+        const totalSum = delegations
+          .reduce((acc: BN, curr) => {
+            return acc.add(curr.amount);
+          }, new BN(0))
+          .add(bond)
+          .eq(total);
 
-        // }
-        return { collator: accountId.toString(), bondVerify };
+        const timbo = delegations.map(async (delegator, index2) => {
+
+          const {delegations: delegatorDelegations}: PalletParachainStakingDelegator  = (await apiAt.query.parachainStaking.delegatorState(delegator.owner) as any).unwrap()
+          // console.log(delegatorDelegations.toHuman());
+          // console.log(accountId.toHuman())
+          const item = delegatorDelegations.find(candidate => candidate.owner.toString() == accountId.toString()).amount
+          const match = item.eq(delegator.amount)
+
+          // const match = delegatorDelegations.find(candidate=>candidate.owner == accountId)
+          if (!match) { debug(`Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for ${delegator.owner.toString()}`)}
+          // console.log(match)
+          // if (index == 0 && index2 == 0) {
+          //   // console.log(a.owner.toString())
+          //   // const {delegations} = await apiAt.query.parachainStaking.delegatorState(a.owner) as any
+
+          //   const timbo = await limiter.schedule(
+          //     () => apiAt.query.parachainStaking.delegatorState("0x54DEC492C2FDb485F8E8E2aDd1ebC3A4B614f54f") as any
+          //   );
+
+          //   console.log(timbo);
+          // }
+          return;
+        });
+
+        return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
       });
 
       return Promise.all(allTasks);
