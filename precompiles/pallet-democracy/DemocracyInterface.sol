@@ -183,7 +183,7 @@ interface Democracy {
     /// @param deposit uint256 Amount of tokens deposited.
     event Proposed(uint32 indexed proposalIndex, uint256 deposit);
 
-    /// @dev An account has secconded a proposal.
+    /// @dev An account has seconded a proposal.
     /// @custom:selector e1613d7e3f54885ef3ffdb714435193b9b80818bd3381f108a4d4b21e842654a
     /// @param proposalIndex uint32 Index of the proposal.
     /// @param seconder address Address of the seconder.
