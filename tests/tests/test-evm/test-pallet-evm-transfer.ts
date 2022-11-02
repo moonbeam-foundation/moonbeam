@@ -47,7 +47,7 @@ describeDevMoonbeam("Pallet EVM - call", (context) => {
           "0x0",
           100_000_000_000_000_000_000n,
           12_000_000n,
-          1_000_000_000n,
+          100_000_000_000_000n,
           "0",
           undefined,
           []
