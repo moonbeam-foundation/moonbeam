@@ -166,6 +166,8 @@ macro_rules! impl_runtime_apis_plus_common {
 							match &ext.0.function {
 								Call::Ethereum(transact { transaction }) => {
 									if known_transactions.contains(&transaction.hash()) {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 									} else {
 										let _ = Executive::apply_extrinsic(ext);
