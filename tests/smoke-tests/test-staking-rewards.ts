@@ -13,6 +13,9 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
   describeSmokeSuite(`Verify staking rewards`, function (context) {
     it("rewards are given as expected", async function () {
       this.timeout(500000);
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000){
+        this.skip()
+      }
       const atBlockNumber = process.env.BLOCK_NUMBER
         ? parseInt(process.env.BLOCK_NUMBER)
         : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
