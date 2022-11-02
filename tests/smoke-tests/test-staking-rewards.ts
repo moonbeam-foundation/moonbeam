@@ -21,6 +21,7 @@ const limiter = new Bottleneck({ maxConcurrent: 5, minTime: 200 });
 describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
   let atStakeSnapshot;
   let apiAt: ApiDecoration<"promise">;
+  let predecessorApiAt: ApiDecoration<"promise">;
 
   before("Common Setup", async function () {
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
@@ -31,13 +32,24 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     const atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
       : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    const nowBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
-    apiAt = await context.polkadotApi.at(nowBlockHash);
-    const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
-    const prevRound = nowRound - 1;
+    const queriedBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
+    const queryApi = await context.polkadotApi.at(queriedBlockHash);
+    const queryRound = await queryApi.query.parachainStaking.round()
+    debug(`Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`)
 
-    debug(`Verifying previous block's staking round ${prevRound}`);
-    atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(prevRound);
+    const prevBlock = queryRound.first.subn(1);
+    const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
+    apiAt = await context.polkadotApi.at(prevHash);
+    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`)
+
+    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
+    const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
+    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`)
+    predecessorApiAt = await context.polkadotApi.at(predecessorHash);
+
+    const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
+    debug(`Loading previous round #${nowRound} snapshot`);
+    atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(nowRound);
   });
 
   it("should snapshot the selected candidates for that round.", async function () {
@@ -63,7 +75,7 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
         ] = coll;
         const candidateInfo = (
           await limiter.schedule(() =>
-            apiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
+            predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
           )
         ).unwrap();
 
@@ -72,7 +84,7 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           delegations.length ==
           Math.min(
             candidateInfo.delegationCount.toNumber(),
-            apiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
+            predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
           );
         const totalSum = delegations
           .reduce((acc: BN, curr) => {
@@ -82,15 +94,36 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           .eq(total);
 
         const timbo = delegations.map(async (delegator, index2) => {
+          const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
+            (await predecessorApiAt.query.parachainStaking.delegatorState(delegator.owner)) as any
+          ).unwrap();
+          const item = delegatorDelegations.find(
+            (candidate) => candidate.owner.toString() == accountId.toString()
+          ).amount;
 
-          const {delegations: delegatorDelegations}: PalletParachainStakingDelegator  = (await apiAt.query.parachainStaking.delegatorState(delegator.owner) as any).unwrap()
-          // console.log(delegatorDelegations.toHuman());
-          // console.log(accountId.toHuman())
-          const item = delegatorDelegations.find(candidate => candidate.owner.toString() == accountId.toString()).amount
-          const match = item.eq(delegator.amount)
+
+            const request = (await predecessorApiAt.query.parachainStaking.delegationScheduledRequests(accountId as AccountId20) as any)
+            // .find(a => a.delegator == delegator.owner )
+
+            if (request){
+              console.log(request.action.)
+            }
+            // const subtraction = request ? Object.values(request.action)[0] : new BN(0)
+            
+            // if (subtraction != new BN(0)){
+            //   console.log(subtraction)
+            // }
+            
+
+
+          // const match = item.eq(delegator.amount);
 
           // const match = delegatorDelegations.find(candidate=>candidate.owner == accountId)
-          if (!match) { debug(`Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for ${delegator.owner.toString()}`)}
+          // if (!match) {
+          //   debug(
+          //     `Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for delegator: ${delegator.owner.toString()} on candidate: ${accountId.toString()}`
+          //   );
+          // }
           // console.log(match)
           // if (index == 0 && index2 == 0) {
           //   // console.log(a.owner.toString())
