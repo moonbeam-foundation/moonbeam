@@ -81,6 +81,30 @@ fn selectors() {
 	assert!(PCall::vote_selectors().contains(&0x73e37688));
 	assert!(PCall::close_selectors().contains(&0x638d9d47));
 	assert!(PCall::proposal_hash_selectors().contains(&0xfc379417));
+	assert!(PCall::proposals_selectors().contains(&0x55ef20e6));
+	assert!(PCall::members_selectors().contains(&0xbdd4d18d));
+	assert!(PCall::is_member_selectors().contains(&0xa230c524));
+	assert!(PCall::prime_selectors().contains(&0xc7ee005e));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+			tester.test_default_modifier(PCall::execute_selectors());
+			tester.test_default_modifier(PCall::propose_selectors());
+			tester.test_default_modifier(PCall::vote_selectors());
+			tester.test_default_modifier(PCall::close_selectors());
+			tester.test_view_modifier(PCall::proposal_hash_selectors());
+			tester.test_view_modifier(PCall::proposals_selectors());
+			tester.test_view_modifier(PCall::members_selectors());
+			tester.test_view_modifier(PCall::is_member_selectors());
+			tester.test_view_modifier(PCall::prime_selectors());
+		});
 }
 
 #[test]

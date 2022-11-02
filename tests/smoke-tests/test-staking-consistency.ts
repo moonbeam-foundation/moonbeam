@@ -13,10 +13,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
-describeSmokeSuite(`Verify staking consistency`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify staking consistency`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;

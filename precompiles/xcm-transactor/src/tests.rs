@@ -32,8 +32,50 @@ fn precompiles() -> TestPrecompiles<Runtime> {
 fn selectors() {
 	assert!(PCallV1::index_to_account_selectors().contains(&0x3fdc4f36));
 	assert!(PCallV1::transact_info_selectors().contains(&0xd07d87c3));
+	assert!(PCallV1::transact_info_with_signed_selectors().contains(&0xb689e20c));
+	assert!(PCallV1::fee_per_second_selectors().contains(&0x906c9990));
 	assert!(PCallV1::transact_through_derivative_multilocation_selectors().contains(&0x94a63c54));
 	assert!(PCallV1::transact_through_derivative_selectors().contains(&0x02ae072d));
+	assert!(PCallV1::transact_through_signed_multilocation_selectors().contains(&0x71d31587));
+	assert!(PCallV1::transact_through_signed_selectors().contains(&0x42ca339d));
+
+	assert!(PCallV2::index_to_account_selectors().contains(&0x3fdc4f36));
+	assert!(PCallV2::transact_info_with_signed_selectors().contains(&0xb689e20c));
+	assert!(PCallV2::fee_per_second_selectors().contains(&0x906c9990));
+	assert!(PCallV2::transact_through_derivative_multilocation_selectors().contains(&0xfe430475));
+	assert!(PCallV2::transact_through_derivative_selectors().contains(&0x185de2ae));
+	assert!(PCallV2::transact_through_signed_multilocation_selectors().contains(&0xd7ab340c));
+	assert!(PCallV2::transact_through_signed_selectors().contains(&0xb648f3fe));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester =
+			PrecompilesModifierTester::new(precompiles(), Alice, precompile_address_v1());
+
+		tester.test_view_modifier(PCallV1::index_to_account_selectors());
+		tester.test_view_modifier(PCallV1::transact_info_selectors());
+		tester.test_view_modifier(PCallV1::transact_info_with_signed_selectors());
+		tester.test_view_modifier(PCallV1::fee_per_second_selectors());
+		tester
+			.test_default_modifier(PCallV1::transact_through_derivative_multilocation_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_derivative_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_signed_multilocation_selectors());
+		tester.test_default_modifier(PCallV1::transact_through_signed_selectors());
+
+		let mut tester =
+			PrecompilesModifierTester::new(precompiles(), Alice, precompile_address_v2());
+
+		tester.test_view_modifier(PCallV2::index_to_account_selectors());
+		tester.test_view_modifier(PCallV2::transact_info_with_signed_selectors());
+		tester.test_view_modifier(PCallV2::fee_per_second_selectors());
+		tester
+			.test_default_modifier(PCallV2::transact_through_derivative_multilocation_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_derivative_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_signed_multilocation_selectors());
+		tester.test_default_modifier(PCallV2::transact_through_signed_selectors());
+	});
 }
 
 #[test]

@@ -4,10 +4,10 @@ import { checkBlockFinalized, getBlockTime, fetchHistoricBlockNum } from "../uti
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:block-finalized");
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
+const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
-describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it("should have a recently finalized block", async function () {
     const head = await context.polkadotApi.rpc.chain.getFinalizedHead();
     const block = await context.polkadotApi.rpc.chain.getBlock(head);
@@ -16,21 +16,23 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssU
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000); // 10 minutes in milliseconds
   });
 
-  // TODO: Coordinate with Ops to make sure ETH RPC url is propagated
   it("should have a recently finalized eth block", async function () {
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
     if (specVersion < 1900) {
       debug(`ChainSpec ${specVersion} does not support Finalized BlockTag, skipping test`);
       this.skip();
     }
+
     const timestamp = (await context.ethers.getBlock("finalized")).timestamp;
     const diff = Date.now() - timestamp * 1000;
-    debug(`Last finalized block was ${diff / 1000} seconds ago`);
+    debug(`Last finalized eth block was ${diff / 1000} seconds ago`);
     expect(diff).to.be.lessThanOrEqual(10 * 60 * 1000);
   });
 
-  it("should have only finalized blocks in the past two hours", async function () {
-    this.timeout(120000);
+  it(`should have only finalized blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(
+    2
+  )} hours`, async function () {
+    this.timeout(timeout);
     const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
       await context.polkadotApi.rpc.chain.getFinalizedHead()
     );
@@ -39,8 +41,7 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, { wssUrl, relayWssU
     const lastBlockTime = getBlockTime(signedBlock);
     const limiter = new Bottleneck({ maxConcurrent: 5 });
 
-    // Target time here is set to be 2 hours, possible parameterize this in future
-    const firstBlockTime = lastBlockTime - 2 * 60 * 60 * 1000;
+    const firstBlockTime = lastBlockTime - timePeriod;
     debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
 
     const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(

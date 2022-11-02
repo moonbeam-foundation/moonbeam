@@ -4,12 +4,8 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:localAssets");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
 describeSmokeSuite(
-  `Verify foreign asset count, mapping, assetIds and deposits`,
-  { wssUrl, relayWssUrl },
+  `Verifying foreign asset count, mapping, assetIds and deposits...`,
   (context) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
@@ -59,7 +55,6 @@ describeSmokeSuite(
     });
 
     it("should make sure assetId->AssetType matches AssetType->AssetId mapping", async function () {
-      // Instead of putting an expect in the loop. We track all failed entries instead
       const failedAssetReserveMappings: { assetId: string }[] = [];
 
       for (const assetId of Object.keys(foreignAssetIdType)) {
@@ -69,19 +64,12 @@ describeSmokeSuite(
         }
       }
 
-      console.log("Failed foreign assetType<->AssetId entries:");
-      console.log(
-        failedAssetReserveMappings
-          .map(({ assetId }) => {
-            return `expected: ${assetId} to be present in localAssets `;
-          })
-          .join(`\n`)
-      );
-
-      // Make sure the test fails after we print the errors
-      expect(failedAssetReserveMappings.length, "Failed local assets").to.equal(0);
-
-      // Additional debug logs
+      expect(
+        failedAssetReserveMappings.length,
+        `Failed foreign asset entries: ${failedAssetReserveMappings
+          .map(({ assetId }) => `expected: ${assetId} to be present in localAssets `)
+          .join(`, `)}`
+      ).to.equal(0);
       debug(
         `Verified ${
           Object.keys(foreignAssetIdType).length
@@ -90,7 +78,6 @@ describeSmokeSuite(
     });
 
     it("should make sure existing xcm payment assets exist in mapping", async function () {
-      // Instead of putting an expect in the loop. We track all failed entries instead
       const failedXcmPaymentAssets: { assetType: string }[] = [];
 
       for (const assetType of foreignXcmAcceptedAssets) {
@@ -99,19 +86,12 @@ describeSmokeSuite(
         }
       }
 
-      console.log("Failed xcm fee payment assets:");
-      console.log(
-        failedXcmPaymentAssets
-          .map(({ assetType }) => {
-            return `expected: ${assetType} to be present in localAssets `;
-          })
-          .join(`\n`)
-      );
-
-      // Make sure the test fails after we print the errors
-      expect(failedXcmPaymentAssets.length, "Failed local assets").to.equal(0);
-
-      // Additional debug logs
+      expect(
+        failedXcmPaymentAssets.length,
+        `Failed xcm fee assets: ${failedXcmPaymentAssets
+          .map(({ assetType }) => `expected: ${assetType} to be present in localAssets `)
+          .join(`\n`)}`
+      ).to.equal(0);
       debug(
         `Verified ${foreignXcmAcceptedAssets.length} xcm fee payment assets (at #${atBlockNumber})`
       );

@@ -41,6 +41,19 @@ fn test_selector_enum() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::transfer_selectors());
+		tester.test_default_modifier(PCall::transfer_multiasset_selectors());
+		tester.test_default_modifier(PCall::transfer_multi_currencies_selectors());
+		tester.test_default_modifier(PCall::transfer_with_fee_selectors());
+		tester.test_default_modifier(PCall::transfer_multiasset_with_fee_selectors());
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()

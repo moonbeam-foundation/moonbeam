@@ -5,13 +5,12 @@ import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+import Bottleneck from "bottleneck";
 const debug = require("debug")("smoke:balances");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
-describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verifying balances consistency...`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
+  const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
@@ -31,7 +30,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
-    specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
+    specVersion = apiAt.consts.system.version.specVersion.toNumber();
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID.toLowerCase();
@@ -41,11 +40,13 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
     // loop over all system accounts
     while (true) {
-      let query = await apiAt.query.system.account.entriesPaged({
-        args: [],
-        pageSize: limit,
-        startKey: last_key,
-      });
+      const query = await limiter.schedule(() =>
+        apiAt.query.system.account.entriesPaged({
+          args: [],
+          pageSize: limit,
+          startKey: last_key,
+        })
+      );
 
       if (query.length == 0) {
         break;
@@ -53,7 +54,7 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
       count += query.length;
 
       for (const user of query) {
-        let accountId = `0x${user[0].toHex().slice(-40)}`;
+        const accountId = `0x${user[0].toHex().slice(-40)}`;
         last_key = user[0].toString();
         accounts[accountId] = user[1];
       }
@@ -444,15 +445,16 @@ describeSmokeSuite(`Verify balances consistency`, { wssUrl, relayWssUrl }, (cont
 
     if (failedLocks.length > 0 || failedReserved.length > 0) {
       if (failedReserved.length > 0) {
-        console.log("Failed accounts reserves");
-        console.log(chalk.red(failedReserved.join("\n")));
+        debug("Failed accounts reserves");
       }
       if (failedLocks.length > 0) {
-        console.log("Failed accounts locks");
-        console.log(chalk.red(failedLocks.join("\n")));
+        debug("Failed accounts locks");
       }
-      expect(failedReserved.length, "Failed accounts reserves").to.equal(0);
-      expect(failedLocks.length, "Failed accounts locks").to.equal(0);
+      expect(
+        failedReserved.length,
+        `Failed accounts reserves: ${failedReserved.join(", ")}`
+      ).to.equal(0);
+      expect(failedLocks.length, `Failed accounts locks: ${failedLocks.join(", ")}`).to.equal(0);
     }
 
     debug(`Verified ${Object.keys(accounts).length} total reserved balance (at #${atBlockNumber})`);

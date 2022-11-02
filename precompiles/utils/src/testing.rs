@@ -40,6 +40,18 @@ pub struct SubcallOutput {
 	pub logs: Vec<Log>,
 }
 
+pub fn decode_revert_message(encoded: &[u8]) -> &[u8] {
+	let encoded_len = encoded.len();
+	// selector 4 + offset 32 + string length 32
+	if encoded_len > 68 {
+		let message_len = encoded[36..68].iter().sum::<u8>();
+		if encoded_len >= 68 + message_len as usize {
+			return &encoded[68..68 + message_len as usize];
+		}
+	}
+	b"decode_revert_message: error"
+}
+
 pub trait SubcallTrait: FnMut(Subcall) -> SubcallOutput + 'static {}
 
 impl<T: FnMut(Subcall) -> SubcallOutput + 'static> SubcallTrait for T {}
@@ -284,18 +296,6 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 		res
 	}
 
-	fn decode_revert_message(encoded: &[u8]) -> &[u8] {
-		let encoded_len = encoded.len();
-		// selector 4 + offset 32 + string length 32
-		if encoded_len > 68 {
-			let message_len = encoded[36..68].iter().sum::<u8>();
-			if encoded_len >= 68 + message_len as usize {
-				return &encoded[68..68 + message_len as usize];
-			}
-		}
-		b"decode_revert_message: error"
-	}
-
 	/// Execute the precompile set and expect some precompile to have been executed, regardless of the
 	/// result.
 	pub fn execute_some(mut self) {
@@ -317,7 +317,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 		match res {
 			Some(Err(PrecompileFailure::Revert { output, .. })) => {
-				let decoded = Self::decode_revert_message(&output);
+				let decoded = decode_revert_message(&output);
 				eprintln!(
 					"Revert message (bytes): {:?}",
 					sp_core::hexdisplay::HexDisplay::from(&decoded)
@@ -362,7 +362,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 		match res {
 			Some(Err(PrecompileFailure::Revert { output, .. })) => {
-				let decoded = Self::decode_revert_message(&output);
+				let decoded = decode_revert_message(&output);
 				if !check(decoded) {
 					eprintln!(
 						"Revert message (bytes): {:?}",
@@ -433,6 +433,111 @@ impl core::fmt::Debug for PrettyLog {
 			.field("data", &bytes)
 			.field("data_utf8", &message)
 			.finish()
+	}
+}
+
+pub struct PrecompilesModifierTester<P> {
+	precompiles: P,
+	handle: MockHandle,
+}
+
+impl<P: PrecompileSet> PrecompilesModifierTester<P> {
+	pub fn new(precompiles: P, from: impl Into<H160>, to: impl Into<H160>) -> Self {
+		let to = to.into();
+		let mut handle = MockHandle::new(
+			to.clone(),
+			Context {
+				address: to,
+				caller: from.into(),
+				apparent_value: U256::zero(),
+			},
+		);
+
+		handle.gas_limit = u64::MAX;
+
+		Self {
+			precompiles,
+			handle,
+		}
+	}
+
+	fn is_view(&mut self, selector: u32) -> bool {
+		// View: calling with static should not revert with static-related message.
+		let handle = &mut self.handle;
+		handle.is_static = true;
+		handle.context.apparent_value = U256::zero();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		let res = self.precompiles.execute(handle);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+
+				dbg!(decoded) != b"Can't call non-static function in static context"
+			}
+			Some(_) => true,
+			None => panic!("tried to check view modifier on unknown precompile"),
+		}
+	}
+
+	fn is_payable(&mut self, selector: u32) -> bool {
+		// Payable: calling with value should not revert with payable-related message.
+		let handle = &mut self.handle;
+		handle.is_static = false;
+		handle.context.apparent_value = U256::one();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		let res = self.precompiles.execute(handle);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+
+				decoded != b"Function is not payable"
+			}
+			Some(_) => true,
+			None => panic!("tried to check payable modifier on unknown precompile"),
+		}
+	}
+
+	pub fn test_view_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				self.is_view(s),
+				"Function doesn't behave like a view function."
+			);
+			assert!(
+				!self.is_payable(s),
+				"Function doesn't behave like a non-payable function."
+			)
+		}
+	}
+
+	pub fn test_payable_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				!self.is_view(s),
+				"Function doesn't behave like a non-view function."
+			);
+			assert!(
+				self.is_payable(s),
+				"Function doesn't behave like a payable function."
+			);
+		}
+	}
+
+	pub fn test_default_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				!self.is_view(s),
+				"Function doesn't behave like a non-view function."
+			);
+			assert!(
+				!self.is_payable(s),
+				"Function doesn't behave like a non-payable function."
+			);
+		}
 	}
 }
 
