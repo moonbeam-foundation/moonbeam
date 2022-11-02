@@ -19,7 +19,7 @@ import {
   createTransfer,
 } from "../../util/transactions";
 
-describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
+describeDevMoonbeam("Balance transfer cost", (context) => {
   const randomAccount = generateKeyringPair();
   it("should cost 21000 * 10_000_000_000", async function () {
     await context.createBlock(createTransfer(context, randomAccount.address, 0));
@@ -30,7 +30,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer cost", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
+describeDevMoonbeam("Balance transfer", (context) => {
   const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock();
@@ -68,7 +68,7 @@ describeDevMoonbeamAllEthTxTypes("Balance transfer", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Balance transfer - fees", (context) => {
+describeDevMoonbeam("Balance transfer - fees", (context) => {
   const randomAccount = generateKeyringPair();
   before("Create block with transfer to test account of 512", async () => {
     await context.createBlock(createTransfer(context, randomAccount.address, 512));

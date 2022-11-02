@@ -39,9 +39,11 @@ describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Existential Deposit", (context) => {
+// run in legacy only -- this test requires that exactly its gas_price * gas_limit be deducted from
+// the sender's account
+describeDevMoonbeam("Existential Deposit", (context) => {
   let randomWeb3Account: Account;
-  it("setup accounts", async function () {
+  before("setup accounts", async function () {
     randomWeb3Account = context.web3.eth.accounts.create("random");
     await context.createBlock(
       createTransfer(context, randomWeb3Account.address, 10n * GLMR, {
