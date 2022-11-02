@@ -1,10 +1,16 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/errors";
+
+import type { ApiTypes, AugmentedError } from "@polkadot/api-base/types";
+
+export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>;
 
 declare module "@polkadot/api-base/types/errors" {
-  export interface AugmentedErrors<ApiType extends ApiTypes> {
+  interface AugmentedErrors<ApiType extends ApiTypes> {
     assetManager: {
       AssetAlreadyExists: AugmentedError<ApiType>;
       AssetDoesNotExist: AugmentedError<ApiType>;
@@ -486,6 +492,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       PaymentOverflow: AugmentedError<ApiType>;
       /**
+       * EVM reentrancy
+       */
+      Reentrancy: AugmentedError<ApiType>;
+      /**
        * Undefined error.
        */
       Undefined: AugmentedError<ApiType>;
@@ -523,6 +533,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The target is invalid.
        */
       InvalidTarget: AugmentedError<ApiType>;
+      /**
+       * The provided judgement was for a different identity.
+       */
+      JudgementForDifferentIdentity: AugmentedError<ApiType>;
       /**
        * Judgement given.
        */
@@ -729,11 +743,14 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
       RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
       /**
