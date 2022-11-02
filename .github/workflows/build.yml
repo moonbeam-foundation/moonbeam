@@ -356,6 +356,8 @@ jobs:
           npm run build
           cd ../tests
           npm ci
+          #### Prepares and copies the typescript generated API to include in the tests
+          npm setup-typescript-api 
 
           #### Compile typescript tests into javascript (more stable for Mocha)
           #### This also better display typescript issues
