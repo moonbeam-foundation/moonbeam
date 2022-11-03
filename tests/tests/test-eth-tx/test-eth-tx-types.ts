@@ -4,7 +4,7 @@ import { expect } from "chai";
 
 import { ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransaction, createTransfer } from "../../util/transactions";
+import { createTransaction, createTransfer, DEFAULT_TXN_MAX_BASE_FEE } from "../../util/transactions";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",
@@ -26,7 +26,7 @@ describeDevMoonbeam(
       expect(extrinsic.isLegacy).to.be.true;
       expect(extrinsic.asLegacy.toJSON()).to.deep.equal({
         nonce: 0,
-        gasPrice: 1000000000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 12000000,
         action: { call: baltathar.address.toLowerCase() },
         value: 512,
@@ -62,7 +62,7 @@ describeDevMoonbeam(
       expect(extrinsic.asEip2930.toJSON()).to.deep.equal({
         chainId: 1281,
         nonce: 0,
-        gasPrice: 10000000000,
+        gasPrice: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
@@ -100,7 +100,7 @@ describeDevMoonbeam(
         chainId: 1281,
         nonce: 0,
         maxPriorityFeePerGas: 0,
-        maxFeePerGas: 10000000000,
+        maxFeePerGas: DEFAULT_TXN_MAX_BASE_FEE,
         gasLimit: 21000,
         action: {
           call: baltathar.address.toLowerCase(),
