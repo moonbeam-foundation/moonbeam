@@ -145,17 +145,6 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -251,39 +240,28 @@
 		<span class="comment">// We will construct an asset with the max amount, and check how much we
 		// get in return to substract
 		</span><span class="kw">let </span>multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
-		<span class="kw">let </span>payment: xcm_executor::Assets = <span class="macro">vec!</span>[multiasset].into();
 		<span class="kw">let </span>weight_per_second = <span class="number">1_000_000_000_000u64</span>;
-		<span class="kw">let </span><span class="kw-2">mut </span>trader = XcmConfig::Trader::new();
-		<span class="kw">let </span>remaining: Vec&lt;xcm::latest::MultiAsset&gt; = trader
-			.buy_weight(weight_per_second, payment.clone())
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;Trader does not support multiasset&quot;</span>))<span class="question-mark">?
-			</span>.into();
 
-		<span class="comment">// If remaining is empty, it means we spent the whole max u128,
-		// shouldnt happen
-		</span><span class="kw">let </span>remaining_asset = remaining
-			.first()
-			.ok_or(revert(<span class="string">&quot;spent whole weight, shouldnt happen&quot;</span>))<span class="question-mark">?</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>trader = &lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Trader::new();
 
-		<span class="kw">let </span>paid_assets: Vec&lt;xcm::latest::MultiAsset&gt; = payment
-			.clone()
-			.checked_sub(remaining_asset.clone())
-			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;spent more than U128 MAX, shouldnt happen&quot;</span>))<span class="question-mark">?
-			</span>.into();
+		<span class="comment">// buy_weight returns unused assets
+		</span><span class="kw">let </span>unused = trader
+			.buy_weight(weight_per_second, <span class="macro">vec!</span>[multiasset.clone()].into())
+			.map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">&quot;Asset not supported as fee payment&quot;</span>).in_field(<span class="string">&quot;multilocation&quot;</span>)
+			})<span class="question-mark">?</span>;
 
-		<span class="comment">// Its safe to assume that if paid_assets is empty, is because we didnt
-		// consume anything
-		</span><span class="kw">match </span>paid_assets
-			.first()
-			.unwrap_or(<span class="kw-2">&amp;</span>(multilocation, <span class="number">0u128</span>).into())
+		<span class="comment">// we just need to substract from u128::MAX the unused assets
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(amount) = unused
+			.fungible
+			.get(<span class="kw-2">&amp;</span>multiasset.id)
+			.map(|<span class="kw-2">&amp;</span>value| u128::MAX.saturating_sub(value))
 		{
-			MultiAsset {
-				id: Concrete(<span class="kw">_</span>),
-				fun: Fungible(amount),
-			} =&gt; <span class="prelude-val">Ok</span>((<span class="kw-2">*</span>amount).into()),
-			<span class="kw">_ </span>=&gt; <span class="prelude-val">Err</span>(revert(
-				<span class="string">&quot;Non-concrete or non-fungible assets not evaluated by trader&quot;</span>,
-			)),
+			<span class="prelude-val">Ok</span>(amount.into())
+		} <span class="kw">else </span>{
+			<span class="prelude-val">Err</span>(revert(
+				<span class="string">&quot;Weight was too expensive to be bought with this asset&quot;</span>,
+			))
 		}
 	}
 
