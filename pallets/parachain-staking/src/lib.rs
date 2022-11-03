@@ -1569,10 +1569,6 @@ pub mod pallet {
 			let collator_fee = payout_info.collator_commission;
 			let collator_issuance = collator_fee * payout_info.round_issuance;
 
-			// println!("{:?}", paid_for_round);
-			// <AtStake<T>>::iter_prefix(paid_for_round).for_each(|v| println!("AtStake {:?}", v));
-			// <AwardedPts<T>>::iter_prefix(paid_for_round)
-			// 	.for_each(|v| println!("AwardedPts {:?}", v));
 			if let Some((collator, state)) =
 				<AtStake<T>>::iter_prefix(paid_for_round).drain().next()
 			{
