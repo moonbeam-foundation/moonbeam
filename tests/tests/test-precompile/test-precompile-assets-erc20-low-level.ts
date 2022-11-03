@@ -74,7 +74,6 @@ describeDevMoonbeamAllEthTxTypes(
       );
     });
 
-
     it("can make static calls to view functions", async function () {
       expect(
         (
