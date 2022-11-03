@@ -14,6 +14,7 @@ import {
 import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
 import { AccountId20 } from "@polkadot/types/interfaces";
+import { FIVE_MINS, THIRTY_MINS } from "../util/constants";
 const debug = require("debug")("smoke:staking");
 
 const limiter = new Bottleneck({
@@ -35,6 +36,8 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
       debug("Skip Block Consistency flag set, skipping staking rewards tests.");
       this.skip();
     }
+
+    this.timeout(FIVE_MINS)
 
     const atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
@@ -73,13 +76,8 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     ).to.be.empty;
   });
 
-  // after(async function(){
-  //   const timbo = await context.polkadotApi.at("0x213131212s")
-  //   timbo.
-  // })
-
-  it.only("should snapshot the current global statistics for each selected candidate.", async function () {
-    this.timeout(120000);
+  it.only("should have accurate collator stats in snapshot.", async function () {
+    this.timeout(FIVE_MINS);
     const results = await limiter.schedule(() => {
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
         const [
@@ -94,23 +92,66 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           )
         ).unwrap();
 
-        const bondsMatch = bond.eq(candidateInfo.bond);
-        const delegationsTotalMatch =
+        let bondsMatch: boolean = bond.eq(candidateInfo.bond);
+        let delegationsTotalMatch: boolean =
           delegations.length ==
           Math.min(
             candidateInfo.delegationCount.toNumber(),
             predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
           );
-        const totalSum = delegations
+        let totalSum: boolean = delegations
           .reduce((acc: BN, curr) => {
             return acc.add(curr.amount);
           }, new BN(0))
           .add(bond)
           .eq(total);
 
+          if (index == 5) { totalSum = false}
+          if (index == 7) { delegationsTotalMatch = false}
+          if (index == 12) { bondsMatch = false}
+        return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
+      });
+
+      return Promise.all(allTasks);
+    });
+
+    const failures = results.filter(item=> Object.values(item).includes(false))
+    expect(failures, `Checks failed for collators: ${failures.map(a=>a.collator).join(", ")}`).to.be.empty
+  });
+
+  it("should snapshot candidate delegations correctly", async function(){
+    this.timeout(THIRTY_MINS);
+    const results = await limiter.schedule(() => {
+      const allTasks = atStakeSnapshot.map(async (coll, index) => {
+        const [
+          {
+            args: [_, accountId],
+          },
+          { bond, total, delegations },
+        ] = coll;
+        // const candidateInfo = (
+        //   await limiter.schedule(() =>
+        //     predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
+        //   )
+        // ).unwrap();
+
+        // const bondsMatch = bond.eq(candidateInfo.bond);
+        // const delegationsTotalMatch =
+        //   delegations.length ==
+        //   Math.min(
+        //     candidateInfo.delegationCount.toNumber(),
+        //     predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
+        //   );
+        // const totalSum = delegations
+        //   .reduce((acc: BN, curr) => {
+        //     return acc.add(curr.amount);
+        //   }, new BN(0))
+        //   .add(bond)
+        //   .eq(total);
+
           /// TODO : GET THIS WORKING
           /// TODO : BREAK THIS OUT INTO ITS OWN TEST BELOW
-        const delegationAmounts = delegations.map(async (delegator, index2) => {
+        return delegations.map(async (delegator, index2) => {
           const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
             (await predecessorApiAt.query.parachainStaking.delegatorState(delegator.owner)) as any
           ).unwrap();
@@ -137,18 +178,20 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
             );
           }
 
-          return match;
+          return {collator: accountId.toString(), delegator: delegator.owner.toString(), match};
         });
-
-        return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
       });
 
       return Promise.all(allTasks);
     });
 
     console.log(results[7]);
-    await limiter.disconnect()
-  });
+    const mismatches = results.find(item => !item.match )
+    console.log(mismatches)
+
+    // Exit buffer for queries to gracefully close
+    await new Promise(resolve=>setTimeout(resolve, 1000)) 
+  })
 
   it.skip("rewards are given as expected", async function () {
     this.timeout(500000);
