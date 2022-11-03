@@ -19,7 +19,7 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest,
+	Points, Range, RewardPayment, Round, ScheduledRequest,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -1068,7 +1068,7 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid)); // TODO: how to keep this in scope so it can be done in verify block?
 	}
 	verify {
 		// collator should have been paid
