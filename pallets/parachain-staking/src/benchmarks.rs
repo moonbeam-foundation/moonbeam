@@ -1068,7 +1068,8 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(matches!(result.0, RewardPayment::Paid)); // TODO: how to keep this in scope so it can be done in verify block?
+		// TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid));
 	}
 	verify {
 		// collator should have been paid
