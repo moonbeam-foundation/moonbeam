@@ -15,16 +15,8 @@ import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
 import { AccountId20 } from "@polkadot/types/interfaces";
 import { FIVE_MINS, THIRTY_MINS } from "../util/constants";
+import { createImportSpecifier } from "typescript";
 const debug = require("debug")("smoke:staking");
-
-const limiter = new Bottleneck({
-  maxConcurrent: 5,
-  minTime: 200,
-  reservoir: 40, 
-  reservoirIncreaseAmount: 2,
-  reservoirIncreaseInterval: 1000, 
-  reservoirIncreaseMaximum: 40,
-});
 
 describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
   let atStakeSnapshot;
@@ -76,9 +68,16 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     ).to.be.empty;
   });
 
-  it.only("should have accurate collator stats in snapshot.", async function () {
+  it("should have accurate collator stats in snapshot.", async function () {
     this.timeout(FIVE_MINS);
+
+    const limiter = new Bottleneck({
+      maxConcurrent: 5,
+      minTime: 200,
+    });
+
     const results = await limiter.schedule(() => {
+
       const allTasks = atStakeSnapshot.map(async (coll, index) => {
         const [
           {
@@ -92,23 +91,19 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           )
         ).unwrap();
 
-        let bondsMatch: boolean = bond.eq(candidateInfo.bond);
-        let delegationsTotalMatch: boolean =
+        const bondsMatch: boolean = bond.eq(candidateInfo.bond);
+        const delegationsTotalMatch: boolean =
           delegations.length ==
           Math.min(
             candidateInfo.delegationCount.toNumber(),
             predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
           );
-        let totalSum: boolean = delegations
+        const totalSum: boolean = delegations
           .reduce((acc: BN, curr) => {
             return acc.add(curr.amount);
           }, new BN(0))
           .add(bond)
           .eq(total);
-
-          if (index == 5) { totalSum = false}
-          if (index == 7) { delegationsTotalMatch = false}
-          if (index == 12) { bondsMatch = false}
         return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
       });
 
@@ -119,43 +114,29 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
     expect(failures, `Checks failed for collators: ${failures.map(a=>a.collator).join(", ")}`).to.be.empty
   });
 
-  it("should snapshot candidate delegations correctly", async function(){
+  it.only("should snapshot candidate delegations correctly", async function(){
     this.timeout(THIRTY_MINS);
-    const results = await limiter.schedule(() => {
-      const allTasks = atStakeSnapshot.map(async (coll, index) => {
+    const limiter = new Bottleneck({
+      maxConcurrent: 5,
+      minTime: 200,
+    });
+
+
+    // const promises = await limiter.schedule(() => {
+      const promises = atStakeSnapshot.map(async (coll, index) => {
         const [
           {
             args: [_, accountId],
           },
           { bond, total, delegations },
         ] = coll;
-        // const candidateInfo = (
-        //   await limiter.schedule(() =>
-        //     predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
-        //   )
-        // ).unwrap();
 
-        // const bondsMatch = bond.eq(candidateInfo.bond);
-        // const delegationsTotalMatch =
-        //   delegations.length ==
-        //   Math.min(
-        //     candidateInfo.delegationCount.toNumber(),
-        //     predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
-        //   );
-        // const totalSum = delegations
-        //   .reduce((acc: BN, curr) => {
-        //     return acc.add(curr.amount);
-        //   }, new BN(0))
-        //   .add(bond)
-        //   .eq(total);
-
-          /// TODO : GET THIS WORKING
-          /// TODO : BREAK THIS OUT INTO ITS OWN TEST BELOW
         return delegations.map(async (delegator, index2) => {
           const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
             (await predecessorApiAt.query.parachainStaking.delegatorState(delegator.owner)) as any
           ).unwrap();
-          const item = delegatorDelegations.find(
+
+          const delegationAmount = delegatorDelegations.find(
             (candidate) => candidate.owner.toString() == accountId.toString()
           ).amount;
 
@@ -166,31 +147,34 @@ describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
           ).find((a) => {
             return a.delegator.toString() == delegator.owner.toString();
           });
+
           const subtraction =
             scheduledRequest === undefined
               ? "0"
               : Object.values(scheduledRequest.action.toHuman())[0];
 
-          const match = item.eq(delegator.amount.subn(subtraction));
+          const match = delegationAmount.eq(delegator.amount.subn(subtraction));
           if (!match) {
             debug(
-              `Snapshot amount ${delegator.amount.toString()} does not match storage amount ${item.toString()} for delegator: ${delegator.owner.toString()} on candidate: ${accountId.toString()}`
+              `Snapshot amount ${delegator.amount.toString()} does not match storage amount ${delegationAmount.toString()} for delegator: ${delegator.owner.toString()} on candidate: ${accountId.toString()}`
             );
           }
-
+ 
           return {collator: accountId.toString(), delegator: delegator.owner.toString(), match};
         });
       });
 
-      return Promise.all(allTasks);
-    });
+    //   return Promise.all(allTasks);
+    // });
 
-    console.log(results[7]);
-    const mismatches = results.find(item => !item.match )
-    console.log(mismatches)
-
+    const results = await Promise.all(promises)
+  
+    // const mismatches = results.find(item => item.match == false )
+    // console.log(mismatches)
+    // const otherResults = await Promise.all(allTasks())
+    console.log(results[3]);
     // Exit buffer for queries to gracefully close
-    await new Promise(resolve=>setTimeout(resolve, 1000)) 
+    await new Promise(resolve=>setTimeout(resolve, 10000)) 
   })
 
   it.skip("rewards are given as expected", async function () {
