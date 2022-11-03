@@ -49,7 +49,7 @@ if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       this.timeout(500000);
 
       const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
-      if (specVersion < 1900) {
+      if (specVersion < 2000) {
         debug(`ChainSpec ${specVersion} does not include the storage cleanup, skipping test`);
         this.skip();
       }
