@@ -87,11 +87,7 @@ where
 	) -> EvmResult {
 		let poll_index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
-
-		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
-			RevertReason::custom("Must be an integer between 0 and 6 included")
-				.in_field("conviction")
-		})?;
+		let conviction = Self::u8_to_conviction(conviction.converted()).in_field("conviction")?;
 
 		let vote = AccountVote::Standard {
 			vote: Vote { aye, conviction },
@@ -138,8 +134,7 @@ where
 		class: SolidityConvert<U256, u16>,
 		poll_index: SolidityConvert<U256, u32>,
 	) -> EvmResult {
-		let class: Option<ClassOf<Runtime>> =
-			Some(Self::u16_to_class(class.converted()).in_field("class")?);
+		let class = Some(Self::u16_to_class(class.converted()).in_field("class")?);
 		let index = Self::u32_to_index(poll_index.converted()).in_field("poll_index")?;
 
 		log::trace!(
@@ -196,11 +191,7 @@ where
 	) -> EvmResult {
 		let class = Self::u16_to_class(class.converted()).in_field("class")?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
-
-		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
-			RevertReason::custom("Must be an integer between 0 and 6 included")
-				.in_field("conviction")
-		})?;
+		let conviction = Self::u8_to_conviction(conviction.converted()).in_field("conviction")?;
 
 		log::trace!(target: "conviction-voting-precompile",
 			"Delegating vote to {:?} with balance {:?} and conviction {:?}",
@@ -241,7 +232,7 @@ where
 		class: SolidityConvert<U256, u16>,
 		target: Address,
 	) -> EvmResult {
-		let class: ClassOf<Runtime> = Self::u16_to_class(class.converted()).in_field("class")?;
+		let class = Self::u16_to_class(class.converted()).in_field("class")?;
 		let target: H160 = target.into();
 		let target = Runtime::AddressMapping::into_account_id(target);
 		let target: <Runtime::Lookup as StaticLookup>::Source =
@@ -258,6 +249,11 @@ where
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
+	}
+	fn u8_to_conviction(conviction: u8) -> MayRevert<Conviction> {
+		conviction
+			.try_into()
+			.map_err(|_| RevertReason::custom("Must be an integer between 0 and 6 included").into())
 	}
 	fn u32_to_index(index: u32) -> MayRevert<IndexOf<Runtime>> {
 		index

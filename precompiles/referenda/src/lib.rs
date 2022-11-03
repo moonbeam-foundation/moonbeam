@@ -19,17 +19,27 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{schedule::DispatchTime, OriginTrait};
+use frame_support::traits::{schedule::DispatchTime, Currency, OriginTrait};
 use pallet_evm::AddressMapping;
-use pallet_referenda::Call as ReferendaCall;
+use pallet_referenda::{
+	Call as ReferendaCall, DecidingCount, ReferendumCount, ReferendumInfoFor, TracksInfo,
+};
 use precompile_utils::prelude::*;
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_std::marker::PhantomData;
 
 // #[cfg(test)]
 // mod mock;
 // #[cfg(test)]
 // mod tests;
+
+type BalanceOf<Runtime> = <<Runtime as pallet_referenda::Config>::Currency as Currency<
+	<Runtime as frame_system::Config>::AccountId,
+>>::Balance;
+type TrackIdOf<Runtime> = <<Runtime as pallet_referenda::Config>::Tracks as TracksInfo<
+	BalanceOf<Runtime>,
+	<Runtime as frame_system::Config>::BlockNumber,
+>>::Id;
 
 type OriginOf<Runtime> = <<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin;
 
@@ -49,7 +59,83 @@ where
 	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as frame_system::Config>::Call: From<ReferendaCall<Runtime>>,
+	TrackIdOf<Runtime>: TryFrom<u16>,
 {
+	// The accessors are first. They directly return their result.
+	#[precompile::public("referendumCount()")]
+	#[precompile::view]
+	fn referendum_count(handle: &mut impl PrecompileHandle) -> EvmResult<U256> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let ref_count = ReferendumCount::<Runtime>::get();
+		log::trace!(target: "referendum-precompile", "Referendum count from pallet is {:?}", ref_count);
+
+		Ok(ref_count.into())
+	}
+
+	#[precompile::public("decidingCount(uint256)")]
+	#[precompile::view]
+	fn deciding_count(
+		handle: &mut impl PrecompileHandle,
+		track_id: SolidityConvert<U256, u16>,
+	) -> EvmResult<U256> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let track_id: TrackIdOf<Runtime> = track_id
+			.converted()
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("Track id type").into())
+			.in_field("track")?;
+		let deciding_count = DecidingCount::<Runtime>::get(track_id);
+		log::trace!(
+			target: "referendum-precompile", "Track {:?} deciding count is {:?}",
+			track_id,
+			deciding_count
+		);
+
+		Ok(deciding_count.into())
+	}
+
+	// #[precompile::public("referendumStatus(uint256)")]
+	// #[precompile::view]
+	// fn referendum_status(
+	// 	handle: &mut impl PrecompileHandle,
+	// 	ref_index: SolidityConvert<U256, u32>,
+	// ) -> EvmResult<U256> {
+	// 	// Fetch data from pallet
+	// 	handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+	// 	let referendum_info = ReferendumInfoFor::<Runtime>::get(ref_index.converted());
+	// 	// log::trace!(
+	// 	// 	target: "referendum-precompile", "Track {:?} deciding count is {:?}",
+	// 	// 	track_id,
+	// 	// 	deciding_count
+	// 	// );
+
+	// 	// TODO:
+	// 	Ok(ref_index.into())
+	// }
+
+	// TODO: function per status variant
+
+	#[precompile::public("ongoingReferendumInfoFor(uint256)")]
+	#[precompile::view]
+	fn ongoing_referendum_info(
+		handle: &mut impl PrecompileHandle,
+		ref_index: SolidityConvert<U256, u32>,
+	) -> EvmResult<U256> {
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let referendum_info = ReferendumInfoFor::<Runtime>::get(ref_index.converted());
+		// log::trace!(
+		// 	target: "referendum-precompile", "Track {:?} deciding count is {:?}",
+		// 	track_id,
+		// 	deciding_count
+		// );
+
+		// TODO:
+		Ok(ref_index.into())
+	}
+
 	/// Propose a referendum on a privileged action.
 	///
 	/// Parameters:
