@@ -81,6 +81,7 @@
     "polkadot-launch": "^2.3.0",
     "randchacha": "^1.0.2",
     "rimraf": "^3.0.2",
+    "semver": "^7.3.8",
     "solc": "^0.8.3",
     "tcp-port-used": "^1.0.2",
     "ts-node": "^10.8.1",
