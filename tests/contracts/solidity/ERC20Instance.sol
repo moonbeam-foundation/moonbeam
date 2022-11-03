@@ -64,6 +64,16 @@ contract ERC20Instance is IERC20 {
         return result;
     }
 
+    function transfer_static(address to, uint256 value)
+        external
+        returns (bool)
+    {
+        (bool result, bytes memory data) = erc20address.staticcall(
+            abi.encodeWithSignature("transfer(address,uint256)", to, value)
+        );
+        return result;
+    }
+
     function approve(address spender, uint256 value)
         external
         override
@@ -78,6 +88,62 @@ contract ERC20Instance is IERC20 {
     {
         (bool result, bytes memory data) = erc20address.delegatecall(
             abi.encodeWithSignature("approve(address,uint256)", spender, value)
+        );
+        return result;
+    }
+
+    function approve_ext_delegate(address spender, uint256 value)
+        external
+    {
+        (bool result, bytes memory data) = address(this).delegatecall(
+            abi.encodeWithSignature("approve(address,uint256)", spender, value)
+        );
+        require(result, string(data));
+    }
+
+    function approve_static(address spender, uint256 value)
+        external
+        returns (bool)
+    {
+        (bool result, bytes memory data) = erc20address.staticcall(
+            abi.encodeWithSignature("approve(address,uint256)", spender, value)
+        );
+        return result;
+    }
+
+    function approve_ext_static(address spender, uint256 value)
+        external
+    {
+        (bool result, bytes memory data) = address(this).staticcall(
+            abi.encodeWithSignature("approve(address,uint256)", spender, value)
+        );
+        require(result, string(data));
+    }
+
+    function approve_delegate_to_static(address spender, uint256 value)
+        external
+        returns (bool)
+    {
+        (bool result, bytes memory data) = address(this).delegatecall(
+            abi.encodeWithSignature(
+                "approve_ext_static(address,uint256)",
+                spender,
+                value
+            )
+        );
+        return result;
+    }
+
+    function approve_static_to_delegate(address spender, uint256 value)
+        external
+        returns (bool)
+    {
+        (bool result, bytes memory data) = address(this).staticcall(
+            abi.encodeWithSignature(
+                "approve_ext_delegate(address,uint256)",
+                spender,
+                value
+            )
         );
         return result;
     }
