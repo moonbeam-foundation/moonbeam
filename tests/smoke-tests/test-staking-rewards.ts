@@ -239,6 +239,31 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
+  const outstandingRevokes: { [key: string]: Set<string> } = (
+    await apiAtRewarded.query.parachainStaking.delegationScheduledRequests.entries()
+  ).reduce(
+    (
+      acc,
+      [
+        {
+          args: [candidateId],
+        },
+        scheduledRequests,
+      ]
+    ) => {
+      if (!(candidateId.toHex() in acc)) {
+        acc[candidateId.toHex()] = new Set();
+      }
+      scheduledRequests
+        .filter((req) => req.action.isRevoke)
+        .forEach((req) => {
+          acc[candidateId.toHex()].add(req.delegator.toHex());
+        });
+      return acc;
+    },
+    {} as { [key: string]: Set<string> }
+  );
+
   debug(`totalRoundIssuance            ${totalRoundIssuance.toString()}
 reservedForParachainBond      ${reservedForParachainBond} \
 (${parachainBondPercent} * totalRoundIssuance)
@@ -286,7 +311,8 @@ totalBondReward               ${totalBondReward} \
       totalCollatorCommissionReward,
       totalPoints,
       totalStakingReward,
-      stakedValue
+      stakedValue,
+      outstandingRevokes
     );
     totalCollatorShare = totalCollatorShare.add(rewarded.collatorSharePerbill);
     totalCollatorCommissionRewarded = totalCollatorCommissionRewarded.add(
@@ -329,7 +355,9 @@ totalBondReward               ${totalBondReward} \
         Object.entries(stakedValue[rewarded.collator].delegators)
           .filter(
             ([key, { autoCompound }]) =>
-              !autoCompound.value().isZero() && expectedRewardedDelegators.has(key)
+              !autoCompound.value().isZero() &&
+              expectedRewardedDelegators.has(key) &&
+              !outstandingRevokes[rewarded.collator].has(key)
           )
           .map(([key, _]) => key)
       );
@@ -437,7 +465,8 @@ async function assertRewardedEventsAtBlock(
   totalCollatorCommissionReward: BN,
   totalPoints: u32,
   totalStakingReward: BN,
-  stakedValue: StakedValue
+  stakedValue: StakedValue,
+  outstandingRevokes: { [key: string]: Set<string> }
 ): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> {
   const nowRoundRewardBlockHash = await api.rpc.chain.getBlockHash(rewardedBlockNumber);
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
@@ -521,6 +550,7 @@ async function assertRewardedEventsAtBlock(
         const collatorBondReward = bondShare.of(bondReward);
         rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
         const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
+
         assertEqualWithAccount(
           rewards[accountId].amount,
           collatorTotalReward,
@@ -551,7 +581,8 @@ async function assertRewardedEventsAtBlock(
       );
 
       // check autoCompound
-      if (specVersion >= 1900) {
+      const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
+      if (specVersion >= 1900 && canAutoCompound) {
         const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
         // skip assertion if auto-compound 0%
         if (autoCompoundPercent.value().isZero()) {
