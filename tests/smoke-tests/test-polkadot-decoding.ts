@@ -14,7 +14,7 @@ describeSmokeSuite("Polkadot API - Storage items", (context) => {
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
-    specVersion = await apiAt.runtimeVersion.specVersion.toNumber();
+    specVersion = apiAt.consts.system.version.specVersion.toNumber();
   });
 
   // This test simply load all the storage items to make sure they can be loaded.
