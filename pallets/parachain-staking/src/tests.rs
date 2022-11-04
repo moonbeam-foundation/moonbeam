@@ -9588,13 +9588,24 @@ fn test_on_initialize_weights() {
 			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
 			let block = System::block_number() + 1;
 			let weight = ParachainStaking::on_initialize(block);
-			assert_eq!(Weight::from_ref_time(3_017_871_000), weight);
+
+			// the total on_init weight during our round change. this number is taken from running
+			// the fn with a given weights.rs benchmark, so will need to be updated as benchmarks
+			// change.
+			//
+			// following this assertion, we add individual weights together to show that we can
+			// derive this number independently.
+			let expected_on_init = 3_017_871_000;
+			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
 			let mut expected_weight = 0u64;
 			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
 			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
-			let num_avg_delegations = 8; // TODO: this should be the same as <TotalSelected<Test>>
+
+			// TODO: this should be the same as <TotalSelected<Test>>. I believe this relates to
+			// genesis building
+			let num_avg_delegations = 8;
 			expected_weight += PalletWeights::<Test>::select_top_candidates(
 				<TotalSelected<Test>>::get(),
 				num_avg_delegations,
@@ -9611,5 +9622,6 @@ fn test_on_initialize_weights() {
 			expected_weight += pay_one_collator_reward_weight;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
+			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
