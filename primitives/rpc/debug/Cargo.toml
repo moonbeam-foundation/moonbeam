@@ -10,7 +10,7 @@ version = "0.1.0"
 [dependencies]
 environmental = { version = "1.1.2", default-features = false }
 ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.13.1", default-features = false }
+ethereum-types = { version = "0.14", default-features = false }
 hex = { version = "0.4", optional = true, features = [ "serde" ] }
 serde = { version = "1.0", optional = true, features = [ "derive" ] }
 serde_json = { version = "1.0", optional = true }

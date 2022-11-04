@@ -31,7 +31,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 
 # Frontier
 ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
-ethereum-types = "0.13.1"
+ethereum-types = "0.14"
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.31-pre" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.31-pre" }
 fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.31-pre", features = [ "rpc_binary_search_estimate" ] }

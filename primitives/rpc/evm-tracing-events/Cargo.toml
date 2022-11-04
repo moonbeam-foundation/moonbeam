@@ -16,7 +16,7 @@ sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch 
 
 # Ethereum
 ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
-ethereum-types = { version = "0.13.1", default-features = false }
+ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }
 evm-runtime = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }

@@ -2519,7 +2519,7 @@ version = "0.1.0"
 dependencies = [
  "environmental",
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
  "evm-gasometer 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
  "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
@@ -5257,7 +5257,7 @@ dependencies = [
 name = "moonbeam-client-evm-tracing"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "evm-tracing-events",
  "hex",
  "moonbeam-rpc-primitives-debug",
@@ -5281,7 +5281,7 @@ dependencies = [
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
  "evm-gasometer 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
  "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
@@ -5316,7 +5316,7 @@ dependencies = [
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "evm-tracing-events",
  "parity-scale-codec",
  "sp-externalities",
@@ -5349,7 +5349,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
@@ -5363,7 +5363,7 @@ dependencies = [
 name = "moonbeam-rpc-core-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
@@ -5377,7 +5377,7 @@ name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "fc-rpc-core",
  "jsonrpsee",
  "serde",
@@ -5388,7 +5388,7 @@ dependencies = [
 name = "moonbeam-rpc-core-types"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "serde",
  "serde_json",
 ]
@@ -5398,7 +5398,7 @@ name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "fc-consensus",
  "fc-db",
  "fc-rpc",
@@ -5427,7 +5427,7 @@ version = "0.1.0"
 dependencies = [
  "environmental",
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5456,7 +5456,7 @@ name = "moonbeam-rpc-trace"
 version = "0.6.0"
 dependencies = [
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
@@ -5487,7 +5487,7 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "fc-rpc",
  "frame-system",
  "jsonrpsee",
@@ -6981,7 +6981,7 @@ name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "fp-ethereum",
  "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
  "fp-rpc",
@@ -14910,7 +14910,7 @@ name = "xcm-primitives"
 version = "0.1.0"
 dependencies = [
  "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.13.1",
+ "ethereum-types 0.14.0",
  "frame-support",
  "frame-system",
  "hex",

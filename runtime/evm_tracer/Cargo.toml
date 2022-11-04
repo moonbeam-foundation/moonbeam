@@ -21,7 +21,7 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 
 # Frontier
-ethereum-types = { version = "0.13.1", default-features = false }
+ethereum-types = { version = "0.14", default-features = false }
 evm = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }
 evm-runtime = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }
