@@ -36,6 +36,15 @@ export async function createAndFinalizeBlock(
   };
 }
 
+// Given a deposit amount, returns the amount burned (80%) and deposited to treasury (20%).
+// This is meant to precisely mimic the logic in the Moonbeam runtimes where the burn amount
+// is calculated and the treasury is treated as the remainder. This precision is important to
+// avoid off-by-one errors.
+export function calculateFeePortions(amount: bigint): {burnt: bigint, treasury: bigint} {
+  const burnt = (amount * 80n) / 100n; // 20% goes to treasury
+  return { burnt, treasury: amount - burnt };
+}
+
 export interface TxWithEventAndFee extends TxWithEvent {
   fee: RuntimeDispatchInfo;
 }
@@ -190,33 +199,50 @@ export const verifyBlockFees = async (
             ) {
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
-                const gasFee =
+                const gasUsed =
                   (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
                 let ethTxWrapper = extrinsic.method.args[0] as any;
-                let gasPrice;
+
+                let number = blockDetails.block.header.number.toNumber();
+                // The on-chain base fee used by the transaction. Aka the parent block's base fee.
+                //
+                // Note on 1559 fees: no matter what the user was willing to pay (maxFeePerGas),
+                // the transaction fee is ultimately computed using the onchain base fee. The
+                // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
+                // prioritization component: the EVM is not aware of it and thus not part of the
+                // weight cost of the extrinsic.
+                let baseFeePerGas = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+                let priorityFee;
+
                 // Transaction is an enum now with as many variants as supported transaction types.
                 if (ethTxWrapper.isLegacy) {
-                  gasPrice = ethTxWrapper.asLegacy.gasPrice.toBigInt();
+                  priorityFee = ethTxWrapper.asLegacy.gasPrice.toBigInt();
                 } else if (ethTxWrapper.isEip2930) {
-                  gasPrice = ethTxWrapper.asEip2930.gasPrice.toBigInt();
+                  priorityFee = ethTxWrapper.asEip2930.gasPrice.toBigInt();
                 } else if (ethTxWrapper.isEip1559) {
-                  let number = blockDetails.block.header.number.toNumber();
-                  // The on-chain base fee used by the transaction. Aka the parent block's base fee.
-                  //
-                  // Note on 1559 fees: no matter what the user was willing to pay (maxFeePerGas),
-                  // the transaction fee is ultimately computed using the onchain base fee. The
-                  // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
-                  // prioritization component: the EVM is not aware of it and thus not part of the
-                  // weight cost of the extrinsic.
-                  gasPrice = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+                  priorityFee = ethTxWrapper.asEip1559.maxPriorityFeePerGas.toBigInt();
                 }
-                // And then multiplying by gasPrice
-                txFees = gasFee * gasPrice;
+
+                let effectiveTipPerGas = priorityFee - baseFeePerGas;
+                expect(Number(effectiveTipPerGas)).to.be.gt(0, "We calculated a negative tip!");
+
+                // Calculate the fees paid for base fee independently from tip fee. Both are subject
+                // to 80/20 split (burn/treasury) but calculating this over the total rather than
+                // the sum of these parts leads to off-by-one errors.
+                const baseFeesPaid = gasUsed * baseFeePerGas;
+                const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
+
+                const baseFeePortions = calculateFeePortions(baseFeesPaid);
+                const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
+
+                txFees += (baseFeesPaid + tipAsFeesPaid);
+                txBurnt += baseFeePortions.burnt;
+                txBurnt += tipFeePortions.burnt;
               } else {
                 // For a regular substrate tx, we use the partialFee
-                txFees = fee.partialFee.toBigInt();
+                let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                txBurnt += feePortions.burnt;
               }
-              txBurnt += (txFees * 80n) / 100n; // 20% goes to treasury
 
               blockFees += txFees;
               blockBurnt += txBurnt;
