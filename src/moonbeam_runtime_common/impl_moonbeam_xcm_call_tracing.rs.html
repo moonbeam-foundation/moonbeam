@@ -105,6 +105,8 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -169,6 +171,8 @@
 								</span><span class="prelude-val">Some</span>(transaction) =&gt; <span class="kw">match </span>transaction {
 									<span class="comment">// Tracing a block, all calls are done using environmental.
 									</span>EthereumXcmTracingStatus::Block =&gt; {
+										<span class="comment">// Each known extrinsic is a new call stack.
+										</span>EvmTracer::emit_new();
 										<span class="kw">let </span><span class="kw-2">mut </span>res: <span class="prelude-ty">Option</span>&lt;CallResult&gt; = <span class="prelude-val">None</span>;
 										EvmTracer::new().trace(|| {
 											res = <span class="prelude-val">Some</span>(dispatch_call());
