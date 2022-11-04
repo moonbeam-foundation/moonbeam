@@ -78,7 +78,8 @@ export const TWO_MINS = 2 * 60 * 1000;
 export const FIVE_MINS = 5 * 60 * 1000;
 export const TEN_MINS = 10 * 60 * 1000;
 export const THIRTY_MINS = 30 * 60 * 1000;
-export const ONE_HOUR = 60 * 60 * 1000;
+export const ONE_HOURS = 60 * 60 * 1000;
+export const TWO_HOURS = 2 * 60 * 60 * 1000;
 
 
 export const CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS = 0;
