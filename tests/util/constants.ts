@@ -81,7 +81,6 @@ export const THIRTY_MINS = 30 * 60 * 1000;
 export const ONE_HOURS = 60 * 60 * 1000;
 export const TWO_HOURS = 2 * 60 * 60 * 1000;
 
-
 export const CONTRACT_RANDOMNESS_STATUS_DOES_NOT_EXISTS = 0;
 export const CONTRACT_RANDOMNESS_STATUS_PENDING = 1;
 export const CONTRACT_RANDOMNESS_STATUS_READY = 2;
