@@ -206,7 +206,12 @@ impl super::ResponseFormatter for Formatter {
 										trace_address: Some(b),
 										..
 									}),
-								) => &b[..] == &a[0..a.len() - 1],
+								) => {
+									&b[..]
+										== a.get(0..a.len() - 1).expect(
+											"non-root element while traversing trace result",
+										)
+								}
 								_ => unreachable!(),
 							}) {
 						// Remove `trace_address` from result.

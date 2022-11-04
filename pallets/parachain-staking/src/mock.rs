@@ -17,7 +17,8 @@
 //! Test utilities
 use crate as pallet_parachain_staking;
 use crate::{
-	pallet, AwardedPts, Config, InflationInfo, Points, Range, COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
+	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -252,6 +253,7 @@ pub(crate) fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
+	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
 	ParachainStaking::on_initialize(System::block_number());
@@ -284,10 +286,6 @@ pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
 	roll_to(block)
 }
 
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
-}
-
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 	System::events()
 		.into_iter()
@@ -302,114 +300,197 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-/// Assert input equal to the last event emitted
+/// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_no_events!();
+/// ```
 #[macro_export]
-macro_rules! assert_last_event {
+macro_rules! assert_no_events {
+	() => {
+		similar_asserts::assert_eq!(Vec::<Event<Test>>::new(), crate::mock::events())
+	};
+}
+
+/// Asserts that emitted events match exactly the given input.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_eq {
 	($event:expr) => {
-		match &$event {
-			e => assert_eq!(*e, crate::mock::last_event()),
-		}
+		similar_asserts::assert_eq!(vec![$event], crate::mock::events());
+	};
+	($($events:expr,)+) => {
+		similar_asserts::assert_eq!(vec![$($events,)+], crate::mock::events());
 	};
 }
 
-/// Compares the system events with passed in events
-/// Prints highlighted diff iff assert_eq fails
-#[macro_export]
-macro_rules! assert_eq_events {
-	($events:expr) => {
-		match &$events {
-			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
-		}
-	};
-}
-
-/// Compares the last N system events with passed in events, where N is the length of events passed
-/// in.
+/// Asserts that some emitted events match the given input.
 ///
-/// Prints highlighted diff iff assert_eq fails.
-/// The last events from frame_system will be taken in order to match the number passed to this
-/// macro. If there are insufficient events from frame_system, they will still be compared; the
-/// output may or may not be helpful.
+/// # Example
 ///
-/// Examples:
-/// If frame_system has events [A, B, C, D, E] and events [C, D, E] are passed in, the result would
-/// be a successful match ([C, D, E] == [C, D, E]).
-///
-/// If frame_system has events [A, B, C, D] and events [B, C] are passed in, the result would be an
-/// error and a hopefully-useful diff will be printed between [C, D] and [B, C].
-///
-/// Note that events are filtered to only match parachain-staking (see events()).
+/// ```
+/// assert_events_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
-macro_rules! assert_eq_last_events {
-	($events:expr $(,)?) => {
-		assert_tail_eq!($events, crate::mock::events());
-	};
-	($events:expr, $($arg:tt)*) => {
-		assert_tail_eq!($events, crate::mock::events(), $($arg)*);
-	};
-}
-
-/// Assert that one array is equal to the tail of the other. A more generic and testable version of
-/// assert_eq_last_events.
-#[macro_export]
-macro_rules! assert_tail_eq {
-	($tail:expr, $arr:expr $(,)?) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
-		}
-	};
-	($tail:expr, $arr:expr, $($arg:tt)*) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr, $($arg)*); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..], $($arg)*);
-		}
-	};
-}
-
-/// Panics if an event is not found in the system log of events
-#[macro_export]
-macro_rules! assert_event_emitted {
+macro_rules! assert_events_emitted {
 	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_some(),
-					"Event {:?} was not found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
+	};
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
 	};
 }
 
-/// Panics if an event is found in the system log of events
+/// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+/// );
+/// ```
 #[macro_export]
-macro_rules! assert_event_not_emitted {
+macro_rules! assert_events_not_emitted {
 	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_none(),
-					"Event {:?} was found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
+	};
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
+	};
+}
+
+/// Asserts that the emitted events are exactly equal to the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq_match!(
+///		Foo { x: 1, .. },
+///		Bar { .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_eq_match {
+	($index:expr;) => {
+		assert_eq!(
+			$index,
+			crate::mock::events().len(),
+			"Found {} extra event(s): \n{:#?}",
+			crate::mock::events().len()-$index,
+			crate::mock::events()
+		);
+	};
+	($index:expr; $event:pat_param, $($events:pat_param,)*) => {
+		assert!(
+			matches!(
+				crate::mock::events().get($index),
+				Some($event),
+			),
+			"Event {:#?} was not found at index {}: \n{:#?}",
+			stringify!($event),
+			$index,
+			crate::mock::events()
+		);
+		assert_events_eq_match!($index+1; $($events,)*);
+	};
+	($event:pat_param) => {
+		assert_events_eq_match!(0; $event,);
+	};
+	($($events:pat_param,)+) => {
+		assert_events_eq_match!(0; $($events,)+);
+	};
+}
+
+/// Asserts that some emitted events match the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| matches!(x, $event)),
+			"Event {:?} was not found in events: \n{:#?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_emitted_match!($event);
+		$(
+			assert_events_emitted_match!($events);
+		)+
+	};
+}
+
+/// Asserts that the input patterns match none of the emitted events.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_not_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| !matches!(x, $event)),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_not_emitted_match!($event);
+		$(
+			assert_events_not_emitted_match!($events);
+		)+
 	};
 }
 
@@ -599,39 +680,372 @@ fn roll_to_round_end_works() {
 }
 
 #[test]
-fn assert_tail_eq_works() {
-	assert_tail_eq!(vec![1, 2], vec![0, 1, 2]);
+#[should_panic]
+fn test_assert_events_eq_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
 
-	assert_tail_eq!(vec![1], vec![1]);
-
-	assert_tail_eq!(
-		vec![0u32; 0], // 0 length array
-		vec![0u32; 1]  // 1-length array
-	);
-
-	assert_tail_eq!(vec![0u32, 0], vec![0u32, 0]);
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_non_equal_tail() {
-	assert_tail_eq!(vec![2, 2], vec![0, 1, 2]);
+fn test_assert_events_eq_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 200,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_empty_arr() {
-	assert_tail_eq!(vec![2, 2], vec![0u32; 0]);
+fn test_assert_events_eq_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_longer_tail() {
-	assert_tail_eq!(vec![1, 2, 3], vec![1, 2]);
+fn test_assert_events_eq_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 50,
+			},
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
-	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
+fn test_assert_events_emitted_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			delegator: 3,
+			scheduled_exit: 4,
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 50,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::Rewarded { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { rewards: 50, .. },
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq_match!(ParachainStakingEvent::Rewarded { account: 1, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				..
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			..
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 50, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 100, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(
+			ParachainStakingEvent::CollatorChosen {
+				total_exposed_amount: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+fn inject_test_events() {
+	[
+		ParachainStakingEvent::CollatorChosen {
+			round: 2,
+			collator_account: 1,
+			total_exposed_amount: 10,
+		},
+		ParachainStakingEvent::NewRound {
+			starting_block: 10,
+			round: 2,
+			selected_collators_number: 1,
+			total_balance: 10,
+		},
+		ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		},
+	]
+	.into_iter()
+	.for_each(System::deposit_event);
 }

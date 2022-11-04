@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The IERC20 contract's address.
+address constant IERC20_ADDRESS = 0x0000000000000000000000000000000000000802;
+
+/// @dev The IERC20 contract's instance.
+IERC20 constant IERC20_CONTRACT = IERC20(IERC20_ADDRESS);
+
 /// @title ERC20 interface
 /// @dev see https://github.com/ethereum/EIPs/issues/20
 /// @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts

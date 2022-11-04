@@ -1,10 +1,13 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
+import { expect, use as chaiUse } from "chai";
+import chaiAsPromised from "chai-as-promised";
 import { MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, baltathar, charleth, ethan } from "../../util/accounts";
 import { expectOk } from "../../util/expect";
+
+chaiUse(chaiAsPromised);
 
 describeDevMoonbeam("Staking - Set Auto-Compound - delegator not exists", (context) => {
   it("should fail", async () => {
@@ -92,6 +95,28 @@ describeDevMoonbeam(
     });
   }
 );
+
+describeDevMoonbeam("Staking - Set Auto-Compound - new config 101%", (context) => {
+  before("setup delegate", async () => {
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking
+          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
+          .signAsync(ethan)
+      )
+    );
+  });
+
+  it("should fail", async () => {
+    await expect(
+      context.createBlock(
+        context.polkadotApi.tx.parachainStaking
+          .setAutoCompound(alith.address, 101, 0, 1)
+          .signAsync(ethan)
+      )
+    ).to.eventually.be.rejectedWith("Value is greater than allowed maximum!");
+  });
+});
 
 describeDevMoonbeam("Staking - Set Auto-Compound - insert new config", (context) => {
   before("setup delegate", async () => {

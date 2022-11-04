@@ -36,6 +36,7 @@ jobs:
         run: |
           cd typescript-api
           npm install @polkadot/api@latest
+          npm install @polkadot/typegen@latest
           npm run build
       - name: regenerate typescript api with new runtime metadata
         run: |
