@@ -9616,10 +9616,10 @@ fn test_on_initialize_weights() {
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
 
-			// add weight for invoking pay_one_collator_reward
+			// add weight for invoking handle_delayed_payouts
 			// (goes away when we skip paying the first collator during round change)
-			let pay_one_collator_reward_weight = 536_374_000;
-			expected_weight += pay_one_collator_reward_weight;
+			let handle_delayed_payouts_weight = 536_374_000;
+			expected_weight += handle_delayed_payouts_weight;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
