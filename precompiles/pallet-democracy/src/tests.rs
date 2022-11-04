@@ -14,10 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::mock::{
-	events, roll_to,
-	Account::{self, Alice, Bob, Precompile},
-	Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
+use crate::{
+	mock::{
+		events, roll_to,
+		Account::{self, Alice, Bob, Precompile},
+		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
+		Runtime,
+	},
+	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
+	SELECTOR_LOG_STANDARD_VOTE, SELECTOR_LOG_UNDELEGATED,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -26,7 +31,7 @@ use pallet_democracy::{
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 use std::{convert::TryInto, str::from_utf8};
 
@@ -463,6 +468,15 @@ fn propose_works() {
 						deposit: 100
 					}
 					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_PROPOSED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new().write::<U256>(100.into()).build(),
+						)
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}
@@ -525,6 +539,17 @@ fn second_works() {
 						prop_index: 0
 					}
 					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_SECONDED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.build(),
+						)
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}
@@ -580,6 +605,20 @@ fn standard_vote_aye_works() {
 							},
 							balance: 100000
 						}
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(true)
+								.write::<U256>(100000.into())
+								.write::<u8>(0)
+								.build(),
+						),
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -653,6 +692,20 @@ fn standard_vote_nay_conviction_works() {
 							},
 							balance: 100000
 						}
+					}
+					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(false)
+								.write::<U256>(100000.into())
+								.write::<u8>(3)
+								.build(),
+						),
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -818,6 +871,17 @@ fn delegate_works() {
 						target: Bob
 					}
 					.into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_DELEGATED,
+							H160::from(Alice),
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Bob).into())
+								.build(),
+						),
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}
@@ -882,6 +946,10 @@ fn undelegate_works() {
 					}
 					.into(),
 					DemocracyEvent::Undelegated { account: Alice }.into(),
+					EvmEvent::Log {
+						log: log2(Precompile, SELECTOR_LOG_UNDELEGATED, H160::from(Alice), [],),
+					}
+					.into(),
 					EvmEvent::Executed {
 						address: Precompile.into()
 					}

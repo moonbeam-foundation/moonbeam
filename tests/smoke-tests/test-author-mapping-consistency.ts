@@ -2,17 +2,13 @@ import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
-
 const debug = require("debug")("smoke:author-mapping");
 
-describeSmokeSuite(`Verify deposit for associated nimbus ids`, (context) => {
+describeSmokeSuite(`Verifying deposit for associated nimbus ids...`, (context) => {
   const nimbusIdPerAccount: { [account: string]: string } = {};
 
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
-
-  // If the state structure has changed at a specific version, it should get included in the test
-  let specVersion: number = 0;
 
   before("Retrieve all associated nimbus ids", async function () {
     // It takes time to load all the nimbus ids.
@@ -36,11 +32,10 @@ describeSmokeSuite(`Verify deposit for associated nimbus ids`, (context) => {
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
-    specVersion = (await apiAt.query.system.lastRuntimeUpgrade()).unwrap().specVersion.toNumber();
 
     // Query nimbus ids
     while (true) {
-      let query = await apiAt.query.authorMapping.nimbusLookup.entriesPaged({
+      const query = await apiAt.query.authorMapping.nimbusLookup.entriesPaged({
         args: [],
         pageSize: limit,
         startKey: last_key,
@@ -53,7 +48,7 @@ describeSmokeSuite(`Verify deposit for associated nimbus ids`, (context) => {
 
       // Convert data to a dictonnary accountId -> nimbusId
       for (const entry of query) {
-        let accountId = `0x${entry[0].toHex().slice(-40)}`;
+        const accountId = `0x${entry[0].toHex().slice(-40)}`;
         last_key = entry[0].toString();
         nimbusIdPerAccount[accountId] = entry[1].toString();
       }
@@ -76,20 +71,20 @@ describeSmokeSuite(`Verify deposit for associated nimbus ids`, (context) => {
     // Verify that there is a deposit for each nimbus id
     for (const accountId of Object.keys(nimbusIdPerAccount)) {
       const nimbusId = nimbusIdPerAccount[accountId];
-      let registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
+      const registrationInfo = await apiAt.query.authorMapping.mappingWithDeposit(nimbusId);
       if (registrationInfo.isNone || registrationInfo.unwrap().deposit.toBigInt() <= BigInt(0)) {
         failedEntries.push({ accountId, nimbusId, problem: "missing deposit" });
       }
 
       // ensure each account has reserve >= deposit
-      let account = await apiAt.query.system.account(accountId);
+      const account = await apiAt.query.system.account(accountId);
       if (registrationInfo.unwrap().deposit.toBigInt() > account.data.reserved.toBigInt()) {
         failedEntries.push({ accountId, nimbusId, problem: "insufficient reserved amount" });
       }
 
       // ensure that keys exist and smell legitimate
-      let keys_ = registrationInfo.unwrap().keys_;
-      let zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
+      const keys_ = registrationInfo.unwrap().keys_;
+      const zeroes = Array.from(keys_.toString()).reduce((prev, c) => {
         return prev + (c == "0" ? 1 : 0);
       }, 0);
       if (zeroes > 32) {
@@ -102,20 +97,14 @@ describeSmokeSuite(`Verify deposit for associated nimbus ids`, (context) => {
       }
     }
 
-    // Log errors
-    console.log("Failed accounts without deposit:");
-    console.log(
-      failedEntries
-        .map(({ accountId, nimbusId, problem }) => {
+    expect(
+      failedEntries.length,
+      `Failed accounts without deposit: ${failedEntries
+        .map(({ accountId, problem }) => {
           return `accountId: ${accountId}, problem: ${problem}`;
         })
-        .join(`\n`)
-    );
-
-    // Make sure the test fails after we print the errors
-    expect(failedEntries.length, "Failed association deposit").to.equal(0);
-
-    // Additional debug logs
+        .join(`\n`)} `
+    ).to.equal(0);
     debug(
       `Verified ${Object.keys(nimbusIdPerAccount).length} total accounts (at #${atBlockNumber})`
     );

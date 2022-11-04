@@ -11,216 +11,23 @@ import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
 import { AccountId20 } from "@polkadot/types/interfaces";
 import { FIVE_MINS, TWO_HOURS } from "../util/constants";
+import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
 
-describeSmokeSuite(`Verify ParachainStaking rewards...`, function (context) {
-  let atStakeSnapshot;
-  let apiAt: ApiDecoration<"promise">;
-  let predecessorApiAt: ApiDecoration<"promise">;
-
-  before("Common Setup", async function () {
-    if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-      debug("Skip Block Consistency flag set, skipping staking rewards tests.");
-      this.skip();
-    }
-
-    this.timeout(FIVE_MINS);
-
-    const atBlockNumber = process.env.BLOCK_NUMBER
-      ? parseInt(process.env.BLOCK_NUMBER)
-      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    const queriedBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
-    const queryApi = await context.polkadotApi.at(queriedBlockHash);
-    const queryRound = await queryApi.query.parachainStaking.round();
-    debug(
-      `Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`
-    );
-
-    const prevBlock = queryRound.first.subn(1);
-    const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
-    apiAt = await context.polkadotApi.at(prevHash);
-    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`);
-
-    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
-    const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
-    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`);
-    predecessorApiAt = await context.polkadotApi.at(predecessorHash);
-
-    const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
-    debug(`Loading previous round #${nowRound} snapshot`);
-    atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(nowRound);
-  });
-
-  it("should snapshot the selected candidates for that round.", async function () {
-    const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
-    const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
-
-    const extras = atStakeSnapshot.filter((item) => selectedCandidates.some((a) => item == a));
-    expect(atStakeSnapshot.length).to.be.equal(totalSelected);
-    expect(
-      extras,
-      `Non-selected candidates in snapshot: ${extras.map((a) => a[0]).join(", ")}`
-    ).to.be.empty;
-  });
-
-  it("should have accurate collator stats in snapshot.", async function () {
-    this.timeout(FIVE_MINS);
-
-    const limiter = new Bottleneck({
-      maxConcurrent: 5,
-      minTime: 200,
-    });
-
-    const results = await limiter.schedule(() => {
-      const allTasks = atStakeSnapshot.map(async (coll, index) => {
-        const [
-          {
-            args: [_, accountId],
-          },
-          { bond, total, delegations },
-        ] = coll;
-        const candidateInfo = (
-          await limiter.schedule(() =>
-            predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
-          )
-        ).unwrap();
-
-        const bondsMatch: boolean = bond.eq(candidateInfo.bond);
-        const delegationsTotalMatch: boolean =
-          delegations.length ==
-          Math.min(
-            candidateInfo.delegationCount.toNumber(),
-            predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
-          );
-        const totalSum: boolean = delegations
-          .reduce((acc: BN, curr) => {
-            return acc.add(curr.amount);
-          }, new BN(0))
-          .add(bond)
-          .eq(total);
-        return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
-      });
-
-      return Promise.all(allTasks);
-    });
-
-    const failures = results.filter((item) => Object.values(item).includes(false));
-    expect(
-      failures,
-      `Checks failed for collators: ${failures.map((a) => a.collator).join(", ")}`
-    ).to.be.empty;
-  });
-
-  it("should snapshot candidate delegations correctly", async function () {
-    // This test is so slow due to rate limiting, this should be off until a better solution appears
-    if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
-      debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
-      this.skip();
-    }
-
-    this.timeout(TWO_HOURS);
-    const limiter = new Bottleneck({
-      maxConcurrent: 10,
-      minTime: 100,
-    });
-
-    // Function to check a single Delegator's delegation to a collator
-    const checkDelegatorDelegation = async (accountId: AccountId20, delegator) => {
-      const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
-        (await limiter.schedule(() =>
-          predecessorApiAt.query.parachainStaking.delegatorState(delegator.owner)
-        )) as any
-      ).unwrap();
-
-      const delegationAmount = delegatorDelegations.find(
-        (candidate) => candidate.owner.toString() == accountId.toString()
-      ).amount;
-
-      // Querying for pending withdrawals which affect the total
-      const scheduledRequest = (
-        (await limiter.schedule(() =>
-          predecessorApiAt.query.parachainStaking.delegationScheduledRequests(
-            accountId as AccountId20
-          )
-        )) as any
-      ).find((a) => {
-        return a.delegator.toString() == delegator.owner.toString();
-      });
-
-      const expected =
-        scheduledRequest === undefined
-          ? delegationAmount
-          : delegationAmount.sub(
-              new BN((Object.values(JSON.parse(scheduledRequest.action))[0] as any).slice(3), "hex")
-            );
-
-      const match = expected.eq(delegator.amount);
-      if (!match) {
-        debug(
-          "Snapshot amount " +
-            delegator.amount.toString() +
-            " does not match storage amount " +
-            delegationAmount.toString() +
-            " for delegator: " +
-            delegator.owner.toString() +
-            " on candidate: " +
-            accountId.toString()
-        );
+if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
+  describeSmokeSuite(`Verify staking rewards`, function (context) {
+    it("rewards are given as expected", async function () {
+      this.timeout(500000);
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
       }
-      return { collator: accountId.toString(), delegator: delegator.owner.toString(), match };
-    };
-
-    const collatorList = atStakeSnapshot.map((coll) => {
-      const [
-        {
-          args: [_, accountId],
-        },
-        { bond, total, delegations },
-      ] = coll;
-      return { accountId, delegations };
+      const atBlockNumber = process.env.BLOCK_NUMBER
+        ? parseInt(process.env.BLOCK_NUMBER)
+        : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+      await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
     });
-    debug(`Calculating snapshot delegations for ${collatorList.length} collators.`);
-
-    // Must be For loop as a nested promise map gets stuck
-    let promises = [];
-    for (let i = 0; i < collatorList.length; ++i) {
-      // Report query status every 5 collators
-      if (i % 5 == 0 && i != 0) {
-        const counts = limiter.counts();
-        debug(
-          "TaskQueue - Scheduled: " +
-            counts.RECEIVED +
-            " Buffered: " +
-            counts.QUEUED +
-            " Inflight: " +
-            counts.RUNNING
-        );
-      }
-      const item = collatorList[i];
-      debug(`Checking ${item.delegations.length} delegates for ${item.accountId}`);
-      const promise = await limiter.schedule(() =>
-        item.delegations.map((subItem) => checkDelegatorDelegation(item.accountId, subItem))
-      );
-      promises.push(promise);
-    }
-
-    const results = await Promise.all(promises);
-
-    const mismatches = results.flatMap((a) => a).filter((item) => item.match == false);
-    expect(mismatches, `Mismatched amounts for ${mismatches.join(", ")}`).to.be.empty;
-
-    // Exit buffer for cleanup
-    await new Promise((resolve) => setTimeout(resolve, 2000));
   });
-
-  it("rewards are given as expected", async function () {
-    this.timeout(500000);
-    const atBlockNumber = process.env.BLOCK_NUMBER
-      ? parseInt(process.env.BLOCK_NUMBER)
-      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
-  });
-});
+}
 
 async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
@@ -316,17 +123,34 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
         .delegations.map((d) => d.owner.toHex())
     );
     let countedDelegationSum = new BN(0);
-    for (const { owner, amount } of delegations) {
-      if (!topDelegations.has(owner.toHex())) {
-        continue;
+    if (specVersion >= 1900) {
+      for (const { owner, amount, autoCompound } of delegations as any) {
+        if (!topDelegations.has(owner.toHex())) {
+          continue;
+        }
+        const id = owner.toHex();
+        delegators.add(id);
+        collatorInfo.delegators[id] = {
+          id: id,
+          amount: amount,
+          autoCompound: new Percent(autoCompound.toNumber()),
+        };
+        countedDelegationSum = countedDelegationSum.add(amount);
       }
-      const id = owner.toHex();
-      delegators.add(id);
-      collatorInfo.delegators[id] = {
-        id: id,
-        amount: amount,
-      };
-      countedDelegationSum = countedDelegationSum.add(amount);
+    } else {
+      for (const { owner, amount } of delegations) {
+        if (!topDelegations.has(owner.toHex())) {
+          continue;
+        }
+        const id = owner.toHex();
+        delegators.add(id);
+        collatorInfo.delegators[id] = {
+          id: id,
+          amount: amount,
+          autoCompound: new Percent(0),
+        };
+        countedDelegationSum = countedDelegationSum.add(amount);
+      }
     }
 
     for (const topDelegation of topDelegations) {
@@ -420,6 +244,31 @@ async function assertRewardsAt(api: ApiPromise, nowBlockNumber: number) {
       for round ${originalRoundNumber.toString()}`
   ).to.be.true;
 
+  const outstandingRevokes: { [key: string]: Set<string> } = (
+    await apiAtRewarded.query.parachainStaking.delegationScheduledRequests.entries()
+  ).reduce(
+    (
+      acc,
+      [
+        {
+          args: [candidateId],
+        },
+        scheduledRequests,
+      ]
+    ) => {
+      if (!(candidateId.toHex() in acc)) {
+        acc[candidateId.toHex()] = new Set();
+      }
+      scheduledRequests
+        .filter((req) => req.action.isRevoke)
+        .forEach((req) => {
+          acc[candidateId.toHex()].add(req.delegator.toHex());
+        });
+      return acc;
+    },
+    {} as { [key: string]: Set<string> }
+  );
+
   debug(`totalRoundIssuance            ${totalRoundIssuance.toString()}
 reservedForParachainBond      ${reservedForParachainBond} \
 (${parachainBondPercent} * totalRoundIssuance)
@@ -437,7 +286,10 @@ totalBondReward               ${totalBondReward} \
   const awardedCollatorCount = awardedCollators.length;
 
   // compute max rounds respecting the current block number and the number of awarded collators
-  const maxRoundChecks = Math.min(latestBlockNumber - nowBlockNumber + 1, awardedCollatorCount);
+  const maxRoundChecks = Math.min(
+    latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
+    awardedCollatorCount
+  );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
   const rewardedCollators = new Set<HexString>();
@@ -455,7 +307,7 @@ totalBondReward               ${totalBondReward} \
   // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
-    const rewarded = await assertRewardedEventsAtBlock(
+    const { rewarded, autoCompounded } = await assertRewardedEventsAtBlock(
       api,
       specVersion,
       blockNumber,
@@ -464,7 +316,8 @@ totalBondReward               ${totalBondReward} \
       totalCollatorCommissionReward,
       totalPoints,
       totalStakingReward,
-      stakedValue
+      stakedValue,
+      outstandingRevokes
     );
     totalCollatorShare = totalCollatorShare.add(rewarded.collatorSharePerbill);
     totalCollatorCommissionRewarded = totalCollatorCommissionRewarded.add(
@@ -501,6 +354,39 @@ totalBondReward               ${totalBondReward} \
         ", "
       )}" were unexpectedly rewarded for collator "${rewarded.collator}" at block ${blockNumber}`
     ).to.be.empty;
+
+    if (specVersion >= 1900) {
+      const expectedAutoCompoundedDelegators = new Set(
+        Object.entries(stakedValue[rewarded.collator].delegators)
+          .filter(
+            ([key, { autoCompound }]) =>
+              !autoCompound.value().isZero() &&
+              expectedRewardedDelegators.has(key) &&
+              !outstandingRevokes[rewarded.collator].has(key)
+          )
+          .map(([key, _]) => key)
+      );
+      const notAutoCompounded = new Set(
+        [...expectedAutoCompoundedDelegators].filter((d) => !autoCompounded.has(d))
+      );
+      const unexpectedlyAutoCompounded = new Set(
+        [...autoCompounded].filter((d) => !expectedAutoCompoundedDelegators.has(d))
+      );
+      expect(
+        notAutoCompounded,
+        `delegators "${[...notAutoCompounded].join(", ")}" were not auto-compounded for collator "${
+          rewarded.collator
+        }" at block ${blockNumber}`
+      ).to.be.empty;
+      expect(
+        unexpectedlyAutoCompounded,
+        `delegators "${[...unexpectedlyAutoCompounded].join(
+          ", "
+        )}" were unexpectedly auto-compounded for collator "${
+          rewarded.collator
+        }" at block ${blockNumber}`
+      ).to.be.empty;
+    }
   }
 
   // check reward amount with losses due to Perbill arithmetic
@@ -584,15 +470,19 @@ async function assertRewardedEventsAtBlock(
   totalCollatorCommissionReward: BN,
   totalPoints: u32,
   totalStakingReward: BN,
-  stakedValue: StakedValue
-): Promise<Rewarded> {
+  stakedValue: StakedValue,
+  outstandingRevokes: { [key: string]: Set<string> }
+): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> {
   const nowRoundRewardBlockHash = await api.rpc.chain.getBlockHash(rewardedBlockNumber);
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
   const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
+  const autoCompounds: { [key: HexString]: { candidate: string; account: string; amount: u128 } } =
+    {};
   const blockEvents = await apiAtBlock.query.system.events();
   let rewardCount = 0;
+  let autoCompoundCount = 0;
   for (const { phase, event } of blockEvents) {
     if (!phase.isInitialization) {
       continue;
@@ -605,8 +495,23 @@ async function assertRewardedEventsAtBlock(
         amount: event.data[1] as u128,
       };
     }
+
+    if (specVersion >= 1900) {
+      if (apiAtBlock.events.parachainStaking.Compounded.is(event)) {
+        autoCompoundCount++;
+        autoCompounds[event.data[1].toHex()] = {
+          candidate: event.data[0].toHex(),
+          account: event.data[1].toHex(),
+          amount: event.data[2] as u128,
+        };
+      }
+    }
   }
   expect(rewardCount).to.equal(Object.keys(rewards).length, "reward count mismatch");
+  expect(autoCompoundCount).to.equal(
+    Object.keys(autoCompounds).length,
+    "autoCompound count mismatch"
+  );
 
   let bondReward: BN = new BN(0);
   let collatorInfo: any = {};
@@ -621,6 +526,7 @@ async function assertRewardedEventsAtBlock(
       bondRewardLoss: new BN(0),
     },
   };
+  let autoCompounded = new Set<string>();
   let totalBondRewardShare = new BN(0);
 
   for (const accountId of Object.keys(rewards) as HexString[]) {
@@ -638,17 +544,22 @@ async function assertRewardedEventsAtBlock(
       bondReward = collatorReward.sub(collatorCommissionReward);
 
       if (!stakedValue[accountId].delegators) {
-        assertEqualWithAccount(rewards[accountId].amount, collatorReward, `${accountId} (COL)`);
+        assertEqualWithAccount(
+          rewards[accountId].amount,
+          collatorReward,
+          `${accountId} (COL) - Reward`
+        );
       } else {
         const bondShare = new Perbill(collatorInfo.bond, collatorInfo.total);
         totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
         const collatorBondReward = bondShare.of(bondReward);
         rewarded.amount.bondReward = rewarded.amount.bondReward.add(collatorBondReward);
         const collatorTotalReward = collatorBondReward.add(collatorCommissionReward);
+
         assertEqualWithAccount(
           rewards[accountId].amount,
           collatorTotalReward,
-          `${accountId} (COL)`
+          `${accountId} (COL) - Reward`
         );
       }
       rewarded.collator = accountId;
@@ -661,12 +572,39 @@ async function assertRewardedEventsAtBlock(
       if (rewards[accountId].amount.isZero()) {
         continue;
       }
+
+      // check reward
       const bondShare = new Perbill(collatorInfo.delegators[accountId].amount, collatorInfo.total);
       totalBondRewardShare = totalBondRewardShare.add(bondShare.value());
       const delegatorReward = bondShare.of(bondReward);
       rewarded.amount.bondReward = rewarded.amount.bondReward.add(delegatorReward);
       rewarded.delegators.add(accountId);
-      assertEqualWithAccount(rewards[accountId].amount, delegatorReward, `${accountId} (DEL)`);
+      assertEqualWithAccount(
+        rewards[accountId].amount,
+        delegatorReward,
+        `${accountId} (DEL) - Reward`
+      );
+
+      // check autoCompound
+      const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
+      if (specVersion >= 1900 && canAutoCompound) {
+        const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
+        // skip assertion if auto-compound 0%
+        if (autoCompoundPercent.value().isZero()) {
+          continue;
+        }
+        const autoCompoundReward = autoCompoundPercent.ofCeil(rewards[accountId].amount);
+        if (autoCompounds[accountId]) {
+          assertEqualWithAccount(
+            autoCompounds[accountId].amount,
+            autoCompoundReward,
+            `${accountId} (DEL) - AutoCompound ${autoCompoundPercent.toString()}% of ${rewards[
+              accountId
+            ].amount.toString()}, `
+          );
+          autoCompounded.add(accountId);
+        }
+      }
     } else {
       throw Error(`invalid key ${accountId}, neither collator not delegator`);
     }
@@ -693,7 +631,7 @@ ${estimatedBondRewardedLoss}, actual loss ${actualBondRewardedLoss}`
     rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
   }
 
-  return rewarded;
+  return { rewarded, autoCompounded };
 }
 
 function assertEqualWithAccount(a: BN, b: BN, account: string) {
@@ -730,66 +668,9 @@ type StakedValueData = {
   bond: u128;
   total: u128;
   points: u32;
-  delegators: { [key: string]: { id: string; amount: u128 } };
+  delegators: { [key: string]: { id: string; amount: u128; autoCompound: Percent } };
 };
 
 type StakedValue = {
   [key: string]: StakedValueData;
 };
-
-class Perthing {
-  private unit: BN;
-  private perthing: BN;
-
-  constructor(unit: BN, numerator: BN, denominator?: BN) {
-    this.unit = unit;
-    if (denominator) {
-      this.perthing = numerator.mul(unit).div(denominator);
-    } else {
-      this.perthing = numerator;
-    }
-  }
-
-  value(): BN {
-    return this.perthing;
-  }
-
-  of(value: BN): BN {
-    return this.divNearest(this.perthing.mul(value), this.unit);
-  }
-
-  toString(): string {
-    return `${this.perthing.toString()}`;
-  }
-
-  divNearest(a: any, num: BN) {
-    var dm = a.divmod(num);
-
-    // Fast case - exact division
-    if (dm.mod.isZero()) return dm.div;
-
-    var mod = dm.div.negative !== 0 ? dm.mod.isub(num) : dm.mod;
-
-    var half = num.ushrn(1);
-    var r2 = num.andln(1) as any;
-    var cmp = mod.cmp(half);
-
-    // Round down
-    if (cmp <= 0 || (r2 === 1 && cmp === 0)) return dm.div;
-
-    // Round up
-    return dm.div.negative !== 0 ? dm.div.isubn(1) : dm.div.iaddn(1);
-  }
-}
-
-class Perbill extends Perthing {
-  constructor(numerator: BN, denominator?: BN) {
-    super(new BN(1_000_000_000), numerator, denominator);
-  }
-}
-
-class Percent extends Perthing {
-  constructor(numerator: BN, denominator?: BN) {
-    super(new BN(100), numerator, denominator);
-  }
-}

@@ -8,6 +8,7 @@ import { alith, baltathar, generateKeyringPair } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const ARBITRARY_TRANSFER_AMOUNT = 10000000000000n;
@@ -23,15 +24,21 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-        isSufficient: true,
-        minBalance: 1,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+          isSufficient: true,
+          minBalance: 1,
+        }
+      );
 
       await mockAssetBalance(
         context,
@@ -160,14 +167,20 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-        isSufficient: true,
-        minBalance: 1,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+          isSufficient: true,
+          minBalance: 1,
+        }
+      );
 
       await mockAssetBalance(
         context,
@@ -284,15 +297,21 @@ describeDevMoonbeam(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-        isSufficient: false,
-        minBalance: 1,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+          isSufficient: false,
+          minBalance: 1,
+        }
+      );
 
       await mockAssetBalance(
         context,
