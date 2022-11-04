@@ -382,6 +382,82 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -432,6 +508,22 @@
 
 <span class="kw">pub const </span>ENCODED_PROPOSAL_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetEncodedProposalSizeLimit = ConstU32&lt;ENCODED_PROPOSAL_SIZE_LIMIT&gt;;
+
+<span class="doccomment">/// Solidity selector of the Proposed log, which is the Keccak of the Log signature.
+</span><span class="kw">pub const </span>SELECTOR_LOG_PROPOSED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Proposed(uint32,uint256)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Seconded log, which is the Keccak of the Log signature.
+</span><span class="kw">pub const </span>SELECTOR_LOG_SECONDED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Seconded(uint32,address)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the StandardVote log, which is the Keccak of the Log signature.
+</span><span class="kw">pub const </span>SELECTOR_LOG_STANDARD_VOTE: [u8; <span class="number">32</span>] =
+	<span class="macro">keccak256!</span>(<span class="string">&quot;StandardVote(uint32,address,bool,uint256,uint8)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Delegated log, which is the Keccak of the Log signature.
+</span><span class="kw">pub const </span>SELECTOR_LOG_DELEGATED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Delegated(address,address)&quot;</span>);
+
+<span class="doccomment">/// Solidity selector of the Undelegated log, which is the Keccak of the Log signature.
+</span><span class="kw">pub const </span>SELECTOR_LOG_UNDELEGATED: [u8; <span class="number">32</span>] = <span class="macro">keccak256!</span>(<span class="string">&quot;Undelegated(address)&quot;</span>);
 
 <span class="doccomment">/// A precompile to wrap the functionality from pallet democracy.
 ///
@@ -552,6 +644,10 @@
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	</span><span class="attribute">#[precompile::public(<span class="string">&quot;propose(bytes32,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>propose(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, proposal_hash: H256, value: U256) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>prop_count = DemocracyOf::&lt;Runtime&gt;::public_prop_count();
+
 		<span class="kw">let </span>proposal_hash = proposal_hash.into();
 		<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
@@ -568,6 +664,14 @@
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_PROPOSED,
+			H256::from_low_u64_be(prop_count <span class="kw">as </span>u64), <span class="comment">// proposal index,
+			</span>EvmDataWriter::new().write::&lt;U256&gt;(value.into()).build(),
+		)
+		.record(handle)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 
@@ -577,6 +681,7 @@
 		prop_index: SolidityConvert&lt;U256, u32&gt;,
 		seconds_upper_bound: SolidityConvert&lt;U256, u32&gt;,
 	) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>prop_index = prop_index.converted();
 		<span class="kw">let </span>seconds_upper_bound = seconds_upper_bound.converted();
 
@@ -593,6 +698,16 @@
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_SECONDED,
+			H256::from_low_u64_be(prop_index <span class="kw">as </span>u64), <span class="comment">// proposal index,
+			</span>EvmDataWriter::new()
+				.write::&lt;Address&gt;(handle.context().caller.into())
+				.build(),
+		)
+		.record(handle)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 
@@ -605,28 +720,46 @@
 		vote_amount: U256,
 		conviction: SolidityConvert&lt;U256, u8&gt;,
 	) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32 </span>* <span class="number">4</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>ref_index = ref_index.converted();
-		<span class="kw">let </span>vote_amount = <span class="self">Self</span>::u256_to_amount(vote_amount).in_field(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>;
+		<span class="kw">let </span>vote_amount_balance = <span class="self">Self</span>::u256_to_amount(vote_amount).in_field(<span class="string">&quot;voteAmount&quot;</span>)<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>conviction: Conviction = conviction.converted().try_into().map_err(|<span class="kw">_</span>| {
-			RevertReason::custom(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
-				.in_field(<span class="string">&quot;conviction&quot;</span>)
-		})<span class="question-mark">?</span>;
+		<span class="kw">let </span>conviction_enum: Conviction =
+			conviction.clone().converted().try_into().map_err(|<span class="kw">_</span>| {
+				RevertReason::custom(<span class="string">&quot;Must be an integer between 0 and 6 included&quot;</span>)
+					.in_field(<span class="string">&quot;conviction&quot;</span>)
+			})<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
+			vote: Vote {
+				aye,
+				conviction: conviction_enum,
+			},
+			balance: vote_amount_balance,
 		};
 
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Voting {:?} on referendum #{:?}, with conviction {:?}&quot;</span>,
-			aye, ref_index, conviction
+			aye, ref_index, conviction_enum
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::vote { ref_index, vote };
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_STANDARD_VOTE,
+			H256::from_low_u64_be(ref_index <span class="kw">as </span>u64), <span class="comment">// referendum index,
+			</span>EvmDataWriter::new()
+				.write::&lt;Address&gt;(handle.context().caller.into())
+				.write::&lt;bool&gt;(aye)
+				.write::&lt;U256&gt;(vote_amount)
+				.write::&lt;u8&gt;(conviction.converted())
+				.build(),
+		)
+		.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
@@ -660,6 +793,7 @@
 		conviction: SolidityConvert&lt;U256, u8&gt;,
 		amount: U256,
 	) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>amount = <span class="self">Self</span>::u256_to_amount(amount).in_field(<span class="string">&quot;amount&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="kw">let </span>conviction: Conviction = conviction.converted().try_into().map_err(|<span class="kw">_</span>| {
@@ -672,9 +806,8 @@
 			representative, conviction, amount
 		);
 
-		<span class="kw">let </span>representative = Runtime::AddressMapping::into_account_id(representative.into());
-		<span class="kw">let </span>to: &lt;Runtime::Lookup <span class="kw">as </span>StaticLookup&gt;::Source =
-			Runtime::Lookup::unlookup(representative.clone());
+		<span class="kw">let </span>to = Runtime::AddressMapping::into_account_id(representative.into());
+		<span class="kw">let </span>to: &lt;Runtime::Lookup <span class="kw">as </span>StaticLookup&gt;::Source = Runtime::Lookup::unlookup(to.clone());
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::delegate {
 			to,
@@ -684,16 +817,35 @@
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_DELEGATED,
+			handle.context().caller,
+			EvmDataWriter::new()
+				.write::&lt;Address&gt;(representative)
+				.build(),
+		)
+		.record(handle)<span class="question-mark">?</span>;
+
 		<span class="prelude-val">Ok</span>(())
 	}
 
 	<span class="attribute">#[precompile::public(<span class="string">&quot;unDelegate()&quot;</span>)]
 	#[precompile::public(<span class="string">&quot;un_delegate()&quot;</span>)]
 	</span><span class="kw">fn </span>un_delegate(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">0</span>)<span class="question-mark">?</span>;
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::undelegate {};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_UNDELEGATED,
+			handle.context().caller,
+			[],
+		)
+		.record(handle)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
 	}
