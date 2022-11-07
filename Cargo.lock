@@ -2298,51 +2298,17 @@ dependencies = [
 
 [[package]]
 name = "ethbloom"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11da94e443c60508eb62cf256243a64da87304c2802ac2528847f79d750007ef"
-dependencies = [
- "crunchy",
- "fixed-hash 0.7.0",
- "impl-codec",
- "impl-rlp",
- "impl-serde 0.3.2",
- "scale-info",
- "tiny-keccak",
-]
-
-[[package]]
-name = "ethbloom"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c22d4b5885b6aa2fe5e8b9329fb8d232bf739e434e6b87347c63bdd00c120f60"
 dependencies = [
  "crunchy",
- "fixed-hash 0.8.0",
+ "fixed-hash",
  "impl-codec",
  "impl-rlp",
  "impl-serde 0.4.0",
  "scale-info",
  "tiny-keccak",
-]
-
-[[package]]
-name = "ethereum"
-version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23750149fe8834c0e24bb9adcbacbe06c45b9861f15df53e09f26cb7c4ab91ef"
-dependencies = [
- "bytes",
- "ethereum-types 0.13.1",
- "hash-db",
- "hash256-std-hasher",
- "parity-scale-codec",
- "rlp",
- "rlp-derive",
- "scale-info",
- "serde",
- "sha3 0.10.6",
- "triehash",
 ]
 
 [[package]]
@@ -2351,7 +2317,7 @@ version = "0.12.0"
 source = "git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork#c663c985e588c625044ace8c2cfa9c353671830b"
 dependencies = [
  "bytes",
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "hash-db",
  "hash256-std-hasher",
  "parity-scale-codec",
@@ -2365,32 +2331,16 @@ dependencies = [
 
 [[package]]
 name = "ethereum-types"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2827b94c556145446fcce834ca86b7abf0c39a805883fe20e72c5bfdb5a0dc6"
-dependencies = [
- "ethbloom 0.12.1",
- "fixed-hash 0.7.0",
- "impl-codec",
- "impl-rlp",
- "impl-serde 0.3.2",
- "primitive-types 0.11.1",
- "scale-info",
- "uint",
-]
-
-[[package]]
-name = "ethereum-types"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81224dc661606574f5a0f28c9947d0ee1d93ff11c5f1c4e7272f52e8c0b5483c"
 dependencies = [
- "ethbloom 0.13.0",
- "fixed-hash 0.8.0",
+ "ethbloom",
+ "fixed-hash",
  "impl-codec",
  "impl-rlp",
  "impl-serde 0.4.0",
- "primitive-types 0.12.1",
+ "primitive-types",
  "scale-info",
  "uint",
 ]
@@ -2404,38 +2354,17 @@ checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
 [[package]]
 name = "evm"
 version = "0.36.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d388bbd18050623b996cc4ba0643971e2978693ad56ca8b7603080cfa5eaf738"
-dependencies = [
- "auto_impl",
- "environmental",
- "ethereum 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-core 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-gasometer 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-runtime 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "log",
- "parity-scale-codec",
- "primitive-types 0.11.1",
- "rlp",
- "scale-info",
- "serde",
- "sha3 0.10.6",
-]
-
-[[package]]
-name = "evm"
-version = "0.36.0"
 source = "git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork#0dff8826a90baa1fca6c600b8d7f949ab8f49779"
 dependencies = [
  "auto_impl",
  "environmental",
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "evm-core 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-gasometer 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "ethereum",
+ "evm-core",
+ "evm-gasometer",
+ "evm-runtime",
  "log",
  "parity-scale-codec",
- "primitive-types 0.12.1",
+ "primitive-types",
  "rlp",
  "scale-info",
  "serde",
@@ -2445,36 +2374,12 @@ dependencies = [
 [[package]]
 name = "evm-core"
 version = "0.36.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5fb3a449a544a67c879d2f74e1c3d9022de3ec31c9a20817015816f687aa2af"
-dependencies = [
- "parity-scale-codec",
- "primitive-types 0.11.1",
- "scale-info",
- "serde",
-]
-
-[[package]]
-name = "evm-core"
-version = "0.36.0"
 source = "git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork#0dff8826a90baa1fca6c600b8d7f949ab8f49779"
 dependencies = [
  "parity-scale-codec",
- "primitive-types 0.12.1",
+ "primitive-types",
  "scale-info",
  "serde",
-]
-
-[[package]]
-name = "evm-gasometer"
-version = "0.36.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "170a27b6e49b8279016afffcdc6ebae9225d5acff3a546ad8589929b091e7ac5"
-dependencies = [
- "environmental",
- "evm-core 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "evm-runtime 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "primitive-types 0.11.1",
 ]
 
 [[package]]
@@ -2483,22 +2388,9 @@ version = "0.36.0"
 source = "git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork#0dff8826a90baa1fca6c600b8d7f949ab8f49779"
 dependencies = [
  "environmental",
- "evm-core 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "primitive-types 0.12.1",
-]
-
-[[package]]
-name = "evm-runtime"
-version = "0.36.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4d48c2545a02e3a4d1a5184a96af11037334dce947b6bdb389b3503b3a6f8dcd"
-dependencies = [
- "auto_impl",
- "environmental",
- "evm-core 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "primitive-types 0.11.1",
- "sha3 0.10.6",
+ "evm-core",
+ "evm-runtime",
+ "primitive-types",
 ]
 
 [[package]]
@@ -2508,8 +2400,8 @@ source = "git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork#0dff88
 dependencies = [
  "auto_impl",
  "environmental",
- "evm-core 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "primitive-types 0.12.1",
+ "evm-core",
+ "primitive-types",
  "sha3 0.10.6",
 ]
 
@@ -2518,11 +2410,11 @@ name = "evm-tracing-events"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-gasometer 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "ethereum",
+ "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "parity-scale-codec",
  "sp-runtime-interface",
 ]
@@ -2673,13 +2565,13 @@ name = "fc-rpc"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "ethereum",
+ "ethereum-types",
+ "evm",
  "fc-db",
  "fc-rpc-core",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-storage",
  "futures 0.3.25",
@@ -2716,8 +2608,8 @@ name = "fc-rpc-core"
 version = "1.1.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "jsonrpsee",
  "rlp",
  "rustc-hex",
@@ -2780,18 +2672,6 @@ dependencies = [
  "parity-scale-codec",
  "parking_lot 0.12.1",
  "scale-info",
-]
-
-[[package]]
-name = "fixed-hash"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cfcf0ed7fe52a17a03854ec54a9f76d6d84508d1c0e66bc1793301c73fc8493c"
-dependencies = [
- "byteorder",
- "rand 0.8.5",
- "rustc-hex",
- "static_assertions",
 ]
 
 [[package]]
@@ -2873,7 +2753,7 @@ name = "fp-consensus"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
+ "ethereum",
  "parity-scale-codec",
  "sp-core",
  "sp-runtime",
@@ -2885,9 +2765,9 @@ name = "fp-ethereum"
 version = "1.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "ethereum",
+ "ethereum-types",
+ "fp-evm",
  "frame-support",
  "num_enum",
  "parity-scale-codec",
@@ -2898,22 +2778,9 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31#de276f601ab09b8fc228a7be6456e997490ac9cb"
-dependencies = [
- "evm 0.36.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "frame-support",
- "parity-scale-codec",
- "serde",
- "sp-core",
- "sp-std",
-]
-
-[[package]]
-name = "fp-evm"
-version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "evm",
  "frame-support",
  "parity-scale-codec",
  "serde",
@@ -2926,9 +2793,9 @@ name = "fp-rpc"
 version = "3.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "ethereum",
+ "ethereum-types",
+ "fp-evm",
  "parity-scale-codec",
  "scale-info",
  "sp-api",
@@ -2943,7 +2810,7 @@ name = "fp-self-contained"
 version = "1.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
+ "ethereum",
  "frame-support",
  "parity-scale-codec",
  "parity-util-mem",
@@ -5073,7 +4940,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -5246,7 +5113,7 @@ dependencies = [
  "bip32",
  "clap 3.2.23",
  "libsecp256k1 0.6.0",
- "primitive-types 0.12.1",
+ "primitive-types",
  "sha3 0.9.1",
  "sp-runtime",
  "tiny-bip39",
@@ -5257,7 +5124,7 @@ dependencies = [
 name = "moonbeam-client-evm-tracing"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "evm-tracing-events",
  "hex",
  "moonbeam-rpc-primitives-debug",
@@ -5281,12 +5148,12 @@ dependencies = [
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.14.0",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-gasometer 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "evm-runtime 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "ethereum-types",
+ "evm",
+ "evm-gasometer",
+ "evm-runtime",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "moonbeam-primitives-ext",
  "pallet-evm",
  "parity-scale-codec",
@@ -5316,7 +5183,7 @@ dependencies = [
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "evm-tracing-events",
  "parity-scale-codec",
  "sp-externalities",
@@ -5349,7 +5216,7 @@ dependencies = [
 name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
@@ -5363,7 +5230,7 @@ dependencies = [
 name = "moonbeam-rpc-core-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
@@ -5376,8 +5243,8 @@ dependencies = [
 name = "moonbeam-rpc-core-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "fc-rpc-core",
  "jsonrpsee",
  "serde",
@@ -5388,7 +5255,7 @@ dependencies = [
 name = "moonbeam-rpc-core-types"
 version = "0.1.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "serde",
  "serde_json",
 ]
@@ -5397,8 +5264,8 @@ dependencies = [
 name = "moonbeam-rpc-debug"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-db",
  "fc-rpc",
@@ -5426,8 +5293,8 @@ name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "hex",
  "parity-scale-codec",
  "serde",
@@ -5443,7 +5310,7 @@ dependencies = [
 name = "moonbeam-rpc-primitives-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
+ "ethereum",
  "parity-scale-codec",
  "sp-api",
  "sp-io",
@@ -5455,8 +5322,8 @@ dependencies = [
 name = "moonbeam-rpc-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "fc-consensus",
  "fc-rpc",
  "fc-rpc-core",
@@ -5487,7 +5354,7 @@ dependencies = [
 name = "moonbeam-rpc-txpool"
 version = "0.6.0"
 dependencies = [
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "fc-rpc",
  "frame-system",
  "jsonrpsee",
@@ -5520,7 +5387,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -5841,7 +5708,7 @@ dependencies = [
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
  "evm-tracing-events",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-benchmarking",
@@ -6723,7 +6590,7 @@ name = "pallet-base-fee"
 version = "1.0.0"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "parity-scale-codec",
@@ -6943,12 +6810,12 @@ name = "pallet-ethereum"
 version = "4.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
+ "ethereum",
+ "ethereum-types",
+ "evm",
  "fp-consensus",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "fp-storage",
@@ -6980,10 +6847,10 @@ dependencies = [
 name = "pallet-ethereum-xcm"
 version = "1.0.0-dev"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "fp-ethereum",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "fp-rpc",
  "fp-self-contained",
  "frame-support",
@@ -7012,8 +6879,8 @@ version = "6.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
  "environmental",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -7021,7 +6888,7 @@ dependencies = [
  "log",
  "pallet-timestamp",
  "parity-scale-codec",
- "primitive-types 0.12.1",
+ "primitive-types",
  "rlp",
  "scale-info",
  "serde",
@@ -7036,7 +6903,7 @@ name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7063,7 +6930,7 @@ name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7091,8 +6958,8 @@ name = "pallet-evm-precompile-batch"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7119,7 +6986,7 @@ name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
 ]
 
 [[package]]
@@ -7127,7 +6994,7 @@ name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "sp-core",
  "substrate-bn",
 ]
@@ -7137,8 +7004,8 @@ name = "pallet-evm-precompile-call-permit"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7166,8 +7033,8 @@ name = "pallet-evm-precompile-collective"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7201,7 +7068,7 @@ dependencies = [
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7228,7 +7095,7 @@ name = "pallet-evm-precompile-democracy"
 version = "0.2.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7254,7 +7121,7 @@ name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "pallet-evm",
 ]
@@ -7264,7 +7131,7 @@ name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "num",
 ]
 
@@ -7273,7 +7140,7 @@ name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7299,7 +7166,7 @@ name = "pallet-evm-precompile-proxy"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7326,7 +7193,7 @@ name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7358,7 +7225,7 @@ dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -7385,7 +7252,7 @@ name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "tiny-keccak",
 ]
 
@@ -7394,7 +7261,7 @@ name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
 source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre#80310b3ecb3407348df1a163c635d3ebc7d9fee3"
 dependencies = [
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "ripemd",
  "sp-io",
 ]
@@ -7405,8 +7272,8 @@ version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7439,7 +7306,7 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "num_enum",
@@ -7469,7 +7336,7 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "log",
@@ -7501,7 +7368,7 @@ name = "pallet-evm-precompileset-assets-erc20"
 version = "0.1.0"
 dependencies = [
  "derive_more",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
@@ -8338,13 +8205,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d32c34f4f5ca7f9196001c0aba5a1f9a5a12382c8944b8b0f90233282d1e8f8"
 dependencies = [
  "cfg-if 1.0.0",
- "ethereum-types 0.14.0",
+ "ethereum-types",
  "hashbrown",
  "impl-trait-for-tuples",
  "lru 0.8.1",
  "parity-util-mem-derive",
  "parking_lot 0.12.1",
- "primitive-types 0.12.1",
+ "primitive-types",
  "smallvec",
  "winapi",
 ]
@@ -9760,8 +9627,8 @@ name = "precompile-utils"
 version = "0.1.0"
 dependencies = [
  "affix",
- "evm 0.36.0 (git+https://github.com/girazoki/evm?branch=girazoki-0.9.31-fork)",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "evm",
+ "fp-evm",
  "frame-support",
  "frame-system",
  "hex",
@@ -9786,7 +9653,7 @@ name = "precompile-utils-macro"
 version = "0.1.0"
 dependencies = [
  "case",
- "fp-evm 3.0.0-dev (git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.31-pre)",
+ "fp-evm",
  "frame-support",
  "macrotest",
  "num_enum",
@@ -9853,25 +9720,11 @@ dependencies = [
 
 [[package]]
 name = "primitive-types"
-version = "0.11.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e28720988bff275df1f51b171e1b2a18c30d194c4d2b61defdacecd625a5d94a"
-dependencies = [
- "fixed-hash 0.7.0",
- "impl-codec",
- "impl-rlp",
- "impl-serde 0.3.2",
- "scale-info",
- "uint",
-]
-
-[[package]]
-name = "primitive-types"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f3486ccba82358b11a77516035647c34ba167dfa53312630de83b12bd4f3d66"
 dependencies = [
- "fixed-hash 0.8.0",
+ "fixed-hash",
  "impl-codec",
  "impl-rlp",
  "impl-serde 0.4.0",
@@ -12490,7 +12343,7 @@ dependencies = [
  "parity-scale-codec",
  "parity-util-mem",
  "parking_lot 0.12.1",
- "primitive-types 0.12.1",
+ "primitive-types",
  "rand 0.7.3",
  "regex",
  "scale-info",
@@ -12753,7 +12606,7 @@ dependencies = [
  "bytes",
  "impl-trait-for-tuples",
  "parity-scale-codec",
- "primitive-types 0.12.1",
+ "primitive-types",
  "sp-externalities",
  "sp-runtime-interface-proc-macro",
  "sp-std",
@@ -14909,8 +14762,8 @@ dependencies = [
 name = "xcm-primitives"
 version = "0.1.0"
 dependencies = [
- "ethereum 0.12.0 (git+https://github.com/girazoki/ethereum?branch=girazoki-0.9.31-fork)",
- "ethereum-types 0.14.0",
+ "ethereum",
+ "ethereum-types",
  "frame-support",
  "frame-system",
  "hex",
