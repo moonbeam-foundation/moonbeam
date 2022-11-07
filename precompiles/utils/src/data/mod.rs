@@ -281,6 +281,7 @@ impl Default for EvmDataWriter {
 /// Adapter to parse data as a first type then convert it to another one.
 /// Useful for old precompiles in which Solidity arguments where set larger than
 /// the needed Rust type.
+#[derive(Clone, Copy, Debug)]
 pub struct SolidityConvert<P, C> {
 	inner: C,
 	_phantom: PhantomData<P>,

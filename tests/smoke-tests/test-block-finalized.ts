@@ -3,9 +3,10 @@ import { expect } from "chai";
 import { checkBlockFinalized, getBlockTime, fetchHistoricBlockNum } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
+import semverLt from "semver/functions/lt";
 const debug = require("debug")("smoke:block-finalized");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
-const timeout = Math.floor(timePeriod / 24);
+const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 
 describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
   it("should have a recently finalized block", async function () {
@@ -18,8 +19,10 @@ describeSmokeSuite(`Parachain blocks should be finalized..`, (context) => {
 
   it("should have a recently finalized eth block", async function () {
     const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
-    if (specVersion < 1900) {
-      debug(`ChainSpec ${specVersion} does not support Finalized BlockTag, skipping test`);
+    const clientVersion = (await context.polkadotApi.rpc.system.version()).toString().split("-")[0];
+
+    if (specVersion < 1900 || semverLt(clientVersion, "0.27.2")) {
+      debug(`ChainSpec ${specVersion}, client ${clientVersion} unsupported BlockTag, skipping.`);
       this.skip();
     }
 

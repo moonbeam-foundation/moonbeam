@@ -1,14 +1,13 @@
 import "@moonbeam-network/api-augment";
 import { ApiDecoration } from "@polkadot/api/types";
 import { Option, u128 } from "@polkadot/types-codec";
-import type { PalletAssetManagerAssetInfo, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:localAssets");
 
-describeSmokeSuite(`Verify local asset count, assetIds and deposits`, (context) => {
+describeSmokeSuite(`Verify local asset count, assetIds and deposits...`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let localAssetDeposits: StorageKey<[u128]>[] = null;
@@ -54,11 +53,8 @@ describeSmokeSuite(`Verify local asset count, assetIds and deposits`, (context) 
   });
 
   it("assetIds stored by assetManager are also created in LocalAssets", async function () {
-    // Instead of putting an expect in the loop. We track all failed entries instead
     const failedLocalAssets: { assetId: string }[] = [];
-
     const registeredLocalAssetDeposits = localAssetDeposits.map((set) => set.toHex().slice(-32));
-
     const registeredLocalAssetInfos = localAssetInfo.map((set) => set.toHex().slice(-32));
 
     for (const assetId of registeredLocalAssetDeposits) {
@@ -67,19 +63,12 @@ describeSmokeSuite(`Verify local asset count, assetIds and deposits`, (context) 
       }
     }
 
-    console.log("Failed local asset deposits with non-existent local assets:");
-    console.log(
-      failedLocalAssets
-        .map(({ assetId }) => {
-          return `expected: ${assetId} to be present in localAssets `;
-        })
-        .join(`\n`)
-    );
-
-    // Make sure the test fails after we print the errors
-    expect(failedLocalAssets.length, "Failed local assets").to.equal(0);
-
-    // Additional debug logs
+    expect(
+      failedLocalAssets.length,
+      `Failed deposits with non-existent local assets: ${failedLocalAssets
+        .map(({ assetId }) => `expected: ${assetId} to be present in localAssets `)
+        .join(`, `)}`
+    ).to.equal(0);
     debug(
       `Verified ${Object.keys(localAssetInfo).length} total loacl assetIds (at #${atBlockNumber})`
     );
