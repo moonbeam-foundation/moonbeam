@@ -20,7 +20,8 @@
     "tools/*.ts",
     "util/**/*.json",
     "contracts/*.ts",
-    "contracts/compiled/*.json"
+    "contracts/compiled/*.json",
+    "tests/test-tracing-consistency/test-tracing-consistency.ts"
   ],
   "exclude": ["node_modules/"]
 }
