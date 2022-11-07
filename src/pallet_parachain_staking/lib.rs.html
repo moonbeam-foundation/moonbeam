@@ -2319,10 +2319,11 @@
 				<span class="comment">// notify that new round begin
 				</span>weight = weight.saturating_add(T::OnNewRound::on_new_round(round.current));
 				<span class="comment">// pay all stakers for T::RewardPaymentDelay rounds ago
-				</span><span class="self">Self</span>::prepare_staking_payouts(round.current);
+				</span>weight = weight.saturating_add(<span class="self">Self</span>::prepare_staking_payouts(round.current));
 				<span class="comment">// select top collator candidates for next round
-				</span><span class="kw">let </span>(collator_count, delegation_count, total_staked) =
+				</span><span class="kw">let </span>(extra_weight, collator_count, _delegation_count, total_staked) =
 					<span class="self">Self</span>::select_top_candidates(round.current);
+				weight = weight.saturating_add(extra_weight);
 				<span class="comment">// start next round
 				</span>&lt;Round&lt;T&gt;&gt;::put(round);
 				<span class="comment">// snapshot total stake
@@ -2333,22 +2334,16 @@
 					selected_collators_number: collator_count,
 					total_balance: total_staked,
 				});
-				weight = weight.saturating_add(T::WeightInfo::round_transition_on_initialize(
-					collator_count,
-					delegation_count,
-				));
+				<span class="comment">// account for Round and Staked writes
+				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">0</span>, <span class="number">2</span>));
 			}
 
 			weight = weight.saturating_add(<span class="self">Self</span>::handle_delayed_payouts(round.current));
 
 			<span class="comment">// add on_finalize weight
-			</span>weight = weight.saturating_add(
-				<span class="comment">// read Author, Points, AwardedPts
-				// write Points, AwardedPts
-				</span>T::DbWeight::get()
-					.reads(<span class="number">3</span>)
-					.saturating_add(T::DbWeight::get().writes(<span class="number">2</span>)),
-			);
+			//   read:  Author, Points, AwardedPts
+			//   write: Points, AwardedPts
+			</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">3</span>, <span class="number">2</span>));
 			weight
 		}
 		<span class="kw">fn </span>on_finalize(_n: T::BlockNumber) {
@@ -2364,12 +2359,12 @@
 	<span class="attribute">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>total_selected)]
 	</span><span class="doccomment">/// The total candidates selected every round
-	</span><span class="kw">type </span>TotalSelected&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, u32, ValueQuery&gt;;
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>TotalSelected&lt;T: Config&gt; = StorageValue&lt;<span class="kw">_</span>, u32, ValueQuery&gt;;
 
 	<span class="attribute">#[pallet::storage]
 	#[pallet::getter(<span class="kw">fn </span>parachain_bond_info)]
 	</span><span class="doccomment">/// Parachain bond config info { account, percent_of_inflation }
-	</span><span class="kw">type </span>ParachainBondInfo&lt;T: Config&gt; =
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>ParachainBondInfo&lt;T: Config&gt; =
 		StorageValue&lt;<span class="kw">_</span>, ParachainBondConfig&lt;T::AccountId&gt;, ValueQuery&gt;;
 
 	<span class="attribute">#[pallet::storage]
@@ -2621,7 +2616,7 @@
 			<span class="comment">// Set total selected candidates to minimum config
 			</span>&lt;TotalSelected&lt;T&gt;&gt;::put(T::MinSelectedCandidates::get());
 			<span class="comment">// Choose top TotalSelected collator candidates
-			</span><span class="kw">let </span>(v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
+			</span><span class="kw">let </span>(<span class="kw">_</span>, v_count, <span class="kw">_</span>, total_staked) = &lt;Pallet&lt;T&gt;&gt;::select_top_candidates(<span class="number">1u32</span>);
 			<span class="comment">// Start Round 1 at Block 0
 			</span><span class="kw">let </span>round: RoundInfo&lt;T::BlockNumber&gt; =
 				RoundInfo::new(<span class="number">1u32</span>, <span class="number">0u32</span>.into(), <span class="self">self</span>.blocks_per_round);
@@ -3354,16 +3349,16 @@
 			});
 			<span class="prelude-val">Ok</span>(())
 		}
-		<span class="kw">fn </span>prepare_staking_payouts(now: RoundIndex) {
+		<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>prepare_staking_payouts(now: RoundIndex) -&gt; Weight {
 			<span class="comment">// payout is now - delay rounds ago =&gt; now - delay &gt; 0 else return early
 			</span><span class="kw">let </span>delay = T::RewardPaymentDelay::get();
 			<span class="kw">if </span>now &lt;= delay {
-				<span class="kw">return</span>;
+				<span class="kw">return </span>Weight::zero();
 			}
 			<span class="kw">let </span>round_to_payout = now.saturating_sub(delay);
 			<span class="kw">let </span>total_points = &lt;Points&lt;T&gt;&gt;::get(round_to_payout);
 			<span class="kw">if </span>total_points.is_zero() {
-				<span class="kw">return</span>;
+				<span class="kw">return </span>Weight::zero();
 			}
 			<span class="kw">let </span>total_staked = &lt;Staked&lt;T&gt;&gt;::take(round_to_payout);
 			<span class="kw">let </span>total_issuance = <span class="self">Self</span>::compute_issuance(total_staked);
@@ -3389,6 +3384,7 @@
 			};
 
 			&lt;DelayedPayouts&lt;T&gt;&gt;::insert(round_to_payout, payout);
+			T::WeightInfo::prepare_staking_payouts()
 		}
 
 		<span class="doccomment">/// Wrapper around pay_one_collator_reward which handles the following logic:
@@ -3539,7 +3535,7 @@
 		}
 		<span class="doccomment">/// Best as in most cumulatively supported in terms of stake
 		/// Returns [collator_count, delegation_count, total staked]
-		</span><span class="kw">fn </span>select_top_candidates(now: RoundIndex) -&gt; (u32, u32, BalanceOf&lt;T&gt;) {
+		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>select_top_candidates(now: RoundIndex) -&gt; (Weight, u32, u32, BalanceOf&lt;T&gt;) {
 			<span class="kw">let </span>(<span class="kw-2">mut </span>collator_count, <span class="kw-2">mut </span>delegation_count, <span class="kw-2">mut </span>total) =
 				(<span class="number">0u32</span>, <span class="number">0u32</span>, BalanceOf::&lt;T&gt;::zero());
 			<span class="comment">// choose the top TotalSelected qualified candidates, ordered by stake
@@ -3569,7 +3565,8 @@
 						total_exposed_amount: <span class="kw-2">*</span>snapshot_total,
 					})
 				}
-				<span class="kw">return </span>(collator_count, delegation_count, total);
+				<span class="kw">let </span>weight = T::WeightInfo::select_top_candidates(<span class="number">0</span>, <span class="number">0</span>);
+				<span class="kw">return </span>(weight, collator_count, delegation_count, total);
 			}
 
 			<span class="comment">// snapshot exposure for round for weighting reward distribution
@@ -3616,7 +3613,10 @@
 			}
 			<span class="comment">// insert canonical collator set
 			</span>&lt;SelectedCandidates&lt;T&gt;&gt;::put(collators);
-			(collator_count, delegation_count, total)
+
+			<span class="kw">let </span>avg_delegator_count = delegation_count.checked_div(collator_count).unwrap_or(<span class="number">0</span>);
+			<span class="kw">let </span>weight = T::WeightInfo::select_top_candidates(collator_count, avg_delegator_count);
+			(weight, collator_count, delegation_count, total)
 		}
 
 		<span class="doccomment">/// Apply the delegator intent for revoke and decrease in order to build the
@@ -3628,7 +3628,7 @@
 		/// - else, do nothing
 		///
 		/// The intended bond amounts will be used while calculating rewards.
-		</span><span class="kw">fn </span>get_rewardable_delegators(collator: <span class="kw-2">&amp;</span>T::AccountId) -&gt; CountedDelegations&lt;T&gt; {
+		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_rewardable_delegators(collator: <span class="kw-2">&amp;</span>T::AccountId) -&gt; CountedDelegations&lt;T&gt; {
 			<span class="kw">let </span>requests = &lt;DelegationScheduledRequests&lt;T&gt;&gt;::get(collator)
 				.into_iter()
 				.map(|x| (x.delegator, x.action))
