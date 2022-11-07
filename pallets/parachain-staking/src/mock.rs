@@ -120,16 +120,6 @@ parameter_types! {
 	pub const MinDelegatorStk: u128 = 5;
 	pub const MinDelegation: u128 = 3;
 }
-pub struct MintCollatorReward;
-impl crate::PayoutCollatorReward<AccountId, Balance> for MintCollatorReward {
-	fn payout_collator_reward(
-		for_round: pallet_parachain_staking::RoundIndex,
-		collator_id: AccountId,
-		amount: Balance,
-	) -> Weight {
-		ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
-	}
-}
 impl Config for Test {
 	type Event = Event;
 	type Currency = Balances;
@@ -151,7 +141,7 @@ impl Config for Test {
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
-	type PayoutCollatorReward = MintCollatorReward;
+	type PayoutCollatorReward = crate::MintCollatorReward<Test>;
 	type OnNewRound = ();
 	type WeightInfo = ();
 }

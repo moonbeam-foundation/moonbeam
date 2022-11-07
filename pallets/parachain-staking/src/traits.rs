@@ -52,12 +52,3 @@ pub trait PayoutCollatorReward<AccountId, Balance> {
 		amount: Balance,
 	) -> Weight;
 }
-impl<AccountId, Balance> PayoutCollatorReward<AccountId, Balance> for () {
-	fn payout_collator_reward(
-		_round_index: crate::RoundIndex,
-		_collator_id: AccountId,
-		_amount: Balance,
-	) -> Weight {
-		Weight::zero()
-	}
-}

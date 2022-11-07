@@ -166,7 +166,7 @@ pub mod pallet {
 		/// Get the current block author
 		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
-		/// If you don't need it, you can specify the type `()`.
+		/// If you don't need it, you can specify the `MintCollatorReward`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
 		/// Handler to distribute a collator's reward.
 		/// If you don't need it, you can specify the type `()`.
@@ -1911,6 +1911,22 @@ pub mod pallet {
 	impl<T: Config> Get<Vec<T::AccountId>> for Pallet<T> {
 		fn get() -> Vec<T::AccountId> {
 			Self::selected_candidates()
+		}
+	}
+
+	/// Defines the default behavior for paying out the collator's reward. The amount is directly
+	/// deposited into the collator's account
+	pub struct MintCollatorReward<T>(core::marker::PhantomData<T>);
+	impl<T> crate::PayoutCollatorReward<T::AccountId, BalanceOf<T>> for MintCollatorReward<T>
+	where
+		T: Config,
+	{
+		fn payout_collator_reward(
+			for_round: RoundIndex,
+			collator_id: T::AccountId,
+			amount: BalanceOf<T>,
+		) -> Weight {
+			Pallet::<T>::mint_collator_reward(for_round, collator_id, amount)
 		}
 	}
 }
