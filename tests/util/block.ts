@@ -229,8 +229,8 @@ export const verifyBlockFees = async (
                 }
 
                 // Calculate the fees paid for base fee independently from tip fee. Both are subject
-                // to 80/20 split (burn/treasury) but calculating this over the total rather than
-                // the sum of these parts leads to off-by-one errors.
+                // to 80/20 split (burn/treasury) but calculating these over the sum of the two
+                // rather than independently leads to off-by-one errors.
                 const baseFeesPaid = gasUsed * baseFeePerGas;
                 const tipAsFeesPaid = gasUsed * effectiveTipPerGas;
 
@@ -243,6 +243,7 @@ export const verifyBlockFees = async (
               } else {
                 // For a regular substrate tx, we use the partialFee
                 let feePortions = calculateFeePortions(fee.partialFee.toBigInt());
+                txFees = fee.partialFee.toBigInt();
                 txBurnt += feePortions.burnt;
               }
 
