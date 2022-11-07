@@ -224,7 +224,9 @@ export const verifyBlockFees = async (
                 }
 
                 let effectiveTipPerGas = priorityFee - baseFeePerGas;
-                expect(Number(effectiveTipPerGas)).to.be.gt(0, "We calculated a negative tip!");
+                if (effectiveTipPerGas < 0n) {
+                  effectiveTipPerGas = 0n;
+                }
 
                 // Calculate the fees paid for base fee independently from tip fee. Both are subject
                 // to 80/20 split (burn/treasury) but calculating this over the total rather than
