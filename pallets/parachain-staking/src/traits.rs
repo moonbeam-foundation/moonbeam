@@ -45,10 +45,22 @@ impl OnNewRound for () {
 }
 
 /// Defines the behavior to payout the collator's reward.
-pub trait PayoutCollatorReward<AccountId, Balance> {
+pub trait PayoutCollatorReward<Runtime: crate::Config> {
 	fn payout_collator_reward(
 		round_index: crate::RoundIndex,
-		collator_id: AccountId,
-		amount: Balance,
+		collator_id: Runtime::AccountId,
+		amount: crate::BalanceOf<Runtime>,
 	) -> Weight;
+}
+
+/// Defines the default behavior for paying out the collator's reward. The amount is directly
+/// deposited into the collator's account.
+impl<Runtime: crate::Config> PayoutCollatorReward<Runtime> for () {
+	fn payout_collator_reward(
+		for_round: crate::RoundIndex,
+		collator_id: Runtime::AccountId,
+		amount: crate::BalanceOf<Runtime>,
+	) -> Weight {
+		crate::Pallet::<Runtime>::mint_collator_reward(for_round, collator_id, amount)
+	}
 }

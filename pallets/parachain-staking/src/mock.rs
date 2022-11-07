@@ -141,7 +141,7 @@ impl Config for Test {
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
-	type PayoutCollatorReward = crate::MintCollatorReward<Test>;
+	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }
