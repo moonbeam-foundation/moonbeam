@@ -554,6 +554,11 @@ pub mod pallet {
 				T::DbWeight::get().writes(1)
 			}
 		}
+
+		/// Check if an account is an orbiter account for a given round
+		pub fn is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -> bool {
+			OrbiterPerRound::<T>::contains_key(for_round, &collator)
+		}
 	}
 }
 

@@ -16,28 +16,48 @@
 
 //! traits for parachain-staking
 
+use frame_support::pallet_prelude::Weight;
+
 pub trait OnCollatorPayout<AccountId, Balance> {
 	fn on_collator_payout(
 		for_round: crate::RoundIndex,
 		collator_id: AccountId,
 		amount: Balance,
-	) -> frame_support::pallet_prelude::Weight;
+	) -> Weight;
 }
 impl<AccountId, Balance> OnCollatorPayout<AccountId, Balance> for () {
 	fn on_collator_payout(
 		_for_round: crate::RoundIndex,
 		_collator_id: AccountId,
 		_amount: Balance,
-	) -> frame_support::pallet_prelude::Weight {
-		frame_support::pallet_prelude::Weight::zero()
+	) -> Weight {
+		Weight::zero()
 	}
 }
 
 pub trait OnNewRound {
-	fn on_new_round(round_index: crate::RoundIndex) -> frame_support::pallet_prelude::Weight;
+	fn on_new_round(round_index: crate::RoundIndex) -> Weight;
 }
 impl OnNewRound for () {
-	fn on_new_round(_round_index: crate::RoundIndex) -> frame_support::pallet_prelude::Weight {
-		frame_support::pallet_prelude::Weight::zero()
+	fn on_new_round(_round_index: crate::RoundIndex) -> Weight {
+		Weight::zero()
+	}
+}
+
+/// Defines the behavior to payout the collator's reward.
+pub trait PayoutCollatorReward<AccountId, Balance> {
+	fn payout_collator_reward(
+		round_index: crate::RoundIndex,
+		collator_id: AccountId,
+		amount: Balance,
+	) -> Weight;
+}
+impl<AccountId, Balance> PayoutCollatorReward<AccountId, Balance> for () {
+	fn payout_collator_reward(
+		_round_index: crate::RoundIndex,
+		_collator_id: AccountId,
+		_amount: Balance,
+	) -> Weight {
+		Weight::zero()
 	}
 }

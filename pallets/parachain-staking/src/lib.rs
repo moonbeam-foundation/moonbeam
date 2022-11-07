@@ -168,6 +168,9 @@ pub mod pallet {
 		/// Handler to notify the runtime when a collator is paid.
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
+		/// Handler to distribute a collator's reward.
+		/// If you don't need it, you can specify the type `()`.
+		type PayoutCollatorReward: PayoutCollatorReward<Self::AccountId, BalanceOf<Self>>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
 		type OnNewRound: OnNewRound;
@@ -1581,9 +1584,14 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					Self::mint(amt_due, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					// Self::mint(amt_due, collator.clone());
+					extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							amt_due,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							amt_due,
@@ -1594,9 +1602,14 @@ pub mod pallet {
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					Self::mint(collator_reward, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					// Self::mint(collator_reward, collator.clone());
+					extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							collator_reward,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							collator_reward,
@@ -1804,7 +1817,7 @@ pub mod pallet {
 		}
 
 		/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		fn mint(amt: BalanceOf<T>, to: T::AccountId) {
+		pub fn mint(amt: BalanceOf<T>, to: T::AccountId) {
 			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&to, amt) {
 				Self::deposit_event(Event::Rewarded {
 					account: to.clone(),
@@ -1813,16 +1826,33 @@ pub mod pallet {
 			}
 		}
 
+		/// Mint a specified reward amount to the collator's account. Emits the [Rewarded] event.
+		pub fn mint_collator_reward(
+			_paid_for_round: RoundIndex,
+			collator_id: T::AccountId,
+			amt: BalanceOf<T>,
+		) -> Weight {
+			if let Ok(amount_transferred) = T::Currency::deposit_into_existing(&collator_id, amt) {
+				Self::deposit_event(Event::Rewarded {
+					account: collator_id.clone(),
+					rewards: amount_transferred.peek(),
+				});
+			}
+			T::WeightInfo::mint_collator_reward()
+		}
+
 		/// Mint and compound delegation rewards. The function mints the amount towards the
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
 		/// compounded. Emits the [Compounded] event.
-		fn mint_and_compound(
+		pub fn mint_and_compound(
 			amt: BalanceOf<T>,
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-		) {
+		) -> Weight {
+			let mut weight = T::DbWeight::get().reads(0);
+
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
@@ -1833,7 +1863,7 @@ pub mod pallet {
 
 				let compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				if compound_amount.is_zero() {
-					return;
+					return weight;
 				}
 
 				if let Err(err) = Self::delegation_bond_more_without_event(
@@ -1847,8 +1877,9 @@ pub mod pallet {
 								delegator,
 								err
 							);
-					return;
+					return weight;
 				};
+				weight = weight.saturating_add(T::WeightInfo::delegator_bond_more());
 
 				Pallet::<T>::deposit_event(Event::Compounded {
 					delegator,
@@ -1856,6 +1887,8 @@ pub mod pallet {
 					amount: compound_amount.clone(),
 				});
 			};
+
+			weight
 		}
 	}
 
