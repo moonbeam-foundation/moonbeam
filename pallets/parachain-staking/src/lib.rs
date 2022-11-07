@@ -1917,10 +1917,7 @@ pub mod pallet {
 	/// Defines the default behavior for paying out the collator's reward. The amount is directly
 	/// deposited into the collator's account
 	pub struct MintCollatorReward<T>(core::marker::PhantomData<T>);
-	impl<T> PayoutCollatorReward<T::AccountId, BalanceOf<T>> for MintCollatorReward<T>
-	where
-		T: Config,
-	{
+	impl<T: Config> PayoutCollatorReward<T::AccountId, BalanceOf<T>> for MintCollatorReward<T> {
 		fn payout_collator_reward(
 			for_round: RoundIndex,
 			collator_id: T::AccountId,
