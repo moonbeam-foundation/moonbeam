@@ -166,10 +166,10 @@ pub mod pallet {
 		/// Get the current block author
 		type BlockAuthor: Get<Self::AccountId>;
 		/// Handler to notify the runtime when a collator is paid.
-		/// If you don't need it, you can specify the `MintCollatorReward`.
+		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
 		/// Handler to distribute a collator's reward.
-		/// If you don't need it, you can specify the type `()`.
+		/// If you don't need it, you can specify the type `MintCollatorReward`.
 		type PayoutCollatorReward: PayoutCollatorReward<Self::AccountId, BalanceOf<Self>>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
