@@ -1584,7 +1584,6 @@ pub mod pallet {
 				let num_delegators = state.delegations.len();
 				if state.delegations.is_empty() {
 					// solo collator with no delegators
-					// Self::mint(amt_due, collator.clone());
 					extra_weight = extra_weight
 						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
 							paid_for_round,
@@ -1602,7 +1601,6 @@ pub mod pallet {
 					let commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					let collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					// Self::mint(collator_reward, collator.clone());
 					extra_weight = extra_weight
 						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
 							paid_for_round,
@@ -1851,7 +1849,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) -> Weight {
-			let mut weight = T::DbWeight::get().reads(0);
+			let mut weight = T::DbWeight::get().reads(0); // TODO create benchmark for this function
 
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
