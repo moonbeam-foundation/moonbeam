@@ -68,9 +68,9 @@ pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> XtokensPrecompile<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
