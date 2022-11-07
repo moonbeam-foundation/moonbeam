@@ -46,6 +46,24 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(PrecompilesValue::get(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::encode_bond_selectors());
+		tester.test_view_modifier(PCall::encode_bond_extra_selectors());
+		tester.test_view_modifier(PCall::encode_unbond_selectors());
+		tester.test_view_modifier(PCall::encode_withdraw_unbonded_selectors());
+		tester.test_view_modifier(PCall::encode_validate_selectors());
+		tester.test_view_modifier(PCall::encode_nominate_selectors());
+		tester.test_view_modifier(PCall::encode_chill_selectors());
+		tester.test_view_modifier(PCall::encode_set_payee_selectors());
+		tester.test_view_modifier(PCall::encode_set_controller_selectors());
+		tester.test_view_modifier(PCall::encode_rebond_selectors());
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()

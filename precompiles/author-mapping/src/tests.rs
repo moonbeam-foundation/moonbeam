@@ -75,6 +75,19 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::add_association_selectors());
+		tester.test_default_modifier(PCall::update_association_selectors());
+		tester.test_default_modifier(PCall::clear_association_selectors());
+		tester.test_default_modifier(PCall::remove_keys_selectors());
+		tester.test_default_modifier(PCall::set_keys_selectors());
+	});
+}
+
+#[test]
 fn add_association_works() {
 	ExtBuilder::default()
 		.with_balances(vec![(Alice, 1000)])

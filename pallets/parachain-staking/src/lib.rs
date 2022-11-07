@@ -1528,11 +1528,16 @@ pub mod pallet {
 					<DelayedPayouts<T>>::remove(paid_for_round);
 					<Points<T>>::remove(paid_for_round);
 
-					// remove up to 1000 candidates that did not produce any blocks for
-					// the given round
-					let _ = <AtStake<T>>::clear_prefix(paid_for_round, 1000, None);
+					// remove all candidates that did not produce any blocks for
+					// the given round. The weight is added based on the number of backend
+					// items removed.
+					let remove_result = <AtStake<T>>::clear_prefix(paid_for_round, 20, None);
+					result
+						.1
+						.saturating_add(T::DbWeight::get().writes(remove_result.backend as u64))
+				} else {
+					result.1 // weight consumed by pay_one_collator_reward
 				}
-				result.1 // weight consumed by pay_one_collator_reward
 			} else {
 				Weight::from_ref_time(0u64)
 			}

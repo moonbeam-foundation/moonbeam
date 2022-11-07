@@ -52,6 +52,19 @@ fn selectors() {
 	assert!(PCall::add_proxy_selectors().contains(&0x74a34dd3));
 	assert!(PCall::remove_proxy_selectors().contains(&0xfef3f708));
 	assert!(PCall::remove_proxies_selectors().contains(&0x14a5b5fa));
+	assert!(PCall::is_proxy_selectors().contains(&0xe26d38ed));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(PrecompilesValue::get(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::add_proxy_selectors());
+		tester.test_default_modifier(PCall::remove_proxy_selectors());
+		tester.test_default_modifier(PCall::remove_proxies_selectors());
+		tester.test_view_modifier(PCall::is_proxy_selectors());
+	});
 }
 
 #[test]
@@ -518,7 +531,7 @@ fn fails_if_called_by_smart_contract() {
 						delay: 1,
 					},
 				)
-				.execute_reverts(|output| output == b"Batch not callable by smart contracts");
+				.execute_reverts(|output| output == b"Proxy not callable by smart contracts");
 		})
 }
 
