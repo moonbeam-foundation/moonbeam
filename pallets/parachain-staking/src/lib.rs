@@ -169,7 +169,7 @@ pub mod pallet {
 		/// If you don't need it, you can specify the type `()`.
 		type OnCollatorPayout: OnCollatorPayout<Self::AccountId, BalanceOf<Self>>;
 		/// Handler to distribute a collator's reward.
-		/// If you don't need it, you can specify the type `MintCollatorReward`.
+		/// To use the default implementation of minting rewards, specify the type `()`.
 		type PayoutCollatorReward: PayoutCollatorReward<Self>;
 		/// Handler to notify the runtime when a new round begin.
 		/// If you don't need it, you can specify the type `()`.
