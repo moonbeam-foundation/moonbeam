@@ -52,8 +52,24 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
 
     let blockWeightsUsed = await apiAt.query.system.blockWeight();
     let normalWeight = blockWeightsUsed.normal;
-
     expect(normalWeight.toBigInt()).to.equal(EXPECTED_WEIGHT);
+
+    // look for the event for our eth txn
+    let extSuccessEvent = null;
+    let wholeBlock = await context.polkadotApi.rpc.chain.getBlock(block.hash);
+    wholeBlock.block.extrinsics.forEach((ext, index) => {
+      if (ext.method.method == "transact" && ext.method.section == "ethereum") {
+        extSuccessEvent = result.events
+          .filter(({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system")
+          [0];
+      }
+    });
+
+    expect(extSuccessEvent).to.not.be.eq(null);
+    let eventWeight = (extSuccessEvent.event.data as any).dispatchInfo.weight.toBigInt();
+    expect(eventWeight).to.eq(EXPECTED_WEIGHT);
+    
+
   });
 
   it("should correctly refund weight from excess gas_limit supplied", async function () {
