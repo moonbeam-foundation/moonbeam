@@ -76,7 +76,7 @@ impl<Runtime, RelayRuntime> RelayEncoderPrecompile<Runtime, RelayRuntime>
 where
 	RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
 	#[precompile::public("encodeBond(uint256,uint256,bytes)")]
 	#[precompile::public("encode_bond(uint256,uint256,bytes)")]
