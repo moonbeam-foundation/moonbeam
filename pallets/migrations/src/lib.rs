@@ -92,7 +92,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The list of migrations that will be performed
 		type MigrationsList: GetMigrations;
 	}
@@ -279,7 +279,7 @@ pub mod pallet {
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
-				let available_for_step = if available_weight > weight {
+				let available_for_step = if available_weight.ref_time() > weight.ref_time() {
 					available_weight - weight
 				} else {
 					log::error!(
@@ -305,7 +305,7 @@ pub mod pallet {
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight = weight.saturating_add(consumed_weight);
-				if weight > available_weight {
+				if weight.ref_time() > available_weight.ref_time() {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
 						migration_name,
