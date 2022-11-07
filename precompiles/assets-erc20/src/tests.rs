@@ -18,7 +18,7 @@ use crate::{eip2612::Eip2612, mock::*, *};
 use frame_support::assert_ok;
 use hex_literal::hex;
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::testing::*;
 use sha3::{Digest, Keccak256};
 use sp_core::H256;
 use std::str::from_utf8;

@@ -23,7 +23,7 @@ use crate::{
 };
 
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::testing::*;
 use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
 

@@ -22,7 +22,7 @@ use crate::{
 	},
 };
 use frame_support::{assert_ok, dispatch::Encode};
-use precompile_utils::{data::Address, solidity, testing::*};
+use precompile_utils::{data::Address, testing::*};
 use sp_core::{H160, H256};
 use sp_runtime::DispatchError;
 

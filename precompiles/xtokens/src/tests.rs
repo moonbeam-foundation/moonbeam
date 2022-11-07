@@ -20,7 +20,7 @@ use crate::mock::{
 };
 use crate::{Currency, EvmMultiAsset};
 use orml_xtokens::Event as XtokensEvent;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::U256;
 use sp_runtime::traits::Convert;
 use xcm::latest::{

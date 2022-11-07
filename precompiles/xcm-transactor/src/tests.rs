@@ -19,7 +19,7 @@ use crate::mock::{
 };
 
 use frame_support::assert_ok;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::H160;
 use sp_std::boxed::Box;
 use xcm::v1::MultiLocation;

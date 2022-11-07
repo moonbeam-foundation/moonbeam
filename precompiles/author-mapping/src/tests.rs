@@ -24,7 +24,7 @@ use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::{H256, U256};
 

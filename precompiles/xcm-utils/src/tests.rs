@@ -20,7 +20,7 @@ use crate::mock::{
 };
 
 use codec::Encode;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
 use xcm::prelude::*;
 

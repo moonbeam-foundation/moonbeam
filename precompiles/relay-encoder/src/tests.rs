@@ -23,7 +23,7 @@ use crate::StakeEncodeCall;
 use crate::*;
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::testing::*;
 use sp_core::U256;
 use sp_runtime::Perbill;
 

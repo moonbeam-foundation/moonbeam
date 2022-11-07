@@ -23,9 +23,7 @@ use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use precompile_utils::{
-	assert_event_emitted, assert_event_not_emitted, prelude::*, solidity, testing::*,
-};
+use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
 use sp_core::{H160, U256};
 use std::str::from_utf8;
 
