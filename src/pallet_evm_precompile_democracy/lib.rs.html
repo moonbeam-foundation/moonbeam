@@ -457,7 +457,6 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
-<span id="460">460</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -802,8 +801,7 @@
 		})<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(target: <span class="string">&quot;democracy-precompile&quot;</span>,
-			<span class="string">&quot;Delegating vote to {:?} with balance {:?} and {:?}&quot;</span>,
-			representative, conviction, amount
+			<span class="string">&quot;Delegating vote to {representative:?} with balance {amount:?} and conviction {conviction:?}&quot;</span>,
 		);
 
 		<span class="kw">let </span>to = Runtime::AddressMapping::into_account_id(representative.into());
