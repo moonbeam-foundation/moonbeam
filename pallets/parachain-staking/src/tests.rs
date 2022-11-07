@@ -26,7 +26,7 @@ use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_one_block, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	BlockNumber, ExtBuilder, Origin, ParachainStaking, Test,
+	BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
@@ -44,15 +44,18 @@ use sp_runtime::{traits::Zero, DispatchError, ModuleError, Perbill, Percent};
 fn invalid_root_origin_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_total_selected(Origin::signed(45), 6u32),
+			ParachainStaking::set_total_selected(RuntimeOrigin::signed(45), 6u32),
 			sp_runtime::DispatchError::BadOrigin
 		);
 		assert_noop!(
-			ParachainStaking::set_collator_commission(Origin::signed(45), Perbill::from_percent(5)),
+			ParachainStaking::set_collator_commission(
+				RuntimeOrigin::signed(45),
+				Perbill::from_percent(5)
+			),
 			sp_runtime::DispatchError::BadOrigin
 		);
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(Origin::signed(45), 3u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::signed(45), 3u32),
 			sp_runtime::DispatchError::BadOrigin
 		);
 	});
@@ -64,9 +67,15 @@ fn invalid_root_origin_fails() {
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		// before we can bump total_selected we must bump the blocks per round
-		assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		roll_one_block();
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		assert_events_eq!(Event::TotalSelectedSet {
 			old: 5u32,
 			new: 6u32
@@ -79,7 +88,7 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(ParachainStaking::round().length, 5); // test relies on this
 		assert_noop!(
-			ParachainStaking::set_total_selected(Origin::root(), 6u32),
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 6u32),
 			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 		);
 	});
@@ -89,10 +98,13 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 fn set_total_selected_passes_if_equal_to_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			10u32
 		));
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 10u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			10u32
+		));
 	});
 }
 
@@ -100,10 +112,13 @@ fn set_total_selected_passes_if_equal_to_blocks_per_round() {
 fn set_total_selected_passes_if_below_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			10u32
 		));
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 9u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			9u32
+		));
 	});
 }
 
@@ -111,12 +126,15 @@ fn set_total_selected_passes_if_below_blocks_per_round() {
 fn set_blocks_per_round_fails_if_below_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			20u32
 		));
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 15u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			15u32
+		));
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(Origin::root(), 14u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 14u32),
 			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
 		);
 	});
@@ -126,11 +144,17 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 fn set_blocks_per_round_passes_if_equal_to_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_blocks_per_round(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			10u32
 		));
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 9u32));
-		assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 9u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			9u32
+		));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			9u32
+		));
 	});
 }
 
@@ -138,7 +162,10 @@ fn set_blocks_per_round_passes_if_equal_to_total_selected() {
 fn set_blocks_per_round_passes_if_above_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(ParachainStaking::round().length, 5); // test relies on this
-		assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			6u32
+		));
 	});
 }
 
@@ -147,12 +174,15 @@ fn set_total_selected_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		// round length must be >= total_selected, so update that first
 		assert_ok!(ParachainStaking::set_blocks_per_round(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			10u32
 		));
 
 		assert_eq!(ParachainStaking::total_selected(), 5u32);
-		assert_ok!(ParachainStaking::set_total_selected(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		assert_eq!(ParachainStaking::total_selected(), 6u32);
 	});
 }
@@ -161,7 +191,7 @@ fn set_total_selected_storage_updates_correctly() {
 fn cannot_set_total_selected_to_current_total_selected() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_total_selected(Origin::root(), 5u32),
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 5u32),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
@@ -171,7 +201,7 @@ fn cannot_set_total_selected_to_current_total_selected() {
 fn cannot_set_total_selected_below_module_min() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_total_selected(Origin::root(), 4u32),
+			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 4u32),
 			Error::<Test>::CannotSetBelowMin
 		);
 	});
@@ -183,7 +213,7 @@ fn cannot_set_total_selected_below_module_min() {
 fn set_collator_commission_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_collator_commission(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Perbill::from_percent(5)
 		));
 		assert_events_eq!(Event::CollatorCommissionSet {
@@ -201,7 +231,7 @@ fn set_collator_commission_storage_updates_correctly() {
 			Perbill::from_percent(20)
 		);
 		assert_ok!(ParachainStaking::set_collator_commission(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Perbill::from_percent(5)
 		));
 		assert_eq!(
@@ -215,7 +245,10 @@ fn set_collator_commission_storage_updates_correctly() {
 fn cannot_set_collator_commission_to_current_collator_commission() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_collator_commission(Origin::root(), Perbill::from_percent(20)),
+			ParachainStaking::set_collator_commission(
+				RuntimeOrigin::root(),
+				Perbill::from_percent(20)
+			),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
@@ -226,7 +259,10 @@ fn cannot_set_collator_commission_to_current_collator_commission() {
 #[test]
 fn set_blocks_per_round_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		assert_events_eq!(Event::BlocksPerRoundSet {
 			current_round: 1,
 			first_block: 0,
@@ -243,7 +279,10 @@ fn set_blocks_per_round_event_emits_correctly() {
 fn set_blocks_per_round_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(ParachainStaking::round().length, 5);
-		assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		assert_eq!(ParachainStaking::round().length, 6);
 	});
 }
@@ -252,7 +291,7 @@ fn set_blocks_per_round_storage_updates_correctly() {
 fn cannot_set_blocks_per_round_below_module_min() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(Origin::root(), 2u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 2u32),
 			Error::<Test>::CannotSetBelowMin
 		);
 	});
@@ -262,7 +301,7 @@ fn cannot_set_blocks_per_round_below_module_min() {
 fn cannot_set_blocks_per_round_to_current_blocks_per_round() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::set_blocks_per_round(Origin::root(), 5u32),
+			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 5u32),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
@@ -279,7 +318,7 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 			// and we can't lower the number of collators because it must be above
 			// MinSelectedCandidates. so we first raise blocks per round, then lower it.
 			assert_ok!(ParachainStaking::set_blocks_per_round(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				10u32
 			));
 
@@ -291,7 +330,10 @@ fn round_immediately_jumps_if_current_duration_exceeds_new_blocks_per_round() {
 				total_balance: 20
 			},);
 			roll_to(17);
-			assert_ok!(ParachainStaking::set_blocks_per_round(Origin::root(), 5u32));
+			assert_ok!(ParachainStaking::set_blocks_per_round(
+				RuntimeOrigin::root(),
+				5u32
+			));
 			roll_to(18);
 			assert_events_emitted!(Event::NewRound {
 				starting_block: 18,
@@ -309,7 +351,7 @@ fn invalid_monetary_origin_fails() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			ParachainStaking::set_staking_expectations(
-				Origin::signed(45),
+				RuntimeOrigin::signed(45),
 				Range {
 					min: 3u32.into(),
 					ideal: 4u32.into(),
@@ -320,7 +362,7 @@ fn invalid_monetary_origin_fails() {
 		);
 		assert_noop!(
 			ParachainStaking::set_inflation(
-				Origin::signed(45),
+				RuntimeOrigin::signed(45),
 				Range {
 					min: Perbill::from_percent(3),
 					ideal: Perbill::from_percent(4),
@@ -331,7 +373,7 @@ fn invalid_monetary_origin_fails() {
 		);
 		assert_noop!(
 			ParachainStaking::set_inflation(
-				Origin::signed(45),
+				RuntimeOrigin::signed(45),
 				Range {
 					min: Perbill::from_percent(3),
 					ideal: Perbill::from_percent(4),
@@ -341,12 +383,12 @@ fn invalid_monetary_origin_fails() {
 			sp_runtime::DispatchError::BadOrigin
 		);
 		assert_noop!(
-			ParachainStaking::set_parachain_bond_account(Origin::signed(45), 11),
+			ParachainStaking::set_parachain_bond_account(RuntimeOrigin::signed(45), 11),
 			sp_runtime::DispatchError::BadOrigin
 		);
 		assert_noop!(
 			ParachainStaking::set_parachain_bond_reserve_percent(
-				Origin::signed(45),
+				RuntimeOrigin::signed(45),
 				Percent::from_percent(2)
 			),
 			sp_runtime::DispatchError::BadOrigin
@@ -361,7 +403,7 @@ fn set_staking_event_emits_event_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		// valid call succeeds
 		assert_ok!(ParachainStaking::set_staking_expectations(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range {
 				min: 3u128,
 				ideal: 4u128,
@@ -388,7 +430,7 @@ fn set_staking_updates_storage_correctly() {
 			}
 		);
 		assert_ok!(ParachainStaking::set_staking_expectations(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range {
 				min: 3u128,
 				ideal: 4u128,
@@ -412,7 +454,7 @@ fn cannot_set_invalid_staking_expectations() {
 		// invalid call fails
 		assert_noop!(
 			ParachainStaking::set_staking_expectations(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Range {
 					min: 5u128,
 					ideal: 4u128,
@@ -428,7 +470,7 @@ fn cannot_set_invalid_staking_expectations() {
 fn cannot_set_same_staking_expectations() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_staking_expectations(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range {
 				min: 3u128,
 				ideal: 4u128,
@@ -437,7 +479,7 @@ fn cannot_set_same_staking_expectations() {
 		));
 		assert_noop!(
 			ParachainStaking::set_staking_expectations(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Range {
 					min: 3u128,
 					ideal: 4u128,
@@ -460,7 +502,7 @@ fn set_inflation_event_emits_correctly() {
 			Perbill::from_percent(5),
 		);
 		assert_ok!(ParachainStaking::set_inflation(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range { min, ideal, max }
 		));
 		assert_events_eq!(Event::InflationSet {
@@ -499,7 +541,7 @@ fn set_inflation_storage_updates_correctly() {
 			}
 		);
 		assert_ok!(ParachainStaking::set_inflation(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range { min, ideal, max }
 		),);
 		assert_eq!(
@@ -522,7 +564,7 @@ fn cannot_set_invalid_inflation() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			ParachainStaking::set_inflation(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Range {
 					min: Perbill::from_percent(5),
 					ideal: Perbill::from_percent(4),
@@ -543,11 +585,11 @@ fn cannot_set_same_inflation() {
 			Perbill::from_percent(5),
 		);
 		assert_ok!(ParachainStaking::set_inflation(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Range { min, ideal, max }
 		),);
 		assert_noop!(
-			ParachainStaking::set_inflation(Origin::root(), Range { min, ideal, max }),
+			ParachainStaking::set_inflation(RuntimeOrigin::root(), Range { min, ideal, max }),
 			Error::<Test>::NoWritingSameValue
 		);
 	});
@@ -559,7 +601,7 @@ fn cannot_set_same_inflation() {
 fn set_parachain_bond_account_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_parachain_bond_account(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			11
 		));
 		assert_events_eq!(Event::ParachainBondAccountSet { old: 0, new: 11 });
@@ -571,7 +613,7 @@ fn set_parachain_bond_account_storage_updates_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_eq!(ParachainStaking::parachain_bond_info().account, 0);
 		assert_ok!(ParachainStaking::set_parachain_bond_account(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			11
 		));
 		assert_eq!(ParachainStaking::parachain_bond_info().account, 11);
@@ -584,7 +626,7 @@ fn set_parachain_bond_account_storage_updates_correctly() {
 fn set_parachain_bond_reserve_percent_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Percent::from_percent(50)
 		));
 		assert_events_eq!(Event::ParachainBondReservePercentSet {
@@ -602,7 +644,7 @@ fn set_parachain_bond_reserve_percent_storage_updates_correctly() {
 			Percent::from_percent(30)
 		);
 		assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			Percent::from_percent(50)
 		));
 		assert_eq!(
@@ -617,7 +659,7 @@ fn cannot_set_same_parachain_bond_reserve_percent() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			ParachainStaking::set_parachain_bond_reserve_percent(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Percent::from_percent(30)
 			),
 			Error::<Test>::NoWritingSameValue
@@ -636,7 +678,7 @@ fn join_candidates_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10u128,
 				0u32
 			));
@@ -656,7 +698,7 @@ fn join_candidates_reserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 10);
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10u128,
 				0u32
 			));
@@ -672,7 +714,7 @@ fn join_candidates_increases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 0);
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10u128,
 				0u32
 			));
@@ -688,7 +730,7 @@ fn join_candidates_creates_candidate_state() {
 		.execute_with(|| {
 			assert!(ParachainStaking::candidate_info(1).is_none());
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10u128,
 				0u32
 			));
@@ -706,7 +748,7 @@ fn join_candidates_adds_to_candidate_pool() {
 		.execute_with(|| {
 			assert!(ParachainStaking::candidate_pool().0.is_empty());
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10u128,
 				0u32
 			));
@@ -724,7 +766,7 @@ fn cannot_join_candidates_if_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(Origin::signed(1), 11u128, 100u32),
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(1), 11u128, 100u32),
 				Error::<Test>::CandidateExists
 			);
 		});
@@ -739,7 +781,7 @@ fn cannot_join_candidates_if_delegator() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(Origin::signed(2), 10u128, 1u32),
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(2), 10u128, 1u32),
 				Error::<Test>::DelegatorExists
 			);
 		});
@@ -752,7 +794,7 @@ fn cannot_join_candidates_without_min_bond() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(Origin::signed(1), 9u128, 100u32),
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(1), 9u128, 100u32),
 				Error::<Test>::CandidateBondBelowMin
 			);
 		});
@@ -765,7 +807,7 @@ fn cannot_join_candidates_with_more_than_available_balance() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(Origin::signed(1), 501u128, 100u32),
+				ParachainStaking::join_candidates(RuntimeOrigin::signed(1), 501u128, 100u32),
 				DispatchError::Module(ModuleError {
 					index: 2,
 					error: [8, 0, 0, 0],
@@ -784,7 +826,7 @@ fn insufficient_join_candidates_weight_hint_fails() {
 		.execute_with(|| {
 			for i in 0..5 {
 				assert_noop!(
-					ParachainStaking::join_candidates(Origin::signed(6), 20, i),
+					ParachainStaking::join_candidates(RuntimeOrigin::signed(6), 20, i),
 					Error::<Test>::TooLowCandidateCountWeightHintJoinCandidates
 				);
 			}
@@ -811,7 +853,7 @@ fn sufficient_join_candidates_weight_hint_succeeds() {
 			let mut count = 5u32;
 			for i in 6..10 {
 				assert_ok!(ParachainStaking::join_candidates(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					20,
 					count
 				));
@@ -830,7 +872,7 @@ fn leave_candidates_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_events_eq!(Event::CandidateScheduledExit {
@@ -850,7 +892,7 @@ fn leave_candidates_removes_candidate_from_candidate_pool() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::candidate_pool().0.len(), 1);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert!(ParachainStaking::candidate_pool().0.is_empty());
@@ -861,7 +903,7 @@ fn leave_candidates_removes_candidate_from_candidate_pool() {
 fn cannot_leave_candidates_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::schedule_leave_candidates(Origin::signed(1), 1u32),
+			ParachainStaking::schedule_leave_candidates(RuntimeOrigin::signed(1), 1u32),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -875,11 +917,11 @@ fn cannot_leave_candidates_if_already_leaving_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_noop!(
-				ParachainStaking::schedule_leave_candidates(Origin::signed(1), 1u32),
+				ParachainStaking::schedule_leave_candidates(RuntimeOrigin::signed(1), 1u32),
 				Error::<Test>::CandidateAlreadyLeaving
 			);
 		});
@@ -894,7 +936,7 @@ fn insufficient_leave_candidates_weight_hint_fails() {
 		.execute_with(|| {
 			for i in 1..6 {
 				assert_noop!(
-					ParachainStaking::schedule_leave_candidates(Origin::signed(i), 4u32),
+					ParachainStaking::schedule_leave_candidates(RuntimeOrigin::signed(i), 4u32),
 					Error::<Test>::TooLowCandidateCountToLeaveCandidates
 				);
 			}
@@ -911,7 +953,7 @@ fn sufficient_leave_candidates_weight_hint_succeeds() {
 			let mut count = 5u32;
 			for i in 1..6 {
 				assert_ok!(ParachainStaking::schedule_leave_candidates(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					count
 				));
 				count -= 1u32;
@@ -929,12 +971,12 @@ fn execute_leave_candidates_emits_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				0
 			));
@@ -954,12 +996,12 @@ fn execute_leave_candidates_callable_by_any_signed() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				0
 			));
@@ -975,18 +1017,18 @@ fn execute_leave_candidates_requires_correct_weight_hint() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			roll_to(10);
 			for i in 0..3 {
 				assert_noop!(
-					ParachainStaking::execute_leave_candidates(Origin::signed(1), 1, i),
+					ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(1), 1, i),
 					Error::<Test>::TooLowCandidateDelegationCountToLeaveCandidates
 				);
 			}
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				3
 			));
@@ -1002,12 +1044,12 @@ fn execute_leave_candidates_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				0
 			));
@@ -1024,12 +1066,12 @@ fn execute_leave_candidates_decreases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 10);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				0
 			));
@@ -1045,7 +1087,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			// candidate state is not immediately removed
@@ -1054,7 +1096,7 @@ fn execute_leave_candidates_removes_candidate_state() {
 			assert_eq!(candidate_state.bond, 10u128);
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				0
 			));
@@ -1071,7 +1113,7 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -1085,7 +1127,7 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 				}],
 			);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			// candidate state is not immediately removed
@@ -1094,7 +1136,7 @@ fn execute_leave_candidates_removes_pending_delegation_requests() {
 			assert_eq!(candidate_state.bond, 10u128);
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				1
 			));
@@ -1120,21 +1162,21 @@ fn cannot_execute_leave_candidates_before_delay() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1, 0),
+				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(9);
 			assert_noop!(
-				ParachainStaking::execute_leave_candidates(Origin::signed(3), 1, 0),
+				ParachainStaking::execute_leave_candidates(RuntimeOrigin::signed(3), 1, 0),
 				Error::<Test>::CandidateCannotLeaveYet
 			);
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				0
 			));
@@ -1151,11 +1193,11 @@ fn cancel_leave_candidates_emits_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_ok!(ParachainStaking::cancel_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_events_emitted!(Event::CancelledCandidateExit { candidate: 1 });
@@ -1170,11 +1212,11 @@ fn cancel_leave_candidates_updates_candidate_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_ok!(ParachainStaking::cancel_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			let candidate =
@@ -1191,11 +1233,11 @@ fn cancel_leave_candidates_adds_to_candidate_pool() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1u32
 			));
 			assert_ok!(ParachainStaking::cancel_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
@@ -1212,7 +1254,7 @@ fn go_offline_event_emits_correctly() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			assert_events_eq!(Event::CandidateWentOffline { candidate: 1 });
 		});
 }
@@ -1225,7 +1267,7 @@ fn go_offline_removes_candidate_from_candidate_pool() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::candidate_pool().0.len(), 1);
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			assert!(ParachainStaking::candidate_pool().0.is_empty());
 		});
 }
@@ -1239,7 +1281,7 @@ fn go_offline_updates_candidate_state_to_idle() {
 		.execute_with(|| {
 			let candidate_state = ParachainStaking::candidate_info(1).expect("is active candidate");
 			assert_eq!(candidate_state.status, CollatorStatus::Active);
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			let candidate_state =
 				ParachainStaking::candidate_info(1).expect("is candidate, just offline");
 			assert_eq!(candidate_state.status, CollatorStatus::Idle);
@@ -1250,7 +1292,7 @@ fn go_offline_updates_candidate_state_to_idle() {
 fn cannot_go_offline_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::go_offline(Origin::signed(3)),
+			ParachainStaking::go_offline(RuntimeOrigin::signed(3)),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -1263,9 +1305,9 @@ fn cannot_go_offline_if_already_offline() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			assert_noop!(
-				ParachainStaking::go_offline(Origin::signed(1)),
+				ParachainStaking::go_offline(RuntimeOrigin::signed(1)),
 				Error::<Test>::AlreadyOffline
 			);
 		});
@@ -1280,9 +1322,9 @@ fn go_online_event_emits_correctly() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			roll_one_block();
-			assert_ok!(ParachainStaking::go_online(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_online(RuntimeOrigin::signed(1)));
 			assert_events_eq!(Event::CandidateBackOnline { candidate: 1 });
 		});
 }
@@ -1294,9 +1336,9 @@ fn go_online_adds_to_candidate_pool() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			assert!(ParachainStaking::candidate_pool().0.is_empty());
-			assert_ok!(ParachainStaking::go_online(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_online(RuntimeOrigin::signed(1)));
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
 			assert_eq!(ParachainStaking::candidate_pool().0[0].amount, 20);
 		});
@@ -1309,11 +1351,11 @@ fn go_online_storage_updates_candidate_state() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(1)));
 			let candidate_state =
 				ParachainStaking::candidate_info(1).expect("offline still exists");
 			assert_eq!(candidate_state.status, CollatorStatus::Idle);
-			assert_ok!(ParachainStaking::go_online(Origin::signed(1)));
+			assert_ok!(ParachainStaking::go_online(RuntimeOrigin::signed(1)));
 			let candidate_state = ParachainStaking::candidate_info(1).expect("online so exists");
 			assert_eq!(candidate_state.status, CollatorStatus::Active);
 		});
@@ -1323,7 +1365,7 @@ fn go_online_storage_updates_candidate_state() {
 fn cannot_go_online_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::go_online(Origin::signed(3)),
+			ParachainStaking::go_online(RuntimeOrigin::signed(3)),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -1337,7 +1379,7 @@ fn cannot_go_online_if_already_online() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::go_online(Origin::signed(1)),
+				ParachainStaking::go_online(RuntimeOrigin::signed(1)),
 				Error::<Test>::AlreadyActive
 			);
 		});
@@ -1351,11 +1393,11 @@ fn cannot_go_online_if_leaving() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_noop!(
-				ParachainStaking::go_online(Origin::signed(1)),
+				ParachainStaking::go_online(RuntimeOrigin::signed(1)),
 				Error::<Test>::CannotGoOnlineIfLeaving
 			);
 		});
@@ -1370,7 +1412,10 @@ fn candidate_bond_more_emits_correct_event() {
 		.with_candidates(vec![(1, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+			assert_ok!(ParachainStaking::candidate_bond_more(
+				RuntimeOrigin::signed(1),
+				30
+			));
 			assert_events_eq!(Event::CandidateBondedMore {
 				candidate: 1,
 				amount: 30,
@@ -1387,7 +1432,10 @@ fn candidate_bond_more_reserves_balance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 30);
-			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+			assert_ok!(ParachainStaking::candidate_bond_more(
+				RuntimeOrigin::signed(1),
+				30
+			));
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 		});
 }
@@ -1400,7 +1448,10 @@ fn candidate_bond_more_increases_total() {
 		.build()
 		.execute_with(|| {
 			let mut total = ParachainStaking::total();
-			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+			assert_ok!(ParachainStaking::candidate_bond_more(
+				RuntimeOrigin::signed(1),
+				30
+			));
 			total += 30;
 			assert_eq!(ParachainStaking::total(), total);
 		});
@@ -1415,7 +1466,10 @@ fn candidate_bond_more_updates_candidate_state() {
 		.execute_with(|| {
 			let candidate_state = ParachainStaking::candidate_info(1).expect("updated => exists");
 			assert_eq!(candidate_state.bond, 20);
-			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+			assert_ok!(ParachainStaking::candidate_bond_more(
+				RuntimeOrigin::signed(1),
+				30
+			));
 			let candidate_state = ParachainStaking::candidate_info(1).expect("updated => exists");
 			assert_eq!(candidate_state.bond, 50);
 		});
@@ -1430,7 +1484,10 @@ fn candidate_bond_more_updates_candidate_pool() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
 			assert_eq!(ParachainStaking::candidate_pool().0[0].amount, 20);
-			assert_ok!(ParachainStaking::candidate_bond_more(Origin::signed(1), 30));
+			assert_ok!(ParachainStaking::candidate_bond_more(
+				RuntimeOrigin::signed(1),
+				30
+			));
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
 			assert_eq!(ParachainStaking::candidate_pool().0[0].amount, 50);
 		});
@@ -1446,7 +1503,7 @@ fn schedule_candidate_bond_less_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			assert_events_eq!(Event::CandidateBondLessRequested {
@@ -1465,11 +1522,11 @@ fn cannot_schedule_candidate_bond_less_if_request_exists() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				5
 			));
 			assert_noop!(
-				ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 5),
+				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 5),
 				Error::<Test>::PendingCandidateRequestAlreadyExists
 			);
 		});
@@ -1479,7 +1536,7 @@ fn cannot_schedule_candidate_bond_less_if_request_exists() {
 fn cannot_schedule_candidate_bond_less_if_not_candidate() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::schedule_candidate_bond_less(Origin::signed(6), 50),
+			ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(6), 50),
 			Error::<Test>::CandidateDNE
 		);
 	});
@@ -1493,7 +1550,7 @@ fn cannot_schedule_candidate_bond_less_if_new_total_below_min_candidate_stk() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 21),
+				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 21),
 				Error::<Test>::CandidateBondBelowMin
 			);
 		});
@@ -1507,11 +1564,11 @@ fn can_schedule_candidate_bond_less_if_leaving_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 		});
@@ -1525,17 +1582,17 @@ fn cannot_schedule_candidate_bond_less_if_exited_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				0
 			));
 			assert_noop!(
-				ParachainStaking::schedule_candidate_bond_less(Origin::signed(1), 10),
+				ParachainStaking::schedule_candidate_bond_less(RuntimeOrigin::signed(1), 10),
 				Error::<Test>::CandidateDNE
 			);
 		});
@@ -1551,13 +1608,13 @@ fn execute_candidate_bond_less_emits_correct_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				30
 			));
 			roll_to(10);
 			roll_one_block();
 			assert_ok!(ParachainStaking::execute_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_events_eq!(Event::CandidateBondedLess {
@@ -1577,12 +1634,12 @@ fn execute_candidate_bond_less_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 0);
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&1), 10);
@@ -1598,12 +1655,12 @@ fn execute_candidate_bond_less_decreases_total() {
 		.execute_with(|| {
 			let mut total = ParachainStaking::total();
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			total -= 10;
@@ -1621,12 +1678,12 @@ fn execute_candidate_bond_less_updates_candidate_state() {
 			let candidate_state = ParachainStaking::candidate_info(1).expect("updated => exists");
 			assert_eq!(candidate_state.bond, 30);
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			let candidate_state = ParachainStaking::candidate_info(1).expect("updated => exists");
@@ -1644,12 +1701,12 @@ fn execute_candidate_bond_less_updates_candidate_pool() {
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
 			assert_eq!(ParachainStaking::candidate_pool().0[0].amount, 30);
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_eq!(ParachainStaking::candidate_pool().0[0].owner, 1);
@@ -1667,11 +1724,11 @@ fn cancel_candidate_bond_less_emits_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			assert_ok!(ParachainStaking::cancel_candidate_bond_less(
-				Origin::signed(1)
+				RuntimeOrigin::signed(1)
 			));
 			assert_events_emitted!(Event::CancelledCandidateBondLess {
 				candidate: 1,
@@ -1689,11 +1746,11 @@ fn cancel_candidate_bond_less_updates_candidate_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			assert_ok!(ParachainStaking::cancel_candidate_bond_less(
-				Origin::signed(1)
+				RuntimeOrigin::signed(1)
 			));
 			assert!(ParachainStaking::candidate_info(&1)
 				.unwrap()
@@ -1710,11 +1767,11 @@ fn only_candidate_can_cancel_candidate_bond_less_request() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				10
 			));
 			assert_noop!(
-				ParachainStaking::cancel_candidate_bond_less(Origin::signed(2)),
+				ParachainStaking::cancel_candidate_bond_less(RuntimeOrigin::signed(2)),
 				Error::<Test>::CandidateDNE
 			);
 		});
@@ -1729,7 +1786,13 @@ fn delegate_event_emits_correctly() {
 		.with_candidates(vec![(1, 30)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				0,
+				0
+			));
 			assert_events_eq!(Event::Delegation {
 				delegator: 2,
 				locked_amount: 10,
@@ -1751,7 +1814,13 @@ fn delegate_reserves_balance() {
 				ParachainStaking::get_delegator_stakable_free_balance(&2),
 				10
 			);
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				0,
+				0
+			));
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 		});
 }
@@ -1764,7 +1833,13 @@ fn delegate_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_none());
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				0,
+				0
+			));
 			let delegator_state =
 				ParachainStaking::delegator_state(2).expect("just delegated => exists");
 			assert_eq!(delegator_state.total(), 10);
@@ -1787,7 +1862,13 @@ fn delegate_updates_collator_state() {
 				ParachainStaking::top_delegations(1).expect("registered in genesis");
 			assert!(top_delegations.delegations.is_empty());
 			assert!(top_delegations.total.is_zero());
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				0,
+				0
+			));
 			let candidate_state =
 				ParachainStaking::candidate_info(1).expect("just delegated => exists");
 			assert_eq!(candidate_state.total_counted, 40);
@@ -1805,8 +1886,18 @@ fn can_delegate_immediately_after_other_join_candidates() {
 		.with_balances(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::join_candidates(Origin::signed(1), 20, 0));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 20, 0, 0));
+			assert_ok!(ParachainStaking::join_candidates(
+				RuntimeOrigin::signed(1),
+				20,
+				0
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				20,
+				0,
+				0
+			));
 		});
 }
 
@@ -1819,10 +1910,16 @@ fn can_delegate_if_revoking() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 4, 10, 0, 2));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				4,
+				10,
+				0,
+				2
+			));
 		});
 }
 
@@ -1856,7 +1953,7 @@ fn cannot_delegate_if_full_and_new_delegation_less_than_or_equal_lowest_bottom()
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(Origin::signed(11), 1, 10, 8, 0),
+				ParachainStaking::delegate(RuntimeOrigin::signed(11), 1, 10, 8, 0),
 				Error::<Test>::CannotDelegateLessThanOrEqualToLowestBottomWhenFull
 			);
 		});
@@ -1891,7 +1988,13 @@ fn can_delegate_if_full_and_new_delegation_greater_than_lowest_bottom() {
 		])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::delegate(Origin::signed(11), 1, 11, 8, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(11),
+				1,
+				11,
+				8,
+				0
+			));
 			assert_events_emitted!(Event::DelegationKicked {
 				delegator: 10,
 				candidate: 1,
@@ -1912,10 +2015,16 @@ fn can_still_delegate_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 3, 10, 0, 1),);
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				3,
+				10,
+				0,
+				1
+			),);
 		});
 }
 
@@ -1927,7 +2036,7 @@ fn cannot_delegate_if_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(Origin::signed(2), 1, 10, 0, 0),
+				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 0, 0),
 				Error::<Test>::CandidateExists
 			);
 		});
@@ -1942,7 +2051,7 @@ fn cannot_delegate_if_already_delegated() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(Origin::signed(2), 1, 10, 1, 1),
+				ParachainStaking::delegate(RuntimeOrigin::signed(2), 1, 10, 1, 1),
 				Error::<Test>::AlreadyDelegatedCandidate
 			);
 		});
@@ -1957,7 +2066,7 @@ fn cannot_delegate_more_than_max_delegations() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::delegate(Origin::signed(2), 6, 10, 0, 4),
+				ParachainStaking::delegate(RuntimeOrigin::signed(2), 6, 10, 0, 4),
 				Error::<Test>::ExceedMaxDelegationsPerDelegator,
 			);
 		});
@@ -1985,7 +2094,7 @@ fn sufficient_delegate_weight_hint_succeeds() {
 			let mut count = 4u32;
 			for i in 7..11 {
 				assert_ok!(ParachainStaking::delegate(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					1,
 					10,
 					count,
@@ -1996,7 +2105,7 @@ fn sufficient_delegate_weight_hint_succeeds() {
 			let mut count = 0u32;
 			for i in 3..11 {
 				assert_ok!(ParachainStaking::delegate(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					2,
 					10,
 					count,
@@ -2029,7 +2138,7 @@ fn insufficient_delegate_weight_hint_fails() {
 			let mut count = 3u32;
 			for i in 7..11 {
 				assert_noop!(
-					ParachainStaking::delegate(Origin::signed(i), 1, 10, count, 0u32),
+					ParachainStaking::delegate(RuntimeOrigin::signed(i), 1, 10, count, 0u32),
 					Error::<Test>::TooLowCandidateDelegationCountToDelegate
 				);
 			}
@@ -2037,7 +2146,7 @@ fn insufficient_delegate_weight_hint_fails() {
 			count = 4u32;
 			for i in 7..11 {
 				assert_ok!(ParachainStaking::delegate(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					1,
 					10,
 					count,
@@ -2048,7 +2157,7 @@ fn insufficient_delegate_weight_hint_fails() {
 			count = 0u32;
 			for i in 3..11 {
 				assert_noop!(
-					ParachainStaking::delegate(Origin::signed(i), 2, 10, count, 0u32),
+					ParachainStaking::delegate(RuntimeOrigin::signed(i), 2, 10, count, 0u32),
 					Error::<Test>::TooLowDelegationCountToDelegate
 				);
 				count += 1u32;
@@ -2066,9 +2175,9 @@ fn schedule_leave_delegators_event_emits_correctly() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_events_eq!(Event::DelegatorExitScheduled {
 				round: 1,
 				delegator: 2,
@@ -2085,11 +2194,11 @@ fn cannot_schedule_leave_delegators_if_already_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_noop!(
-				ParachainStaking::schedule_leave_delegators(Origin::signed(2)),
+				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(2)),
 				Error::<Test>::DelegatorAlreadyLeaving
 			);
 		});
@@ -2103,7 +2212,7 @@ fn cannot_schedule_leave_delegators_if_not_delegator() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_leave_delegators(Origin::signed(2)),
+				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(2)),
 				Error::<Test>::DelegatorDNE
 			);
 		});
@@ -2119,12 +2228,12 @@ fn execute_leave_delegators_event_emits_correctly() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2147,12 +2256,12 @@ fn execute_leave_delegators_unreserves_balance() {
 				ParachainStaking::get_delegator_stakable_free_balance(&2),
 				00
 			);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2173,12 +2282,12 @@ fn execute_leave_delegators_decreases_total_staked() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2195,12 +2304,12 @@ fn execute_leave_delegators_removes_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_some());
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2217,7 +2326,7 @@ fn execute_leave_delegators_removes_pending_delegation_requests() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2230,12 +2339,12 @@ fn execute_leave_delegators_removes_pending_delegation_requests() {
 					action: DelegationAction::Decrease(5),
 				}],
 			);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2275,12 +2384,12 @@ fn execute_leave_delegators_removes_delegations_from_collator_state() {
 					.len(),
 				4usize
 			);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				1
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(1)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				10
 			));
@@ -2303,17 +2412,17 @@ fn cannot_execute_leave_delegators_before_delay() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_noop!(
-				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
+				ParachainStaking::execute_leave_delegators(RuntimeOrigin::signed(2), 2, 1),
 				Error::<Test>::DelegatorCannotLeaveYet
 			);
 			// can execute after delay
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2328,27 +2437,27 @@ fn cannot_execute_leave_delegators_if_single_delegation_revoke_manually_cancelle
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
 			roll_to(10);
 			assert_noop!(
-				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 2),
+				ParachainStaking::execute_leave_delegators(RuntimeOrigin::signed(2), 2, 2),
 				Error::<Test>::DelegatorNotLeaving
 			);
 			// can execute after manually scheduling revoke, and the round delay after which
 			// all revokes can be executed
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
 			roll_to(20);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2
 			));
@@ -2364,14 +2473,14 @@ fn insufficient_execute_leave_delegators_weight_hint_fails() {
 		.build()
 		.execute_with(|| {
 			for i in 3..7 {
-				assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-					i
-				)));
+				assert_ok!(ParachainStaking::schedule_leave_delegators(
+					RuntimeOrigin::signed(i)
+				));
 			}
 			roll_to(10);
 			for i in 3..7 {
 				assert_noop!(
-					ParachainStaking::execute_leave_delegators(Origin::signed(i), i, 0),
+					ParachainStaking::execute_leave_delegators(RuntimeOrigin::signed(i), i, 0),
 					Error::<Test>::TooLowDelegationCountToLeaveDelegators
 				);
 			}
@@ -2387,14 +2496,14 @@ fn sufficient_execute_leave_delegators_weight_hint_succeeds() {
 		.build()
 		.execute_with(|| {
 			for i in 3..7 {
-				assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-					i
-				)));
+				assert_ok!(ParachainStaking::schedule_leave_delegators(
+					RuntimeOrigin::signed(i)
+				));
 			}
 			roll_to(10);
 			for i in 3..7 {
 				assert_ok!(ParachainStaking::execute_leave_delegators(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					i,
 					1
 				));
@@ -2412,10 +2521,12 @@ fn cancel_leave_delegators_emits_correct_event() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
-			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_events_emitted!(Event::DelegatorExitCancelled { delegator: 2 });
 		});
 }
@@ -2428,10 +2539,12 @@ fn cancel_leave_delegators_updates_delegator_state() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
-			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			let delegator =
 				ParachainStaking::delegator_state(&2).expect("just cancelled exit so exists");
 			assert!(delegator.is_active());
@@ -2446,25 +2559,27 @@ fn cannot_cancel_leave_delegators_if_single_delegation_revoke_manually_cancelled
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
 			roll_to(10);
 			assert_noop!(
-				ParachainStaking::cancel_leave_delegators(Origin::signed(2)),
+				ParachainStaking::cancel_leave_delegators(RuntimeOrigin::signed(2)),
 				Error::<Test>::DelegatorNotLeaving
 			);
 			// can execute after manually scheduling revoke, without waiting for round delay after
 			// which all revokes can be executed
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
-			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 		});
 }
 
@@ -2479,7 +2594,7 @@ fn revoke_delegation_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_eq!(Event::DelegationRevocationScheduled {
@@ -2491,7 +2606,7 @@ fn revoke_delegation_event_emits_correctly() {
 			roll_to_round_begin(3);
 			roll_one_block();
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -2520,12 +2635,12 @@ fn can_revoke_delegation_if_revoking_another_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			// this is an exit implicitly because last delegation revoked
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
 		});
@@ -2539,11 +2654,11 @@ fn delegator_not_allowed_revoke_if_already_leaving() {
 		.with_delegations(vec![(2, 1, 10), (2, 3, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_noop!(
-				ParachainStaking::schedule_revoke_delegation(Origin::signed(2), 3),
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 3),
 				<Error<Test>>::PendingDelegationRequestAlreadyExists,
 			);
 		});
@@ -2553,7 +2668,7 @@ fn delegator_not_allowed_revoke_if_already_leaving() {
 fn cannot_revoke_delegation_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::schedule_revoke_delegation(Origin::signed(2), 1),
+			ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 1),
 			Error::<Test>::DelegatorDNE
 		);
 	});
@@ -2568,7 +2683,7 @@ fn cannot_revoke_delegation_that_dne() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_revoke_delegation(Origin::signed(2), 3),
+				ParachainStaking::schedule_revoke_delegation(RuntimeOrigin::signed(2), 3),
 				Error::<Test>::DelegationDNE
 			);
 		});
@@ -2585,7 +2700,7 @@ fn can_schedule_revoke_delegation_below_min_delegator_stake() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 		});
@@ -2603,7 +2718,7 @@ fn delegator_bond_more_reserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 5);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2621,7 +2736,7 @@ fn delegator_bond_more_increases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2644,7 +2759,7 @@ fn delegator_bond_more_updates_delegator_state() {
 				10
 			);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2675,7 +2790,7 @@ fn delegator_bond_more_updates_candidate_state_top_delegations() {
 			);
 			assert_eq!(ParachainStaking::top_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2721,7 +2836,7 @@ fn delegator_bond_more_updates_candidate_state_bottom_delegations() {
 			);
 			assert_eq!(ParachainStaking::bottom_delegations(1).unwrap().total, 10);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2759,7 +2874,7 @@ fn delegator_bond_more_increases_total() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2776,11 +2891,11 @@ fn can_delegator_bond_more_for_leaving_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2796,11 +2911,11 @@ fn delegator_bond_more_disallowed_when_revoke_scheduled() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_noop!(
-				ParachainStaking::delegator_bond_more(Origin::signed(2), 1, 5),
+				ParachainStaking::delegator_bond_more(RuntimeOrigin::signed(2), 1, 5),
 				<Error<Test>>::PendingDelegationRevoke
 			);
 		});
@@ -2815,12 +2930,12 @@ fn delegator_bond_more_allowed_when_bond_decrease_scheduled() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5,
 			));
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2838,7 +2953,7 @@ fn delegator_bond_less_event_emits_correctly() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2860,7 +2975,7 @@ fn delegator_bond_less_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -2884,11 +2999,11 @@ fn delegator_not_allowed_bond_less_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 1),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1),
 				<Error<Test>>::PendingDelegationRequestAlreadyExists,
 			);
 		});
@@ -2903,11 +3018,11 @@ fn cannot_delegator_bond_less_if_revoking() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 1),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 1),
 				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 		});
@@ -2917,7 +3032,7 @@ fn cannot_delegator_bond_less_if_revoking() {
 fn cannot_delegator_bond_less_if_not_delegator() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 5),
+			ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 5),
 			Error::<Test>::DelegatorDNE
 		);
 	});
@@ -2932,7 +3047,7 @@ fn cannot_delegator_bond_less_if_candidate_dne() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 3, 5),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5),
 				Error::<Test>::DelegationDNE
 			);
 		});
@@ -2947,7 +3062,7 @@ fn cannot_delegator_bond_less_if_delegation_dne() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 3, 5),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 3, 5),
 				Error::<Test>::DelegationDNE
 			);
 		});
@@ -2962,7 +3077,7 @@ fn cannot_delegator_bond_less_below_min_collator_stk() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 6),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 6),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 		});
@@ -2977,7 +3092,7 @@ fn cannot_delegator_bond_less_more_than_total_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 11),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 11),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 		});
@@ -2992,7 +3107,7 @@ fn cannot_delegator_bond_less_below_min_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 8),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 8),
 				Error::<Test>::DelegationBelowMin
 			);
 		});
@@ -3012,12 +3127,12 @@ fn execute_revoke_delegation_emits_exit_event_if_exit_happens() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3043,25 +3158,25 @@ fn cannot_execute_revoke_delegation_below_min_delegator_stake() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_noop!(
-				ParachainStaking::execute_delegation_request(Origin::signed(2), 2, 1),
+				ParachainStaking::execute_delegation_request(RuntimeOrigin::signed(2), 2, 1),
 				Error::<Test>::DelegatorBondBelowMin
 			);
 			// but delegator can cancel the request and request to leave instead:
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(20);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2
 			));
@@ -3078,12 +3193,12 @@ fn revoke_delegation_executes_exit_if_last_delegation() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3109,12 +3224,12 @@ fn execute_revoke_delegation_emits_correct_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3137,12 +3252,12 @@ fn execute_revoke_delegation_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3165,7 +3280,7 @@ fn execute_revoke_delegation_adds_revocation_to_delegator_state() {
 				.iter()
 				.any(|x| x.delegator == 2));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert!(ParachainStaking::delegation_scheduled_requests(&1)
@@ -3183,12 +3298,12 @@ fn execute_revoke_delegation_removes_revocation_from_delegator_state_upon_execut
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3207,12 +3322,12 @@ fn execute_revoke_delegation_removes_revocation_from_state_for_single_delegation
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3235,12 +3350,12 @@ fn execute_revoke_delegation_decreases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3258,14 +3373,14 @@ fn execute_revoke_delegation_for_last_delegation_removes_delegator_state() {
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_some());
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			// this will be confusing for people
 			// if status is leaving, then execute_delegation_request works if last delegation
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3288,12 +3403,12 @@ fn execute_revoke_delegation_removes_delegation_from_candidate_state() {
 				1u32
 			);
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3313,17 +3428,17 @@ fn can_execute_revoke_delegation_for_leaving_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			// can execute delegation request for leaving candidate
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3339,17 +3454,17 @@ fn can_execute_leave_candidates_if_revoking_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			// revocation executes during execute leave candidates (callable by anyone)
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				1
 			));
@@ -3368,17 +3483,17 @@ fn delegator_bond_more_after_revoke_delegation_does_not_effect_exit() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				10
 			));
 			roll_to(100);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3399,7 +3514,7 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_eq!(Event::DelegationRevocationScheduled {
@@ -3409,23 +3524,23 @@ fn delegator_bond_less_after_revoke_delegation_does_not_effect_exit() {
 				scheduled_exit: 3,
 			});
 			assert_noop!(
-				ParachainStaking::schedule_delegator_bond_less(Origin::signed(2), 1, 2),
+				ParachainStaking::schedule_delegator_bond_less(RuntimeOrigin::signed(2), 1, 2),
 				Error::<Test>::PendingDelegationRequestAlreadyExists
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				2
 			));
 			roll_to(10);
 			roll_one_block();
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				3
 			));
@@ -3468,13 +3583,13 @@ fn execute_delegator_bond_less_unreserves_balance() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&2), 0);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3492,13 +3607,13 @@ fn execute_delegator_bond_less_decreases_total_staked() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3521,13 +3636,13 @@ fn execute_delegator_bond_less_updates_delegator_state() {
 				10
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3557,13 +3672,13 @@ fn execute_delegator_bond_less_updates_candidate_state() {
 				10
 			);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3588,13 +3703,13 @@ fn execute_delegator_bond_less_decreases_total() {
 		.execute_with(|| {
 			assert_eq!(ParachainStaking::total(), 40);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3623,13 +3738,13 @@ fn execute_delegator_bond_less_updates_just_bottom_delegations() {
 			let pre_call_bottom_delegations =
 				ParachainStaking::bottom_delegations(&1).expect("delegated by all so exists");
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				2
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3699,13 +3814,13 @@ fn execute_delegator_bond_less_does_not_delete_bottom_delegations() {
 			let pre_call_bottom_delegations =
 				ParachainStaking::bottom_delegations(&1).expect("delegated by all so exists");
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				1,
 				4
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				1
 			));
@@ -3763,18 +3878,18 @@ fn can_execute_delegator_bond_less_for_leaving_candidate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1
 			));
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			roll_to(10);
 			// can execute bond more delegation request for leaving candidate
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3793,11 +3908,11 @@ fn cancel_revoke_delegation_emits_correct_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_emitted!(Event::CancelledDelegationRequest {
@@ -3820,7 +3935,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			let state = ParachainStaking::delegation_scheduled_requests(&1);
@@ -3839,7 +3954,7 @@ fn cancel_revoke_delegation_updates_delegator_state() {
 				10
 			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
@@ -3865,12 +3980,12 @@ fn cancel_delegator_bond_less_correct_event() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_emitted!(Event::CancelledDelegationRequest {
@@ -3893,7 +4008,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				5
 			));
@@ -3913,7 +4028,7 @@ fn cancel_delegator_bond_less_updates_delegator_state() {
 				5
 			);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert!(!ParachainStaking::delegation_scheduled_requests(&1)
@@ -3939,7 +4054,7 @@ fn delegator_schedule_revocation_total() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_eq!(
@@ -3950,7 +4065,7 @@ fn delegator_schedule_revocation_total() {
 			);
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -3960,13 +4075,19 @@ fn delegator_schedule_revocation_total() {
 					.expect("delegator state must exist"),
 				0
 			);
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 5, 10, 0, 2));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				5,
+				10,
+				0,
+				2
+			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3
 			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				4
 			));
 			assert_eq!(
@@ -3977,7 +4098,7 @@ fn delegator_schedule_revocation_total() {
 			);
 			roll_to(20);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				3
 			));
@@ -3988,7 +4109,7 @@ fn delegator_schedule_revocation_total() {
 				10,
 			);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				4
 			));
@@ -4031,7 +4152,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			// set parachain bond account so DefaultParachainBondReservePercent = 30% of inflation
 			// is allocated to this account hereafter
 			assert_ok!(ParachainStaking::set_parachain_bond_account(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				11
 			));
 			assert_events_eq!(Event::ParachainBondAccountSet { old: 0, new: 11 });
@@ -4082,12 +4203,12 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			set_author(5, 1, 100);
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
+				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(66)),
 				Error::<Test>::DelegatorDNE
 			);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				6
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(6)
+			));
 			assert_events_eq!(
 				Event::ReservedForParachainBond {
 					account: 11,
@@ -4203,7 +4324,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			);
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				10
 			));
@@ -4323,7 +4444,7 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(Balances::free_balance(&11), 65);
 			roll_one_block();
 			assert_ok!(ParachainStaking::set_parachain_bond_reserve_percent(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Percent::from_percent(50)
 			));
 			assert_events_eq!(Event::ParachainBondReservePercentSet {
@@ -4439,7 +4560,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, 100);
 			roll_one_block();
-			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(8),
+				1,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(Event::Delegation {
 				delegator: 8,
 				locked_amount: 10,
@@ -4629,7 +4756,7 @@ fn paid_collator_commission_matches_config() {
 		.execute_with(|| {
 			roll_to_round_begin(2);
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(4),
+				RuntimeOrigin::signed(4),
 				20u128,
 				100u32
 			));
@@ -4653,8 +4780,20 @@ fn paid_collator_commission_matches_config() {
 			);
 
 			roll_one_block();
-			assert_ok!(ParachainStaking::delegate(Origin::signed(5), 4, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 4, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(5),
+				4,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				4,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(
 				Event::Delegation {
 					delegator: 5,
@@ -4749,7 +4888,7 @@ fn collator_exit_executes_after_delay() {
 		.execute_with(|| {
 			roll_to(11);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2
 			));
 			assert_events_eq!(Event::CandidateScheduledExit {
@@ -4761,7 +4900,7 @@ fn collator_exit_executes_after_delay() {
 			assert_eq!(info.status, CollatorStatus::Leaving(5));
 			roll_to(21);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2
 			));
@@ -4795,7 +4934,7 @@ fn collator_selection_chooses_top_candidates() {
 		.execute_with(|| {
 			roll_to_round_begin(2);
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6
 			));
 			// should choose top TotalSelectedCandidates (5), in order
@@ -4840,12 +4979,12 @@ fn collator_selection_chooses_top_candidates() {
 			roll_to_round_begin(4);
 			roll_one_block();
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				0
 			));
 			assert_ok!(ParachainStaking::join_candidates(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				69u128,
 				100u32
 			));
@@ -5178,9 +5317,27 @@ fn multiple_delegations() {
 				},
 			);
 			roll_one_block();
-			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 2, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 3, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(Origin::signed(6), 4, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				2,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				3,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				4,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(
 				Event::Delegation {
 					delegator: 6,
@@ -5206,16 +5363,22 @@ fn multiple_delegations() {
 			);
 			roll_to_round_begin(6);
 			roll_one_block();
-			assert_ok!(ParachainStaking::delegate(Origin::signed(7), 2, 80, 10, 10));
 			assert_ok!(ParachainStaking::delegate(
-				Origin::signed(10),
+				RuntimeOrigin::signed(7),
+				2,
+				80,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(10),
 				2,
 				10,
 				10,
 				10
 			));
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				5
 			));
 			assert_events_eq!(
@@ -5300,7 +5463,7 @@ fn multiple_delegations() {
 			roll_to_round_begin(8);
 			roll_one_block();
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				5
 			));
@@ -5354,11 +5517,11 @@ fn execute_leave_candidate_removes_delegations() {
 				.any(|x| x.delegator == 3));
 
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2
 			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				2
 			));
 			// Verifies the revocation request is present
@@ -5368,7 +5531,7 @@ fn execute_leave_candidate_removes_delegations() {
 
 			roll_to(16);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2
 			));
@@ -5501,12 +5664,12 @@ fn payouts_follow_delegation_changes() {
 			roll_one_block();
 			// 1. ensure delegators are paid for 2 rounds after they leave
 			assert_noop!(
-				ParachainStaking::schedule_leave_delegators(Origin::signed(66)),
+				ParachainStaking::schedule_leave_delegators(RuntimeOrigin::signed(66)),
 				Error::<Test>::DelegatorDNE
 			);
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				6
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(6)
+			));
 			assert_events_eq!(Event::DelegatorExitScheduled {
 				round: 4,
 				delegator: 6,
@@ -5566,7 +5729,7 @@ fn payouts_follow_delegation_changes() {
 			// keep paying 6 (note: inflation is in terms of total issuance so that's why 1 is 21)
 			roll_to_round_begin(6);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				10
 			));
@@ -5774,7 +5937,13 @@ fn payouts_follow_delegation_changes() {
 			);
 			roll_one_block();
 			set_author(9, 1, 100);
-			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(8),
+				1,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(Event::Delegation {
 				delegator: 8,
 				locked_amount: 10,
@@ -5946,25 +6115,49 @@ fn bottom_delegations_are_empty_when_top_delegations_not_full() {
 			assert!(top_delegations.delegations.is_empty());
 			assert!(bottom_delegations.delegations.is_empty());
 			// 1 delegator => 1 top delegator, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				10,
+				10
+			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
 			let bottom_delegations = ParachainStaking::bottom_delegations(1).unwrap();
 			assert_eq!(top_delegations.delegations.len(), 1usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 2 delegators => 2 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(Origin::signed(3), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(3),
+				1,
+				10,
+				10,
+				10
+			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
 			let bottom_delegations = ParachainStaking::bottom_delegations(1).unwrap();
 			assert_eq!(top_delegations.delegations.len(), 2usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 3 delegators => 3 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(Origin::signed(4), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(4),
+				1,
+				10,
+				10,
+				10
+			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
 			let bottom_delegations = ParachainStaking::bottom_delegations(1).unwrap();
 			assert_eq!(top_delegations.delegations.len(), 3usize);
 			assert!(bottom_delegations.delegations.is_empty());
 			// 4 delegators => 4 top delegators, 0 bottom delegators
-			assert_ok!(ParachainStaking::delegate(Origin::signed(5), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(5),
+				1,
+				10,
+				10,
+				10
+			));
 			let top_delegations = ParachainStaking::top_delegations(1).unwrap();
 			let bottom_delegations = ParachainStaking::bottom_delegations(1).unwrap();
 			assert_eq!(top_delegations.delegations.len(), 4usize);
@@ -6014,7 +6207,7 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			// 15 + 16 + 17 + 18 + 20 = 86 (top 4 + self bond)
 			is_candidate_pool_bond(1, 86);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				8
 			));
@@ -6022,7 +6215,7 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			// 16 + 17 + 18 + 19 + 20 = 90 (top 4 + self bond)
 			is_candidate_pool_bond(1, 90);
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(4),
+				RuntimeOrigin::signed(4),
 				1,
 				8
 			));
@@ -6030,27 +6223,27 @@ fn candidate_pool_updates_when_total_counted_changes() {
 			// 17 + 18 + 19 + 20 + 20 = 94 (top 4 + self bond)
 			is_candidate_pool_bond(1, 94);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(10),
+				RuntimeOrigin::signed(10),
 				1,
 				3
 			));
 			roll_to(30);
 			// 10: 18 -> 15 => 10 bumped to bottom, 8 bumped to top (- 18 + 16 = -2 for count)
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(10),
+				RuntimeOrigin::signed(10),
 				10,
 				1
 			));
 			// 16 + 17 + 19 + 20 + 20 = 92 (top 4 + self bond)
 			is_candidate_pool_bond(1, 92);
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(9),
+				RuntimeOrigin::signed(9),
 				1,
 				4
 			));
 			roll_to(40);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(9),
+				RuntimeOrigin::signed(9),
 				9,
 				1
 			));
@@ -6095,7 +6288,7 @@ fn only_top_collators_are_counted() {
 			assert_eq!(collator_state.total_counted, 86);
 			// bump bottom to the top
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				8
 			));
@@ -6110,7 +6303,7 @@ fn only_top_collators_are_counted() {
 			assert_eq!(collator_state.total_counted, 90);
 			// bump bottom to the top
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(4),
+				RuntimeOrigin::signed(4),
 				1,
 				8
 			));
@@ -6125,7 +6318,7 @@ fn only_top_collators_are_counted() {
 			assert_eq!(collator_state.total_counted, 94);
 			// bump bottom to the top
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(5),
+				RuntimeOrigin::signed(5),
 				1,
 				8
 			));
@@ -6140,7 +6333,7 @@ fn only_top_collators_are_counted() {
 			assert_eq!(collator_state.total_counted, 98);
 			// bump bottom to the top
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				1,
 				8
 			));
@@ -6179,7 +6372,13 @@ fn delegation_events_convey_correct_position() {
 			// 11 + 12 + 13 + 14 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 70);
 			// Top delegations are full, new highest delegation is made
-			assert_ok!(ParachainStaking::delegate(Origin::signed(7), 1, 15, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(7),
+				1,
+				15,
+				10,
+				10
+			));
 			assert_events_emitted!(Event::Delegation {
 				delegator: 7,
 				locked_amount: 15,
@@ -6191,7 +6390,13 @@ fn delegation_events_convey_correct_position() {
 			// 12 + 13 + 14 + 15 + 20 = 70 (top 4 + self bond)
 			assert_eq!(collator1_state.total_counted, 74);
 			// New delegation is added to the bottom
-			assert_ok!(ParachainStaking::delegate(Origin::signed(8), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(8),
+				1,
+				10,
+				10,
+				10
+			));
 			assert_events_emitted!(Event::Delegation {
 				delegator: 8,
 				locked_amount: 10,
@@ -6204,7 +6409,7 @@ fn delegation_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 74);
 			// 8 increases delegation to the top
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(8),
+				RuntimeOrigin::signed(8),
 				1,
 				3
 			));
@@ -6219,7 +6424,7 @@ fn delegation_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 75);
 			// 3 increases delegation but stays in bottom
 			assert_ok!(ParachainStaking::delegator_bond_more(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				1
 			));
@@ -6234,7 +6439,7 @@ fn delegation_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 75);
 			// 6 decreases delegation but stays in top
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				1,
 				2
 			));
@@ -6246,7 +6451,7 @@ fn delegation_events_convey_correct_position() {
 			});
 			roll_to(30);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				1
 			));
@@ -6261,7 +6466,7 @@ fn delegation_events_convey_correct_position() {
 			assert_eq!(collator1_state.total_counted, 73);
 			// 6 decreases delegation and is bumped to bottom
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				1,
 				1
 			));
@@ -6273,7 +6478,7 @@ fn delegation_events_convey_correct_position() {
 			});
 			roll_to(40);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(6),
+				RuntimeOrigin::signed(6),
 				6,
 				1
 			));
@@ -7115,11 +7320,17 @@ fn delegation_kicked_from_bottom_removes_pending_request() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			// 10 delegates to full 1 => kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(Origin::signed(10), 1, 20, 8, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(10),
+				1,
+				20,
+				8,
+				0
+			));
 			// check the event
 			assert_events_emitted!(Event::DelegationKicked {
 				delegator: 2,
@@ -7144,7 +7355,7 @@ fn no_selected_candidates_defaults_to_last_round_collators() {
 			// schedule to leave
 			for i in 1..6 {
 				assert_ok!(ParachainStaking::schedule_leave_candidates(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					5
 				));
 			}
@@ -7158,7 +7369,7 @@ fn no_selected_candidates_defaults_to_last_round_collators() {
 			// execute leave
 			for i in 1..6 {
 				assert_ok!(ParachainStaking::execute_leave_candidates(
-					Origin::signed(i),
+					RuntimeOrigin::signed(i),
 					i,
 					0,
 				));
@@ -7192,7 +7403,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 			(1..=3).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_eq!(Event::DelegationRevocationScheduled {
@@ -7258,7 +7469,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 			(2..=4).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_events_eq!(Event::DelegationRevocationScheduled {
@@ -7279,7 +7490,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 
 			roll_to_round_begin(2);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 
@@ -7331,7 +7542,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 			(1..=3).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 			));
@@ -7402,7 +7613,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 			(2..=4).for_each(|round| set_author(round, 1, 1));
 
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 			));
@@ -7424,7 +7635,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 
 			roll_to_round_begin(2);
 			assert_ok!(ParachainStaking::cancel_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 
@@ -7478,9 +7689,9 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 			// preset rewards for rounds 1, 2 and 3
 			(1..=3).for_each(|round| set_author(round, 1, 1));
 
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			),));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2),
+			));
 			assert_events_eq!(Event::DelegatorExitScheduled {
 				round: 1,
 				delegator: 2,
@@ -7542,9 +7753,9 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 			// preset rewards for rounds 2, 3 and 4
 			(2..=4).for_each(|round| set_author(round, 1, 1));
 
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_events_eq!(Event::DelegatorExitScheduled {
 				round: 1,
 				delegator: 2,
@@ -7561,7 +7772,9 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 			);
 
 			roll_to_round_begin(2);
-			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(
@@ -7720,7 +7933,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up() {
 			);
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
-					Origin::signed(1),
+					RuntimeOrigin::signed(1),
 					vec![2, 3, 4] // 4 does not exist, but is OK for idempotency
 				)
 			);
@@ -7748,7 +7961,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_cleans_up_only_speci
 			);
 			assert_ok!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
-					Origin::signed(1),
+					RuntimeOrigin::signed(1),
 					vec![2]
 				)
 			);
@@ -7781,7 +7994,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_requests
 
 			assert_noop!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
-					Origin::signed(1),
+					RuntimeOrigin::signed(1),
 					vec![2, 3]
 				),
 				<Error<Test>>::CandidateNotLeaving,
@@ -7803,7 +8016,7 @@ fn test_hotfix_remove_delegation_requests_exited_candidates_errors_when_candidat
 			);
 			assert_noop!(
 				ParachainStaking::hotfix_remove_delegation_requests_exited_candidates(
-					Origin::signed(1),
+					RuntimeOrigin::signed(1),
 					vec![1]
 				),
 				<Error<Test>>::CandidateNotLeaving,
@@ -7854,12 +8067,12 @@ fn revoke_last_removes_lock() {
 
 			// schedule and remove one...
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1
 			));
 			roll_to_round_begin(3);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				3,
 				1
 			));
@@ -7870,12 +8083,12 @@ fn revoke_last_removes_lock() {
 
 			// schedule and remove the other...
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				2
 			));
 			roll_to_round_begin(5);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				3,
 				2
 			));
@@ -7900,9 +8113,9 @@ fn test_delegator_with_deprecated_status_leaving_can_schedule_leave_delegators_a
 			let state = <DelegatorState<Test>>::get(2);
 			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
 
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert!(<DelegationScheduledRequests<Test>>::get(1)
 				.iter()
 				.any(|r| r.delegator == 2 && matches!(r.action, DelegationAction::Revoke(_))));
@@ -7934,7 +8147,9 @@ fn test_delegator_with_deprecated_status_leaving_can_cancel_leave_delegators_as_
 			let state = <DelegatorState<Test>>::get(2);
 			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
 
-			assert_ok!(ParachainStaking::cancel_leave_delegators(Origin::signed(2)));
+			assert_ok!(ParachainStaking::cancel_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_events_eq!(Event::DelegatorExitCancelled { delegator: 2 });
 
 			let state = <DelegatorState<Test>>::get(2);
@@ -7961,7 +8176,7 @@ fn test_delegator_with_deprecated_status_leaving_can_execute_leave_delegators_as
 
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -7993,7 +8208,7 @@ fn test_delegator_with_deprecated_status_leaving_cannot_execute_leave_delegators
 			assert!(matches!(state.unwrap().status, DelegatorStatus::Leaving(_)));
 
 			assert_noop!(
-				ParachainStaking::execute_leave_delegators(Origin::signed(2), 2, 1),
+				ParachainStaking::execute_leave_delegators(RuntimeOrigin::signed(2), 2, 1),
 				Error::<Test>::DelegatorCannotLeaveYet
 			);
 		});
@@ -8012,7 +8227,7 @@ fn test_set_auto_compound_fails_if_invalid_delegation_hint() {
 
 			assert_noop!(
 				ParachainStaking::set_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					Percent::from_percent(50),
 					candidate_auto_compounding_delegation_count_hint,
@@ -8041,7 +8256,7 @@ fn test_set_auto_compound_fails_if_invalid_candidate_auto_compounding_hint() {
 
 			assert_noop!(
 				ParachainStaking::set_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					Percent::from_percent(50),
 					candidate_auto_compounding_delegation_count_hint,
@@ -8061,7 +8276,7 @@ fn test_set_auto_compound_inserts_if_not_exists() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
@@ -8097,7 +8312,7 @@ fn test_set_auto_compound_updates_if_existing() {
 			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				1,
@@ -8133,7 +8348,7 @@ fn test_set_auto_compound_removes_if_auto_compound_zero_percent() {
 			.set_storage(&1);
 
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::zero(),
 				1,
@@ -8157,26 +8372,26 @@ fn test_execute_revoke_delegation_removes_auto_compounding_from_state_for_delega
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_delegation_request(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				1
 			));
@@ -8204,26 +8419,26 @@ fn test_execute_leave_delegators_removes_auto_compounding_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2,
 			));
@@ -8253,14 +8468,14 @@ fn test_execute_leave_delegators_with_deprecated_status_leaving_removes_auto_com
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				Percent::from_percent(50),
 				0,
@@ -8274,7 +8489,7 @@ fn test_execute_leave_delegators_with_deprecated_status_leaving_removes_auto_com
 			});
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_delegators(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				2,
 				2,
 			));
@@ -8303,14 +8518,14 @@ fn test_execute_leave_candidates_removes_auto_compounding_state() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				2,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				Percent::from_percent(50),
 				0,
@@ -8318,12 +8533,12 @@ fn test_execute_leave_candidates_removes_auto_compounding_state() {
 			));
 
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				2
 			));
 			roll_to(10);
 			assert_ok!(ParachainStaking::execute_leave_candidates(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				1,
 				1,
 			));
@@ -8374,7 +8589,7 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
@@ -8382,7 +8597,13 @@ fn test_delegation_kicked_from_bottom_delegation_removes_auto_compounding_state(
 			));
 
 			// kicks lowest delegation (2, 19)
-			assert_ok!(ParachainStaking::delegate(Origin::signed(10), 1, 20, 8, 0));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(10),
+				1,
+				20,
+				8,
+				0
+			));
 
 			assert!(
 				!ParachainStaking::auto_compounding_delegations(&1)
@@ -8403,14 +8624,14 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 		.execute_with(|| {
 			(2..=5).for_each(|round| set_author(round, 1, 1));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(50),
 				0,
 				1,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				Percent::from_percent(50),
 				1,
@@ -8420,7 +8641,7 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 
 			// schedule revoke for delegator 2; no rewards should be compounded
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			roll_to_round_begin(4);
@@ -8470,21 +8691,21 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 		.execute_with(|| {
 			(2..=6).for_each(|round| set_author(round, 1, 1));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				Percent::from_percent(0),
 				0,
 				1,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(3),
+				RuntimeOrigin::signed(3),
 				1,
 				Percent::from_percent(50),
 				1,
 				1,
 			));
 			assert_ok!(ParachainStaking::set_auto_compound(
-				Origin::signed(4),
+				RuntimeOrigin::signed(4),
 				1,
 				Percent::from_percent(100),
 				2,
@@ -8556,7 +8777,7 @@ fn test_delegate_with_auto_compound_fails_if_invalid_delegation_hint() {
 
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8583,7 +8804,7 @@ fn test_delegate_with_auto_compound_fails_if_invalid_candidate_delegation_count_
 
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8610,7 +8831,7 @@ fn test_delegate_with_auto_compound_fails_if_invalid_candidate_auto_compounding_
 
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8631,7 +8852,7 @@ fn test_delegate_with_auto_compound_sets_auto_compound_config() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 				Percent::from_percent(50),
@@ -8664,7 +8885,7 @@ fn test_delegate_with_auto_compound_skips_storage_but_emits_event_for_zero_auto_
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 				Percent::zero(),
@@ -8695,7 +8916,7 @@ fn test_delegate_with_auto_compound_reserves_balance() {
 				10
 			);
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 				Percent::from_percent(50),
@@ -8716,7 +8937,7 @@ fn test_delegate_with_auto_compound_updates_delegator_state() {
 		.execute_with(|| {
 			assert!(ParachainStaking::delegator_state(2).is_none());
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 				Percent::from_percent(50),
@@ -8747,7 +8968,7 @@ fn test_delegate_with_auto_compound_updates_collator_state() {
 			assert!(top_delegations.delegations.is_empty());
 			assert!(top_delegations.total.is_zero());
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				10,
 				Percent::from_percent(50),
@@ -8772,9 +8993,13 @@ fn test_delegate_with_auto_compound_can_delegate_immediately_after_other_join_ca
 		.with_balances(vec![(1, 20), (2, 20)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::join_candidates(Origin::signed(1), 20, 0));
+			assert_ok!(ParachainStaking::join_candidates(
+				RuntimeOrigin::signed(1),
+				20,
+				0
+			));
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1,
 				20,
 				Percent::from_percent(50),
@@ -8794,11 +9019,11 @@ fn test_delegate_with_auto_compound_can_delegate_to_other_if_revoking() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				1
 			));
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				4,
 				10,
 				Percent::from_percent(50),
@@ -8840,7 +9065,7 @@ fn test_delegate_with_auto_compound_cannot_delegate_if_less_than_or_equal_lowest
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(11),
+					RuntimeOrigin::signed(11),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8883,7 +9108,7 @@ fn test_delegate_with_auto_compound_can_delegate_if_greater_than_lowest_bottom()
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(11),
+				RuntimeOrigin::signed(11),
 				1,
 				11,
 				Percent::from_percent(50),
@@ -8911,11 +9136,11 @@ fn test_delegate_with_auto_compound_can_still_delegate_to_other_if_leaving() {
 		.with_delegations(vec![(2, 1, 10)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				2
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(2)
+			));
 			assert_ok!(ParachainStaking::delegate_with_auto_compound(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				3,
 				10,
 				Percent::from_percent(50),
@@ -8935,7 +9160,7 @@ fn test_delegate_with_auto_compound_cannot_delegate_if_candidate() {
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8958,7 +9183,7 @@ fn test_delegate_with_auto_compound_cannot_delegate_if_already_delegated() {
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					1,
 					10,
 					Percent::from_percent(50),
@@ -8981,7 +9206,7 @@ fn test_delegate_with_auto_compound_cannot_delegate_more_than_max_delegations() 
 		.execute_with(|| {
 			assert_noop!(
 				ParachainStaking::delegate_with_auto_compound(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					6,
 					10,
 					Percent::from_percent(50),
@@ -9004,7 +9229,13 @@ fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compo
 		.execute_with(|| {
 			// We already have an auto-compounding delegation from 3 -> 1, so the hint validation
 			// would cause a failure if the auto-compounding isn't skipped properly.
-			assert_ok!(ParachainStaking::delegate(Origin::signed(2), 1, 10, 1, 0,));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(2),
+				1,
+				10,
+				1,
+				0,
+			));
 			assert_eq!(1, ParachainStaking::auto_compounding_delegations(&1).len(),);
 			assert_events_eq!(Event::Delegation {
 				delegator: 2,
