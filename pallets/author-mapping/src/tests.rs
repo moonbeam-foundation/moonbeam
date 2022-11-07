@@ -16,8 +16,8 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, DepositAmount, RuntimeEvent as MetaEvent, ExtBuilder, RuntimeOrigin,
-	Runtime, System, TestAuthor,
+	last_event, AuthorMapping, Balances, DepositAmount, ExtBuilder, Runtime,
+	RuntimeEvent as MetaEvent, RuntimeOrigin, System, TestAuthor,
 };
 use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
@@ -201,7 +201,10 @@ fn registered_author_cannot_be_cleared_by_non_owner() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::clear_association(RuntimeOrigin::signed(2), TestAuthor::Alice.into()),
+				AuthorMapping::clear_association(
+					RuntimeOrigin::signed(2),
+					TestAuthor::Alice.into()
+				),
 				Error::<Runtime>::NotYourAssociation
 			);
 		})

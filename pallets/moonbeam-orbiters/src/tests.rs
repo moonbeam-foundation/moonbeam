@@ -31,9 +31,15 @@ fn test_orbiter_rotation() {
 			assert_ok!(MoonbeamOrbiters::add_collator(RuntimeOrigin::root(), 1),);
 			// Register two orbiters
 			assert_ok!(MoonbeamOrbiters::orbiter_register(RuntimeOrigin::signed(2)),);
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 2),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				2
+			),);
 			assert_ok!(MoonbeamOrbiters::orbiter_register(RuntimeOrigin::signed(3)),);
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 3),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				3
+			),);
 
 			// Roll to second round
 			roll_to(4);
@@ -107,7 +113,10 @@ fn test_collator_add_orbiter() {
 			);
 
 			// Try to add an orbiter to a collator pool, should success
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 2),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				2
+			),);
 			System::assert_last_event(
 				Event::<Test>::OrbiterJoinCollatorPool {
 					collator: 1,
@@ -123,7 +132,10 @@ fn test_collator_add_orbiter() {
 			);
 
 			// Try to add a second orbiter to the collator pool, should success
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 3),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				3
+			),);
 			System::assert_last_event(
 				Event::<Test>::OrbiterJoinCollatorPool {
 					collator: 1,
@@ -151,7 +163,10 @@ fn test_collator_remove_orbiter() {
 			assert_ok!(MoonbeamOrbiters::add_collator(RuntimeOrigin::root(), 1),);
 			// Register an orbiter
 			assert_ok!(MoonbeamOrbiters::orbiter_register(RuntimeOrigin::signed(2)),);
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 2),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				2
+			),);
 
 			// Try to remove an orbiter to a collator pool
 			// Should fail because collator not exist
@@ -199,7 +214,10 @@ fn test_collator_remove_orbiter_then_add_orbiter() {
 			assert_ok!(MoonbeamOrbiters::add_collator(RuntimeOrigin::root(), 1),);
 			// Register an orbiter
 			assert_ok!(MoonbeamOrbiters::orbiter_register(RuntimeOrigin::signed(2)),);
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 2),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				2
+			),);
 
 			// Try to remove an orbiter to a collator pool, should success
 			assert_ok!(MoonbeamOrbiters::collator_remove_orbiter(
@@ -216,7 +234,10 @@ fn test_collator_remove_orbiter_then_add_orbiter() {
 
 			// Try to register another orbiter, should success
 			assert_ok!(MoonbeamOrbiters::orbiter_register(RuntimeOrigin::signed(3)),);
-			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(RuntimeOrigin::signed(1), 3),);
+			assert_ok!(MoonbeamOrbiters::collator_add_orbiter(
+				RuntimeOrigin::signed(1),
+				3
+			),);
 			System::assert_last_event(
 				Event::<Test>::OrbiterJoinCollatorPool {
 					collator: 1,
@@ -299,7 +320,10 @@ fn test_orbiter_unregister() {
 
 			// Try to unregister an orbiter with right hint, should success
 			assert!(MoonbeamOrbiters::orbiter(2).is_some());
-			assert_ok!(MoonbeamOrbiters::orbiter_unregister(RuntimeOrigin::signed(2), 1),);
+			assert_ok!(MoonbeamOrbiters::orbiter_unregister(
+				RuntimeOrigin::signed(2),
+				1
+			),);
 			assert!(MoonbeamOrbiters::orbiter(2).is_none());
 			System::assert_has_event(
 				pallet_balances::Event::<Test>::Unreserved {
