@@ -1619,12 +1619,12 @@ pub mod pallet {
 						let percent = Perbill::from_rational(amount, state.total);
 						let due = percent * amt_due;
 						if !due.is_zero() {
-							Self::mint_and_compound(
+							extra_weight = extra_weight.saturating_add(Self::mint_and_compound(
 								due,
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
-							);
+							));
 						}
 					}
 				}
@@ -1849,8 +1849,7 @@ pub mod pallet {
 			candidate: T::AccountId,
 			delegator: T::AccountId,
 		) -> Weight {
-			let mut weight = T::DbWeight::get().reads(0); // TODO create benchmark for this function
-
+			let mut weight = T::WeightInfo::mint_collator_reward();
 			if let Ok(amount_transferred) =
 				T::Currency::deposit_into_existing(&delegator, amt.clone())
 			{
