@@ -21,7 +21,7 @@ use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
 	storage::migration::get_storage_value,
-	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess},
+	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess, Hash as PreimageHash},
 	weights::Weight,
 };
 use pallet_asset_manager::{
@@ -566,7 +566,7 @@ where
 	}
 }
 
-pub struct SchedulerMigrationV3<T>(PhantomData<T>);
+/*pub struct SchedulerMigrationV3<T>(PhantomData<T>);
 impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	fn friendly_name(&self) -> &str {
 		"MM_SchedulerMigrationV3"
@@ -586,6 +586,33 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		pallet_scheduler::Pallet::<T>::post_migrate_to_v3()
+	}
+}*/
+
+pub struct SchedulerMigrationV4<T>(PhantomData<T>);
+impl<T> Migration for SchedulerMigrationV4<T>
+where
+	T: pallet_scheduler::Config<Hash = PreimageHash>+ frame_system::Config,
+	
+ {
+	fn friendly_name(&self) -> &str {
+		"MM_SchedulerMigrationV4"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::post_upgrade()
 	}
 }
 
@@ -677,7 +704,7 @@ impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council
 where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
-	Runtime: pallet_scheduler::Config,
+	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
 	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
@@ -737,6 +764,9 @@ where
 		let migration_elasticity = MigrateBaseFeeElasticity::<Runtime>(Default::default());
 		let staking_at_stake_auto_compound =
 			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
+
+		let scheduler_to_v4 =
+			SchedulerMigrationV4::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -776,6 +806,7 @@ where
 			// Box::new(xcm_transactor_transact_signed),
 			Box::new(migration_elasticity),
 			Box::new(staking_at_stake_auto_compound),
+			Box::new(scheduler_to_v4)
 		]
 	}
 }

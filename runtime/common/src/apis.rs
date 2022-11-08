@@ -114,7 +114,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
 							let _ = match &ext.0.function {
-								Call::Ethereum(transact { transaction }) => {
+								RuntimeCall::Ethereum(transact { transaction }) => {
 									if transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										return Ok(());
@@ -197,14 +197,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						ready: xts_ready
 							.into_iter()
 							.filter_map(|xt| match xt.0.function {
-								Call::Ethereum(transact { transaction }) => Some(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
 						future: xts_future
 							.into_iter()
 							.filter_map(|xt| match xt.0.function {
-								Call::Ethereum(transact { transaction }) => Some(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
@@ -342,7 +342,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					xts: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Vec<EthereumTransaction> {
 					xts.into_iter().filter_map(|xt| match xt.0.function {
-						Call::Ethereum(transact { transaction }) => Some(transaction),
+						RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 						_ => None
 					}).collect::<Vec<EthereumTransaction>>()
 				}

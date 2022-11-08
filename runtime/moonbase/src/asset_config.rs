@@ -18,8 +18,8 @@
 //!
 
 use super::{
-	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call,
-	CouncilInstance, Event, LocalAssets, Origin, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances, RuntimeCall,
+	CouncilInstance, RuntimeEvent, LocalAssets, RuntimeOrigin, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
@@ -68,7 +68,7 @@ pub type AssetsForceOrigin = EitherOfDiverse<
 
 // Foreign assets
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -86,7 +86,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 
 // Local assets
 impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -116,7 +116,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		is_sufficient: bool,
 	) -> DispatchResult {
 		Assets::force_create(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			asset,
 			AssetManager::account_id(),
 			is_sufficient,
@@ -134,7 +134,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 
 		// Lastly, the metadata
 		Assets::force_set_metadata(
-			Origin::root(),
+			RuntimeOrigin::root(),
 			asset,
 			metadata.name,
 			metadata.symbol,
@@ -154,7 +154,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// We create with root, because we need to decide whether we want to create the asset
 		// as sufficient. Take into account this does not hold any reserved amount
 		// in pallet-assets
-		LocalAssets::force_create(Origin::root(), asset, owner, is_sufficient, min_balance)?;
+		LocalAssets::force_create(RuntimeOrigin::root(), asset, owner, is_sufficient, min_balance)?;
 
 		// No metadata needs to be set, as this can be set through regular calls
 
@@ -175,7 +175,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> DispatchResult {
 		// First destroy the asset
-		Assets::destroy(Origin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
@@ -191,7 +191,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> DispatchResult {
 		// First destroy the asset
-		LocalAssets::destroy(Origin::root(), asset, asset_destroy_witness)
+		LocalAssets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness)
 			.map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
@@ -214,7 +214,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// EVM
 
 		// This is the dispatch info of destroy
-		let call = Call::Assets(
+		let call = RuntimeCall::Assets(
 			pallet_assets::Call::<Runtime, ForeignAssetInstance>::destroy {
 				id: asset,
 				witness: asset_destroy_witness,
@@ -250,7 +250,7 @@ pub struct AssetRegistrarMetadata {
 }
 
 impl pallet_asset_manager::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetRegistrarMetadata;
