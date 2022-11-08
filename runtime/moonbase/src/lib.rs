@@ -46,9 +46,10 @@ use frame_support::{
 		InstanceFilter, OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade,
 		OnUnbalanced,
 	},
+	dispatch::{DispatchClass, GetDispatchInfo},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		ConstantMultiplier, DispatchClass, GetDispatchInfo, Weight, WeightToFeeCoefficient,
+		ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
 	},
 	PalletId,
@@ -395,7 +396,7 @@ parameter_types! {
 	/// as a safety net.
 	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
-	pub WeightPerGas: u64 = WEIGHT_PER_GAS;
+	pub WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
 }
 
 pub struct FixedGasPrice;
@@ -908,13 +909,6 @@ impl Contains<RuntimeCall> for NormalFilter {
 			RuntimeCall::PolkadotXcm(method) => match method {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
-			},
-			// We filter anonymous proxy as they make "reserve" inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
-			RuntimeCall::Proxy(method) => match method {
-				pallet_proxy::Call::anonymous { .. } => false,
-				pallet_proxy::Call::kill_anonymous { .. } => false,
-				_ => true,
 			},
 			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
 			// lead to unexpected scenarios.

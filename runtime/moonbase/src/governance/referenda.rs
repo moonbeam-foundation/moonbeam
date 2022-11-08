@@ -74,6 +74,8 @@ impl pallet_whitelist::Config for Runtime {
 	type PreimageProvider = Preimage;
 }
 
+pallet_referenda::impl_tracksinfo_get!(TracksInfo, Balance, BlockNumber);
+
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = pallet_referenda::weights::SubstrateWeight<Runtime>;
 	type RuntimeCall = RuntimeCall;
@@ -91,4 +93,5 @@ impl pallet_referenda::Config for Runtime {
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
+	type Preimages = Preimage;
 }

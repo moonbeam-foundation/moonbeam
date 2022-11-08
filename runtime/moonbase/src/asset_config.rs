@@ -29,7 +29,8 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{ConstU128, EitherOfDiverse},
-	weights::{GetDispatchInfo, Weight},
+	dispatch::GetDispatchInfo,
+	weights::Weight,
 };
 
 use frame_system::EnsureRoot;

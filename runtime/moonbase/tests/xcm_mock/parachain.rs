@@ -20,7 +20,8 @@ use frame_support::{
 	codec::MaxEncodedLen,
 	construct_runtime, ensure, parameter_types,
 	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
-	weights::{GetDispatchInfo, Weight},
+	dispatch::GetDispatchInfo,
+	weights::Weight,
 	PalletId,
 };
 
