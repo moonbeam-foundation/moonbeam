@@ -18,11 +18,10 @@
 
 use super::*;
 
-use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use precompile_utils::testing::{MockAccount, Precompile1};
-use sp_core::{H160, H256, U256};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
+use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
 pub type AccountId = MockAccount;
@@ -90,9 +89,16 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(PrecompileAt<AddressU64<1>, Erc20BalancesPrecompile<R, NativeErc20Metadata>>,),
+>;
+
+pub type PCall = Erc20BalancesPrecompileCall<Runtime, NativeErc20Metadata, ()>;
+
 parameter_types! {
 		pub BlockGasLimit: U256 = U256::max_value();
-		pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+		pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 		pub const WeightPerGas: u64 = 1;
 }
 
@@ -154,29 +160,6 @@ impl Erc20Metadata for NativeErc20Metadata {
 		true
 	}
 }
-
-#[derive(Default)]
-pub struct Precompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for Precompiles<R>
-where
-	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Precompile1.into() => Some(
-				Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
-			),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Precompile1.into()
-	}
-}
-
-pub type PCall = Erc20BalancesPrecompileCall<Runtime, NativeErc20Metadata, ()>;
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances

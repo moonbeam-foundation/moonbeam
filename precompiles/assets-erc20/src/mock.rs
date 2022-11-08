@@ -20,11 +20,11 @@ use super::*;
 
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
 
-use fp_evm::PrecompileSet;
 use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{
 	mock_account,
+	precompile_set::*,
 	testing::{MockAccount, PrecompileInSet},
 };
 use sp_core::{H160, H256};
@@ -44,6 +44,11 @@ pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xffffffff;
 /// The local asset precompile address prefix. Addresses that match against this prefix will
 /// be routed to Erc20AssetsPrecompileSet being marked as local
 pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xfffffffe;
+
+parameter_types! {
+	pub ForeignAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xff];
+	pub LocalAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xfe];
+}
 
 mock_account!(ForeignAssetId(AssetId), |value: ForeignAssetId| {
 	PrecompileInSet(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
@@ -149,9 +154,26 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileSetStartingWith<
+			ForeignAssetPrefix,
+			Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>,
+		>,
+		PrecompileSetStartingWith<
+			LocalAssetPrefix,
+			Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>,
+		>,
+	),
+>;
+
+pub type LocalPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance2>;
+pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance1>;
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: u64 = 1;
 }
 
@@ -271,36 +293,3 @@ impl ExtBuilder {
 		ext
 	}
 }
-
-#[derive(Default)]
-pub struct Precompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for Precompiles<R>
-where
-	Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>: PrecompileSet,
-	Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>: PrecompileSet,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			// If the address matches asset prefix, the we route through the foreign  asset precompile set
-			a if MockAccount(a).has_prefix_u32(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX) => {
-				Erc20AssetsPrecompileSet::<R, IsLocal, pallet_assets::Instance2>::new()
-					.execute(handle)
-			}
-			// If the address matches asset prefix, the we route through the local asset precompile set
-			a if MockAccount(a).has_prefix_u32(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX) => {
-				Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
-					.execute(handle)
-			}
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		Erc20AssetsPrecompileSet::<R, IsForeign, pallet_assets::Instance1>::new()
-			.is_precompile(address)
-	}
-}
-
-pub type LocalPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance2>;
-pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance1>;

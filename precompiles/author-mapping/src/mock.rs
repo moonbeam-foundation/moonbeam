@@ -23,7 +23,10 @@ use frame_support::{
 };
 use frame_system::EnsureRoot;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping};
-use precompile_utils::testing::{MockAccount, Precompile1};
+use precompile_utils::{
+	precompile_set::*,
+	testing::{MockAccount, Precompile1},
+};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
@@ -96,9 +99,14 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, AuthorMappingPrecompile<R>>,)>;
+
+pub type PCall = AuthorMappingPrecompileCall<Runtime>;
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: u64 = 1;
 }
 
@@ -156,27 +164,6 @@ impl pallet_scheduler::Config for Runtime {
 	type PreimageProvider = ();
 	type NoPreimagePostponement = ();
 }
-
-#[derive(Default)]
-pub struct Precompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for Precompiles<R>
-where
-	AuthorMappingPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Precompile1.into() => Some(AuthorMappingPrecompile::<R>::execute(handle)),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Precompile1.into()
-	}
-}
-
-pub type PCall = AuthorMappingPrecompileCall<Runtime>;
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
