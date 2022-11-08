@@ -72,6 +72,7 @@ pallet-balances = { git = "https://github.com/purestake/substrate", branch = "mo
 pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 pallet-identity = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
+pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 pallet-randomness-collective-flip = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
@@ -211,6 +212,7 @@ std = [
 	"pallet-migrations/std",
 	"pallet-moonbeam-orbiters/std",
 	"pallet-parachain-staking/std",
+	"pallet-preimage/std",
 	"pallet-proxy-genesis-companion/std",
 	"pallet-proxy/std",
 	"pallet-randomness-collective-flip/std",
@@ -279,6 +281,7 @@ runtime-benchmarks = [
 	"pallet-ethereum/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
+	"pallet-preimage/runtime-benchmarks",
 	"pallet-randomness/runtime-benchmarks",
 	"pallet-society/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -303,6 +306,7 @@ try-runtime = [
 	#"pallet-crowdloan-rewards/try-runtime",
 	"pallet-migrations/try-runtime",
 	"pallet-parachain-staking/try-runtime",
+	"pallet-preimage/try-runtime",
 	"pallet-scheduler/try-runtime",
 	"pallet-society/try-runtime",
 	"pallet-timestamp/try-runtime",
