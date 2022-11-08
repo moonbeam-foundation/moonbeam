@@ -17,12 +17,10 @@
 //! Test utilities
 use super::*;
 
-use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::precompile_set::*;
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::H160;
 use sp_core::H256;
 use sp_runtime::{
@@ -30,7 +28,7 @@ use sp_runtime::{
 	Perbill,
 };
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
@@ -49,72 +47,6 @@ construct_runtime!(
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
-
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	David,
-	Bogus,
-	Precompile,
-	Revert,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl Into<H160> for Account {
-	fn into(self) -> H160 {
-		match self {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::David => H160::repeat_byte(0xDD),
-			Account::Bogus => H160::repeat_byte(0xFF),
-			Account::Precompile => H160::from_low_u64_be(1),
-			Account::Revert => H160::from_low_u64_be(2),
-		}
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::repeat_byte(0xDD) => Self::David,
-			a if a == H160::from_low_u64_be(1) => Self::Precompile,
-			a if a == H160::from_low_u64_be(2) => Self::Revert,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -174,6 +106,9 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 >;
 
 pub type PCall = BatchPrecompileCall<Runtime>;
+
+mock_account!(Batch, |_| MockAccount::from_u64(1));
+mock_account!(Revert, |_| MockAccount::from_u64(2));
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
@@ -242,7 +177,7 @@ impl ExtBuilder {
 		ext.execute_with(|| {
 			System::set_block_number(1);
 			pallet_evm::Pallet::<Runtime>::create_account(
-				Account::Revert.into(),
+				Revert.into(),
 				hex_literal::hex!("1460006000fd").to_vec(),
 			);
 		});
@@ -250,6 +185,6 @@ impl ExtBuilder {
 	}
 }
 
-pub fn balance(account: impl Into<Account>) -> Balance {
+pub fn balance(account: impl Into<MockAccount>) -> Balance {
 	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
 }

@@ -120,6 +120,7 @@ mock_account!(Zero, |_| MockAccount::zero());
 mock_account!(Alice, |_| H160::repeat_byte(0xAA).into());
 mock_account!(Bob, |_| H160::repeat_byte(0xBB).into());
 mock_account!(Charlie, |_| H160::repeat_byte(0xCC).into());
+mock_account!(David, |_| H160::repeat_byte(0xDD).into());
 
 mock_account!(Precompile1, |_| MockAccount::from_u64(1));
 
