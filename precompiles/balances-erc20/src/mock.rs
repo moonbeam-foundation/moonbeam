@@ -18,97 +18,18 @@
 
 use super::*;
 
-use codec::{Decode, Encode, MaxEncodedLen};
 use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use precompile_utils::testing::{MockAccount, Precompile1};
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-/// To test EIP2612 permits we need to have cryptographic accounts.
-pub const ALICE_PUBLIC_KEY: [u8; 20] =
-	hex_literal::hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac");
-
-/// To test EIP2612 permits we need to have cryptographic accounts.
-pub const ALICE_SECRET_KEY: [u8; 32] =
-	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133");
-
-/// A simple account type.
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::from(&ALICE_PUBLIC_KEY) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(x: Account) -> H160 {
-		match x {
-			Account::Alice => H160::from(&ALICE_PUBLIC_KEY),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
-impl From<Account> for H256 {
-	fn from(x: Account) -> H256 {
-		let x: H160 = x.into();
-		x.into()
-	}
-}
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
@@ -243,24 +164,19 @@ where
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(Erc20BalancesPrecompile::<
-				R,
-				NativeErc20Metadata,
-			>::execute(handle)),
+			a if a == Precompile1.into() => Some(
+				Erc20BalancesPrecompile::<R, NativeErc20Metadata>::execute(handle),
+			),
 			_ => None,
 		}
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		address == hash(PRECOMPILE_ADDRESS)
+		address == Precompile1.into()
 	}
 }
 
 pub type PCall = Erc20BalancesPrecompileCall<Runtime, NativeErc20Metadata, ()>;
-
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
-}
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
