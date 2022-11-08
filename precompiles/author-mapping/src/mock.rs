@@ -16,89 +16,24 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
 use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything},
 };
 use frame_system::EnsureRoot;
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
-};
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping};
+use precompile_utils::testing::{MockAccount, Precompile1};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(value: Account) -> H160 {
-		match value {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -129,7 +64,7 @@ impl frame_system::Config for Runtime {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = Account;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
@@ -171,9 +106,9 @@ impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
-	type CallOrigin = EnsureAddressRoot<Account>;
-	type WithdrawOrigin = EnsureAddressNever<Account>;
-	type AddressMapping = Account;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -214,7 +149,7 @@ impl pallet_scheduler::Config for Runtime {
 	type PalletsOrigin = OriginCaller;
 	type Call = Call;
 	type MaximumWeight = ();
-	type ScheduleOrigin = EnsureRoot<Account>;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
@@ -231,23 +166,17 @@ where
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(AuthorMappingPrecompile::<R>::execute(handle))
-			}
+			a if a == Precompile1.into() => Some(AuthorMappingPrecompile::<R>::execute(handle)),
 			_ => None,
 		}
 	}
 
 	fn is_precompile(&self, address: H160) -> bool {
-		address == hash(PRECOMPILE_ADDRESS)
+		address == Precompile1.into()
 	}
 }
 
 pub type PCall = AuthorMappingPrecompileCall<Runtime>;
-
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
-}
 
 pub(crate) struct ExtBuilder {
 	// endowed accounts with balances
@@ -288,33 +217,4 @@ pub(crate) fn events() -> Vec<Event> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-#[test]
-fn test_account_id_mapping_works() {
-	// Bidirectional conversions for normal accounts
-	assert_eq!(
-		Account::Alice,
-		Account::into_account_id(Account::Alice.into())
-	);
-	assert_eq!(Account::Bob, Account::into_account_id(Account::Bob.into()));
-	assert_eq!(
-		Account::Charlie,
-		Account::into_account_id(Account::Charlie.into())
-	);
-
-	// Bidirectional conversion between bogus and default H160
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::default()));
-	assert_eq!(H160::default(), Account::Bogus.into());
-
-	// All other H160s map to bogus
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::zero()));
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0x12))
-	);
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0xFF))
-	);
 }
