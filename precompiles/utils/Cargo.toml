@@ -7,6 +7,7 @@ version = "0.1.0"
 
 [dependencies]
 affix = "0.1.2"
+derive_more = { version = "0.99", optional = true }
 hex = { version = "0.4.3", default-features = false }
 hex-literal = { version = "0.3.1", optional = true }
 impl-trait-for-tuples = "0.2.2"
@@ -17,7 +18,6 @@ scale-info = { version = "2.0", optional = true, default-features = false, featu
 serde = { version = "1.0.100", optional = true }
 sha3 = { version = "0.9", default-features = false }
 similar-asserts = { version = "1.1.0", optional = true }
-derive_more = { version = "0.99", optional = true }
 
 
 # Moonbeam
@@ -54,4 +54,4 @@ std = [
 	"sp-io/std",
 	"sp-std/std",
 ]
-testing = [ "hex-literal", "scale-info", "serde", "similar-asserts", "std", "derive_more" ]
+testing = [ "derive_more", "hex-literal", "scale-info", "serde", "similar-asserts", "std" ]

@@ -18,7 +18,7 @@ use {
 	pallet_evm::AddressMapping,
 	scale_info::TypeInfo,
 	serde::{Deserialize, Serialize},
-	sp_core::{Decode, Encode, MaxEncodedLen, H160},
+	sp_core::{Decode, Encode, MaxEncodedLen, H160, H256},
 };
 
 #[derive(
@@ -47,14 +47,29 @@ impl MockAccount {
 		H160::zero().into()
 	}
 
-	pub fn has_prefix(&self, prefix: u32) -> bool {
+	pub fn has_prefix(&self, prefix: &[u8]) -> bool {
+		&self.0[0..4] == prefix
+	}
+
+	pub fn has_prefix_u32(&self, prefix: u32) -> bool {
 		self.0[0..4] == prefix.to_be_bytes()
+	}
+
+	pub fn without_prefix(&self) -> u128 {
+		u128::from_be_bytes(<[u8; 16]>::try_from(&self.0[4..20]).unwrap())
 	}
 }
 
 impl From<MockAccount> for H160 {
 	fn from(account: MockAccount) -> H160 {
 		account.0
+	}
+}
+
+impl From<MockAccount> for H256 {
+	fn from(x: MockAccount) -> H256 {
+		let x: H160 = x.into();
+		x.into()
 	}
 }
 
@@ -77,7 +92,7 @@ macro_rules! mock_account {
 		mock_account!(# $name, $convert);
 	};
 	($name:ident ( $($field:ty),* ), $convert:expr) => {
-		pub struct $name($($field),*);
+		pub struct $name($(pub $field),*);
 		mock_account!(# $name, $convert);
 	};
 	(# $name:ident, $convert:expr) => {
@@ -92,9 +107,16 @@ macro_rules! mock_account {
 				MockAccount::from(value).into()
 			}
 		}
+
+		impl From<$name> for H256 {
+			fn from(value: $name) -> H256 {
+				MockAccount::from(value).into()
+			}
+		}
 	};
 }
 
+mock_account!(Zero, |_| MockAccount::zero());
 mock_account!(Alice, |_| H160::repeat_byte(0xAA).into());
 mock_account!(Bob, |_| H160::repeat_byte(0xBB).into());
 mock_account!(Charlie, |_| H160::repeat_byte(0xCC).into());
@@ -114,8 +136,8 @@ mock_account!(CryptoCarleth, |_| H160::from(hex_literal::hex!(
 ))
 .into());
 
-mock_account!(PrecompileInSet(u64, u128), |value: PrecompileInSet| {
-	let prefix: u64 = value.0;
+mock_account!(PrecompileInSet(u32, u128), |value: PrecompileInSet| {
+	let prefix: u32 = value.0;
 	let index: u128 = value.1;
 
 	let mut buffer = Vec::with_capacity(20); // 160 bits
