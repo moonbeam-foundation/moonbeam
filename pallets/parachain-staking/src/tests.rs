@@ -9075,3 +9075,79 @@ fn test_delegate_skips_auto_compound_storage_but_emits_event_for_zero_auto_compo
 			});
 		});
 }
+
+#[test]
+fn test_on_initialize_weights() {
+	use crate::mock::System;
+	use crate::weights::{SubstrateWeight as PalletWeights, WeightInfo};
+	use crate::*;
+	use frame_support::{pallet_prelude::*, weights::constants::RocksDbWeight};
+
+	// generate balance, candidate, and delegation vecs to "fill" out delegations
+	let mut balances = Vec::new();
+	let mut candidates = Vec::new();
+	let mut delegations = Vec::new();
+
+	for collator in 1..30 {
+		balances.push((collator, 100));
+		candidates.push((collator, 10));
+		let starting_delegator = collator * 1000;
+		for delegator in starting_delegator..starting_delegator + 300 {
+			balances.push((delegator, 100));
+			delegations.push((delegator, collator, 10));
+		}
+	}
+
+	ExtBuilder::default()
+		.with_balances(balances)
+		.with_candidates(candidates)
+		.with_delegations(delegations)
+		.build()
+		.execute_with(|| {
+			let weight = ParachainStaking::on_initialize(1);
+
+			// TODO: build this with proper db reads/writes
+			assert_eq!(Weight::from_ref_time(286_002_000), weight);
+
+			// roll to the end of the round, then run on_init again, we should see round change...
+			roll_to_round_end(3);
+			set_author(2, 1, 100); // must set some points for prepare_staking_payouts
+			let block = System::block_number() + 1;
+			let weight = ParachainStaking::on_initialize(block);
+
+			// the total on_init weight during our round change. this number is taken from running
+			// the fn with a given weights.rs benchmark, so will need to be updated as benchmarks
+			// change.
+			//
+			// following this assertion, we add individual weights together to show that we can
+			// derive this number independently.
+			let expected_on_init = 3_017_871_000;
+			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
+
+			// assemble weight manually to ensure it is well understood
+			let mut expected_weight = 0u64;
+			expected_weight += PalletWeights::<Test>::base_on_initialize().ref_time();
+			expected_weight += PalletWeights::<Test>::prepare_staking_payouts().ref_time();
+
+			// TODO: this should be the same as <TotalSelected<Test>>. I believe this relates to
+			// genesis building
+			let num_avg_delegations = 8;
+			expected_weight += PalletWeights::<Test>::select_top_candidates(
+				<TotalSelected<Test>>::get(),
+				num_avg_delegations,
+			)
+			.ref_time();
+			// Round and Staked writes, done in on-round-change code block inside on_initialize()
+			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
+			// more reads/writes manually accounted for for on_finalize
+			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
+
+			// add weight for invoking handle_delayed_payouts
+			// (goes away when we skip paying the first collator during round change)
+			let handle_delayed_payouts_weight = 536_374_000;
+			expected_weight += handle_delayed_payouts_weight;
+
+			assert_eq!(Weight::from_ref_time(expected_weight), weight);
+			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
+		});
+}
