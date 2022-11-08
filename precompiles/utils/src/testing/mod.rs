@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+pub mod account;
 pub mod execution;
 pub mod handle;
 pub mod modifier;
 pub mod solidity;
 
-pub use {execution::*, handle::*, modifier::*};
+pub use {account::*, execution::*, handle::*, modifier::*};
 
 use fp_evm::Log;
 
