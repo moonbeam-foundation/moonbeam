@@ -7104,6 +7104,7 @@ dependencies = [
  "pallet-balances",
  "pallet-democracy",
  "pallet-evm",
+ "pallet-preimage",
  "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",

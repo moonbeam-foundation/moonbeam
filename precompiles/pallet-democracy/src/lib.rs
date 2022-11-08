@@ -21,9 +21,9 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{ConstU32, Currency};
+use frame_support::traits::{ConstU32, Currency, StorePreimage, QueryPreimage, Bounded};
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
+	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold, EncodeInto
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -33,6 +33,7 @@ use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec::Vec,
 };
 
 #[cfg(test)]
@@ -45,6 +46,7 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 >>::Balance;
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
+
 
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
@@ -154,9 +156,10 @@ where
 			VoteThreshold::SimpleMajority => 2,
 		};
 
+
 		Ok((
 			ref_status.end.into(),
-			ref_status.proposal_hash.into(),
+			ref_status.proposal.hash().into(),
 			threshold_u8.into(),
 			ref_status.delay.into(),
 			ref_status.tally.ayes.into(),
@@ -186,9 +189,11 @@ where
 	fn propose(handle: &mut impl PrecompileHandle, proposal_hash: H256, value: U256) -> EvmResult {
 		handle.record_log_costs_manual(2, 32)?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+        // Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 
-		let proposal_hash = proposal_hash.into();
 		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		log::trace!(
@@ -196,9 +201,20 @@ where
 			"Proposing with hash {:?}, and amount {:?}", proposal_hash, value
 		);
 
+		// This forces it to have the proposal in pre-images.
+		// TODO: REVISIT
+        let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
+            RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
+        })?;
+
+		let bounded = Bounded::Lookup::<pallet_democracy::CallOf::<Runtime>> {
+			hash: proposal_hash,
+			len
+		};
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::propose {
-			proposal_hash,
+			proposal: bounded,
 			value,
 		};
 
@@ -233,7 +249,6 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::second {
 			proposal: prop_index,
-			seconds_upper_bound,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -416,7 +431,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		let encoded_proposal = encoded_proposal.into();
+		let encoded_proposal: Vec<u8> = encoded_proposal.into();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -424,9 +439,9 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
-
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+        <Runtime as pallet_democracy::Config>::Preimages::note(encoded_proposal.into()).map_err(|_| {
+            RevertReason::custom("Failure in preimage note").in_field("encoded_proposal")
+        })?;
 
 		Ok(())
 	}
@@ -437,19 +452,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		let encoded_proposal = encoded_proposal.into();
-
-		log::trace!(
-			target: "democracy-precompile",
-			"Noting imminent preimage {:?}", encoded_proposal
-		);
-
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
-
-		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
-
-		Ok(())
+        Err(revert("Deprecated"))
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
