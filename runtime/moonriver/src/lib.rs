@@ -699,9 +699,7 @@ impl pallet_parachain_staking::OnNewRound for OnNewRound {
 	}
 }
 pub struct PayoutCollatorOrOrbiterReward;
-impl pallet_parachain_staking::PayoutCollatorReward<AccountId, Balance>
-	for PayoutCollatorOrOrbiterReward
-{
+impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorOrOrbiterReward {
 	fn payout_collator_reward(
 		for_round: pallet_parachain_staking::RoundIndex,
 		collator_id: AccountId,
