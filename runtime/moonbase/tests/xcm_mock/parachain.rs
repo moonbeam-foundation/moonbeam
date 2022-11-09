@@ -18,9 +18,10 @@
 
 use frame_support::{
 	codec::MaxEncodedLen,
-	construct_runtime, ensure, parameter_types,
-	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
+	construct_runtime,
 	dispatch::GetDispatchInfo,
+	ensure, parameter_types,
+	traits::{ConstU32, Everything, Get, InstanceFilter, Nothing, PalletInfoAccess},
 	weights::Weight,
 	PalletId,
 };

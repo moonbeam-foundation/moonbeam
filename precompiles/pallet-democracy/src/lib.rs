@@ -21,11 +21,12 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{ConstU32, Currency, StorePreimage, QueryPreimage, Bounded};
+use frame_support::traits::{Bounded, ConstU32, Currency, QueryPreimage};
 use pallet_democracy::{
-	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold, EncodeInto
+	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
 };
 use pallet_evm::AddressMapping;
+use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::StaticLookup;
@@ -46,7 +47,6 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
 >>::Balance;
 
 type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
-
 
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
@@ -78,11 +78,15 @@ pub struct DemocracyPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile::test_concrete_types(mock::Runtime)]
 impl<Runtime> DemocracyPrecompile<Runtime>
 where
-	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_democracy::Config
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_preimage::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + EvmData,
 	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	Runtime::RuntimeCall: From<DemocracyCall<Runtime>>,
+	Runtime::RuntimeCall: From<PreimageCall<Runtime>>,
 	Runtime::Hash: From<H256> + Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
 {
@@ -156,7 +160,6 @@ where
 			VoteThreshold::SimpleMajority => 2,
 		};
 
-
 		Ok((
 			ref_status.end.into(),
 			ref_status.proposal.hash().into(),
@@ -190,7 +193,7 @@ where
 		handle.record_log_costs_manual(2, 32)?;
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-        // Fetch data from pallet
+		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
 
@@ -203,13 +206,13 @@ where
 
 		// This forces it to have the proposal in pre-images.
 		// TODO: REVISIT
-        let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
-            RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
-        })?;
+		let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
+			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
+		})?;
 
-		let bounded = Bounded::Lookup::<pallet_democracy::CallOf::<Runtime>> {
+		let bounded = Bounded::Lookup::<pallet_democracy::CallOf<Runtime>> {
 			hash: proposal_hash,
-			len
+			len,
 		};
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
@@ -439,9 +442,10 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-        <Runtime as pallet_democracy::Config>::Preimages::note(encoded_proposal.into()).map_err(|_| {
-            RevertReason::custom("Failure in preimage note").in_field("encoded_proposal")
-        })?;
+		let call = PreimageCall::<Runtime>::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
 	}
@@ -449,10 +453,10 @@ where
 	#[precompile::public("noteImminentPreimage(bytes)")]
 	#[precompile::public("note_imminent_preimage(bytes)")]
 	fn note_imminent_preimage(
-		handle: &mut impl PrecompileHandle,
-		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
+		_handle: &mut impl PrecompileHandle,
+		_encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-        Err(revert("Deprecated"))
+		Err(revert("Deprecated"))
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {

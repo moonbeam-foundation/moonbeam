@@ -17,9 +17,10 @@
 //! Parachain runtime mock.
 
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, Get, Nothing, PalletInfoAccess},
+	construct_runtime,
 	dispatch::GetDispatchInfo,
+	parameter_types,
+	traits::{Everything, Get, Nothing, PalletInfoAccess},
 	weights::Weight,
 	PalletId,
 };

@@ -39,6 +39,7 @@ pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
+	dispatch::{DispatchClass, GetDispatchInfo},
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -46,11 +47,10 @@ use frame_support::{
 		Currency as CurrencyT, EitherOfDiverse, EqualPrivilegeOnly, Imbalance, InstanceFilter,
 		OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade, OnUnbalanced,
 	},
-	dispatch::{DispatchClass, GetDispatchInfo},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		ConstantMultiplier, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -559,8 +559,8 @@ impl pallet_democracy::Config for Runtime {
 	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
 	type MaxProposals = ConstU32<100>;
 	type Preimages = Preimage;
-    type MaxDeposits = ConstU32<100>;
-    type MaxBlacklisted = ConstU32<100>;
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
 }
 
 parameter_types! {
@@ -844,12 +844,17 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 				matches!(
 					c,
 					RuntimeCall::System(..)
-						| RuntimeCall::Timestamp(..) | RuntimeCall::ParachainStaking(..)
-						| RuntimeCall::Democracy(..) | RuntimeCall::CouncilCollective(..)
-						| RuntimeCall::Identity(..) | RuntimeCall::TechCommitteeCollective(..)
-						| RuntimeCall::Utility(..) | RuntimeCall::Proxy(..)
-						| RuntimeCall::AuthorMapping(..)
-						| RuntimeCall::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
+						| RuntimeCall::Timestamp(..)
+						| RuntimeCall::ParachainStaking(..)
+						| RuntimeCall::Democracy(..)
+						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::Identity(..)
+						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::Utility(..)
+						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
+						| RuntimeCall::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::claim { .. }
+						)
 				)
 			}
 			ProxyType::Governance => matches!(
@@ -862,18 +867,22 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Staking => matches!(
 				c,
 				RuntimeCall::ParachainStaking(..)
-					| RuntimeCall::Utility(..) | RuntimeCall::AuthorMapping(..)
+					| RuntimeCall::Utility(..)
+					| RuntimeCall::AuthorMapping(..)
 					| RuntimeCall::MoonbeamOrbiters(..)
 			),
 			ProxyType::CancelProxy => matches!(
 				c,
 				RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })
 			),
-			ProxyType::Balances => matches!(c, RuntimeCall::Balances(..) | RuntimeCall::Utility(..)),
+			ProxyType::Balances => {
+				matches!(c, RuntimeCall::Balances(..) | RuntimeCall::Utility(..))
+			}
 			ProxyType::AuthorMapping => matches!(c, RuntimeCall::AuthorMapping(..)),
 			ProxyType::IdentityJudgement => matches!(
 				c,
-				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. }) | RuntimeCall::Utility(..)
+				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. })
+					| RuntimeCall::Utility(..)
 			),
 		}
 	}
@@ -1260,7 +1269,8 @@ pub type SignedExtra = (
 pub type UncheckedExtrinsic =
 	fp_self_contained::UncheckedExtrinsic<Address, RuntimeCall, Signature, SignedExtra>;
 /// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic = fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
+pub type CheckedExtrinsic =
+	fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 /// Executive: handles dispatch to the various pallets.
 pub type Executive = frame_executive::Executive<
 	Runtime,

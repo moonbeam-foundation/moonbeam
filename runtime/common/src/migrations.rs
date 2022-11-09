@@ -21,7 +21,7 @@ use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	dispatch::GetStorageVersion,
 	storage::migration::get_storage_value,
-	traits::{Get, OnRuntimeUpgrade, PalletInfoAccess, Hash as PreimageHash},
+	traits::{Get, Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
 use pallet_asset_manager::{
@@ -592,9 +592,8 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 pub struct SchedulerMigrationV4<T>(PhantomData<T>);
 impl<T> Migration for SchedulerMigrationV4<T>
 where
-	T: pallet_scheduler::Config<Hash = PreimageHash>+ frame_system::Config,
-	
- {
+	T: pallet_scheduler::Config<Hash = PreimageHash> + frame_system::Config,
+{
 	fn friendly_name(&self) -> &str {
 		"MM_SchedulerMigrationV4"
 	}
@@ -765,8 +764,7 @@ where
 		let staking_at_stake_auto_compound =
 			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
 
-		let scheduler_to_v4 =
-			SchedulerMigrationV4::<Runtime>(Default::default());
+		let scheduler_to_v4 = SchedulerMigrationV4::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -806,7 +804,7 @@ where
 			// Box::new(xcm_transactor_transact_signed),
 			Box::new(migration_elasticity),
 			Box::new(staking_at_stake_auto_compound),
-			Box::new(scheduler_to_v4)
+			Box::new(scheduler_to_v4),
 		]
 	}
 }

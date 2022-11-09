@@ -18,18 +18,18 @@
 //!
 
 use super::{
-	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances, RuntimeCall,
-	CouncilInstance, RuntimeEvent, LocalAssets, RuntimeOrigin, Runtime, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
-	LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	currency, xcm_config, AccountId, AssetId, AssetManager, Assets, Balance, Balances,
+	CouncilInstance, LocalAssets, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
 use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
+	dispatch::GetDispatchInfo,
 	parameter_types,
 	traits::{ConstU128, EitherOfDiverse},
-	dispatch::GetDispatchInfo,
 	weights::Weight,
 };
 
@@ -155,7 +155,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// We create with root, because we need to decide whether we want to create the asset
 		// as sufficient. Take into account this does not hold any reserved amount
 		// in pallet-assets
-		LocalAssets::force_create(RuntimeOrigin::root(), asset, owner, is_sufficient, min_balance)?;
+		LocalAssets::force_create(
+			RuntimeOrigin::root(),
+			asset,
+			owner,
+			is_sufficient,
+			min_balance,
+		)?;
 
 		// No metadata needs to be set, as this can be set through regular calls
 
@@ -176,7 +182,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> DispatchResult {
 		// First destroy the asset
-		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
 
 		// We remove the EVM revert code
 		// This does not panick even if there is no code in the address
