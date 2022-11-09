@@ -542,7 +542,7 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 	// Storage: System Account (r:1 w:1)
 	#[rustfmt::skip]
 	fn mint_collator_reward() -> Weight {
-		Weight::from_ref_time(27_061_000 as u64)
+		Weight::from_ref_time(37_241_000 as u64)
 			.saturating_add(T::DbWeight::get().reads(1 as u64))
 			.saturating_add(T::DbWeight::get().writes(1 as u64))
 	}
@@ -962,7 +962,7 @@ impl WeightInfo for () {
 	// Storage: System Account (r:1 w:1)
 	#[rustfmt::skip]
 	fn mint_collator_reward() -> Weight {
-		Weight::from_ref_time(27_061_000 as u64)
+		Weight::from_ref_time(37_241_000 as u64)
 			.saturating_add(RocksDbWeight::get().reads(1 as u64))
 			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
