@@ -3726,8 +3726,8 @@
 					candidate.clone(),
 					compound_amount.clone(),
 				) {
-					<span class="macro">log::error!</span>(
-								<span class="string">&quot;Error compounding staking reward towards candidate &#39;{:?}&#39; for delegator &#39;{:?}&#39;: {:?}&quot;</span>,
+					<span class="macro">log::debug!</span>(
+								<span class="string">&quot;skipped compounding staking reward towards candidate &#39;{:?}&#39; for delegator &#39;{:?}&#39;: {:?}&quot;</span>,
 								candidate,
 								delegator,
 								err
