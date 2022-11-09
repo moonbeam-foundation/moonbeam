@@ -84,7 +84,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -94,7 +94,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -152,7 +152,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -162,7 +162,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -231,7 +231,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -241,7 +241,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
@@ -316,7 +316,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -326,8 +326,8 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
-  it("allows to issue transfer multicurrencies xtokens", async function () {
+describeDevMoonbeam("Precompiles - xtokens", (context) => {
+  it("test test test", async function () {
     const { rawTx } = await createContract(context, "XtokensInstance");
     await context.createBlock(rawTx);
     // Junction::AccountId32
@@ -382,7 +382,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
@@ -463,7 +463,7 @@ describeDevMoonbeam("Precompiles - xtokens", (context) => {
     );
 
     const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-    const fees = BigInt(receipt.gasUsed) * DEFAULT_TXN_MAX_BASE_FEE;
+    const fees = BigInt(receipt.gasUsed) * BigInt(DEFAULT_TXN_MAX_BASE_FEE);
 
     // our tokens + fees should have been spent
     expect(await getBalance(context, 2, alith.address)).to.equal(
