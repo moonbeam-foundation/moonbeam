@@ -17,13 +17,15 @@ import {
 import { u128 } from "@polkadot/types";
 import { alith } from "../../util/accounts";
 
-// storage key for "transactionPayment.nextFeeMultplier"
-const MULTIPLIER_STORAGE_KEY = "0x3f1467a096bcd71a5b6a0c8155e208103f2edf3bdf381debe331ab7446addfdc";
+// Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
+// FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
+// denominator is omitted when it is queried through the API, leaving some very large numbers.
+//
+// To make sense of them, basically remove 18 zeroes (divide by 10^18). This will give you the
+// number used internally by transaction-payment for fee calculations.
 
-describeDevMoonbeam("Fee Multiplier", (context) => {
-  it("should have spendable max", async () => {
-
-
+describeDevMoonbeam("Max Fee Multiplier", (context) => {
+  before("set to max multiplier", async () => {
     const MULTIPLIER_STORAGE_KEY
       = context.polkadotApi.query.transactionPayment.nextFeeMultiplier.key(0).toString()
 
@@ -43,9 +45,37 @@ describeDevMoonbeam("Fee Multiplier", (context) => {
       )
       .signAndSend(alith);
     await context.createBlock();
+  });
 
-    const newValue = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
-    expect(newValue).to.equal(100_000_000_000_000_000_000_000n);
+  it("should enforce upper bound", async () => {
+    // we set it to u128_max, but the max should have been enforced in on_finalize()
+    const multiplier = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
+    expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+  });
 
+  it("should have spendable runtime upgrade", async () => {
+    const multiplier = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
+    expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+
+    const initialBalance = (
+      await context.polkadotApi.query.system.account(baltathar.address)
+    ).data.free.toBigInt();
+
+    // generate a mock runtime upgrade hex string
+    let size = 4194304; // 2MB bytes represented in hex
+    let hex = "0x" + "F".repeat(size);
+
+    // send an enactAuthorizedUpgrade. we expect this to fail, but we just want to see that it was
+    // included in a block (not rejected) and was charged based on its length
+    await context.polkadotApi.tx.parachainSystem.enactAuthorizedUpgrade(hex).signAndSend(baltathar);
+    await context.createBlock();
+
+    let afterBalance = (
+      await context.polkadotApi.query.system.account(baltathar.address)
+    ).data.free.toBigInt();
+
+    // note that this is not really affected by the high multiplier because most of its fee is
+    // derived from the length_fee, which is not scaled by the multiplier
+    expect(initialBalance - afterBalance).to.equal(9_231_801_265_723_667_008n);
   });
 });
