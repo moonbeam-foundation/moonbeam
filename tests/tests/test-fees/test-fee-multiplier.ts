@@ -28,15 +28,10 @@ describeDevMoonbeam("Fee Multiplier", (context) => {
       = context.polkadotApi.query.transactionPayment.nextFeeMultiplier.key(0).toString()
 
     const initialValue = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
-    console.log(`initial value: ${initialValue}`);
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
-    console.log(`wtf 0`);
 
     const U128_MAX = new BN("340282366920938463463374607431768211455");
-    console.log(`wtf 0.a`);
     const newMultiplierValue = context.polkadotApi.createType("u128", U128_MAX);
-
-    console.log(`wtf 1`);
 
     // set transaction-payment's multiplier to something above max in storage. on the next round,
     // it should enforce its upper bound and reset it.
@@ -47,12 +42,9 @@ describeDevMoonbeam("Fee Multiplier", (context) => {
         ])
       )
       .signAndSend(alith);
-    console.log(`wtf 2`);
     await context.createBlock();
-    console.log(`wtf 3`);
 
     const newValue = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
-    console.log(`new value: ${newValue}`);
     expect(newValue).to.equal(100_000_000_000_000_000_000_000n);
 
   });
