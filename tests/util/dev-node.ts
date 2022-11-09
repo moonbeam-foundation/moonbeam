@@ -94,7 +94,6 @@ export async function startMoonbeamDevNode(
     `--ws-port=${wsPort}`,
     `--tmp`,
   ];
-
   if (WASM_RUNTIME_OVERRIDES != "") {
     args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);
   } else if (ETHAPI_CMD != "") {

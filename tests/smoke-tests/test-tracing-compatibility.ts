@@ -5,11 +5,11 @@ import { NetworkTestArtifact, tracingTxns } from "../util/tracing-txns";
 import Bottleneck from "bottleneck";
 import { providers } from "ethers";
 
-const debug = require("debug")("smoke:tracing-consistency");
+const debug = require("debug")("smoke:tracing-compatibility");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 const httpEndpoint = process.env.HTTP_URL;
 
-describeSmokeSuite(`Verifying tracing consistency...`, async (context) => {
+describeSmokeSuite(`Verifying tracing compatibility...`, async (context) => {
   let traceStatic: NetworkTestArtifact;
   before("Loading tracing static data", async function () {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
@@ -27,6 +27,7 @@ describeSmokeSuite(`Verifying tracing consistency...`, async (context) => {
     }
   });
 
+  //
   it("can debugTrace for all previous runtimes", async function () {
     this.timeout(300000);
     const provider = new providers.JsonRpcProvider(httpEndpoint);
