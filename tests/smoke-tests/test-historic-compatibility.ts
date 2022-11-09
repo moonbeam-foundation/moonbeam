@@ -32,10 +32,7 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     const promises = traceStatic.testData.map(async (a) => {
       try {
         const result = await limiter.schedule(() =>
-          provider.send("debug_traceTransaction", [
-            a.txHash,
-            { disableStorage: true, disableMemory: true, disableStack: true },
-          ])
+          provider.send("debug_traceTransaction", [a.txHash])
         );
         debug(`Successful tracing response from runtime ${a.runtime} in block #${a.blockNumber}.`);
         return { runtime: a.runtime, blockNumber: a.blockNumber, error: false, result };
