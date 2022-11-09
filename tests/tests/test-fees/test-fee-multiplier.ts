@@ -85,4 +85,28 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     // derived from the length_fee, which is not scaled by the multiplier
     expect(initialBalance - afterBalance).to.equal(9_231_801_265_723_667_008n);
   });
+
+  it("should have spendable fill_block", async () => {
+    const multiplier = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
+    expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
+
+    // fill_block will not charge its full amount for us, but we can inspect the initial balance
+    // withdraw event to see what it would charge. it is root only and will refund if not called by
+    // root, but sudo will also cause a refund.
+
+    let fillAmount = 600_000_000; // equal to 60% Perbill
+
+    const { block, result } = await context.createBlock(
+      context.polkadotApi.tx.system.fillBlock(fillAmount));
+
+    // grab the first withdraw event and hope it's the right one...
+    const withdrawEvent = result.events
+      .filter(({ event }) => event.method == "Withdraw")
+      [0];
+    let amount = (withdrawEvent.event.data as any).amount.toBigInt();
+    expect(amount).to.equal(1_500_000_012_598_000_941_192n);
+
+  });
 });
