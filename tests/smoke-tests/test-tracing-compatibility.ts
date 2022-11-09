@@ -37,7 +37,7 @@ describeSmokeSuite(`Verifying tracing compatibility...`, async (context) => {
         const result = await limiter.schedule(() =>
           provider.send("debug_traceTransaction", [
             a.txHash,
-            { disableStorage: true, disableMemory: true },
+            { disableStorage: true, disableMemory: true, disableStack: true },
           ])
         );
         debug(`Successful tracing response from runtime ${a.runtime} in block #${a.blockNumber}.`);
