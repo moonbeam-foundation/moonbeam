@@ -9061,7 +9061,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 3_169_932_000;
+			let expected_on_init = 3_180_112_000;
 			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -9084,7 +9084,7 @@ fn test_on_initialize_weights() {
 
 			// add weight for invoking handle_delayed_payouts
 			// (goes away when we skip paying the first collator during round change)
-			let handle_delayed_payouts_weight = 688_435_000;
+			let handle_delayed_payouts_weight = 698_615_000;
 			expected_weight += handle_delayed_payouts_weight;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
