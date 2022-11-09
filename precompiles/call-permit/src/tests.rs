@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	mock::{CallPermit, ExtBuilder, PCall, PrecompilesValue, Runtime, TestPrecompiles},
+	mock::{CallPermit, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime},
 	CallPermitPrecompile,
 };
 use evm::ExitReason;
@@ -24,7 +24,7 @@ use libsecp256k1::{sign, Message, SecretKey};
 use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 

@@ -19,8 +19,8 @@ use super::*;
 
 use frame_support::traits::Everything;
 use frame_support::{construct_runtime, pallet_prelude::*, parameter_types};
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet};
-use precompile_utils::{mock_account, revert, testing::MockAccount};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{mock_account, precompile_set::*, testing::MockAccount};
 use sp_core::H160;
 use sp_core::H256;
 use sp_runtime::{
@@ -100,30 +100,18 @@ impl pallet_balances::Config for Runtime {
 mock_account!(CallPermit, |_| MockAccount::from_u64(1));
 mock_account!(Revert, |_| MockAccount::from_u64(2));
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	CallPermitPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == CallPermit.into() => Some(CallPermitPrecompile::<R>::execute(handle)),
-			a if a == Revert.into() => Some(EvmResult::Err(revert("revert"))),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == CallPermit.into() || address == Revert.into()
-	}
-}
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileAt<AddressU64<1>, CallPermitPrecompile<R>>,
+		RevertPrecompile<AddressU64<2>>,
+	),
+>;
 
 pub type PCall = CallPermitPrecompileCall<Runtime>;
 
 parameter_types! {
-	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: u64 = 1;
 }
 
@@ -137,7 +125,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = TestPrecompiles<Runtime>;
+	type PrecompilesType = Precompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
