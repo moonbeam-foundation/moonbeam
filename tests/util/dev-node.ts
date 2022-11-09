@@ -51,7 +51,7 @@ let nodeStarted = false;
 // This will prevent race condition on the findAvailablePorts which uses the PID of the process
 export async function startMoonbeamDevNode(
   withWasm?: boolean,
-  runtime: RuntimeChain = "moonbase",
+  runtime: RuntimeChain = "moonbase"
 ): Promise<{
   p2pPort: number;
   rpcPort: number;
@@ -72,30 +72,28 @@ export async function startMoonbeamDevNode(
   }
 
   const cmd = BINARY_PATH;
-  let args = !liveSnapshot
-    ? [
-        withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
-        process.env.FORCE_COMPILED_WASM
-          ? `--wasm-execution=compiled`
-          : `--wasm-execution=interpreted-i-know-what-i-do`,
-        ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
-        `--no-hardware-benchmarks`,
-        `--no-telemetry`,
-        `--no-prometheus`,
-        `--force-authoring`,
-        `--rpc-cors=all`,
-        `--alice`,
-        `--chain=${runtime}-dev`,
-        `--sealing=manual`,
-        `--in-peers=0`,
-        `--out-peers=0`,
-        `-l${MOONBEAM_LOG}`,
-        `--port=${p2pPort}`,
-        `--rpc-port=${rpcPort}`,
-        `--ws-port=${wsPort}`,
-        `--tmp`,
-      ]
-    : [];
+  let args = [
+    withWasm ? `--execution=Wasm` : `--execution=Native`, // Faster execution using native
+    process.env.FORCE_COMPILED_WASM
+      ? `--wasm-execution=compiled`
+      : `--wasm-execution=interpreted-i-know-what-i-do`,
+    ETHAPI_CMD != "" ? `${ETHAPI_CMD}` : `--ethapi=txpool`,
+    `--no-hardware-benchmarks`,
+    `--no-telemetry`,
+    `--no-prometheus`,
+    `--force-authoring`,
+    `--rpc-cors=all`,
+    `--alice`,
+    `--chain=${runtime}-dev`,
+    `--sealing=manual`,
+    `--in-peers=0`,
+    `--out-peers=0`,
+    `-l${MOONBEAM_LOG}`,
+    `--port=${p2pPort}`,
+    `--rpc-port=${rpcPort}`,
+    `--ws-port=${wsPort}`,
+    `--tmp`,
+  ];
 
   if (WASM_RUNTIME_OVERRIDES != "") {
     args.push(`--wasm-runtime-overrides=${WASM_RUNTIME_OVERRIDES}`);

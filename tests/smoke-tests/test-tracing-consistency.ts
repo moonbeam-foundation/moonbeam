@@ -5,7 +5,6 @@ import { NetworkTestArtifact, tracingTxns } from "../util/tracing-txns";
 import Bottleneck from "bottleneck";
 import { providers } from "ethers";
 
-
 const debug = require("debug")("smoke:tracing-consistency");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
 const httpEndpoint = process.env.HTTP_URL;
