@@ -1,13 +1,10 @@
 import "@moonbeam-network/api-augment";
-
 import { expect } from "chai";
-
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { NetworkTestArtifact, tracingTxns } from "../util/tracing-txns";
 import Bottleneck from "bottleneck";
-import { customWeb3Request } from "../util/providers";
 import { providers } from "ethers";
-import { TransactionTypes } from "ethers/lib/utils";
+
 
 const debug = require("debug")("smoke:tracing-consistency");
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -15,8 +12,6 @@ const httpEndpoint = process.env.HTTP_URL;
 
 describeSmokeSuite(`Verifying tracing consistency...`, async (context) => {
   let traceStatic: NetworkTestArtifact;
-  let provider;
-
   before("Loading tracing static data", async function () {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
     debug(`Running tracing tests against chainId ${chainId}.`);
@@ -31,15 +26,19 @@ describeSmokeSuite(`Verifying tracing consistency...`, async (context) => {
       debug(`No HTTP_URL provided, skipping test.`);
       this.skip();
     }
-    provider = new providers.JsonRpcProvider(httpEndpoint);
   });
 
   it("can debugTrace for all previous runtimes", async function () {
-    this.timeout(60000);
+    this.timeout(300000);
+    const provider = new providers.JsonRpcProvider(httpEndpoint);
+
     const promises = traceStatic.testData.map(async (a) => {
       try {
         const result = await limiter.schedule(() =>
-          provider.send("debug_traceTransaction", [a.txHash])
+          provider.send("debug_traceTransaction", [
+            a.txHash,
+            { disableStorage: true, disableMemory: true },
+          ])
         );
         debug(`Successful tracing response from runtime ${a.runtime} in block #${a.blockNumber}.`);
         return { runtime: a.runtime, blockNumber: a.blockNumber, error: false, result };
@@ -51,7 +50,6 @@ describeSmokeSuite(`Verifying tracing consistency...`, async (context) => {
     const results = await Promise.all(promises.flatMap((a) => a));
     const failures = results.filter((a) => {
       if (a.error === true) {
-        console.log(a);
         debug(`Failure tracing in runtime ${a.runtime} blocknumber ${a.blockNumber} with `);
         return true;
       }

@@ -1,4 +1,4 @@
-// Hardcoded static data used for verifying Tracing works on for DEV tests
+// Hardcoded static data used for verifying Tracing works on fully synced tracing enabled nodes
 
 export interface NetworkTestArtifact {
   chainId: number;
@@ -87,8 +87,8 @@ export const tracingTxns: NetworkTestArtifact[] = [
     testData: [
       {
         runtime: 400,
-        blockNumber: 424998,
-        txHash: "0x5eaa6c3e8186f98b3d8a1f61d94430af671251e40fb63bf62eb96c48ec8ef773",
+        blockNumber: 425002,
+        txHash: "0x000e9d72bad244ab6c27d3166bbcf182df0e40049bf3d6d945a61f68f36e6038",
       },
       {
         runtime: 501,
@@ -102,43 +102,43 @@ export const tracingTxns: NetworkTestArtifact[] = [
       },
       {
         runtime: 701,
-        blockNumber: 585000,
-        txHash: "0x2c88c8c2d3c476fb8e001264d47c0d3266b038dc1b08fd24678ca284e5ef68a9",
+        blockNumber: 585001,
+        txHash: "0x28855e4fb4c10663f9a30e978777d2e4274f72a52cd3b016d0ec96a0f4152721",
       },
       {
         runtime: 800,
         blockNumber: 685000,
-        txHash: "0xfb9bbe158e03a9d329216ee8a9bcee59f1e73dc2a4524f4d53755a944a0bab6e",
+        txHash: "0xa23e61c53b653817ac84710bf8ad7e2ae0260230e130efb3cd8c3891b57550b9",
       },
       {
         runtime: 900,
         blockNumber: 925000,
-        txHash: "0x8c8a8d0a227409568fbf8e36db9ed29f3af0c7e2bff7e6c5c50a77e3412ad5c0",
+        txHash: "0x740f7eea8f22c6f8cc09fc4d0d6f9897f20b212dfb5278f0c1cb768ebe924152",
       },
       {
         runtime: 1001,
-        blockNumber: 1055000,
-        txHash: "0x1c93a11b3aa6fc75cd256029c9e52fe65b0c1176b6d49622b45a91d480f25d5f",
+        blockNumber: 1055001,
+        txHash: "0x8695e9b222e2a8ca87d4f7b520e887cea61309aebe443e519ec92c54b7021059",
       },
       {
         runtime: 1002,
         blockNumber: 1145000,
-        txHash: "0xba1c1918ab2dbc4498287810b49081c98bc9fd1a600f1ebbbc0117469e717ccc",
+        txHash: "0xdca6cbd70c8ae57f883947e02985c45f3c8729ba278af4dffd6725db2663a207",
       },
       {
         runtime: 1101,
         blockNumber: 1190000,
-        txHash: "0x586143cace437c68ed090cbe625964393fb8d7eec4c4dc1e6cd5b0e131d621a3",
+        txHash: "0x64a39c009f66bb48cb7b36e799c3e2ccf9793b40c7a255ad2a99e81054d8c020",
       },
       {
         runtime: 1102,
-        blockNumber: 1300000,
-        txHash: "0x0b0d1c5c79e216dcf83af98d16d9560c16d197ec976fe436c9d39259a5e92033",
+        blockNumber: 1300001,
+        txHash: "0x2c8ee8f52e669b4def18e5d20a2d2a62b7c12549b8f1dfcb409d81ebb8cd6369",
       },
       {
         runtime: 1103,
-        blockNumber: 1458102,
-        txHash: "0xfa3ded338a953dd52d5494817ccbc8459bac251376f8300fbdef27e4c945a97d",
+        blockNumber: 1458104,
+        txHash: "0x7e9ae6f800240a03b6defe949111de6faa0e95eacd668825f87cda4866e7190c",
       },
       {
         runtime: 1201,
@@ -148,12 +148,12 @@ export const tracingTxns: NetworkTestArtifact[] = [
       {
         runtime: 1300,
         blockNumber: 1621145,
-        txHash: "0xddf073e07cdf3573f7c4653997e9984c9ea72c97522867063999e9d7230dcf91",
+        txHash: "0xa4c29973eba4202a921dc08219b04bc5cdebba38cad7f6bf3aa3fd11fe8636f9",
       },
       {
         runtime: 1401,
-        blockNumber: 1776778,
-        txHash: "0x0dcf365809fa210a6fac285c4657df134b5d66e1a3ee00045e13f093f6b4ba97",
+        blockNumber: 1776780,
+        txHash: "0x62d0aafb400305a620ca0981308ec158bb31e26932d7656beec5c0bdf084139f",
       },
       {
         runtime: 1502,
@@ -162,43 +162,53 @@ export const tracingTxns: NetworkTestArtifact[] = [
       },
       {
         runtime: 1503,
-        blockNumber: 1910524,
-        txHash: "0x0c2e7571852a484ecaa800e75d23bd39f70acdaa12b4bba736be369d5c69ec53",
+        blockNumber: 1910525,
+        txHash: "0x244048753c0f794d3a4ed63802e0f2b68245bd4bdaaae782e9437ac2a46fcc81",
       },
       {
         runtime: 1504,
-        blockNumber: 1921467,
-        txHash: "0x56efe78fcdfcc0052d04fad5be8277347346e3e54169f956c1eea32824496e8b",
+        blockNumber: 1921473,
+        txHash: "0x1b8a2b9137f8b85b269b331a41f4b8f40ab51d8eb39d6ef6680b64233ca5f6cc",
       },
       {
         runtime: 1605,
-        blockNumber: 2082923,
-        txHash: "0x6c1ca793ce298dea497943c6e093efc1e903f0c84e48561a502df4767e02a862",
+        blockNumber: 2082924,
+        txHash: "0x191e42667ad1a9fdcf95b75610701a3da5dff11d90b6145b1b2036f526be8416",
       },
       {
         runtime: 1606,
         blockNumber: 2105167,
-        txHash: "0xe4d0b82f008a7245d880351eaf718a27e64d8d686357d8a2f9bd514a19c4b69f",
+        txHash: "0x24a6c89e71c5a905471cd7cd468ef162710197cb4affbdcba9fd274b5c957ea4",
       },
       {
         runtime: 1701,
-        blockNumber: 2425099,
-        txHash: "0x42e556ce2532b78c7be2262839ad8c0561705aea7dff9e3b76fd36a893ab95d6",
+        blockNumber: 2425113,
+        txHash: "0xba1253e609697fcb50a98d9e768b41a7aa9beec0a8f026b166e3f8753cdbcf2d",
       },
       {
         runtime: 1702,
-        blockNumber: 2545073,
-        txHash: "0x8b6c7c7f7c02713028f394fbe7465e35f230952915b083e9d95ee37b66cc248a",
+        blockNumber: 2545083,
+        txHash: "0xffebd87d35a25b0b59608432095fca2167f56afccd4d73155d45c66247fe6912",
       },
       {
         runtime: 1801,
-        blockNumber: 2595062,
-        txHash: "0xd6bb6447f1bd9628d17dc59c4ddc9e776e099866a0d735765f32bba97507d6ca",
+        blockNumber: 2595064,
+        txHash: "0x370d8462f807ac36b656252a08f473073a699b014a6b3ee73ff801b3a860c10a",
       },
       {
         runtime: 1802,
-        blockNumber: 2670047,
-        txHash: "0x5d8e54b355274d8aec817f251a0944af7b12f0409f893f6964ff5536831af46b",
+        blockNumber: 2670050,
+        txHash: "0xa7dc73c353f1d2a4f13b9294a279c5acc95c027dc82dd1b299326fae44c0b400",
+      },
+      {
+        runtime: 1803,
+        blockNumber: 2073478,
+        txHash: "0x3f37192ee903acb033b83c34fdc96af2e40190bf31f4ad6fdd3b1dee7cd43cfc",
+      },
+      {
+        runtime: 1901,
+        blockNumber: 2951940,
+        txHash: "0xfbc8098b67194f70be7ff8fbfe2bb0d72ddf1fb7ee6117b168d34ff3f49df429",
       },
     ],
   },
@@ -207,113 +217,113 @@ export const tracingTxns: NetworkTestArtifact[] = [
     testData: [
       {
         runtime: 400,
-        blockNumber: 615001,
-        txHash: "0x6d3be15e41c663a12f1b9886cfff084f5be9267055a55fc3a218f4a2bf9d07e4",
+        blockNumber: 615005,
+        txHash: "0x05e666de74852a121144d5fc4e299c2d9168b55323d77bb05e4a527b094e2333",
       },
       {
         runtime: 501,
-        blockNumber: 655000,
-        txHash: "0xec8d43aec5e0fcb4435bccadbf7f280524c4432ed5c33bd3782d2cc8da434a2d",
+        blockNumber: 655002,
+        txHash: "0xab00fc7c874dec858eb9948ec8ae2c0edf05391f2c79e3c2c0011aafb3909ae9",
       },
       {
         runtime: 600,
         blockNumber: 680000,
-        txHash: "0xb251488483b7ded41d639b09c17f8349357950a0d29088c53d2907ea5b4f881e",
+        txHash: "0xa4f69a0344da82bcd8da22f6b3bfa9ade4fd7d942d61f0e5990f3c2b319657c3",
       },
       {
         runtime: 701,
         blockNumber: 800000,
-        txHash: "0x5d5910b986fc98a8333bca547d5eed274f1019a945a62838b5944b7f14fd7c9b",
+        txHash: "0xe07cdcd194c88850cc76e7d371588735ed4813f6d47dd575985c27e93e136a00",
       },
       {
         runtime: 800,
         blockNumber: 920000,
-        txHash: "0x431592ad25db7a008c7c1762ee8f58afa04e3889805f07d43f41a310c30c8c83",
+        txHash: "0xe53882a3eed1369a5ce90c98dce7183f27bfe2bd6680aac9578650e8c930cbb1",
       },
       {
         runtime: 900,
-        blockNumber: 1080000,
-        txHash: "0x4c850e17c0046b2a8b7c00a9e6c9ce4f6c06766d2e98c2bafff724086a440d55",
+        blockNumber: 1080001,
+        txHash: "0x9036ff517ad9ea04f3aef43e006f906c741c0d97ec7d9225f610cb2f1b485cc5",
       },
       {
         runtime: 901,
-        blockNumber: 1135000,
-        txHash: "0xf22c5c6f4b9c35d44158eb07664a36527c65dfa4a1d751cce1a69de900194028",
+        blockNumber: 1135003,
+        txHash: "0x4d2a09ef083fa842513d1ad319173db1473eb12281be49aa5ffce8e4656472ad",
       },
       {
         runtime: 902,
         blockNumber: 1180000,
-        txHash: "0xa148ed971adf65ee2d03e2cf372eaf94fc17fa53094856761b3e891fc745cb6c",
+        txHash: "0x2b95b75ea6fd3054708303f75b8850e3d714d20b832790a7f3195ebe6087bd72",
       },
       {
         runtime: 1001,
         blockNumber: 1290000,
-        txHash: "0x6bd07a2a1394b049d6aa3cdb3c767a29b342d528bda27731e65a41d149a4ffb1",
+        txHash: "0xccca7c000140d33c4e8f5d80c21994066442a3049e9402d2de1bbb4681aa1869",
       },
       {
         runtime: 1002,
         blockNumber: 1400000,
-        txHash: "0xfcbcbad9a2e7fe22dcbf272a59873fed5098dcfb1fbb136412e5c536ca365c38",
+        txHash: "0x55b1feb92371660c48a0cefec523f8f7af5cc60cd10158e6a2dc12ed4be74ee2",
       },
       {
         runtime: 1101,
         blockNumber: 1430000,
-        txHash: "0x18d048c2c9dd83534f0a0ed2f873ec0ca98cb14a50bcf67d286cd9d104e54d7d",
+        txHash: "0x86c123dbc1ca1a997ed44d8bfd8ef17cb355353424af94bc368af7e762c83772",
       },
       {
         runtime: 1102,
         blockNumber: 1520000,
-        txHash: "0xdfc09fed088c522a5d3f07cbe915d5dce666b8af98ea9baa3a9be9475d0bdea5",
+        txHash: "0x749056a49ecfa5a7fa561206dbe0abf4565756ae5d214f4bfd599f718a9e6e61",
       },
       {
         runtime: 1103,
         blockNumber: 1609968,
-        txHash: "0xb04c978b4556cfeaaf15c7f4ecdd0dcd3f4c3f5b20912c174f92342760375764",
+        txHash: "0x3dee5079f37a28a0b116e06676db6125fc52788774a5c9ee5b9d70b8b3294814",
       },
       {
         runtime: 1200,
         blockNumber: 1649329,
-        txHash: "0x955c3dfce09552dcfd7cbe3bd95619b98e2ea57206cda2cc5d8c75ae2d7aa7a1",
+        txHash: "0x48530c0544fa4a7fbfddf6980dde8d7fc1294455e3b2a2118c732136b798aa72",
       },
       {
         runtime: 1201,
         blockNumber: 1723131,
-        txHash: "0x6570d66251531f1a32fe8c73fc6c9ed56da29f82027d4bec07ca16428e3412c2",
+        txHash: "0x2c200474280274fa030fa64a4c5fbb7b7d6273476793e8e97f37e2e6522a26ff",
       },
       {
         runtime: 1300,
         blockNumber: 1852285,
-        txHash: "0x780a476b77daeae57e354c41d6da2b87bc7f25ced686d8dda48433627bb07f9f",
+        txHash: "0xcaca48e2fb54d00401f6291668e4035331c896317011bf9eb658611f52eb58d6",
       },
       {
         runtime: 1400,
         blockNumber: 1967313,
-        txHash: "0x0ea32bae1ea9f74c3186eeb709f0eb77fbdd26a36c39a4643e1e809c9d131422",
+        txHash: "0x09a80a8072e671b29c1c19cd1abebc2a1eef7b7994e91e949b1d86ea0c28288a",
       },
       {
         runtime: 1401,
         blockNumber: 2103531,
-        txHash: "0x2468a777d8b5bf935798a3f4b1c2a066d32588e49e8552765c373be77bbdd1ba",
+        txHash: "0x82afd4d6c9cc2c0d7853c21fcec22b5f1ac19bccd87e17caa5487b74e3b3d364",
       },
       {
         runtime: 1502,
         blockNumber: 2171640,
-        txHash: "0x113d5c875111fb3fa16de27a731cc247375f2becfe5f9dabfa8b5d792d026380",
+        txHash: "0x1b582ea6fa157bf0e350be0c9e602d71168aed8eceaf74057a7c1a7546f57e5e",
       },
       {
         runtime: 1503,
-        blockNumber: 2221656,
-        txHash: "0x47b8bb8f17f05eabc851a9edde292e76bc13408d82b2a6d797ca6c7e26e165b5",
+        blockNumber: 2221657,
+        txHash: "0x598abdfc983d5a3f538b01c762bd6cf84d4651b90c2d198a625cea874b73ffb6",
       },
       {
         runtime: 1504,
-        blockNumber: 2230702,
-        txHash: "0x52b89d3a198c73df3ac977483a9fa538ac59f06b1fbd7ec8121b4ca627629533",
+        blockNumber: 2230705,
+        txHash: "0x25f98315de8e6d742b208cdefacff886af0fd22f05c91ef9b34e3b93975acfa7",
       },
       {
         runtime: 1603,
         blockNumber: 2290323,
-        txHash: "0xfccbcecc811850924b7c3d115db8f1727467ae43dcccc7fe8ae3bd469b18520c",
+        txHash: "0xc4353bf3e690b7f47b15f2b24b6b144cb12d7ae034b84f40e042c3908b292ccf",
       },
       {
         runtime: 1606,
@@ -323,27 +333,32 @@ export const tracingTxns: NetworkTestArtifact[] = [
       {
         runtime: 1701,
         blockNumber: 2534246,
-        txHash: "0xe11a3c209c2b4c74fa759c376484a7c29a037e4102420f123d6463d37ad72fb3",
+        txHash: "0x4b4068169501319795aa08b0315a2d43a6904f5c794bc72c39654c9525cf2f19",
       },
       {
         runtime: 1800,
         blockNumber: 2760849,
-        txHash: "0x0fa2f70d9ca75a106ee2c4d4ce40d9c26b6e9993eabd059149f61a1faaff8bae",
+        txHash: "0x44c5dbb7ae703b63f635a7af6d3ac0b17fdaba6c5c1454027bde3454285b4cf3",
       },
       {
         runtime: 1801,
         blockNumber: 2874151,
-        txHash: "0x4a7703494b76e7eb161ec908ae722f9c19975d154c9efdb9d1af01fc321b1705",
+        txHash: "0xbfa459831ec5c369fe3d217c3a01288a14492399aafdca59d4e8b68ecab4aa21",
       },
       {
         runtime: 1802,
         blockNumber: 2930802,
-        txHash: "0x399f67c8101640d8ff7e873f3652e1c86d734db40c347dddad41a4a4535dbcc7",
+        txHash: "0x33e4492d14dceeee484ab37a0bf4da6c961cb9e4c64d285297b4058ef9a7ea5e",
       },
       {
         runtime: 1900,
         blockNumber: 3071020,
-        txHash: "0x8bb752c82077b17bfd52118b6ee9ea69e9b1809481530d7ef7e836197138f4dd",
+        txHash: "0x8e3f85d7c6a8630a7f1e1eec4d57b53b23b67dc083311e28d2802f882b885d43",
+      },
+      {
+        runtime: 1901,
+        blockNumber: 3147113,
+        txHash: "0xbea07c678d9d995f80126ac1bbea12c434c386742160cae66449da99ca24e19e",
       },
     ],
   },
