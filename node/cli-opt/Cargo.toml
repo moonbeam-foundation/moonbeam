@@ -8,7 +8,7 @@ version = "0.27.0"
 
 [dependencies]
 bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
-clap = { version = "3.1", features = [ "derive" ] }
+clap = { version = "4.0.9", features = [ "derive" ] }
 libsecp256k1 = "0.6"
 primitive-types = "0.12.0"
 sha3 = "0.9"
