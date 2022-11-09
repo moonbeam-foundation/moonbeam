@@ -342,7 +342,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - candidate leave", (contex
 
 describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", (context) => {
   let newDelegator: KeyringPair;
-  let delegationCount = 0;
+  let delegationCount = 5;
 
   before("should delegate and add baltathar as candidate", async () => {
     const [delegator, ...otherDelegators] = new Array(
