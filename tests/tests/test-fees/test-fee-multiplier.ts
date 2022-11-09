@@ -26,10 +26,13 @@ import { alith } from "../../util/accounts";
 
 describeDevMoonbeam("Max Fee Multiplier", (context) => {
   before("set to max multiplier", async () => {
-    const MULTIPLIER_STORAGE_KEY
-      = context.polkadotApi.query.transactionPayment.nextFeeMultiplier.key(0).toString()
+    const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
+      .key(0)
+      .toString();
 
-    const initialValue = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
+    const initialValue = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
 
     const U128_MAX = new BN("340282366920938463463374607431768211455");
@@ -49,12 +52,16 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
 
   it("should enforce upper bound", async () => {
     // we set it to u128_max, but the max should have been enforced in on_finalize()
-    const multiplier = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
+    const multiplier = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
     expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
   });
 
   it("should have spendable runtime upgrade", async () => {
-    const multiplier = (await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()).toBigInt();
+    const multiplier = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
     expect(multiplier).to.equal(100_000_000_000_000_000_000_000n);
 
     const initialBalance = (

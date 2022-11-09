@@ -40,7 +40,7 @@ export async function createAndFinalizeBlock(
 // This is meant to precisely mimic the logic in the Moonbeam runtimes where the burn amount
 // is calculated and the treasury is treated as the remainder. This precision is important to
 // avoid off-by-one errors.
-export function calculateFeePortions(amount: bigint): {burnt: bigint, treasury: bigint} {
+export function calculateFeePortions(amount: bigint): { burnt: bigint; treasury: bigint } {
   const burnt = (amount * 80n) / 100n; // 20% goes to treasury
   return { burnt, treasury: amount - burnt };
 }
@@ -211,7 +211,9 @@ export const verifyBlockFees = async (
                 // additional tip eventually paid by the user (maxPriorityFeePerGas) is purely a
                 // prioritization component: the EVM is not aware of it and thus not part of the
                 // weight cost of the extrinsic.
-                let baseFeePerGas = BigInt((await context.web3.eth.getBlock(number - 1)).baseFeePerGas);
+                let baseFeePerGas = BigInt(
+                  (await context.web3.eth.getBlock(number - 1)).baseFeePerGas
+                );
                 let priorityFee;
 
                 // Transaction is an enum now with as many variants as supported transaction types.
@@ -237,7 +239,7 @@ export const verifyBlockFees = async (
                 const baseFeePortions = calculateFeePortions(baseFeesPaid);
                 const tipFeePortions = calculateFeePortions(tipAsFeesPaid);
 
-                txFees += (baseFeesPaid + tipAsFeesPaid);
+                txFees += baseFeesPaid + tipAsFeesPaid;
                 txBurnt += baseFeePortions.burnt;
                 txBurnt += tipFeePortions.burnt;
               } else {

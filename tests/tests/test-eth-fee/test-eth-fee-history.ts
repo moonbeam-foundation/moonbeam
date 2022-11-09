@@ -62,7 +62,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
 
   it("result length should match spec", async function () {
     this.timeout(100000);
-    let max_fee_per_gas = "0x"+DEFAULT_TXN_MAX_BASE_FEE.toString(16);
+    let max_fee_per_gas = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
     let block_count = 2;
     let reward_percentiles = [20, 50, 70];
     let priority_fees = [1, 2, 3];
@@ -85,7 +85,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
 
   it("should calculate percentiles", async function () {
     this.timeout(100000);
-    let max_fee_per_gas = "0x"+DEFAULT_TXN_MAX_BASE_FEE.toString(16);
+    let max_fee_per_gas = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
     let block_count = 11;
     let reward_percentiles = [20, 50, 70, 85, 100];
     let priority_fees = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];

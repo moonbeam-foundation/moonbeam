@@ -4,7 +4,11 @@ import { expect } from "chai";
 
 import { ALITH_PRIVATE_KEY, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import { createTransaction, createTransfer, DEFAULT_TXN_MAX_BASE_FEE } from "../../util/transactions";
+import {
+  createTransaction,
+  createTransfer,
+  DEFAULT_TXN_MAX_BASE_FEE,
+} from "../../util/transactions";
 
 describeDevMoonbeam(
   "Ethereum Transaction - Legacy",

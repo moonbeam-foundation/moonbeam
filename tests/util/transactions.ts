@@ -312,7 +312,7 @@ export async function sendPrecompileTx(
   );
 }
 
-const GAS_PRICE = "0x" + (DEFAULT_TXN_MAX_BASE_FEE).toString(16);
+const GAS_PRICE = "0x" + DEFAULT_TXN_MAX_BASE_FEE.toString(16);
 export async function callPrecompile(
   context: DevTestContext,
   precompileContractAddress: string,

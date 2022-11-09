@@ -5,15 +5,12 @@ import { ethers } from "ethers";
 
 import { alith } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
-import {
-  PRECOMPILE_NATIVE_ERC20_ADDRESS,
-  PRECOMPILE_XTOKENS_ADDRESS,
-} from "../../util/constants";
+import { PRECOMPILE_NATIVE_ERC20_ADDRESS, PRECOMPILE_XTOKENS_ADDRESS } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
 import {
   describeDevMoonbeam,
   describeDevMoonbeamAllEthTxTypes,
-  DevTestContext
+  DevTestContext,
 } from "../../util/setup-dev-tests";
 import {
   ALITH_TRANSACTION_TEMPLATE,
