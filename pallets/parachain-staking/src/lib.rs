@@ -1841,8 +1841,8 @@ pub mod pallet {
 					candidate.clone(),
 					compound_amount.clone(),
 				) {
-					log::error!(
-								"Error compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
+					log::debug!(
+								"skipped compounding staking reward towards candidate '{:?}' for delegator '{:?}': {:?}",
 								candidate,
 								delegator,
 								err
