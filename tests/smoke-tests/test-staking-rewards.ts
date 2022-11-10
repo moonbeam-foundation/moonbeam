@@ -278,12 +278,15 @@ totalBondReward               ${totalBondReward} \
   const awardedCollators = (
     await apiAtPriorRewarded.query.parachainStaking.awardedPts.keys(originalRoundNumber)
   ).map((awarded) => awarded.args[1].toHex());
+  const atStakeCollatorsCount = (
+    await apiAtPriorRewarded.query.parachainStaking.atStake.keys(originalRoundNumber)
+  ).length;
   const awardedCollatorCount = awardedCollators.length;
 
   // compute max rounds respecting the current block number and the number of awarded collators
   const maxRoundChecks = Math.min(
     latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
-    awardedCollatorCount
+    atStakeCollatorsCount
   );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
@@ -322,7 +325,10 @@ totalBondReward               ${totalBondReward} \
     totalBondRewarded = totalBondRewarded.add(rewarded.amount.bondReward);
     totalBondRewardedLoss = totalBondRewardedLoss.add(rewarded.amount.bondRewardLoss);
 
-    expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
+    if (!rewarded.collator) {
+      debug(`no collator was not rewarded at block ${blockNumber}`);
+      continue;
+    }
 
     rewardedCollators.add(rewarded.collator);
     const expectedRewardedDelegators = new Set(
@@ -605,25 +611,28 @@ async function assertRewardedEventsAtBlock(
     }
   }
 
-  if (specVersion >= 1800) {
-    // we calculate the share loss since adding all percentages will usually not yield a full 100%
-    const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
-      bondReward
-    );
-    const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
+  // perform additional checks if rewards were distributed this block
+  if (rewarded.collator) {
+    if (specVersion >= 1800) {
+      // we calculate the share loss since adding all percentages will usually not yield a full 100%
+      const estimatedBondRewardedLoss = new Perbill(BN_BILLION.sub(totalBondRewardShare)).of(
+        bondReward
+      );
+      const actualBondRewardedLoss = bondReward.sub(rewarded.amount.bondReward);
 
-    // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
-    // and the collator itself to compute the max deviation per billion
-    const maxDifference = rewarded.delegators.size + 1;
-    const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
-    expect(
-      loss.lten(maxDifference),
-      `Total bond rewarded share loss for collator "${rewarded.collator}" was above \
+      // Perbill arithmetic can deviate at most ±1 per operation so we use the number of delegators
+      // and the collator itself to compute the max deviation per billion
+      const maxDifference = rewarded.delegators.size + 1;
+      const loss = estimatedBondRewardedLoss.sub(actualBondRewardedLoss).abs();
+      expect(
+        loss.lten(maxDifference),
+        `Total bond rewarded share loss for collator "${rewarded.collator}" was above \
 ${maxDifference} parts per billion, got diff "${loss}", estimated loss \
 ${estimatedBondRewardedLoss}, actual loss ${actualBondRewardedLoss}`
-    ).to.be.true;
+      ).to.be.true;
 
-    rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
+      rewarded.amount.bondRewardLoss = actualBondRewardedLoss;
+    }
   }
 
   return { rewarded, autoCompounded };
