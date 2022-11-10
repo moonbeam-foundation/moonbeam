@@ -37,8 +37,8 @@ use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AccountId, Balances, BaseFee, RuntimeBlockWeights, Call, CrowdloanRewards, Event, ParachainStaking,
-	PolkadotXcm, Precompiles, Runtime, System, XTokens, XcmTransactor,
+	AccountId, Balances, BaseFee, Call, CrowdloanRewards, Event, ParachainStaking, PolkadotXcm,
+	Precompiles, Runtime, RuntimeBlockWeights, System, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;

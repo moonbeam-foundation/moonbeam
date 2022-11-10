@@ -35,8 +35,8 @@ use frame_support::{
 use moonriver_runtime::{
 	asset_config::LocalAssetInstance,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AssetId, BaseFee, RuntimeBlockWeights, LocalAssets, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AssetId, BaseFee, LocalAssets, PolkadotXcm, Precompiles, RuntimeBlockWeights, XTokens,
+	XcmTransactor, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
