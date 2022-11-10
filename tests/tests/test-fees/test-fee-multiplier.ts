@@ -25,7 +25,7 @@ import { alith } from "../../util/accounts";
 // number used internally by transaction-payment for fee calculations.
 
 describeDevMoonbeam("Max Fee Multiplier", (context) => {
-  before("set to max multiplier", async () => {
+  beforeEach("set to max multiplier", async () => {
     const MULTIPLIER_STORAGE_KEY = context.polkadotApi.query.transactionPayment.nextFeeMultiplier
       .key(0)
       .toString();
@@ -108,3 +108,11 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     expect(amount).to.equal(1_500_000_012_598_000_941_192n);
   });
 });
+
+describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
+  it("should start with genesis value", async () => {
+    const initialValue = (
+      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
+    ).toBigInt();
+    expect(initialValue).to.equal(8_000_000_000_000_000_000n);
+}
