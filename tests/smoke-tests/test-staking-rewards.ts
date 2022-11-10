@@ -1,28 +1,331 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN, BN_BILLION } from "@polkadot/util";
-import { u128, u32 } from "@polkadot/types";
+import { u128, u32, StorageKey } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { HexString } from "@polkadot/util/types";
+import {
+  PalletParachainStakingDelegationRequestsScheduledRequest,
+  PalletParachainStakingDelegator,
+  PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingBond,
+} from "@polkadot/types/lookup";
+import { ApiDecoration } from "@polkadot/api/types";
+import Bottleneck from "bottleneck";
+import { AccountId20 } from "@polkadot/types/interfaces";
+import { FIVE_MINS, ONE_HOURS, TWO_HOURS } from "../util/constants";
 import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
 
-if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking rewards`, function (context) {
-    it("rewards are given as expected", async function () {
-      this.timeout(500000);
-      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
-        this.skip();
-      }
-      const atBlockNumber = process.env.BLOCK_NUMBER
-        ? parseInt(process.env.BLOCK_NUMBER)
-        : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-      await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
-    });
+describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (context) {
+  let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
+  let apiAt: ApiDecoration<"promise">;
+  let predecessorApiAt: ApiDecoration<"promise">;
+
+  before("Common Setup", async function () {
+    if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+      this.skip();
+    }
+    if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
+      debug("Skip Block Consistency flag set, skipping staking rewards tests.");
+      this.skip();
+    }
+
+    this.timeout(FIVE_MINS);
+
+    const atBlockNumber = process.env.BLOCK_NUMBER
+      ? parseInt(process.env.BLOCK_NUMBER)
+      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    const queriedBlockHash = await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber);
+    const queryApi = await context.polkadotApi.at(queriedBlockHash);
+    const queryRound = await queryApi.query.parachainStaking.round();
+    debug(
+      `Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`
+    );
+
+    const prevBlock = queryRound.first.subn(1);
+    const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
+    apiAt = await context.polkadotApi.at(prevHash);
+    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`);
+
+    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
+    const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
+    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`);
+    predecessorApiAt = await context.polkadotApi.at(predecessorHash);
+
+    const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
+    debug(`Loading previous round #${nowRound} snapshot`);
+    atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(nowRound);
   });
-}
+
+  it("should snapshot the selected candidates for that round.", async function () {
+    const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
+    const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
+    expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
+    const extras = atStakeSnapshot.filter((item) =>
+      selectedCandidates.some((a) => item[0].args[1] == a)
+    );
+    expect(atStakeSnapshot.length).to.be.equal(selectedCandidates.length);
+    expect(
+      extras,
+      `Non-selected candidates in snapshot: ${extras.map((a) => a[0]).join(", ")}`
+    ).to.be.empty;
+  });
+
+  it("should have accurate collator stats in snapshot.", async function () {
+    this.timeout(FIVE_MINS);
+
+    const limiter = new Bottleneck({
+      maxConcurrent: 5,
+      minTime: 200,
+    });
+
+    const results = await limiter.schedule(() => {
+      const allTasks = atStakeSnapshot.map(async (coll, index) => {
+        const [
+          {
+            args: [_, accountId],
+          },
+          { bond, total, delegations },
+        ] = coll;
+        const candidateInfo = (
+          await limiter.schedule(() =>
+            predecessorApiAt.query.parachainStaking.candidateInfo(accountId as AccountId20)
+          )
+        ).unwrap();
+
+        const bondsMatch: boolean = bond.eq(candidateInfo.bond);
+        const delegationsTotalMatch: boolean =
+          delegations.length ==
+          Math.min(
+            candidateInfo.delegationCount.toNumber(),
+            predecessorApiAt.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
+          );
+        const totalSum: boolean = delegations
+          .reduce((acc: BN, curr) => {
+            return acc.add(curr.amount);
+          }, new BN(0))
+          .add(bond)
+          .eq(total);
+        return { collator: accountId.toString(), bondsMatch, delegationsTotalMatch, totalSum };
+      });
+
+      return Promise.all(allTasks);
+    });
+
+    const failures = results.filter((item) => Object.values(item).includes(false));
+    expect(
+      failures,
+      `Checks failed for collators: ${failures.map((a) => a.collator).join(", ")}`
+    ).to.be.empty;
+  });
+
+  it("should snapshot candidate delegation amounts correctly.", async function () {
+    // This test is so slow due to rate limiting, this should be off until a better solution appears
+    if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
+      debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
+      this.skip();
+    }
+
+    this.timeout(TWO_HOURS);
+    this.slow(TWO_HOURS);
+    const limiter = new Bottleneck({
+      maxConcurrent: 10,
+      minTime: 100,
+    });
+    // Function to check a single Delegator's delegation to a collator
+    const checkDelegatorDelegation = async (
+      accountId: AccountId20,
+      delegatorSnapshot,
+      scheduledRequests: PalletParachainStakingDelegationRequestsScheduledRequest[]
+    ) => {
+      const { delegations: delegatorDelegations }: PalletParachainStakingDelegator = (
+        (await limiter.schedule(() =>
+          predecessorApiAt.query.parachainStaking.delegatorState(delegatorSnapshot.owner)
+        )) as any
+      ).unwrap();
+
+      const delegationAmount = delegatorDelegations.find(
+        (candidate) => candidate.owner.toString() == accountId.toString()
+      ).amount;
+
+      // Querying for pending withdrawals which affect the total
+      const scheduledRequest = scheduledRequests.find((a) => {
+        return a.delegator.toString() == delegatorSnapshot.owner.toString();
+      });
+
+      const expected =
+        scheduledRequest === undefined
+          ? delegationAmount
+          : scheduledRequest.action.isDecrease
+          ? delegationAmount.sub(scheduledRequest.action.asDecrease)
+          : scheduledRequest.action.isRevoke
+          ? delegationAmount.sub(scheduledRequest.action.asRevoke)
+          : delegationAmount;
+
+      const match = expected.eq(delegatorSnapshot.amount);
+      if (!match) {
+        debug(
+          "Snapshot amount " +
+            delegatorSnapshot.amount.toString() +
+            " does not match storage amount " +
+            delegationAmount.toString() +
+            " for delegator: " +
+            delegatorSnapshot.owner.toString() +
+            " on candidate: " +
+            accountId.toString()
+        );
+      }
+      return {
+        collator: accountId.toString(),
+        delegator: delegatorSnapshot.owner.toString(),
+        match,
+      };
+    };
+    debug(`Gathering snapshot query requests for ${atStakeSnapshot.length} collators.`);
+    const promises = atStakeSnapshot.map(async (coll) => {
+      const [
+        {
+          args: [_, accountId],
+        },
+        { bond, total, delegations },
+      ] = coll;
+      const scheduledRequests = await limiter.schedule(() =>
+        predecessorApiAt.query.parachainStaking.delegationScheduledRequests(
+          accountId as AccountId20
+        )
+      );
+
+      return Promise.all(
+        delegations.map((delegation) =>
+          checkDelegatorDelegation(accountId, delegation, scheduledRequests)
+        )
+      );
+    });
+
+    // RPC endpoints roughly rate limit to 10 queries a second
+    const delegationCount = atStakeSnapshot
+      .map(([_, { delegations }]) => delegations.length)
+      .reduce((acc, curr) => acc + curr, 0);
+    const estimatedTime = ((delegationCount + atStakeSnapshot.length) / 600).toFixed(2);
+    debug(
+      "With a count of " +
+        delegationCount +
+        " delegations, this may take upto " +
+        estimatedTime +
+        " mins."
+    );
+
+    const results = await Promise.all(promises);
+    const mismatches = results.flatMap((a) => a).filter((item) => item.match == false);
+    expect(
+      mismatches,
+      `Mismatched amounts for ${mismatches
+        .map((a) => `delegator ${a.delegator} collator:${a.collator}`)
+        .join(", ")}`
+    ).to.be.empty;
+
+    // Exit buffer for cleanup
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  });
+
+  it("should snapshot delegate autocompound preferences correctly.", async function () {
+    // This test is so slow due to rate limiting, this should be off until a better solution appears
+    if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
+      debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
+      this.skip();
+    }
+    const specVersion = context.polkadotApi.consts.system.version.specVersion.toNumber();
+    if (specVersion < 1900) {
+      debug(`Autocompounding not supported for ${specVersion}, skipping test.`);
+      this.skip();
+    }
+
+    this.timeout(ONE_HOURS);
+    this.slow(ONE_HOURS);
+    const limiter = new Bottleneck({
+      maxConcurrent: 10,
+      minTime: 100,
+    });
+
+    // Function to check a single Delegator's delegation to a collator
+    const checkDelegatorAutocompound = async (
+      collatorId: AccountId20,
+      delegatorSnapshot: PalletParachainStakingBond | any,
+      autoCompoundPrefs: any[]
+    ) => {
+      const autoCompoundQuery = autoCompoundPrefs.find(
+        (a) => a.delegator.toString() == delegatorSnapshot.owner.toString()
+      );
+      const autoCompoundAmount =
+        autoCompoundQuery == undefined ? new BN(0) : autoCompoundQuery.value;
+      const match = autoCompoundAmount.eq(delegatorSnapshot.autoCompound);
+      if (!match) {
+        debug(
+          "Snapshot autocompound " +
+            delegatorSnapshot.autoCompound.toString() +
+            "% does not match storage autocompound " +
+            autoCompoundAmount.toString() +
+            "% for delegator: " +
+            delegatorSnapshot.owner.toString() +
+            " on candidate: " +
+            collatorId.toString()
+        );
+      }
+      return {
+        collator: collatorId.toString(),
+        delegator: delegatorSnapshot.owner.toString(),
+        match,
+      };
+    };
+
+    debug(`Gathering snapshot query requests for ${atStakeSnapshot.length} collators.`);
+    const promises = atStakeSnapshot
+      .map(
+        async ([
+          {
+            args: [_, accountId],
+          },
+          { delegations },
+        ]) => {
+          const autoCompoundPrefs = (await limiter.schedule(() =>
+            predecessorApiAt.query.parachainStaking.autoCompoundingDelegations(accountId)
+          )) as any;
+
+          return delegations.map((delegation) =>
+            checkDelegatorAutocompound(accountId, delegation, autoCompoundPrefs)
+          );
+        }
+      )
+      .flatMap((a) => a);
+
+    // RPC endpoints roughly rate limit to 10 queries a second
+    const estimatedTime = (promises.length / 600).toFixed(2);
+    debug("Verifying autoCompound preferences, estimated time " + estimatedTime + " mins.");
+
+    const results: any = await Promise.all(promises);
+    const mismatches = results.filter((item) => item.match == false);
+    expect(
+      mismatches,
+      `Mismatched autoCompound for ${mismatches
+        .map((a) => `delegator ${a.delegator} collator:${a.collator}`)
+        .join(", ")}`
+    ).to.be.empty;
+
+    // Exit buffer for cleanup
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  });
+
+  it("rewards are given as expected", async function () {
+    this.timeout(500000);
+    const atBlockNumber = process.env.BLOCK_NUMBER
+      ? parseInt(process.env.BLOCK_NUMBER)
+      : (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+    await assertRewardsAtRoundBefore(context.polkadotApi, atBlockNumber);
+  });
+});
 
 async function assertRewardsAtRoundBefore(api: ApiPromise, nowBlockNumber: number) {
   const nowBlockHash = await api.rpc.chain.getBlockHash(nowBlockNumber);
