@@ -16,10 +16,8 @@
 
 use crate::{
 	mock::{
-		events, roll_to,
-		Account::{self, Alice, Bob, Precompile},
-		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
-		Runtime,
+		events, roll_to, AccountId, Balances, Call, Democracy, ExtBuilder, Origin, PCall,
+		Precompiles, PrecompilesValue, Runtime,
 	},
 	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
 	SELECTOR_LOG_STANDARD_VOTE, SELECTOR_LOG_UNDELEGATED,
@@ -42,7 +40,7 @@ fn precompiles() -> Precompiles<Runtime> {
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: Precompile.into(),
+		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -58,7 +56,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -67,7 +65,7 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -93,7 +91,7 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default().build().execute_with(|| {
-		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
 
 		tester.test_default_modifier(PCall::delegate_selectors());
 		tester.test_view_modifier(PCall::deposit_of_selectors());
@@ -115,7 +113,7 @@ fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.
 		precompiles()
-			.prepare_test(Alice, Precompile, PCall::public_prop_count {})
+			.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
 			.execute_returns([0u8; 32].into())
@@ -125,7 +123,7 @@ fn prop_count_zero() {
 #[test]
 fn prop_count_non_zero() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
@@ -133,10 +131,10 @@ fn prop_count_non_zero() {
 				proposal_hash: Default::default(),
 				value: 1000u128
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			precompiles()
-				.prepare_test(Alice, Precompile, PCall::public_prop_count {})
+				.prepare_test(Alice, Precompile1, PCall::public_prop_count {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns_encoded(1u32);
@@ -148,7 +146,7 @@ fn prop_count_non_zero() {
 #[test]
 fn deposit_of_non_zero() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// There is no interesting genesis config for pallet democracy so we make the proposal here
@@ -156,12 +154,12 @@ fn deposit_of_non_zero() {
 				proposal_hash: Default::default(),
 				value: 1000u128
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::deposit_of {
 						prop_index: 0.into(),
 					},
@@ -178,7 +176,7 @@ fn deposit_of_bad_index() {
 		precompiles()
 			.prepare_test(
 				Alice,
-				Precompile,
+				Precompile1,
 				PCall::deposit_of {
 					prop_index: 10.into(),
 				},
@@ -191,7 +189,7 @@ fn deposit_of_bad_index() {
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
+			.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
 			.execute_returns_encoded(0u32);
@@ -204,7 +202,7 @@ fn lowest_unbaked_zero() {
 #[test]
 fn lowest_unbaked_non_zero() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000_000)])
+		.with_balances(vec![(Alice.into(), 1_000_000)])
 		.with_referenda(vec![
 			(Default::default(), VoteThreshold::SimpleMajority, 10),
 			(Default::default(), VoteThreshold::SimpleMajority, 10),
@@ -222,11 +220,11 @@ fn lowest_unbaked_non_zero() {
 					balance: 100_000,
 				}
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			// Assert that the vote was recorded in storage
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Alice)),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -251,7 +249,7 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			precompiles()
-				.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
+				.prepare_test(Alice, Precompile1, PCall::lowest_unbaked {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns_encoded(1u32);
@@ -261,7 +259,7 @@ fn lowest_unbaked_non_zero() {
 #[test]
 fn ongoing_ref_info_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -279,12 +277,12 @@ fn ongoing_ref_info_works() {
 					balance: 100_000,
 				}
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::ongoing_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
@@ -303,7 +301,7 @@ fn ongoing_ref_info_works() {
 #[test]
 fn ongoing_ref_info_bad_index() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -314,7 +312,7 @@ fn ongoing_ref_info_bad_index() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::ongoing_referendum_info { ref_index: 1 },
 				)
 				.expect_no_logs()
@@ -325,7 +323,7 @@ fn ongoing_ref_info_bad_index() {
 #[test]
 fn ongoing_ref_info_is_not_ongoing() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -343,14 +341,14 @@ fn ongoing_ref_info_is_not_ongoing() {
 					balance: 100_000,
 				}
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			roll_to(12);
 
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::ongoing_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
@@ -361,7 +359,7 @@ fn ongoing_ref_info_is_not_ongoing() {
 #[test]
 fn finished_ref_info_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -379,14 +377,14 @@ fn finished_ref_info_works() {
 					balance: 100_000,
 				}
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			roll_to(12);
 
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::finished_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
@@ -397,7 +395,7 @@ fn finished_ref_info_works() {
 #[test]
 fn finished_ref_info_bad_index() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -408,7 +406,7 @@ fn finished_ref_info_bad_index() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::finished_referendum_info { ref_index: 1 },
 				)
 				.expect_no_logs()
@@ -419,7 +417,7 @@ fn finished_ref_info_bad_index() {
 #[test]
 fn finished_ref_info_is_not_finished() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -430,7 +428,7 @@ fn finished_ref_info_is_not_finished() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::finished_referendum_info { ref_index: 0 },
 				)
 				.expect_no_logs()
@@ -441,7 +439,7 @@ fn finished_ref_info_is_not_finished() {
 #[test]
 fn propose_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Construct data to propose empty hash with value 100
@@ -459,7 +457,7 @@ fn propose_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 100
 					}
 					.into(),
@@ -470,7 +468,7 @@ fn propose_works() {
 					.into(),
 					EvmEvent::Log {
 						log: log2(
-							Precompile,
+							Precompile1,
 							SELECTOR_LOG_PROPOSED,
 							H256::zero(), // proposal index,
 							EvmDataWriter::new().write::<U256>(100.into()).build(),
@@ -478,7 +476,7 @@ fn propose_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -493,7 +491,7 @@ fn propose_works() {
 #[test]
 fn second_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Before we can second anything, we have to have a proposal there to second.
@@ -501,7 +499,7 @@ fn second_works() {
 				proposal_hash: Default::default(), // Propose the default hash
 				value: 100u128,                    // bond of 100 tokens
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			// Construct the call to second via a precompile
 			let input = PCall::second {
@@ -518,7 +516,7 @@ fn second_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 100
 					}
 					.into(),
@@ -530,18 +528,18 @@ fn second_works() {
 					// This 100 is reserved for the second.
 					// Pallet democracy does not have an event for seconding
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 100
 					}
 					.into(),
 					DemocracyEvent::Seconded {
-						seconder: Alice,
+						seconder: Alice.into(),
 						prop_index: 0
 					}
 					.into(),
 					EvmEvent::Log {
 						log: log2(
-							Precompile,
+							Precompile1,
 							SELECTOR_LOG_SECONDED,
 							H256::zero(), // proposal index,
 							EvmDataWriter::new()
@@ -551,7 +549,7 @@ fn second_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -566,7 +564,7 @@ fn second_works() {
 #[test]
 fn standard_vote_aye_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -596,7 +594,7 @@ fn standard_vote_aye_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						voter: Alice,
+						voter: Alice.into(),
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -609,7 +607,7 @@ fn standard_vote_aye_works() {
 					.into(),
 					EvmEvent::Log {
 						log: log2(
-							Precompile,
+							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
 							EvmDataWriter::new()
@@ -622,7 +620,7 @@ fn standard_vote_aye_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -631,7 +629,7 @@ fn standard_vote_aye_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Alice)),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -653,7 +651,7 @@ fn standard_vote_aye_works() {
 #[test]
 fn standard_vote_nay_conviction_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000_000)])
+		.with_balances(vec![(Alice.into(), 1000_000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -683,7 +681,7 @@ fn standard_vote_nay_conviction_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						voter: Alice,
+						voter: Alice.into(),
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -696,7 +694,7 @@ fn standard_vote_nay_conviction_works() {
 					.into(),
 					EvmEvent::Log {
 						log: log2(
-							Precompile,
+							Precompile1,
 							SELECTOR_LOG_STANDARD_VOTE,
 							H256::zero(), // referendum index,
 							EvmDataWriter::new()
@@ -709,7 +707,7 @@ fn standard_vote_nay_conviction_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -718,7 +716,7 @@ fn standard_vote_nay_conviction_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Alice)),
 				Voting::Direct {
 					votes: vec![(
 						0,
@@ -745,7 +743,7 @@ fn standard_vote_nay_conviction_works() {
 #[test]
 fn remove_vote_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -755,7 +753,7 @@ fn remove_vote_works() {
 		.execute_with(|| {
 			// Vote on it
 			assert_ok!(Democracy::vote(
-				Origin::signed(Alice),
+				Origin::signed(Alice.into()),
 				0, // Propose the default hash
 				AccountVote::Standard {
 					vote: Vote {
@@ -784,7 +782,7 @@ fn remove_vote_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						voter: Alice,
+						voter: Alice.into(),
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -796,7 +794,7 @@ fn remove_vote_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -805,7 +803,7 @@ fn remove_vote_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Alice)),
 				Voting::Direct {
 					votes: vec![],
 					delegations: Default::default(),
@@ -818,7 +816,7 @@ fn remove_vote_works() {
 #[test]
 fn remove_vote_dne() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Before we can vote on anything, we have to have a referendum there to vote on.
@@ -828,7 +826,7 @@ fn remove_vote_dne() {
 				proposal_hash: Default::default(), // Propose the default hash
 				value: 100u128,                    // bond of 100 tokens
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(Origin::signed(Alice.into())));
 
 			// Wait until it becomes a referendum
 			roll_to(<Runtime as DemocracyConfig>::LaunchPeriod::get());
@@ -836,7 +834,7 @@ fn remove_vote_dne() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::remove_vote {
 						ref_index: 0.into(),
 					},
@@ -848,7 +846,7 @@ fn remove_vote_dne() {
 #[test]
 fn delegate_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Construct input data to delegate Alice -> Bob
@@ -867,13 +865,13 @@ fn delegate_works() {
 				events(),
 				vec![
 					DemocracyEvent::Delegated {
-						who: Alice,
-						target: Bob
+						who: Alice.into(),
+						target: Bob.into()
 					}
 					.into(),
 					EvmEvent::Log {
 						log: log2(
-							Precompile,
+							Precompile1,
 							SELECTOR_LOG_DELEGATED,
 							H160::from(Alice),
 							EvmDataWriter::new()
@@ -883,7 +881,7 @@ fn delegate_works() {
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -891,10 +889,10 @@ fn delegate_works() {
 
 			// Check that storage is correct
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Alice),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Alice)),
 				Voting::Delegating {
 					balance: 100,
-					target: Bob,
+					target: Bob.into(),
 					conviction: 2u8.try_into().unwrap(),
 					delegations: Default::default(),
 					prior: Default::default(),
@@ -902,7 +900,7 @@ fn delegate_works() {
 			);
 
 			assert_eq!(
-				pallet_democracy::VotingOf::<Runtime>::get(Bob),
+				pallet_democracy::VotingOf::<Runtime>::get(AccountId::from(Bob)),
 				Voting::Direct {
 					votes: Default::default(),
 					delegations: pallet_democracy::Delegations {
@@ -918,14 +916,14 @@ fn delegate_works() {
 #[test]
 fn undelegate_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Before we can undelegate there has to be a delegation.
 			// There's no a genesis config or helper function available, so I'll make one here.
 			assert_ok!(Democracy::delegate(
-				Origin::signed(Alice),
-				Bob,
+				Origin::signed(Alice.into()),
+				Bob.into(),
 				1u8.try_into().unwrap(),
 				100
 			));
@@ -941,17 +939,20 @@ fn undelegate_works() {
 				events(),
 				vec![
 					DemocracyEvent::Delegated {
-						who: Alice,
-						target: Bob
+						who: Alice.into(),
+						target: Bob.into()
 					}
 					.into(),
-					DemocracyEvent::Undelegated { account: Alice }.into(),
+					DemocracyEvent::Undelegated {
+						account: Alice.into()
+					}
+					.into(),
 					EvmEvent::Log {
-						log: log2(Precompile, SELECTOR_LOG_UNDELEGATED, H160::from(Alice), [],),
+						log: log2(Precompile1, SELECTOR_LOG_UNDELEGATED, H160::from(Alice), [],),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -974,7 +975,7 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, PCall::un_delegate {})
+			.prepare_test(Alice, Precompile1, PCall::un_delegate {})
 			.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
 	})
 }
@@ -983,7 +984,7 @@ fn undelegate_dne() {
 #[ignore]
 fn unlock_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.with_referenda(vec![(
 			Default::default(),
 			VoteThreshold::SimpleMajority,
@@ -993,7 +994,7 @@ fn unlock_works() {
 		.execute_with(|| {
 			// Alice votes to get some tokens locked
 			assert_ok!(Democracy::vote(
-				Origin::signed(Alice),
+				Origin::signed(Alice.into()),
 				0,
 				AccountVote::Standard {
 					vote: Vote {
@@ -1010,7 +1011,10 @@ fn unlock_works() {
 			// One possible way to look further: I just noticed there is a `Locks` storage item in
 			// the pallet.
 			// And also, maybe write a test in the pallet to ensure the locks work as expected.
-			assert_eq!(<Balances as Currency<Account>>::free_balance(&Alice), 900);
+			assert_eq!(
+				<Balances as Currency<AccountId>>::free_balance(&Alice.into()),
+				900
+			);
 
 			// Let time elapse until she wins the vote and gets her tokens locked
 			roll_to(11);
@@ -1041,7 +1045,7 @@ fn unlock_works() {
 					.into(),
 					DemocracyEvent::Passed { ref_index: 0 }.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -1052,7 +1056,7 @@ fn unlock_works() {
 #[test]
 fn unlock_with_nothing_locked() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)]) // So that she already has an account existing.
+		.with_balances(vec![(Alice.into(), 1000)]) // So that she already has an account existing.
 		.build()
 		.execute_with(|| {
 			// Construct input data to un-lock tokens for Alice
@@ -1068,7 +1072,7 @@ fn unlock_with_nothing_locked() {
 			assert_eq!(
 				events(),
 				vec![EvmEvent::Executed {
-					address: Precompile.into()
+					address: Precompile1.into()
 				}
 				.into(),]
 			);
@@ -1078,7 +1082,7 @@ fn unlock_with_nothing_locked() {
 #[test]
 fn note_preimage_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.with_balances(vec![(Alice.into(), 1000)]) // So she can afford the deposit
 		.build()
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
@@ -1100,7 +1104,7 @@ fn note_preimage_works() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1116,18 +1120,18 @@ fn note_preimage_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: expected_deposit
 					}
 					.into(),
 					DemocracyEvent::PreimageNoted {
 						proposal_hash,
-						who: Alice,
+						who: Alice.into(),
 						deposit: expected_deposit
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -1144,7 +1148,7 @@ fn note_preimage_works() {
 			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
 			{
 				assert_eq!(data, dummy_preimage);
-				assert_eq!(provider, Alice);
+				assert_eq!(provider, Alice.into());
 				assert_eq!(deposit, 40u128);
 				assert_eq!(expiry, None);
 			} else {
@@ -1156,7 +1160,7 @@ fn note_preimage_works() {
 #[test]
 fn note_preimage_works_with_real_data() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.with_balances(vec![(Alice.into(), 1000)]) // So she can afford the deposit
 		.build()
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
@@ -1187,7 +1191,7 @@ fn note_preimage_works_with_real_data() {
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1203,18 +1207,18 @@ fn note_preimage_works_with_real_data() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: expected_deposit
 					}
 					.into(),
 					DemocracyEvent::PreimageNoted {
 						proposal_hash,
-						who: Alice,
+						who: Alice.into(),
 						deposit: expected_deposit
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -1231,7 +1235,7 @@ fn note_preimage_works_with_real_data() {
 			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
 			{
 				assert_eq!(data, dummy_preimage);
-				assert_eq!(provider, Alice);
+				assert_eq!(provider, Alice.into());
 				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
 				assert_eq!(expiry, None);
 			} else {
@@ -1243,7 +1247,7 @@ fn note_preimage_works_with_real_data() {
 #[test]
 fn cannot_note_duplicate_preimage() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)]) // So she can afford the deposit
+		.with_balances(vec![(Alice.into(), 1000)]) // So she can afford the deposit
 		.build()
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
@@ -1265,7 +1269,7 @@ fn cannot_note_duplicate_preimage() {
 			// First call should go successfully
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input: input.clone(),
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1279,7 +1283,7 @@ fn cannot_note_duplicate_preimage() {
 			// Second call should fail because that preimage is already noted
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1295,22 +1299,22 @@ fn cannot_note_duplicate_preimage() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: expected_deposit
 					}
 					.into(),
 					DemocracyEvent::PreimageNoted {
 						proposal_hash,
-						who: Alice,
+						who: Alice.into(),
 						deposit: expected_deposit
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 					EvmEvent::ExecutedFailed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -1321,7 +1325,7 @@ fn cannot_note_duplicate_preimage() {
 #[test]
 fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
@@ -1337,7 +1341,7 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			// This call should not succeed because
 			assert_ok!(Call::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input,
 				value: U256::zero(), // No value sent in EVM
 				gas_limit: u64::max_value(),
@@ -1352,7 +1356,7 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			assert_eq!(
 				events(),
 				vec![EvmEvent::ExecutedFailed {
-					address: Precompile.into()
+					address: Precompile1.into()
 				}
 				.into()]
 			);
