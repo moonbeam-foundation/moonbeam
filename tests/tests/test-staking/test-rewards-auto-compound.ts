@@ -342,13 +342,12 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - candidate leave", (contex
 
 describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", (context) => {
   let newDelegator: KeyringPair;
-  let delegationCount = 5;
 
   before("should delegate and add baltathar as candidate", async () => {
-    const [delegator, ...otherDelegators] = new Array(
+    const maxDelegationCount =
       context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
-        context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber()
-    )
+      context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
+    const [delegator, ...otherDelegators] = new Array(maxDelegationCount)
       .fill(0)
       .map(() => generateKeyringPair());
     newDelegator = delegator;
@@ -362,7 +361,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
           .joinCandidates(MIN_GLMR_STAKING, 1)
           .signAsync(baltathar),
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR, delegationCount++, 0)
+          .delegate(alith.address, MIN_GLMR_DELEGATOR, 0, 0)
           .signAsync(ethan),
       ])
     );
@@ -381,7 +380,8 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
       ])
     );
 
-    // fill all delegations, we split this into two blocks as it will not fit into one
+    // fill all delegations, we split this into two blocks as it will not fit into one.
+    // we use a maxDelegationCount here, since the transactions can come out of order.
     await expectOk(
       context.createBlock([
         context.polkadotApi.tx.parachainStaking
@@ -391,7 +391,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
           .slice(0, 150)
           .map((d) =>
             context.polkadotApi.tx.parachainStaking
-              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 1)
+              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
               .signAsync(d)
           ),
       ])
@@ -402,7 +402,7 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
           .slice(150)
           .map((d) =>
             context.polkadotApi.tx.parachainStaking
-              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 1)
+              .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 1)
               .signAsync(d)
           ),
       ])
