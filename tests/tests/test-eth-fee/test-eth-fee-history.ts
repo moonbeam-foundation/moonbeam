@@ -69,7 +69,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     await createBlocks(block_count, reward_percentiles, priority_fees, max_fee_per_gas);
     // give the backend some time to process the fee history. without this delay, it's possible to
     // call eth_feeHistory before the latest block has been processed.
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     let result = (
       await customWeb3Request(context.web3, "eth_feeHistory", ["0x2", "latest", reward_percentiles])
     ).result;
