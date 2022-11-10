@@ -103,7 +103,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
       context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address)
     );
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus: any = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(
       preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.provider.toString()
     ).to.equal(alith.address);

@@ -8,7 +8,6 @@ import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
-
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -17,9 +16,9 @@ interface BlockInfo {
   blockNum: number;
   hash: string;
   weights: {
-    normal: BN;
-    operational: BN;
-    mandatory: BN;
+    normal: BN | any;
+    operational: BN | any;
+    mandatory: BN | any;
   };
   extrinsics;
   events: FrameSystemEventRecord[];
@@ -104,7 +103,7 @@ describeSmokeSuite(
     // Normal class
     it("normal usage should be less than normal dispatch class limits", async function () {
       const overweight = blockInfoArray
-        .filter((a) => a.weights.normal.gt(blockLimits.normal))
+        .filter((a) => new BN(a.weights.normal.toString()).gt(blockLimits.normal))
         .map((a) => {
           debug(
             `Block #${a.blockNum} has weight ${Number(a.weights.normal)} which is above limit!`
@@ -122,7 +121,7 @@ describeSmokeSuite(
     // Operational class
     it("operational usage should be less than dispatch class limits", async function () {
       const overweight = blockInfoArray
-        .filter((a) => a.weights.operational.gt(blockLimits.operational))
+        .filter((a) => new BN(a.weights.operational.toString()).gt(blockLimits.operational))
         .map((a) => {
           debug(
             `Block #${a.blockNum} has weight ${Number(a.weights.operational)} which is above limit!`

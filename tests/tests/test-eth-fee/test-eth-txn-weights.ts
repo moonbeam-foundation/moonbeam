@@ -53,7 +53,7 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     let blockWeightsUsed = await apiAt.query.system.blockWeight();
     let normalWeight = blockWeightsUsed.normal;
 
-    expect(normalWeight.toBigInt()).to.equal(EXPECTED_WEIGHT);
+    expect(BigInt(normalWeight.toHex())).to.equal(EXPECTED_WEIGHT);
   });
 
   it("should correctly refund weight from excess gas_limit supplied", async function () {

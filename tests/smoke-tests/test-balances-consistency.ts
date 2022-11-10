@@ -241,11 +241,11 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
           )
       ),
       preimages
-        .filter((preimage) => preimage[1].unwrap().isAvailable)
+        .filter((preimage) => (preimage as any)[1].unwrap().isAvailable)
         .map((preimage) => ({
-          accountId: preimage[1].unwrap().asAvailable.provider.toHex(),
+          accountId: (preimage as any)[1].unwrap().asAvailable.provider.toHex(),
           reserved: {
-            preimage: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
+            preimage: (preimage as any)[1].unwrap().asAvailable.deposit.toBigInt(),
           },
         })),
       assets.map((asset) => ({

@@ -71,7 +71,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
     await context.createBlock(
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
-    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock((context.polkadotApi.tx.democracy as any).second(0, 1000));
   });
 
   it("should succeed", async function () {
@@ -113,7 +113,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
     await context.createBlock(
       context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
-    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock((context.polkadotApi.tx.democracy as any).second(0, 1000));
   });
 
   it("should end-up in a valid referendum", async function () {

@@ -17,7 +17,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
     const encodedHash = blake2AsHex(encodedProposal);
     await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus: any = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(preimageStatus.isSome).to.be.true;
     expect(preimageStatus.unwrap().isAvailable).to.eq(true, "Preimage should be available");
     expect(preimageStatus.unwrap().asAvailable.provider.toString()).to.equal(alith.address);
@@ -41,7 +41,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
 
     expect(error.name).to.equal("TooEarly");
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus: any = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(preimageStatus.isSome).to.be.true;
   });
 });
@@ -56,7 +56,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
 
     await context.createBlock(context.polkadotApi.tx.democracy.reapPreimage(encodedHash, 10000));
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus: any = await context.polkadotApi.query.democracy.preimages(encodedHash);
     expect(preimageStatus.isSome).to.be.true;
     expect(preimageStatus.unwrap().isAvailable).to.eq(true, "Preimage should be available");
     expect(preimageStatus.unwrap().asAvailable.provider.toString()).to.equal(alith.address);

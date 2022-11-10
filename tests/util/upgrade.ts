@@ -49,7 +49,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         let encodedHash = blake2AsHex(encodedProposal);
 
         // Check if already in governance
-        const preImageExists = await api.query.democracy.preimages(encodedHash);
+        const preImageExists = (await api.query.democracy.preimages(encodedHash)) as any;
         if (preImageExists.isSome && preImageExists.unwrap().isAvailable) {
           process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
         } else {
@@ -93,7 +93,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           )} kb])...`
         );
         await api.tx.sudo
-          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
+          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), "1")
           .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       }
