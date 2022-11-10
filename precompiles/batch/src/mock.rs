@@ -185,6 +185,6 @@ impl ExtBuilder {
 	}
 }
 
-pub fn balance(account: impl Into<MockAccount>) -> Balance {
+pub fn balance(account: impl Into<AccountId>) -> Balance {
 	pallet_balances::Pallet::<Runtime>::usable_balance(account.into())
 }

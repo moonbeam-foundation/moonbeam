@@ -267,8 +267,8 @@ fn update_reward_address_works() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 			// Assert storage is correctly moved
-			assert!(Crowdloan::accounts_payable(MockAccount::from(Alice)).is_none());
-			assert!(Crowdloan::accounts_payable(MockAccount::from(Charlie)).is_some());
+			assert!(Crowdloan::accounts_payable(AccountId::from(Alice)).is_none());
+			assert!(Crowdloan::accounts_payable(AccountId::from(Charlie)).is_some());
 		});
 }
 
