@@ -20,7 +20,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{ConstU64, EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize, StorePreimage},
+	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize, StorePreimage},
 	weights::Weight,
 };
 use frame_system::{EnsureRoot, EnsureSigned};

@@ -29,7 +29,7 @@ use pallet_evm::AddressMapping;
 use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
-use sp_runtime::traits::StaticLookup;
+use sp_runtime::traits::{Hash, StaticLookup};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
@@ -453,10 +453,32 @@ where
 	#[precompile::public("noteImminentPreimage(bytes)")]
 	#[precompile::public("note_imminent_preimage(bytes)")]
 	fn note_imminent_preimage(
-		_handle: &mut impl PrecompileHandle,
-		_encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
+		handle: &mut impl PrecompileHandle,
+		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		Err(revert("Deprecated"))
+		let encoded_proposal: Vec<u8> = encoded_proposal.into();
+
+		log::trace!(
+			target: "democracy-precompile",
+			"Noting imminent preimage {:?}", encoded_proposal
+		);
+
+		// To mimic imminent preimage behavior, we need to check whether the preimage
+		// has been requested
+		let proposal_hash = <Runtime as frame_system::Config>::Hashing::hash(&encoded_proposal);
+		if !<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
+			&proposal_hash.into(),
+		) {
+			return Err(revert("not imminent preimage (preimage not requested)"));
+		};
+
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = PreimageCall::<Runtime>::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {

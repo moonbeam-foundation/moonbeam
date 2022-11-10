@@ -938,7 +938,7 @@ fn delegate_works() {
 					.into(),
 				]
 			);
-			let aliceVoting = match pallet_democracy::VotingOf::<Runtime>::get(Alice) {
+			let alice_voting = match pallet_democracy::VotingOf::<Runtime>::get(Alice) {
 				Voting::Delegating {
 					balance,
 					target,
@@ -952,7 +952,7 @@ fn delegate_works() {
 			// Assert that the vote was recorded in storage
 			// Should check ReferendumInfoOf too, but can't because of private fields etc
 			assert_eq!(
-				aliceVoting,
+				alice_voting,
 				(
 					100,
 					Bob,
@@ -962,7 +962,7 @@ fn delegate_works() {
 				)
 			);
 
-			let bobVoting = match pallet_democracy::VotingOf::<Runtime>::get(Bob) {
+			let bob_voting = match pallet_democracy::VotingOf::<Runtime>::get(Bob) {
 				Voting::Direct {
 					votes,
 					delegations,
@@ -973,7 +973,7 @@ fn delegate_works() {
 
 			// Assert that the vote was recorded in storage
 			assert_eq!(
-				bobVoting,
+				bob_voting,
 				(
 					Default::default(),
 					pallet_democracy::Delegations {
@@ -1417,6 +1417,47 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 			}
 		}
 	}
+}
+
+#[test]
+fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			// Construct our dummy proposal and associated data
+			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
+			let dummy_bytes = dummy_preimage.clone();
+
+			// Construct input data to note preimage
+			let input = PCall::note_imminent_preimage {
+				encoded_proposal: dummy_bytes.into(),
+			}
+			.into();
+
+			// This call should not succeed because
+			assert_ok!(RuntimeCall::Evm(EvmCall::call {
+				source: Alice.into(),
+				target: Precompile.into(),
+				input,
+				value: U256::zero(), // No value sent in EVM
+				gas_limit: u64::max_value(),
+				max_fee_per_gas: 0.into(),
+				max_priority_fee_per_gas: Some(U256::zero()),
+				nonce: None, // Use the next nonce
+				access_list: Vec::new(),
+			})
+			.dispatch(RuntimeOrigin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![EvmEvent::ExecutedFailed {
+					address: Precompile.into()
+				}
+				.into()]
+			);
+		})
 }
 
 #[test]
