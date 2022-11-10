@@ -381,7 +381,7 @@
 		</span><span class="attribute">#[cfg(feature = <span class="string">&quot;xcm-support&quot;</span>)]
 		</span><span class="kw">type </span>MaintenanceDmpHandler: DmpMessageHandler;
 		<span class="doccomment">/// The executive hooks that will be used in normal operating mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		</span><span class="kw">type </span>NormalExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize&lt;<span class="self">Self</span>::BlockNumber&gt;
@@ -389,7 +389,7 @@
 			+ OnFinalize&lt;<span class="self">Self</span>::BlockNumber&gt;
 			+ OffchainWorker&lt;<span class="self">Self</span>::BlockNumber&gt;;
 		<span class="doccomment">/// The executive hooks that will be used in maintenance mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		</span><span class="kw">type </span>MaintenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize&lt;<span class="self">Self</span>::BlockNumber&gt;
