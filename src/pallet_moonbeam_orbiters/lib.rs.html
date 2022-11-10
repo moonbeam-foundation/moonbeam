@@ -563,9 +563,6 @@
 <span id="563">563</span>
 <span id="564">564</span>
 <span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -618,7 +615,7 @@
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
-	<span class="kw">use </span>frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
+	<span class="kw">use </span>frame_support::traits::{Currency, NamedReservableCurrency};
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
@@ -1102,25 +1099,22 @@
 			amount: BalanceOf&lt;T&gt;,
 		) -&gt; Weight {
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(orbiter) = OrbiterPerRound::&lt;T&gt;::take(pay_for_round, <span class="kw-2">&amp;</span>collator) {
-				<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_to_transfer) = T::Currency::withdraw(
-					<span class="kw-2">&amp;</span>collator,
-					amount,
-					frame_support::traits::WithdrawReasons::TRANSFER,
-					frame_support::traits::ExistenceRequirement::KeepAlive,
-				) {
-					<span class="kw">let </span>real_reward = amount_to_transfer.peek();
-					<span class="kw">if </span>T::Currency::resolve_into_existing(<span class="kw-2">&amp;</span>orbiter, amount_to_transfer).is_ok() {
-						<span class="self">Self</span>::deposit_event(Event::OrbiterRewarded {
-							account: orbiter,
-							rewards: real_reward,
-						});
-					}
+				<span class="kw">if </span>T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>orbiter, amount).is_ok() {
+					<span class="self">Self</span>::deposit_event(Event::OrbiterRewarded {
+						account: orbiter,
+						rewards: amount,
+					});
 				}
 				T::WeightInfo::distribute_rewards()
 			} <span class="kw">else </span>{
 				<span class="comment">// writes: take
 				</span>T::DbWeight::get().writes(<span class="number">1</span>)
 			}
+		}
+
+		<span class="doccomment">/// Check if an account is an orbiter account for a given round
+		</span><span class="kw">pub fn </span>is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -&gt; bool {
+			OrbiterPerRound::&lt;T&gt;::contains_key(for_round, <span class="kw-2">&amp;</span>collator)
 		}
 	}
 }

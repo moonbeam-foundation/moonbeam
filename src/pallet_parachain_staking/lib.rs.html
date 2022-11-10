@@ -1888,6 +1888,36 @@
 <span id="1888">1888</span>
 <span id="1889">1889</span>
 <span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2058,6 +2088,9 @@
 		<span class="doccomment">/// Handler to notify the runtime when a collator is paid.
 		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnCollatorPayout: OnCollatorPayout&lt;<span class="self">Self</span>::AccountId, BalanceOf&lt;<span class="self">Self</span>&gt;&gt;;
+		<span class="doccomment">/// Handler to distribute a collator&#39;s reward.
+		/// To use the default implementation of minting rewards, specify the type `()`.
+		</span><span class="kw">type </span>PayoutCollatorReward: PayoutCollatorReward&lt;<span class="self">Self</span>&gt;;
 		<span class="doccomment">/// Handler to notify the runtime when a new round begin.
 		/// If you don&#39;t need it, you can specify the type `()`.
 		</span><span class="kw">type </span>OnNewRound: OnNewRound;
@@ -3472,9 +3505,13 @@
 				<span class="kw">let </span>num_delegators = state.delegations.len();
 				<span class="kw">if </span>state.delegations.is_empty() {
 					<span class="comment">// solo collator with no delegators
-					</span><span class="self">Self</span>::mint(amt_due, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					</span>extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							amt_due,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							amt_due,
@@ -3485,9 +3522,13 @@
 					<span class="kw">let </span>commission = pct_due * collator_issuance;
 					amt_due = amt_due.saturating_sub(commission);
 					<span class="kw">let </span>collator_reward = (collator_pct * amt_due).saturating_add(commission);
-					<span class="self">Self</span>::mint(collator_reward, collator.clone());
-					extra_weight =
-						extra_weight.saturating_add(T::OnCollatorPayout::on_collator_payout(
+					extra_weight = extra_weight
+						.saturating_add(T::PayoutCollatorReward::payout_collator_reward(
+							paid_for_round,
+							collator.clone(),
+							collator_reward,
+						))
+						.saturating_add(T::OnCollatorPayout::on_collator_payout(
 							paid_for_round,
 							collator.clone(),
 							collator_reward,
@@ -3503,12 +3544,12 @@
 						<span class="kw">let </span>percent = Perbill::from_rational(amount, state.total);
 						<span class="kw">let </span>due = percent * amt_due;
 						<span class="kw">if </span>!due.is_zero() {
-							<span class="self">Self</span>::mint_and_compound(
+							extra_weight = extra_weight.saturating_add(<span class="self">Self</span>::mint_and_compound(
 								due,
 								auto_compound.clone(),
 								collator.clone(),
 								owner.clone(),
-							);
+							));
 						}
 					}
 				}
@@ -3699,7 +3740,7 @@
 		}
 
 		<span class="doccomment">/// Mint a specified reward amount to the beneficiary account. Emits the [Rewarded] event.
-		</span><span class="kw">fn </span>mint(amt: BalanceOf&lt;T&gt;, to: T::AccountId) {
+		</span><span class="kw">pub fn </span>mint(amt: BalanceOf&lt;T&gt;, to: T::AccountId) {
 			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) = T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>to, amt) {
 				<span class="self">Self</span>::deposit_event(Event::Rewarded {
 					account: to.clone(),
@@ -3708,16 +3749,32 @@
 			}
 		}
 
+		<span class="doccomment">/// Mint a specified reward amount to the collator&#39;s account. Emits the [Rewarded] event.
+		</span><span class="kw">pub fn </span>mint_collator_reward(
+			_paid_for_round: RoundIndex,
+			collator_id: T::AccountId,
+			amt: BalanceOf&lt;T&gt;,
+		) -&gt; Weight {
+			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) = T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>collator_id, amt) {
+				<span class="self">Self</span>::deposit_event(Event::Rewarded {
+					account: collator_id.clone(),
+					rewards: amount_transferred.peek(),
+				});
+			}
+			T::WeightInfo::mint_collator_reward()
+		}
+
 		<span class="doccomment">/// Mint and compound delegation rewards. The function mints the amount towards the
 		/// delegator and tries to compound a specified percent of it back towards the delegation.
 		/// If a scheduled delegation revoke exists, then the amount is only minted, and nothing is
 		/// compounded. Emits the [Compounded] event.
-		</span><span class="kw">fn </span>mint_and_compound(
+		</span><span class="kw">pub fn </span>mint_and_compound(
 			amt: BalanceOf&lt;T&gt;,
 			compound_percent: Percent,
 			candidate: T::AccountId,
 			delegator: T::AccountId,
-		) {
+		) -&gt; Weight {
+			<span class="kw">let </span><span class="kw-2">mut </span>weight = T::WeightInfo::mint_collator_reward();
 			<span class="kw">if let </span><span class="prelude-val">Ok</span>(amount_transferred) =
 				T::Currency::deposit_into_existing(<span class="kw-2">&amp;</span>delegator, amt.clone())
 			{
@@ -3728,7 +3785,7 @@
 
 				<span class="kw">let </span>compound_amount = compound_percent.mul_ceil(amount_transferred.peek());
 				<span class="kw">if </span>compound_amount.is_zero() {
-					<span class="kw">return</span>;
+					<span class="kw">return </span>weight;
 				}
 
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(err) = <span class="self">Self</span>::delegation_bond_more_without_event(
@@ -3742,8 +3799,9 @@
 								delegator,
 								err
 							);
-					<span class="kw">return</span>;
+					<span class="kw">return </span>weight;
 				};
+				weight = weight.saturating_add(T::WeightInfo::delegator_bond_more());
 
 				Pallet::&lt;T&gt;::deposit_event(Event::Compounded {
 					delegator,
@@ -3751,6 +3809,8 @@
 					amount: compound_amount.clone(),
 				});
 			};
+
+			weight
 		}
 	}
 

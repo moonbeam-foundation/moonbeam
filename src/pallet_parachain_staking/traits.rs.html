@@ -41,6 +41,29 @@
 <span id="41">41</span>
 <span id="42">42</span>
 <span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -59,29 +82,52 @@
 
 </span><span class="doccomment">//! traits for parachain-staking
 
-</span><span class="kw">pub trait </span>OnCollatorPayout&lt;AccountId, Balance&gt; {
+</span><span class="kw">use </span>frame_support::pallet_prelude::Weight;
+
+<span class="kw">pub trait </span>OnCollatorPayout&lt;AccountId, Balance&gt; {
 	<span class="kw">fn </span>on_collator_payout(
 		for_round: <span class="kw">crate</span>::RoundIndex,
 		collator_id: AccountId,
 		amount: Balance,
-	) -&gt; frame_support::pallet_prelude::Weight;
+	) -&gt; Weight;
 }
 <span class="kw">impl</span>&lt;AccountId, Balance&gt; OnCollatorPayout&lt;AccountId, Balance&gt; <span class="kw">for </span>() {
 	<span class="kw">fn </span>on_collator_payout(
 		_for_round: <span class="kw">crate</span>::RoundIndex,
 		_collator_id: AccountId,
 		_amount: Balance,
-	) -&gt; frame_support::pallet_prelude::Weight {
-		frame_support::pallet_prelude::Weight::zero()
+	) -&gt; Weight {
+		Weight::zero()
 	}
 }
 
 <span class="kw">pub trait </span>OnNewRound {
-	<span class="kw">fn </span>on_new_round(round_index: <span class="kw">crate</span>::RoundIndex) -&gt; frame_support::pallet_prelude::Weight;
+	<span class="kw">fn </span>on_new_round(round_index: <span class="kw">crate</span>::RoundIndex) -&gt; Weight;
 }
 <span class="kw">impl </span>OnNewRound <span class="kw">for </span>() {
-	<span class="kw">fn </span>on_new_round(_round_index: <span class="kw">crate</span>::RoundIndex) -&gt; frame_support::pallet_prelude::Weight {
-		frame_support::pallet_prelude::Weight::zero()
+	<span class="kw">fn </span>on_new_round(_round_index: <span class="kw">crate</span>::RoundIndex) -&gt; Weight {
+		Weight::zero()
+	}
+}
+
+<span class="doccomment">/// Defines the behavior to payout the collator&#39;s reward.
+</span><span class="kw">pub trait </span>PayoutCollatorReward&lt;Runtime: <span class="kw">crate</span>::Config&gt; {
+	<span class="kw">fn </span>payout_collator_reward(
+		round_index: <span class="kw">crate</span>::RoundIndex,
+		collator_id: Runtime::AccountId,
+		amount: <span class="kw">crate</span>::BalanceOf&lt;Runtime&gt;,
+	) -&gt; Weight;
+}
+
+<span class="doccomment">/// Defines the default behavior for paying out the collator&#39;s reward. The amount is directly
+/// deposited into the collator&#39;s account.
+</span><span class="kw">impl</span>&lt;Runtime: <span class="kw">crate</span>::Config&gt; PayoutCollatorReward&lt;Runtime&gt; <span class="kw">for </span>() {
+	<span class="kw">fn </span>payout_collator_reward(
+		for_round: <span class="kw">crate</span>::RoundIndex,
+		collator_id: Runtime::AccountId,
+		amount: <span class="kw">crate</span>::BalanceOf&lt;Runtime&gt;,
+	) -&gt; Weight {
+		<span class="kw">crate</span>::Pallet::&lt;Runtime&gt;::mint_collator_reward(for_round, collator_id, amount)
 	}
 }
 </code></pre></div>

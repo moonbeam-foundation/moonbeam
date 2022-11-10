@@ -951,6 +951,22 @@
 <span id="951">951</span>
 <span id="952">952</span>
 <span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1076,6 +1092,8 @@
 	</span><span class="kw">fn </span>set_auto_compound(x: u32, y: u32, ) -&gt; Weight;
 	<span class="attribute">#[rustfmt::skip]
 	</span><span class="kw">fn </span>delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -&gt; Weight;
+	<span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>mint_collator_reward() -&gt; Weight;
 }
 
 <span class="doccomment">/// Weights for parachain_staking using the Substrate node and recommended hardware.
@@ -1490,6 +1508,13 @@
 			.saturating_add(T::DbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
 			.saturating_add(T::DbWeight::get().writes(<span class="number">8 </span><span class="kw">as </span>u64))
 	}
+	<span class="comment">// Storage: System Account (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>mint_collator_reward() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">37_241_000 </span><span class="kw">as </span>u64)
+			.saturating_add(T::DbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(T::DbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
+	}
 }
 
 <span class="comment">// For backwards compatibility and tests
@@ -1902,6 +1927,13 @@
 			</span>.saturating_add(Weight::from_ref_time(<span class="number">71_000 </span><span class="kw">as </span>u64).saturating_mul(y <span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().reads(<span class="number">8 </span><span class="kw">as </span>u64))
 			.saturating_add(RocksDbWeight::get().writes(<span class="number">8 </span><span class="kw">as </span>u64))
+	}
+	<span class="comment">// Storage: System Account (r:1 w:1)
+	</span><span class="attribute">#[rustfmt::skip]
+	</span><span class="kw">fn </span>mint_collator_reward() -&gt; Weight {
+		Weight::from_ref_time(<span class="number">37_241_000 </span><span class="kw">as </span>u64)
+			.saturating_add(RocksDbWeight::get().reads(<span class="number">1 </span><span class="kw">as </span>u64))
+			.saturating_add(RocksDbWeight::get().writes(<span class="number">1 </span><span class="kw">as </span>u64))
 	}
 }
 </code></pre></div>
