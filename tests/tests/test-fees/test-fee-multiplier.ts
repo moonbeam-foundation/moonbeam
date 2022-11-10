@@ -99,14 +99,12 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     let fillAmount = 600_000_000; // equal to 60% Perbill
 
     const { block, result } = await context.createBlock(
-      context.polkadotApi.tx.system.fillBlock(fillAmount));
+      context.polkadotApi.tx.system.fillBlock(fillAmount)
+    );
 
     // grab the first withdraw event and hope it's the right one...
-    const withdrawEvent = result.events
-      .filter(({ event }) => event.method == "Withdraw")
-      [0];
+    const withdrawEvent = result.events.filter(({ event }) => event.method == "Withdraw")[0];
     let amount = (withdrawEvent.event.data as any).amount.toBigInt();
     expect(amount).to.equal(1_500_000_012_598_000_941_192n);
-
   });
 });
