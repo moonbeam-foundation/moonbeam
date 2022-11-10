@@ -141,6 +141,7 @@ impl Config for Test {
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
+	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }

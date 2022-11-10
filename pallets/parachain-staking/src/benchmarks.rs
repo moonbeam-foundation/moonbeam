@@ -1258,6 +1258,23 @@ benchmarks! {
 			"delegation must have an auto-compound entry",
 		);
 	}
+
+	mint_collator_reward {
+		let mut seed = Seed::new();
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			0u32.into(),
+			true,
+			1,
+		)?;
+		let original_free_balance = T::Currency::free_balance(&collator);
+	}: {
+		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+	}
+	verify {
+		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
+	}
 }
 
 #[cfg(test)]
