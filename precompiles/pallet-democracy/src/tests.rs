@@ -18,7 +18,7 @@ use crate::{
 	mock::{
 		events, roll_to, set_balance_proposal,
 		Account::{self, Alice, Bob, Charlie, Precompile},
-		Balances, Democracy, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime,
+		Balances, Democracy, ExtBuilder, PCall, Precompiles, PrecompilesValue, Preimage, Runtime,
 		RuntimeCall, RuntimeOrigin,
 	},
 	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
@@ -27,7 +27,7 @@ use crate::{
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
-	traits::{Currency, StorePreimage},
+	traits::{Currency, PreimageProvider, QueryPreimage, StorePreimage},
 };
 use pallet_balances::Event as BalancesEvent;
 use pallet_preimage::Event as PreimageEvent;
@@ -37,7 +37,6 @@ use pallet_democracy::{
 	VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use pallet_preimage::Call as PreimageCall;
 use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::{H160, H256, U256};
 use std::{convert::TryInto, str::from_utf8};
@@ -1146,7 +1145,7 @@ fn unlock_with_nothing_locked() {
 			);
 		})
 }
-/*
+
 #[test]
 fn note_preimage_works() {
 	ExtBuilder::default()
@@ -1160,8 +1159,9 @@ fn note_preimage_works() {
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
 				);
-			let expected_deposit =
-				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+			let expected_deposit = (crate::mock::ByteDeposit::get() as u128
+				* (dummy_preimage.len() as u128))
+				.saturating_add(crate::mock::BaseDeposit::get() as u128);
 
 			// Construct input data to note preimage
 			let input = PCall::note_preimage {
@@ -1170,7 +1170,7 @@ fn note_preimage_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call {
+			assert_ok!(RuntimeCall::Evm(EvmCall::call {
 				source: Alice.into(),
 				target: Precompile.into(),
 				input,
@@ -1192,10 +1192,8 @@ fn note_preimage_works() {
 						amount: expected_deposit
 					}
 					.into(),
-					DemocracyEvent::PreimageNoted {
-						proposal_hash,
-						who: Alice,
-						deposit: expected_deposit
+					PreimageEvent::Noted {
+						hash: proposal_hash
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -1205,28 +1203,30 @@ fn note_preimage_works() {
 				]
 			);
 
-			// Check storage to make sure the data is actually stored there.
-			// There is no `Eq` implementation, so we check the data individually
-			if let PreimageStatus::Available {
-				data,
-				provider,
-				deposit,
-				expiry,
-				..
-			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
-			{
-				assert_eq!(data, dummy_preimage);
-				assert_eq!(provider, Alice);
-				assert_eq!(deposit, 40u128);
-				assert_eq!(expiry, None);
-			} else {
-				panic!("Expected preimage status to be available");
-			}
+			// Storage is private so we need to check information through traits
+			let len = <<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::len(
+				&proposal_hash,
+			)
+			.unwrap();
+
+			assert_eq!(len, dummy_preimage.len() as u32);
+
+			let requested =
+				<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
+					&proposal_hash,
+				);
+
+			// preimage not requested yet
+			assert!(!requested,);
+
+			let preimage =
+				<Preimage as PreimageProvider<H256>>::get_preimage(&proposal_hash).unwrap();
+
+			// preimage bytes are stored correctly
+			assert_eq!(preimage, dummy_preimage);
 		})
 }
-*/
 
-/*
 #[test]
 fn note_preimage_works_with_real_data() {
 	ExtBuilder::default()
@@ -1241,8 +1241,9 @@ fn note_preimage_works_with_real_data() {
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
 				);
-			let expected_deposit =
-				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+			let expected_deposit = (crate::mock::ByteDeposit::get() as u128
+				* (dummy_preimage.len() as u128))
+				.saturating_add(crate::mock::BaseDeposit::get() as u128);
 
 			// Assert that the hash is as expected from TS tests
 			assert_eq!(
@@ -1259,7 +1260,7 @@ fn note_preimage_works_with_real_data() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(EvmCall::call {
+			assert_ok!(RuntimeCall::Evm(EvmCall::call {
 				source: Alice.into(),
 				target: Precompile.into(),
 				input,
@@ -1281,10 +1282,8 @@ fn note_preimage_works_with_real_data() {
 						amount: expected_deposit
 					}
 					.into(),
-					DemocracyEvent::PreimageNoted {
-						proposal_hash,
-						who: Alice,
-						deposit: expected_deposit
+					PreimageEvent::Noted {
+						hash: proposal_hash
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -1294,28 +1293,30 @@ fn note_preimage_works_with_real_data() {
 				]
 			);
 
-			// Check storage to make sure the data is actually stored there.
-			// There is no `Eq` implementation, so we check the data individually
-			if let PreimageStatus::Available {
-				data,
-				provider,
-				deposit,
-				expiry,
-				..
-			} = pallet_democracy::Preimages::<Runtime>::get(proposal_hash).unwrap()
-			{
-				assert_eq!(data, dummy_preimage);
-				assert_eq!(provider, Alice);
-				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
-				assert_eq!(expiry, None);
-			} else {
-				panic!("Expected preimage status to be available");
-			}
+			// Storage is private so we need to check information through traits
+			let len = <<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::len(
+				&proposal_hash,
+			)
+			.unwrap();
+
+			assert_eq!(len, dummy_preimage.len() as u32);
+
+			let requested =
+				<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
+					&proposal_hash,
+				);
+
+			// preimage not requested yet
+			assert!(!requested,);
+
+			let preimage =
+				<Preimage as PreimageProvider<H256>>::get_preimage(&proposal_hash).unwrap();
+
+			// preimage bytes are stored correctly
+			assert_eq!(preimage, dummy_preimage);
 		})
 }
-*/
 
-/*
 #[test]
 fn cannot_note_duplicate_preimage() {
 	ExtBuilder::default()
@@ -1329,8 +1330,9 @@ fn cannot_note_duplicate_preimage() {
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
 				);
-			let expected_deposit =
-				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
+			let expected_deposit = (crate::mock::ByteDeposit::get() as u128
+				* (dummy_preimage.len() as u128))
+				.saturating_add(crate::mock::BaseDeposit::get() as u128);
 
 			// Construct input data to note preimage
 			let input: Vec<_> = PCall::note_preimage {
@@ -1375,10 +1377,8 @@ fn cannot_note_duplicate_preimage() {
 						amount: expected_deposit
 					}
 					.into(),
-					DemocracyEvent::PreimageNoted {
-						proposal_hash,
-						who: Alice,
-						deposit: expected_deposit
+					PreimageEvent::Noted {
+						hash: proposal_hash
 					}
 					.into(),
 					EvmEvent::Executed {
@@ -1393,50 +1393,7 @@ fn cannot_note_duplicate_preimage() {
 			);
 		})
 }
-*/
 
-/*
-#[test]
-fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
-		.build()
-		.execute_with(|| {
-			// Construct our dummy proposal and associated data
-			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
-			let dummy_bytes = dummy_preimage.clone();
-
-			// Construct input data to note preimage
-			let input = PCall::note_imminent_preimage {
-				encoded_proposal: dummy_bytes.into(),
-			}
-			.into();
-
-			// This call should not succeed because
-			assert_ok!(RuntimeCall::Evm(EvmCall::call {
-				source: Alice.into(),
-				target: Precompile.into(),
-				input,
-				value: U256::zero(), // No value sent in EVM
-				gas_limit: u64::max_value(),
-				max_fee_per_gas: 0.into(),
-				max_priority_fee_per_gas: Some(U256::zero()),
-				nonce: None, // Use the next nonce
-				access_list: Vec::new(),
-			})
-			.dispatch(RuntimeOrigin::root()));
-
-			// Assert that the events are as expected
-			assert_eq!(
-				events(),
-				vec![EvmEvent::ExecutedFailed {
-					address: Precompile.into()
-				}
-				.into()]
-			);
-		})
-}
-*/
 #[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["DemocracyInterface.sol"] {

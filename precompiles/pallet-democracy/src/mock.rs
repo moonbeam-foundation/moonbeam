@@ -257,8 +257,8 @@ impl pallet_scheduler::Config for Runtime {
 }
 
 parameter_types! {
-	pub const BaseDeposit: u64 = 0;
-	pub const ByteDeposit: u64 = 0;
+	pub const BaseDeposit: u64 = 10;
+	pub const ByteDeposit: u64 = 10;
 }
 
 impl pallet_preimage::Config for Runtime {
