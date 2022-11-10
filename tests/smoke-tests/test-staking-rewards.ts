@@ -1,7 +1,7 @@
 import "@polkadot/api-augment";
 import "@moonbeam-network/api-augment";
 import { BN, BN_BILLION } from "@polkadot/util";
-import { u128, u32 } from "@polkadot/types";
+import { u128, u32, StorageKey } from "@polkadot/types";
 import { ApiPromise } from "@polkadot/api";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -9,6 +9,8 @@ import { HexString } from "@polkadot/util/types";
 import {
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegator,
+  PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingBond,
 } from "@polkadot/types/lookup";
 import { ApiDecoration } from "@polkadot/api/types";
 import Bottleneck from "bottleneck";
@@ -18,7 +20,7 @@ import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
 
 describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (context) {
-  let atStakeSnapshot;
+  let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
   let apiAt: ApiDecoration<"promise">;
   let predecessorApiAt: ApiDecoration<"promise">;
 
@@ -62,7 +64,9 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
     const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
     expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
-    const extras = atStakeSnapshot.filter((item) => selectedCandidates.some((a) => item == a));
+    const extras = atStakeSnapshot.filter((item) =>
+      selectedCandidates.some((a) => item[0].args[1] == a)
+    );
     expect(atStakeSnapshot.length).to.be.equal(selectedCandidates.length);
     expect(
       extras,
@@ -203,15 +207,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
 
     // RPC endpoints roughly rate limit to 10 queries a second
     const delegationCount = atStakeSnapshot
-      .map((coll) => {
-        const [
-          {
-            args: [_, accountId],
-          },
-          { bond, total, delegations },
-        ] = coll;
-        return delegations.length;
-      })
+      .map(([_, { delegations }]) => delegations.length)
       .reduce((acc, curr) => acc + curr, 0);
     const estimatedTime = ((delegationCount + atStakeSnapshot.length) / 600).toFixed(2);
     debug(
@@ -257,7 +253,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
     // Function to check a single Delegator's delegation to a collator
     const checkDelegatorAutocompound = async (
       collatorId: AccountId20,
-      delegatorSnapshot,
+      delegatorSnapshot: PalletParachainStakingBond | any,
       autoCompoundPrefs: any[]
     ) => {
       const autoCompoundQuery = autoCompoundPrefs.find(
@@ -287,29 +283,29 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
 
     debug(`Gathering snapshot query requests for ${atStakeSnapshot.length} collators.`);
     const promises = atStakeSnapshot
-      .map(async (coll) => {
-        const [
+      .map(
+        async ([
           {
             args: [_, accountId],
           },
-          { bond, total, delegations },
-        ] = coll;
+          { delegations },
+        ]) => {
+          const autoCompoundPrefs = (await limiter.schedule(() =>
+            predecessorApiAt.query.parachainStaking.autoCompoundingDelegations(accountId)
+          )) as any;
 
-        const autoCompoundPrefs = (await limiter.schedule(() =>
-          predecessorApiAt.query.parachainStaking.autoCompoundingDelegations(accountId)
-        )) as any;
-
-        return delegations.map((delegation) =>
-          checkDelegatorAutocompound(accountId, delegation, autoCompoundPrefs)
-        );
-      })
+          return delegations.map((delegation) =>
+            checkDelegatorAutocompound(accountId, delegation, autoCompoundPrefs)
+          );
+        }
+      )
       .flatMap((a) => a);
 
     // RPC endpoints roughly rate limit to 10 queries a second
     const estimatedTime = (promises.length / 600).toFixed(2);
     debug("Verifying autoCompound preferences, estimated time " + estimatedTime + " mins.");
 
-    const results = await Promise.all(promises);
+    const results: any = await Promise.all(promises);
     const mismatches = results.filter((item) => item.match == false);
     expect(
       mismatches,
