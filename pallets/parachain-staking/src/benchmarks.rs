@@ -19,13 +19,14 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest,
+	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
+	Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::RawOrigin;
 use sp_runtime::{Perbill, Percent};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
 fn min_candidate_stk<T: Config>() -> BalanceOf<T> {
@@ -845,152 +846,119 @@ benchmarks! {
 
 	// ON_INITIALIZE
 
-	round_transition_on_initialize {
-		// TOTAL SELECTED COLLATORS PER ROUND
-		let x in 8..100;
-		// DELEGATIONS
-		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 100);
-		let max_delegators_per_collator =
-			<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
-		let max_delegations = x * max_delegators_per_collator;
-		// y should depend on x but cannot directly, we overwrite y here if necessary to bound it
-		let total_delegations: u32 = if max_delegations < y { max_delegations } else { y };
-		// INITIALIZE RUNTIME STATE
+	prepare_staking_payouts {
+		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get();
+		let round = reward_delay + 2u32;
+		let payout_round = round - reward_delay;
+		// may need:
+		//  <Points<T>>
+		//  <Staked<T>>
+		//  <ParachainBondInfo<T>>
+		//  ensure parachain bond account exists so that deposit_into_existing succeeds
+		<Points<T>>::insert(payout_round, 100);
+		<Staked<T>>::insert(payout_round, min_candidate_stk::<T>());
+
+		// set an account in the bond config so that we will measure the payout to it
+		let account = create_funded_user::<T>(
+			"parachain_bond",
+			0,
+			min_candidate_stk::<T>(),
+		).0;
+		<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			account,
+			percent: Percent::from_percent(50),
+		});
+
+	}: { Pallet::<T>::prepare_staking_payouts(round); }
+	verify {
+	}
+
+	get_rewardable_delegators {
+		let y in 0..50; // num delegators
+
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
 			ideal: Perbill::one(),
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		// To set total selected to 40, must first increase round length to at least 40
-		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
-		// INITIALIZE COLLATOR STATE
-		let mut collators: Vec<T::AccountId> = Vec::new();
-		let mut collator_count = 1u32;
-		for i in 0..x {
-			let seed = USER_SEED - i;
+
+		let collator = create_funded_collator::<T>(
+			"collator",
+			0,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			1,
+		)?;
+
+		// create delegators
+		for i in 0..y {
+			let seed = USER_SEED + i + 1;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				collator.clone(),
+				true,
+				i,
+			)?;
+		}
+
+		let mut _results = None;
+
+	}: { _results = Some(Pallet::<T>::get_rewardable_delegators(&collator)); }
+	verify {
+		let counted_delegations = _results.expect("get_rewardable_delegators returned some results");
+		assert!(counted_delegations.uncounted_stake == 0u32.into());
+		assert!(counted_delegations.rewardable_delegations.len() as u32 == y);
+		let top_delegations = <TopDelegations<T>>::get(collator.clone())
+			.expect("delegations were set for collator through delegate() calls");
+		assert!(top_delegations.delegations.len() as u32 == y);
+	}
+
+	select_top_candidates {
+		let x in 0..50; // num collators
+		let y in 0..50; // num delegators
+
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
+
+		let mut seed = USER_SEED + 1;
+
+		for _ in 0..x {
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
-				collator_count
+				999999,
 			)?;
-			collators.push(collator);
-			collator_count += 1u32;
-		}
-		// STORE starting balances for all collators
-		let collator_starting_balances: Vec<(
-			T::AccountId,
-			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
-		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
-		// INITIALIZE DELEGATIONS
-		let mut col_del_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
-		collators.iter().for_each(|x| {
-			col_del_count.insert(x.clone(), 0u32);
-		});
-		let mut delegators: Vec<T::AccountId> = Vec::new();
-		let mut remaining_delegations = if total_delegations > max_delegators_per_collator {
-			for j in 1..(max_delegators_per_collator + 1) {
-				let seed = USER_SEED + j;
+			seed += 1;
+
+			// create delegators
+			for _ in 0..y {
 				let delegator = create_funded_delegator::<T>(
 					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
-					collators[0].clone(),
+					collator.clone(),
 					true,
-					delegators.len() as u32,
+					9999999,
 				)?;
-				delegators.push(delegator);
-			}
-			total_delegations - max_delegators_per_collator
-		} else {
-			for j in 1..(total_delegations + 1) {
-				let seed = USER_SEED + j;
-				let delegator = create_funded_delegator::<T>(
-					"delegator",
-					seed,
-					min_candidate_stk::<T>() * 1_000_000u32.into(),
-					collators[0].clone(),
-					true,
-					delegators.len() as u32,
-				)?;
-				delegators.push(delegator);
-			}
-			0u32
-		};
-		col_del_count.insert(collators[0].clone(), delegators.len() as u32);
-		// FILL remaining delegations
-		if remaining_delegations > 0 {
-			for (col, n_count) in col_del_count.iter_mut() {
-				if n_count < &mut (delegators.len() as u32) {
-					// assumes delegators.len() <= MaxTopDelegationsPerCandidate
-					let mut open_spots = delegators.len() as u32 - *n_count;
-					while open_spots > 0 && remaining_delegations > 0 {
-						let caller = delegators[open_spots as usize - 1usize].clone();
-						if let Ok(_) = Pallet::<T>::delegate(RawOrigin::Signed(
-							caller.clone()).into(),
-							col.clone(),
-							<<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get(),
-							*n_count,
-							collators.len() as u32, // overestimate
-						) {
-							*n_count += 1;
-							remaining_delegations -= 1;
-						}
-						open_spots -= 1;
-					}
-				}
-				if remaining_delegations == 0 {
-					break;
-				}
+				seed += 1;
 			}
 		}
-		// STORE starting balances for all delegators
-		let delegator_starting_balances: Vec<(
-			T::AccountId,
-			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
-		)> = delegators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
-		// PREPARE RUN_TO_BLOCK LOOP
-		let before_running_round_index = Pallet::<T>::round().current;
-		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
-		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get() + 2u32;
-		let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-		let mut counter = 0usize;
-		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
-		// SET collators as authors for blocks from now - end
-		while now < end {
-			let author = collators[counter % collators.len()].clone();
-			parachain_staking_on_finalize::<T>(author);
-			<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
-			<frame_system::Pallet<T>>::set_block_number(
-				<frame_system::Pallet<T>>::block_number() + 1u32.into()
-			);
-			<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
-			Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
-			now += 1u32.into();
-			counter += 1usize;
-		}
-		parachain_staking_on_finalize::<T>(collators[counter % collators.len()].clone());
-		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
-		<frame_system::Pallet<T>>::set_block_number(
-			<frame_system::Pallet<T>>::block_number() + 1u32.into()
-		);
-		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
-	}: { Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number()); }
+
+	}: { Some(Pallet::<T>::select_top_candidates(1)); }
 	verify {
-		// Collators have been paid
-		for (col, initial) in collator_starting_balances {
-			assert!(T::Currency::free_balance(&col) > initial);
-		}
-		// Nominators have been paid
-		for (col, initial) in delegator_starting_balances {
-			assert!(T::Currency::free_balance(&col) > initial);
-		}
-		// Round transitions
-		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 
 	pay_one_collator_reward {
@@ -1068,7 +1036,8 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+		// TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid));
 	}
 	verify {
 		// collator should have been paid

@@ -62,6 +62,8 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 								Some(transaction) => match transaction {
 									// Tracing a block, all calls are done using environmental.
 									EthereumXcmTracingStatus::Block => {
+										// Each known extrinsic is a new call stack.
+										EvmTracer::emit_new();
 										let mut res: Option<CallResult> = None;
 										EvmTracer::new().trace(|| {
 											res = Some(dispatch_call());

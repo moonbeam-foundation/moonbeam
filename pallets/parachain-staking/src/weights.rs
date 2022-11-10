@@ -110,6 +110,12 @@ pub trait WeightInfo {
 	#[rustfmt::skip]
 	fn round_transition_on_initialize(x: u32, y: u32, ) -> Weight;
 	#[rustfmt::skip]
+	fn prepare_staking_payouts() -> Weight;
+	#[rustfmt::skip]
+	fn get_rewardable_delegators(y: u32, ) -> Weight;
+	#[rustfmt::skip]
+	fn select_top_candidates(x: u32, y: u32, ) -> Weight;
+	#[rustfmt::skip]
 	fn pay_one_collator_reward(y: u32, ) -> Weight;
 	#[rustfmt::skip]
 	fn base_on_initialize() -> Weight;
@@ -436,6 +442,48 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(180 as u64))
 			.saturating_add(T::DbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
 			.saturating_add(T::DbWeight::get().writes(171 as u64))
+			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
+	}
+	// Storage: ParachainStaking Points (r:1 w:0)
+	// Storage: ParachainStaking Staked (r:1 w:1)
+	// Storage: ParachainStaking InflationConfig (r:1 w:0)
+	// Storage: ParachainStaking ParachainBondInfo (r:1 w:0)
+	// Storage: System Account (r:1 w:1)
+	// Storage: ParachainStaking CollatorCommission (r:1 w:0)
+	// Storage: ParachainStaking DelayedPayouts (r:0 w:1)
+	#[rustfmt::skip]
+	fn prepare_staking_payouts() -> Weight {
+		Weight::from_ref_time(51_517_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().writes(3 as u64))
+	}
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
+	// Storage: ParachainStaking TopDelegations (r:1 w:0)
+	#[rustfmt::skip]
+	fn get_rewardable_delegators(y: u32, ) -> Weight {
+		Weight::from_ref_time(11_276_000 as u64)
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(198_000 as u64).saturating_mul(y as u64))
+			.saturating_add(T::DbWeight::get().reads(2 as u64))
+	}
+	// Storage: ParachainStaking CandidatePool (r:1 w:0)
+	// Storage: ParachainStaking TotalSelected (r:1 w:0)
+	// Storage: ParachainStaking CandidateInfo (r:1 w:0)
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
+	// Storage: ParachainStaking TopDelegations (r:1 w:0)
+	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:0)
+	// Storage: ParachainStaking SelectedCandidates (r:0 w:1)
+	// Storage: ParachainStaking AtStake (r:0 w:1)
+	#[rustfmt::skip]
+	fn select_top_candidates(x: u32, y: u32, ) -> Weight {
+		Weight::from_ref_time(0 as u64)
+			// Standard Error: 90_000
+			.saturating_add(Weight::from_ref_time(19_130_000 as u64).saturating_mul(x as u64))
+			// Standard Error: 90_000
+			.saturating_add(Weight::from_ref_time(6_041_000 as u64).saturating_mul(y as u64))
+			.saturating_add(T::DbWeight::get().reads(6 as u64))
+			.saturating_add(T::DbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
+			.saturating_add(T::DbWeight::get().writes(2 as u64))
 			.saturating_add(T::DbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
 	}
 	// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
@@ -807,6 +855,48 @@ impl WeightInfo for () {
 			.saturating_add(RocksDbWeight::get().reads(180 as u64))
 			.saturating_add(RocksDbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
 			.saturating_add(RocksDbWeight::get().writes(171 as u64))
+			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
+	}
+	// Storage: ParachainStaking Points (r:1 w:0)
+	// Storage: ParachainStaking Staked (r:1 w:1)
+	// Storage: ParachainStaking InflationConfig (r:1 w:0)
+	// Storage: ParachainStaking ParachainBondInfo (r:1 w:0)
+	// Storage: System Account (r:1 w:1)
+	// Storage: ParachainStaking CollatorCommission (r:1 w:0)
+	// Storage: ParachainStaking DelayedPayouts (r:0 w:1)
+	#[rustfmt::skip]
+	fn prepare_staking_payouts() -> Weight {
+		Weight::from_ref_time(51_517_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().writes(3 as u64))
+	}
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
+	// Storage: ParachainStaking TopDelegations (r:1 w:0)
+	#[rustfmt::skip]
+	fn get_rewardable_delegators(y: u32, ) -> Weight {
+		Weight::from_ref_time(11_276_000 as u64)
+			// Standard Error: 4_000
+			.saturating_add(Weight::from_ref_time(198_000 as u64).saturating_mul(y as u64))
+			.saturating_add(RocksDbWeight::get().reads(2 as u64))
+	}
+	// Storage: ParachainStaking CandidatePool (r:1 w:0)
+	// Storage: ParachainStaking TotalSelected (r:1 w:0)
+	// Storage: ParachainStaking CandidateInfo (r:1 w:0)
+	// Storage: ParachainStaking DelegationScheduledRequests (r:1 w:0)
+	// Storage: ParachainStaking TopDelegations (r:1 w:0)
+	// Storage: ParachainStaking AutoCompoundingDelegations (r:1 w:0)
+	// Storage: ParachainStaking SelectedCandidates (r:0 w:1)
+	// Storage: ParachainStaking AtStake (r:0 w:1)
+	#[rustfmt::skip]
+	fn select_top_candidates(x: u32, y: u32, ) -> Weight {
+		Weight::from_ref_time(0 as u64)
+			// Standard Error: 90_000
+			.saturating_add(Weight::from_ref_time(19_130_000 as u64).saturating_mul(x as u64))
+			// Standard Error: 90_000
+			.saturating_add(Weight::from_ref_time(6_041_000 as u64).saturating_mul(y as u64))
+			.saturating_add(RocksDbWeight::get().reads(6 as u64))
+			.saturating_add(RocksDbWeight::get().reads((4 as u64).saturating_mul(x as u64)))
+			.saturating_add(RocksDbWeight::get().writes(2 as u64))
 			.saturating_add(RocksDbWeight::get().writes((1 as u64).saturating_mul(x as u64)))
 	}
 	// Storage: ParachainStaking DelayedPayouts (r:1 w:0)
