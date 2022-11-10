@@ -1883,6 +1883,11 @@
 <span id="1883">1883</span>
 <span id="1884">1884</span>
 <span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3272,6 +3277,17 @@
 		}
 	}
 
+	<span class="doccomment">/// Represents a payout made via `pay_one_collator_reward`.
+	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum </span>RewardPayment {
+		<span class="doccomment">/// A collator was paid
+		</span>Paid,
+		<span class="doccomment">/// A collator was skipped for payment. This can happen if they haven&#39;t been awarded any
+		/// points, that is, they did not produce any blocks.
+		</span>Skipped,
+		<span class="doccomment">/// All collator payments have been processed.
+		</span>Finished,
+	}
+
 	<span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
 		<span class="kw">pub fn </span>is_delegator(acc: <span class="kw-2">&amp;</span>T::AccountId) -&gt; bool {
 			&lt;DelegatorState&lt;T&gt;&gt;::get(acc).is_some()
@@ -3403,23 +3419,14 @@
 
 			<span class="kw">if let </span><span class="prelude-val">Some</span>(payout_info) = &lt;DelayedPayouts&lt;T&gt;&gt;::get(paid_for_round) {
 				<span class="kw">let </span>result = <span class="self">Self</span>::pay_one_collator_reward(paid_for_round, payout_info);
-				<span class="kw">if </span>result.<span class="number">0</span>.is_none() {
-					<span class="comment">// result.0 indicates whether or not a payout was made
-					// clean up storage items that we no longer need
-					</span>&lt;DelayedPayouts&lt;T&gt;&gt;::remove(paid_for_round);
-					&lt;Points&lt;T&gt;&gt;::remove(paid_for_round);
 
-					<span class="comment">// remove all candidates that did not produce any blocks for
-					// the given round. The weight is added based on the number of backend
-					// items removed.
-					</span><span class="kw">let </span>remove_result = &lt;AtStake&lt;T&gt;&gt;::clear_prefix(paid_for_round, <span class="number">20</span>, <span class="prelude-val">None</span>);
-					result
-						.<span class="number">1
-						</span>.saturating_add(T::DbWeight::get().writes(remove_result.backend <span class="kw">as </span>u64))
-				} <span class="kw">else </span>{
-					result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
-				</span>}
-			} <span class="kw">else </span>{
+				<span class="comment">// clean up storage items that we no longer need
+				</span><span class="kw">if </span><span class="macro">matches!</span>(result.<span class="number">0</span>, RewardPayment::Finished) {
+					&lt;DelayedPayouts&lt;T&gt;&gt;::remove(paid_for_round);
+					&lt;Points&lt;T&gt;&gt;::remove(paid_for_round);
+				}
+				result.<span class="number">1 </span><span class="comment">// weight consumed by pay_one_collator_reward
+			</span>} <span class="kw">else </span>{
 				Weight::from_ref_time(<span class="number">0u64</span>)
 			}
 		}
@@ -3431,7 +3438,7 @@
 		</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>pay_one_collator_reward(
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout&lt;BalanceOf&lt;T&gt;&gt;,
-		) -&gt; (<span class="prelude-ty">Option</span>&lt;(T::AccountId, BalanceOf&lt;T&gt;)&gt;, Weight) {
+		) -&gt; (RewardPayment, Weight) {
 			<span class="comment">// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage
 			// item so that we do fewer reads each block
 			</span><span class="kw">let </span>total_points = &lt;Points&lt;T&gt;&gt;::get(paid_for_round);
@@ -3442,22 +3449,25 @@
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
 				</span><span class="macro">log::warn!</span>(<span class="string">&quot;pay_one_collator_reward called with no &lt;Points&lt;T&gt;&gt; for the round!&quot;</span>);
-				<span class="kw">return </span>(<span class="prelude-val">None</span>, Weight::zero());
+				<span class="kw">return </span>(RewardPayment::Finished, Weight::zero());
 			}
 
 			<span class="kw">let </span>collator_fee = payout_info.collator_commission;
 			<span class="kw">let </span>collator_issuance = collator_fee * payout_info.round_issuance;
 
-			<span class="kw">if let </span><span class="prelude-val">Some</span>((collator, pts)) =
-				&lt;AwardedPts&lt;T&gt;&gt;::iter_prefix(paid_for_round).drain().next()
+			<span class="kw">if let </span><span class="prelude-val">Some</span>((collator, state)) =
+				&lt;AtStake&lt;T&gt;&gt;::iter_prefix(paid_for_round).drain().next()
 			{
+				<span class="comment">// Take the awarded points for the collator
+				</span><span class="kw">let </span>pts = &lt;AwardedPts&lt;T&gt;&gt;::take(paid_for_round, <span class="kw-2">&amp;</span>collator);
+				<span class="kw">if </span>pts == <span class="number">0 </span>{
+					<span class="kw">return </span>(RewardPayment::Skipped, T::DbWeight::get().reads(<span class="number">1</span>));
+				}
+
 				<span class="kw">let </span><span class="kw-2">mut </span>extra_weight = Weight::zero();
 				<span class="kw">let </span>pct_due = Perbill::from_rational(pts, total_points);
 				<span class="kw">let </span>total_paid = pct_due * payout_info.total_staking_reward;
 				<span class="kw">let </span><span class="kw-2">mut </span>amt_due = total_paid;
-				<span class="comment">// Take the snapshot of block author and delegations
-
-				</span><span class="kw">let </span>state = &lt;AtStake&lt;T&gt;&gt;::take(paid_for_round, <span class="kw-2">&amp;</span>collator);
 
 				<span class="kw">let </span>num_delegators = state.delegations.len();
 				<span class="kw">if </span>state.delegations.is_empty() {
@@ -3504,14 +3514,14 @@
 				}
 
 				(
-					<span class="prelude-val">Some</span>((collator, total_paid)),
+					RewardPayment::Paid,
 					T::WeightInfo::pay_one_collator_reward(num_delegators <span class="kw">as </span>u32)
 						.saturating_add(extra_weight),
 				)
 			} <span class="kw">else </span>{
 				<span class="comment">// Note that we don&#39;t clean up storage here; it is cleaned up in
 				// handle_delayed_payouts()
-				</span>(<span class="prelude-val">None</span>, Weight::from_ref_time(<span class="number">0u64</span>.into()))
+				</span>(RewardPayment::Finished, Weight::from_ref_time(<span class="number">0u64</span>.into()))
 			}
 		}
 
