@@ -1260,15 +1260,14 @@ fn transact_through_derivative_with_custom_fee_weight() {
 				overall_weight: Some(overall_weight)
 			}
 		));
-		let event_found: Option<parachain::RuntimeEvent> =
-			parachain::para_events()
-				.iter()
-				.find_map(|event| match event.clone() {
-					parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
-						Some(event.clone())
-					}
-					_ => None,
-				});
+		let event_found: Option<parachain::RuntimeEvent> = parachain::para_events()
+			.iter()
+			.find_map(|event| match event.clone() {
+				parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
+					Some(event.clone())
+				}
+				_ => None,
+			});
 		// Assert that the events do not contain the assets being trapped
 		assert!(event_found.is_none());
 	});
@@ -1689,14 +1688,15 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert!(relay_chain::relay_events().contains(&expected_supported_version));
 	});
 
-	let expected_version_notified: parachain::RuntimeEvent = pallet_xcm::Event::VersionChangeNotified(
-		MultiLocation {
-			parents: 1,
-			interior: Here,
-		},
-		2,
-	)
-	.into();
+	let expected_version_notified: parachain::RuntimeEvent =
+		pallet_xcm::Event::VersionChangeNotified(
+			MultiLocation {
+				parents: 1,
+				interior: Here,
+			},
+			2,
+		)
+		.into();
 
 	// ParaA changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change
@@ -1793,14 +1793,15 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert!(ParachainPalletXcm::query(0).is_some());
 	});
 
-	let expected_supported_version: parachain::RuntimeEvent = pallet_xcm::Event::SupportedVersionChanged(
-		MultiLocation {
-			parents: 1,
-			interior: X1(Parachain(2)),
-		},
-		0,
-	)
-	.into();
+	let expected_supported_version: parachain::RuntimeEvent =
+		pallet_xcm::Event::SupportedVersionChanged(
+			MultiLocation {
+				parents: 1,
+				interior: X1(Parachain(2)),
+			},
+			0,
+		)
+		.into();
 
 	ParaA::execute_with(|| {
 		// Assert that the events vector contains the version change
@@ -1839,14 +1840,15 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
-	let expected_version_notified: parachain::RuntimeEvent = pallet_xcm::Event::VersionChangeNotified(
-		MultiLocation {
-			parents: 1,
-			interior: X1(Parachain(1)),
-		},
-		2,
-	)
-	.into();
+	let expected_version_notified: parachain::RuntimeEvent =
+		pallet_xcm::Event::VersionChangeNotified(
+			MultiLocation {
+				parents: 1,
+				interior: X1(Parachain(1)),
+			},
+			2,
+		)
+		.into();
 
 	// ParaB changes version to 2, and calls on_runtime_upgrade. This should notify the targets
 	// of the new version change

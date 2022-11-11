@@ -79,7 +79,7 @@ impl frame_system::Config for Runtime {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
 	type BlockLength = ();
@@ -105,7 +105,7 @@ parameter_types! {
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type Balance = Balance;
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -128,7 +128,7 @@ parameter_types! {
 }
 
 impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -145,7 +145,7 @@ impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
 }
 
 impl pallet_assets::Config<LocalAssetInstance> for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -358,7 +358,7 @@ impl Config for XcmConfig {
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
@@ -418,7 +418,7 @@ parameter_type_with_key! {
 
 // The XCM message wrapper wrapper
 impl orml_xtokens::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = xcm_primitives::AccountIdToMultiLocation<AccountId>;
@@ -448,7 +448,7 @@ impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type ApproveOrigin = EnsureRoot<AccountId>;
 	type RejectOrigin = EnsureRoot<AccountId>;
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
 	type ProposalBondMinimum = ProposalBondMinimum;
@@ -563,7 +563,9 @@ pub mod mock_msg_queue {
 
 				let mut remaining_fragments = &data_ref[..];
 				while !remaining_fragments.is_empty() {
-					if let Ok(xcm) = VersionedXcm::<T::RuntimeCall>::decode(&mut remaining_fragments) {
+					if let Ok(xcm) =
+						VersionedXcm::<T::RuntimeCall>::decode(&mut remaining_fragments)
+					{
 						let _ = Self::handle_xcmp_message(sender, sent_at, xcm, max_weight);
 					} else {
 						debug_assert!(false, "Invalid incoming XCMP message data");
@@ -581,8 +583,8 @@ pub mod mock_msg_queue {
 		) -> Weight {
 			for (_i, (_sent_at, data)) in iter.enumerate() {
 				let id = sp_io::hashing::blake2_256(&data[..]);
-				let maybe_msg =
-					VersionedXcm::<T::RuntimeCall>::decode(&mut &data[..]).map(Xcm::<T::RuntimeCall>::try_from);
+				let maybe_msg = VersionedXcm::<T::RuntimeCall>::decode(&mut &data[..])
+					.map(Xcm::<T::RuntimeCall>::try_from);
 				match maybe_msg {
 					Err(_) => {
 						Self::deposit_event(Event::InvalidFormat(id));
@@ -647,19 +649,19 @@ pub mod mock_version_changer {
 }
 
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
 impl mock_version_changer::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 pub type LocalOriginToLocation =
 	xcm_primitives::SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
 impl pallet_xcm::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -753,7 +755,13 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		is_sufficient: bool,
 		owner: AccountId,
 	) -> DispatchResult {
-		LocalAssets::force_create(RuntimeOrigin::root(), asset, owner, is_sufficient, min_balance)?;
+		LocalAssets::force_create(
+			RuntimeOrigin::root(),
+			asset,
+			owner,
+			is_sufficient,
+			min_balance,
+		)?;
 
 		// TODO uncomment when we feel comfortable
 		/*
@@ -770,7 +778,8 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		asset_destroy_witness: pallet_assets::DestroyWitness,
 	) -> DispatchResult {
 		// First destroy the asset
-		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness).map_err(|info| info.error)?;
+		Assets::destroy(RuntimeOrigin::root(), asset, asset_destroy_witness)
+			.map_err(|info| info.error)?;
 
 		Ok(())
 	}
@@ -820,7 +829,7 @@ impl pallet_asset_manager::LocalAssetIdCreator<Runtime> for LocalAssetIdCreator 
 }
 
 impl pallet_asset_manager::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type AssetRegistrarMetadata = AssetMetadata;
@@ -836,7 +845,7 @@ impl pallet_asset_manager::Config for Runtime {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
@@ -884,7 +893,7 @@ impl pallet_evm::Config for Runtime {
 	type Currency = Balances;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type PrecompilesType = ();
 	type PrecompilesValue = ();
 	type ChainId = ();
@@ -946,7 +955,7 @@ impl xcm_primitives::UtilityEncodeCall for MockTransactors {
 }
 
 impl pallet_ethereum::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type StateRoot = pallet_ethereum::IntermediateStateRoot<Self>;
 }
 

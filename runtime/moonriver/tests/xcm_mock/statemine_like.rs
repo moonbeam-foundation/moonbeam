@@ -69,7 +69,7 @@ impl frame_system::Config for Runtime {
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
 	type BlockLength = ();
@@ -95,7 +95,7 @@ parameter_types! {
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
 	type Balance = Balance;
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -117,7 +117,7 @@ parameter_types! {
 }
 
 impl pallet_assets::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -273,7 +273,7 @@ pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, R
 pub type XcmRouter = super::ParachainXcmRouter<MsgQueue>;
 
 impl pallet_xcm::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
 	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
@@ -290,7 +290,7 @@ impl pallet_xcm::Config for Runtime {
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
@@ -395,7 +395,9 @@ pub mod mock_msg_queue {
 
 				let mut remaining_fragments = &data_ref[..];
 				while !remaining_fragments.is_empty() {
-					if let Ok(xcm) = VersionedXcm::<T::RuntimeCall>::decode(&mut remaining_fragments) {
+					if let Ok(xcm) =
+						VersionedXcm::<T::RuntimeCall>::decode(&mut remaining_fragments)
+					{
 						let _ =
 							Self::handle_xcmp_message(sender, sent_at, xcm, max_weight.ref_time());
 					} else {
@@ -414,8 +416,8 @@ pub mod mock_msg_queue {
 		) -> Weight {
 			for (_i, (_sent_at, data)) in iter.enumerate() {
 				let id = sp_io::hashing::blake2_256(&data[..]);
-				let maybe_msg =
-					VersionedXcm::<T::RuntimeCall>::decode(&mut &data[..]).map(Xcm::<T::RuntimeCall>::try_from);
+				let maybe_msg = VersionedXcm::<T::RuntimeCall>::decode(&mut &data[..])
+					.map(Xcm::<T::RuntimeCall>::try_from);
 				match maybe_msg {
 					Err(_) => {
 						Self::deposit_event(Event::InvalidFormat(id));
@@ -435,7 +437,7 @@ pub mod mock_msg_queue {
 	}
 }
 impl mock_msg_queue::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 }
 
@@ -484,7 +486,7 @@ pub mod mock_statemine_prefix {
 }
 
 impl mock_statemine_prefix::Config for Runtime {
-	type RuntimeEvent =  RuntimeEvent;
+	type RuntimeEvent = RuntimeEvent;
 }
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
