@@ -5400,13 +5400,6 @@ fn multiple_delegations() {
 				10
 			));
 			assert_ok!(ParachainStaking::delegate(
-				RuntimeOrigin::signed(7),
-				2,
-				80,
-				10,
-				10
-			));
-			assert_ok!(ParachainStaking::delegate(
 				RuntimeOrigin::signed(10),
 				2,
 				10,

@@ -1247,7 +1247,7 @@ mod tests {
 			},
 			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			blocks_pruning: sc_service::BlocksPruning::All,
+			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

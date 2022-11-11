@@ -152,7 +152,7 @@ mod tests {
 
 		let mut expected = pallet_utility::Call::<westend_runtime::Runtime>::as_derivative {
 			index: 1,
-			call: westend_runtime::Call::Staking(
+			call: westend_runtime::RuntimeCall::Staking(
 				pallet_staking::Call::<westend_runtime::Runtime>::chill {},
 			)
 			.into(),
