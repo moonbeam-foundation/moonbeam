@@ -36,7 +36,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(12772901520875n);
+      expect(fee).to.equal(20958001520875n);
     });
   },
   "Legacy",
@@ -48,7 +48,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have expensive runtime-upgrade fees", async () => {
       const fee = await testRuntimeUpgrade(context);
-      expect(fee).to.equal(9226793130623667008n);
+      expect(fee).to.equal(9226801315723667008n);
     });
   },
   "Legacy",
@@ -60,7 +60,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have low balance transfer fees", async () => {
       const fee = await testBalanceTransfer(context);
-      expect(fee).to.equal(1277290152087500n);
+      expect(fee).to.equal(2095800152087500n);
     });
   },
   "Legacy",
@@ -72,7 +72,7 @@ describeDevMoonbeam(
   (context) => {
     it("should have expensive runtime-upgrade fees", async () => {
       const fee = await testRuntimeUpgrade(context);
-      expect(fee).to.equal(922679313062366700800n);
+      expect(fee).to.equal(922680131572366700800n);
     });
   },
   "Legacy",
