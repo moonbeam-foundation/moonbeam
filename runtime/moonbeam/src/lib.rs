@@ -134,7 +134,9 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(2);
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND
+	.saturating_div(2)
+	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -585,8 +587,8 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = ConstU128<{ 5 * currency::GLMR * currency::SUPPLY_FACTOR }>;
-	type ByteDeposit = ConstU128<{ 1 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type BaseDeposit = ConstU128<{ 0 * currency::GLMR * currency::SUPPLY_FACTOR }>;
+	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
 }
 
 parameter_types! {
@@ -1467,7 +1469,7 @@ mod tests {
 			Balance::from(400 * GLMR)
 		);
 		assert_eq!(
-			get!(pallet_democracy, PreimageByteDeposit, u128),
+			get!(pallet_preimage, ByteDeposit, u128),
 			Balance::from(10 * MILLIGLMR)
 		);
 		assert_eq!(
@@ -1561,8 +1563,8 @@ mod tests {
 	fn configured_base_extrinsic_weight_is_evm_compatible() {
 		let min_ethereum_transaction_weight = WeightPerGas::get() * 21_000;
 		let base_extrinsic = <Runtime as frame_system::Config>::BlockWeights::get()
-			.get(frame_support::weights::DispatchClass::Normal)
+			.get(frame_support::dispatch::DispatchClass::Normal)
 			.base_extrinsic;
-		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight);
+		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight.ref_time());
 	}
 }

@@ -24,7 +24,7 @@ use precompile_utils::{prelude::*, testing::*};
 use fp_evm::Context;
 use frame_support::{
 	assert_noop, assert_ok,
-	dispatch::{Dispatchable, DispatchClass},
+	dispatch::{DispatchClass, Dispatchable},
 	traits::{
 		fungible::Inspect, fungibles::Inspect as FungiblesInspect, Currency as CurrencyT,
 		EnsureOrigin, PalletInfo, StorageInfo, StorageInfoTrait,

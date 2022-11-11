@@ -5324,6 +5324,7 @@ dependencies = [
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
  "cumulus-test-relay-sproof-builder",
+ "ethereum",
  "evm-tracing-events",
  "fp-evm",
  "fp-rpc",
