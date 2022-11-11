@@ -196,7 +196,7 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
-	config_dir.join(path)
+	config_dir.join("frontier").join(path)
 }
 
 // // TODO This is copied from frontier. It should be imported instead after
@@ -421,16 +421,12 @@ where
 			&frontier_database_dir(config, "db"),
 		)?),
 		cli_opt::BackendType::Sql => {
-			let db_path = &frontier_database_dir(config, "");
-			println!("-------_> {:?}", std::path::Path::new("sqlite:///")
-			.join(db_path.strip_prefix("/").unwrap().to_str().unwrap())
-			.join("frontier.db3")
-			.to_str()
-			.unwrap());
+			let mut db_path = frontier_database_dir(config, "");
+			db_path.pop();
 			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
 				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
 					path: std::path::Path::new("sqlite:///")
-						.join(db_path.strip_prefix("/").unwrap().to_str().unwrap())
+						.join(&db_path.strip_prefix("/").unwrap().to_str().unwrap())
 						.join("frontier.db3")
 						.to_str()
 						.unwrap(),
