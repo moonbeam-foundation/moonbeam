@@ -2,6 +2,7 @@
 
 export interface NetworkTestArtifact {
   chainId: number;
+  networkLabel: String;
   testData: RuntimeTestArtifact[];
 }
 
@@ -13,7 +14,8 @@ export interface RuntimeTestArtifact {
 
 export const tracingTxns: NetworkTestArtifact[] = [
   {
-    chainId: 1284, // Moonbeam
+    chainId: 1284,
+    networkLabel: "Moonbeam",
     testData: [
       {
         runtime: 1101,
@@ -83,7 +85,8 @@ export const tracingTxns: NetworkTestArtifact[] = [
     ],
   },
   {
-    chainId: 1285, // Moonriver
+    chainId: 1285,
+    networkLabel: "Moonriver",
     testData: [
       {
         runtime: 400,
@@ -213,7 +216,8 @@ export const tracingTxns: NetworkTestArtifact[] = [
     ],
   },
   {
-    chainId: 1287, // Moonbase
+    chainId: 1287,
+    networkLabel: "Moonbase Alpha",
     testData: [
       {
         runtime: 400,

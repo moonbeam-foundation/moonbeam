@@ -15,9 +15,9 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
     debug(`Running tracing tests against chainId ${chainId}.`);
     traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);
-
-    if (!traceStatic) {
-      debug(`No test data available for ChainId ${chainId}, skipping test.`);
+    const networkName = (await context.polkadotApi.rpc.system.chain()).toString();
+    if (!traceStatic || networkName !== traceStatic.networkLabel) {
+      debug(`No test data available for ${networkName} #${chainId} , skipping test.`);
       this.skip();
     }
   });
@@ -53,18 +53,22 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     expect(failures).to.be.empty;
   });
 
-  it("can get receipt for historic transactions", async function () {
+  it.only("can get receipt for historic transactions", async function () {
     this.timeout(300000);
     const promises = traceStatic.testData.map(async (a) => {
-      try {
-        const result = await limiter.schedule(() =>
-          context.ethers.send("eth_getTransactionReceipt", [a.txHash])
-        );
-        debug(`Successful response from runtime ${a.runtime} in block #${a.blockNumber}.`);
-        const error = result == null;
-        return { runtime: a.runtime, blockNumber: a.blockNumber, error, result };
-      } catch (e) {
-        return { runtime: a.runtime, blockNumber: a.blockNumber, error: true, result: e };
+      if (a.runtime) {
+        try {
+          const result = await limiter.schedule(() =>
+            context.ethers.send("eth_getTransactionReceipt", [a.txHash])
+          );
+          debug(`Successful response from runtime ${a.runtime} in block #${a.blockNumber}.`);
+          const error = result == null;
+          return { runtime: a.runtime, blockNumber: a.blockNumber, error, result };
+        } catch (e) {
+          return { runtime: a.runtime, blockNumber: a.blockNumber, error: true, result: e };
+        }
+      } else {
+        return { runtime: a.runtime, blockNumber: -1, error: false, result: {} };
       }
     });
 
