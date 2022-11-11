@@ -26,7 +26,7 @@ use crate::auto_compound::{AutoCompoundConfig, AutoCompoundDelegations};
 use crate::delegation_requests::{CancelledScheduledRequest, DelegationAction, ScheduledRequest};
 use crate::mock::{
 	roll_blocks, roll_to, roll_to_round_begin, roll_to_round_end, set_author, Balances,
-	BlockNumber, ExtBuilder, RuntimeOrigin, ParachainStaking, Test,
+	BlockNumber, ExtBuilder, ParachainStaking, RuntimeOrigin, Test,
 };
 use crate::{
 	assert_events_emitted, assert_events_emitted_match, assert_events_eq, assert_no_events,
@@ -67,9 +67,15 @@ fn invalid_root_origin_fails() {
 fn set_total_selected_event_emits_correctly() {
 	ExtBuilder::default().build().execute_with(|| {
 		// before we can bump total_selected we must bump the blocks per round
-		assert_ok!(ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_blocks_per_round(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		roll_blocks(1);
-		assert_ok!(ParachainStaking::set_total_selected(RuntimeOrigin::root(), 6u32));
+		assert_ok!(ParachainStaking::set_total_selected(
+			RuntimeOrigin::root(),
+			6u32
+		));
 		assert_events_eq!(Event::TotalSelectedSet {
 			old: 5u32,
 			new: 6u32
@@ -4572,7 +4578,13 @@ fn parachain_bond_inflation_reserve_matches_config() {
 			assert_eq!(Balances::free_balance(&11), 127);
 			set_author(8, 1, 100);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(8), 1, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(8),
+				1,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(Event::Delegation {
 				delegator: 8,
 				locked_amount: 10,
@@ -4795,8 +4807,20 @@ fn paid_collator_commission_matches_config() {
 			);
 
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(5), 4, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(6), 4, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(5),
+				4,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				4,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(
 				Event::Delegation {
 					delegator: 5,
@@ -5322,9 +5346,27 @@ fn multiple_delegations() {
 				},
 			);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(6), 2, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(6), 3, 10, 10, 10));
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(6), 4, 10, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				2,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				3,
+				10,
+				10,
+				10
+			));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(6),
+				4,
+				10,
+				10,
+				10
+			));
 			assert_events_eq!(
 				Event::Delegation {
 					delegator: 6,
@@ -5350,7 +5392,13 @@ fn multiple_delegations() {
 			);
 			roll_to_round_begin(6);
 			roll_blocks(1);
-			assert_ok!(ParachainStaking::delegate(RuntimeOrigin::signed(7), 2, 80, 10, 10));
+			assert_ok!(ParachainStaking::delegate(
+				RuntimeOrigin::signed(7),
+				2,
+				80,
+				10,
+				10
+			));
 			assert_ok!(ParachainStaking::delegate(
 				RuntimeOrigin::signed(7),
 				2,
