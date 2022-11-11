@@ -14,7 +14,7 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
   before("Loading tracing static data", async function () {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
     debug(`Running tracing tests against chainId ${chainId}.`);
-    traceStatic = tracingTxns.find((a) => a.chainId.toString() == chainId);
+    traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);
 
     if (!traceStatic) {
       debug(`No test data available for ChainId ${chainId}, skipping test.`);
@@ -23,7 +23,7 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
   });
 
   it("can debugTrace for all previous runtimes", async function () {
-    if (httpEndpoint == null) {
+    if (httpEndpoint == null || httpEndpoint == "") {
       debug(`No HTTP_URL provided, skipping test.`);
       this.skip();
     }
