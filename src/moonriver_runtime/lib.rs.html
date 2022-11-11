@@ -1555,6 +1555,26 @@
 <span id="1555">1555</span>
 <span id="1556">1556</span>
 <span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1741,13 +1761,33 @@
 }
 
 <span class="kw">const </span>NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(<span class="number">75</span>);
+<span class="kw">const </span>NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(<span class="number">3</span>).saturating_div(<span class="number">4</span>);
+<span class="comment">// Here we assume Ethereum&#39;s base fee of 21000 gas and convert to weight, but we
+// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
+// and some cost to account for per-byte-fee.
+// TODO: we should use benchmarking&#39;s overhead feature to measure this
+</span><span class="kw">pub const </span>EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(<span class="number">10000 </span>* WEIGHT_PER_GAS);
+
+<span class="kw">pub struct </span>RuntimeBlockWeights;
+<span class="kw">impl </span>Get&lt;frame_system::limits::BlockWeights&gt; <span class="kw">for </span>RuntimeBlockWeights {
+	<span class="kw">fn </span>get() -&gt; frame_system::limits::BlockWeights {
+		frame_system::limits::BlockWeights::builder()
+			.for_class(DispatchClass::Normal, |weights| {
+				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
+				weights.max_total = NORMAL_WEIGHT.into();
+			})
+			.for_class(DispatchClass::Operational, |weights| {
+				weights.max_total = MAXIMUM_BLOCK_WEIGHT.into();
+				weights.reserved = (MAXIMUM_BLOCK_WEIGHT - NORMAL_WEIGHT).into();
+			})
+			.avg_block_initialization(Perbill::from_percent(<span class="number">10</span>))
+			.build()
+			.expect(<span class="string">&quot;Provided BlockWeight definitions are valid, qed&quot;</span>)
+	}
+}
 
 <span class="macro">parameter_types! </span>{
 	<span class="kw">pub const </span>Version: RuntimeVersion = VERSION;
-	<span class="doccomment">/// We allow for one half second of compute with a 6 second average block time.
-	/// These values are dictated by Polkadot for the parachain.
-	</span><span class="kw">pub </span>BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	<span class="doccomment">/// We allow for 5 MB blocks.
 	</span><span class="kw">pub </span>BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(<span class="number">5 </span>* <span class="number">1024 </span>* <span class="number">1024</span>, NORMAL_DISPATCH_RATIO);
@@ -1777,7 +1817,7 @@
 	<span class="doccomment">/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	</span><span class="kw">type </span>BlockHashCount = ConstU32&lt;<span class="number">256</span>&gt;;
 	<span class="doccomment">/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
-	</span><span class="kw">type </span>BlockWeights = BlockWeights;
+	</span><span class="kw">type </span>BlockWeights = RuntimeBlockWeights;
 	<span class="doccomment">/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	</span><span class="kw">type </span>BlockLength = BlockLength;
 	<span class="doccomment">/// Runtime version.
@@ -1989,7 +2029,7 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+	<span class="kw">pub </span>MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 }
 
 <span class="kw">impl </span>pallet_scheduler::Config <span class="kw">for </span>Runtime {
