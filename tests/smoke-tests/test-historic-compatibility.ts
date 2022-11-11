@@ -15,9 +15,9 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     const chainId = (await context.polkadotApi.query.ethereumChainId.chainId()).toString();
     debug(`Running tracing tests against chainId ${chainId}.`);
     traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);
-
-    if (!traceStatic) {
-      debug(`No test data available for ChainId ${chainId}, skipping test.`);
+    const networkName = (await context.polkadotApi.rpc.system.chain()).toString();
+    if (!traceStatic || networkName !== traceStatic.networkLabel) {
+      debug(`No test data available for ${networkName} #${chainId} , skipping test.`);
       this.skip();
     }
   });
