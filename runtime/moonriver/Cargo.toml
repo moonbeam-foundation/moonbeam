@@ -143,7 +143,7 @@ frame-try-runtime = { git = "https://github.com/purestake/substrate", branch = "
 
 [dev-dependencies]
 hex = "0.4"
-rlp = "0.5"
+ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork"}
 sha3 = "0.9"
 
 cumulus-primitives-parachain-inherent = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.31", default-features = false }

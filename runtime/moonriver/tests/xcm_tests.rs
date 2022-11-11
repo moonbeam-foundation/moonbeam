@@ -50,14 +50,14 @@ fn receive_relay_asset_from_relay() {
 	// Register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -72,7 +72,7 @@ fn receive_relay_asset_from_relay() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
@@ -104,7 +104,7 @@ fn send_relay_asset_to_relay() {
 	// Register relay asset in paraA
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
@@ -112,7 +112,7 @@ fn send_relay_asset_to_relay() {
 		));
 		// free execution
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -128,7 +128,7 @@ fn send_relay_asset_to_relay() {
 	// First send relay chain asset to Parachain like in previous test
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
@@ -158,7 +158,7 @@ fn send_relay_asset_to_relay() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			123,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -193,14 +193,14 @@ fn send_relay_asset_to_para_b() {
 	// Register asset in paraA. Free execution
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			0u128,
 			0
@@ -210,14 +210,14 @@ fn send_relay_asset_to_para_b() {
 	// Register asset in paraB. Free execution
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -232,7 +232,7 @@ fn send_relay_asset_to_para_b() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
@@ -258,7 +258,7 @@ fn send_relay_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -295,14 +295,14 @@ fn send_para_a_asset_to_para_b() {
 	// Register asset in paraB. Free execution
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -323,7 +323,7 @@ fn send_para_a_asset_to_para_b() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -365,14 +365,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	// Register para A asset in parachain B. Free execution
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			0u128,
 			0
@@ -382,14 +382,14 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	// Register para A asset in parachain C. Free execution
 	ParaC::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -409,7 +409,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -444,7 +444,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 
 	ParaB::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -477,14 +477,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	// Register para A asset in para B
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -504,7 +504,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -538,7 +538,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 	};
 	ParaB::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -572,14 +572,14 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -598,7 +598,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 	};
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -652,7 +652,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		// Send a message to the sovereign account in ParaA to withdraw
 		// and deposit asset
 		assert_ok!(ParachainPalletXcm::send(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(dest.into()),
 			Box::new(message),
 		));
@@ -696,7 +696,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a_with_new_reanchoring() {
 		// Send a message to the sovereign account in ParaA to withdraw
 		// and deposit asset
 		assert_ok!(ParachainPalletXcm::send(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(dest.into()),
 			Box::new(message),
 		));
@@ -729,14 +729,14 @@ fn receive_relay_asset_with_trader() {
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			2500000000000u128,
 			0
@@ -756,7 +756,7 @@ fn receive_relay_asset_with_trader() {
 	// Native trader fails for this, and we use the asset trader
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 100).into()),
@@ -788,14 +788,14 @@ fn send_para_a_asset_to_para_b_with_trader() {
 
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			2500000000000u128,
 			0
@@ -817,7 +817,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 	// We put 10 weight, 6 of which should be refunded and 4 of which should go to treasury
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -862,7 +862,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 
 	ParaB::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
@@ -870,7 +870,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 		));
 		// With these units per second, 80K weight convrets to 1 asset unit
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			12500000u128,
 			0
@@ -891,7 +891,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 	// we use transfer_with_fee
 	ParaA::execute_with(|| {
 		assert_ok!(XTokens::transfer_with_fee(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			1,
@@ -937,14 +937,14 @@ fn error_when_not_paying_enough() {
 	// Lets put 1e6 as units per second
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			2500000000000u128,
 			0
@@ -956,7 +956,7 @@ fn error_when_not_paying_enough() {
 	// Therefore with no refund, we should receive 10 tokens less
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 5).into()),
@@ -985,14 +985,14 @@ fn transact_through_derivative_multilocation() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			1u128,
 			0
@@ -1000,7 +1000,7 @@ fn transact_through_derivative_multilocation() {
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
@@ -1009,7 +1009,7 @@ fn transact_through_derivative_multilocation() {
 		));
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
@@ -1025,7 +1025,7 @@ fn transact_through_derivative_multilocation() {
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
@@ -1041,7 +1041,7 @@ fn transact_through_derivative_multilocation() {
 	// Register address
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::register(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			PARAALICE.into(),
 			0,
 		));
@@ -1061,7 +1061,7 @@ fn transact_through_derivative_multilocation() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -1101,7 +1101,7 @@ fn transact_through_derivative_multilocation() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_derivative(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
@@ -1142,14 +1142,14 @@ fn transact_through_derivative_with_custom_fee_weight() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			1u128,
 			0
@@ -1166,7 +1166,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	Relay::execute_with(|| {
 		// 4000000000 transact + 3000 correspond to 4000003000 tokens. 100 more for the transfer call
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
@@ -1182,7 +1182,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	// Register address
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::register(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			PARAALICE.into(),
 			0,
 		));
@@ -1202,7 +1202,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -1243,7 +1243,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 	let overall_weight = 4000003000u64;
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_derivative(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::MockTransactors::Relay,
 			0,
 			CurrencyPayment {
@@ -1260,11 +1260,11 @@ fn transact_through_derivative_with_custom_fee_weight() {
 				overall_weight: Some(overall_weight)
 			}
 		));
-		let event_found: Option<parachain::Event> =
+		let event_found: Option<parachain::RuntimeEvent> =
 			parachain::para_events()
 				.iter()
 				.find_map(|event| match event.clone() {
-					parachain::Event::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
+					parachain::RuntimeEvent::PolkadotXcm(pallet_xcm::Event::AssetsTrapped(_, _, _)) => {
 						Some(event.clone())
 					}
 					_ => None,
@@ -1296,14 +1296,14 @@ fn transact_through_sovereign() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			1u128,
 			0
@@ -1311,7 +1311,7 @@ fn transact_through_sovereign() {
 
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
@@ -1320,7 +1320,7 @@ fn transact_through_sovereign() {
 		));
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
@@ -1333,7 +1333,7 @@ fn transact_through_sovereign() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
@@ -1349,7 +1349,7 @@ fn transact_through_sovereign() {
 	// Register address
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::register(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			PARAALICE.into(),
 			0,
 		));
@@ -1368,7 +1368,7 @@ fn transact_through_sovereign() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -1420,7 +1420,7 @@ fn transact_through_sovereign() {
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			PARAALICE.into(),
 			CurrencyPayment {
@@ -1461,14 +1461,14 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			1u128,
 			0
@@ -1482,7 +1482,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 4000003100).into()),
@@ -1498,7 +1498,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	// Register address
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::register(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			PARAALICE.into(),
 			0,
 		));
@@ -1517,7 +1517,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -1570,7 +1570,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	// Root can directly pass the execution byes to the sovereign
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_sovereign(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(dest)),
 			PARAALICE.into(),
 			CurrencyPayment {
@@ -1611,14 +1611,14 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	ParaA::execute_with(|| {
 		parachain::XcmVersioner::set_version(1);
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -1646,7 +1646,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	Relay::execute_with(|| {
 		// This sets the default version, for not known destinations
 		assert_ok!(RelayChainPalletXcm::force_default_xcm_version(
-			relay_chain::Origin::root(),
+			relay_chain::RuntimeOrigin::root(),
 			Some(2)
 		));
 
@@ -1660,7 +1660,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 
 		// Transfer assets. Since it is an unknown destination, it will query for version
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
@@ -1674,7 +1674,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert!(RelayChainPalletXcm::query(0).is_some());
 	});
 
-	let expected_supported_version: relay_chain::Event =
+	let expected_supported_version: relay_chain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged(
 			MultiLocation {
 				parents: 0,
@@ -1689,7 +1689,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 		assert!(relay_chain::relay_events().contains(&expected_supported_version));
 	});
 
-	let expected_version_notified: parachain::Event = pallet_xcm::Event::VersionChangeNotified(
+	let expected_version_notified: parachain::RuntimeEvent = pallet_xcm::Event::VersionChangeNotified(
 		MultiLocation {
 			parents: 1,
 			interior: Here,
@@ -1712,7 +1712,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_relay() {
 	});
 
 	// This event should have been seen in the relay
-	let expected_supported_version_2: relay_chain::Event =
+	let expected_supported_version_2: relay_chain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged(
 			MultiLocation {
 				parents: 0,
@@ -1761,14 +1761,14 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		parachain::XcmVersioner::set_version(0);
 
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -1778,7 +1778,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	ParaA::execute_with(|| {
 		// This sets the default version, for not known destinations
 		assert_ok!(ParachainPalletXcm::force_default_xcm_version(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Some(2)
 		));
 		// Wrap version, which sets VersionedStorage
@@ -1793,7 +1793,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert!(ParachainPalletXcm::query(0).is_some());
 	});
 
-	let expected_supported_version: parachain::Event = pallet_xcm::Event::SupportedVersionChanged(
+	let expected_supported_version: parachain::RuntimeEvent = pallet_xcm::Event::SupportedVersionChanged(
 		MultiLocation {
 			parents: 1,
 			interior: X1(Parachain(2)),
@@ -1821,7 +1821,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	ParaA::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(XTokens::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
@@ -1839,7 +1839,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 		assert_eq!(Assets::balance(source_id, &PARAALICE.into()), 100);
 	});
 
-	let expected_version_notified: parachain::Event = pallet_xcm::Event::VersionChangeNotified(
+	let expected_version_notified: parachain::RuntimeEvent = pallet_xcm::Event::VersionChangeNotified(
 		MultiLocation {
 			parents: 1,
 			interior: X1(Parachain(1)),
@@ -1862,7 +1862,7 @@ fn test_automatic_versioning_on_runtime_upgrade_with_para_b() {
 	});
 
 	// This event should have been seen in para A
-	let expected_supported_version_2: parachain::Event =
+	let expected_supported_version_2: parachain::RuntimeEvent =
 		pallet_xcm::Event::SupportedVersionChanged(
 			MultiLocation {
 				parents: 1,
@@ -1894,14 +1894,14 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			false
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -1916,7 +1916,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
 			Box::new((Here, 123).into()),
@@ -1933,7 +1933,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	// Send native token to fresh_account
 	ParaA::execute_with(|| {
 		assert_ok!(ParaBalances::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			fresh_account.into(),
 			100
 		));
@@ -1942,7 +1942,7 @@ fn receive_asset_with_no_sufficients_not_possible_if_non_existent_account() {
 	// Re-send tokens
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new((Here, 123).into()),
@@ -1972,14 +1972,14 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -1994,7 +1994,7 @@ fn receive_assets_with_sufficients_true_allows_non_funded_account_to_receive_ass
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
 			Box::new((Here, 123).into()),
@@ -2032,14 +2032,14 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -2054,7 +2054,7 @@ fn evm_account_receiving_assets_should_handle_sufficients_ref_count() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
 			Box::new((Here, 123).into()),
@@ -2095,14 +2095,14 @@ fn empty_account_should_not_be_reset() {
 	// register relay asset in parachain A
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata,
 			1u128,
 			false
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -2112,7 +2112,7 @@ fn empty_account_should_not_be_reset() {
 	// Send native token to evm_account
 	ParaA::execute_with(|| {
 		assert_ok!(ParaBalances::transfer(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			evm_account_id,
 			100
 		));
@@ -2126,7 +2126,7 @@ fn empty_account_should_not_be_reset() {
 	.into();
 	Relay::execute_with(|| {
 		assert_ok!(RelayChainPalletXcm::reserve_transfer_assets(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(Parachain(1).into().into()),
 			Box::new(VersionedMultiLocation::V1(dest.clone()).clone().into()),
 			Box::new((Here, 123).into()),
@@ -2139,7 +2139,7 @@ fn empty_account_should_not_be_reset() {
 		// As this makes the account go below the `min_balance`, the account is considered dead
 		// at eyes of pallet-assets, and the consumer reference is decreased by 1 and is now Zero.
 		assert_ok!(parachain::Assets::transfer(
-			parachain::Origin::signed(evm_account_id),
+			parachain::RuntimeOrigin::signed(evm_account_id),
 			source_id,
 			PARAALICE.into(),
 			123
@@ -2152,7 +2152,7 @@ fn empty_account_should_not_be_reset() {
 		// Because we no longer have consumer references, we can set the balance to Zero.
 		// This would reset the account if our ED were to be > than Zero.
 		assert_ok!(ParaBalances::set_balance(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			evm_account_id,
 			0,
 			0,
@@ -2203,14 +2203,14 @@ fn test_statemine_like() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(AssetManager::register_foreign_asset(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location.clone(),
 			asset_metadata.clone(),
 			1u128,
 			true
 		));
 		assert_ok!(AssetManager::set_asset_units_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			source_location,
 			0u128,
 			0
@@ -2223,14 +2223,14 @@ fn test_statemine_like() {
 			PalletInstance(<StatemineAssets as PalletInfoAccess>::index() as u8).into(),
 		);
 		assert_ok!(StatemineAssets::create(
-			statemine_like::Origin::signed(RELAYALICE),
+			statemine_like::RuntimeOrigin::signed(RELAYALICE),
 			0,
 			RELAYALICE,
 			1
 		));
 
 		assert_ok!(StatemineAssets::mint(
-			statemine_like::Origin::signed(RELAYALICE),
+			statemine_like::RuntimeOrigin::signed(RELAYALICE),
 			0,
 			RELAYALICE,
 			300000000000000
@@ -2238,7 +2238,7 @@ fn test_statemine_like() {
 
 		// This is needed, since the asset is created as non-sufficient
 		assert_ok!(StatemineBalances::transfer(
-			statemine_like::Origin::signed(RELAYALICE),
+			statemine_like::RuntimeOrigin::signed(RELAYALICE),
 			sov,
 			100000000000000
 		));
@@ -2252,7 +2252,7 @@ fn test_statemine_like() {
 
 		// Send with new prefix
 		assert_ok!(StatemineChainPalletXcm::reserve_transfer_assets(
-			statemine_like::Origin::signed(RELAYALICE),
+			statemine_like::RuntimeOrigin::signed(RELAYALICE),
 			Box::new(MultiLocation::new(1, X1(Parachain(1))).into()),
 			Box::new(VersionedMultiLocation::V1(dest).clone().into()),
 			Box::new(
@@ -2297,7 +2297,7 @@ fn send_para_a_local_asset_to_para_b() {
 
 		ParaA::execute_with(|| {
 			assert_ok!(AssetManager::register_local_asset(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),
 				true,
@@ -2305,7 +2305,7 @@ fn send_para_a_local_asset_to_para_b() {
 			));
 
 			assert_ok!(LocalAssets::mint(
-				parachain::Origin::signed(PARAALICE.into()),
+				parachain::RuntimeOrigin::signed(PARAALICE.into()),
 				asset_id,
 				PARAALICE.into(),
 				300000000000000
@@ -2314,14 +2314,14 @@ fn send_para_a_local_asset_to_para_b() {
 
 		ParaB::execute_with(|| {
 			assert_ok!(AssetManager::register_foreign_asset(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location.clone(),
 				asset_metadata,
 				1u128,
 				true
 			));
 			assert_ok!(AssetManager::set_asset_units_per_second(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location,
 				0u128,
 				0
@@ -2342,7 +2342,7 @@ fn send_para_a_local_asset_to_para_b() {
 		ParaA::execute_with(|| {
 			// free execution, full amount received
 			assert_ok!(XTokens::transfer(
-				parachain::Origin::signed(PARAALICE.into()),
+				parachain::RuntimeOrigin::signed(PARAALICE.into()),
 				parachain::CurrencyId::LocalAssetReserve(asset_id),
 				100,
 				Box::new(VersionedMultiLocation::V1(dest)),
@@ -2388,28 +2388,28 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 
 		ParaB::execute_with(|| {
 			assert_ok!(AssetManager::register_foreign_asset(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location_local_asset.clone(),
 				asset_metadata_local_asset,
 				1u128,
 				true
 			));
 			assert_ok!(AssetManager::set_asset_units_per_second(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location_local_asset,
 				0u128,
 				0
 			));
 
 			assert_ok!(AssetManager::register_foreign_asset(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location_balances.clone(),
 				asset_metadata_balances,
 				1u128,
 				true
 			));
 			assert_ok!(AssetManager::set_asset_units_per_second(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				source_location_balances,
 				0u128,
 				1
@@ -2418,7 +2418,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 
 		ParaA::execute_with(|| {
 			assert_ok!(AssetManager::register_local_asset(
-				parachain::Origin::root(),
+				parachain::RuntimeOrigin::root(),
 				PARAALICE.into(),
 				PARAALICE.into(),
 				true,
@@ -2426,7 +2426,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 			));
 
 			assert_ok!(LocalAssets::mint(
-				parachain::Origin::signed(PARAALICE.into()),
+				parachain::RuntimeOrigin::signed(PARAALICE.into()),
 				asset_id,
 				PARAALICE.into(),
 				300000000000000
@@ -2447,7 +2447,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 		ParaA::execute_with(|| {
 			// free execution, full amount received
 			assert_ok!(XTokens::transfer_multicurrencies(
-				parachain::Origin::signed(PARAALICE.into()),
+				parachain::RuntimeOrigin::signed(PARAALICE.into()),
 				vec![
 					(parachain::CurrencyId::LocalAssetReserve(asset_id), 100),
 					(parachain::CurrencyId::SelfReserve, 1000000)
@@ -2490,7 +2490,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_dev() {
 
 			// free execution, full amount received
 			assert_ok!(XTokens::transfer_multicurrencies(
-				parachain::Origin::signed(PARAALICE.into()),
+				parachain::RuntimeOrigin::signed(PARAALICE.into()),
 				vec![
 					(parachain::CurrencyId::ForeignAsset(source_id_balances), 4),
 					(
@@ -2524,7 +2524,7 @@ fn transact_through_signed_multilocation() {
 	ParaA::execute_with(|| {
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_transact_info(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			// Relay charges 1000 for every instruction, and we have 3, so 3000
 			3000,
@@ -2534,7 +2534,7 @@ fn transact_through_signed_multilocation() {
 		));
 		// Root can set transact info
 		assert_ok!(XcmTransactor::set_fee_per_second(
-			parachain::Origin::root(),
+			parachain::RuntimeOrigin::root(),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			WEIGHT_PER_SECOND.ref_time() as u128,
 		));
@@ -2566,7 +2566,7 @@ fn transact_through_signed_multilocation() {
 	Relay::execute_with(|| {
 		// free execution, full amount received
 		assert_ok!(RelayBalances::transfer(
-			relay_chain::Origin::signed(RELAYALICE),
+			relay_chain::RuntimeOrigin::signed(RELAYALICE),
 			derived.clone(),
 			4000004100u128,
 		));
@@ -2597,7 +2597,7 @@ fn transact_through_signed_multilocation() {
 
 	ParaA::execute_with(|| {
 		assert_ok!(XcmTransactor::transact_through_signed(
-			parachain::Origin::signed(PARAALICE.into()),
+			parachain::RuntimeOrigin::signed(PARAALICE.into()),
 			Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			CurrencyPayment {
 				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(

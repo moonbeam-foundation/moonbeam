@@ -191,7 +191,7 @@ parameter_types! {
 	/// We allow for one half second of compute with a 6 second average block time.
 	/// These values are dictated by Polkadot for the parachain.
 	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
+		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE as u64), NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
@@ -454,8 +454,8 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = ConstU128<{ 5 * currency::MOVR * currency::SUPPLY_FACTOR }>;
-	type ByteDeposit = ConstU128<{ 1 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type BaseDeposit = ConstU128<{ 0 * currency::MOVR * currency::SUPPLY_FACTOR }>;
+	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
 }
 
 type CouncilInstance = pallet_collective::Instance1;
@@ -1467,7 +1467,7 @@ mod tests {
 			Balance::from(4 * MOVR)
 		);
 		assert_eq!(
-			get!(pallet_democracy, PreimageByteDeposit, u128),
+			get!(pallet_preimage, ByteDeposit, u128),
 			Balance::from(100 * MICROMOVR)
 		);
 		assert_eq!(
@@ -1563,6 +1563,6 @@ mod tests {
 		let base_extrinsic = <Runtime as frame_system::Config>::BlockWeights::get()
 			.get(frame_support::weights::DispatchClass::Normal)
 			.base_extrinsic;
-		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight);
+		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight.ref_time());
 	}
 }
