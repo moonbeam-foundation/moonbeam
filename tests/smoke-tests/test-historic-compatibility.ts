@@ -53,22 +53,18 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     expect(failures).to.be.empty;
   });
 
-  it.only("can get receipt for historic transactions", async function () {
+  it("can get receipt for historic transactions", async function () {
     this.timeout(300000);
     const promises = traceStatic.testData.map(async (a) => {
-      if (a.runtime) {
-        try {
-          const result = await limiter.schedule(() =>
-            context.ethers.send("eth_getTransactionReceipt", [a.txHash])
-          );
-          debug(`Successful response from runtime ${a.runtime} in block #${a.blockNumber}.`);
-          const error = result == null;
-          return { runtime: a.runtime, blockNumber: a.blockNumber, error, result };
-        } catch (e) {
-          return { runtime: a.runtime, blockNumber: a.blockNumber, error: true, result: e };
-        }
-      } else {
-        return { runtime: a.runtime, blockNumber: -1, error: false, result: {} };
+      try {
+        const result = await limiter.schedule(() =>
+          context.ethers.send("eth_getTransactionReceipt", [a.txHash])
+        );
+        debug(`Successful response from runtime ${a.runtime} in block #${a.blockNumber}.`);
+        const error = result == null;
+        return { runtime: a.runtime, blockNumber: a.blockNumber, error, result };
+      } catch (e) {
+        return { runtime: a.runtime, blockNumber: a.blockNumber, error: true, result: e };
       }
     });
 
