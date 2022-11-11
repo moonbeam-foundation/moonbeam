@@ -206,6 +206,10 @@ pub struct RunCmd {
 	#[clap(long, default_value = "2048")]
 	pub fee_history_limit: u64,
 
+	/// Sets the backend type (KeyValue or Sql)
+	#[clap(long, arg_enum, ignore_case = true, default_value_t = cli_opt::BackendType::default())]
+	pub frontier_backend_type: cli_opt::BackendType,
+
 	/// Disable automatic hardware benchmarks.
 	///
 	/// By default these benchmarks are automatically ran at startup and measure

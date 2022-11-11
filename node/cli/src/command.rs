@@ -275,29 +275,81 @@ pub fn run() -> Result<()> {
 		}
 		Some(Subcommand::CheckBlock(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
 		Some(Subcommand::ExportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, config.database), task_manager))
 			})
 		}
 		Some(Subcommand::ExportState(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
 			runner.async_run(|mut config| {
-				let (client, _, _, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, config.chain_spec), task_manager))
 			})
 		}
 		Some(Subcommand::ImportBlocks(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config)?;
+				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -351,13 +403,27 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Revert(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			let chain_spec = &runner.config().chain_spec;
+
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
 				spec if spec.is_moonriver() => runner.async_run(|mut config| {
 					let params = service::new_partial::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(&mut config, false)?;
+					>(&mut config, false, &rpc_config)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -369,7 +435,7 @@ pub fn run() -> Result<()> {
 					let params = service::new_partial::<
 						service::moonbeam_runtime::RuntimeApi,
 						service::MoonbeamExecutor,
-					>(&mut config, false)?;
+					>(&mut config, false, &rpc_config)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -381,7 +447,7 @@ pub fn run() -> Result<()> {
 					let params = service::new_partial::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(&mut config, false)?;
+					>(&mut config, false, &rpc_config)?;
 
 					Ok((
 						cmd.run(params.client, params.backend, None),
@@ -478,6 +544,21 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Benchmark(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 
+
+			let rpc_config = RpcConfig {
+				ethapi: cli.run.ethapi,
+				ethapi_max_permits: cli.run.ethapi_max_permits,
+				ethapi_trace_max_count: cli.run.ethapi_trace_max_count,
+				ethapi_trace_cache_duration: cli.run.ethapi_trace_cache_duration,
+				eth_log_block_cache: cli.run.eth_log_block_cache,
+				eth_statuses_cache: cli.run.eth_statuses_cache,
+				fee_history_limit: cli.run.fee_history_limit,
+				max_past_logs: cli.run.max_past_logs,
+				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
+				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+				frontier_backend_type: cli.run.frontier_backend_type,
+			};
+
 			// Switch on the concrete benchmark sub-command
 			match cmd {
 				BenchmarkCmd::Pallet(cmd) => {
@@ -532,7 +613,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonriver_runtime::RuntimeApi,
 									service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								cmd.run(params.client)
 							})
@@ -543,7 +624,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonbeam_runtime::RuntimeApi,
 									service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								cmd.run(params.client)
 							})
@@ -554,7 +635,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonbase_runtime::RuntimeApi,
 									service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								cmd.run(params.client)
 							})
@@ -572,7 +653,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonriver_runtime::RuntimeApi,
 									service::MoonriverExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -586,7 +667,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonbeam_runtime::RuntimeApi,
 									service::MoonbeamExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -600,7 +681,7 @@ pub fn run() -> Result<()> {
 								let params = service::new_partial::<
 									service::moonbase_runtime::RuntimeApi,
 									service::MoonbaseExecutor,
-								>(&mut config, false)?;
+								>(&mut config, false, &rpc_config)?;
 
 								let db = params.backend.expose_db();
 								let storage = params.backend.expose_storage();
@@ -717,6 +798,7 @@ pub fn run() -> Result<()> {
 					max_past_logs: cli.run.max_past_logs,
 					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
+					frontier_backend_type: cli.run.frontier_backend_type,
 				};
 
 				// If dev service was requested, start up manual or instant seal.

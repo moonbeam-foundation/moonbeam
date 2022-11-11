@@ -26,11 +26,12 @@ use sp_block_builder::BlockBuilder;
 use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
-use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
+use fc_mapping_sync::kv::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
 	SchemaV2Override, SchemaV3Override, StorageOverride,
 };
+use fc_db::Backend as FrontierBackend;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
@@ -75,7 +76,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
 	/// Frontier Backend.
-	pub frontier_backend: Arc<fc_db::Backend<Block>>,
+	pub frontier_backend: Arc<dyn fc_db::BackendReader<Block> + Send + Sync>,
 	/// Backend.
 	pub backend: Arc<BE>,
 	/// Manual seal command sink
@@ -301,7 +302,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub task_manager: &'a TaskManager,
 	pub client: Arc<C>,
 	pub substrate_backend: Arc<BE>,
-	pub frontier_backend: Arc<fc_db::Backend<B>>,
+	pub frontier_backend: FrontierBackend<B>,
 	pub filter_pool: Option<FilterPool>,
 	pub overrides: Arc<OverrideHandle<B>>,
 	pub fee_history_limit: u64,
@@ -324,22 +325,40 @@ where
 {
 	// Frontier offchain DB task. Essential.
 	// Maps emulated ethereum data to substrate native data.
-	params.task_manager.spawn_essential_handle().spawn(
-		"frontier-mapping-sync-worker",
-		Some("frontier"),
-		MappingSyncWorker::new(
-			params.client.import_notification_stream(),
-			Duration::new(6, 0),
-			params.client.clone(),
-			params.substrate_backend.clone(),
-			params.frontier_backend.clone(),
-			3,
-			0,
-			SyncStrategy::Parachain,
-		)
-		.for_each(|()| futures::future::ready(())),
-	);
-
+	// Spawn main mapping sync worker background task.
+	match params.frontier_backend {
+		fc_db::Backend::KeyValue(b) => {
+			params.task_manager.spawn_essential_handle().spawn(
+				"frontier-mapping-sync-worker",
+				None,
+				fc_mapping_sync::kv::MappingSyncWorker::new(
+					params.client.import_notification_stream(),
+					Duration::new(6, 0),
+					params.client.clone(),
+					params.substrate_backend,
+					Arc::new(b),
+					3,
+					0,
+					fc_mapping_sync::kv::SyncStrategy::Normal,
+				)
+				.for_each(|()| futures::future::ready(())),
+			);
+		}
+		fc_db::Backend::Sql(b) => {
+			params.task_manager.spawn_essential_handle().spawn(
+				"frontier-mapping-sync-worker",
+				None,
+				fc_mapping_sync::sql::SyncWorker::run(
+					params.client.clone(),
+					params.substrate_backend,
+					Arc::new(b),
+					params.client.import_notification_stream(),
+					1000,                              // batch size
+					std::time::Duration::from_secs(1), // interval duration
+				),
+			);
+		}
+	}
 	// Frontier `EthFilterApi` maintenance.
 	// Manages the pool of user-created Filters.
 	if let Some(filter_pool) = params.filter_pool {

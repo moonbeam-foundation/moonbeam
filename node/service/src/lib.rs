@@ -24,7 +24,8 @@
 
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
-use fc_db::DatabaseSource;
+use fc_db::Backend as FrontierBackend;
+use sc_client_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use maplit::hashmap;
@@ -195,41 +196,41 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 		.unwrap_or_else(|| {
 			BasePath::from_project("", "", "moonbeam").config_dir(config.chain_spec.id())
 		});
-	config_dir.join("frontier").join(path)
+	config_dir.join(path)
 }
 
-// TODO This is copied from frontier. It should be imported instead after
-// https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend<C>(
-	client: Arc<C>,
-	config: &Configuration,
-) -> Result<Arc<fc_db::Backend<Block>>, String>
-where
-	C: sp_blockchain::HeaderBackend<Block>,
-{
-	Ok(Arc::new(fc_db::Backend::<Block>::new(
-		client,
-		&fc_db::DatabaseSettings {
-			source: match config.database {
-				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
-					path: frontier_database_dir(config, "db"),
-					cache_size: 0,
-				},
-				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
-					path: frontier_database_dir(config, "paritydb"),
-				},
-				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
-					rocksdb_path: frontier_database_dir(config, "db"),
-					paritydb_path: frontier_database_dir(config, "paritydb"),
-					cache_size: 0,
-				},
-				_ => {
-					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
-				}
-			},
-		},
-	)?))
-}
+// // TODO This is copied from frontier. It should be imported instead after
+// // https://github.com/paritytech/frontier/issues/333 is solved
+// pub fn open_frontier_backend<C>(
+// 	client: Arc<C>,
+// 	config: &Configuration,
+// ) -> Result<Arc<fc_db::Backend<Block>>, String>
+// where
+// 	C: sp_blockchain::HeaderBackend<Block>,
+// {
+// 	Ok(Arc::new(fc_db::Backend::<Block>::new(
+// 		client,
+// 		&fc_db::kv::DatabaseSettings {
+// 			source: match config.database {
+// 				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
+// 					path: frontier_database_dir(config, "db"),
+// 					cache_size: 0,
+// 				},
+// 				DatabaseSource::ParityDb { .. } => DatabaseSource::ParityDb {
+// 					path: frontier_database_dir(config, "paritydb"),
+// 				},
+// 				DatabaseSource::Auto { .. } => DatabaseSource::Auto {
+// 					rocksdb_path: frontier_database_dir(config, "db"),
+// 					paritydb_path: frontier_database_dir(config, "paritydb"),
+// 					cache_size: 0,
+// 				},
+// 				_ => {
+// 					return Err("Supported db sources: `rocksdb` | `paritydb` | `auto`".to_string())
+// 				}
+// 			},
+// 		},
+// 	)?))
+// }
 
 use sp_runtime::{traits::BlakeTwo256, Percent};
 use sp_trie::PrefixedMemoryDB;
@@ -240,6 +241,7 @@ pub const SOFT_DEADLINE_PERCENT: Percent = Percent::from_percent(100);
 #[allow(clippy::type_complexity)]
 pub fn new_chain_ops(
 	config: &mut Configuration,
+	rpc_config: RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -252,14 +254,14 @@ pub fn new_chain_ops(
 	match &config.chain_spec {
 		#[cfg(feature = "moonriver-native")]
 		spec if spec.is_moonriver() => {
-			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config)
+			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config, rpc_config)
 		}
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => {
-			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config)
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, rpc_config)
 		}
 		#[cfg(feature = "moonbase-native")]
-		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config),
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config, rpc_config),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
 	}
@@ -268,6 +270,7 @@ pub fn new_chain_ops(
 #[allow(clippy::type_complexity)]
 fn new_chain_ops_inner<RuntimeApi, Executor>(
 	mut config: &mut Configuration,
+	rpc_config: RpcConfig,
 ) -> Result<
 	(
 		Arc<Client>,
@@ -292,7 +295,7 @@ where
 		import_queue,
 		task_manager,
 		..
-	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev())?;
+	} = new_partial::<RuntimeApi, Executor>(config, config.chain_spec.is_dev(), &rpc_config)?;
 	Ok((
 		Arc::new(Client::from(client)),
 		backend,
@@ -321,6 +324,7 @@ fn set_prometheus_registry(config: &mut Configuration) -> Result<(), ServiceErro
 pub fn new_partial<RuntimeApi, Executor>(
 	config: &mut Configuration,
 	dev_service: bool,
+	rpc_config: &RpcConfig,
 ) -> Result<
 	PartialComponents<
 		FullClient<RuntimeApi, Executor>,
@@ -337,8 +341,9 @@ pub fn new_partial<RuntimeApi, Executor>(
 			Option<FilterPool>,
 			Option<Telemetry>,
 			Option<TelemetryWorkerHandle>,
-			Arc<fc_db::Backend<Block>>,
+			FrontierBackend<Block>,
 			FeeHistoryCache,
+			Arc<fc_rpc::OverrideHandle<Block>>,
 		),
 	>,
 	ServiceError,
@@ -408,10 +413,39 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(client.clone(), config)?;
+	let overrides = crate::rpc::overrides_handle(client.clone());
+	let frontier_backend = match rpc_config.frontier_backend_type {
+		cli_opt::BackendType::KeyValue => FrontierBackend::KeyValue(fc_db::kv::Backend::open(
+			Arc::clone(&client),
+			&config.database,
+			&frontier_database_dir(config, "db"),
+		)?),
+		cli_opt::BackendType::Sql => {
+			let db_path = &frontier_database_dir(config, "");
+			println!("-------_> {:?}", std::path::Path::new("sqlite:///")
+			.join(db_path.strip_prefix("/").unwrap().to_str().unwrap())
+			.join("frontier.db3")
+			.to_str()
+			.unwrap());
+			let backend = futures::executor::block_on(fc_db::sql::Backend::new(
+				fc_db::sql::BackendConfig::Sqlite(fc_db::sql::SqliteBackendConfig {
+					path: std::path::Path::new("sqlite:///")
+						.join(db_path.strip_prefix("/").unwrap().to_str().unwrap())
+						.join("frontier.db3")
+						.to_str()
+						.unwrap(),
+					create_if_missing: true,
+				}),
+				100, // pool size
+				overrides.clone(),
+			))
+			.expect("indexer pool to be created");
+			FrontierBackend::Sql(backend)
+		}
+	};
 
 	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
+		FrontierBlockImport::new(client.clone(), client.clone());
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
@@ -442,6 +476,7 @@ where
 			telemetry_worker_handle,
 			frontier_backend,
 			fee_history_cache,
+			overrides,
 		),
 	})
 }
@@ -483,7 +518,7 @@ where
 {
 	let mut parachain_config = prepare_node_config(parachain_config);
 
-	let params = new_partial(&mut parachain_config, false)?;
+	let params = new_partial(&mut parachain_config, false, &rpc_config)?;
 	let (
 		_block_import,
 		filter_pool,
@@ -491,6 +526,7 @@ where
 		telemetry_worker_handle,
 		frontier_backend,
 		fee_history_cache,
+		overrides,
 	) = params.other;
 
 	let client = params.client.clone();
@@ -529,7 +565,6 @@ where
 			warp_sync: None,
 		})?;
 
-	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 
 	rpc::spawn_essential_tasks(rpc::SpawnTasksParams {
@@ -599,7 +634,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,
@@ -848,8 +886,9 @@ where
 				_telemetry_worker_handle,
 				frontier_backend,
 				fee_history_cache,
+				overrides,
 			),
-	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
+	} = new_partial::<RuntimeApi, Executor>(&mut config, true, &rpc_config)?;
 
 	let (network, system_rpc_tx, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
@@ -872,7 +911,6 @@ where
 	}
 
 	let prometheus_registry = config.prometheus_registry().cloned();
-	let overrides = crate::rpc::overrides_handle(client.clone());
 	let fee_history_limit = rpc_config.fee_history_limit;
 	let mut command_sink = None;
 	let mut xcm_senders = None;
@@ -1057,7 +1095,10 @@ where
 				deny_unsafe,
 				ethapi_cmd: ethapi_cmd.clone(),
 				filter_pool: filter_pool.clone(),
-				frontier_backend: frontier_backend.clone(),
+				frontier_backend: match frontier_backend.clone() {
+					fc_db::Backend::KeyValue(b) => Arc::new(b),
+					fc_db::Backend::Sql(b) => Arc::new(b),
+				},
 				graph: pool.pool().clone(),
 				pool: pool.clone(),
 				is_authority: collator,

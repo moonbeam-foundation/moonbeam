@@ -80,4 +80,20 @@ pub struct RpcConfig {
 	pub max_past_logs: u32,
 	pub relay_chain_rpc_url: Option<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
+	pub frontier_backend_type: BackendType,
+}
+
+/// Avalailable Backend types.
+#[derive(Debug, Copy, Clone, clap::ArgEnum)]
+pub enum BackendType {
+	/// Either RocksDb or ParityDb as per inherited from the global backend settings.
+	KeyValue,
+	/// Sql database with custom log indexing.
+	Sql,
+}
+
+impl Default for BackendType {
+	fn default() -> BackendType {
+		BackendType::KeyValue
+	}
 }
