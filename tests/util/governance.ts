@@ -28,7 +28,7 @@ export const notePreimage = async <
 ): Promise<string> => {
   const encodedProposal = proposal.method.toHex() || "";
   await context.createBlock(
-    context.polkadotApi.tx.democracy.notePreimage(encodedProposal).signAsync(account)
+    context.polkadotApi.tx.preimage.notePreimage(encodedProposal).signAsync(account)
   );
 
   return blake2AsHex(encodedProposal);
@@ -97,7 +97,10 @@ export const execCouncilProposal = async <
   await context.createBlock();
   return await context.createBlock(
     context.polkadotApi.tx.councilCollective
-      .close(proposalHash, 0, 1_000_000_000, lengthBound)
+      .close(proposalHash, 0, {
+        refTime: 1_000_000_000,
+        proofSize: 0
+      } as any, lengthBound)
       .signAsync(dorothy)
   );
 };
@@ -145,7 +148,10 @@ export const execTechnicalCommitteeProposal = async <
   );
   const { result: closeResult } = await context.createBlock(
     context.polkadotApi.tx.techCommitteeCollective
-      .close(proposalHash, Number(proposalCount) - 1, 1_000_000_000, lengthBound)
+      .close(proposalHash, Number(proposalCount) - 1, {
+        refTime: 1_000_000_000,
+        proofSize: 0
+      } as any, lengthBound)
       .signAsync(baltathar)
   );
   return closeResult;

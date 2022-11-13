@@ -459,7 +459,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const encodedHash = blake2AsHex(encodedProposal);
 
     // Propose
-    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
+    await context.createBlock(context.polkadotApi.tx.preimage.notePreimage(encodedProposal));
     await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, 1000n * GLMR));
     const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
     // we only use sudo to enact the proposal

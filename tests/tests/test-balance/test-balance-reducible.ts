@@ -31,7 +31,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     let encodedHash = blake2AsHex(encodedProposal);
 
     // Submit the pre-image
-    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
+    await context.createBlock(context.polkadotApi.tx.preimage.notePreimage(encodedProposal));
 
     // Record balance
     let beforeBalance = await context.web3.eth.getBalance(alith.address);
