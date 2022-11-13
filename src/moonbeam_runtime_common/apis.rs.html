@@ -1494,7 +1494,7 @@
 					// fail, we shall stop right here and right now.
 					</span><span class="kw">let </span>weight = Executive::try_runtime_upgrade()
 						.expect(<span class="string">&quot;runtime upgrade logic *must* be infallible&quot;</span>);
-					(weight, BlockWeights::get().max_block)
+					(weight, RuntimeBlockWeights::get().max_block)
 				}
 
 				<span class="kw">fn </span>execute_block(
