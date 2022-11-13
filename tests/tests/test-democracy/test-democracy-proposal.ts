@@ -12,15 +12,23 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
   let encodedHash: string;
 
   before("Create preimage & proposal", async () => {
+
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
     // notePreimage
     encodedHash = await notePreimage(
       context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
+      proposal,
       alith
     );
     // propose
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose({
+        Lookup: {
+          hash: encodedHash,
+          length: encodedProposal.length
+        }
+    } as any, PROPOSAL_AMOUNT)
     );
   });
 
@@ -38,9 +46,9 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
 
   it("should create a proposal", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = await context.polkadotApi.query.democracy.publicProps() as any;
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
     // depositOf
@@ -57,19 +65,28 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
+
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+
     //launchPeriod
     launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
 
     // notePreimage
     encodedHash = await notePreimage(
       context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
+      proposal,
       alith
     );
 
     // propose & second
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose({
+        Lookup: {
+          hash: encodedHash,
+          length: encodedProposal.length
+        }
+    } as any, PROPOSAL_AMOUNT)
     );
     await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
   });
@@ -99,19 +116,28 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
+
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+
     //launchPeriod
     launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
 
     // notePreimage
     encodedHash = await notePreimage(
       context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
+      proposal,
       alith
     );
 
     // propose & second
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose({
+        Lookup: {
+          hash: encodedHash,
+          length: encodedProposal.length
+        }
+    } as any, PROPOSAL_AMOUNT)
     );
     await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
   });

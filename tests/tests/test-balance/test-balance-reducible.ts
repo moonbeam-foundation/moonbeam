@@ -38,11 +38,21 @@ describeDevMoonbeam("Reducible Balance", (context) => {
 
     // Fees
     const fee = (
-      await context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount).paymentInfo(alith)
+      await context.polkadotApi.tx.democracy.propose({
+        Lookup: {
+          hash: encodedHash,
+          length: encodedProposal.length
+        }
+      } as any, lock_amount).paymentInfo(alith)
     ).partialFee as any;
 
     // Propose
-    await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount));
+    await context.createBlock(context.polkadotApi.tx.democracy.propose({
+      Lookup: {
+        hash: encodedHash,
+        length: encodedProposal.length
+      }
+    } as any, lock_amount));
 
     expect(await context.web3.eth.getBalance(alith.address)).to.equal(
       (

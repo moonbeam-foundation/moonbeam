@@ -13,14 +13,21 @@ import {
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 
 const setupProposalAnd3TechnicalCommittee = async (context: DevTestContext) => {
+  const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+  const encodedProposal = proposal.method.toHex() || "";
   let proposalHash = await notePreimage(
     context,
-    context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
+    proposal,
     alith
   );
   await execCouncilProposal(
     context,
-    context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+    context.polkadotApi.tx.democracy.externalProposeMajority({
+      Lookup: {
+        hash: proposalHash,
+        length: encodedProposal.length
+      }
+  } as any)
   );
 
   await context.createBlock(
