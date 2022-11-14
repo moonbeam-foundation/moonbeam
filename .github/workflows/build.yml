@@ -242,9 +242,6 @@ jobs:
       RUSTFLAGS: "-C opt-level=3 -D warnings"
       # MOONBEAM_LOG: info
       # DEBUG: "test*"
-      - name: Setup editorconfig checker
-        run: |
-          
     steps:
       - name: Checkout
         uses: actions/checkout@v2
