@@ -19,8 +19,8 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	ParachainBondConfig, ParachainBondInfo, Points, Range, Round, ScheduledRequest, Staked,
-	TopDelegations,
+	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
+	Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
 use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
@@ -1036,7 +1036,8 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+		// TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid));
 	}
 	verify {
 		// collator should have been paid
@@ -1256,6 +1257,23 @@ benchmarks! {
 			actual_auto_compound,
 			"delegation must have an auto-compound entry",
 		);
+	}
+
+	mint_collator_reward {
+		let mut seed = Seed::new();
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			0u32.into(),
+			true,
+			1,
+		)?;
+		let original_free_balance = T::Currency::free_balance(&collator);
+	}: {
+		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+	}
+	verify {
+		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
 	}
 }
 

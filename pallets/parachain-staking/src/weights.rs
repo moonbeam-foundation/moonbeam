@@ -123,6 +123,8 @@ pub trait WeightInfo {
 	fn set_auto_compound(x: u32, y: u32, ) -> Weight;
 	#[rustfmt::skip]
 	fn delegate_with_auto_compound(x: u32, y: u32, z: u32, ) -> Weight;
+	#[rustfmt::skip]
+	fn mint_collator_reward() -> Weight;
 }
 
 /// Weights for parachain_staking using the Substrate node and recommended hardware.
@@ -537,6 +539,13 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(8 as u64))
 			.saturating_add(T::DbWeight::get().writes(8 as u64))
 	}
+	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
+	fn mint_collator_reward() -> Weight {
+		Weight::from_ref_time(37_241_000 as u64)
+			.saturating_add(T::DbWeight::get().reads(1 as u64))
+			.saturating_add(T::DbWeight::get().writes(1 as u64))
+	}
 }
 
 // For backwards compatibility and tests
@@ -949,5 +958,12 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_ref_time(71_000 as u64).saturating_mul(y as u64))
 			.saturating_add(RocksDbWeight::get().reads(8 as u64))
 			.saturating_add(RocksDbWeight::get().writes(8 as u64))
+	}
+	// Storage: System Account (r:1 w:1)
+	#[rustfmt::skip]
+	fn mint_collator_reward() -> Weight {
+		Weight::from_ref_time(37_241_000 as u64)
+			.saturating_add(RocksDbWeight::get().reads(1 as u64))
+			.saturating_add(RocksDbWeight::get().writes(1 as u64))
 	}
 }
