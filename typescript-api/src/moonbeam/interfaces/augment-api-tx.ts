@@ -32,6 +32,7 @@ import type {
   CumulusPrimitivesParachainInherentParachainInherentData,
   EthereumTransactionTransactionV2,
   FrameSupportScheduleMaybeHashed,
+  FrameSupportWeightsWeightV2Weight,
   MoonbeamRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbeamRuntimeOriginCaller,
   MoonbeamRuntimeProxyType,
@@ -1029,10 +1030,6 @@ declare module "@polkadot/api-base/types/submittable" {
         (elasticity: Permill | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [Permill]
       >;
-      setIsActive: AugmentedSubmittable<
-        (isActive: bool | boolean | Uint8Array) => SubmittableExtrinsic<ApiType>,
-        [bool]
-      >;
       /**
        * Generic tx
        */
@@ -1085,10 +1082,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
+        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless
@@ -1828,9 +1825,9 @@ declare module "@polkadot/api-base/types/submittable" {
       serviceOverweight: AugmentedSubmittable<
         (
           index: u64 | AnyNumber | Uint8Array,
-          weightLimit: u64 | AnyNumber | Uint8Array
+          weightLimit: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u64, u64]
+        [u64, FrameSupportWeightsWeightV2Weight]
       >;
       /**
        * Generic tx
@@ -2084,6 +2081,7 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `target`: the account whose identity the judgement is upon. This must
        *   be an account with a registered identity.
        * - `judgement`: the judgement of the registrar of index `reg_index` about `target`.
+       * - `identity`: The hash of the [`IdentityInfo`] for that the judgement is provided.
        *
        * Emits `JudgementGiven` if successful.
        *
@@ -2111,9 +2109,10 @@ declare module "@polkadot/api-base/types/submittable" {
             | { LowQuality: any }
             | { Erroneous: any }
             | string
-            | Uint8Array
+            | Uint8Array,
+          identity: H256 | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [Compact<u32>, AccountId20, PalletIdentityJudgement]
+        [Compact<u32>, AccountId20, PalletIdentityJudgement, H256]
       >;
       /**
        * Remove the sender as a sub-account.
@@ -3114,6 +3113,22 @@ declare module "@polkadot/api-base/types/submittable" {
         [AccountId20, u128, u32, u32]
       >;
       /**
+       * If caller is not a delegator and not a collator, then join the set of
+       * delegators If caller is a delegator, then makes delegation to change
+       * their delegation state Sets the auto-compound config for the delegation
+       */
+      delegateWithAutoCompound: AugmentedSubmittable<
+        (
+          candidate: AccountId20 | string | Uint8Array,
+          amount: u128 | AnyNumber | Uint8Array,
+          autoCompound: Percent | AnyNumber | Uint8Array,
+          candidateDelegationCount: u32 | AnyNumber | Uint8Array,
+          candidateAutoCompoundingDelegationCount: u32 | AnyNumber | Uint8Array,
+          delegationCount: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, u128, Percent, u32, u32, u32]
+      >;
+      /**
        * Bond more for delegators wrt a specific collator candidate.
        */
       delegatorBondMore: AugmentedSubmittable<
@@ -3230,6 +3245,18 @@ declare module "@polkadot/api-base/types/submittable" {
       scheduleRevokeDelegation: AugmentedSubmittable<
         (collator: AccountId20 | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
         [AccountId20]
+      >;
+      /**
+       * Sets the auto-compounding reward percentage for a delegation.
+       */
+      setAutoCompound: AugmentedSubmittable<
+        (
+          candidate: AccountId20 | string | Uint8Array,
+          value: Percent | AnyNumber | Uint8Array,
+          candidateAutoCompoundingDelegationCountHint: u32 | AnyNumber | Uint8Array,
+          delegationCountHint: u32 | AnyNumber | Uint8Array
+        ) => SubmittableExtrinsic<ApiType>,
+        [AccountId20, Percent, u32, u32]
       >;
       /**
        * Set blocks per round
@@ -3385,9 +3412,9 @@ declare module "@polkadot/api-base/types/submittable" {
       execute: AugmentedSubmittable<
         (
           message: XcmVersionedXcm | { V0: any } | { V1: any } | { V2: any } | string | Uint8Array,
-          maxWeight: u64 | AnyNumber | Uint8Array
+          maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedXcm, u64]
+        [XcmVersionedXcm, FrameSupportWeightsWeightV2Weight]
       >;
       /**
        * Set a safe XCM version (the version that XCM should be encoded with if
@@ -3941,7 +3968,7 @@ declare module "@polkadot/api-base/types/submittable" {
     };
     randomness: {
       /**
-       * Populates the `RandomnessResults` that are due this block with the raw values
+       * Populates `RandomnessResults` due this epoch with BABE epoch randomness
        */
       setBabeRandomnessResults: AugmentedSubmittable<() => SubmittableExtrinsic<ApiType>, []>;
       /**
@@ -4207,10 +4234,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
+        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless
@@ -4559,10 +4586,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<u64> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<u64>, Compact<u32>]
+        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless

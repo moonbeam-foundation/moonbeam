@@ -486,6 +486,10 @@ declare module "@polkadot/api-base/types/errors" {
        */
       PaymentOverflow: AugmentedError<ApiType>;
       /**
+       * EVM reentrancy
+       */
+      Reentrancy: AugmentedError<ApiType>;
+      /**
        * Undefined error.
        */
       Undefined: AugmentedError<ApiType>;
@@ -523,6 +527,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The target is invalid.
        */
       InvalidTarget: AugmentedError<ApiType>;
+      /**
+       * The provided judgement was for a different identity.
+       */
+      JudgementForDifferentIdentity: AugmentedError<ApiType>;
       /**
        * Judgement given.
        */
@@ -729,11 +737,14 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
       RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
       /**

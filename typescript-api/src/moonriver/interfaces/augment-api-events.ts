@@ -32,6 +32,7 @@ import type {
   FrameSupportScheduleLookupError,
   FrameSupportTokensMiscBalanceStatus,
   FrameSupportWeightsDispatchInfo,
+  FrameSupportWeightsWeightV2Weight,
   MoonriverRuntimeAssetConfigAssetRegistrarMetadata,
   MoonriverRuntimeProxyType,
   MoonriverRuntimeXcmConfigAssetType,
@@ -439,7 +440,6 @@ declare module "@polkadot/api-base/types/events" {
     };
     baseFee: {
       BaseFeeOverflow: AugmentedEvent<ApiType, []>;
-      IsActive: AugmentedEvent<ApiType, [isActive: bool], { isActive: bool }>;
       NewBaseFeePerGas: AugmentedEvent<ApiType, [fee: U256], { fee: U256 }>;
       NewElasticity: AugmentedEvent<ApiType, [elasticity: Permill], { elasticity: Permill }>;
       /**
@@ -718,16 +718,24 @@ declare module "@polkadot/api-base/types/events" {
        */
       OverweightEnqueued: AugmentedEvent<
         ApiType,
-        [messageId: U8aFixed, overweightIndex: u64, requiredWeight: u64],
-        { messageId: U8aFixed; overweightIndex: u64; requiredWeight: u64 }
+        [
+          messageId: U8aFixed,
+          overweightIndex: u64,
+          requiredWeight: FrameSupportWeightsWeightV2Weight
+        ],
+        {
+          messageId: U8aFixed;
+          overweightIndex: u64;
+          requiredWeight: FrameSupportWeightsWeightV2Weight;
+        }
       >;
       /**
        * Downward message from the overweight queue was executed.
        */
       OverweightServiced: AugmentedEvent<
         ApiType,
-        [overweightIndex: u64, weightUsed: u64],
-        { overweightIndex: u64; weightUsed: u64 }
+        [overweightIndex: u64, weightUsed: FrameSupportWeightsWeightV2Weight],
+        { overweightIndex: u64; weightUsed: FrameSupportWeightsWeightV2Weight }
       >;
       /**
        * Downward message is unsupported version of XCM.
@@ -738,8 +746,16 @@ declare module "@polkadot/api-base/types/events" {
        */
       WeightExhausted: AugmentedEvent<
         ApiType,
-        [messageId: U8aFixed, remainingWeight: u64, requiredWeight: u64],
-        { messageId: U8aFixed; remainingWeight: u64; requiredWeight: u64 }
+        [
+          messageId: U8aFixed,
+          remainingWeight: FrameSupportWeightsWeightV2Weight,
+          requiredWeight: FrameSupportWeightsWeightV2Weight
+        ],
+        {
+          messageId: U8aFixed;
+          remainingWeight: FrameSupportWeightsWeightV2Weight;
+          requiredWeight: FrameSupportWeightsWeightV2Weight;
+        }
       >;
       /**
        * Generic event
@@ -1045,8 +1061,8 @@ declare module "@polkadot/api-base/types/events" {
        */
       MigrationCompleted: AugmentedEvent<
         ApiType,
-        [migrationName: Bytes, consumedWeight: u64],
-        { migrationName: Bytes; consumedWeight: u64 }
+        [migrationName: Bytes, consumedWeight: FrameSupportWeightsWeightV2Weight],
+        { migrationName: Bytes; consumedWeight: FrameSupportWeightsWeightV2Weight }
       >;
       /**
        * Migration started
@@ -1055,7 +1071,11 @@ declare module "@polkadot/api-base/types/events" {
       /**
        * Runtime upgrade completed
        */
-      RuntimeUpgradeCompleted: AugmentedEvent<ApiType, [weight: u64], { weight: u64 }>;
+      RuntimeUpgradeCompleted: AugmentedEvent<
+        ApiType,
+        [weight: FrameSupportWeightsWeightV2Weight],
+        { weight: FrameSupportWeightsWeightV2Weight }
+      >;
       /**
        * Runtime upgrade started
        */
@@ -1117,6 +1137,14 @@ declare module "@polkadot/api-base/types/events" {
       [key: string]: AugmentedEvent<ApiType>;
     };
     parachainStaking: {
+      /**
+       * Auto-compounding reward percent was set for a delegation.
+       */
+      AutoCompoundSet: AugmentedEvent<
+        ApiType,
+        [candidate: AccountId20, delegator: AccountId20, value: Percent],
+        { candidate: AccountId20; delegator: AccountId20; value: Percent }
+      >;
       /**
        * Set blocks per round
        */
@@ -1246,6 +1274,14 @@ declare module "@polkadot/api-base/types/events" {
         { old: Perbill; new_: Perbill }
       >;
       /**
+       * Compounded a portion of rewards towards the delegation.
+       */
+      Compounded: AugmentedEvent<
+        ApiType,
+        [candidate: AccountId20, delegator: AccountId20, amount: u128],
+        { candidate: AccountId20; delegator: AccountId20; amount: u128 }
+      >;
+      /**
        * New delegation (increase of the existing one).
        */
       Delegation: AugmentedEvent<
@@ -1254,13 +1290,15 @@ declare module "@polkadot/api-base/types/events" {
           delegator: AccountId20,
           lockedAmount: u128,
           candidate: AccountId20,
-          delegatorPosition: PalletParachainStakingDelegatorAdded
+          delegatorPosition: PalletParachainStakingDelegatorAdded,
+          autoCompound: Percent
         ],
         {
           delegator: AccountId20;
           lockedAmount: u128;
           candidate: AccountId20;
           delegatorPosition: PalletParachainStakingDelegatorAdded;
+          autoCompound: Percent;
         }
       >;
       DelegationDecreased: AugmentedEvent<
@@ -1446,8 +1484,8 @@ declare module "@polkadot/api-base/types/events" {
        */
       DownwardMessagesProcessed: AugmentedEvent<
         ApiType,
-        [weightUsed: u64, dmqHead: H256],
-        { weightUsed: u64; dmqHead: H256 }
+        [weightUsed: FrameSupportWeightsWeightV2Weight, dmqHead: H256],
+        { weightUsed: FrameSupportWeightsWeightV2Weight; dmqHead: H256 }
       >;
       /**
        * Some downward messages have been received and will be processed.
@@ -1545,7 +1583,10 @@ declare module "@polkadot/api-base/types/events" {
        *
        * [ id, pallet index, call index, actual weight, max budgeted weight ]
        */
-      NotifyOverweight: AugmentedEvent<ApiType, [u64, u8, u8, u64, u64]>;
+      NotifyOverweight: AugmentedEvent<
+        ApiType,
+        [u64, u8, u8, FrameSupportWeightsWeightV2Weight, FrameSupportWeightsWeightV2Weight]
+      >;
       /**
        * A given location which had a version change subscription was dropped
        * owing to an error migrating the location to our new XCM format.
@@ -2063,32 +2104,40 @@ declare module "@polkadot/api-base/types/events" {
        */
       Fail: AugmentedEvent<
         ApiType,
-        [messageHash: Option<H256>, error: XcmV2TraitsError, weight: u64],
-        { messageHash: Option<H256>; error: XcmV2TraitsError; weight: u64 }
+        [
+          messageHash: Option<H256>,
+          error: XcmV2TraitsError,
+          weight: FrameSupportWeightsWeightV2Weight
+        ],
+        {
+          messageHash: Option<H256>;
+          error: XcmV2TraitsError;
+          weight: FrameSupportWeightsWeightV2Weight;
+        }
       >;
       /**
        * An XCM exceeded the individual message weight budget.
        */
       OverweightEnqueued: AugmentedEvent<
         ApiType,
-        [sender: u32, sentAt: u32, index: u64, required: u64],
-        { sender: u32; sentAt: u32; index: u64; required: u64 }
+        [sender: u32, sentAt: u32, index: u64, required: FrameSupportWeightsWeightV2Weight],
+        { sender: u32; sentAt: u32; index: u64; required: FrameSupportWeightsWeightV2Weight }
       >;
       /**
        * An XCM from the overweight queue was executed with the given actual weight used.
        */
       OverweightServiced: AugmentedEvent<
         ApiType,
-        [index: u64, used: u64],
-        { index: u64; used: u64 }
+        [index: u64, used: FrameSupportWeightsWeightV2Weight],
+        { index: u64; used: FrameSupportWeightsWeightV2Weight }
       >;
       /**
        * Some XCM was executed ok.
        */
       Success: AugmentedEvent<
         ApiType,
-        [messageHash: Option<H256>, weight: u64],
-        { messageHash: Option<H256>; weight: u64 }
+        [messageHash: Option<H256>, weight: FrameSupportWeightsWeightV2Weight],
+        { messageHash: Option<H256>; weight: FrameSupportWeightsWeightV2Weight }
       >;
       /**
        * An upward message was sent to the relay chain.

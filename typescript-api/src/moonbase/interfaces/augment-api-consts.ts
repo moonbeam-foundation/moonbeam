@@ -4,10 +4,11 @@
 import type { ApiTypes } from "@polkadot/api-base/types";
 import type { Bytes, Option, bool, u128, u16, u32, u64, u8 } from "@polkadot/types-codec";
 import type { Codec } from "@polkadot/types-codec/types";
-import type { Perbill, Percent, Permill } from "@polkadot/types/interfaces/runtime";
+import type { Perbill, Permill } from "@polkadot/types/interfaces/runtime";
 import type {
   FrameSupportPalletId,
   FrameSupportWeightsRuntimeDbWeight,
+  FrameSupportWeightsWeightV2Weight,
   FrameSystemLimitsBlockLength,
   FrameSystemLimitsBlockWeights,
   SpVersionRuntimeVersion,
@@ -73,6 +74,27 @@ declare module "@polkadot/api-base/types/consts" {
        * The maximum number of named reserves that can exist on an account.
        */
       maxReserves: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
+    convictionVoting: {
+      /**
+       * The maximum number of concurrent votes an account may have.
+       *
+       * Also used to compute weight, an overly large value can lead to
+       * extrinsic with large weight estimation: see `delegate` for instance.
+       */
+      maxVotes: u32 & AugmentedConst<ApiType>;
+      /**
+       * The minimum period of vote locking.
+       *
+       * It should be no shorter than enactment period to ensure that in the
+       * case of an approval, those successful voters are locked into the
+       * consequences that their votes entail.
+       */
+      voteLockingPeriod: u32 & AugmentedConst<ApiType>;
       /**
        * Generic const
        */
@@ -258,19 +280,6 @@ declare module "@polkadot/api-base/types/consts" {
        */
       candidateBondLessDelay: u32 & AugmentedConst<ApiType>;
       /**
-       * Default number of blocks per round at genesis
-       */
-      defaultBlocksPerRound: u32 & AugmentedConst<ApiType>;
-      /**
-       * Default commission due to collators, is `CollatorCommission` storage
-       * value in genesis
-       */
-      defaultCollatorCommission: Perbill & AugmentedConst<ApiType>;
-      /**
-       * Default percent of inflation set aside for parachain bond account
-       */
-      defaultParachainBondReservePercent: Percent & AugmentedConst<ApiType>;
-      /**
        * Number of rounds that delegation less requests must wait before executable
        */
       delegationBondLessDelay: u32 & AugmentedConst<ApiType>;
@@ -410,12 +419,38 @@ declare module "@polkadot/api-base/types/consts" {
        */
       [key: string]: Codec;
     };
+    referenda: {
+      /**
+       * Quantization level for the referendum wakeup scheduler. A higher number
+       * will result in fewer storage reads/writes needed for smaller voters,
+       * but also result in delays to the automatic referendum status changes.
+       * Explicit servicing instructions are unaffected.
+       */
+      alarmInterval: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum size of the referendum queue for a single track.
+       */
+      maxQueued: u32 & AugmentedConst<ApiType>;
+      /**
+       * The minimum amount to be used as a deposit for a public referendum proposal.
+       */
+      submissionDeposit: u128 & AugmentedConst<ApiType>;
+      /**
+       * The number of blocks after submission that a referendum must begin
+       * being decided by. Once this passes, then anyone may cancel the referendum.
+       */
+      undecidingTimeout: u32 & AugmentedConst<ApiType>;
+      /**
+       * Generic const
+       */
+      [key: string]: Codec;
+    };
     scheduler: {
       /**
        * The maximum weight that may be scheduled per block for any
        * dispatchables of less priority than `schedule::HARD_DEADLINE`.
        */
-      maximumWeight: u64 & AugmentedConst<ApiType>;
+      maximumWeight: FrameSupportWeightsWeightV2Weight & AugmentedConst<ApiType>;
       /**
        * The maximum number of scheduled calls in the queue for a single block.
        * Not strictly enforced, but used for weight estimation.
@@ -445,7 +480,7 @@ declare module "@polkadot/api-base/types/consts" {
        */
       dbWeight: FrameSupportWeightsRuntimeDbWeight & AugmentedConst<ApiType>;
       /**
-       * The designated SS85 prefix of this chain.
+       * The designated SS58 prefix of this chain.
        *
        * This replaces the "ss58Format" property declared in the chain spec.
        * Reason is that the runtime should know about the prefix in order to
