@@ -114,10 +114,12 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
   // most of the block gas limit. This is done with the fee at its max, however.
   it("fibonacci[370] should be spendable", async function () {
     let blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
-    let baseFeePerGas = BigInt( (await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
+    let baseFeePerGas = BigInt((await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
     expect(baseFeePerGas).to.equal(125_000_000_000_000n);
 
-    const { contract, rawTx } = await createContract(context, "Fibonacci", { gasPrice: "0x"+baseFeePerGas.toString(16), });
+    const { contract, rawTx } = await createContract(context, "Fibonacci", {
+      gasPrice: "0x" + baseFeePerGas.toString(16),
+    });
     const {
       result: { hash: createTxHash },
     } = await context.createBlock(rawTx);
@@ -127,7 +129,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
 
     // the multiplier (and thereby base_fee) will have decreased very slightly...
     blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
-    baseFeePerGas = BigInt( (await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
+    baseFeePerGas = BigInt((await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
     expect(baseFeePerGas).to.equal(124_880_845_878_351n);
 
     const tx = await createContractExecution(
@@ -136,7 +138,7 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
         contract,
         contractCall: contract.methods.fib2(370),
       },
-      { gasPrice: "0x"+baseFeePerGas.toString(16), },
+      { gasPrice: "0x" + baseFeePerGas.toString(16) }
     );
     let { result } = await context.createBlock(tx);
 
