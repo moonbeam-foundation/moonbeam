@@ -37,8 +37,8 @@ use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AccountId, Balances, BaseFee, BlockWeights, CrowdloanRewards, ParachainStaking, PolkadotXcm,
-	Precompiles, Runtime, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
+	AccountId, Balances, BaseFee, CrowdloanRewards, ParachainStaking, PolkadotXcm, Precompiles,
+	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
@@ -1173,9 +1173,11 @@ fn length_fee_is_sensible() {
 
 #[test]
 fn multiplier_can_grow_from_zero() {
+	use frame_support::traits::Get;
+
 	let minimum_multiplier = moonbeam_runtime::MinimumMultiplier::get();
 	let target = moonbeam_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap();
@@ -1195,11 +1197,13 @@ fn multiplier_can_grow_from_zero() {
 #[test]
 #[ignore] // test runs for a very long time
 fn multiplier_growth_simulator() {
+	use frame_support::traits::Get;
+
 	// assume the multiplier is initially set to its minimum. We update it with values twice the
 	//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 	let mut multiplier = moonbeam_runtime::MinimumMultiplier::get();
 	let block_weight = moonbeam_runtime::TargetBlockFullness::get()
-		* BlockWeights::get()
+		* RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap()

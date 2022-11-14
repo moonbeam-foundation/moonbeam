@@ -266,6 +266,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
+	type PayoutCollatorReward = ();
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();

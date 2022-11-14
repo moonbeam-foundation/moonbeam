@@ -115,7 +115,7 @@ pub mod pallet {
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceDmpHandler: DmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		type NormalExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
@@ -123,7 +123,7 @@ pub mod pallet {
 			+ OnFinalize<Self::BlockNumber>
 			+ OffchainWorker<Self::BlockNumber>;
 		/// The executive hooks that will be used in maintenance mode
-		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// Important: Use AllPalletsWithSystem here if you dont want to modify the
 		/// hooks behaviour
 		type MaintenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>

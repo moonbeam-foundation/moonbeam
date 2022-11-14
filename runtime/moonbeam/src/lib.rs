@@ -188,13 +188,33 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
+const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
+// Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
+// subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
+// and some cost to account for per-byte-fee.
+// TODO: we should use benchmarking's overhead feature to measure this
+pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(10000 * WEIGHT_PER_GAS);
+
+pub struct RuntimeBlockWeights;
+impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
+	fn get() -> frame_system::limits::BlockWeights {
+		frame_system::limits::BlockWeights::builder()
+			.for_class(DispatchClass::Normal, |weights| {
+				weights.base_extrinsic = EXTRINSIC_BASE_WEIGHT;
+				weights.max_total = NORMAL_WEIGHT.into();
+			})
+			.for_class(DispatchClass::Operational, |weights| {
+				weights.max_total = MAXIMUM_BLOCK_WEIGHT.into();
+				weights.reserved = (MAXIMUM_BLOCK_WEIGHT - NORMAL_WEIGHT).into();
+			})
+			.avg_block_initialization(Perbill::from_percent(10))
+			.build()
+			.expect("Provided BlockWeight definitions are valid, qed")
+	}
+}
 
 parameter_types! {
 	pub const Version: RuntimeVersion = VERSION;
-	/// We allow for one half second of compute with a 6 second average block time.
-	/// These values are dictated by Polkadot for the parachain.
-	pub BlockWeights: frame_system::limits::BlockWeights = frame_system::limits::BlockWeights
-		::with_sensible_defaults(MAXIMUM_BLOCK_WEIGHT, NORMAL_DISPATCH_RATIO);
 	/// We allow for 5 MB blocks.
 	pub BlockLength: frame_system::limits::BlockLength = frame_system::limits::BlockLength
 		::max_with_normal_ratio(5 * 1024 * 1024, NORMAL_DISPATCH_RATIO);
@@ -224,7 +244,7 @@ impl frame_system::Config for Runtime {
 	/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	type BlockHashCount = ConstU32<256>;
 	/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
-	type BlockWeights = BlockWeights;
+	type BlockWeights = RuntimeBlockWeights;
 	/// Maximum size of all encoded transactions (in bytes) that are allowed in one block.
 	type BlockLength = BlockLength;
 	/// Runtime version.
@@ -462,7 +482,7 @@ impl pallet_base_fee::Config for Runtime {
 }
 
 parameter_types! {
-	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * BlockWeights::get().max_block;
+	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -703,20 +723,28 @@ parameter_types! {
 
 impl parachain_info::Config for Runtime {}
 
-pub struct OnCollatorPayout;
-impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
-	fn on_collator_payout(
-		for_round: pallet_parachain_staking::RoundIndex,
-		collator_id: AccountId,
-		amount: Balance,
-	) -> Weight {
-		MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-	}
-}
 pub struct OnNewRound;
 impl pallet_parachain_staking::OnNewRound for OnNewRound {
 	fn on_new_round(round_index: pallet_parachain_staking::RoundIndex) -> Weight {
 		MoonbeamOrbiters::on_new_round(round_index)
+	}
+}
+pub struct PayoutCollatorOrOrbiterReward;
+impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorOrOrbiterReward {
+	fn payout_collator_reward(
+		for_round: pallet_parachain_staking::RoundIndex,
+		collator_id: AccountId,
+		amount: Balance,
+	) -> Weight {
+		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
+			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+		} else {
+			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+		};
+
+		<Runtime as frame_system::Config>::DbWeight::get()
+			.reads(1)
+			.saturating_add(extra_weight)
 	}
 }
 
@@ -755,7 +783,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 500 * currency::MILLIGLMR * currency::SUPPLY_FACTOR }>;
 	type BlockAuthor = AuthorInherent;
-	type OnCollatorPayout = OnCollatorPayout;
+	type OnCollatorPayout = ();
+	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }
@@ -1027,8 +1056,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::on_initialize(n)
+		AllPalletsWithSystem::on_initialize(n)
 	}
 }
 
@@ -1046,33 +1074,28 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
+		AllPalletsWithSystem::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::pre_upgrade()
+		AllPalletsWithSystem::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::post_upgrade()
+		AllPalletsWithSystem::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::on_finalize(n)
+		AllPalletsWithSystem::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
-		#[allow(deprecated)]
-		AllPalletsReversedWithSystemFirst::offchain_worker(n)
+		AllPalletsWithSystem::offchain_worker(n)
 	}
 }
 
@@ -1085,10 +1108,9 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = DmpQueue;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
+	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
 	// operation
-	#[allow(deprecated)]
-	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
+	type NormalExecutiveHooks = AllPalletsWithSystem;
 	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
