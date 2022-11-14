@@ -16,6 +16,8 @@ import {
 } from "../../util/accounts";
 import { u128 } from "@polkadot/types";
 import { alith } from "../../util/accounts";
+import { createContract, createContractExecution } from "../../util/transactions";
+import { customWeb3Request } from "../../util/providers";
 
 // Note on the values from 'transactionPayment.nextFeeMultiplier': this storage item is actually a
 // FixedU128, which is basically a u128 with an implicit denominator of 10^18. However, this
@@ -107,6 +109,50 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     let amount = (withdrawEvent.event.data as any).amount.toBigInt();
     expect(amount).to.equal(1_500_000_012_598_000_941_192n);
   });
+
+  // similar to tests in test-contract-fibonacci.ts, which implements an Ethereum txn which uses
+  // most of the block gas limit. This is done with the fee at its max, however.
+  it("fibonacci[370] should be spendable", async function () {
+    let blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
+    let baseFeePerGas = BigInt( (await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
+    expect(baseFeePerGas).to.equal(125_000_000_000_000n);
+
+    const { contract, rawTx } = await createContract(context, "Fibonacci", { gasPrice: "0x"+baseFeePerGas.toString(16), });
+    const {
+      result: { hash: createTxHash },
+    } = await context.createBlock(rawTx);
+
+    let receipt = await context.web3.eth.getTransactionReceipt(createTxHash);
+    expect(receipt.status).to.be.true;
+
+    // the multiplier (and thereby base_fee) will have decreased very slightly...
+    blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toBn();
+    baseFeePerGas = BigInt( (await context.web3.eth.getBlock(blockNumber)).baseFeePerGas);
+    expect(baseFeePerGas).to.equal(124_880_845_878_351n);
+
+    const tx = await createContractExecution(
+      context,
+      {
+        contract,
+        contractCall: contract.methods.fib2(370),
+      },
+      { gasPrice: "0x"+baseFeePerGas.toString(16), },
+    );
+    let { result } = await context.createBlock(tx);
+
+    receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.be.true;
+
+    const successEvent = result.events.filter(({ event }) => event.method == "ExtrinsicSuccess")[0];
+    let weight = (successEvent.event.data as any).dispatchInfo.weight.toBigInt();
+    expect(weight).to.equal(3_912_425_000n);
+
+    const withdrawEvents = result.events.filter(({ event }) => event.method == "Withdraw");
+    expect(withdrawEvents.length).to.equal(1);
+    const withdrawEvent = withdrawEvents[0];
+    let amount = (withdrawEvent.event.data as any).amount.toBigInt();
+    expect(amount).to.equal(20_828_626_522_358_406_588n);
+  });
 });
 
 describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
@@ -115,4 +161,5 @@ describeDevMoonbeam("Max Fee Multiplier - initial value", (context) => {
       await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
     ).toBigInt();
     expect(initialValue).to.equal(8_000_000_000_000_000_000n);
-}
+  });
+});
