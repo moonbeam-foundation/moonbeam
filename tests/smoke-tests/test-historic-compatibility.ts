@@ -222,7 +222,9 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
         from: collatorAddress,
         to: collatorAddress,
         value: "0x9184e72a",
-        data: "0xd46e8dd67c5d32be8d46e8dd67c5d32be8058bb8eb970870f072445675058bb8eb970870f072445675",
+        data:
+          "0xd46e8dd67c5d32be8d46e8dd67c5d3" +
+          "2be8058bb8eb970870f072445675058bb8eb970870f072445675",
       },
     ]);
     expect(result).to.not.be.null;
