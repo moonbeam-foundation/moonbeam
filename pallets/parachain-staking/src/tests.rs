@@ -9121,7 +9121,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2_506_497_000;
+			let expected_on_init = 2_756_497_000;
 			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -9144,10 +9144,10 @@ fn test_on_initialize_weights() {
 
 			// add weight for invoking handle_delayed_payouts
 			// (goes away when we skip paying the first collator during round change)
-			let handle_delayed_payouts_weight = 25_000_000;
+			let handle_delayed_payouts_weight = RocksDbWeight::get().reads_writes(3, 2).ref_time();
 			expected_weight += handle_delayed_payouts_weight;
 
-			assert_eq!(Weight::from_ref_time(expected_weight), weight);
+			// assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
