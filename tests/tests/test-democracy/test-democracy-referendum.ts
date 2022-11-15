@@ -11,6 +11,11 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
   let encodedHash: string;
 
   before("Setup referendum", async () => {
+
+    console.log("FIRST")
+    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+    console.log(parachainBondInfo.account)
+
     // notePreimage
     encodedHash = await instantFastTrack(
       context,
@@ -18,7 +23,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     );
   });
 
-  it("should succeed with enough votes", async function () {
+  it.only("should succeed with enough votes", async function () {
     // vote
     await context.createBlock(
       context.polkadotApi.tx.democracy.vote(0, {
@@ -29,14 +34,18 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     // referendumInfoOf
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(encodedHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+
+    let events = context.polkadotApi.query.system.events();
+    console.log("events are ", (await events).toString());
+
     for (let i = 0; i < onGoing.end.toNumber() - blockNumber; i++) {
       await context.createBlock();
     }
@@ -48,7 +57,34 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     expect(finishedReferendum.isFinished).to.be.true;
     expect(finishedReferendum.asFinished.approved.isTrue).to.be.true;
 
+    console.log("SECOND")
     let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+    console.log(parachainBondInfo.account)
+
+    events = context.polkadotApi.query.system.events();
+    console.log("----------------");
+    console.log("events are ", (await events).toString());
+    console.log("Number ", (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber());
+    let agenda = await context.polkadotApi.query.scheduler.agenda(10);
+    console.log("agenda ", agenda);
+
+
+    await context.createBlock();
+    await context.createBlock();
+
+    console.log("----------------");
+    console.log("events are ", (await events).toString());
+    console.log("Number ", (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber());
+
+    let maxWeight = await context.polkadotApi.consts.scheduler.maximumWeight as any;
+    console.log("Scheduler MaxWeight ", maxWeight.refTime.toString());
+    console.log("Scheduler maxproof ", maxWeight.proofSize.toString());
+
+    agenda = await context.polkadotApi.query.scheduler.agenda(10);
+    console.log("agenda ", agenda);
+
+    parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
+    console.log(parachainBondInfo.account)
     expect(parachainBondInfo.account.toString()).to.equal(alith.address);
   });
 });

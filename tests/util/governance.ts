@@ -31,7 +31,19 @@ export const notePreimage = async <
     context.polkadotApi.tx.preimage.notePreimage(encodedProposal).signAsync(account)
   );
 
-  return blake2AsHex(encodedProposal);
+  let hash = blake2AsHex(encodedProposal);
+  let preimage = await context.polkadotApi.query.preimage.preimageFor([hash, encodedProposal.length]) as any;
+
+  // retrieve all exposures for the active era
+  const exposures = await context.polkadotApi.query.preimage.preimageFor.entries();
+
+  exposures.forEach(([key, exposure]) => {
+    console.log('key arguments:', key.args.map((k) => k.toHuman()));
+    console.log('     exposure:', exposure.toHuman());
+  });
+
+  console.log(hash)
+  return hash;
 };
 
 // Creates the Council Proposal and fast track it before executing it
@@ -45,9 +57,15 @@ export const instantFastTrack = async <
 ): Promise<string> => {
   const proposalHash =
     typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
+
   await execCouncilProposal(
     context,
-    context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+    context.polkadotApi.tx.democracy.externalProposeMajority({
+      Lookup: {
+        hash: proposalHash,
+        length: typeof proposal == "string" ? proposal : proposal.method.encodedLength
+      }
+  } as any)
   );
   await execTechnicalCommitteeProposal(
     context,
