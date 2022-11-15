@@ -1552,7 +1552,7 @@ pub mod pallet {
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout<BalanceOf<T>>,
 		) -> (RewardPayment, Weight) {
-			// early_weight tracks weight used for reads/writes done early in this fn before its
+			// 'early_weight' tracks weight used for reads/writes done early in this fn before its
 			// early-exit codepaths.
 			let mut early_weight = Weight::zero();
 
@@ -1582,12 +1582,13 @@ pub mod pallet {
 
 				// Take the awarded points for the collator
 				let pts = <AwardedPts<T>>::take(paid_for_round, &collator);
-				early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 1)); // AwardedPts
+				// read and kill AwardedPts
+				early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(1, 1));
 				if pts == 0 {
 					return (RewardPayment::Skipped, early_weight);
 				}
 
-				// extra_weight tracks weight returned from fns that we delegate to which can't be
+				// 'extra_weight' tracks weight returned from fns that we delegate to which can't be
 				// known ahead of time.
 				let mut extra_weight = Weight::zero();
 				let pct_due = Perbill::from_rational(pts, total_points);
