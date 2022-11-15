@@ -137,19 +137,22 @@ mock_account!(CryptoCarleth, |_| H160::from(hex_literal::hex!(
 ))
 .into());
 
-mock_account!(PrecompileInSet(u32, u128), |value: PrecompileInSet| {
-	let prefix: u32 = value.0;
-	let index: u128 = value.1;
+mock_account!(
+	AddressInPrefixedSet(u32, u128),
+	|value: AddressInPrefixedSet| {
+		let prefix: u32 = value.0;
+		let index: u128 = value.1;
 
-	let mut buffer = Vec::with_capacity(20); // 160 bits
+		let mut buffer = Vec::with_capacity(20); // 160 bits
 
-	buffer.extend_from_slice(&prefix.to_be_bytes());
-	buffer.extend_from_slice(&index.to_be_bytes());
+		buffer.extend_from_slice(&prefix.to_be_bytes());
+		buffer.extend_from_slice(&index.to_be_bytes());
 
-	assert_eq!(buffer.len(), 20, "address buffer should have len of 20");
+		assert_eq!(buffer.len(), 20, "address buffer should have len of 20");
 
-	H160::from_slice(&buffer).into()
-});
+		H160::from_slice(&buffer).into()
+	}
+);
 
 pub fn alith_secret_key() -> [u8; 32] {
 	hex_literal::hex!("5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133")

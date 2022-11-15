@@ -27,7 +27,7 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
-	testing::{MockAccount, PrecompileInSet},
+	testing::{AddressInPrefixedSet, MockAccount},
 };
 use scale_info::TypeInfo;
 use sp_core::{H160, H256, U256};
@@ -157,10 +157,9 @@ pub type Precompiles<R> = PrecompileSetBuilder<
 mock_account!(TransactorV1, |_| MockAccount::from_u64(1));
 mock_account!(TransactorV2, |_| MockAccount::from_u64(2));
 mock_account!(SelfReserveAddress, |_| MockAccount::from_u64(3));
-mock_account!(AssetAddress(u128), |value: AssetAddress| PrecompileInSet(
-	0xffffffff, value.0
-)
-.into());
+mock_account!(AssetAddress(u128), |value: AssetAddress| {
+	AddressInPrefixedSet(0xffffffff, value.0).into()
+});
 
 pub type PCallV1 = XcmTransactorPrecompileV1Call<Runtime>;
 pub type PCallV2 = XcmTransactorPrecompileV2Call<Runtime>;

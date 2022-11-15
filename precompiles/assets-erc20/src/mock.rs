@@ -25,7 +25,7 @@ use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{
 	mock_account,
 	precompile_set::*,
-	testing::{MockAccount, PrecompileInSet},
+	testing::{AddressInPrefixedSet, MockAccount},
 };
 use sp_core::{H160, H256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
@@ -51,10 +51,10 @@ parameter_types! {
 }
 
 mock_account!(ForeignAssetId(AssetId), |value: ForeignAssetId| {
-	PrecompileInSet(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
+	AddressInPrefixedSet(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
 });
 mock_account!(LocalAssetId(AssetId), |value: LocalAssetId| {
-	PrecompileInSet(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
+	AddressInPrefixedSet(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
 });
 
 // Implement the trait, where we convert AccountId to AssetID
