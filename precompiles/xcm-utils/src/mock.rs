@@ -18,7 +18,7 @@
 use super::*;
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{EnsureOrigin, Everything, OriginTrait},
+	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as _},
 	weights::{RuntimeDbWeight, Weight},
 };
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, GasWeightMapping};
@@ -67,7 +67,7 @@ construct_runtime!(
 	}
 );
 
-mock_account!(SelfReserve, |_| MockAccount::from_u64(2));
+mock_account!(SelfReserveAccount, |_| MockAccount::from_u64(2));
 mock_account!(ParentAccount, |_| MockAccount::from_u64(3));
 // use simple encoding for parachain accounts.
 mock_account!(
@@ -311,12 +311,12 @@ parameter_types! {
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
 
-	// pub SelfReserve: MultiLocation = (
-	// 	1,
-	// 	Junctions::X2(
-	// 		Parachain(ParachainId::get().into()),
-	// 		PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
-	// 	)).into();
+	pub SelfReserve: MultiLocation = (
+		1,
+		Junctions::X2(
+			Parachain(ParachainId::get().into()),
+			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
+		)).into();
 	pub MaxInstructions: u32 = 100;
 }
 

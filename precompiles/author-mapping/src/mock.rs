@@ -16,18 +16,14 @@
 
 //! Test utilities
 use super::*;
-use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything},
 };
 use frame_system::EnsureRoot;
-use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping};
-use precompile_utils::{
-	precompile_set::*,
-	testing::{MockAccount, Precompile1},
-};
-use sp_core::{H160, H256, U256};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
