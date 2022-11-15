@@ -1101,7 +1101,7 @@ benchmarks! {
 		let prime_delegator = create_funded_delegator::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (y+1).into(),
 			prime_candidate.clone(),
 			true,
 			0,
@@ -1193,7 +1193,7 @@ benchmarks! {
 		let (prime_delegator, _) = create_funded_user::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (z+1).into(),
 		);
 
 		// have x-1 distinct delegators delegate to prime collator, of which y are auto-compounding.
@@ -1280,7 +1280,7 @@ benchmarks! {
 #[cfg(test)]
 mod tests {
 	use crate::benchmarks::*;
-	use crate::mock::Test;
+	use crate::mock::benchmarking::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
 
@@ -1498,5 +1498,5 @@ mod tests {
 impl_benchmark_test_suite!(
 	Pallet,
 	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::Test
+	crate::mock::benchmarking::Test
 );
