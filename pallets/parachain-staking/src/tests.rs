@@ -9147,7 +9147,7 @@ fn test_on_initialize_weights() {
 			let handle_delayed_payouts_weight = RocksDbWeight::get().reads_writes(3, 2).ref_time();
 			expected_weight += handle_delayed_payouts_weight;
 
-			// assert_eq!(Weight::from_ref_time(expected_weight), weight);
+			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
 		});
 }
