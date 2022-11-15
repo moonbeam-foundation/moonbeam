@@ -15,11 +15,11 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31", default-features = false }
 
 # Ethereum
-ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
+ethereum = { version = "0.14.0", default-features = false, features = ["with-codec"] }
 ethereum-types = { version = "0.14", default-features = false }
-evm = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false, features = [ "with-codec" ] }
-evm-gasometer = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }
-evm-runtime = { git = "https://github.com/girazoki/evm", branch = "girazoki-0.9.31-fork", default-features = false }
+evm = { version = "0.37.0", default-features = false, features = ["with-codec"] }
+evm-gasometer = { version = "0.37.0", default-features = false }
+evm-runtime = { version = "0.37.0", default-features = false }
 
 [features]
 default = [ "std" ]

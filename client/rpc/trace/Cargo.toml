@@ -8,7 +8,7 @@ repository = "https://github.com/PureStake/moonbeam/"
 version = "0.6.0"
 
 [dependencies]
-ethereum = { git = "https://github.com/girazoki/ethereum", branch = "girazoki-0.9.31-fork", features = [ "with-codec" ] }
+ethereum = { version = "0.14.0", features = ["with-codec"] }
 ethereum-types = "0.14"
 futures = { version = "0.3" }
 jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros", "server" ] }
