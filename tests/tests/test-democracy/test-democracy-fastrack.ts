@@ -29,7 +29,7 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
       context.polkadotApi.tx.democracy.externalProposeMajority({
         Lookup: {
           hash: proposalHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any)
     );
@@ -73,7 +73,7 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
       context.polkadotApi.tx.democracy.externalProposeMajority({
         Lookup: {
           hash: proposalHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any)
     );
@@ -117,7 +117,7 @@ describeDevMoonbeam("Democracy - FastTracking", (context) => {
       context.polkadotApi.tx.democracy.externalProposeMajority({
         Lookup: {
           hash: proposalHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any)
     );

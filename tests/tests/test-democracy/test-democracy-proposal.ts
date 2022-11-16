@@ -26,7 +26,7 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
       context.polkadotApi.tx.democracy.propose({
         Lookup: {
           hash: encodedHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any, PROPOSAL_AMOUNT)
     );
@@ -84,7 +84,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
       context.polkadotApi.tx.democracy.propose({
         Lookup: {
           hash: encodedHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any, PROPOSAL_AMOUNT)
     );
@@ -135,7 +135,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
       context.polkadotApi.tx.democracy.propose({
         Lookup: {
           hash: encodedHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
     } as any, PROPOSAL_AMOUNT)
     );

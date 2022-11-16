@@ -41,7 +41,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
       await context.polkadotApi.tx.democracy.propose({
         Lookup: {
           hash: encodedHash,
-          length: encodedProposal.length
+          len: proposal.method.encodedLength
         }
       } as any, lock_amount).paymentInfo(alith)
     ).partialFee as any;
@@ -50,7 +50,7 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     await context.createBlock(context.polkadotApi.tx.democracy.propose({
       Lookup: {
         hash: encodedHash,
-        length: encodedProposal.length
+        len: proposal.method.encodedLength
       }
     } as any, lock_amount));
 

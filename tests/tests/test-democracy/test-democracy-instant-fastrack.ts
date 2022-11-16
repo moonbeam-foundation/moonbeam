@@ -25,7 +25,7 @@ const setupProposalAnd3TechnicalCommittee = async (context: DevTestContext) => {
     context.polkadotApi.tx.democracy.externalProposeMajority({
       Lookup: {
         hash: proposalHash,
-        length: encodedProposal.length
+        len: proposal.method.encodedLength
       }
   } as any)
   );

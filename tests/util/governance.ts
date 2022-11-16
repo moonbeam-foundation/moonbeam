@@ -29,21 +29,9 @@ export const notePreimage = async <
   const encodedProposal = proposal.method.toHex() || "";
   await context.createBlock(
     context.polkadotApi.tx.preimage.notePreimage(encodedProposal).signAsync(account)
-  );
-
-  let hash = blake2AsHex(encodedProposal);
-  let preimage = await context.polkadotApi.query.preimage.preimageFor([hash, encodedProposal.length]) as any;
-
-  // retrieve all exposures for the active era
-  const exposures = await context.polkadotApi.query.preimage.preimageFor.entries();
-
-  exposures.forEach(([key, exposure]) => {
-    console.log('key arguments:', key.args.map((k) => k.toHuman()));
-    console.log('     exposure:', exposure.toHuman());
-  });
-
-  console.log(hash)
-  return hash;
+  );  
+  
+  return blake2AsHex(encodedProposal);
 };
 
 // Creates the Council Proposal and fast track it before executing it
@@ -63,7 +51,7 @@ export const instantFastTrack = async <
     context.polkadotApi.tx.democracy.externalProposeMajority({
       Lookup: {
         hash: proposalHash,
-        length: typeof proposal == "string" ? proposal : proposal.method.encodedLength
+        len: typeof proposal == "string" ? proposal : proposal.method.encodedLength
       }
   } as any)
   );
@@ -87,7 +75,7 @@ export const execCouncilProposal = async <
   threshold: number = COUNCIL_THRESHOLD
 ) => {
   // Charleth submit the proposal to the council (and therefore implicitly votes for)
-  let lengthBound = polkadotCall.encodedLength;
+  let lengthBound = polkadotCall.method.encodedLength;
   const { result: proposalResult } = await context.createBlock(
     context.polkadotApi.tx.councilCollective
       .propose(threshold, polkadotCall, lengthBound)
@@ -183,6 +171,7 @@ export const executeProposalWithCouncil = async (api: ApiPromise, encodedHash: s
   //   `Sending council motion (${encodedHash} ` +
   //     `[threashold: 1, expected referendum: ${referendumNextIndex}])...`
   // );
+
   let external = api.tx.democracy.externalProposeMajority(encodedHash);
   let fastTrack = api.tx.democracy.fastTrack(encodedHash, 1, 0);
   const voteAmount = 1n * 10n ** BigInt(api.registry.chainDecimals[0]);
