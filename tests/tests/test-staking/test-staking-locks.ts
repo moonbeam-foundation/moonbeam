@@ -132,18 +132,14 @@ describeDevMoonbeam("Staking - Locks - democracy vote", (context) => {
     );
 
     const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
-    const proposalHash = await notePreimage(
-      context,
-      proposal,
-      alith
-    );
+    const proposalHash = await notePreimage(context, proposal, alith);
     await execCouncilProposal(
       context,
       context.polkadotApi.tx.democracy.externalProposeMajority({
         LookUp: {
           hash: proposalHash,
-          len: proposal.encodedLength
-        }
+          len: proposal.encodedLength,
+        },
       } as any)
     );
     await execTechnicalCommitteeProposal(
