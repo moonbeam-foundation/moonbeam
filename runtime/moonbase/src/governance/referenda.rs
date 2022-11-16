@@ -34,10 +34,16 @@ impl pallet_conviction_voting::Config for Runtime {
 	type WeightInfo = pallet_conviction_voting::weights::SubstrateWeight<Runtime>;
 	type Event = Event;
 	type Currency = Balances;
-	type VoteLockingPeriod = VoteLockingPeriod;
-	type MaxVotes = ConstU32<512>;
-	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
 	type Polls = Referenda;
+	// TODO: reduce this by funds in system that cannot vote i.e.
+	// parachain auction deposit but would this require runtime upgrade every time this changes?
+	type MaxTurnout = frame_support::traits::TotalIssuanceOf<Balances, Self::AccountId>;
+	// Maximum number of concurrent votes an account may have
+	type MaxVotes = ConstU32<512>;
+	// Minimum period of vote locking
+	// TODO: add test that this is always greater than the Enactment period so successful voters are
+	// locked into consequences of vote
+	type VoteLockingPeriod = VoteLockingPeriod;
 }
 
 parameter_types! {
@@ -62,7 +68,8 @@ impl pallet_governance_origins::Config for Runtime {
 	type MaxTreasurerSpend = MaxBalance;
 }
 
-// purpose of this pallet is to queue calls to be dispatched as by root for later
+// The purpose of this pallet is to queue calls to be dispatched as by root later => the Dispatch
+// origin corresponds to the Gov2 Whitelist track.
 impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = pallet_whitelist::weights::SubstrateWeight<Runtime>;
 	type Event = Event;
