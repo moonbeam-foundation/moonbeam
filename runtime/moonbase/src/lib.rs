@@ -707,9 +707,22 @@ impl pallet_author_inherent::Config for Runtime {
 	type WeightInfo = pallet_author_inherent::weights::SubstrateWeight<Runtime>;
 }
 
+/// Uses pallet_randomness, falling back to pallet_randomness_collective_flip
+pub struct GuaranteedRandomness;
+impl frame_support::traits::Randomness<Hash, BlockNumber> for GuaranteedRandomness {
+	fn random(subject: &[u8]) -> (Hash, BlockNumber) {
+		let maybe_randomness = Randomness::random(subject.clone());
+		if maybe_randomness.0.is_some() {
+			return (maybe_randomness.0.unwrap(), maybe_randomness.1);
+		}
+
+		pallet_randomness_collective_flip::Pallet::<Runtime>::random(subject)
+	}
+}
+
 impl pallet_author_slot_filter::Config for Runtime {
 	type Event = Event;
-	type RandomnessSource = RandomnessCollectiveFlip;
+	type RandomnessSource = GuaranteedRandomness;
 	type PotentialAuthors = ParachainStaking;
 	type WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight<Runtime>;
 }
@@ -1133,6 +1146,7 @@ impl pallet_randomness::Config for Runtime {
 	type MaxBlockDelay = ConstU32<2_000>;
 	type BlockExpirationDelay = ConstU32<10_000>;
 	type EpochExpirationDelay = ConstU64<10_000>;
+	type MaxPreviousLocalRandomness = ConstU8<10>;
 }
 
 construct_runtime! {

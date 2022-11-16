@@ -53,8 +53,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
-
 pub use pallet::*;
+use sp_std::vec::Vec;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -134,6 +134,9 @@ pub mod pallet {
 		/// Babe requests expire and can be purged from storage after this many blocks/epochs
 		#[pallet::constant]
 		type EpochExpirationDelay: Get<u64>;
+		/// Maximum number of random seeds stored for previous rounds.
+		#[pallet::constant]
+		type MaxPreviousLocalRandomness: Get<u8>;
 	}
 
 	#[pallet::error]
@@ -202,6 +205,13 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn local_vrf_output)]
 	pub type LocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
+
+	/// previous local per-block VRF randomness per block number
+	/// Set in `on_initialize`
+	#[pallet::storage]
+	#[pallet::getter(fn previous_local_vrf_outputs)]
+	pub type PreviousLocalVrfOutputs<T: Config> =
+		StorageValue<_, Vec<(T::Hash, T::BlockNumber)>, ValueQuery>;
 
 	/// Relay epoch
 	#[pallet::storage]
@@ -300,12 +310,35 @@ pub mod pallet {
 			vrf::verify_and_set_output::<T>();
 			SubstrateWeight::<T>::on_initialize()
 		}
-		fn on_finalize(_now: BlockNumberFor<T>) {
+		fn on_finalize(now: BlockNumberFor<T>) {
 			// Ensure the mandatory inherent was included in the block or the block is invalid
 			assert!(
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
 			);
+			// store this rounds random seed
+			vrf::set_previous_output::<T>(now);
+		}
+	}
+
+	// Randomness trait
+	impl<T: Config> frame_support::traits::Randomness<Option<T::Hash>, BlockNumberFor<T>>
+		for Pallet<T>
+	{
+		fn random(_subject: &[u8]) -> (Option<T::Hash>, BlockNumberFor<T>) {
+			let previous_randomness = PreviousLocalVrfOutputs::<T>::get();
+			if previous_randomness.len() == 0 {
+				return (
+					LocalVrfOutput::<T>::get(),
+					frame_system::Pallet::<T>::block_number(),
+				);
+			}
+
+			if previous_randomness.len() < T::MaxPreviousLocalRandomness::get() as usize {
+				return (None, 0u32.into());
+			}
+
+			(Some(previous_randomness[0].0), previous_randomness[0].1)
 		}
 	}
 
