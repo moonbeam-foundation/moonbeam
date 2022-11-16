@@ -1283,7 +1283,7 @@ moonbeam_runtime_common::impl_runtime_apis_plus_common! {
 						}
 					};
 
-					let effective_gas = 
+					let effective_gas =
 						<Runtime as pallet_evm::Config>::GasWeightMapping::weight_to_gas(
 							dispatch_info.weight
 						);
