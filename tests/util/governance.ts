@@ -29,8 +29,8 @@ export const notePreimage = async <
   const encodedProposal = proposal.method.toHex() || "";
   await context.createBlock(
     context.polkadotApi.tx.preimage.notePreimage(encodedProposal).signAsync(account)
-  );  
-  
+  );
+
   return blake2AsHex(encodedProposal);
 };
 
@@ -51,9 +51,9 @@ export const instantFastTrack = async <
     context.polkadotApi.tx.democracy.externalProposeMajority({
       Lookup: {
         hash: proposalHash,
-        len: typeof proposal == "string" ? proposal : proposal.method.encodedLength
-      }
-  } as any)
+        len: typeof proposal == "string" ? proposal : proposal.method.encodedLength,
+      },
+    } as any)
   );
   await execTechnicalCommitteeProposal(
     context,
@@ -103,10 +103,15 @@ export const execCouncilProposal = async <
   await context.createBlock();
   return await context.createBlock(
     context.polkadotApi.tx.councilCollective
-      .close(proposalHash, 0, {
-        refTime: 1_000_000_000,
-        proofSize: 0
-      } as any, lengthBound)
+      .close(
+        proposalHash,
+        0,
+        {
+          refTime: 1_000_000_000,
+          proofSize: 0,
+        } as any,
+        lengthBound
+      )
       .signAsync(dorothy)
   );
 };
@@ -154,10 +159,15 @@ export const execTechnicalCommitteeProposal = async <
   );
   const { result: closeResult } = await context.createBlock(
     context.polkadotApi.tx.techCommitteeCollective
-      .close(proposalHash, Number(proposalCount) - 1, {
-        refTime: 1_000_000_000,
-        proofSize: 0
-      } as any, lengthBound)
+      .close(
+        proposalHash,
+        Number(proposalCount) - 1,
+        {
+          refTime: 1_000_000_000,
+          proofSize: 0,
+        } as any,
+        lengthBound
+      )
       .signAsync(baltathar)
   );
   return closeResult;

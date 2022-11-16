@@ -38,7 +38,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    for (let i = 0; i < onGoing.end.toNumber() - blockNumber +1; i++) {
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
       await context.createBlock();
     }
 
@@ -84,7 +84,7 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    for (let i = 0; i < onGoing.end.toNumber() - blockNumber +1; i++) {
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
       await context.createBlock();
     }
     const finishedReferendum = (

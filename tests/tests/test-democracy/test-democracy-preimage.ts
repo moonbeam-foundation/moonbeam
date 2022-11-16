@@ -7,7 +7,7 @@ import { alith } from "../../util/accounts";
 import { MICROGLMR } from "../../util/constants";
 import { notePreimage } from "../../util/governance";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import {u8aToHex} from "@polkadot/util";
+import { u8aToHex } from "@polkadot/util";
 
 describeDevMoonbeam("Democracy - Preimage", (context) => {
   it("should be notable", async function () {
@@ -18,7 +18,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
     const encodedHash = blake2AsHex(encodedProposal);
     await context.createBlock(context.polkadotApi.tx.preimage.notePreimage(encodedProposal));
 
-    const preimageStatus = await context.polkadotApi.query.preimage.statusFor(encodedHash) as any;
+    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
     expect(preimageStatus.isSome).to.be.true;
     expect(preimageStatus.unwrap().isUnrequested).to.be.true;
 
@@ -38,7 +38,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
 
     await context.createBlock(context.polkadotApi.tx.preimage.unnotePreimage(encodedHash));
 
-    const preimageStatus = await context.polkadotApi.query.preimage.statusFor(encodedHash) as any;
+    const preimageStatus = (await context.polkadotApi.query.preimage.statusFor(encodedHash)) as any;
     expect(preimageStatus.isSome).to.be.false;
   });
 });

@@ -12,7 +12,7 @@ import {
   ALITH_GENESIS_TRANSFERABLE_BALANCE,
   baltathar,
   generateKeyringPair,
-  goliath
+  goliath,
 } from "../../util/accounts";
 import { verifyLatestBlockFees } from "../../util/block";
 import { DEFAULT_GENESIS_BALANCE, GLMR, VOTE_AMOUNT } from "../../util/constants";
@@ -457,10 +457,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     // Here we build the utility call
     const proposal = context.polkadotApi.tx.utility.batchAll(calls);
 
-    const encodedHash = await instantFastTrack(
-      context,
-      proposal
-    );
+    const encodedHash = await instantFastTrack(context, proposal);
 
     // vote
     await context.createBlock(
@@ -468,7 +465,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
     );
-    
+
     // referendumInfoOf
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
@@ -476,7 +473,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     const onGoing = referendumInfoOf.asOngoing;
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    for (let i = 0; i < onGoing.end.toNumber() - blockNumber +1; i++) {
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
       await context.createBlock();
     }
 

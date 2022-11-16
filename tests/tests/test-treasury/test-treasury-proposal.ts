@@ -359,10 +359,15 @@ describeDevMoonbeam("Treasury proposal #10", (context) => {
       result: { events: closeEvents },
     } = await context.createBlock(
       context.polkadotApi.tx.treasuryCouncilCollective
-        .close(councilProposalHash, 0, {
-          refTime: 800_000_000,
-          proofSize: 0
-        } as any, 1_000)
+        .close(
+          councilProposalHash,
+          0,
+          {
+            refTime: 800_000_000,
+            proofSize: 0,
+          } as any,
+          1_000
+        )
         .signAsync(dorothy)
     );
     // method: 'Rejected', section: 'treasury', index: '0x1103',
