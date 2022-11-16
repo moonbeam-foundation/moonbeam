@@ -198,9 +198,6 @@ describeDevMoonbeam("Staking - Locks - execute revoke", (context) => {
   before("setup account balance", async function () {
     await expectOk(
       context.createBlock([
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.parachainStaking.setBlocksPerRound(5)
-        ),
         context.polkadotApi.tx.balances.transfer(
           randomAccount.address,
           MIN_GLMR_DELEGATOR + 1n * GLMR
@@ -256,9 +253,6 @@ describeDevMoonbeam("Staking - Locks - multiple delegations single revoke", (con
 
     await expectOk(
       context.createBlock([
-        context.polkadotApi.tx.sudo.sudo(
-          context.polkadotApi.tx.parachainStaking.setBlocksPerRound(5)
-        ),
         context.polkadotApi.tx.balances.transfer(randomAccount.address, 2n * MIN_GLMR_STAKING),
         context.polkadotApi.tx.parachainStaking
           .joinCandidates(MIN_GLMR_STAKING, 1)
