@@ -567,7 +567,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 
 					impl pallet_xcm_benchmarks::generic::Config for Runtime {
-						type Call = Call;
+						type RuntimeCall = RuntimeCall;
 
 						fn worst_case_response() -> (u64, Response) {
 							(0u64, Response::Version(Default::default()))
