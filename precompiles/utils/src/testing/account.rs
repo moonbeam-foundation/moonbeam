@@ -56,7 +56,7 @@ impl MockAccount {
 	}
 
 	pub fn without_prefix(&self) -> u128 {
-		u128::from_be_bytes(<[u8; 16]>::try_from(&self.0[4..20]).unwrap())
+		u128::from_be_bytes(<[u8; 16]>::try_from(&self.0[4..20]).expect("slice have len 16"))
 	}
 }
 
