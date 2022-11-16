@@ -30,7 +30,7 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.31" }
 
 # Frontier
-ethereum = { version = "0.14.0", default-features = false, features = ["with-codec"] }
+ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = "0.14"
 fc-consensus = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.31-pre" }
 fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.31-pre" }
