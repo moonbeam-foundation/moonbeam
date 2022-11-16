@@ -48,12 +48,4 @@ std = [
 
 try-runtime = [ "frame-support/try-runtime" ]
 
-runtime-benchmarks = [
-	"frame-benchmarking",
-	"frame-system/runtime-benchmarks",
-	"pallet-xcm-benchmarks/runtime-benchmarks",
-	"parity-scale-codec",
-	"scale-info",
-	"xcm/runtime-benchmarks",
-	"xcm-executor/runtime-benchmarks"
-]
+runtime-benchmarks = [ "frame-benchmarking", "frame-system/runtime-benchmarks", "pallet-xcm-benchmarks/runtime-benchmarks", "parity-scale-codec", "scale-info", "xcm-executor/runtime-benchmarks", "xcm/runtime-benchmarks" ]

@@ -49,7 +49,7 @@ moonbase-native = [ "service/moonbase-native", "westend-native" ]
 moonbeam-native = [ "service/moonbeam-native" ]
 moonriver-native = [ "service/moonriver-native" ]
 
-runtime-benchmarks = [ "service/runtime-benchmarks", "polkadot-service/runtime-benchmarks" ]
+runtime-benchmarks = [ "polkadot-service/runtime-benchmarks", "service/runtime-benchmarks" ]
 try-runtime = [
 	"service/try-runtime",
 	"try-runtime-cli",
