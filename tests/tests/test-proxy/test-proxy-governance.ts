@@ -13,7 +13,14 @@ describeDevMoonbeam("Proxing governance", (context) => {
   before("Create accounts and fast-tracking referundum", async () => {
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({ 
+        Lookup: {
+        hash: proposalHash,
+        // this test does not test scheduling, therefore this lenght should not
+        // matter
+        len: 22
+        }
+      })
     );
     await execTechnicalCommitteeProposal(
       context,
