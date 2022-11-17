@@ -735,7 +735,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					// fail, we shall stop right here and right now.
 					let weight = Executive::try_runtime_upgrade()
 						.expect("runtime upgrade logic *must* be infallible");
-					(weight, BlockWeights::get().max_block)
+					(weight, RuntimeBlockWeights::get().max_block)
 				}
 
 				fn execute_block(
