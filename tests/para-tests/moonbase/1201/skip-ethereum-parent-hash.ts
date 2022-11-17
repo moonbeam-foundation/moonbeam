@@ -5,12 +5,11 @@ import { alith, baltathar, BALTATHAR_PRIVATE_KEY } from "../../../util/accounts"
 
 import { customWeb3Request } from "../../../util/providers";
 import { describeParachain } from "../../../util/setup-para-tests";
-import { createTransfer } from "../../../util/transactions";
 
 // Same test as 1200 but with the fix for the parentHash
-const runtimeVersion = "runtime-1201";
+const runtimeTag = "runtime-1201";
 describeParachain(
-  `Runtime ${runtimeVersion} migration`,
+  `Runtime ${runtimeTag} migration`,
   {
     parachain: {
       chain: "moonbase-local",
@@ -34,7 +33,7 @@ describeParachain(
       // It takes 10 blocks
       let hasMoreBlockPassed = false;
       const runtimePromise = context
-        .upgradeRuntime(alith, "moonbase", runtimeVersion)
+        .upgradeRuntime({ runtimeName: "moonbase", runtimeTag })
         .then(async (blockNumber) => {
           context.waitBlocks(3).then(() => {
             hasMoreBlockPassed = true;

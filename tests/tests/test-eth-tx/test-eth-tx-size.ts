@@ -22,14 +22,15 @@ describeDevMoonbeam("Ethereum Transaction - Large Transaction", (context) => {
       gasLimit: EXTRINSIC_GAS_LIMIT,
       gasPrice: 1_000_000_000,
       data: data,
+      nonce: await context.web3.eth.getTransactionCount(alith.address),
     });
   };
 
   // TODO: I'm not sure where this 2000 came from...
-  const max_size = (EXTRINSIC_GAS_LIMIT - 21000) / 16 - 2000;
+  const max_size = Math.floor((EXTRINSIC_GAS_LIMIT - 21000) / 16) - 2000;
 
   it("should accept txns up to known size", async function () {
-    expect(max_size).to.equal(808875); // our max Ethereum TXN size in bytes
+    expect(max_size).to.equal(809187); // our max Ethereum TXN size in bytes
 
     const tx = await generateLargeTxn(max_size);
     const { result } = await context.createBlock(tx);

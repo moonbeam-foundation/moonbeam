@@ -11,7 +11,7 @@ const keyringEd25519 = new Keyring({ type: "ed25519" });
 const keyringSr25519 = new Keyring({ type: "sr25519" });
 
 // Prefunded accounts.
-export const ALITH_ADDRESS = "0xf24ff3a9cf04c71dbc94d0b566f7a27b94566cac";
+export const ALITH_ADDRESS = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
 export const ALITH_PRIVATE_KEY =
   "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 export const ALITH_SESSION_ADDRESS =
@@ -67,8 +67,11 @@ export const GERALD_CONTRACT_ADDRESSES = [
 ];
 
 // This is Alice0x6Be02d1d3665660d22FF9624b7BE0551ee1Ac91b
-export const ALITH_GENESIS_BALANCE =
-  DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_STAKING - DEFAULT_GENESIS_MAPPING;
+export const ALITH_GENESIS_FREE_BALANCE = DEFAULT_GENESIS_BALANCE - DEFAULT_GENESIS_MAPPING;
+export const ALITH_GENESIS_LOCK_BALANCE = DEFAULT_GENESIS_STAKING;
+export const ALITH_GENESIS_RESERVE_BALANCE = DEFAULT_GENESIS_MAPPING;
+export const ALITH_GENESIS_TRANSFERABLE_BALANCE =
+  ALITH_GENESIS_FREE_BALANCE - ALITH_GENESIS_LOCK_BALANCE;
 
 export const alith = keyringEth.addFromUri(ALITH_PRIVATE_KEY);
 export const baltathar = keyringEth.addFromUri(BALTATHAR_PRIVATE_KEY);
@@ -82,7 +85,7 @@ export const goliath = keyringEth.addFromUri(GOLIATH_PRIVATE_KEY);
 export const gerald = keyringEth.addFromUri(GERALD_PRIVATE_KEY);
 
 let accountSeed = 10000;
-export function generateKeyingPair(type: "ethereum" | "sr25519" | "ed25519" = "ethereum") {
+export function generateKeyringPair(type: "ethereum" | "sr25519" | "ed25519" = "ethereum") {
   const privateKey = `0xDEADBEEF${(accountSeed++).toString(16).padStart(56, "0")}`;
   if (type == "sr25519") {
     return keyringSr25519.addFromUri(privateKey);

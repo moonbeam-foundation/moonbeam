@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import { Contract } from "web3-eth-contract";
 
 import { alith, ALITH_PRIVATE_KEY, baltathar } from "../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS, PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS } from "../util/constants";
 import { getCompiled } from "../util/contracts";
 import { customWeb3Request } from "../util/providers";
 import {
@@ -21,14 +22,14 @@ async function createContracts(context: DevTestContext) {
   let nonce = await context.web3.eth.getTransactionCount(alith.address);
   const { contract: callee, rawTx: rawTx1 } = await createContract(
     context,
-    "Callee",
+    "TraceCallee",
     { nonce: nonce++ },
     []
   );
 
   const { contract: caller, rawTx: rawTx2 } = await createContract(
     context,
-    "Caller",
+    "TraceCaller",
     { nonce: nonce++ },
     []
   );
@@ -83,10 +84,8 @@ describeDevMoonbeam(
     // Previously exhausted Wasm memory allocation:
     // Thread 'tokio-runtime-worker' panicked at 'Failed to allocate memory:
     // "Allocator ran out of space"'.
-    // TODO: raw tracing is temporary disabled
-    it.skip("should not overflow Wasm memory", async function () {
-      this.timeout(15000);
-      const { contract, rawTx } = await createContract(context, "OverflowingTrace", {}, [false]);
+    it("should prevent Wasm memory overflow", async function () {
+      const { contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
       const {
         result: { hash: hash1 },
       } = await context.createBlock(rawTx);
@@ -108,12 +107,13 @@ describeDevMoonbeam(
         result: { hash: hash2 },
       } = await context.createBlock(callTx.rawTransaction);
       let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [hash2]);
-      expect(trace.result.stepLogs.length).to.equal(58219);
+      expect((trace.error as any).message).to.equal(
+        "replayed transaction generated too much data. try disabling memory or storage?"
+      );
     });
 
-    // TODO: raw tracing is temporary disabled
-    it.skip("should replay over an intermediate state", async function () {
-      const { contract, rawTx } = await createContract(context, "Incrementer", {}, [false]);
+    it("should replay over an intermediate state", async function () {
+      const { contract, rawTx } = await createContract(context, "Incrementor");
       const { result } = await context.createBlock(rawTx);
       let receipt = await context.web3.eth.getTransactionReceipt(result.hash);
 
@@ -137,7 +137,7 @@ describeDevMoonbeam(
             gas: "0x100000",
             value: "0x00",
             nonce: numTxs,
-            data: contract.methods.sum(1).encodeABI(), // increments by one
+            data: contract.methods.incr(1).encodeABI(), // increments by one
           },
           ALITH_PRIVATE_KEY
         );
@@ -164,8 +164,7 @@ describeDevMoonbeam(
       }
     });
 
-    // TODO: raw tracing is temporary disabled
-    it.skip("should trace nested contract calls", async function () {
+    it("should trace nested contract calls", async function () {
       const send = await nestedSingle(context);
       await context.createBlock();
       let traceTx = await customWeb3Request(context.web3, "debug_traceTransaction", [send.result]);
@@ -257,7 +256,7 @@ describeDevMoonbeamAllEthTxTypes(
   "Trace (Blockscout v2)",
   (context) => {
     it("should trace correctly out of gas transaction execution", async function () {
-      const { contract, rawTx } = await createContract(context, "InfiniteContract");
+      const { contract, rawTx } = await createContract(context, "Looper");
       await context.createBlock(rawTx);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
@@ -287,7 +286,7 @@ describeDevMoonbeamAllEthTxTypes(
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000801",
+          to: PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
           gas: "0xdb3b",
           value: "0x0",
           data: "0x4e71d92d",
@@ -313,7 +312,7 @@ describeDevMoonbeam(
   "Trace (Blockscout)",
   (context) => {
     it("should trace correctly out of gas transaction execution", async function () {
-      const { contract, rawTx } = await createContract(context, "InfiniteContract");
+      const { contract, rawTx } = await createContract(context, "Looper");
       await context.createBlock(rawTx);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
@@ -343,7 +342,7 @@ describeDevMoonbeam(
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000801",
+          to: PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
           gas: "0xdb3b",
           value: "0x0",
           data: "0x4e71d92d",
@@ -400,7 +399,7 @@ describeDevMoonbeam(
       ]);
       let res = traceTx.result;
       // Fields
-      expect(Object.keys(res)).to.deep.equal([
+      expect(Object.keys(res).sort()).to.deep.equal([
         "calls",
         "from",
         "gas",
@@ -425,7 +424,7 @@ describeDevMoonbeam(
       let nonce = await context.web3.eth.getTransactionCount(alith.address);
       const { contract: callee, rawTx: rawTx1 } = await createContract(
         context,
-        "Callee",
+        "TraceCallee",
         { nonce: nonce++ },
         []
       );
@@ -439,7 +438,7 @@ describeDevMoonbeam(
 
       let res = traceTx.result;
       // Fields
-      expect(Object.keys(res)).to.deep.equal([
+      expect(Object.keys(res).sort()).to.deep.equal([
         "from",
         "gas",
         "gasUsed",
@@ -489,7 +488,7 @@ describeDevMoonbeam(
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
       traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
-        expect(Object.keys(trace)).to.deep.equal([
+        expect(Object.keys(trace).sort()).to.deep.equal([
           "calls",
           "from",
           "gas",
@@ -509,7 +508,7 @@ describeDevMoonbeam(
       expect(block.transactions.length).to.be.equal(traceTx.result.length);
       traceTx.result.forEach((trace: { [key: string]: any }) => {
         expect(trace.calls.length).to.be.equal(1);
-        expect(Object.keys(trace)).to.deep.equal([
+        expect(Object.keys(trace).sort()).to.deep.equal([
           "calls",
           "from",
           "gas",
@@ -532,21 +531,17 @@ describeDevMoonbeam(
   "Trace (call list)",
   (context) => {
     it("should correctly trace subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
         context,
-        "TestContract"
+        "MultiplyBy7"
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestCallList")).contract.abi
-      );
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestContract")).contract.abi
-      );
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -580,21 +575,17 @@ describeDevMoonbeam(
     });
 
     it("should correctly trace delegatecall subcall", async function () {
-      const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
         context,
-        "TestContract"
+        "MultiplyBy7"
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestCallList")).contract.abi
-      );
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestContract")).contract.abi
-      );
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
@@ -630,27 +621,23 @@ describeDevMoonbeam(
     it("should correctly trace precompile subcall (call list)", async function () {
       this.timeout(10000);
 
-      const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+      const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
       await context.createBlock(rawTx);
 
       const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
         context,
-        "TestContract"
+        "MultiplyBy7"
       );
       await context.createBlock([rawTx2]);
 
-      const proxyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestCallList")).contract.abi
-      );
-      const dummyInterface = new ethers.utils.Interface(
-        (await getCompiled("TestContract")).contract.abi
-      );
-      const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+      const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+      const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
+      const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000808",
+          to: PRECOMPILE_BATCH_ADDRESS,
           gas: "0x100000",
           value: "0x00",
           data: batchInterface.encodeFunctionData("batchAll", [
@@ -682,10 +669,10 @@ describeDevMoonbeam(
       ]);
 
       expect(trace.result.from).to.be.eq(alith.address.toLowerCase());
-      expect(trace.result.to).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.to).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls.length).to.be.eq(2);
 
-      expect(trace.result.calls[0].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[0].from).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls[0].to).to.be.eq(contractProxy.options.address.toLowerCase());
       expect(trace.result.calls[0].type).to.be.eq("CALL");
 
@@ -698,7 +685,7 @@ describeDevMoonbeam(
       );
       expect(trace.result.calls[0].calls[0].type).to.be.eq("CALL");
 
-      expect(trace.result.calls[1].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[1].from).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls[1].to).to.be.eq(contractProxy.options.address.toLowerCase());
       expect(trace.result.calls[1].type).to.be.eq("CALL");
 
@@ -716,3 +703,39 @@ describeDevMoonbeam(
   "moonbase",
   true
 );
+
+describeDevMoonbeam("Raw trace limits", (context) => {
+  it("it should not trace call that would produce too big responses", async function () {
+    this.timeout(50000);
+    const { contract: contract, rawTx } = await createContract(context, "TraceFilter", {}, [false]);
+    await context.createBlock(rawTx);
+
+    const contractInterface = new ethers.utils.Interface(getCompiled("TraceFilter").contract.abi);
+
+    let callTx = await context.web3.eth.accounts.signTransaction(
+      {
+        from: alith.address,
+        to: contract.options.address,
+        gas: "0x800000",
+        value: "0x00",
+        data: contractInterface.encodeFunctionData("heavy_steps", [
+          100, // number of storage modified
+          1000, // numbers of simple steps (that will have 100 storage items in trace)
+        ]),
+      },
+      ALITH_PRIVATE_KEY
+    );
+
+    const data = await customWeb3Request(context.web3, "eth_sendRawTransaction", [
+      callTx.rawTransaction,
+    ]);
+    await context.createBlock();
+    let trace = await customWeb3Request(context.web3, "debug_traceTransaction", [data.result]);
+
+    expect(trace.error).to.deep.eq({
+      code: -32603,
+      message: "replayed transaction generated too much data. \
+try disabling memory or storage?",
+    });
+  });
+});

@@ -44,8 +44,8 @@ pub trait RuntimeApiCollection:
 	+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 	+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 	+ nimbus_primitives::NimbusApi<Block>
-	+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
 	+ cumulus_primitives_core::CollectCollationInfo<Block>
+	+ session_keys_primitives::VrfApi<Block>
 where
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
@@ -66,8 +66,8 @@ where
 		+ moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block>
 		+ moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block>
 		+ nimbus_primitives::NimbusApi<Block>
-		+ nimbus_primitives::AuthorFilterAPI<Block, nimbus_primitives::NimbusId>
-		+ cumulus_primitives_core::CollectCollationInfo<Block>,
+		+ cumulus_primitives_core::CollectCollationInfo<Block>
+		+ session_keys_primitives::VrfApi<Block>,
 	<Self as sp_api::ApiExt<Block>>::StateBackend: sp_api::StateBackend<BlakeTwo256>,
 {
 }
@@ -268,6 +268,10 @@ impl sc_client_api::BlockBackend<Block> for Client {
 		hash: &<Block as BlockT>::Hash,
 	) -> sp_blockchain::Result<bool> {
 		match_client!(self, has_indexed_transaction(hash))
+	}
+
+	fn requires_full_sync(&self) -> bool {
+		match_client!(self, requires_full_sync())
 	}
 }
 

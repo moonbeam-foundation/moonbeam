@@ -46,6 +46,10 @@ fn test_orbiter_rotation() {
 				.into(),
 			);
 
+			// New orbiter should be active for rounds 2 and 3
+			assert_eq!(crate::OrbiterPerRound::<Test>::get(2, 1), Some(2));
+			assert_eq!(crate::OrbiterPerRound::<Test>::get(3, 1), Some(2));
+
 			// Roll to fourth round
 			roll_to(8);
 			System::assert_last_event(
@@ -56,6 +60,10 @@ fn test_orbiter_rotation() {
 				}
 				.into(),
 			);
+
+			// New orbiter should be active for rounds 4 and 5
+			assert_eq!(crate::OrbiterPerRound::<Test>::get(4, 1), Some(3));
+			assert_eq!(crate::OrbiterPerRound::<Test>::get(5, 1), Some(3));
 
 			// Roll to sixth round, we should come back to the first orbiter
 			roll_to(12);

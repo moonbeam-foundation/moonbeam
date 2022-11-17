@@ -15,31 +15,30 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
+
 use super::*;
 use crate as pallet_xcm_transactor;
-use frame_support::{construct_runtime, parameter_types};
-use frame_support::{traits::PalletInfo as PalletInfoTrait, weights::Weight};
+use frame_support::traits::PalletInfo as PalletInfoTrait;
+use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
-	Error as XcmError, Instruction,
+	opaque, Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
+pub use xcm_primitives::XcmV2Weight;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
+use sp_std::cell::RefCell;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightBounds, WeightTrader},
 	Assets,
 };
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -58,16 +57,16 @@ construct_runtime!(
 );
 
 pub type Balance = u128;
-
+pub type BlockNumber = u32;
 pub type AccountId = u64;
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
-		frame_system::limits::BlockWeights::simple_max(1024);
+		frame_system::limits::BlockWeights::simple_max(Weight::from_ref_time(1024));
 }
 
 impl frame_system::Config for Test {
@@ -77,12 +76,12 @@ impl frame_system::Config for Test {
 	type Origin = Origin;
 	type Index = u64;
 	type Call = Call;
-	type BlockNumber = u64;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
@@ -144,7 +143,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -163,10 +162,10 @@ use sp_std::marker::PhantomData;
 pub struct DummyWeigher<C>(PhantomData<C>);
 
 impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
-	fn weight(_message: &mut Xcm<C>) -> Result<Weight, ()> {
+	fn weight(_message: &mut Xcm<C>) -> Result<XcmV2Weight, ()> {
 		Ok(0)
 	}
-	fn instr_weight(_instruction: &Instruction<C>) -> Result<Weight, ()> {
+	fn instr_weight(_instruction: &Instruction<C>) -> Result<XcmV2Weight, ()> {
 		Ok(0)
 	}
 }
@@ -188,7 +187,7 @@ impl sp_runtime::traits::Convert<u64, MultiLocation> for AccountIdToMultiLocatio
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
@@ -219,6 +218,13 @@ pub enum UtilityCall {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum Transactors {
 	Relay,
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
 }
 
 impl XcmTransact for Transactors {
@@ -272,6 +278,34 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 	}
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl From<MultiLocation> for CurrencyId {
+	fn from(location: MultiLocation) -> CurrencyId {
+		if location == SelfReserve::get() {
+			CurrencyId::SelfReserve
+		} else if location == MultiLocation::parent() {
+			CurrencyId::OtherReserve(0)
+		} else {
+			CurrencyId::OtherReserve(1)
+		}
+	}
+}
+
+// Simulates sending a XCM message
+thread_local! {
+	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
+}
+pub fn sent_xcm() -> Vec<(MultiLocation, opaque::Xcm)> {
+	SENT_XCM.with(|q| (*q.borrow()).clone())
+}
+pub struct TestSendXcm;
+impl SendXcm for TestSendXcm {
+	fn send_xcm(dest: impl Into<MultiLocation>, msg: opaque::Xcm) -> SendResult {
+		SENT_XCM.with(|q| q.borrow_mut().push((dest.into(), msg)));
+		Ok(())
+	}
+}
+
 impl Config for Test {
 	type Event = Event;
 	type Balance = Balance;
@@ -286,7 +320,7 @@ impl Config for Test {
 	type Weigher = DummyWeigher<Call>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
-	type XcmSender = DoNothingRouter;
+	type XcmSender = TestSendXcm;
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 }

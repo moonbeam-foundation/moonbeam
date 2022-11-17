@@ -1,0 +1,57 @@
+[package]
+name = "pallet-evm-precompile-proxy"
+authors = [ "PureStake" ]
+description = "A Precompile to make proxy calls encoding accessible to pallet-evm"
+edition = "2021"
+version = "0.1.0"
+
+[dependencies]
+log = "0.4"
+num_enum = { version = "0.5.3", default-features = false }
+rustc-hex = { version = "2.0.1", default-features = false }
+
+# Moonbeam
+precompile-utils = { path = "../utils", default-features = false }
+
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+
+# Frontier
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.29", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+
+[dev-dependencies]
+derive_more = "0.99"
+hex-literal = "0.3.3"
+serde = "1.0.100"
+sha3 = "0.9"
+
+# Moonbeam
+precompile-utils = { path = "../utils", features = [ "testing" ] }
+
+# Substrate
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29" }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
+
+[features]
+default = [ "std" ]
+std = [
+	"fp-evm/std",
+	"frame-support/std",
+	"frame-system/std",
+	"pallet-evm/std",
+	"pallet-proxy/std",
+	"parity-scale-codec/std",
+	"parity-scale-codec/std",
+	"precompile-utils/std",
+	"sp-runtime/std",
+	"sp-std/std",
+]

@@ -1,20 +1,20 @@
 import { ApiDecoration } from "@polkadot/api/types";
 import chalk from "chalk";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
+const debug = require("debug")("smoke:decoding");
+const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 500;
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-const pageSize = (process.env.PAGE_SIZE && parseInt(process.env.PAGE_SIZE)) || 1000;
-
-describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite("Polkadot API - Storage items", (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
+  let specVersion: number = 0;
 
   before("Setup api", async function () {
     atBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
     apiAt = await context.polkadotApi.at(
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
+    specVersion = apiAt.consts.system.version.specVersion.toNumber();
   });
 
   // This test simply load all the storage items to make sure they can be loaded.
@@ -36,6 +36,11 @@ describeSmokeSuite("Polkadot API - Storage items", { wssUrl, relayWssUrl }, (con
           // This is just H256 entries and quite big
           continue;
         }
+        if (moduleName == "parachainStaking" && ["atStake"].includes(fn) && specVersion == 1901) {
+          // AtStake is broken in 1902 until a script is run
+          continue;
+        }
+
         const keys = Object.keys(module[fn]);
         if (keys.includes("keysPaged")) {
           // Map item

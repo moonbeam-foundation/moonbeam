@@ -55,7 +55,6 @@ import type {
   FrameSupportWeightsPerDispatchClassU64,
   FrameSupportWeightsPerDispatchClassWeightsPerClass,
   FrameSupportWeightsRuntimeDbWeight,
-  FrameSupportWeightsWeightToFeeCoefficient,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemError,
@@ -161,17 +160,47 @@ import type {
   PalletMoonbeamOrbitersCurrentOrbiter,
   PalletMoonbeamOrbitersError,
   PalletMoonbeamOrbitersEvent,
+  PalletParachainStakingBond,
+  PalletParachainStakingCall,
+  PalletParachainStakingCandidateBondLessRequest,
+  PalletParachainStakingCandidateMetadata,
+  PalletParachainStakingCapacityStatus,
+  PalletParachainStakingCollatorSnapshot,
+  PalletParachainStakingCollatorStatus,
+  PalletParachainStakingDelayedPayout,
+  PalletParachainStakingDelegationRequestsCancelledScheduledRequest,
+  PalletParachainStakingDelegationRequestsDelegationAction,
+  PalletParachainStakingDelegationRequestsScheduledRequest,
+  PalletParachainStakingDelegations,
+  PalletParachainStakingDelegator,
+  PalletParachainStakingDelegatorAdded,
+  PalletParachainStakingDelegatorStatus,
+  PalletParachainStakingError,
+  PalletParachainStakingEvent,
+  PalletParachainStakingInflationInflationInfo,
+  PalletParachainStakingParachainBondConfig,
+  PalletParachainStakingRoundInfo,
+  PalletParachainStakingSetOrderedSet,
   PalletProxyAnnouncement,
   PalletProxyCall,
   PalletProxyError,
   PalletProxyEvent,
   PalletProxyProxyDefinition,
+  PalletRandomnessCall,
+  PalletRandomnessError,
+  PalletRandomnessEvent,
+  PalletRandomnessRandomnessResult,
+  PalletRandomnessRequest,
+  PalletRandomnessRequestInfo,
+  PalletRandomnessRequestState,
+  PalletRandomnessRequestType,
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
   PalletSchedulerScheduledV3,
   PalletTimestampCall,
   PalletTransactionPaymentChargeTransactionPayment,
+  PalletTransactionPaymentEvent,
   PalletTransactionPaymentReleases,
   PalletTreasuryCall,
   PalletTreasuryError,
@@ -185,40 +214,23 @@ import type {
   PalletXcmEvent,
   PalletXcmOrigin,
   PalletXcmQueryStatus,
+  PalletXcmTransactorCall,
+  PalletXcmTransactorCurrency,
+  PalletXcmTransactorCurrencyPayment,
+  PalletXcmTransactorError,
+  PalletXcmTransactorEvent,
+  PalletXcmTransactorRemoteTransactInfoWithMaxWeight,
+  PalletXcmTransactorTransactWeights,
   PalletXcmVersionMigrationStage,
-  ParachainStakingBond,
-  ParachainStakingCall,
-  ParachainStakingCandidateBondLessRequest,
-  ParachainStakingCandidateMetadata,
-  ParachainStakingCapacityStatus,
-  ParachainStakingCollator2,
-  ParachainStakingCollatorCandidate,
-  ParachainStakingCollatorSnapshot,
-  ParachainStakingCollatorStatus,
-  ParachainStakingDelayedPayout,
-  ParachainStakingDelegationRequestsCancelledScheduledRequest,
-  ParachainStakingDelegationRequestsDelegationAction,
-  ParachainStakingDelegationRequestsScheduledRequest,
-  ParachainStakingDelegations,
-  ParachainStakingDelegator,
-  ParachainStakingDelegatorAdded,
-  ParachainStakingDelegatorStatus,
-  ParachainStakingError,
-  ParachainStakingEvent,
-  ParachainStakingInflationInflationInfo,
-  ParachainStakingNominator2,
-  ParachainStakingParachainBondConfig,
-  ParachainStakingRoundInfo,
-  ParachainStakingSetOrderedSetAccountId20,
-  ParachainStakingSetOrderedSetBond,
   PolkadotCorePrimitivesInboundDownwardMessage,
   PolkadotCorePrimitivesInboundHrmpMessage,
   PolkadotCorePrimitivesOutboundHrmpMessage,
   PolkadotParachainPrimitivesXcmpMessageFormat,
-  PolkadotPrimitivesV1AbridgedHostConfiguration,
-  PolkadotPrimitivesV1AbridgedHrmpChannel,
-  PolkadotPrimitivesV1PersistedValidationData,
-  PolkadotPrimitivesV1UpgradeRestriction,
+  PolkadotPrimitivesV2AbridgedHostConfiguration,
+  PolkadotPrimitivesV2AbridgedHrmpChannel,
+  PolkadotPrimitivesV2PersistedValidationData,
+  PolkadotPrimitivesV2UpgradeRestriction,
+  SessionKeysPrimitivesVrfVrfCryptoPublic,
   SpCoreEcdsaSignature,
   SpCoreEd25519Signature,
   SpCoreSr25519Public,
@@ -231,13 +243,10 @@ import type {
   SpRuntimeModuleError,
   SpRuntimeMultiSignature,
   SpRuntimeTokenError,
+  SpRuntimeTransactionalError,
   SpTrieStorageProof,
   SpVersionRuntimeVersion,
   XcmDoubleEncoded,
-  XcmTransactorCall,
-  XcmTransactorError,
-  XcmTransactorEvent,
-  XcmTransactorRemoteTransactInfoWithMaxWeight,
   XcmV0Junction,
   XcmV0JunctionBodyId,
   XcmV0JunctionBodyPart,
@@ -330,7 +339,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportWeightsPerDispatchClassU64: FrameSupportWeightsPerDispatchClassU64;
     FrameSupportWeightsPerDispatchClassWeightsPerClass: FrameSupportWeightsPerDispatchClassWeightsPerClass;
     FrameSupportWeightsRuntimeDbWeight: FrameSupportWeightsRuntimeDbWeight;
-    FrameSupportWeightsWeightToFeeCoefficient: FrameSupportWeightsWeightToFeeCoefficient;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemError: FrameSystemError;
@@ -436,17 +444,47 @@ declare module "@polkadot/types/types/registry" {
     PalletMoonbeamOrbitersCurrentOrbiter: PalletMoonbeamOrbitersCurrentOrbiter;
     PalletMoonbeamOrbitersError: PalletMoonbeamOrbitersError;
     PalletMoonbeamOrbitersEvent: PalletMoonbeamOrbitersEvent;
+    PalletParachainStakingBond: PalletParachainStakingBond;
+    PalletParachainStakingCall: PalletParachainStakingCall;
+    PalletParachainStakingCandidateBondLessRequest: PalletParachainStakingCandidateBondLessRequest;
+    PalletParachainStakingCandidateMetadata: PalletParachainStakingCandidateMetadata;
+    PalletParachainStakingCapacityStatus: PalletParachainStakingCapacityStatus;
+    PalletParachainStakingCollatorSnapshot: PalletParachainStakingCollatorSnapshot;
+    PalletParachainStakingCollatorStatus: PalletParachainStakingCollatorStatus;
+    PalletParachainStakingDelayedPayout: PalletParachainStakingDelayedPayout;
+    PalletParachainStakingDelegationRequestsCancelledScheduledRequest: PalletParachainStakingDelegationRequestsCancelledScheduledRequest;
+    PalletParachainStakingDelegationRequestsDelegationAction: PalletParachainStakingDelegationRequestsDelegationAction;
+    PalletParachainStakingDelegationRequestsScheduledRequest: PalletParachainStakingDelegationRequestsScheduledRequest;
+    PalletParachainStakingDelegations: PalletParachainStakingDelegations;
+    PalletParachainStakingDelegator: PalletParachainStakingDelegator;
+    PalletParachainStakingDelegatorAdded: PalletParachainStakingDelegatorAdded;
+    PalletParachainStakingDelegatorStatus: PalletParachainStakingDelegatorStatus;
+    PalletParachainStakingError: PalletParachainStakingError;
+    PalletParachainStakingEvent: PalletParachainStakingEvent;
+    PalletParachainStakingInflationInflationInfo: PalletParachainStakingInflationInflationInfo;
+    PalletParachainStakingParachainBondConfig: PalletParachainStakingParachainBondConfig;
+    PalletParachainStakingRoundInfo: PalletParachainStakingRoundInfo;
+    PalletParachainStakingSetOrderedSet: PalletParachainStakingSetOrderedSet;
     PalletProxyAnnouncement: PalletProxyAnnouncement;
     PalletProxyCall: PalletProxyCall;
     PalletProxyError: PalletProxyError;
     PalletProxyEvent: PalletProxyEvent;
     PalletProxyProxyDefinition: PalletProxyProxyDefinition;
+    PalletRandomnessCall: PalletRandomnessCall;
+    PalletRandomnessError: PalletRandomnessError;
+    PalletRandomnessEvent: PalletRandomnessEvent;
+    PalletRandomnessRandomnessResult: PalletRandomnessRandomnessResult;
+    PalletRandomnessRequest: PalletRandomnessRequest;
+    PalletRandomnessRequestInfo: PalletRandomnessRequestInfo;
+    PalletRandomnessRequestState: PalletRandomnessRequestState;
+    PalletRandomnessRequestType: PalletRandomnessRequestType;
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
     PalletSchedulerScheduledV3: PalletSchedulerScheduledV3;
     PalletTimestampCall: PalletTimestampCall;
     PalletTransactionPaymentChargeTransactionPayment: PalletTransactionPaymentChargeTransactionPayment;
+    PalletTransactionPaymentEvent: PalletTransactionPaymentEvent;
     PalletTransactionPaymentReleases: PalletTransactionPaymentReleases;
     PalletTreasuryCall: PalletTreasuryCall;
     PalletTreasuryError: PalletTreasuryError;
@@ -460,40 +498,23 @@ declare module "@polkadot/types/types/registry" {
     PalletXcmEvent: PalletXcmEvent;
     PalletXcmOrigin: PalletXcmOrigin;
     PalletXcmQueryStatus: PalletXcmQueryStatus;
+    PalletXcmTransactorCall: PalletXcmTransactorCall;
+    PalletXcmTransactorCurrency: PalletXcmTransactorCurrency;
+    PalletXcmTransactorCurrencyPayment: PalletXcmTransactorCurrencyPayment;
+    PalletXcmTransactorError: PalletXcmTransactorError;
+    PalletXcmTransactorEvent: PalletXcmTransactorEvent;
+    PalletXcmTransactorRemoteTransactInfoWithMaxWeight: PalletXcmTransactorRemoteTransactInfoWithMaxWeight;
+    PalletXcmTransactorTransactWeights: PalletXcmTransactorTransactWeights;
     PalletXcmVersionMigrationStage: PalletXcmVersionMigrationStage;
-    ParachainStakingBond: ParachainStakingBond;
-    ParachainStakingCall: ParachainStakingCall;
-    ParachainStakingCandidateBondLessRequest: ParachainStakingCandidateBondLessRequest;
-    ParachainStakingCandidateMetadata: ParachainStakingCandidateMetadata;
-    ParachainStakingCapacityStatus: ParachainStakingCapacityStatus;
-    ParachainStakingCollator2: ParachainStakingCollator2;
-    ParachainStakingCollatorCandidate: ParachainStakingCollatorCandidate;
-    ParachainStakingCollatorSnapshot: ParachainStakingCollatorSnapshot;
-    ParachainStakingCollatorStatus: ParachainStakingCollatorStatus;
-    ParachainStakingDelayedPayout: ParachainStakingDelayedPayout;
-    ParachainStakingDelegationRequestsCancelledScheduledRequest: ParachainStakingDelegationRequestsCancelledScheduledRequest;
-    ParachainStakingDelegationRequestsDelegationAction: ParachainStakingDelegationRequestsDelegationAction;
-    ParachainStakingDelegationRequestsScheduledRequest: ParachainStakingDelegationRequestsScheduledRequest;
-    ParachainStakingDelegations: ParachainStakingDelegations;
-    ParachainStakingDelegator: ParachainStakingDelegator;
-    ParachainStakingDelegatorAdded: ParachainStakingDelegatorAdded;
-    ParachainStakingDelegatorStatus: ParachainStakingDelegatorStatus;
-    ParachainStakingError: ParachainStakingError;
-    ParachainStakingEvent: ParachainStakingEvent;
-    ParachainStakingInflationInflationInfo: ParachainStakingInflationInflationInfo;
-    ParachainStakingNominator2: ParachainStakingNominator2;
-    ParachainStakingParachainBondConfig: ParachainStakingParachainBondConfig;
-    ParachainStakingRoundInfo: ParachainStakingRoundInfo;
-    ParachainStakingSetOrderedSetAccountId20: ParachainStakingSetOrderedSetAccountId20;
-    ParachainStakingSetOrderedSetBond: ParachainStakingSetOrderedSetBond;
     PolkadotCorePrimitivesInboundDownwardMessage: PolkadotCorePrimitivesInboundDownwardMessage;
     PolkadotCorePrimitivesInboundHrmpMessage: PolkadotCorePrimitivesInboundHrmpMessage;
     PolkadotCorePrimitivesOutboundHrmpMessage: PolkadotCorePrimitivesOutboundHrmpMessage;
     PolkadotParachainPrimitivesXcmpMessageFormat: PolkadotParachainPrimitivesXcmpMessageFormat;
-    PolkadotPrimitivesV1AbridgedHostConfiguration: PolkadotPrimitivesV1AbridgedHostConfiguration;
-    PolkadotPrimitivesV1AbridgedHrmpChannel: PolkadotPrimitivesV1AbridgedHrmpChannel;
-    PolkadotPrimitivesV1PersistedValidationData: PolkadotPrimitivesV1PersistedValidationData;
-    PolkadotPrimitivesV1UpgradeRestriction: PolkadotPrimitivesV1UpgradeRestriction;
+    PolkadotPrimitivesV2AbridgedHostConfiguration: PolkadotPrimitivesV2AbridgedHostConfiguration;
+    PolkadotPrimitivesV2AbridgedHrmpChannel: PolkadotPrimitivesV2AbridgedHrmpChannel;
+    PolkadotPrimitivesV2PersistedValidationData: PolkadotPrimitivesV2PersistedValidationData;
+    PolkadotPrimitivesV2UpgradeRestriction: PolkadotPrimitivesV2UpgradeRestriction;
+    SessionKeysPrimitivesVrfVrfCryptoPublic: SessionKeysPrimitivesVrfVrfCryptoPublic;
     SpCoreEcdsaSignature: SpCoreEcdsaSignature;
     SpCoreEd25519Signature: SpCoreEd25519Signature;
     SpCoreSr25519Public: SpCoreSr25519Public;
@@ -506,13 +527,10 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeModuleError: SpRuntimeModuleError;
     SpRuntimeMultiSignature: SpRuntimeMultiSignature;
     SpRuntimeTokenError: SpRuntimeTokenError;
+    SpRuntimeTransactionalError: SpRuntimeTransactionalError;
     SpTrieStorageProof: SpTrieStorageProof;
     SpVersionRuntimeVersion: SpVersionRuntimeVersion;
     XcmDoubleEncoded: XcmDoubleEncoded;
-    XcmTransactorCall: XcmTransactorCall;
-    XcmTransactorError: XcmTransactorError;
-    XcmTransactorEvent: XcmTransactorEvent;
-    XcmTransactorRemoteTransactInfoWithMaxWeight: XcmTransactorRemoteTransactInfoWithMaxWeight;
     XcmV0Junction: XcmV0Junction;
     XcmV0JunctionBodyId: XcmV0JunctionBodyId;
     XcmV0JunctionBodyPart: XcmV0JunctionBodyPart;

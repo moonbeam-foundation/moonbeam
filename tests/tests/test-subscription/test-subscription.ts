@@ -29,7 +29,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
     const promise = new Promise<BlockHeader>((resolve) => {
       subscription.once("data", resolve);
     });
-    await context.createBlock(createTransfer(context, baltathar.address, 0));
+    await context.createBlock(createTransfer(context, baltathar.address, 0, { gas: 12000000 }));
     const data = await promise;
     subscription.unsubscribe();
 
@@ -43,10 +43,7 @@ describeDevMoonbeam("Subscription - Block headers", (context) => {
       sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347",
       transactionsRoot: "0x14363f4c0580a470a7879ba247f97c2d62d77963a73464c49507f721d7f85bfc",
     });
-    expect((data as any).sealFields).to.eql([
-      "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "0x0000000000000000",
-    ]);
+    expect(data.nonce).to.be.eq("0x0000000000000000");
   });
 });
 

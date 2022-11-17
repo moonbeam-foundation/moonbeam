@@ -2,7 +2,12 @@ import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
 
-import { alith, baltathar, charleth } from "../../util/accounts";
+import {
+  alith,
+  ALITH_GENESIS_TRANSFERABLE_BALANCE,
+  baltathar,
+  charleth,
+} from "../../util/accounts";
 import { PRECOMPILE_NATIVE_ERC20_ADDRESS } from "../../util/constants";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes, DevTestContext } from "../../util/setup-dev-tests";
@@ -19,14 +24,19 @@ const SELECTORS = {
   allowance: "dd62ed3e",
   transfer: "a9059cbb",
   transferFrom: "23b872dd",
+  deposit: "d0e30db0",
   logApprove: "0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925",
   logTransfer: "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
 };
 
+// Error(string)
+const ABI_REVERT_SELECTOR = "0x08c379a0";
+
 async function getBalance(context: DevTestContext, blockHeight: number, address: string) {
   const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
-  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
-  return account.data.free;
+  const apiAt = await context.polkadotApi.at(blockHash);
+  const account = await apiAt.query.system.account(address);
+  return account.data.free.toBigInt();
 }
 
 async function sendApprove(context: DevTestContext, spender: string, amount: string) {
@@ -78,8 +88,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       data: `0x${SELECTORS.balanceOf}${address}`,
     });
 
-    const amount =
-      "0x" + (await getBalance(context, 0, alith.address)).toHex().slice(2).padStart(64, "0");
+    const amount = "0x" + ALITH_GENESIS_TRANSFERABLE_BALANCE.toString(16).padStart(64, "0");
     expect(request.result).equals(amount);
   });
 
@@ -123,13 +132,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
 
     const fees = receipt.gasUsed * 1_000_000_000;
 
-    expect((await getBalance(context, 1, alith.address)).toBigInt()).to.equal(
-      (await getBalance(context, 0, alith.address)).toBigInt() -
-        BigInt(`0x${amount}`) -
-        BigInt(fees)
+    expect(await getBalance(context, 1, alith.address)).to.equal(
+      (await getBalance(context, 0, alith.address)) - BigInt(`0x${amount}`) - BigInt(fees)
     );
-    expect((await getBalance(context, 1, charleth.address)).toBigInt()).to.equal(
-      (await getBalance(context, 0, charleth.address)).toBigInt() + BigInt(`0x${amount}`)
+    expect(await getBalance(context, 1, charleth.address)).to.equal(
+      (await getBalance(context, 0, charleth.address)) + BigInt(`0x${amount}`)
     );
   });
 });
@@ -167,11 +174,11 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
       expect(receipt.status).to.equal(true);
     }
 
-    expect((await getBalance(context, 2, alith.address)).toBigInt()).to.equal(
-      (await getBalance(context, 1, alith.address)).toBigInt() - BigInt(`0x${transferAmount}`)
+    expect(await getBalance(context, 2, alith.address)).to.equal(
+      (await getBalance(context, 1, alith.address)) - BigInt(`0x${transferAmount}`)
     );
-    expect((await getBalance(context, 2, charleth.address)).toBigInt()).to.equal(
-      (await getBalance(context, 1, charleth.address)).toBigInt() + BigInt(`0x${transferAmount}`)
+    expect(await getBalance(context, 2, charleth.address)).to.equal(
+      (await getBalance(context, 1, charleth.address)) + BigInt(`0x${transferAmount}`)
     );
 
     const newAllowedAmount = (
@@ -205,13 +212,31 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20", (context) => {
       expect(receipt.status).to.equal(false); // transfer fails because it is not allowed that much
     }
 
-    expect((await getBalance(context, 2, alith.address)).toBigInt()).to.equal(
-      (await getBalance(context, 1, alith.address)).toBigInt()
+    expect(await getBalance(context, 2, alith.address)).to.equal(
+      await getBalance(context, 1, alith.address)
     );
-    expect((await getBalance(context, 2, charleth.address)).toBigInt()).to.equal(
-      (await getBalance(context, 1, charleth.address)).toBigInt()
+    expect(await getBalance(context, 2, charleth.address)).to.equal(
+      await getBalance(context, 1, charleth.address)
     );
 
     await checkAllowance(context, alith.address, baltathar.address, allowedAmount);
+  });
+});
+
+describeDevMoonbeamAllEthTxTypes("Precompiles - ERC20 Native", (context) => {
+  it("revert message is abi-encoded as a String(error) call", async function () {
+    const request = await web3EthCall(context.web3, {
+      to: PRECOMPILE_NATIVE_ERC20_ADDRESS,
+      data: `0x${SELECTORS.deposit}`,
+    });
+    expect(request as any).to.haveOwnProperty("error");
+    // Data
+    let data = (request as any).error.data;
+    expect(data.length).to.be.eq(266);
+    expect(data.slice(0, 10)).to.be.eq(ABI_REVERT_SELECTOR);
+    // Message
+    expect((request as any).error.message).to.be.eq(
+      "VM Exception while processing transaction: revert deposited amount must be non-zero"
+    );
   });
 });

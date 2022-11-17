@@ -1,5 +1,5 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is 	part of Moonbeam.
+// This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ where
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 {
-	fn compute_domain_separator(address: H160) -> [u8; 32] {
+	pub fn compute_domain_separator(address: H160) -> [u8; 32] {
 		let name: H256 = keccak_256(Metadata::name().as_bytes()).into();
 
 		let version: H256 = keccak256!("1").into();
@@ -90,22 +90,25 @@ where
 
 	// Translated from
 	// https://github.com/Uniswap/v2-core/blob/master/contracts/UniswapV2ERC20.sol#L81
-	pub(crate) fn permit(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn permit(
+		handle: &mut impl PrecompileHandle,
+		owner: Address,
+		spender: Address,
+		value: U256,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		let owner: H160 = input.read::<Address>()?.into();
-		let spender: H160 = input.read::<Address>()?.into();
-		let value: U256 = input.read()?;
-		let deadline: U256 = input.read()?;
-		let v: u8 = input.read()?;
-		let r: H256 = input.read()?;
-		let s: H256 = input.read()?;
+		let owner: H160 = owner.into();
+		let spender: H160 = spender.into();
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
 
-		ensure!(deadline >= timestamp, revert("permit expired"));
+		ensure!(deadline >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::<Instance>::get(owner);
 
@@ -124,12 +127,12 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| revert("invalid permit"))?;
+			.map_err(|_| revert("Invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == owner,
-			revert("invalid permit")
+			revert("Invalid permit")
 		);
 
 		NoncesStorage::<Instance>::insert(owner, nonce + U256::one());
@@ -144,39 +147,29 @@ where
 			ApprovesStorage::<Runtime, Instance>::insert(owner, spender, amount);
 		}
 
-		LogsBuilder::new(handle.context().address)
-			.log3(
-				SELECTOR_LOG_APPROVAL,
-				owner,
-				spender,
-				EvmDataWriter::new().write(value).build(),
-			)
-			.record(handle)?;
+		log3(
+			handle.context().address,
+			SELECTOR_LOG_APPROVAL,
+			owner,
+			spender,
+			EvmDataWriter::new().write(value).build(),
+		)
+		.record(handle)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	pub(crate) fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = EvmDataReader::new_skip_selector(handle.input())?;
-		let owner: H160 = input.read::<Address>()?.into();
+		let owner: H160 = owner.into();
 
-		let nonce = NoncesStorage::<Instance>::get(owner);
-
-		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
+		Ok(NoncesStorage::<Instance>::get(owner))
 	}
 
-	pub(crate) fn domain_separator(
-		handle: &mut impl PrecompileHandle,
-	) -> EvmResult<PrecompileOutput> {
+	pub(crate) fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let domain_separator: H256 =
-			Self::compute_domain_separator(handle.context().address).into();
-
-		Ok(succeed(
-			EvmDataWriter::new().write(domain_separator).build(),
-		))
+		Ok(Self::compute_domain_separator(handle.context().address).into())
 	}
 }

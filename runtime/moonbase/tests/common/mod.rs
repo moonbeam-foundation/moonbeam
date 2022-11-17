@@ -28,11 +28,12 @@ pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
 	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
 	CrowdloanRewards, Ethereum, Event, Executive, FixedGasPrice, InflationInfo, LocalAssets,
-	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, WEEKS,
+	ParachainStaking, Range, Runtime, System, TransactionConverter, UncheckedExtrinsic, HOURS,
+	WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill};
+use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -50,14 +51,21 @@ pub const INVALID_ETH_TX: &str =
 	3fd467d4afd7aefb4a34b373314fff470bb9db743a84d674a0aa06e5994f2d07eafe1c37b4ce5471ca\
 	ecec29011f6f5bf0b1a552c55ea348df35f";
 
+pub fn rpc_run_to_block(n: u32) {
+	while System::block_number() < n {
+		Ethereum::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		Ethereum::on_initialize(System::block_number());
+	}
+}
+
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
+	// Finalize the first block
+	Ethereum::on_finalize(System::block_number());
+	AuthorInherent::on_finalize(System::block_number());
 	while System::block_number() < n {
-		// Finalize the previous block
-		Ethereum::on_finalize(System::block_number());
-		AuthorInherent::on_finalize(System::block_number());
-
 		// Set the new block number and author
 		match author {
 			Some(ref author) => {
@@ -80,6 +88,11 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
+
+		// Finalize the block
+		Ethereum::on_finalize(System::block_number());
+		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 	}
 }
 
@@ -104,7 +117,7 @@ pub struct ExtBuilder {
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -173,7 +186,10 @@ impl ExtBuilder {
 	}
 
 	pub fn with_delegations(mut self, delegations: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.delegations = delegations;
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
 		self
 	}
 
@@ -226,6 +242,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: Perbill::from_percent(20),
+			parachain_bond_reserve_percent: Percent::from_percent(30),
+			blocks_per_round: 2 * HOURS,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();

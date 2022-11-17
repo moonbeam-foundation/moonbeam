@@ -19,10 +19,12 @@
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, Nothing},
-	weights::Weight,
 };
 use sp_core::H256;
-use sp_runtime::{testing::Header, traits::IdentityLookup, AccountId32};
+use sp_runtime::{
+	traits::{BlakeTwo256, IdentityLookup},
+	AccountId32,
+};
 
 use polkadot_parachain::primitives::Id as ParaId;
 use polkadot_runtime_parachains::{configuration, origin, shared, ump};
@@ -35,23 +37,25 @@ use xcm_builder::{
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 };
 use xcm_executor::{Config, XcmExecutor};
+use xcm_primitives::XcmV2Weight;
 pub type AccountId = AccountId32;
 pub type Balance = u128;
+pub type BlockNumber = u32;
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 }
 
 impl frame_system::Config for Runtime {
 	type Origin = Origin;
 	type Call = Call;
 	type Index = u64;
-	type BlockNumber = u64;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = ::sp_runtime::traits::BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type BlockWeights = ();
@@ -105,7 +109,7 @@ parameter_types! {
 	pub const KusamaNetwork: NetworkId = NetworkId::Kusama;
 	pub const AnyNetwork: NetworkId = NetworkId::Any;
 	pub Ancestry: MultiLocation = Here.into();
-	pub UnitWeightCost: Weight = 1_000;
+	pub UnitWeightCost: XcmV2Weight = 1_000;
 }
 
 pub type SovereignAccountOf = (
@@ -127,7 +131,7 @@ type LocalOriginConverter = (
 );
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 1_000;
+	pub const BaseXcmWeight: XcmV2Weight = 1_000;
 	pub KsmPerSecond: (AssetId, u128) = (Concrete(KsmLocation::get()), 1);
 	pub const MaxInstructions: u32 = 100;
 }
@@ -140,13 +144,13 @@ use xcm_executor::traits::ShouldExecute;
 /// payments into account.
 ///
 /// Only allows for `DescendOrigin` + `WithdrawAsset`, + `BuyExecution`
-pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
+		max_weight: XcmV2Weight,
+		_weight_credit: &mut XcmV2Weight,
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",
@@ -192,7 +196,7 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T
 pub type XcmRouter = super::RelayChainXcmRouter;
 pub type Barrier = (
 	TakeWeightCredit,
-	AllowDescendOriginFromLocal<Everything>,
+	AllowTopLevelPaidExecutionDescendOriginFirst<Everything>,
 	AllowTopLevelPaidExecutionFrom<Everything>,
 	// Expected responses are OK.
 	AllowKnownQueryResponses<XcmPallet>,
@@ -216,6 +220,7 @@ impl Config for XcmConfig {
 	type AssetTrap = XcmPallet;
 	type AssetClaims = XcmPallet;
 	type SubscriptionService = XcmPallet;
+	type CallDispatcher = Call;
 }
 
 pub type LocalOriginToLocation = SignedToAccountId32<Origin, AccountId, KusamaNetwork>;
@@ -279,7 +284,7 @@ pub(crate) fn relay_events() -> Vec<Event> {
 }
 
 use frame_support::traits::{OnFinalize, OnInitialize};
-pub(crate) fn relay_roll_to(n: u64) {
+pub(crate) fn relay_roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		XcmPallet::on_finalize(System::block_number());
 		Balances::on_finalize(System::block_number());

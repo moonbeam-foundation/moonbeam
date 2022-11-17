@@ -1,14 +1,22 @@
 import "@moonbeam-network/api-augment";
 
 import { expect } from "chai";
+import { ethers } from "ethers";
 
 import { ethan, ETHAN_PRIVATE_KEY, faith, FAITH_PRIVATE_KEY } from "../../util/accounts";
 import { getBlockExtrinsic } from "../../util/block";
 import { PRECOMPILE_AUTHOR_MAPPING_ADDRESS } from "../../util/constants";
+import { getCompiled } from "../../util/contracts";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { sendPrecompileTx } from "../../util/transactions";
+import {
+  ALITH_TRANSACTION_TEMPLATE,
+  createTransaction,
+  sendPrecompileTx,
+} from "../../util/transactions";
 
 const debug = require("debug")("test-precompile:author-mapping");
+const AUTHOR_MAPPING_CONTRACT = getCompiled("AuthorMapping");
+const AUTHOR_MAPPING_INTERFACE = new ethers.utils.Interface(AUTHOR_MAPPING_CONTRACT.contract.abi);
 
 // Keys used to set author-mapping in the tests
 const originalKeys = [
@@ -29,14 +37,14 @@ const setKeysThroughPrecompile = async (
   private_key: string,
   keys: string
 ) => {
-  await sendPrecompileTx(
-    context,
-    PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
-    SELECTORS,
-    account,
-    private_key,
-    "set_keys",
-    [keys]
+  await context.createBlock(
+    createTransaction(context, {
+      ...ALITH_TRANSACTION_TEMPLATE,
+      from: account,
+      privateKey: private_key,
+      to: PRECOMPILE_AUTHOR_MAPPING_ADDRESS,
+      data: AUTHOR_MAPPING_INTERFACE.encodeFunctionData("setKeys", [keys]),
+    })
   );
 };
 
@@ -400,7 +408,7 @@ describeDevMoonbeam("Precompile Author Mapping - Set Faith only 1 key", (context
 
 describeDevMoonbeam("Precompile Author Mapping - Set Faith mapping with 0 keys", (context) => {
   it("should fail", async function () {
-    await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, "");
+    await setKeysThroughPrecompile(context, faith.address, FAITH_PRIVATE_KEY, "0x");
     const { extrinsic, events, resultEvent } = await getBlockExtrinsic(
       context.polkadotApi,
       await context.polkadotApi.rpc.chain.getBlockHash(),

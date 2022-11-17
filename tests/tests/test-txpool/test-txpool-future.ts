@@ -10,7 +10,7 @@ import { createContract } from "../../util/transactions";
 describeDevMoonbeam("TxPool - Future Ethereum transaction", (context) => {
   let txHash: string;
   before("Setup: Create transaction", async () => {
-    const { rawTx } = await createContract(context, "TestContract", {
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
       gas: 1048576,
       nonce: 1, // future nonce
     });

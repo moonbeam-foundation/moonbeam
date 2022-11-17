@@ -17,6 +17,7 @@
 //! Test utilities
 use super::*;
 use codec::{Decode, Encode, MaxEncodedLen};
+use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{EqualPrivilegeOnly, Everything, OnFinalize, OnInitialize},
@@ -28,16 +29,13 @@ use pallet_evm::{
 };
 use scale_info::TypeInfo;
 use serde::{Deserialize, Serialize};
-use sp_core::H256;
+use sp_core::{H256, U256};
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
 pub type AccountId = Account;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -120,7 +118,7 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
@@ -134,7 +132,7 @@ impl frame_system::Config for Runtime {
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -165,12 +163,15 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
+	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
+	pub const WeightPerGas: u64 = 1;
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<Account>;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
@@ -181,10 +182,9 @@ impl pallet_evm::Config for Runtime {
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -260,11 +260,11 @@ pub struct Precompiles<R>(PhantomData<R>);
 
 impl<R> PrecompileSet for Precompiles<R>
 where
-	DemocracyWrapper<R>: Precompile,
+	DemocracyPrecompile<R>: Precompile,
 {
 	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
 		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyWrapper::<R>::execute(handle)),
+			a if a == hash(PRECOMPILE_ADDRESS) => Some(DemocracyPrecompile::<R>::execute(handle)),
 			_ => None,
 		}
 	}
@@ -273,6 +273,8 @@ where
 		address == hash(PRECOMPILE_ADDRESS)
 	}
 }
+
+pub type PCall = DemocracyPrecompileCall<Runtime>;
 
 fn hash(a: u64) -> H160 {
 	H160::from_low_u64_be(a)
@@ -337,7 +339,7 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	// We skip timestamp's on_finalize because it requires that the timestamp inherent be set
 	// We may be able to simulate this by poking its storage directly, but I don't see any value
 	// added from doing that.

@@ -14,22 +14,19 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	mock::{
-		events,
-		Account::{Alice, Precompile},
-		Call, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
-	},
-	Action,
+use crate::mock::{
+	events,
+	Account::{Alice, Precompile},
+	Call, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{testing::*, EvmDataWriter};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::crypto::UncheckedFrom;
-use sp_core::U256;
+use sp_core::{H256, U256};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -55,7 +52,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -64,17 +61,30 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
-	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
-	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
-	assert_eq!(Action::RemoveKeys as u32, 0x3b6c4284);
-	assert_eq!(Action::SetKeys as u32, 0xbcb24ddc);
+	assert!(PCall::add_association_selectors().contains(&0xef8b6cd8));
+	assert!(PCall::update_association_selectors().contains(&0x25a39da5));
+	assert!(PCall::clear_association_selectors().contains(&0x448b54d6));
+	assert!(PCall::remove_keys_selectors().contains(&0xa36fee17));
+	assert!(PCall::set_keys_selectors().contains(&0xf1ec919c));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::add_association_selectors());
+		tester.test_default_modifier(PCall::update_association_selectors());
+		tester.test_default_modifier(PCall::clear_association_selectors());
+		tester.test_default_modifier(PCall::remove_keys_selectors());
+		tester.test_default_modifier(PCall::set_keys_selectors());
+	});
 }
 
 #[test]
@@ -86,9 +96,10 @@ fn add_association_works() {
 			let expected_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			let input = EvmDataWriter::new_with_selector(Action::AddAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.build();
+			let input = PCall::add_association {
+				nimbus_id: H256::from([1u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -108,7 +119,10 @@ fn add_association_works() {
 						keys: expected_nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -130,10 +144,11 @@ fn update_association_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let input = EvmDataWriter::new_with_selector(Action::UpdateAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.write(sp_core::H256::from([2u8; 32]))
-				.build();
+			let input = PCall::update_association {
+				old_nimbus_id: H256::from([1u8; 32]),
+				new_nimbus_id: H256::from([2u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -159,7 +174,10 @@ fn update_association_works() {
 						new_keys: second_nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -178,9 +196,10 @@ fn clear_association_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let input = EvmDataWriter::new_with_selector(Action::ClearAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.build();
+			let input = PCall::clear_association {
+				nimbus_id: H256::from([1u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -211,7 +230,10 @@ fn clear_association_works() {
 						keys: nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -230,7 +252,7 @@ fn remove_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let input = EvmDataWriter::new_with_selector(Action::RemoveKeys).build();
+			let input = PCall::remove_keys {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -261,7 +283,10 @@ fn remove_keys_works() {
 						keys: nimbus_id.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -287,10 +312,15 @@ fn set_keys_works() {
 			})
 			.dispatch(Origin::signed(Alice)));
 
-			let input = EvmDataWriter::new_with_selector(Action::SetKeys)
-				.write(sp_core::H256::from([2u8; 32]))
-				.write(sp_core::H256::from([4u8; 32]))
-				.build();
+			// Create input with keys inside a Solidity bytes.
+			let input = PCall::set_keys {
+				keys: EvmDataWriter::new()
+					.write(sp_core::H256::from([2u8; 32]))
+					.write(sp_core::H256::from([4u8; 32]))
+					.build()
+					.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -316,8 +346,55 @@ fn set_keys_works() {
 						new_keys: second_vrf_key.into(),
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["AuthorMappingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if !PCall::supports_selector(selector) {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"add_association(bytes32)",
+		"update_association(bytes32,bytes32)",
+		"clear_association(bytes32)",
+		"remove_keys()",
+		"set_keys(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if !PCall::supports_selector(selector) {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
 }

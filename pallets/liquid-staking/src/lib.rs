@@ -42,7 +42,7 @@ pub mod pallet {
 		},
 		frame_system::pallet_prelude::*,
 		sp_runtime::Perbill,
-		sp_std::collections::btree_set::BTreeSet,
+		sp_std::{collections::btree_set::BTreeSet, convert::TryInto},
 	};
 
 	#[cfg(feature = "std")]

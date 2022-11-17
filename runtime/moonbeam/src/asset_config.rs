@@ -28,7 +28,7 @@ use sp_runtime::traits::Hash as THash;
 
 use frame_support::{
 	parameter_types,
-	traits::{ConstU128, EnsureOneOf},
+	traits::{ConstU128, EitherOfDiverse},
 	weights::{GetDispatchInfo, Weight},
 };
 
@@ -61,7 +61,7 @@ parameter_types! {
 }
 
 /// We allow root and Chain council to execute privileged asset operations.
-pub type AssetsForceOrigin = EnsureOneOf<
+pub type AssetsForceOrigin = EitherOfDiverse<
 	EnsureRoot<AccountId>,
 	pallet_collective::EnsureProportionMoreThan<AccountId, CouncilInstance, 1, 2>,
 >;
@@ -223,7 +223,7 @@ impl pallet_asset_manager::AssetRegistrar<Runtime> for AssetRegistrar {
 		// This is the db write
 		call.get_dispatch_info()
 			.weight
-			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1 as Weight))
+			.saturating_add(<Runtime as frame_system::Config>::DbWeight::get().writes(1))
 	}
 }
 

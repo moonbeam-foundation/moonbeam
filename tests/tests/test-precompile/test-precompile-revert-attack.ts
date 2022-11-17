@@ -22,46 +22,43 @@ import {
 // Would the delegation pass in substrate but get the eth back in the evm?
 // We have to make sure that's not possible
 
-describeDevMoonbeamAllEthTxTypes(
-  "Precompiles - test revert attack on state modifier",
-  (context) => {
-    it("should return contract creation gas cost", async function () {
-      // Check initial balance
-      const initialBalance = await context.web3.eth.getBalance(alith.address);
-      // Deploy attack contract
-      const { contract, rawTx } = await createContract(context, "StakingDelegationAttaker");
-      await context.createBlock(rawTx);
+describeDevMoonbeamAllEthTxTypes("Precompiles - Reverting Staking precompile", (context) => {
+  it("should not revert the whole transaction cost", async function () {
+    // Check initial balance
+    const initialBalance = await context.web3.eth.getBalance(alith.address);
+    // Deploy attack contract
+    const { contract, rawTx } = await createContract(context, "StakingAttacker");
+    await context.createBlock(rawTx);
 
-      // call the payable function, which should revert
-      const { result } = await context.createBlock(
-        createContractExecution(
-          context,
-          {
-            contract,
-            contractCall: contract.methods.score_a_free_delegation(),
-          },
-          {
-            ...ALITH_TRANSACTION_TEMPLATE,
-            value: numberToHex(Number(MIN_GLMR_STAKING)),
-          }
-        )
-      );
+    // call the payable function, which should revert
+    const { result } = await context.createBlock(
+      createContractExecution(
+        context,
+        {
+          contract,
+          contractCall: contract.methods.score_a_free_delegation(),
+        },
+        {
+          ...ALITH_TRANSACTION_TEMPLATE,
+          value: numberToHex(Number(MIN_GLMR_STAKING)),
+        }
+      )
+    );
 
-      // TX should be included but fail
-      const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
-      expect(receipt.status).to.eq(false);
+    // TX should be included but fail
+    const receipt = await context.web3.eth.getTransactionReceipt(result.hash);
+    expect(receipt.status).to.eq(false);
 
-      // Delegation shouldn't have passed
-      const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
-        alith.address
-      );
-      expect(nominatorsAfter.toHuman()).to.eq(null);
+    // Delegation shouldn't have passed
+    const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
+      alith.address
+    );
+    expect(nominatorsAfter.toHuman()).to.eq(null);
 
-      // balance dif should only be tx fee, not MIN_GLMR_STAKING
-      expect(
-        Number(initialBalance) - Number(await context.web3.eth.getBalance(alith.address)) <
-          Number(MIN_GLMR_STAKING)
-      ).to.eq(true);
-    });
-  }
-);
+    // balance dif should only be tx fee, not MIN_GLMR_STAKING
+    expect(
+      Number(initialBalance) - Number(await context.web3.eth.getBalance(alith.address)) <
+        Number(MIN_GLMR_STAKING)
+    ).to.eq(true);
+  });
+});

@@ -11,7 +11,7 @@ import { createContract, createContractExecution } from "../../util/transactions
 describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
   let txHash: string;
   before("Setup: Create transaction", async () => {
-    const { rawTx } = await createContract(context, "TestContract", {
+    const { rawTx } = await createContract(context, "MultiplyBy7", {
       gas: 1048576,
     });
     txHash = (await customWeb3Request(context.web3, "eth_sendRawTransaction", [rawTx])).result;
@@ -57,28 +57,32 @@ describeDevMoonbeam("TxPool - Pending Ethereum transaction", (context) => {
 });
 
 describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
-  let testContract: Contract;
+  let multiplyBy7Contract: Contract;
   let txHash: string;
 
   before("Setup: Create contract block and add call transaction", async () => {
-    const { contract, rawTx } = await createContract(context, "TestContract", {
+    const { contract, rawTx } = await createContract(context, "MultiplyBy7", {
       gas: 1048576,
     });
-    testContract = contract;
+    multiplyBy7Contract = contract;
     await context.createBlock(rawTx);
 
     txHash = (
       await customWeb3Request(context.web3, "eth_sendRawTransaction", [
-        await createContractExecution(context, {
-          contract,
-          contractCall: contract.methods.multiply(5),
-        }),
+        await createContractExecution(
+          context,
+          {
+            contract,
+            contractCall: contract.methods.multiply(5),
+          },
+          { gas: 12000000 }
+        ),
       ])
     ).result;
   });
 
   it("should appear in the txpool inspection", async function () {
-    const contractAddress = testContract.options.address;
+    const contractAddress = multiplyBy7Contract.options.address;
     const inspect = await customWeb3Request(context.web3, "txpool_inspect", []);
     const data = inspect.result.pending[alith.address.toLowerCase()][context.web3.utils.toHex(1)];
 
@@ -99,7 +103,7 @@ describeDevMoonbeam("TxPool - Ethereum Contract Call", (context) => {
       gasPrice: "0x3b9aca00",
       hash: txHash,
       nonce: context.web3.utils.toHex(1),
-      to: testContract.options.address.toLowerCase(),
+      to: multiplyBy7Contract.options.address.toLowerCase(),
       value: "0x0",
     });
   });

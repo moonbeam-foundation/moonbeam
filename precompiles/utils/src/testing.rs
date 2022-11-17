@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use super::*;
-use core::assert_matches::assert_matches;
-use fp_evm::{
-	ExitReason, ExitSucceed, PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
+use {
+	crate::{EvmData, EvmDataWriter},
+	fp_evm::{
+		Context, ExitError, ExitReason, ExitSucceed, Log, PrecompileFailure, PrecompileHandle,
+		PrecompileOutput, PrecompileResult, PrecompileSet, Transfer,
+	},
+	sp_core::{H160, H256, U256},
+	sp_std::boxed::Box,
 };
-use sp_std::boxed::Box;
 
 pub struct Subcall {
 	pub address: H160,
@@ -35,6 +38,18 @@ pub struct SubcallOutput {
 	pub output: Vec<u8>,
 	pub cost: u64,
 	pub logs: Vec<Log>,
+}
+
+pub fn decode_revert_message(encoded: &[u8]) -> &[u8] {
+	let encoded_len = encoded.len();
+	// selector 4 + offset 32 + string length 32
+	if encoded_len > 68 {
+		let message_len = encoded[36..68].iter().sum::<u8>();
+		if encoded_len >= 68 + message_len as usize {
+			return &encoded[68..68 + message_len as usize];
+		}
+	}
+	b"decode_revert_message: error"
 }
 
 pub trait SubcallTrait: FnMut(Subcall) -> SubcallOutput + 'static {}
@@ -68,20 +83,6 @@ impl MockHandle {
 			is_static: false,
 		}
 	}
-
-	// pub fn with_gas_limit(gas_limit: u64) -> Self {
-	// 	Self {
-	// 		gas_limit,
-	// 		gas_used: 0,
-	// 		logs: vec![],
-	// 		subcall_handle: None,
-	// 	}
-	// }
-
-	// pub fn with_subcall_handle(mut self, handle: Option<SubcallHandle>) -> Self {
-	// 	self.subcall_handle = handle;
-	// 	self
-	// }
 }
 
 impl PrecompileHandle for MockHandle {
@@ -97,7 +98,7 @@ impl PrecompileHandle for MockHandle {
 		context: &Context,
 	) -> (ExitReason, Vec<u8>) {
 		if self
-			.record_cost(super::call_cost(
+			.record_cost(crate::costs::call_cost(
 				context.apparent_value,
 				&evm::Config::london(),
 			))
@@ -195,6 +196,7 @@ pub struct PrecompilesTester<'p, P> {
 
 	expected_cost: Option<u64>,
 	expected_logs: Option<Vec<PrettyLog>>,
+	static_call: bool,
 }
 
 impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
@@ -225,6 +227,7 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 			expected_cost: None,
 			expected_logs: None,
+			static_call: false,
 		}
 	}
 
@@ -240,6 +243,11 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 
 	pub fn with_target_gas(mut self, target_gas: Option<u64>) -> Self {
 		self.target_gas = target_gas;
+		self
+	}
+
+	pub fn with_static_call(mut self, static_call: bool) -> Self {
+		self.static_call = static_call;
 		self
 	}
 
@@ -275,19 +283,13 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	fn execute(&mut self) -> Option<PrecompileResult> {
 		let handle = &mut self.handle;
 		handle.subcall_handle = self.subcall_handle.take();
+		handle.is_static = self.static_call;
 
 		if let Some(gas_limit) = self.target_gas {
 			handle.gas_limit = gas_limit;
 		}
 
-		let res = self.precompiles.execute(
-			handle,
-			// self.to,
-			// &self.data,
-			// self.target_gas,
-			// &self.context,
-			// self.is_static,
-		);
+		let res = self.precompiles.execute(handle);
 
 		self.subcall_handle = handle.subcall_handle.take();
 
@@ -312,25 +314,70 @@ impl<'p, P: PrecompileSet> PrecompilesTester<'p, P> {
 	/// Execute the precompile set and check it returns provided output.
 	pub fn execute_returns(mut self, output: Vec<u8>) {
 		let res = self.execute();
-		assert_eq!(
-			res,
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+				eprintln!(
+					"Revert message (bytes): {:?}",
+					sp_core::hexdisplay::HexDisplay::from(&decoded)
+				);
+				eprintln!(
+					"Revert message (string): {:?}",
+					core::str::from_utf8(decoded).ok()
+				);
+				panic!("Shouldn't have reverted");
+			}
 			Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
-				output
-			}))
-		);
+				output: execution_output,
+			})) => {
+				if execution_output != output {
+					eprintln!(
+						"Output (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&execution_output)
+					);
+					eprintln!(
+						"Output (string): {:?}",
+						core::str::from_utf8(&execution_output).ok()
+					);
+					panic!("Output doesn't match");
+				}
+			}
+			other => panic!("Unexpected result: {:?}", other),
+		}
+
 		self.assert_optionals();
+	}
+
+	/// Execute the precompile set and check it returns provided Solidity encoded output.
+	pub fn execute_returns_encoded(self, output: impl EvmData) {
+		self.execute_returns(EvmDataWriter::new().write(output).build())
 	}
 
 	/// Execute the precompile set and check if it reverts.
 	/// Take a closure allowing to perform custom matching on the output.
 	pub fn execute_reverts(mut self, check: impl Fn(&[u8]) -> bool) {
 		let res = self.execute();
-		assert_matches!(
-			res,
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if check(&output)
-		);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+				if !check(decoded) {
+					eprintln!(
+						"Revert message (bytes): {:?}",
+						sp_core::hexdisplay::HexDisplay::from(&decoded)
+					);
+					eprintln!(
+						"Revert message (string): {:?}",
+						core::str::from_utf8(decoded).ok()
+					);
+					panic!("Revert reason doesn't match !");
+				}
+			}
+			other => panic!("Didn't revert, instead returned {:?}", other),
+		}
+
 		self.assert_optionals();
 	}
 
@@ -350,7 +397,7 @@ pub trait PrecompileTesterExt: PrecompileSet + Sized {
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,
-		data: Vec<u8>,
+		data: impl Into<Vec<u8>>,
 	) -> PrecompilesTester<Self>;
 }
 
@@ -359,9 +406,9 @@ impl<T: PrecompileSet> PrecompileTesterExt for T {
 		&self,
 		from: impl Into<H160>,
 		to: impl Into<H160>,
-		data: Vec<u8>,
+		data: impl Into<Vec<u8>>,
 	) -> PrecompilesTester<Self> {
-		PrecompilesTester::new(self, from, to, data)
+		PrecompilesTester::new(self, from, to, data.into())
 	}
 }
 
@@ -387,4 +434,143 @@ impl core::fmt::Debug for PrettyLog {
 			.field("data_utf8", &message)
 			.finish()
 	}
+}
+
+pub struct PrecompilesModifierTester<P> {
+	precompiles: P,
+	handle: MockHandle,
+}
+
+impl<P: PrecompileSet> PrecompilesModifierTester<P> {
+	pub fn new(precompiles: P, from: impl Into<H160>, to: impl Into<H160>) -> Self {
+		let to = to.into();
+		let mut handle = MockHandle::new(
+			to.clone(),
+			Context {
+				address: to,
+				caller: from.into(),
+				apparent_value: U256::zero(),
+			},
+		);
+
+		handle.gas_limit = u64::MAX;
+
+		Self {
+			precompiles,
+			handle,
+		}
+	}
+
+	fn is_view(&mut self, selector: u32) -> bool {
+		// View: calling with static should not revert with static-related message.
+		let handle = &mut self.handle;
+		handle.is_static = true;
+		handle.context.apparent_value = U256::zero();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		let res = self.precompiles.execute(handle);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+
+				dbg!(decoded) != b"Can't call non-static function in static context"
+			}
+			Some(_) => true,
+			None => panic!("tried to check view modifier on unknown precompile"),
+		}
+	}
+
+	fn is_payable(&mut self, selector: u32) -> bool {
+		// Payable: calling with value should not revert with payable-related message.
+		let handle = &mut self.handle;
+		handle.is_static = false;
+		handle.context.apparent_value = U256::one();
+		handle.input = EvmDataWriter::new_with_selector(selector).build();
+
+		let res = self.precompiles.execute(handle);
+
+		match res {
+			Some(Err(PrecompileFailure::Revert { output, .. })) => {
+				let decoded = decode_revert_message(&output);
+
+				decoded != b"Function is not payable"
+			}
+			Some(_) => true,
+			None => panic!("tried to check payable modifier on unknown precompile"),
+		}
+	}
+
+	pub fn test_view_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				self.is_view(s),
+				"Function doesn't behave like a view function."
+			);
+			assert!(
+				!self.is_payable(s),
+				"Function doesn't behave like a non-payable function."
+			)
+		}
+	}
+
+	pub fn test_payable_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				!self.is_view(s),
+				"Function doesn't behave like a non-view function."
+			);
+			assert!(
+				self.is_payable(s),
+				"Function doesn't behave like a payable function."
+			);
+		}
+	}
+
+	pub fn test_default_modifier(&mut self, selectors: &[u32]) {
+		for &s in selectors {
+			assert!(
+				!self.is_view(s),
+				"Function doesn't behave like a non-view function."
+			);
+			assert!(
+				!self.is_payable(s),
+				"Function doesn't behave like a non-payable function."
+			);
+		}
+	}
+}
+
+/// Panics if an event is not found in the system log of events
+#[macro_export]
+macro_rules! assert_event_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_some(),
+					"Event {:?} was not found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
+}
+
+// Panics if an event is found in the system log of events
+#[macro_export]
+macro_rules! assert_event_not_emitted {
+	($event:expr) => {
+		match &$event {
+			e => {
+				assert!(
+					crate::mock::events().iter().find(|x| *x == e).is_none(),
+					"Event {:?} was found in events: \n {:?}",
+					e,
+					crate::mock::events()
+				);
+			}
+		}
+	};
 }

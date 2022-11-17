@@ -23,7 +23,7 @@ use {
 	mul_div::MulDiv,
 	sp_runtime::{
 		traits::{CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Zero},
-		PerThing, Perbill,
+		DispatchError, PerThing, Perbill,
 	},
 	substrate_fixed::{
 		transcendental::pow as floatpow,
@@ -31,11 +31,13 @@ use {
 	},
 };
 
+// We need to return a `DispatchError` since `#[transactional]` itself can return an
+// error if there is too much transaction nesting.
 #[transactional]
 pub(crate) fn distribute_rewards<T: Config>(
 	collator: CandidateGen<T>,
 	value: T::Balance,
-) -> Result<(), Error<T>> {
+) -> Result<(), DispatchError> {
 	// Rewards distribution is done in the following order :
 	// 1. Distribute to reserve.
 	// 2. Distribute delegator MC rewards, since it implies some rounding.
@@ -49,11 +51,11 @@ pub(crate) fn distribute_rewards<T: Config>(
 	let reserve_rewards = T::RewardsReserveCommission::get() * value;
 	let shared_rewards = value
 		.checked_sub(&reserve_rewards)
-		.ok_or(Error::MathUnderflow)?;
+		.ok_or(Error::<T>::MathUnderflow)?;
 	let collator_rewards = T::RewardsCollatorCommission::get() * value;
 	let delegators_rewards = shared_rewards
 		.checked_sub(&collator_rewards)
-		.ok_or(Error::MathUnderflow)?;
+		.ok_or(Error::<T>::MathUnderflow)?;
 
 	// 1. Distribute to reserve.
 	T::Currency::deposit_creating(&T::ReserveAccount::get(), reserve_rewards);
@@ -63,34 +65,35 @@ pub(crate) fn distribute_rewards<T: Config>(
 
 	// 2. Distribute delegator MC rewards, since it implies some rounding.
 	let delegators_mc_rewards =
-		compute_delegators_mc_rewards_before_rounding(&collator, delegators_rewards)?;
-	let delegators_mc_rewards = distribute_delegators_mc_rewards(&collator, delegators_mc_rewards)?;
+		compute_delegators_mc_rewards_before_rounding::<T>(&collator, delegators_rewards)?;
+	let delegators_mc_rewards =
+		distribute_delegators_mc_rewards::<T>(&collator, delegators_mc_rewards)?;
 
 	// 3. Distribute delegator AC rewards with dust from 1.
 	let delegators_ac_rewards = delegators_rewards
 		.checked_sub(&delegators_mc_rewards)
-		.ok_or(Error::MathUnderflow)?;
+		.ok_or(Error::<T>::MathUnderflow)?;
 
-	distribute_delegators_ac_rewards(&collator, delegators_ac_rewards)?;
+	distribute_delegators_ac_rewards::<T>(&collator, delegators_ac_rewards)?;
 
 	// 4. Distribute collator AC rewards, since it implies some rounding.
 	//    It is done after 2 as we want rewards to be distributed among all delegators
 	//    according to the pre-reward repartition.
 	let collator_ac_rewards =
-		compute_collator_ac_rewards_before_rounding(&collator, collator_rewards)?;
-	let collator_ac_rewards = distribute_collator_ac_rewards(&collator, collator_ac_rewards)?;
+		compute_collator_ac_rewards_before_rounding::<T>(&collator, collator_rewards)?;
+	let collator_ac_rewards = distribute_collator_ac_rewards::<T>(&collator, collator_ac_rewards)?;
 
 	// 5. Distribute collator MC rewards, with dust from 3.
 	let collator_mc_rewards = collator_rewards
 		.checked_sub(&collator_ac_rewards)
-		.ok_or(Error::MathUnderflow)?;
+		.ok_or(Error::<T>::MathUnderflow)?;
 
-	distribute_collator_mc_rewards(&collator, collator_mc_rewards)?;
+	distribute_collator_mc_rewards::<T>(&collator, collator_mc_rewards)?;
 
 	// Update candidate stake
 	let additional_stake = collator_ac_rewards
 		.checked_add(&delegators_ac_rewards)
-		.ok_or(Error::MathOverflow)?;
+		.ok_or(Error::<T>::MathOverflow)?;
 	if !additional_stake.is_zero() {
 		pools::candidates::add_stake::<T>(collator.clone(), additional_stake)?;
 	}

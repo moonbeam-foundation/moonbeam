@@ -18,9 +18,11 @@ use crate::{
 	mock::{
 		events, roll_to,
 		Account::{self, Alice, Bob, Precompile},
-		Balances, Call, Democracy, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
+		Balances, Call, Democracy, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue,
+		Runtime,
 	},
-	Action,
+	SELECTOR_LOG_DELEGATED, SELECTOR_LOG_PROPOSED, SELECTOR_LOG_SECONDED,
+	SELECTOR_LOG_STANDARD_VOTE, SELECTOR_LOG_UNDELEGATED,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable, traits::Currency};
 use pallet_balances::Event as BalancesEvent;
@@ -29,8 +31,8 @@ use pallet_democracy::{
 	PreimageStatus, Vote, VoteThreshold, Voting,
 };
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{testing::*, Address, Bytes, EvmDataWriter};
-use sp_core::{H160, U256};
+use precompile_utils::{prelude::*, solidity, testing::*};
+use sp_core::{H160, H256, U256};
 use std::{convert::TryInto, str::from_utf8};
 
 fn precompiles() -> Precompiles<Runtime> {
@@ -57,7 +59,7 @@ fn selector_less_than_four_bytes() {
 		// This selector is only three bytes long when four are required.
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -66,26 +68,46 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::Delegate as u32, 0x0185921e);
-	assert_eq!(Action::DepositOf as u32, 0xa30305e9);
-	assert_eq!(Action::FinishedReferendumInfo as u32, 0xb1fd383f);
-	assert_eq!(Action::LowestUnbaked as u32, 0x0388f282);
-	assert_eq!(Action::OngoingReferendumInfo as u32, 0x8b93d11a);
-	assert_eq!(Action::Propose as u32, 0x7824e7d1);
-	assert_eq!(Action::PublicPropCount as u32, 0x56fdf547);
-	assert_eq!(Action::RemoveVote as u32, 0x2042f50b);
-	assert_eq!(Action::Second as u32, 0xc7a76601);
-	assert_eq!(Action::StandardVote as u32, 0x3f3c21cc);
-	assert_eq!(Action::UnDelegate as u32, 0xcb37b8ea);
-	assert_eq!(Action::Unlock as u32, 0x2f6c493c);
+	assert!(PCall::delegate_selectors().contains(&0x0185921e));
+	assert!(PCall::deposit_of_selectors().contains(&0x4767142d));
+	assert!(PCall::finished_referendum_info_selectors().contains(&0xc75abcce));
+	assert!(PCall::lowest_unbaked_selectors().contains(&0xd49dccf0));
+	assert!(PCall::ongoing_referendum_info_selectors().contains(&0xf033b7cd));
+	assert!(PCall::propose_selectors().contains(&0x7824e7d1));
+	assert!(PCall::public_prop_count_selectors().contains(&0x31305462));
+	assert!(PCall::remove_vote_selectors().contains(&0x3f68fde4));
+	assert!(PCall::second_selectors().contains(&0xc7a76601));
+	assert!(PCall::standard_vote_selectors().contains(&0x6cd18b0d));
+	assert!(PCall::un_delegate_selectors().contains(&0x1eef225c));
+	assert!(PCall::unlock_selectors().contains(&0x2f6c493c));
 
-	//TODO also test logs once we have them
+	// TODO also test logs once we have them
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_view_modifier(PCall::deposit_of_selectors());
+		tester.test_view_modifier(PCall::finished_referendum_info_selectors());
+		tester.test_view_modifier(PCall::lowest_unbaked_selectors());
+		tester.test_view_modifier(PCall::ongoing_referendum_info_selectors());
+		tester.test_default_modifier(PCall::propose_selectors());
+		tester.test_view_modifier(PCall::public_prop_count_selectors());
+		tester.test_default_modifier(PCall::remove_vote_selectors());
+		tester.test_default_modifier(PCall::second_selectors());
+		tester.test_default_modifier(PCall::standard_vote_selectors());
+		tester.test_default_modifier(PCall::un_delegate_selectors());
+		tester.test_default_modifier(PCall::unlock_selectors());
+	});
 }
 
 #[test]
@@ -93,11 +115,7 @@ fn prop_count_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		// Assert that no props have been opened.
 		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
-			)
+			.prepare_test(Alice, Precompile, PCall::public_prop_count {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
 			.execute_returns([0u8; 32].into())
@@ -118,14 +136,10 @@ fn prop_count_non_zero() {
 			.dispatch(Origin::signed(Alice)));
 
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::PublicPropCount).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::public_prop_count {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns_encoded(1u32);
 		});
 }
 
@@ -148,13 +162,13 @@ fn deposit_of_non_zero() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::DepositOf)
-						.write(0u32)
-						.build(),
+					PCall::deposit_of {
+						prop_index: 0.into(),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1000u32).build());
+				.execute_returns_encoded(1000u32);
 		});
 }
 
@@ -165,9 +179,9 @@ fn deposit_of_bad_index() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::DepositOf)
-					.write(10u32)
-					.build(),
+				PCall::deposit_of {
+					prop_index: 10.into(),
+				},
 			)
 			.execute_reverts(|output| output == b"No such proposal in pallet democracy");
 	});
@@ -177,14 +191,10 @@ fn deposit_of_bad_index() {
 fn lowest_unbaked_zero() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
-			)
+			.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(0u32).build());
+			.execute_returns_encoded(0u32);
 	});
 }
 
@@ -241,57 +251,191 @@ fn lowest_unbaked_non_zero() {
 			);
 
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::LowestUnbaked).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::lowest_unbaked {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(1u32).build());
+				.execute_returns_encoded(1u32);
 		});
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_returns_encoded((
+					U256::from(11),      // end
+					H256::zero(),        // hash
+					2u8,                 // threshold type
+					U256::from(10),      // delay
+					U256::from(10_000),  // tally ayes
+					U256::zero(),        // tally nays
+					U256::from(100_000), // turnout
+				));
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_bad_index() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 1 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Unknown referendum");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn ongoing_ref_info_is_not_ongoing() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			roll_to(12);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::ongoing_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Referendum is finished");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_works() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(Call::Democracy(DemocracyCall::vote {
+				ref_index: 0, // referendum 0
+				vote: AccountVote::Standard {
+					vote: Vote {
+						aye: true,
+						conviction: 0u8.try_into().unwrap()
+					},
+					balance: 100_000,
+				}
+			})
+			.dispatch(Origin::signed(Alice)));
+
+			roll_to(12);
+
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_returns_encoded((true, U256::from(11)));
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_bad_index() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 1 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Unknown referendum");
+		})
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
-#[ignore]
 #[test]
 fn finished_ref_info_is_not_finished() {
-	todo!()
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000_000)])
+		.with_referenda(vec![(
+			Default::default(),
+			VoteThreshold::SimpleMajority,
+			10,
+		)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::finished_referendum_info { ref_index: 0 },
+				)
+				.expect_no_logs()
+				.execute_reverts(|output| output == b"Referendum is ongoing");
+		})
 }
 
 #[test]
@@ -301,10 +445,11 @@ fn propose_works() {
 		.build()
 		.execute_with(|| {
 			// Construct data to propose empty hash with value 100
-			let input = EvmDataWriter::new_with_selector(Action::Propose)
-				.write(sp_core::H256::zero())
-				.write(100u64)
-				.build();
+			let input = PCall::propose {
+				proposal_hash: H256::zero(),
+				value: 100.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -323,7 +468,19 @@ fn propose_works() {
 						deposit: 100
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_PROPOSED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new().write::<U256>(100.into()).build(),
+						)
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -347,10 +504,11 @@ fn second_works() {
 			.dispatch(Origin::signed(Alice)));
 
 			// Construct the call to second via a precompile
-			let input = EvmDataWriter::new_with_selector(Action::Second)
-				.write(0u64) //prop index
-				.write(100u64) // seconds upper bound
-				.build();
+			let input = PCall::second {
+				prop_index: 0.into(),
+				seconds_upper_bound: 100.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -381,7 +539,21 @@ fn second_works() {
 						prop_index: 0
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_SECONDED,
+							H256::zero(), // proposal index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.build(),
+						)
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -403,12 +575,13 @@ fn standard_vote_aye_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let input = EvmDataWriter::new_with_selector(Action::StandardVote)
-				.write(0u32) // Referendum index 0
-				.write(true) // Aye
-				.write(100_000u128) // 100_000 tokens
-				.write(0u8) // No conviction
-				.build();
+			let input = PCall::standard_vote {
+				ref_index: 0.into(),
+				aye: true,
+				vote_amount: 100_000.into(),
+				conviction: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -434,7 +607,24 @@ fn standard_vote_aye_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(true)
+								.write::<U256>(100000.into())
+								.write::<u8>(0)
+								.build(),
+						),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -472,12 +662,13 @@ fn standard_vote_nay_conviction_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to vote aye
-			let input = EvmDataWriter::new_with_selector(Action::StandardVote)
-				.write(0u32) // Referendum index 0
-				.write(false) // Nay
-				.write(100_000u128) // 100_000 tokens
-				.write(3u8) // 3X conviction
-				.build();
+			let input = PCall::standard_vote {
+				ref_index: 0.into(),
+				aye: false,
+				vote_amount: 100_000.into(),
+				conviction: 3.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -503,7 +694,24 @@ fn standard_vote_nay_conviction_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_STANDARD_VOTE,
+							H256::zero(), // referendum index,
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Alice).into())
+								.write::<bool>(false)
+								.write::<U256>(100000.into())
+								.write::<u8>(3)
+								.build(),
+						),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -558,10 +766,10 @@ fn remove_vote_works() {
 				},
 			));
 
-			// Construct input data to remove the vote
-			let input = EvmDataWriter::new_with_selector(Action::RemoveVote)
-				.write(0u32) // Referendum index 0
-				.build();
+			let input = PCall::remove_vote {
+				ref_index: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -587,7 +795,10 @@ fn remove_vote_works() {
 						}
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -626,9 +837,9 @@ fn remove_vote_dne() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::RemoveVote)
-						.write(0u32) // Referendum index 0
-						.build(),
+					PCall::remove_vote {
+						ref_index: 0.into(),
+					},
 				)
 				.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotVoter"));
 		})
@@ -641,11 +852,12 @@ fn delegate_works() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to delegate Alice -> Bob
-			let input = EvmDataWriter::new_with_selector(Action::Delegate)
-				.write::<Address>(H160::from(Bob).into()) // Delegate to
-				.write(2u8) // 2X conviction
-				.write(100u128) // 100 tokens
-				.build();
+			let input = PCall::delegate {
+				representative: H160::from(Bob).into(),
+				conviction: 2.into(),
+				amount: 100.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -659,7 +871,21 @@ fn delegate_works() {
 						target: Bob
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(
+							Precompile,
+							SELECTOR_LOG_DELEGATED,
+							H160::from(Alice),
+							EvmDataWriter::new()
+								.write::<Address>(H160::from(Bob).into())
+								.build(),
+						),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -674,19 +900,18 @@ fn delegate_works() {
 					prior: Default::default(),
 				}
 			);
-			// Would be nice to check that it shows up for Bob too, but  can't because of
-			// private fields. At elast I can see it works manually when uncommenting this.
-			// assert_eq!(
-			// 	pallet_democracy::VotingOf::<Runtime>::get(Bob),
-			// 	Voting::Direct {
-			// 		votes: Default::default(),
-			// 		delegations: pallet_democracy::Delegations {
-			// 			votes: 200, //because of 2x conviction
-			// 			capital: 100,
-			// 		},
-			// 		prior: Default::default(),
-			// 	}
-			// );
+
+			assert_eq!(
+				pallet_democracy::VotingOf::<Runtime>::get(Bob),
+				Voting::Direct {
+					votes: Default::default(),
+					delegations: pallet_democracy::Delegations {
+						votes: 200, //because of 2x conviction
+						capital: 100,
+					},
+					prior: Default::default(),
+				}
+			);
 		})
 }
 
@@ -706,7 +931,7 @@ fn undelegate_works() {
 			));
 
 			// Construct input data to un-delegate Alice
-			let input = EvmDataWriter::new_with_selector(Action::UnDelegate).build();
+			let input = PCall::un_delegate {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -721,7 +946,14 @@ fn undelegate_works() {
 					}
 					.into(),
 					DemocracyEvent::Undelegated { account: Alice }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Log {
+						log: log2(Precompile, SELECTOR_LOG_UNDELEGATED, H160::from(Alice), [],),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -742,11 +974,7 @@ fn undelegate_works() {
 fn undelegate_dne() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::UnDelegate).build(),
-			)
+			.prepare_test(Alice, Precompile, PCall::un_delegate {})
 			.execute_reverts(|output| from_utf8(&output).unwrap().contains("NotDelegating"));
 	})
 }
@@ -794,9 +1022,10 @@ fn unlock_works() {
 			roll_to(21);
 
 			// Construct input data to un-lock tokens for Alice
-			let input = EvmDataWriter::new_with_selector(Action::Unlock)
-				.write::<Address>(H160::from(Alice).into())
-				.build();
+			let input = PCall::unlock {
+				target: H160::from(Alice).into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -811,7 +1040,10 @@ fn unlock_works() {
 					}
 					.into(),
 					DemocracyEvent::Passed { ref_index: 0 }.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -824,9 +1056,10 @@ fn unlock_with_nothing_locked() {
 		.build()
 		.execute_with(|| {
 			// Construct input data to un-lock tokens for Alice
-			let input = EvmDataWriter::new_with_selector(Action::Unlock)
-				.write::<Address>(H160::from(Alice).into())
-				.build();
+			let input = PCall::unlock {
+				target: H160::from(Alice).into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
@@ -834,7 +1067,10 @@ fn unlock_with_nothing_locked() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::Executed(Precompile.into()).into(),]
+				vec![EvmEvent::Executed {
+					address: Precompile.into()
+				}
+				.into(),]
 			);
 		})
 }
@@ -847,7 +1083,7 @@ fn note_preimage_works() {
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
 			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
-			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let dummy_bytes = dummy_preimage.clone();
 			let proposal_hash =
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
@@ -856,9 +1092,10 @@ fn note_preimage_works() {
 				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
 
 			// Construct input data to note preimage
-			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
-				.write(dummy_bytes)
-				.build();
+			let input = PCall::note_preimage {
+				encoded_proposal: dummy_bytes.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
@@ -889,7 +1126,10 @@ fn note_preimage_works() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -908,7 +1148,7 @@ fn note_preimage_works() {
 				assert_eq!(deposit, 40u128);
 				assert_eq!(expiry, None);
 			} else {
-				panic!("Expected preimge status to be available");
+				panic!("Expected preimage status to be available");
 			}
 		})
 }
@@ -922,7 +1162,7 @@ fn note_preimage_works_with_real_data() {
 			// Construct our dummy proposal and associated data
 			let dummy_preimage: Vec<u8> =
 				hex_literal::hex!("0c026be02d1d3665660d22ff9624b7be0551ee1ac91b").to_vec();
-			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let dummy_bytes = dummy_preimage.clone();
 			let proposal_hash =
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
@@ -939,9 +1179,10 @@ fn note_preimage_works_with_real_data() {
 			);
 
 			// Construct input data to note preimage
-			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
-				.write(dummy_bytes)
-				.build();
+			let input = PCall::note_preimage {
+				encoded_proposal: dummy_bytes.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(EvmCall::call {
@@ -972,7 +1213,10 @@ fn note_preimage_works_with_real_data() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 
@@ -991,7 +1235,7 @@ fn note_preimage_works_with_real_data() {
 				assert_eq!(deposit, (10 * dummy_preimage.len()) as u128);
 				assert_eq!(expiry, None);
 			} else {
-				panic!("Expected preimge status to be available");
+				panic!("Expected preimage status to be available");
 			}
 		})
 }
@@ -1004,7 +1248,7 @@ fn cannot_note_duplicate_preimage() {
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
 			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
-			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let dummy_bytes = dummy_preimage.clone();
 			let proposal_hash =
 				<<Runtime as frame_system::Config>::Hashing as sp_runtime::traits::Hash>::hash(
 					&dummy_preimage[..],
@@ -1013,9 +1257,10 @@ fn cannot_note_duplicate_preimage() {
 				crate::mock::PreimageByteDeposit::get() * (dummy_preimage.len() as u128);
 
 			// Construct input data to note preimage
-			let input = EvmDataWriter::new_with_selector(Action::NotePreimage)
-				.write(dummy_bytes)
-				.build();
+			let input: Vec<_> = PCall::note_preimage {
+				encoded_proposal: dummy_bytes.into(),
+			}
+			.into();
 
 			// First call should go successfully
 			assert_ok!(Call::Evm(EvmCall::call {
@@ -1060,8 +1305,14 @@ fn cannot_note_duplicate_preimage() {
 						deposit: expected_deposit
 					}
 					.into(),
-					EvmEvent::Executed(Precompile.into()).into(),
-					EvmEvent::ExecutedFailed(Precompile.into()).into(),
+					EvmEvent::Executed {
+						address: Precompile.into()
+					}
+					.into(),
+					EvmEvent::ExecutedFailed {
+						address: Precompile.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -1075,12 +1326,13 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 		.execute_with(|| {
 			// Construct our dummy proposal and associated data
 			let dummy_preimage: Vec<u8> = vec![1, 2, 3, 4];
-			let dummy_bytes = Bytes(dummy_preimage.clone());
+			let dummy_bytes = dummy_preimage.clone();
 
 			// Construct input data to note preimage
-			let input = EvmDataWriter::new_with_selector(Action::NoteImminentPreimage)
-				.write(dummy_bytes)
-				.build();
+			let input = PCall::note_imminent_preimage {
+				encoded_proposal: dummy_bytes.into(),
+			}
+			.into();
 
 			// This call should not succeed because
 			assert_ok!(Call::Evm(EvmCall::call {
@@ -1099,7 +1351,57 @@ fn cannot_note_imminent_preimage_before_it_is_actually_imminent() {
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
-				vec![EvmEvent::ExecutedFailed(Precompile.into()).into()]
+				vec![EvmEvent::ExecutedFailed {
+					address: Precompile.into()
+				}
+				.into()]
 			);
 		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["DemocracyInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if !PCall::supports_selector(selector) {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"public_prop_count()",
+		"deposit_of(uint256)",
+		"lowest_unbaked()",
+		"standard_vote(uint256,bool,uint256,uint256)",
+		"remove_vote(uint256)",
+		"un_delegate()",
+		"note_preimage(bytes)",
+		"note_imminent_preimage(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if !PCall::supports_selector(selector) {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
 }

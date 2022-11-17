@@ -7,9 +7,9 @@ import { sendAllStreamAndWaitLast } from "../../../util/transactions";
 
 // This test will run on local until the new runtime is available
 
-const runtimeVersion = "local";
+const runtimeTag = "local";
 describeParachain(
-  `Runtime ${runtimeVersion} migration`,
+  `Runtime ${runtimeTag} migration`,
   {
     parachain: {
       chain: "moonbase-local",
@@ -122,7 +122,7 @@ describeParachain(
       ).to.be.equal(1000000000000000000000n + minDelegatorStk * BigInt(delegatorCount));
       process.stdout.write(`✅\n`);
 
-      await context.upgradeRuntime(alith, "moonbase", runtimeVersion);
+      await context.upgradeRuntime({ runtimeName: "moonbase", runtimeTag });
 
       process.stdout.write("Verifying candidate pool is fixed post-migration...");
       expect(

@@ -8,12 +8,12 @@ import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Estimate Gas - Contract creation", (context) => {
   it("should return contract creation gas cost", async function () {
-    const contract = await getCompiled("TestContract");
+    const contract = getCompiled("MultiplyBy7");
     expect(
       await context.web3.eth.estimateGas({
         from: alith.address,
         data: contract.byteCode,
       })
-    ).to.equal(150926);
+    ).to.equal(147899);
   });
 });

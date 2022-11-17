@@ -17,13 +17,14 @@
 use crate::mock::{
 	events, roll_to, roll_to_round_begin, set_points,
 	Account::{self, Alice, Bob, Bogus, Charlie, Precompile},
-	Call, ExtBuilder, Origin, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
+	Call, ExtBuilder, Origin, PCall, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
 };
-use crate::Action;
+use core::str::from_utf8;
+use frame_support::sp_runtime::Percent;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_parachain_staking::Event as StakingEvent;
-use precompile_utils::{testing::*, Address, EvmDataWriter};
+use precompile_utils::{prelude::*, solidity, testing::*};
 use sp_core::U256;
 
 fn precompiles() -> TestPrecompiles<Runtime> {
@@ -46,63 +47,78 @@ fn evm_call(source: Account, input: Vec<u8>) -> EvmCall<Runtime> {
 
 #[test]
 fn selectors() {
-	// DEPRECATED
-	assert_eq!(Action::IsNominator as u32, 0x8e5080e7);
-	assert_eq!(Action::IsDelegator as u32, 0x1f030587);
-	assert_eq!(Action::IsCandidate as u32, 0x8545c833);
-	assert_eq!(Action::IsSelectedCandidate as u32, 0x8f6d27c7);
-	assert_eq!(Action::Points as u32, 0x9799b4e7);
-	// DEPRECATED
-	assert_eq!(Action::MinNomination as u32, 0xc9f593b2);
-	assert_eq!(Action::MinDelegation as u32, 0x72ce8933);
-	assert_eq!(Action::CandidateCount as u32, 0x4b1c4c29);
-	assert_eq!(Action::Round as u32, 0x146ca531);
-	assert_eq!(Action::CollatorNominationCount as u32, 0x0ad6a7be);
-	assert_eq!(Action::CandidateDelegationCount as u32, 0x815b796c);
-	assert_eq!(Action::NominatorNominationCount as u32, 0xdae5659b);
-	assert_eq!(Action::DelegatorDelegationCount as u32, 0xfbc51bca);
-	assert_eq!(Action::SelectedCandidates as u32, 0x89f47a21);
-	assert_eq!(Action::DelegationRequestIsPending as u32, 0x192e1db3);
-	assert_eq!(Action::CandidateExitIsPending as u32, 0xeb613b8a);
-	assert_eq!(Action::CandidateRequestIsPending as u32, 0x26ab05fb);
-	assert_eq!(Action::JoinCandidates as u32, 0x0a1bff60);
-	// DEPRECATED
-	assert_eq!(Action::LeaveCandidates as u32, 0x72b02a31);
-	assert_eq!(Action::ScheduleLeaveCandidates as u32, 0x60afbac6);
-	assert_eq!(Action::ExecuteLeaveCandidates as u32, 0x3fdc4c30);
-	assert_eq!(Action::CancelLeaveCandidates as u32, 0x0880b3e2);
-	assert_eq!(Action::GoOffline as u32, 0x767e0450);
-	assert_eq!(Action::GoOnline as u32, 0xd2f73ceb);
-	assert_eq!(Action::CandidateBondMore as u32, 0xc57bd3a8);
-	// DEPRECATED
-	assert_eq!(Action::CandidateBondLess as u32, 0x289b6ba7);
-	assert_eq!(Action::ScheduleCandidateBondLess as u32, 0x034c47bc);
-	assert_eq!(Action::ExecuteCandidateBondLess as u32, 0xa9a2b8b7);
-	assert_eq!(Action::CancelCandidateBondLess as u32, 0x583d0fdc);
-	// DEPRECATED
-	assert_eq!(Action::Nominate as u32, 0x49df6eb3);
-	assert_eq!(Action::Delegate as u32, 0x829f5ee3);
-	// DEPRECATED
-	assert_eq!(Action::LeaveNominators as u32, 0xb71d2153);
-	assert_eq!(Action::ScheduleLeaveDelegators as u32, 0x65a5bbd0);
-	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
-	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
-	// DEPRECATED
-	assert_eq!(Action::RevokeNomination as u32, 0x4b65c34b);
-	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
-	assert_eq!(Action::ExecuteLeaveDelegators as u32, 0xa84a7468);
-	assert_eq!(Action::CancelLeaveDelegators as u32, 0x2a987643);
-	// DEPRECATED
-	assert_eq!(Action::RevokeNomination as u32, 0x4b65c34b);
-	assert_eq!(Action::ScheduleRevokeDelegation as u32, 0x22266e75);
-	// DEPRECATED
-	assert_eq!(Action::NominatorBondMore as u32, 0x971d44c8);
-	assert_eq!(Action::DelegatorBondMore as u32, 0xf8331108);
-	// DEPRECATED
-	assert_eq!(Action::NominatorBondLess as u32, 0xf6a52569);
-	assert_eq!(Action::ScheduleDelegatorBondLess as u32, 0x00043acf);
-	assert_eq!(Action::ExecuteDelegationRequest as u32, 0xe42366a6);
-	assert_eq!(Action::CancelDelegationRequest as u32, 0x7284cf50);
+	assert!(PCall::is_delegator_selectors().contains(&0xfd8ab482));
+	assert!(PCall::is_candidate_selectors().contains(&0xd51b9e93));
+	assert!(PCall::is_selected_candidate_selectors().contains(&0x740d7d2a));
+	assert!(PCall::points_selectors().contains(&0x9799b4e7));
+	assert!(PCall::min_delegation_selectors().contains(&0x02985992));
+	assert!(PCall::candidate_count_selectors().contains(&0xa9a981a3));
+	assert!(PCall::round_selectors().contains(&0x146ca531));
+	assert!(PCall::candidate_delegation_count_selectors().contains(&0x2ec087eb));
+	assert!(PCall::delegator_delegation_count_selectors().contains(&0x067ec822));
+	assert!(PCall::selected_candidates_selectors().contains(&0xbcf868a6));
+	assert!(PCall::delegation_request_is_pending_selectors().contains(&0x3b16def8));
+	assert!(PCall::candidate_exit_is_pending_selectors().contains(&0x43443682));
+	assert!(PCall::candidate_request_is_pending_selectors().contains(&0xd0deec11));
+	assert!(PCall::join_candidates_selectors().contains(&0x1f2f83ad));
+	assert!(PCall::schedule_leave_candidates_selectors().contains(&0xb1a3c1b7));
+	assert!(PCall::execute_leave_candidates_selectors().contains(&0x3867f308));
+	assert!(PCall::cancel_leave_candidates_selectors().contains(&0x9c76ebb4));
+	assert!(PCall::go_offline_selectors().contains(&0xa6485ccd));
+	assert!(PCall::go_online_selectors().contains(&0x6e5b676b));
+	assert!(PCall::candidate_bond_more_selectors().contains(&0xa52c8643));
+	assert!(PCall::schedule_candidate_bond_less_selectors().contains(&0x60744ae0));
+	assert!(PCall::execute_candidate_bond_less_selectors().contains(&0x2e290290));
+	assert!(PCall::cancel_candidate_bond_less_selectors().contains(&0xb5ad5f07));
+	assert!(PCall::delegate_selectors().contains(&0x829f5ee3));
+	assert!(PCall::schedule_leave_delegators_selectors().contains(&0xf939dadb));
+	assert!(PCall::execute_leave_delegators_selectors().contains(&0xfb1e2bf9));
+	assert!(PCall::cancel_leave_delegators_selectors().contains(&0xf7421284));
+	assert!(PCall::schedule_revoke_delegation_selectors().contains(&0x1a1c740c));
+	assert!(PCall::delegator_bond_more_selectors().contains(&0x0465135b));
+	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
+	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
+	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_delegator_selectors());
+		tester.test_view_modifier(PCall::is_candidate_selectors());
+		tester.test_view_modifier(PCall::is_selected_candidate_selectors());
+		tester.test_view_modifier(PCall::points_selectors());
+		tester.test_view_modifier(PCall::min_delegation_selectors());
+		tester.test_view_modifier(PCall::candidate_count_selectors());
+		tester.test_view_modifier(PCall::round_selectors());
+		tester.test_view_modifier(PCall::candidate_delegation_count_selectors());
+		tester.test_view_modifier(PCall::delegator_delegation_count_selectors());
+		tester.test_view_modifier(PCall::selected_candidates_selectors());
+		tester.test_view_modifier(PCall::delegation_request_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_exit_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_request_is_pending_selectors());
+		tester.test_default_modifier(PCall::join_candidates_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::execute_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::go_offline_selectors());
+		tester.test_default_modifier(PCall::go_online_selectors());
+		tester.test_default_modifier(PCall::candidate_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::execute_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
+		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
+		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
+	});
 }
 
 #[test]
@@ -110,7 +126,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
-			.execute_reverts(|output| output == b"tried to parse selector out of bounds");
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
@@ -119,23 +135,7 @@ fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
 			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
-			.execute_reverts(|output| output == b"unknown selector");
-	});
-}
-
-// DEPRECATED
-#[test]
-fn min_nomination_works() {
-	ExtBuilder::default().build().execute_with(|| {
-		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::MinNomination).build(),
-			)
-			.expect_cost(0) // TODO: Test db read/write costs
-			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(3u32).build())
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
@@ -143,14 +143,10 @@ fn min_nomination_works() {
 fn min_delegation_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::MinDelegation).build(),
-			)
+			.prepare_test(Alice, Precompile, PCall::min_delegation {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(3u32).build())
+			.execute_returns_encoded(3u32)
 	});
 }
 
@@ -163,16 +159,10 @@ fn points_zero() {
 		.execute_with(|| {
 			precompiles()
 				// Assert that there are total 0 points in round 1
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::Points)
-						.write(U256::one())
-						.build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::points { round: 1.into() })
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(0u32).build());
+				.execute_returns_encoded(0u32);
 		});
 }
 
@@ -187,16 +177,10 @@ fn points_non_zero() {
 
 			// Assert that there are total 100 points in round 1
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::Points)
-						.write(U256::one())
-						.build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::points { round: 1.into() })
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(100u32).build());
+				.execute_returns_encoded(100u32);
 		});
 }
 
@@ -204,62 +188,26 @@ fn points_non_zero() {
 fn round_works() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(
-				Alice,
-				Precompile,
-				EvmDataWriter::new_with_selector(Action::Round).build(),
-			)
+			.prepare_test(Alice, Precompile, PCall::round {})
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(1u32).build());
+			.execute_returns_encoded(1u32);
 
 		// test next `ROUNDS_TO_TEST` rounds
-		const ROUNDS_TO_TEST: u64 = 10;
-		let mut current_round: u64 = 1;
+		const ROUNDS_TO_TEST: u32 = 10;
+		let mut current_round = 1;
 		while current_round < ROUNDS_TO_TEST {
 			current_round += 1;
 			roll_to_round_begin(current_round);
 
 			// Assert that round is equal to expectation
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::Round).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::round {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(current_round).build());
+				.execute_returns_encoded(current_round);
 		}
 	});
-}
-
-// DEPRECATED
-#[test]
-fn collator_nomination_count_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 50), (Charlie, 50), (Bogus, 50)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![
-			(Bob, Alice, 50),
-			(Charlie, Alice, 50),
-			(Bogus, Alice, 50),
-		])
-		.build()
-		.execute_with(|| {
-			// Assert that there 3 nominations for Alice
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::CollatorNominationCount)
-						.write(Address(Alice.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(3u32).build());
-		});
 }
 
 #[test]
@@ -279,37 +227,13 @@ fn candidate_delegation_count_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::CandidateDelegationCount)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::candidate_delegation_count {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(3u32).build());
-		});
-}
-
-// DEPRECATED
-#[test]
-fn nominator_nomination_count_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000), (Charlie, 200)])
-		.with_candidates(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_delegations(vec![(Charlie, Alice, 100), (Charlie, Bob, 100)])
-		.build()
-		.execute_with(|| {
-			// Assert that Charlie has 2 outstanding delegations
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::NominatorNominationCount)
-						.write(Address(Charlie.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(2u32).build());
+				.execute_returns_encoded(3u32);
 		});
 }
 
@@ -326,50 +250,13 @@ fn delegator_delegation_count_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::DelegatorDelegationCount)
-						.write(Address(Charlie.into()))
-						.build(),
+					PCall::delegator_delegation_count {
+						delegator: Address(Charlie.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(2u32).build());
-		});
-}
-
-// DEPRECATED
-#[test]
-fn is_nominator_true_false() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 50)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 50)])
-		.build()
-		.execute_with(|| {
-			// Assert that Charlie is not a delegator
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsNominator)
-						.write(Address(Charlie.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
-
-			// Assert that Bob is a delegator
-			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsNominator)
-						.write(Address(Bob.into()))
-						.build(),
-				)
-				.expect_cost(0) // TODO: Test db read/write costs
-				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(2u32);
 		});
 }
 
@@ -381,13 +268,13 @@ fn is_delegator_false() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::IsDelegator)
-					.write(Address(Charlie.into()))
-					.build(),
+				PCall::is_delegator {
+					delegator: Address(Charlie.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	});
 }
 
@@ -404,13 +291,13 @@ fn is_delegator_true() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsDelegator)
-						.write(Address(Bob.into()))
-						.build(),
+					PCall::is_delegator {
+						delegator: Address(Bob.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -422,13 +309,13 @@ fn is_candidate_false() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::IsCandidate)
-					.write(Address(Alice.into()))
-					.build(),
+				PCall::is_candidate {
+					candidate: Address(Alice.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	});
 }
 
@@ -444,13 +331,13 @@ fn is_candidate_true() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsCandidate)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::is_candidate {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -462,13 +349,13 @@ fn is_selected_candidate_false() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::IsSelectedCandidate)
-					.write(Address(Alice.into()))
-					.build(),
+				PCall::is_selected_candidate {
+					candidate: Address(Alice.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	});
 }
 
@@ -484,13 +371,13 @@ fn is_selected_candidate_true() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::IsSelectedCandidate)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::is_selected_candidate {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		});
 }
 
@@ -502,11 +389,7 @@ fn selected_candidates_works() {
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(
-					Alice,
-					Precompile,
-					EvmDataWriter::new_with_selector(Action::SelectedCandidates).build(),
-				)
+				.prepare_test(Alice, Precompile, PCall::selected_candidates {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
@@ -530,25 +413,25 @@ fn delegation_request_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-						.write(Address(Charlie.into()))
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::delegation_request_is_pending {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 
 			// Schedule Revoke request
 			precompiles()
 				.prepare_test(
 					Charlie,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::schedule_revoke_delegation {
+						candidate: Address(Alice.into()),
+					},
 				)
-				.expect_cost(281793000)
+				.expect_cost(290930000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -557,14 +440,14 @@ fn delegation_request_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-						.write(Address(Charlie.into()))
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::delegation_request_is_pending {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 
@@ -576,14 +459,14 @@ fn delegation_request_is_pending_returns_false_for_non_existing_delegator() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::DelegationRequestIsPending)
-					.write(Address(Bob.into()))
-					.write(Address(Alice.into()))
-					.build(),
+				PCall::delegation_request_is_pending {
+					delegator: Address(Bob.into()),
+					candidate: Address(Alice.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	})
 }
 
@@ -599,24 +482,24 @@ fn candidate_exit_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::candidate_exit_is_pending {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 
 			// Schedule exit request
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::ScheduleLeaveCandidates)
-						.write(U256::one())
-						.build(),
+					PCall::schedule_leave_candidates {
+						candidate_count: 1.into(),
+					},
 				)
-				.expect_cost(303417000)
+				.expect_cost(323429000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -625,13 +508,13 @@ fn candidate_exit_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::candidate_exit_is_pending {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 
@@ -643,13 +526,13 @@ fn candidate_exit_is_pending_returns_false_for_non_existing_delegator() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::CandidateExitIsPending)
-					.write(Address(Bob.into()))
-					.build(),
+				PCall::candidate_exit_is_pending {
+					candidate: Address(Bob.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	})
 }
 
@@ -665,24 +548,22 @@ fn candidate_request_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::candidate_request_is_pending {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(false).build());
+				.execute_returns_encoded(false);
 
 			// Schedule bond less request
 			precompiles()
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::ScheduleCandidateBondLess)
-						.write(U256::zero())
-						.build(),
+					PCall::schedule_candidate_bond_less { less: 0.into() },
 				)
-				.expect_cost(151710000)
+				.expect_cost(161834000)
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
@@ -691,13 +572,13 @@ fn candidate_request_is_pending_works() {
 				.prepare_test(
 					Alice,
 					Precompile,
-					EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
-						.write(Address(Alice.into()))
-						.build(),
+					PCall::candidate_request_is_pending {
+						candidate: Address(Alice.into()),
+					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
-				.execute_returns(EvmDataWriter::new().write(true).build());
+				.execute_returns_encoded(true);
 		})
 }
 
@@ -709,14 +590,60 @@ fn candidate_request_is_pending_returns_false_for_non_existing_candidate() {
 			.prepare_test(
 				Alice,
 				Precompile,
-				EvmDataWriter::new_with_selector(Action::CandidateRequestIsPending)
-					.write(Address(Bob.into()))
-					.build(),
+				PCall::candidate_request_is_pending {
+					candidate: Address(Bob.into()),
+				},
 			)
 			.expect_cost(0) // TODO: Test db read/write costs
 			.expect_no_logs()
-			.execute_returns(EvmDataWriter::new().write(false).build());
+			.execute_returns_encoded(false);
 	})
+}
+
+#[test]
+fn delegation_auto_compound_returns_value_if_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_auto_compounding_delegations(vec![(Charlie, Alice, 50, Percent::from_percent(50))])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(50u8);
+		})
+}
+
+#[test]
+fn delegation_auto_compound_returns_zero_if_not_set() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1_000), (Charlie, 50)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.with_delegations(vec![(Charlie, Alice, 50)])
+		.build()
+		.execute_with(|| {
+			precompiles()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::delegation_auto_compound {
+						delegator: Address(Charlie.into()),
+						candidate: Address(Alice.into()),
+					},
+				)
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(0u8);
+		})
 }
 
 #[test]
@@ -725,10 +652,11 @@ fn join_candidates_works() {
 		.with_balances(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::JoinCandidates)
-				.write(U256::from(1000u32))
-				.write(U256::zero())
-				.build();
+			let input_data = PCall::join_candidates {
+				amount: 1000.into(),
+				candidate_count: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -745,32 +673,6 @@ fn join_candidates_works() {
 		});
 }
 
-// DEPRECATED
-#[test]
-fn leave_candidates_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::LeaveCandidates)
-				.write(U256::one())
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
-
-			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
-				exit_allowed_round: 1,
-				candidate: Alice,
-				scheduled_exit: 3,
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
 #[test]
 fn schedule_leave_candidates_works() {
 	ExtBuilder::default()
@@ -778,9 +680,10 @@ fn schedule_leave_candidates_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::ScheduleLeaveCandidates)
-				.write(U256::one())
-				.build();
+			let input_data = PCall::schedule_leave_candidates {
+				candidate_count: 1.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -809,10 +712,11 @@ fn execute_leave_candidates_works() {
 			));
 			roll_to(10);
 
-			let input_data = EvmDataWriter::new_with_selector(Action::ExecuteLeaveCandidates)
-				.write(Address(Alice.into()))
-				.write(U256::zero())
-				.build();
+			let input_data = PCall::execute_leave_candidates {
+				candidate: Address(Alice.into()),
+				candidate_count: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -840,9 +744,10 @@ fn cancel_leave_candidates_works() {
 				1
 			));
 
-			let input_data = EvmDataWriter::new_with_selector(Action::CancelLeaveCandidates)
-				.write(U256::zero())
-				.build();
+			let input_data = PCall::cancel_leave_candidates {
+				candidate_count: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -863,7 +768,7 @@ fn go_online_works() {
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::go_offline(Origin::signed(Alice)));
 
-			let input_data = EvmDataWriter::new_with_selector(Action::GoOnline).build();
+			let input_data = PCall::go_online {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -882,7 +787,7 @@ fn go_offline_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::GoOffline).build();
+			let input_data = PCall::go_offline {}.into();
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
 
@@ -900,9 +805,7 @@ fn candidate_bond_more_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::CandidateBondMore)
-				.write(U256::from(500))
-				.build();
+			let input_data = PCall::candidate_bond_more { more: 500.into() }.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -918,32 +821,6 @@ fn candidate_bond_more_works() {
 		});
 }
 
-// DEPRECATED
-#[test]
-fn candidate_bond_less_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::CandidateBondLess)
-				.write(U256::from(500))
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
-
-			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
-				candidate: Alice,
-				amount_to_decrease: 500,
-				execute_round: 3,
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
 #[test]
 fn schedule_candidate_bond_less_works() {
 	ExtBuilder::default()
@@ -951,9 +828,7 @@ fn schedule_candidate_bond_less_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::ScheduleCandidateBondLess)
-				.write(U256::from(500))
-				.build();
+			let input_data = PCall::schedule_candidate_bond_less { less: 500.into() }.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -983,9 +858,10 @@ fn execute_candidate_bond_less_works() {
 			roll_to(10);
 
 			// Make sure the call goes through successfully
-			let input_data = EvmDataWriter::new_with_selector(Action::ExecuteCandidateBondLess)
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::execute_candidate_bond_less {
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
 
@@ -1012,8 +888,7 @@ fn cancel_candidate_bond_less_works() {
 				200
 			));
 
-			let input_data =
-				EvmDataWriter::new_with_selector(Action::CancelCandidateBondLess).build();
+			let input_data = PCall::cancel_candidate_bond_less {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -1029,40 +904,6 @@ fn cancel_candidate_bond_less_works() {
 		});
 }
 
-// DEPRECATED
-#[test]
-fn nominate_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::Nominate)
-				.write(Address(Alice.into()))
-				.write(U256::from(1_000))
-				.write(U256::zero())
-				.write(U256::zero())
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
-
-			assert!(ParachainStaking::is_delegator(&Bob));
-
-			let expected: crate::mock::Event = StakingEvent::Delegation {
-				delegator: Bob,
-				locked_amount: 1_000,
-				candidate: Alice,
-				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
-					new_total: 2_000,
-				},
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
 #[test]
 fn delegate_works() {
 	ExtBuilder::default()
@@ -1070,12 +911,13 @@ fn delegate_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::Delegate)
-				.write(Address(Alice.into()))
-				.write(U256::from(1_000))
-				.write(U256::zero())
-				.write(U256::zero())
-				.build();
+			let input_data = PCall::delegate {
+				candidate: Address(Alice.into()),
+				amount: 1_000.into(),
+				candidate_delegation_count: 0.into(),
+				delegator_delegation_count: 0.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
@@ -1089,33 +931,7 @@ fn delegate_works() {
 				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
 					new_total: 2_000,
 				},
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-// DEPRECATED
-#[test]
-fn leave_nominators_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::LeaveNominators)
-				.write(U256::one())
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
-
-			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
-				round: 1,
-				delegator: Bob,
-				scheduled_exit: 3,
+				auto_compound: Percent::zero(),
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -1131,8 +947,7 @@ fn schedule_leave_delegators_works() {
 		.with_delegations(vec![(Bob, Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data =
-				EvmDataWriter::new_with_selector(Action::ScheduleLeaveDelegators).build();
+			let input_data = PCall::schedule_leave_delegators {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
@@ -1161,10 +976,11 @@ fn execute_leave_delegators_works() {
 			)));
 			roll_to(10);
 
-			let input_data = EvmDataWriter::new_with_selector(Action::ExecuteLeaveDelegators)
-				.write(Address(Bob.into()))
-				.write(U256::one())
-				.build();
+			let input_data = PCall::execute_leave_delegators {
+				delegator: Address(Bob.into()),
+				delegator_delegation_count: 1.into(),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -1191,42 +1007,13 @@ fn cancel_leave_delegators_works() {
 				Bob
 			)));
 
-			let input_data =
-				EvmDataWriter::new_with_selector(Action::CancelLeaveDelegators).build();
+			let input_data = PCall::cancel_leave_delegators {}.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
 
 			let expected: crate::mock::Event =
 				StakingEvent::DelegatorExitCancelled { delegator: Bob }.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-// DEPRECATED
-#[test]
-fn revoke_nomination_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::RevokeNomination)
-				.write(Address(Alice.into()))
-				.build();
-
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
-
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
-				round: 1,
-				delegator: Bob,
-				candidate: Alice,
-				scheduled_exit: 3,
-			}
-			.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -1240,9 +1027,10 @@ fn schedule_revoke_delegation_works() {
 		.with_delegations(vec![(Bob, Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::ScheduleRevokeDelegation)
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::schedule_revoke_delegation {
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
@@ -1252,34 +1040,6 @@ fn schedule_revoke_delegation_works() {
 				delegator: Bob,
 				candidate: Alice,
 				scheduled_exit: 3,
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
-}
-
-// DEPRECATED
-#[test]
-fn nominator_bond_more_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_500)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 500)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::NominatorBondMore)
-				.write(Address(Alice.into()))
-				.write(U256::from(500))
-				.build();
-
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
-
-			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
-				delegator: Bob,
-				candidate: Alice,
-				amount: 500,
-				in_top: true,
 			}
 			.into();
 			// Assert that the events vector contains the one expected
@@ -1295,10 +1055,11 @@ fn delegator_bond_more_works() {
 		.with_delegations(vec![(Bob, Alice, 500)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::DelegatorBondMore)
-				.write(Address(Alice.into()))
-				.write(U256::from(500))
-				.build();
+			let input_data = PCall::delegator_bond_more {
+				candidate: Address(Alice.into()),
+				more: 500.into(),
+			}
+			.into();
 
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
 
@@ -1314,35 +1075,6 @@ fn delegator_bond_more_works() {
 		});
 }
 
-// DEPRECATED
-#[test]
-fn nominator_bond_less_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_500)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 1_500)])
-		.build()
-		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::NominatorBondLess)
-				.write(Address(Alice.into()))
-				.write(U256::from(500))
-				.build();
-
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
-
-			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
-				delegator: Bob,
-				candidate: Alice,
-				amount_to_decrease: 500,
-				execute_round: 3,
-			}
-			.into();
-
-			assert!(events().contains(&expected_event));
-		});
-}
-
 #[test]
 fn schedule_delegator_bond_less_works() {
 	ExtBuilder::default()
@@ -1351,10 +1083,11 @@ fn schedule_delegator_bond_less_works() {
 		.with_delegations(vec![(Bob, Alice, 1_500)])
 		.build()
 		.execute_with(|| {
-			let input_data = EvmDataWriter::new_with_selector(Action::ScheduleDelegatorBondLess)
-				.write(Address(Alice.into()))
-				.write(U256::from(500))
-				.build();
+			let input_data = PCall::schedule_delegator_bond_less {
+				candidate: Address(Alice.into()),
+				less: 500.into(),
+			}
+			.into();
 
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
 
@@ -1385,10 +1118,11 @@ fn execute_revoke_delegation_works() {
 			));
 			roll_to(10);
 
-			let input_data = EvmDataWriter::new_with_selector(Action::ExecuteDelegationRequest)
-				.write(Address(Bob.into()))
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::execute_delegation_request {
+				delegator: Address(Bob.into()),
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -1419,10 +1153,11 @@ fn execute_delegator_bond_less_works() {
 			));
 			roll_to(10);
 
-			let input_data = EvmDataWriter::new_with_selector(Action::ExecuteDelegationRequest)
-				.write(Address(Bob.into()))
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::execute_delegation_request {
+				delegator: Address(Bob.into()),
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
@@ -1452,9 +1187,10 @@ fn cancel_revoke_delegation_works() {
 				Alice
 			));
 
-			let input_data = EvmDataWriter::new_with_selector(Action::CancelDelegationRequest)
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::cancel_delegation_request {
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
@@ -1487,9 +1223,10 @@ fn cancel_delegator_bonded_less_works() {
 				500
 			));
 
-			let input_data = EvmDataWriter::new_with_selector(Action::CancelDelegationRequest)
-				.write(Address(Alice.into()))
-				.build();
+			let input_data = PCall::cancel_delegation_request {
+				candidate: Address(Alice.into()),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
 			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
@@ -1506,4 +1243,229 @@ fn cancel_delegator_bonded_less_works() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
+}
+
+#[test]
+fn delegate_with_auto_compound_works() {
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::delegate_with_auto_compound {
+					candidate: Address(Alice.into()),
+					amount: 1_000.into(),
+					auto_compound: auto_compound_percent,
+					candidate_delegation_count: 0.into(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 0.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert!(ParachainStaking::is_delegator(&Bob));
+
+				let expected: crate::mock::Event = StakingEvent::Delegation {
+					delegator: Bob,
+					locked_amount: 1_000,
+					candidate: Alice,
+					delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+						new_total: 2_000,
+					},
+					auto_compound: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn delegate_with_auto_compound_returns_error_if_percent_above_hundred() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::delegate_with_auto_compound {
+							candidate: Address(Alice.into()),
+							amount: 1_000.into(),
+							auto_compound: auto_compound_percent,
+							candidate_delegation_count: 0.into(),
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 0.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output).unwrap().contains(
+							"auto_compound: Must be an integer between 0 and 100 included",
+						)
+					});
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_works_if_delegation() {
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::set_auto_compound {
+					candidate: Address(Alice.into()),
+					value: auto_compound_percent,
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 1.into(),
+				}
+				.into();
+
+				// Make sure the call goes through successfully
+				assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(auto_compound_percent)
+				);
+
+				let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
+					candidate: Alice,
+					delegator: Bob,
+					value: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_returns_error_if_value_above_hundred_percent() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::set_auto_compound {
+							candidate: Address(Alice.into()),
+							value: auto_compound_percent,
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 1.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output)
+							.unwrap()
+							.contains("value: Must be an integer between 0 and 100 included")
+					});
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_fails_if_not_delegation() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_candidates(vec![(Alice, 1_000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile,
+					PCall::set_auto_compound {
+						candidate: Address(Alice.into()),
+						value: 50,
+						candidate_auto_compounding_delegation_count: 0.into(),
+						delegator_delegation_count: 0.into(),
+					},
+				)
+				.execute_reverts(|output| from_utf8(&output).unwrap().contains("DelegatorDNE"));
+		});
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["StakingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if !PCall::supports_selector(selector) {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"min_delegation()",
+		"candidate_count()",
+		"candidate_delegation_count(address)",
+		"delegator_delegation_count(address)",
+		"selected_candidates()",
+		"is_delegator(address)",
+		"is_candidate(address)",
+		"is_selected_candidate(address)",
+		"delegation_request_is_pending(address,address)",
+		"candidate_exit_is_pending(address)",
+		"candidate_request_is_pending(address)",
+		"join_candidates(uint256,uint256)",
+		"schedule_leave_candidates(uint256)",
+		"execute_leave_candidates(address,uint256)",
+		"cancel_leave_candidates(uint256)",
+		"go_offline()",
+		"go_online()",
+		"schedule_candidate_bond_less(uint256)",
+		"candidate_bond_more(uint256)",
+		"execute_candidate_bond_less(address)",
+		"cancel_candidate_bond_less()",
+		"schedule_leave_delegators()",
+		"execute_leave_delegators(address,uint256)",
+		"cancel_leave_delegators()",
+		"schedule_revoke_delegation(address)",
+		"schedule_delegator_bond_less(address,uint256)",
+		"delegator_bond_more(address,uint256)",
+		"execute_delegation_request(address,address)",
+		"cancel_delegation_request(address)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if !PCall::supports_selector(selector) {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
 }

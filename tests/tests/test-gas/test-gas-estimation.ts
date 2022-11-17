@@ -5,11 +5,14 @@ import chaiAsPromised from "chai-as-promised";
 import { ethers } from "ethers";
 import { TransactionReceipt } from "web3-core";
 import { Contract } from "web3-eth-contract";
+import { customWeb3Request } from "../../util/providers";
 
-import { alith } from "../../util/accounts";
-import { getCompiled } from "../../util/contracts";
+import { alith, faith } from "../../util/accounts";
+import { getAllContracts, getCompiled } from "../../util/contracts";
+import { expectEVMResult } from "../../util/eth-transactions";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createContract } from "../../util/transactions";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 
 chaiUse(chaiAsPromised);
 
@@ -17,13 +20,13 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
   let multContract: Contract;
 
   before("Setup: Create simple context", async function () {
-    const { contract, rawTx } = await createContract(context, "TestContract");
+    const { contract, rawTx } = await createContract(context, "MultiplyBy7");
     await context.createBlock(rawTx);
     multContract = contract;
   });
 
   it("should return correct gas estimation", async function () {
-    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22405);
+    expect(await multContract.methods.multiply(3).estimateGas()).to.equal(22409);
   });
 
   it("should work without gas limit", async function () {
@@ -31,15 +34,15 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         gas: null,
       })
-    ).to.equal(22405);
+    ).to.equal(22409);
   });
 
   it("should work with gas limit", async function () {
     expect(
       await multContract.methods.multiply(3).estimateGas({
-        gas: 22405,
+        gas: 22409,
       })
-    ).to.lessThanOrEqual(22405);
+    ).to.lessThanOrEqual(22409);
   });
 
   it("should ignore from balance (?)", async function () {
@@ -47,7 +50,7 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
       await multContract.methods.multiply(3).estimateGas({
         from: "0x0000000000000000000000000000000000000000",
       })
-    ).to.equal(22405);
+    ).to.equal(22409);
   });
 
   it("should not work with a lower gas limit", async function () {
@@ -59,60 +62,109 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Multiply", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Estimate Gas - Supplied estimate is sufficient", (context) => {
-  it("should estimate sufficient gas for creation", async function () {
-    const contract = await getCompiled("Incrementer");
-    // ask RPC for an gas estimate of deploying this contract
-    const estimate = await context.web3.eth.estimateGas({
-      from: alith.address,
-      data: contract.byteCode,
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context) => {
+  const contractNames = getAllContracts();
+
+  before("Init build block", async function () {
+    // Estimation for storage need to happen in a block > than genesis.
+    // Otherwise contracts that uses block number as storage will remove instead of storing
+    // (as block.number == H256::default).
+    await context.createBlock();
+  });
+
+  it("should have at least 1 contract to estimate", async function () {
+    expect(contractNames).length.to.be.at.least(1);
+  });
+
+  for (const contractName of contractNames) {
+    it(`should be enough for contract ${contractName}`, async function () {
+      const contract = getCompiled(contractName);
+      const constructorAbi = contract.contract.abi.find((call) => call.type == "constructor");
+      // ask RPC for an gas estimate of deploying this contract
+
+      const web3Contract = new context.web3.eth.Contract(contract.contract.abi);
+      const args = constructorAbi
+        ? constructorAbi.inputs.map((input) =>
+            input.type == "bool"
+              ? true
+              : input.type == "address"
+              ? faith.address
+              : input.type == "uint256"
+              ? `0x${Buffer.from(ethers.utils.randomBytes(32)).toString("hex")}`
+              : "0x"
+          )
+        : [];
+
+      let estimate: number;
+      let creationResult: "Revert" | "Succeed";
+      try {
+        estimate = await web3Contract
+          .deploy({
+            arguments: args,
+            data: contract.byteCode,
+          })
+          .estimateGas();
+        creationResult = "Succeed";
+      } catch (e) {
+        if (e == "Error: Returned error: VM Exception while processing transaction: revert") {
+          estimate = 12_000_000;
+          creationResult = "Revert";
+        } else {
+          throw e;
+        }
+      }
+
+      // attempt a transaction with our estimated gas
+      const { rawTx } = await createContract(context, contractName, { gas: estimate }, args);
+      const { result } = await context.createBlock(rawTx);
+      const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(result.hash);
+
+      expectEVMResult(result.events, creationResult);
+      expect(receipt.status).to.equal(creationResult == "Succeed");
     });
+  }
+});
 
-    // attempt a transaction with our estimated gas
-    const { rawTx } = await createContract(context, "Incrementer", { gas: estimate });
-    const { result } = await context.createBlock(rawTx);
-    const receipt: TransactionReceipt = await context.web3.eth.getTransactionReceipt(result.hash);
-
-    // the transaction should succeed because the estimate should have been sufficient
-    expect(receipt.status).to.equal(true);
+describeDevMoonbeamAllEthTxTypes("Estimate Gas - Contract estimation", (context) => {
+  it(`evm should return invalid opcode`, async function () {
+    let estimate = await customWeb3Request(context.web3, "eth_estimateGas", [
+      {
+        from: alith.address,
+        data: "0xe4",
+      },
+    ]);
+    expect((estimate.error as any).message).to.equal("evm error: InvalidCode(Opcode(228))");
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Handle Gas price", (context) => {
   it("eth_estimateGas 0x0 gasPrice is equivalent to not setting one", async function () {
-    const contract = await getCompiled("Incrementer");
+    const contract = getCompiled("Incrementor");
     let result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
       gasPrice: "0x0",
     });
-    expect(result).to.equal(152884);
+    expect(result).to.equal(167153);
     result = await context.web3.eth.estimateGas({
       from: alith.address,
       data: contract.byteCode,
     });
-    expect(result).to.equal(152884);
+    expect(result).to.equal(167153);
   });
 });
 
 describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) => {
   it("all batch functions should estimate the same cost", async function () {
-    const { contract: contractProxy, rawTx } = await createContract(context, "TestCallList");
+    const { contract: contractProxy, rawTx } = await createContract(context, "CallForwarder");
     await context.createBlock(rawTx);
-    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(
-      context,
-      "TestContract"
-    );
+    const { contract: contractDummy, rawTx: rawTx2 } = await createContract(context, "MultiplyBy7");
     await context.createBlock(rawTx2);
 
-    const proxyInterface = new ethers.utils.Interface(
-      (await getCompiled("TestCallList")).contract.abi
-    );
-    const dummyInterface = new ethers.utils.Interface(
-      (await getCompiled("TestContract")).contract.abi
-    );
+    const proxyInterface = new ethers.utils.Interface(getCompiled("CallForwarder").contract.abi);
+    const dummyInterface = new ethers.utils.Interface(getCompiled("MultiplyBy7").contract.abi);
 
-    const batchInterface = new ethers.utils.Interface((await getCompiled("Batch")).contract.abi);
+    const batchInterface = new ethers.utils.Interface(getCompiled("Batch").contract.abi);
 
     const callParameters = [
       [contractProxy.options.address, contractProxy.options.address],
@@ -132,19 +184,19 @@ describeDevMoonbeamAllEthTxTypes("Estimate Gas - Batch precompile", (context) =>
 
     const batchSomeGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSome", callParameters),
     });
 
     const batchSomeUntilFailureGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchSomeUntilFailure", callParameters),
     });
 
     const batchAllGas = await context.web3.eth.estimateGas({
       from: alith.address,
-      to: "0x0000000000000000000000000000000000000808",
+      to: PRECOMPILE_BATCH_ADDRESS,
       data: batchInterface.encodeFunctionData("batchAll", callParameters),
     });
 
