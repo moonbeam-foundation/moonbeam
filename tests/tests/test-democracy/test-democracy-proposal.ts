@@ -91,7 +91,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
     // publicProps
     const publicProps = await context.polkadotApi.query.democracy.publicProps();
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
 
