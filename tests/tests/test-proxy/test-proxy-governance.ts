@@ -20,7 +20,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
           // matter
           len: 22,
         },
-      })
+      } as any)
     );
     await execTechnicalCommitteeProposal(
       context,
@@ -72,10 +72,10 @@ describeDevMoonbeam("Proxing governance", (context) => {
     // Verify that vote is registered
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(proposalHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
   });
