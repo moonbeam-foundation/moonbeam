@@ -697,6 +697,58 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeeElasticity<T> {
 	}
 }
 
+pub struct DemocracryMigrationHashToBoundedCall<T>(PhantomData<T>);
+impl<T> Migration for DemocracryMigrationHashToBoundedCall<T>
+where
+	T: pallet_democracy::Config<Hash = PreimageHash> + frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_DemocracryMigrationHashToBoundedCall"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_democracy::migrations::v1::Migration::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_democracy::migrations::v1::Migration::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_democracy::migrations::v1::Migration::<T>::post_upgrade()
+	}
+}
+
+pub struct PreimageMigrationHashToBoundedCall<T>(PhantomData<T>);
+impl<T> Migration for PreimageMigrationHashToBoundedCall<T>
+where
+	T: pallet_preimage::Config<Hash = PreimageHash> + frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_PreimageMigrationHashToBoundedCall"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_preimage::migration::v1::Migration::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		pallet_preimage::migration::v1::Migration::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		pallet_preimage::migration::v1::Migration::<T>::post_upgrade()
+	}
+}
+
 pub struct CommonMigrations<Runtime, Council, Tech>(PhantomData<(Runtime, Council, Tech)>);
 
 impl<Runtime, Council, Tech> GetMigrations for CommonMigrations<Runtime, Council, Tech>
@@ -708,6 +760,8 @@ where
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
+	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
+	Runtime: pallet_preimage::Config<Hash = PreimageHash>
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -765,6 +819,8 @@ where
 			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
 
 		let scheduler_to_v4 = SchedulerMigrationV4::<Runtime>(Default::default());
+		let democracy_migration_hash_to_bounded_call = DemocracryMigrationHashToBoundedCall::<Runtime>(Default::default());
+		let preimage_migration_hash_to_bounded_call = PreimageMigrationHashToBoundedCall::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -805,6 +861,8 @@ where
 			Box::new(migration_elasticity),
 			Box::new(staking_at_stake_auto_compound),
 			Box::new(scheduler_to_v4),
+			Box::new(democracy_migration_hash_to_bounded_call),
+			Box::new(preimage_migration_hash_to_bounded_call),
 		]
 	}
 }
