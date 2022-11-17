@@ -12,7 +12,7 @@ import { GLMR, MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { expectOk } from "../../util/expect";
-import { jumpRounds } from "../../util/block";
+import { getBlockExtrinsic, jumpRounds } from "../../util/block";
 import { ExtrinsicCreation } from "../../util/substrate-rpc";
 
 describeDevMoonbeam("Staking - Locks - join delegators", (context) => {
@@ -533,39 +533,40 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
   });
 
   it("should be set for bottom and top list delegators", async function () {
-    await expectOk(
-      context.createBlock(
-        [...topDelegators].map((account, i) =>
-          context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, 9999, 1)
-            .signAsync(account)
-        )
-      )
-    );
+    this.timeout(1000000)
+    for (let i=0; i<topDelegators.length; i++) {
+      const account = topDelegators[i];
+      const tx = context.polkadotApi.tx.parachainStaking
+        .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, i+1, 1)
+        .signAsync(account);
+      const result = await context.createBlock(tx);
+      const {extrinsic, resultEvent } = await getBlockExtrinsic(
+        context.polkadotApi,
+        result.block.hash,
+        "parachainStaking",
+        "delegate"
+      );
 
-    // XXX: wtf?
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
+      expect(extrinsic).to.exist;
+      expect(resultEvent.method).to.equal("ExtrinsicSuccess");
+    }
 
-    await expectOk(
-      context.createBlock(
-        [...bottomDelegators].map((account, i) =>
-          context.polkadotApi.tx.parachainStaking
-            .delegate(alith.address, MIN_GLMR_DELEGATOR, topDelegators.length + i + 1, 1)
-            .signAsync(account)
-        )
-      )
-    );
+    for (let i=0; i<bottomDelegators.length; i++) {
+      const account = bottomDelegators[i];
+      const tx = context.polkadotApi.tx.parachainStaking
+        .delegate(alith.address, MIN_GLMR_DELEGATOR, topDelegators.length + i + 1, 1)
+        .signAsync(account);
+      const result = await context.createBlock(tx);
+      const {extrinsic, resultEvent } = await getBlockExtrinsic(
+        context.polkadotApi,
+        result.block.hash,
+        "parachainStaking",
+        "delegate"
+      );
 
-    // XXX: wtf?
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
-    await context.createBlock();
+      expect(extrinsic).to.exist;
+      expect(resultEvent.method).to.equal("ExtrinsicSuccess");
+    }
 
     const topLocks = await context.polkadotApi.query.balances.locks.multi(
       topDelegators.map((delegator) => delegator.address)
