@@ -28,6 +28,7 @@ use {
 		traits::{BlakeTwo256, IdentityLookup},
 		Perbill,
 	},
+	sp_std::convert::{TryFrom, TryInto},
 };
 
 pub type AccountId = u64;
