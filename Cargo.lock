@@ -2284,8 +2284,8 @@ checksum = "77f3309417938f28bf8228fcff79a4a37103981e3e186d2ccd19c74b38f4eb71"
 
 [[package]]
 name = "evm"
-version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.29#27ac63fadb6e716cfcc275b4ddf0aed5c0624b18"
+version = "0.36.0"
+source = "git+https://github.com/aurora-is-near/evm?branch=upstream-fix-stackoverflow#01c502b1830a692ddab5640c06056a66c164889b"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -2304,8 +2304,8 @@ dependencies = [
 
 [[package]]
 name = "evm-core"
-version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.29#27ac63fadb6e716cfcc275b4ddf0aed5c0624b18"
+version = "0.36.0"
+source = "git+https://github.com/aurora-is-near/evm?branch=upstream-fix-stackoverflow#01c502b1830a692ddab5640c06056a66c164889b"
 dependencies = [
  "parity-scale-codec",
  "primitive-types",
@@ -2315,8 +2315,8 @@ dependencies = [
 
 [[package]]
 name = "evm-gasometer"
-version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.29#27ac63fadb6e716cfcc275b4ddf0aed5c0624b18"
+version = "0.36.0"
+source = "git+https://github.com/aurora-is-near/evm?branch=upstream-fix-stackoverflow#01c502b1830a692ddab5640c06056a66c164889b"
 dependencies = [
  "environmental",
  "evm-core",
@@ -2326,8 +2326,8 @@ dependencies = [
 
 [[package]]
 name = "evm-runtime"
-version = "0.35.0"
-source = "git+https://github.com/purestake/evm?branch=moonbeam-polkadot-v0.9.29#27ac63fadb6e716cfcc275b4ddf0aed5c0624b18"
+version = "0.36.0"
+source = "git+https://github.com/aurora-is-near/evm?branch=upstream-fix-stackoverflow#01c502b1830a692ddab5640c06056a66c164889b"
 dependencies = [
  "auto_impl",
  "environmental",
@@ -13712,9 +13712,9 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "digest 0.10.3",
- "rand 0.8.5",
+ "rand 0.7.3",
  "static_assertions",
 ]
 

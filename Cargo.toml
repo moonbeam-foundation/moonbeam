@@ -37,6 +37,12 @@ jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam
 jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 jsonrpsee-types = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 
+[patch."https://github.com/purestake/evm"]
+evm = { git = "https://github.com/aurora-is-near/evm", branch = "upstream-fix-stackoverflow" }
+evm-core = { git = "https://github.com/aurora-is-near/evm", branch = "upstream-fix-stackoverflow" }
+evm-gasometer = { git = "https://github.com/aurora-is-near/evm", branch = "upstream-fix-stackoverflow" }
+evm-runtime = { git = "https://github.com/aurora-is-near/evm", branch = "upstream-fix-stackoverflow" }
+
 # make sure dev builds with backtrace do
 # not slow us down
 [profile.dev.package.backtrace]
