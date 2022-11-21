@@ -47,6 +47,8 @@ pub mod governance_origins {
 	#[derive(PartialEq, Eq, Clone, MaxEncodedLen, Encode, Decode, TypeInfo, RuntimeDebug)]
 	#[pallet::origin]
 	pub enum Origin {
+		/// Origin able to dispatch a whitelisted call.
+		WhitelistedCaller,
 		/// Origin able to spend up to MaxTreasurerSpend from the treasury at once.
 		Treasurer,
 		/// Origin able to cancel referenda.
@@ -59,13 +61,11 @@ pub mod governance_origins {
 		MediumSpender,
 		/// Origin able to spend up to MaxBigSpenderSpend from the treasury at once.
 		BigSpender,
-		/// Origin able to dispatch a whitelisted call.
-		WhitelistedCaller,
 	}
 
-	// Should match track data in runtime (TODO: add test to verify this in runtime, for the precompile)
 	impl TryFrom<u8> for Origin {
 		type Error = ();
+		/// TrackId => Origin
 		fn try_from(value: u8) -> Result<Origin, ()> {
 			match value {
 				1 => Ok(Origin::WhitelistedCaller),
@@ -78,6 +78,40 @@ pub mod governance_origins {
 				_ => Err(()),
 			}
 		}
+	}
+
+	impl Into<u16> for Origin {
+		/// Origin => TrackId
+		fn into(self) -> u16 {
+			match self {
+				Origin::WhitelistedCaller => 1,
+				Origin::Treasurer => 10,
+				Origin::ReferendumCanceller => 11,
+				Origin::ReferendumKiller => 12,
+				Origin::SmallSpender => 13,
+				Origin::MediumSpender => 14,
+				Origin::BigSpender => 15,
+			}
+		}
+	}
+
+	#[test]
+	fn origin_track_conversion_is_consistent() {
+		macro_rules! has_consistent_conversions {
+			( $o:expr ) => {
+				let origin_as_u16 = <Origin as Into<u16>>::into($o);
+				let u16_as_u8: u8 = origin_as_u16.try_into().unwrap();
+				let u8_as_origin: Origin = u16_as_u8.try_into().unwrap();
+				assert_eq!($o, u8_as_origin);
+			};
+		}
+		has_consistent_conversions!(Origin::WhitelistedCaller);
+		has_consistent_conversions!(Origin::Treasurer);
+		has_consistent_conversions!(Origin::ReferendumCanceller);
+		has_consistent_conversions!(Origin::ReferendumKiller);
+		has_consistent_conversions!(Origin::SmallSpender);
+		has_consistent_conversions!(Origin::MediumSpender);
+		has_consistent_conversions!(Origin::BigSpender);
 	}
 
 	macro_rules! decl_unit_ensures {
