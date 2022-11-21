@@ -27,7 +27,7 @@ pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam
 [dev-dependencies]
 derive_more = "0.99"
 serde = "1.0.100"
-sha3 = "0.9"
+sha3 = "0.10"
 
 # Moonbeam
 precompile-utils = { path = "../utils", features = [ "testing" ] }

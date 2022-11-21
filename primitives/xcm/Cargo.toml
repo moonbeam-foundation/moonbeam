@@ -16,7 +16,7 @@ ethereum-types = { version = "0.13.1", default-features = false }
 hex = { version = "0.4", default-features = false }
 log = "0.4"
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
-sha3 = { version = "0.8", default-features = false }
+sha3 = { version = "0.10", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
