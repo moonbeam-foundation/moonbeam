@@ -1907,7 +1907,6 @@
 <span id="1907">1907</span>
 <span id="1908">1908</span>
 <span id="1909">1909</span>
-<span id="1910">1910</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2567,7 +2566,6 @@
 					&lt;Pallet&lt;T&gt;&gt;::get_collator_stakable_free_balance(candidate) &gt;= balance,
 					<span class="string">&quot;Account does not have enough balance to bond as a candidate.&quot;
 				</span>);
-				candidate_count = candidate_count.saturating_add(<span class="number">1u32</span>);
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = &lt;Pallet&lt;T&gt;&gt;::join_candidates(
 					T::Origin::from(<span class="prelude-val">Some</span>(candidate.clone()).into()),
 					balance,
