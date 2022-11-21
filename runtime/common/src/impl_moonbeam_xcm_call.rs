@@ -23,7 +23,10 @@ macro_rules! impl_moonbeam_xcm_call {
 			fn dispatch(
 				call: RuntimeCall,
 				origin: RuntimeOrigin,
-			) -> Result<PostDispatchInfoOf<RuntimeCall>, DispatchErrorWithPostInfo<PostDispatchInfoOf<RuntimeCall>>> {
+			) -> Result<
+					PostDispatchInfoOf<RuntimeCall>,
+					DispatchErrorWithPostInfo<PostDispatchInfoOf<RuntimeCall>>
+				> {
 				if let Ok(raw_origin) = TryInto::<RawOrigin<AccountId>>::try_into(origin.clone().caller) {
 					match (call.clone(), raw_origin) {
 						(

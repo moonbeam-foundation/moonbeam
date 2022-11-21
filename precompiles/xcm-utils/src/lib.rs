@@ -33,7 +33,8 @@ use xcm_executor::traits::WeightTrader;
 pub type XcmOriginOf<XcmConfig> =
 	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
 pub type XcmAccountIdOf<XcmConfig> =
-	<<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin as OriginTrait>::AccountId;
+	<<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>
+		::RuntimeOrigin as OriginTrait>::AccountId;
 
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;

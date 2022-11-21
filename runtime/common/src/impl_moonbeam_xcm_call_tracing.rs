@@ -19,7 +19,10 @@ macro_rules! impl_moonbeam_xcm_call_tracing {
 	{} => {
 
 		type CallResult =
-			Result<PostDispatchInfoOf<RuntimeCall>, DispatchErrorWithPostInfo<PostDispatchInfoOf<RuntimeCall>>>;
+			Result<
+				PostDispatchInfoOf<RuntimeCall>,
+				DispatchErrorWithPostInfo<PostDispatchInfoOf<RuntimeCall>>
+			>;
 
 		pub struct MoonbeamCall;
 		impl CallDispatcher<RuntimeCall> for MoonbeamCall {
