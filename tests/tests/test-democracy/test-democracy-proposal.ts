@@ -153,6 +153,8 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect((referendumInfoOf.unwrap().asOngoing.proposal.asLookup.hash_.toHex())).to.equal(encodedHash);
+    expect(referendumInfoOf.unwrap().asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
+      encodedHash
+    );
   });
 });
