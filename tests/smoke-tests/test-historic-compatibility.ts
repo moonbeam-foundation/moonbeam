@@ -1,5 +1,5 @@
 import "@moonbeam-network/api-augment";
-import { expect } from "chai";
+import { expect, assert } from "chai";
 import { hexToNumber, numberToHex } from "@polkadot/util";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { NetworkTestArtifact, tracingTxns } from "../util/tracing-txns";
@@ -294,30 +294,75 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
   });
 
   it("can call eth_newFilter ", async function () {
-    const result = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
-    expect(result).to.not.be.null;
+    try {
+      const result = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
+      expect(result).to.not.be.null;
+    } catch (e) {
+      if (e.toString().includes("Error: Filter pool is full")) {
+        debug(`Filter pool is full, skipping test.`);
+        this.skip();
+      } else {
+        expect.fail(null, null, e.toString());
+      }
+    }
   });
 
   it("can call eth_newBlockFilter", async function () {
-    const result = await context.ethers.send("eth_newBlockFilter", []);
-    expect(result).to.not.be.null;
+    try {
+      const result = await context.ethers.send("eth_newBlockFilter", []);
+      expect(result).to.not.be.null;
+    } catch (e) {
+      if (e.toString().includes("Error: Filter pool is full")) {
+        debug(`Filter pool is full, skipping test.`);
+        this.skip();
+      } else {
+        expect.fail(null, null, e.toString());
+      }
+    }
   });
 
   it("can call eth_getFilterChanges", async function () {
-    const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
-    const result = await context.ethers.send("eth_getFilterChanges", [filterId]);
-    expect(result).to.not.be.null;
+    try {
+      const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
+      const result = await context.ethers.send("eth_getFilterChanges", [filterId]);
+      expect(result).to.not.be.null;
+    } catch (e) {
+      if (e.toString().includes("Error: Filter pool is full")) {
+        debug(`Filter pool is full, skipping test.`);
+        this.skip();
+      } else {
+        expect.fail(null, null, e.toString());
+      }
+    }
   });
 
   it("can call eth_getFilterLogs", async function () {
-    const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
-    const result = await context.ethers.send("eth_getFilterLogs", [filterId]);
-    expect(result).to.not.be.null;
+    try {
+      const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
+      const result = await context.ethers.send("eth_getFilterLogs", [filterId]);
+      expect(result).to.not.be.null;
+    } catch (e) {
+      if (e.toString().includes("Error: Filter pool is full")) {
+        debug(`Filter pool is full, skipping test.`);
+        this.skip();
+      } else {
+        expect.fail(null, null, e.toString());
+      }
+    }
   });
 
   it("can call eth_uninstallFilter", async function () {
-    const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
-    const result = await context.ethers.send("eth_uninstallFilter", [filterId]);
-    expect(result).to.be.true;
+    try {
+      const filterId = await context.ethers.send("eth_newFilter", [{ fromBlock: "latest" }]);
+      const result = await context.ethers.send("eth_uninstallFilter", [filterId]);
+      expect(result).to.be.true;
+    } catch (e) {
+      if (e.toString().includes("Error: Filter pool is full")) {
+        debug(`Filter pool is full, skipping test.`);
+        this.skip();
+      } else {
+        expect.fail(null, null, e.toString());
+      }
+    }
   });
 });
