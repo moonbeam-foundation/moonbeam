@@ -761,7 +761,7 @@ where
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
 	Runtime: pallet_democracy::Config<Hash = PreimageHash>,
-	Runtime: pallet_preimage::Config<Hash = PreimageHash>
+	Runtime: pallet_preimage::Config<Hash = PreimageHash>,
 {
 	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		// let migration_author_mapping_twox_to_blake = AuthorMappingTwoXToBlake::<Runtime> {
@@ -819,8 +819,10 @@ where
 			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
 
 		let scheduler_to_v4 = SchedulerMigrationV4::<Runtime>(Default::default());
-		let democracy_migration_hash_to_bounded_call = DemocracryMigrationHashToBoundedCall::<Runtime>(Default::default());
-		let preimage_migration_hash_to_bounded_call = PreimageMigrationHashToBoundedCall::<Runtime>(Default::default());
+		let democracy_migration_hash_to_bounded_call =
+			DemocracryMigrationHashToBoundedCall::<Runtime>(Default::default());
+		let preimage_migration_hash_to_bounded_call =
+			PreimageMigrationHashToBoundedCall::<Runtime>(Default::default());
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
