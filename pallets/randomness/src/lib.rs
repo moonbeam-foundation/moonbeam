@@ -313,17 +313,10 @@ pub mod pallet {
 	#[pallet::hooks]
 	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
 		fn on_initialize(_now: BlockNumberFor<T>) -> Weight {
-			// // Do not set the output in the first block (genesis or runtime upgrade)
-			// // because we do not have any input for author to sign
-			// if NotFirstBlock::<T>::get().is_none() {
-			// 	NotFirstBlock::<T>::put(());
-			// 	LocalVrfOutput::<T>::put(Some(T::Hash::default()));
-			// 	return T::DbWeight::get().read + (T::DbWeight::get().write * 2);
-			// }
 			// Do not verify default VrfOutput set in first block
 			if frame_system::Pallet::<T>::block_number().is_zero() {
 				// block number is whitelisted
-				return 0;
+				return Zero::zero();
 			}
 			// Verify VRF output included by block author and set it in storage
 			vrf::verify_and_set_output::<T>();
