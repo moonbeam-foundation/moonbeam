@@ -21,11 +21,14 @@
 use crate::delegation_requests::{DelegationAction, ScheduledRequest};
 use crate::pallet::{DelegationScheduledRequests, DelegatorState, Total};
 #[allow(deprecated)]
-use crate::types::deprecated::{DelegationChange, Delegator as OldDelegator};
-use crate::types::Delegator;
+use crate::types::deprecated::{
+	CollatorSnapshot as OldCollatorSnapshot, DelegationChange, Delegator as OldDelegator,
+};
+use crate::types::{CollatorSnapshot, Delegator};
 use crate::{
-	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CapacityStatus,
-	CollatorCandidate, Config, Delegations, Event, Pallet, Points, Round, Staked, TopDelegations,
+	AtStake, BalanceOf, Bond, BondWithAutoCompound, BottomDelegations, CandidateInfo,
+	CandidateMetadata, CapacityStatus, CollatorCandidate, Config, DelayedPayouts, Delegations,
+	Event, Pallet, Points, Round, RoundIndex, Staked, TopDelegations,
 };
 #[cfg(feature = "try-runtime")]
 use frame_support::traits::OnRuntimeUpgradeHelpersExt;
@@ -36,13 +39,141 @@ use alloc::format;
 use frame_support::{
 	migration::storage_key_iter,
 	pallet_prelude::PhantomData,
+	storage,
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::string::String;
 use sp_runtime::traits::{Saturating, Zero};
-use sp_std::{convert::TryInto, vec::Vec};
+use sp_runtime::Percent;
+use sp_std::{convert::TryInto, vec, vec::Vec};
+
+/// Migrate `AtStake` storage item to include auto-compound value for unpaid rounds.
+pub struct MigrateAtStakeAutoCompound<T>(PhantomData<T>);
+impl<T: Config> MigrateAtStakeAutoCompound<T> {
+	/// Get keys for the `AtStake` storage for the rounds up to `RewardPaymentDelay` rounds ago.
+	/// We migrate only the last unpaid rounds due to the presence of stale entries in `AtStake`
+	/// which significantly increase the PoV size.
+	fn unpaid_rounds_keys() -> impl Iterator<Item = (RoundIndex, T::AccountId, Vec<u8>)> {
+		let current_round = <Round<T>>::get().current;
+		let max_unpaid_round = current_round.saturating_sub(T::RewardPaymentDelay::get());
+		(max_unpaid_round..=current_round)
+			.into_iter()
+			.flat_map(|round| {
+				<AtStake<T>>::iter_key_prefix(round).map(move |candidate| {
+					let key = <AtStake<T>>::hashed_key_for(round.clone(), candidate.clone());
+					(round, candidate, key)
+				})
+			})
+	}
+}
+impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
+	#[allow(deprecated)]
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(
+			target: "MigrateAtStakeAutoCompound",
+			"running migration to add auto-compound values"
+		);
+		let mut reads = 0u64;
+		let mut writes = 0u64;
+		for (round, candidate, key) in Self::unpaid_rounds_keys() {
+			let old_state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>> =
+				storage::unhashed::get(&key).expect("unable to decode value");
+			reads = reads.saturating_add(1);
+			writes = writes.saturating_add(1);
+			log::info!(
+				target: "MigrateAtStakeAutoCompound",
+				"migration from old format round {:?}, candidate {:?}", round, candidate
+			);
+			let new_state = CollatorSnapshot {
+				bond: old_state.bond,
+				delegations: old_state
+					.delegations
+					.into_iter()
+					.map(|d| BondWithAutoCompound {
+						owner: d.owner,
+						amount: d.amount,
+						auto_compound: Percent::zero(),
+					})
+					.collect(),
+				total: old_state.total,
+			};
+			storage::unhashed::put(&key, &new_state);
+		}
+
+		T::DbWeight::get().reads_writes(reads, writes)
+	}
+
+	#[allow(deprecated)]
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<(), &'static str> {
+		let mut num_to_update = 0u32;
+		let mut rounds_candidates = vec![];
+		for (round, candidate, key) in Self::unpaid_rounds_keys() {
+			let state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>> =
+				storage::unhashed::get(&key).expect("unable to decode value");
+
+			num_to_update = num_to_update.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound=0%",
+					d.owner, d.amount
+				));
+			}
+			Self::set_temp_storage(
+				format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				),
+				&*format!("round_{:?}_candidate_{:?}", round, candidate),
+			);
+		}
+
+		rounds_candidates.sort();
+		Self::set_temp_storage(format!("{:?}", rounds_candidates), "rounds_candidates");
+		Self::set_temp_storage(num_to_update, "num_to_update");
+		Ok(())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade() -> Result<(), &'static str> {
+		let mut num_updated = 0u32;
+		let mut rounds_candidates = vec![];
+		for (round, candidate, _) in Self::unpaid_rounds_keys() {
+			let state = <AtStake<T>>::get(&round, &candidate);
+			num_updated = num_updated.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound={:?}",
+					d.owner, d.amount, d.auto_compound
+				));
+			}
+			assert_eq!(
+				Some(format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				)),
+				Self::get_temp_storage(&*format!("round_{:?}_candidate_{:?}", round, candidate)),
+				"incorrect delegations migration for round_{:?}_candidate_{:?}",
+				round,
+				candidate,
+			);
+		}
+
+		rounds_candidates.sort();
+		assert_eq!(
+			Some(format!("{:?}", rounds_candidates)),
+			Self::get_temp_storage("rounds_candidates")
+		);
+		assert_eq!(Some(num_updated), Self::get_temp_storage("num_to_update"));
+		Ok(())
+	}
+}
 
 /// Migration to move delegator requests towards a delegation, from [DelegatorState] into
 /// [DelegationScheduledRequests] storage item.
@@ -105,8 +236,8 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 			storage item"
 		);
 
-		let mut reads: Weight = 0;
-		let mut writes: Weight = 0;
+		let mut reads = 0u64;
+		let mut writes = 0u64;
 
 		let mut scheduled_requests: BTreeMap<
 			T::AccountId,
@@ -142,7 +273,7 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 			},
 		);
 
-		writes = writes.saturating_add(scheduled_requests.len() as Weight); // 1 write per request
+		writes = writes.saturating_add(scheduled_requests.len() as u64); // 1 write per request
 		for (collator, requests) in scheduled_requests {
 			<DelegationScheduledRequests<T>>::insert(collator, requests);
 		}
@@ -263,20 +394,14 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 			Twox64Concat,
 		>(pallet_prefix, top_delegations_prefix)
 		.collect();
-		let migrated_candidates_top_count: Weight = stored_top_delegations
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_candidates_top_count = stored_top_delegations.len() as u64;
 		let stored_bottom_delegations: Vec<_> = storage_key_iter::<
 			T::AccountId,
 			Delegations<T::AccountId, BalanceOf<T>>,
 			Twox64Concat,
 		>(pallet_prefix, bottom_delegations_prefix)
 		.collect();
-		let migrated_candidates_bottom_count: Weight = stored_bottom_delegations
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_candidates_bottom_count = stored_bottom_delegations.len() as u64;
 		fn fix_delegations<T: Config>(
 			delegations: Delegations<T::AccountId, BalanceOf<T>>,
 		) -> Delegations<T::AccountId, BalanceOf<T>> {
@@ -313,7 +438,7 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 		let top = migrated_candidates_top_count.saturating_mul(3 * weight.write + 3 * weight.read);
 		let bottom = migrated_candidates_bottom_count.saturating_mul(weight.write + weight.read);
 		// 20% max block weight as margin for error
-		top + bottom + 100_000_000_000
+		Weight::from_ref_time(top.saturating_add(bottom).saturating_add(100_000_000_000))
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
@@ -697,7 +822,7 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 			<Points<T>>::remove(i);
 		}
 		// 5% of the max block weight as safety margin for computation
-		db_weight.reads(reads) + db_weight.writes(writes) + 25_000_000_000
+		Weight::from_ref_time(25_000_000_000).saturating_add(db_weight.reads_writes(reads, writes))
 	}
 
 	#[cfg(feature = "try-runtime")]

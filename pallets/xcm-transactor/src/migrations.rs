@@ -16,7 +16,7 @@
 
 use crate::{
 	Config, DestinationAssetFeePerSecond, RemoteTransactInfoWithMaxWeight,
-	TransactInfoWithWeightLimit,
+	TransactInfoWithWeightLimit, XcmV2Weight,
 };
 use frame_support::{
 	pallet_prelude::PhantomData,
@@ -27,7 +27,6 @@ use frame_support::{
 };
 use parity_scale_codec::{Decode, Encode};
 use sp_runtime::RuntimeDebug;
-use sp_std::convert::TryInto;
 use xcm::latest::MultiLocation;
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
@@ -42,7 +41,7 @@ pub struct OldRemoteTransactInfo {
 	/// Size of the tx metadata of a transaction in the destination chain
 	pub metadata_size: u64,
 	/// Minimum weight the destination chain charges for a transaction
-	pub base_weight: Weight,
+	pub base_weight: XcmV2Weight,
 	/// Fee per weight in the destination chain
 	pub fee_per_weight: u128,
 }
@@ -51,7 +50,7 @@ pub struct OldRemoteTransactInfo {
 #[derive(Default, Clone, Encode, Decode, RuntimeDebug, PartialEq, scale_info::TypeInfo)]
 pub struct OldRemoteTransactInfoWithFeePerSecond {
 	/// Extra weight that transacting a call in a destination chain adds
-	pub transact_extra_weight: Weight,
+	pub transact_extra_weight: XcmV2Weight,
 	/// Fee per second
 	pub fee_per_second: u128,
 	/// MaxWeight
@@ -209,10 +208,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 
-		let migrated_count: Weight = stored_data
-			.len()
-			.try_into()
-			.expect("There are between 0 and 2**64 mappings stored.");
+		let migrated_count = stored_data.len() as u64;
 
 		log::info!(
 			target: "TransactSignedWeightAndFeePerSecond", "Migrating {:?} elements", migrated_count);
@@ -236,7 +232,7 @@ impl<T: Config> OnRuntimeUpgrade for TransactSignedWeightAndFeePerSecond<T> {
 		// Return the weight used. For each migrated mapping there is a red to get it into
 		// memory, a write to clear the old stored value, and a write to re-store it.
 		let db_weights = T::DbWeight::get();
-		migrated_count.saturating_mul(2 * db_weights.write + db_weights.read)
+		db_weights.reads_writes(migrated_count, migrated_count.saturating_add(2))
 	}
 
 	#[cfg(feature = "try-runtime")]

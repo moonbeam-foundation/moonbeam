@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @dev The Democracy contract's address.
+address constant DEMOCRACY_ADDRESS = 0x0000000000000000000000000000000000000803;
+
+/// @dev The Democracy contract's instance.
+Democracy constant DEMOCRACY_CONTRACT = Democracy(DEMOCRACY_ADDRESS);
+
 /// @author The Moonbeam Team
 /// @title Pallet Democracy Interface
 /// @dev The interface through which solidity contracts will interact with pallet-democracy.
@@ -47,7 +53,7 @@ interface Democracy {
     function lowestUnbaked() external view returns (uint256);
 
     /// Get the details about an ongoing referendum.
-    /// @custom:selector e5a18359
+    /// @custom:selector f033b7cd
     ///
     /// @dev This, along with `finishedReferendumInfo`, wraps the pallet's `referendumInfo`
     /// function. It is necessary to split it into two here because Solidity only has c-style enums.
@@ -60,13 +66,13 @@ interface Democracy {
     ///  * The total aye vote (including conviction)
     ///  * The total nay vote (including conviction)
     ///  * The total turnout (not including conviction)
-    function ongoingReferendumInfo(uint256 refIndex)
+    function ongoingReferendumInfo(uint32 refIndex)
         external
         view
         returns (
             uint256,
             bytes32,
-            uint256,
+            uint8,
             uint256,
             uint256,
             uint256,
@@ -74,13 +80,13 @@ interface Democracy {
         );
 
     /// Get the details about a finished referendum.
-    /// @custom:selector 07df495b
+    /// @custom:selector c75abcce
     ///
     /// @dev This, along with `ongoingReferendumInfo`, wraps the pallet's `referendumInfo`
     /// function. It is necessary to split it into two here because Solidity only has c-style enums.
     /// @param refIndex The index of the referendum you are interested in
     /// @return A tuple including whether the referendum passed, and the block at which it finished.
-    function finishedReferendumInfo(uint256 refIndex)
+    function finishedReferendumInfo(uint32 refIndex)
         external
         view
         returns (bool, uint256);
@@ -176,4 +182,42 @@ interface Democracy {
     ///
     /// @param encodedProposal The scale-encoded proposal whose hash has been submitted on-chain.
     function noteImminentPreimage(bytes memory encodedProposal) external;
+
+    /// @dev A motion has been proposed by a public account.
+    /// @custom:selector d89e173ca5c9fd0ec38f2b01995c4f1748210f686fa189a6b8d189c210444924
+    /// @param proposalIndex uint32 Index of the proposal.
+    /// @param deposit uint256 Amount of tokens deposited.
+    event Proposed(uint32 indexed proposalIndex, uint256 deposit);
+
+    /// @dev An account has seconded a proposal.
+    /// @custom:selector e1613d7e3f54885ef3ffdb714435193b9b80818bd3381f108a4d4b21e842654a
+    /// @param proposalIndex uint32 Index of the proposal.
+    /// @param seconder address Address of the seconder.
+    event Seconded(uint32 indexed proposalIndex, address seconder);
+
+    /// @dev An account made a standard vote.
+    /// @custom:selector 057363260bf880d3658601ecff97e75b67a22f38b7066c0e47e2d170477579c3
+    /// @param referendumIndex uint32 Index of the referendum.
+    /// @param voter address Address of the voter.
+    /// @param aye bool Is it a vote for or against the referendum.
+    /// @param voteAmount uint256 Amount used to vote.
+    /// @param conviction uint8 Conviction of the vote.
+    event StandardVote(
+        uint32 indexed referendumIndex,
+        address voter,
+        bool aye,
+        uint256 voteAmount,
+        uint8 conviction
+    );
+
+    /// @dev An account delegated some voting power to another account
+    /// @custom:selector 4bc154dd35d6a5cb9206482ecb473cdbf2473006d6bce728b9cc0741bcc59ea2
+    /// @param who address Address of the delegator.
+    /// @param target address Address of the delegatee.
+    event Delegated(address indexed who, address target);
+
+    /// @dev An account undelegated.
+    /// @custom:selector 42176493fdfcada70cc1bcf321c9a2314e9571a9fe53c54a5385a1eeac8bc1d7
+    /// @param who address Address of the delegator.
+    event Undelegated(address indexed who);
 }

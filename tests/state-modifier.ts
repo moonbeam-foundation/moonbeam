@@ -38,23 +38,39 @@ async function main(inputFile: string, outputFile?: string) {
     return -1;
   }
 
-  let messagingState = null;
+  let messagingState: string = "";
   const collatorLinePrefix = `        "${storageKey("ParachainStaking", "SelectedCandidates")}`;
+  const roundLinePrefix = `        "${storageKey("ParachainStaking", "Round")}`;
   const orbiterLinePrefix = `        "${storageKey("MoonbeamOrbiters", "CollatorsPool")}`;
-  const nimbusBlockNumberPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}"`;
+  const nimbusBlockNumberPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}`;
   const authorLinePrefix = `        "${storageKey("AuthorMapping", "MappingWithDeposit")}`;
   const revelentMessagingStatePrefix = `        "${storageKey(
     "ParachainSystem",
     "RelevantMessagingState"
   )}`;
+  const validationDataPrefix = `        "${storageKey("ParachainSystem", "ValidationData")}`;
+  const lastRelayChainBlockNumberPrefix = `        "${storageKey(
+    "ParachainSystem",
+    "LastRelayChainBlockNumber"
+  )}`;
   const authorEligibilityRatioPrefix = `        "${storageKey("AuthorFilter", "EligibleRatio")}`;
   const authorEligibilityCountPrefix = `        "${storageKey("AuthorFilter", "EligibleCount")}`;
   const councilLinePrefix = `        "${storageKey("CouncilCollective", "Members")}`;
   const techCommitteeeLinePrefix = `        "${storageKey("TechCommitteeCollective", "Members")}`;
+  const highestSlotSeenPrefix = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}`;
   const parachainIdPrefix = `        "${storageKey("ParachainInfo", "ParachainId")}`;
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
+
+  const inboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpMessages")}`;
+  const inboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpStatus")}`;
+  const outboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "OutboundXcmpMessages")}`;
+  const outboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "OutboundXcmpStatus")}`;
+  const overweightPrefix = `        "${storageKey("XcmpQueue", "Overweight")}`;
+  const overweightCountPrefix = `        "${storageKey("XcmpQueue", "OverweightCount")}`;
+  const signalMessagesPrefix = `        "${storageKey("XcmpQueue", "SignalMessages")}`;
+
   const bootnodesPrefix = `    "/`;
 
   // List all the collator author mapping
@@ -64,7 +80,9 @@ async function main(inputFile: string, outputFile?: string) {
   let collators: string[] = [];
   let orbiters: string[] = [];
   // let selectedCollator = null;
-  let totalIssuance: bigint;
+  let totalIssuance: bigint = 0n;
+  let validationData: string = "";
+  let roundNumber: bigint = 0n;
   let alithAccountData;
   for await (const line of rl1) {
     if (line.startsWith(collatorLinePrefix)) {
@@ -84,15 +102,22 @@ async function main(inputFile: string, outputFile?: string) {
     if (line.startsWith(revelentMessagingStatePrefix)) {
       messagingState = line.split('"')[3];
     }
+    if (line.startsWith(validationDataPrefix)) {
+      validationData = line.split('"')[3];
+    }
     if (line.startsWith(totalIssuanceBalancePrefix)) {
       totalIssuance = hexToBigInt(line.split('"')[3], { isLe: true });
     }
     if (line.startsWith(alithBalancePrefix)) {
       alithAccountData = line.split('"')[3];
     }
+    if (line.startsWith(roundLinePrefix)) {
+      roundNumber = hexToBigInt(line.split('"')[3].slice(0, 2 + 8), { isLe: true });
+    }
   }
   // We make sure the collator is not an orbiter
-  const selectedCollator = collators.find((c) => !orbiters.includes(c) && authorMappingLines[c]);
+  const selectedCollator =
+    collators.find((c) => !orbiters.includes(c) && authorMappingLines[c]) || "";
   console.log(
     chalk.blueBright(
       `  *  Found collator: ${selectedCollator} session 0x${authorMappingLines[selectedCollator]
@@ -157,8 +182,24 @@ async function main(inputFile: string, outputFile?: string) {
       );
     } else if (line.startsWith(nimbusBlockNumberPrefix)) {
       console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
-      let newLine = `${nimbusBlockNumberPrefix}: "0x00000000",\n`;
+      let newLine = `        "${storageKey("AuthorInherent", "HighestSlotSeen")}": "0x00000000",\n`;
       console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
+      outStream.write(newLine);
+    } else if (line.startsWith(roundLinePrefix)) {
+      console.log(` ${chalk.red(`  - Removing ParachainStaking.Round`)}\n\t${line}`);
+      const roundLength = 100; // blocks (more than collators, short to make it faster)
+      // Using the real round number;
+      // const roundNumber = nToHex(1, { isLe: true, bitLength: 32 }).slice(2);
+      // see https://github.com/polkadot-js/api/issues/5262
+      const firstBlock = "0".padStart((32 / 8) * 2, "0");
+      const length = nToHex(roundLength, { isLe: true, bitLength: 32 }).slice(2);
+      let newLine = `        "${storageKey("ParachainStaking", "Round")}": "${nToHex(
+        Number(roundNumber),
+        { isLe: true, bitLength: 32 }
+      )}${firstBlock}${length}",\n`;
+      console.log(
+        ` ${chalk.green(`  + Adding ParachainStaking.Round (${roundLength} blocks)`)}\n\t${newLine}`
+      );
       outStream.write(newLine);
     } else if (line.startsWith(selectedAuthorMappingPrefix)) {
       console.log(
@@ -224,8 +265,28 @@ async function main(inputFile: string, outputFile?: string) {
       )}": "0x04${ALITH.slice(2)}",\n`;
       console.log(` ${chalk.green(`  + Adding TechCommitteeCollective.Members`)}\n\t${newLine}`);
       outStream.write(newLine);
+    } else if (line.startsWith(highestSlotSeenPrefix)) {
+      console.log(` ${chalk.red(`  - Removing AuthorInherent.HighestSlotSeen`)}\n\t${line}`);
+      const newLine = `        "${storageKey(
+        "AuthorInherent",
+        "HighestSlotSeen"
+      )}": "0x00000000",\n`;
+      console.log(` ${chalk.green(`  + Adding AuthorInherent.HighestSlotSeen`)}\n\t${newLine}`);
+      outStream.write(newLine);
     } else if (line.startsWith(lastDmqMqcHeadPrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainSystem.LastDmqMqcHead`)}\n\t${line}`);
+    } else if (line.startsWith(lastRelayChainBlockNumberPrefix)) {
+      console.log(
+        ` ${chalk.red(`  - Removing ParachainSystem.LastRelayChainBlockNumber`)}\n\t${line}`
+      );
+      const newLine = `        "${storageKey(
+        "ParachainSystem",
+        "LastRelayChainBlockNumber"
+      )}": "0x00000000",\n`;
+      console.log(
+        ` ${chalk.green(`  + Adding ParachainSystem.LastRelayChainBlockNumber`)}\n\t${newLine}`
+      );
+      outStream.write(newLine);
     } else if (line.startsWith(alithBalancePrefix)) {
       console.log(` ${chalk.red(`  - Removing System.Account: Alith`)}\n\t${line}`);
       const newLine = `        "${storageBlake128MapKey(
@@ -247,8 +308,35 @@ async function main(inputFile: string, outputFile?: string) {
       )}",\n`;
       console.log(` ${chalk.green(`  + Adding Balances.TotalIssuance`)}\n\t${newLine}`);
       outStream.write(newLine);
+    } else if (line.startsWith(validationDataPrefix)) {
+      console.log(` ${chalk.red(`  - Removing ParachainSystem.ValidationData`)}\n\t${line}`);
+
+      const head = validationData.slice(0, -(8 + 64 + 8));
+      const relayParentNumber = "00000000";
+      const relayParentStorageRoot = validationData.slice(-(8 + 64), -8);
+      const maxPovSize = validationData.slice(-8);
+      const newLine = `        "${storageKey(
+        "ParachainSystem",
+        "ValidationData"
+      )}": "${head}${relayParentNumber}${relayParentStorageRoot}${maxPovSize}",\n`;
+      console.log(` ${chalk.green(`  + Adding ParachainSystem.ValidationData`)}\n\t${newLine}`);
+      outStream.write(newLine);
     } else if (line.startsWith(bootnodesPrefix)) {
       console.log(` ${chalk.red(`  - Removing bootnode`)}\n\t${line}`);
+    } else if (line.startsWith(inboundXcmpMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing inboundXcmpMessagesPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(inboundXcmpStatusPrefix)) {
+      console.log(` ${chalk.red(`  - Removing inboundXcmpStatusPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(outboundXcmpMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing outboundXcmpMessagesPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(outboundXcmpStatusPrefix)) {
+      console.log(` ${chalk.red(`  - Removing outboundXcmpStatusPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(overweightPrefix)) {
+      console.log(` ${chalk.red(`  - Removing overweightPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(overweightCountPrefix)) {
+      console.log(` ${chalk.red(`  - Removing overweightCountPrefix`)}\n\t${line}`);
+    } else if (line.startsWith(signalMessagesPrefix)) {
+      console.log(` ${chalk.red(`  - Removing signalMessagesPrefix`)}\n\t${line}`);
     } else {
       outStream.write(line);
       outStream.write("\n");

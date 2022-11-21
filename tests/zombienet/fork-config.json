@@ -1,0 +1,58 @@
+{
+  "settings": {
+    "timeout": 1800,
+    "provider": "native"
+  },
+  "relaychain": {
+    "chain": "rococo-local",
+    "default_command": "{{relayBinaryPath}}",
+    "default_args": [
+      "--no-hardware-benchmarks",
+      "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace,parachain::pvf=trace,parachain::collator-protocol=trace,parachain::provisioner=trace",
+      "--state-pruning=archive",
+      "--database=paritydb-experimental"
+    ],
+    "nodes": [
+      {
+        "name": "alice",
+        "validator": true,
+        "env": [{ "name": "RUST_LOG", "value": "trace" }]
+      },
+      {
+        "name": "bob",
+        "validator": true,
+        "env": [{ "name": "RUST_LOG", "value": "trace" }]
+      }
+    ]
+  },
+  "parachains": [
+    {
+      "id": 1000,
+      "cumulus_based": true,
+      "chain": "{{chain}}",
+      "chain_spec_command": "{{chainSpecCommand}}",
+      "default_args": [
+        "--log=info,evm=trace,ethereum=trace,pallet_parachain_staking=error,cumulus-consensus=trace,cumulus-collator=trace,parachain::collator_protocol=trace,parachain::candidate-selection=trace,parachain::collation_generation=trace,parachain::filtering=trace",
+        "--state-pruning=archive",
+        "--unsafe-rpc-external",
+        "--execution=wasm",
+        "--no-hardware-benchmarks",
+        "--trie-cache-size=0",
+        "--wasm-execution=interpreted-i-know-what-i-do",
+        "--rpc-cors=all",
+        "--",
+        "--trie-cache-size=0",
+        "--state-pruning=archive",
+        "--execution=wasm",
+        "--no-hardware-benchmarks",
+        "--wasm-execution=interpreted-i-know-what-i-do"
+      ],
+      "collators": [
+        {
+          "name": "alith",
+          "command": "{{binaryPath}}"
+        }
+      ]
+    }
+  ]
+}

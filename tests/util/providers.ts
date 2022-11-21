@@ -82,11 +82,8 @@ export type EnhancedWeb3 = Web3 & {
   customRequest: (method: string, params: any[]) => Promise<JsonRpcResponse>;
 };
 
-export const provideWeb3Api = async (port: number, protocol: "ws" | "http" = "http") => {
-  const web3 =
-    protocol == "ws"
-      ? new Web3(`ws://localhost:${port}`) // TODO: restore support for
-      : new Web3(`http://localhost:${port}`);
+export const provideWeb3Api = async (uri: string) => {
+  const web3 = new Web3(uri);
 
   // Adding genesis account for convenience
   web3.eth.accounts.wallet.add(ALITH_PRIVATE_KEY);
@@ -103,13 +100,15 @@ export const providePolkadotApi = async (port: number, isNotMoonbeam?: boolean) 
     ? await ApiPromise.create({
         initWasm: false,
         provider: new WsProvider(`ws://localhost:${port}`),
+        noInitWarn: true,
       })
     : await ApiPromise.create({
         provider: new WsProvider(`ws://localhost:${port}`),
         typesBundle: typesBundlePre900 as any,
+        noInitWarn: true,
       });
 };
 
-export const provideEthersApi = async (port: number) => {
-  return new ethers.providers.JsonRpcProvider(`http://localhost:${port}`);
+export const provideEthersApi = async (uri: string) => {
+  return new ethers.providers.JsonRpcProvider(uri);
 };

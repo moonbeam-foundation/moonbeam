@@ -19,13 +19,14 @@
 //! Benchmarking
 use crate::{
 	AwardedPts, BalanceOf, Call, CandidateBondLessRequest, Config, DelegationAction, Pallet,
-	Points, Range, Round, ScheduledRequest,
+	ParachainBondConfig, ParachainBondInfo, Points, Range, RewardPayment, Round, ScheduledRequest,
+	Staked, TopDelegations,
 };
 use frame_benchmarking::{account, benchmarks, impl_benchmark_test_suite, vec};
-use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize, ReservableCurrency};
+use frame_support::traits::{Currency, Get, OnFinalize, OnInitialize};
 use frame_system::RawOrigin;
 use sp_runtime::{Perbill, Percent};
-use sp_std::{collections::btree_map::BTreeMap, vec::Vec};
+use sp_std::vec::Vec;
 
 /// Minimum collator candidate stake
 fn min_candidate_stk<T: Config>() -> BalanceOf<T> {
@@ -128,6 +129,20 @@ fn roll_to_and_author<T: Config>(round_delay: u32, author: T::AccountId) {
 }
 
 const USER_SEED: u32 = 999666;
+struct Seed {
+	pub inner: u32,
+}
+impl Seed {
+	fn new() -> Self {
+		Seed { inner: USER_SEED }
+	}
+
+	pub fn take(&mut self) -> u32 {
+		let v = self.inner;
+		self.inner += 1;
+		v
+	}
+}
 
 benchmarks! {
 	// MONETARY ORIGIN DISPATCHABLES
@@ -370,7 +385,10 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), more)
 	verify {
 		let expected_bond = more * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+		assert_eq!(
+			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond,
+			expected_bond,
+		);
 	}
 
 	schedule_candidate_bond_less {
@@ -414,7 +432,10 @@ benchmarks! {
 			caller.clone()
 		)?;
 	} verify {
-		assert_eq!(T::Currency::reserved_balance(&caller), min_candidate_stk);
+		assert_eq!(
+			Pallet::<T>::candidate_info(&caller).expect("candidate was created, qed").bond,
+			min_candidate_stk,
+		);
 	}
 
 	cancel_candidate_bond_less {
@@ -645,7 +666,10 @@ benchmarks! {
 	}: _(RawOrigin::Signed(caller.clone()), collator.clone(), bond)
 	verify {
 		let expected_bond = bond * 2u32.into();
-		assert_eq!(T::Currency::reserved_balance(&caller), expected_bond);
+		assert_eq!(
+			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			expected_bond,
+		);
 	}
 
 	schedule_delegator_bond_less {
@@ -744,7 +768,10 @@ benchmarks! {
 		)?;
 	} verify {
 		let expected = total - bond_less;
-		assert_eq!(T::Currency::reserved_balance(&caller), expected);
+		assert_eq!(
+			Pallet::<T>::delegator_state(&caller).expect("candidate was created, qed").total,
+			expected,
+		);
 	}
 
 	cancel_revoke_delegation {
@@ -819,152 +846,119 @@ benchmarks! {
 
 	// ON_INITIALIZE
 
-	round_transition_on_initialize {
-		// TOTAL SELECTED COLLATORS PER ROUND
-		let x in 8..100;
-		// DELEGATIONS
-		let y in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get() * 100);
-		let max_delegators_per_collator =
-			<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
-		let max_delegations = x * max_delegators_per_collator;
-		// y should depend on x but cannot directly, we overwrite y here if necessary to bound it
-		let total_delegations: u32 = if max_delegations < y { max_delegations } else { y };
-		// INITIALIZE RUNTIME STATE
+	prepare_staking_payouts {
+		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get();
+		let round = reward_delay + 2u32;
+		let payout_round = round - reward_delay;
+		// may need:
+		//  <Points<T>>
+		//  <Staked<T>>
+		//  <ParachainBondInfo<T>>
+		//  ensure parachain bond account exists so that deposit_into_existing succeeds
+		<Points<T>>::insert(payout_round, 100);
+		<Staked<T>>::insert(payout_round, min_candidate_stk::<T>());
+
+		// set an account in the bond config so that we will measure the payout to it
+		let account = create_funded_user::<T>(
+			"parachain_bond",
+			0,
+			min_candidate_stk::<T>(),
+		).0;
+		<ParachainBondInfo<T>>::put(ParachainBondConfig {
+			account,
+			percent: Percent::from_percent(50),
+		});
+
+	}: { Pallet::<T>::prepare_staking_payouts(round); }
+	verify {
+	}
+
+	get_rewardable_delegators {
+		let y in 0..50; // num delegators
+
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
 			ideal: Perbill::one(),
 			max: Perbill::one(),
 		};
 		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
-		// To set total selected to 40, must first increase round length to at least 40
-		// to avoid hitting RoundLengthMustBeAtLeastTotalSelectedCollators
 		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
 		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
-		// INITIALIZE COLLATOR STATE
-		let mut collators: Vec<T::AccountId> = Vec::new();
-		let mut collator_count = 1u32;
-		for i in 0..x {
-			let seed = USER_SEED - i;
+
+		let collator = create_funded_collator::<T>(
+			"collator",
+			0,
+			min_candidate_stk::<T>() * 1_000_000u32.into(),
+			true,
+			1,
+		)?;
+
+		// create delegators
+		for i in 0..y {
+			let seed = USER_SEED + i + 1;
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed,
+				min_candidate_stk::<T>() * 1_000_000u32.into(),
+				collator.clone(),
+				true,
+				i,
+			)?;
+		}
+
+		let mut _results = None;
+
+	}: { _results = Some(Pallet::<T>::get_rewardable_delegators(&collator)); }
+	verify {
+		let counted_delegations = _results.expect("get_rewardable_delegators returned some results");
+		assert!(counted_delegations.uncounted_stake == 0u32.into());
+		assert!(counted_delegations.rewardable_delegations.len() as u32 == y);
+		let top_delegations = <TopDelegations<T>>::get(collator.clone())
+			.expect("delegations were set for collator through delegate() calls");
+		assert!(top_delegations.delegations.len() as u32 == y);
+	}
+
+	select_top_candidates {
+		let x in 0..50; // num collators
+		let y in 0..50; // num delegators
+
+		let high_inflation: Range<Perbill> = Range {
+			min: Perbill::one(),
+			ideal: Perbill::one(),
+			max: Perbill::one(),
+		};
+		Pallet::<T>::set_inflation(RawOrigin::Root.into(), high_inflation.clone())?;
+		Pallet::<T>::set_blocks_per_round(RawOrigin::Root.into(), 100u32)?;
+		Pallet::<T>::set_total_selected(RawOrigin::Root.into(), 100u32)?;
+
+		let mut seed = USER_SEED + 1;
+
+		for _ in 0..x {
 			let collator = create_funded_collator::<T>(
 				"collator",
 				seed,
 				min_candidate_stk::<T>() * 1_000_000u32.into(),
 				true,
-				collator_count
+				999999,
 			)?;
-			collators.push(collator);
-			collator_count += 1u32;
-		}
-		// STORE starting balances for all collators
-		let collator_starting_balances: Vec<(
-			T::AccountId,
-			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
-		)> = collators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
-		// INITIALIZE DELEGATIONS
-		let mut col_del_count: BTreeMap<T::AccountId, u32> = BTreeMap::new();
-		collators.iter().for_each(|x| {
-			col_del_count.insert(x.clone(), 0u32);
-		});
-		let mut delegators: Vec<T::AccountId> = Vec::new();
-		let mut remaining_delegations = if total_delegations > max_delegators_per_collator {
-			for j in 1..(max_delegators_per_collator + 1) {
-				let seed = USER_SEED + j;
+			seed += 1;
+
+			// create delegators
+			for _ in 0..y {
 				let delegator = create_funded_delegator::<T>(
 					"delegator",
 					seed,
 					min_candidate_stk::<T>() * 1_000_000u32.into(),
-					collators[0].clone(),
+					collator.clone(),
 					true,
-					delegators.len() as u32,
+					9999999,
 				)?;
-				delegators.push(delegator);
-			}
-			total_delegations - max_delegators_per_collator
-		} else {
-			for j in 1..(total_delegations + 1) {
-				let seed = USER_SEED + j;
-				let delegator = create_funded_delegator::<T>(
-					"delegator",
-					seed,
-					min_candidate_stk::<T>() * 1_000_000u32.into(),
-					collators[0].clone(),
-					true,
-					delegators.len() as u32,
-				)?;
-				delegators.push(delegator);
-			}
-			0u32
-		};
-		col_del_count.insert(collators[0].clone(), delegators.len() as u32);
-		// FILL remaining delegations
-		if remaining_delegations > 0 {
-			for (col, n_count) in col_del_count.iter_mut() {
-				if n_count < &mut (delegators.len() as u32) {
-					// assumes delegators.len() <= MaxTopDelegationsPerCandidate
-					let mut open_spots = delegators.len() as u32 - *n_count;
-					while open_spots > 0 && remaining_delegations > 0 {
-						let caller = delegators[open_spots as usize - 1usize].clone();
-						if let Ok(_) = Pallet::<T>::delegate(RawOrigin::Signed(
-							caller.clone()).into(),
-							col.clone(),
-							<<T as Config>::MinDelegatorStk as Get<BalanceOf<T>>>::get(),
-							*n_count,
-							collators.len() as u32, // overestimate
-						) {
-							*n_count += 1;
-							remaining_delegations -= 1;
-						}
-						open_spots -= 1;
-					}
-				}
-				if remaining_delegations == 0 {
-					break;
-				}
+				seed += 1;
 			}
 		}
-		// STORE starting balances for all delegators
-		let delegator_starting_balances: Vec<(
-			T::AccountId,
-			<<T as Config>::Currency as Currency<T::AccountId>>::Balance
-		)> = delegators.iter().map(|x| (x.clone(), T::Currency::free_balance(&x))).collect();
-		// PREPARE RUN_TO_BLOCK LOOP
-		let before_running_round_index = Pallet::<T>::round().current;
-		let round_length: T::BlockNumber = Pallet::<T>::round().length.into();
-		let reward_delay = <<T as Config>::RewardPaymentDelay as Get<u32>>::get() + 2u32;
-		let mut now = <frame_system::Pallet<T>>::block_number() + 1u32.into();
-		let mut counter = 0usize;
-		let end = Pallet::<T>::round().first + (round_length * reward_delay.into());
-		// SET collators as authors for blocks from now - end
-		while now < end {
-			let author = collators[counter % collators.len()].clone();
-			parachain_staking_on_finalize::<T>(author);
-			<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
-			<frame_system::Pallet<T>>::set_block_number(
-				<frame_system::Pallet<T>>::block_number() + 1u32.into()
-			);
-			<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
-			Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number());
-			now += 1u32.into();
-			counter += 1usize;
-		}
-		parachain_staking_on_finalize::<T>(collators[counter % collators.len()].clone());
-		<frame_system::Pallet<T>>::on_finalize(<frame_system::Pallet<T>>::block_number());
-		<frame_system::Pallet<T>>::set_block_number(
-			<frame_system::Pallet<T>>::block_number() + 1u32.into()
-		);
-		<frame_system::Pallet<T>>::on_initialize(<frame_system::Pallet<T>>::block_number());
-	}: { Pallet::<T>::on_initialize(<frame_system::Pallet<T>>::block_number()); }
+
+	}: { Some(Pallet::<T>::select_top_candidates(1)); }
 	verify {
-		// Collators have been paid
-		for (col, initial) in collator_starting_balances {
-			assert!(T::Currency::free_balance(&col) > initial);
-		}
-		// Nominators have been paid
-		for (col, initial) in delegator_starting_balances {
-			assert!(T::Currency::free_balance(&col) > initial);
-		}
-		// Round transitions
-		assert_eq!(Pallet::<T>::round().current, before_running_round_index + reward_delay);
 	}
 
 	pay_one_collator_reward {
@@ -973,7 +967,7 @@ benchmarks! {
 
 		// must come after 'let foo in 0..` statements for macro
 		use crate::{
-			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, Bond, Points,
+			DelayedPayout, DelayedPayouts, AtStake, CollatorSnapshot, BondWithAutoCompound, Points,
 			AwardedPts,
 		};
 
@@ -1019,11 +1013,12 @@ benchmarks! {
 			collator_commission: Perbill::from_rational(1u32, 100u32),
 		});
 
-		let mut delegations: Vec<Bond<T::AccountId, BalanceOf<T>>> = Vec::new();
+		let mut delegations: Vec<BondWithAutoCompound<T::AccountId, BalanceOf<T>>> = Vec::new();
 		for delegator in &delegators {
-			delegations.push(Bond {
+			delegations.push(BondWithAutoCompound {
 				owner: delegator.clone(),
 				amount: 100u32.into(),
+				auto_compound: Percent::zero(),
 			});
 		}
 
@@ -1041,7 +1036,8 @@ benchmarks! {
 		// TODO: this is an extra read right here (we should whitelist it?)
 		let payout_info = Pallet::<T>::delayed_payouts(round_for_payout).expect("payout expected");
 		let result = Pallet::<T>::pay_one_collator_reward(round_for_payout, payout_info);
-		assert!(result.0.is_some()); // TODO: how to keep this in scope so it can be done in verify block?
+		// TODO: how to keep this in scope so it can be done in verify block?
+		assert!(matches!(result.0, RewardPayment::Paid));
 	}
 	verify {
 		// collator should have been paid
@@ -1079,6 +1075,206 @@ benchmarks! {
 		// Round transitions
 		assert_eq!(start + 1u32.into(), end);
 	}
+
+	set_auto_compound {
+		// x controls number of distinct auto-compounding delegations the prime collator will have
+		// y controls number of distinct delegations the prime delegator will have
+		let x in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get();
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
+
+		use crate::auto_compound::AutoCompoundDelegations;
+
+		let min_candidate_stake = min_candidate_stk::<T>();
+		let min_delegator_stake = min_delegator_stk::<T>();
+		let mut seed = Seed::new();
+
+		// initialize the prime collator
+		let prime_candidate = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stake,
+			true,
+			1,
+		)?;
+
+		// initialize the prime delegator
+		let prime_delegator = create_funded_delegator::<T>(
+			"delegator",
+			seed.take(),
+			min_delegator_stake * (x+1).into(),
+			prime_candidate.clone(),
+			true,
+			0,
+		)?;
+
+		// have x-1 distinct auto-compounding delegators delegate to prime collator
+		// we directly set the storage, since benchmarks don't work when the same extrinsic is
+		// called from within the benchmark.
+		let mut auto_compounding_state = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate);
+		for i in 1..x {
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed.take(),
+				min_delegator_stake,
+				prime_candidate.clone(),
+				true,
+				i,
+			)?;
+			auto_compounding_state.set_for_delegator(
+				delegator,
+				Percent::from_percent(100),
+			);
+		}
+		auto_compounding_state.set_storage(&prime_candidate);
+
+		// delegate to y-1 distinct collators from the prime delegator
+		for i in 1..y {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed.take(),
+				min_candidate_stake,
+				true,
+				i+1,
+			)?;
+			Pallet::<T>::delegate(
+				RawOrigin::Signed(prime_delegator.clone()).into(),
+				collator,
+				min_delegator_stake,
+				0,
+				i,
+			)?;
+		}
+	}: {
+		Pallet::<T>::set_auto_compound(
+			RawOrigin::Signed(prime_delegator.clone()).into(),
+			prime_candidate.clone(),
+			Percent::from_percent(50),
+			x,
+			y+1,
+		)?;
+	}
+	verify {
+		let actual_auto_compound = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate)
+			.get_for_delegator(&prime_delegator);
+		let expected_auto_compound = Some(Percent::from_percent(50));
+		assert_eq!(
+			expected_auto_compound,
+			actual_auto_compound,
+			"delegation must have an auto-compound entry",
+		);
+	}
+
+	delegate_with_auto_compound {
+		// x controls number of distinct delegations the prime collator will have
+		// y controls number of distinct auto-compounding delegations the prime collator will have
+		// z controls number of distinct delegations the prime delegator will have
+		let x in 0..(<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get());
+		let y in 0..<<T as Config>::MaxTopDelegationsPerCandidate as Get<u32>>::get()
+		+ <<T as Config>::MaxBottomDelegationsPerCandidate as Get<u32>>::get();
+		let z in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get();
+
+		use crate::auto_compound::AutoCompoundDelegations;
+
+		let min_candidate_stake = min_candidate_stk::<T>();
+		let min_delegator_stake = min_delegator_stk::<T>();
+		let mut seed = Seed::new();
+
+		// initialize the prime collator
+		let prime_candidate = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			min_candidate_stake,
+			true,
+			1,
+		)?;
+
+		// initialize the future delegator
+		let (prime_delegator, _) = create_funded_user::<T>(
+			"delegator",
+			seed.take(),
+			min_delegator_stake * (x+1).into(),
+		);
+
+		// have x-1 distinct delegators delegate to prime collator, of which y are auto-compounding.
+		// we can directly set the storage here.
+		let auto_compound_z = x * y / 100;
+		for i in 1..x {
+			let delegator = create_funded_delegator::<T>(
+				"delegator",
+				seed.take(),
+				min_delegator_stake,
+				prime_candidate.clone(),
+				true,
+				i,
+			)?;
+			if i <= y {
+				Pallet::<T>::set_auto_compound(
+					RawOrigin::Signed(delegator.clone()).into(),
+					prime_candidate.clone(),
+					Percent::from_percent(100),
+					i+1,
+					i,
+				)?;
+			}
+		}
+
+		// delegate to z-1 distinct collators from the prime delegator
+		for i in 1..z {
+			let collator = create_funded_collator::<T>(
+				"collator",
+				seed.take(),
+				min_candidate_stake,
+				true,
+				i+1,
+			)?;
+			Pallet::<T>::delegate(
+				RawOrigin::Signed(prime_delegator.clone()).into(),
+				collator,
+				min_delegator_stake,
+				0,
+				i,
+			)?;
+		}
+	}: {
+		Pallet::<T>::delegate_with_auto_compound(
+			RawOrigin::Signed(prime_delegator.clone()).into(),
+			prime_candidate.clone(),
+			min_delegator_stake,
+			Percent::from_percent(50),
+			x,
+			y,
+			z,
+		)?;
+	}
+	verify {
+		assert!(Pallet::<T>::is_delegator(&prime_delegator));
+		let actual_auto_compound = <AutoCompoundDelegations<T>>::get_storage(&prime_candidate)
+			.get_for_delegator(&prime_delegator);
+		let expected_auto_compound = Some(Percent::from_percent(50));
+		assert_eq!(
+			expected_auto_compound,
+			actual_auto_compound,
+			"delegation must have an auto-compound entry",
+		);
+	}
+
+	mint_collator_reward {
+		let mut seed = Seed::new();
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			0u32.into(),
+			true,
+			1,
+		)?;
+		let original_free_balance = T::Currency::free_balance(&collator);
+	}: {
+		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+	}
+	verify {
+		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
+	}
 }
 
 #[cfg(test)]
@@ -1093,20 +1289,6 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
-	}
-
-	#[test]
-	fn bench_hotfix_remove_delegation_requests() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_remove_delegation_requests());
-		});
-	}
-
-	#[test]
-	fn bench_hotfix_update_candidate_pool_value() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_update_candidate_pool_value());
-		});
 	}
 
 	#[test]
@@ -1302,13 +1484,6 @@ mod tests {
 	fn bench_cancel_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_cancel_delegator_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_round_transition_on_initialize() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_round_transition_on_initialize());
 		});
 	}
 

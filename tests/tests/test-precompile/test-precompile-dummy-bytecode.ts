@@ -4,6 +4,7 @@ import { expect } from "chai";
 import * as RLP from "rlp";
 
 import { alith } from "../../util/accounts";
+import { PRECOMPILE_PARACHAIN_STAKING_ADDRESS } from "../../util/constants";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
 import { createTransaction } from "../../util/transactions";
 
@@ -35,7 +36,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - precompiles dummy bytecode", (co
       "0x0000000000000000000000000000000000000401",
       "0x0000000000000000000000000000000000000402",
 
-      "0x0000000000000000000000000000000000000800",
+      PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
     ].forEach(async (x) => {
       const code = await context.web3.eth.getCode(x);
       expect(code).to.equal(DEPLOYED_BYTECODE);

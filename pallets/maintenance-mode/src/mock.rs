@@ -29,14 +29,13 @@ use frame_support::{
 use frame_system::EnsureRoot;
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
 //TODO use TestAccount once it is in a common place (currently it lives with democracy precompiles)
 pub type AccountId = u64;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -55,8 +54,8 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -72,7 +71,7 @@ impl frame_system::Config for Test {
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type Event = Event;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
@@ -105,7 +104,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		return 1;
+		return Weight::from_ref_time(1);
 	}
 }
 
@@ -118,7 +117,7 @@ impl DmpMessageHandler for NormalDmpHandler {
 		_iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		return 0;
+		Weight::zero()
 	}
 }
 
@@ -166,7 +165,7 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnInitialize,
 		);
-		return 1;
+		Weight::from_ref_time(1)
 	}
 }
 
@@ -175,7 +174,7 @@ impl OnIdle<BlockNumber> for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnIdle,
 		);
-		return 1;
+		Weight::from_ref_time(1)
 	}
 }
 
@@ -184,7 +183,7 @@ impl OnRuntimeUpgrade for MaintenanceHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::MaintenanceOnRuntimeUpgrade,
 		);
-		return 1;
+		Weight::from_ref_time(1)
 	}
 }
 
@@ -211,7 +210,7 @@ impl OnInitialize<BlockNumber> for NormalHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::NormalOnInitialize,
 		);
-		return 0;
+		Weight::zero()
 	}
 }
 
@@ -220,7 +219,7 @@ impl OnIdle<BlockNumber> for NormalHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::NormalOnIdle,
 		);
-		return 0;
+		Weight::zero()
 	}
 }
 
@@ -229,8 +228,7 @@ impl OnRuntimeUpgrade for NormalHooks {
 		MockPalletMaintenanceHooks::deposit_event(
 			mock_pallet_maintenance_hooks::Event::NormalOnRuntimeUpgrade,
 		);
-
-		return 0;
+		Weight::zero()
 	}
 }
 

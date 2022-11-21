@@ -50,7 +50,7 @@ use nimbus_primitives::{AccountLookup, NimbusId};
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
+	use frame_support::traits::{Currency, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
@@ -196,8 +196,8 @@ pub mod pallet {
 				// a lower limit.
 				// Otherwise, we should still have a lower limit, and implement a multi-block clear
 				// by using the return value of clear_prefix for subsequent blocks.
-				let _result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
-				T::DbWeight::get().reads_writes(1, 1)
+				let result = OrbiterPerRound::<T>::clear_prefix(round_to_prune, u32::MAX, None);
+				T::WeightInfo::on_initialize(result.unique)
 			} else {
 				T::DbWeight::get().reads(1)
 			}
@@ -453,6 +453,7 @@ pub mod pallet {
 						maybe_old_orbiter,
 						maybe_next_orbiter,
 					} = pool.rotate_orbiter();
+
 					// remove old orbiter, if any.
 					if let Some(CurrentOrbiter {
 						account_id: ref current_orbiter,
@@ -475,6 +476,7 @@ pub mod pallet {
 							Option::<T::AccountId>::None,
 						);
 						writes += 1;
+
 						// Insert new current orbiter
 						AccountLookupOverride::<T>::insert(
 							next_orbiter.clone(),
@@ -516,11 +518,13 @@ pub mod pallet {
 
 			if ForceRotation::<T>::get() {
 				ForceRotation::<T>::put(false);
-				Self::on_rotate(round_index) + T::DbWeight::get().writes(2)
+				let _ = Self::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} else if round_index % T::RotatePeriod::get() == Zero::zero() {
-				Self::on_rotate(round_index) + T::DbWeight::get().write
+				let _ = Self::on_rotate(round_index);
+				T::WeightInfo::on_new_round()
 			} else {
-				T::DbWeight::get().write
+				T::DbWeight::get().writes(1)
 			}
 		}
 		/// Notify this pallet that a collator received rewards
@@ -530,35 +534,22 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 		) -> Weight {
 			if let Some(orbiter) = OrbiterPerRound::<T>::take(pay_for_round, &collator) {
-				if let Ok(amount_to_transfer) = T::Currency::withdraw(
-					&collator,
-					amount,
-					frame_support::traits::WithdrawReasons::TRANSFER,
-					frame_support::traits::ExistenceRequirement::KeepAlive,
-				) {
-					let real_reward = amount_to_transfer.peek();
-					if T::Currency::resolve_into_existing(&orbiter, amount_to_transfer).is_ok() {
-						Self::deposit_event(Event::OrbiterRewarded {
-							account: orbiter,
-							rewards: real_reward,
-						});
-						// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw + resolve_into_existing
-						T::DbWeight::get().reads_writes(2, 3)
-					} else {
-						// reads: withdraw + resolve_into_existing
-						// writes: take + withdraw
-						T::DbWeight::get().reads_writes(2, 2)
-					}
-				} else {
-					// reads: withdraw
-					// writes: take
-					T::DbWeight::get().reads_writes(1, 1)
+				if T::Currency::deposit_into_existing(&orbiter, amount).is_ok() {
+					Self::deposit_event(Event::OrbiterRewarded {
+						account: orbiter,
+						rewards: amount,
+					});
 				}
+				T::WeightInfo::distribute_rewards()
 			} else {
 				// writes: take
 				T::DbWeight::get().writes(1)
 			}
+		}
+
+		/// Check if an account is an orbiter account for a given round
+		pub fn is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -> bool {
+			OrbiterPerRound::<T>::contains_key(for_round, &collator)
 		}
 	}
 }

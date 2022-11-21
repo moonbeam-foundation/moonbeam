@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Solidity types for randomness precompile.
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 
 pub enum RequestStatus {
 	DoesNotExist,
@@ -53,6 +53,10 @@ impl EvmData for RequestStatus {
 	fn has_static_size() -> bool {
 		true
 	}
+
+	fn solidity_type() -> String {
+		u8::solidity_type()
+	}
 }
 
 impl EvmData for RandomnessSource {
@@ -74,5 +78,9 @@ impl EvmData for RandomnessSource {
 
 	fn has_static_size() -> bool {
 		true
+	}
+
+	fn solidity_type() -> String {
+		u8::solidity_type()
 	}
 }

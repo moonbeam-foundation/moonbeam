@@ -11,9 +11,9 @@ version = "0.1.0"
 flume = "0.10.9"
 futures = { version = "0.3", features = [ "compat" ] }
 hex-literal = "0.3.3"
-jsonrpsee = { version = "0.14.0", default-features = false, features = [ "macros", "server" ] }
+jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros", "server" ] }
 parity-scale-codec = "3.0.0"
 tokio = { version = "1.12.0", features = [ "sync", "time" ] }
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.26", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.29", default-features = false }
 
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.26" }
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.29" }

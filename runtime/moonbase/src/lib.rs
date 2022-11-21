@@ -95,7 +95,7 @@ use sp_std::{
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use nimbus_primitives::{CanAuthor, NimbusId};
+use nimbus_primitives::CanAuthor;
 
 mod precompiles;
 pub use precompiles::{
@@ -111,7 +111,9 @@ pub use sp_runtime::BuildStorage;
 pub type Precompiles = MoonbasePrecompiles<Runtime>;
 
 pub mod asset_config;
+pub mod governance;
 pub mod xcm_config;
+use governance::{councils::*, pallet_custom_origins, referenda::*};
 
 /// UNIT, the native token, uses 18 decimals of precision.
 pub mod currency {
@@ -139,7 +141,7 @@ pub mod currency {
 }
 
 /// Maximum weight per block
-pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND / 2;
+pub const MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(2);
 
 pub const MILLISECS_PER_BLOCK: u64 = 12000;
 pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
@@ -190,12 +192,12 @@ pub fn native_version() -> NativeVersion {
 }
 
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
-const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT * 3 / 4;
+const NORMAL_WEIGHT: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_mul(3).saturating_div(4);
 // Here we assume Ethereum's base fee of 21000 gas and convert to weight, but we
 // subtract roughly the cost of a balance transfer from it (about 1/3 the cost)
 // and some cost to account for per-byte-fee.
 // TODO: we should use benchmarking's overhead feature to measure this
-pub const EXTRINSIC_BASE_WEIGHT: Weight = 10000 * WEIGHT_PER_GAS;
+pub const EXTRINSIC_BASE_WEIGHT: Weight = Weight::from_ref_time(10000 * WEIGHT_PER_GAS);
 
 pub struct RuntimeBlockWeights;
 impl Get<frame_system::limits::BlockWeights> for RuntimeBlockWeights {
@@ -372,22 +374,11 @@ pub const GAS_PER_SECOND: u64 = 40_000_000;
 
 /// Approximate ratio of the amount of Weight per Gas.
 /// u64 works for approximations because Weight is a very small unit compared to gas.
-pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND / GAS_PER_SECOND;
-
-pub struct MoonbeamGasWeightMapping;
-
-impl pallet_evm::GasWeightMapping for MoonbeamGasWeightMapping {
-	fn gas_to_weight(gas: u64) -> Weight {
-		gas.saturating_mul(WEIGHT_PER_GAS)
-	}
-	fn weight_to_gas(weight: Weight) -> u64 {
-		u64::try_from(weight.wrapping_div(WEIGHT_PER_GAS)).unwrap_or(u32::MAX as u64)
-	}
-}
+pub const WEIGHT_PER_GAS: u64 = WEIGHT_PER_SECOND.ref_time() / GAS_PER_SECOND;
 
 parameter_types! {
 	pub BlockGasLimit: U256
-		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT / WEIGHT_PER_GAS);
+		= U256::from(NORMAL_DISPATCH_RATIO * MAXIMUM_BLOCK_WEIGHT.ref_time() / WEIGHT_PER_GAS);
 	/// The portion of the `NORMAL_DISPATCH_RATIO` that we adjust the fees with. Blocks filled less
 	/// than this will decrease the weight and more will increase.
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
@@ -400,7 +391,11 @@ parameter_types! {
 	/// This value is currently only used by pallet-transaction-payment as an assertion that the
 	/// next multiplier is always > min value.
 	pub MinimumMultiplier: Multiplier = Multiplier::saturating_from_rational(1, 1_000_000u128);
+	/// Maximum multiplier. We pick a value that is expensive but not impossibly so; it should act
+	/// as a safety net.
+	pub MaximumMultiplier: Multiplier = Multiplier::from(100_000u128);
 	pub PrecompilesValue: MoonbasePrecompiles<Runtime> = MoonbasePrecompiles::<_>::new();
+	pub WeightPerGas: u64 = WEIGHT_PER_GAS;
 }
 
 pub struct FixedGasPrice;
@@ -408,7 +403,7 @@ impl FeeCalculator for FixedGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
 		(
 			(1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into(),
-			0u64,
+			Weight::zero(),
 		)
 	}
 }
@@ -424,8 +419,13 @@ impl FeeCalculator for FixedGasPrice {
 ///     where: v is AdjustmentVariable
 ///            target is TargetBlockFullness
 ///            min is MinimumMultiplier
-pub type SlowAdjustingFeeUpdate<R> =
-	TargetedFeeAdjustment<R, TargetBlockFullness, AdjustmentVariable, MinimumMultiplier>;
+pub type SlowAdjustingFeeUpdate<R> = TargetedFeeAdjustment<
+	R,
+	TargetBlockFullness,
+	AdjustmentVariable,
+	MinimumMultiplier,
+	MaximumMultiplier,
+>;
 
 /// The author inherent provides an AccountId, but pallet evm needs an H160.
 /// This simple adapter makes the conversion for any types T, U such that T: Into<U>
@@ -448,7 +448,8 @@ moonbeam_runtime_common::impl_on_charge_evm_transaction!();
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = FixedGasPrice;
-	type GasWeightMapping = MoonbeamGasWeightMapping;
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type BlockHashMapping = pallet_ethereum::EthereumBlockHashMapping<Self>;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
@@ -466,6 +467,7 @@ impl pallet_evm::Config for Runtime {
 
 parameter_types! {
 	pub MaximumSchedulerWeight: Weight = NORMAL_DISPATCH_RATIO * RuntimeBlockWeights::get().max_block;
+	pub const NoPreimagePostponement: Option<u32> = Some(10);
 }
 
 impl pallet_scheduler::Config for Runtime {
@@ -478,111 +480,20 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = ConstU32<50>;
 	type WeightInfo = pallet_scheduler::weights::SubstrateWeight<Runtime>;
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
-	type PreimageProvider = ();
-	type NoPreimagePostponement = ();
+	// Preimage provider with which we look up call hashes to get the call
+	type PreimageProvider = Preimage;
+	// Number of blocks to postpone execution for when the item is delayed
+	type NoPreimagePostponement = NoPreimagePostponement;
 }
 
-type CouncilInstance = pallet_collective::Instance1;
-type TechCommitteeInstance = pallet_collective::Instance2;
-type TreasuryCouncilInstance = pallet_collective::Instance3;
-
-impl pallet_collective::Config<CouncilInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
-	/// The maximum amount of time (in blocks) for council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the council at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of council members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_collective::Config<TechCommitteeInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
-	/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the technical committee at once.
-	type MaxProposals = ConstU32<100>;
-	/// The maximum number of technical committee members.
-	type MaxMembers = ConstU32<100>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-
-impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
-	/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
-	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
-	type MotionDuration = ConstU32<{ 3 * DAYS }>;
-	/// The maximum number of proposals that can be open in the treasury council at once.
-	type MaxProposals = ConstU32<20>;
-	/// The maximum number of treasury council members.
-	type MaxMembers = ConstU32<9>;
-	type DefaultVote = pallet_collective::MoreThanMajorityThenPrimeDefaultVote;
-	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
-}
-// The purpose of this offset is to ensure that a democratic proposal will not apply in the same
-// block as a round change.
-const ENACTMENT_OFFSET: u32 = 300;
-
-impl pallet_democracy::Config for Runtime {
-	type Proposal = Call;
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = pallet_preimage::weights::SubstrateWeight<Runtime>;
 	type Event = Event;
 	type Currency = Balances;
-	type EnactmentPeriod = ConstU32<{ 1 * DAYS + ENACTMENT_OFFSET }>;
-	type LaunchPeriod = ConstU32<{ 1 * DAYS }>;
-	type VotingPeriod = ConstU32<{ 5 * DAYS }>;
-	type VoteLockingPeriod = ConstU32<{ 1 * DAYS }>;
-	type FastTrackVotingPeriod = ConstU32<{ 4 * HOURS }>;
-	type MinimumDeposit = ConstU128<{ 4 * currency::UNIT * currency::SUPPLY_FACTOR }>;
-	/// To decide what their next motion is.
-	type ExternalOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 1, 2>;
-	/// To have the next scheduled referendum be a straight majority-carries vote.
-	type ExternalMajorityOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To have the next scheduled referendum be a straight default-carries (NTB) vote.
-	type ExternalDefaultOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>;
-	/// To allow a shorter voting/enactment period for external proposals.
-	type FastTrackOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 1, 2>;
-	/// To instant fast track.
-	type InstantOrigin =
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>;
-	// To cancel a proposal which has been passed.
-	type CancellationOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, CouncilInstance, 3, 5>,
-	>;
-	// To cancel a proposal before it has been passed.
-	type CancelProposalOrigin = EitherOfDiverse<
-		EnsureRoot<AccountId>,
-		pallet_collective::EnsureProportionAtLeast<AccountId, TechCommitteeInstance, 3, 5>,
-	>;
-	type BlacklistOrigin = EnsureRoot<AccountId>;
-	// Any single technical committee member may veto a coming council proposal, however they can
-	// only do it once and it lasts only for the cooloff period.
-	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
-	type CooloffPeriod = ConstU32<{ 7 * DAYS }>;
-	type PreimageByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
-	type Slash = ();
-	type InstantAllowed = ConstBool<true>;
-	type Scheduler = Scheduler;
-	type MaxVotes = ConstU32<100>;
-	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilInstance>;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
-	type MaxProposals = ConstU32<100>;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type MaxSize = ConstU32<{ 4096 * 1024 }>;
+	type BaseDeposit = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type ByteDeposit = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 }
 
 parameter_types! {
@@ -619,7 +530,7 @@ impl pallet_treasury::Config for Runtime {
 	type WeightInfo = pallet_treasury::weights::SubstrateWeight<Runtime>;
 	type SpendFunds = ();
 	type ProposalBondMaximum = ();
-	type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>; // Same as Polkadot
+	type SpendOrigin = TreasurySpender;
 }
 
 type IdentityForceOrigin = EitherOfDiverse<
@@ -705,8 +616,8 @@ impl pallet_ethereum_xcm::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
-	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT / 4;
+	pub const ReservedXcmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
+	pub const ReservedDmpWeight: Weight = MAXIMUM_BLOCK_WEIGHT.saturating_div(4);
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
@@ -723,20 +634,28 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 
 impl parachain_info::Config for Runtime {}
 
-pub struct OnCollatorPayout;
-impl pallet_parachain_staking::OnCollatorPayout<AccountId, Balance> for OnCollatorPayout {
-	fn on_collator_payout(
-		for_round: pallet_parachain_staking::RoundIndex,
-		collator_id: AccountId,
-		amount: Balance,
-	) -> Weight {
-		MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
-	}
-}
 pub struct OnNewRound;
 impl pallet_parachain_staking::OnNewRound for OnNewRound {
 	fn on_new_round(round_index: pallet_parachain_staking::RoundIndex) -> Weight {
 		MoonbeamOrbiters::on_new_round(round_index)
+	}
+}
+pub struct PayoutCollatorOrOrbiterReward;
+impl pallet_parachain_staking::PayoutCollatorReward<Runtime> for PayoutCollatorOrOrbiterReward {
+	fn payout_collator_reward(
+		for_round: pallet_parachain_staking::RoundIndex,
+		collator_id: AccountId,
+		amount: Balance,
+	) -> Weight {
+		let extra_weight = if MoonbeamOrbiters::is_orbiter(for_round, collator_id) {
+			MoonbeamOrbiters::distribute_rewards(for_round, collator_id, amount)
+		} else {
+			ParachainStaking::mint_collator_reward(for_round, collator_id, amount)
+		};
+
+		<Runtime as frame_system::Config>::DbWeight::get()
+			.reads(1)
+			.saturating_add(extra_weight)
 	}
 }
 
@@ -775,7 +694,8 @@ impl pallet_parachain_staking::Config for Runtime {
 	/// Minimum stake required to be reserved to be a delegator
 	type MinDelegatorStk = ConstU128<{ 1 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type BlockAuthor = AuthorInherent;
-	type OnCollatorPayout = OnCollatorPayout;
+	type OnCollatorPayout = ();
+	type PayoutCollatorReward = PayoutCollatorOrOrbiterReward;
 	type OnNewRound = OnNewRound;
 	type WeightInfo = pallet_parachain_staking::weights::SubstrateWeight<Runtime>;
 }
@@ -869,8 +789,9 @@ impl InstanceFilter<Call> for ProxyType {
 					c,
 					Call::System(..)
 						| Call::Timestamp(..) | Call::ParachainStaking(..)
-						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::Identity(..) | Call::TechCommitteeCollective(..)
+						| Call::CouncilCollective(..)
+						| Call::Democracy(..) | Call::Identity(..)
+						| Call::TechCommitteeCollective(..)
 						| Call::Utility(..) | Call::Proxy(..)
 						| Call::AuthorMapping(..)
 						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
@@ -1008,8 +929,8 @@ impl Contains<Call> for NormalFilter {
 				pallet_proxy::Call::kill_anonymous { .. } => false,
 				_ => true,
 			},
-			// We filter EVM calls as allowing these calls can cause potential attack vectors
-			// via precompiles (e.g. proxy precompile can erroneously allow privilege escalation)
+			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
+			// lead to unexpected scenarios.
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
@@ -1039,7 +960,7 @@ impl DmpMessageHandler for MaintenanceDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		_limit: Weight,
 	) -> Weight {
-		DmpQueue::handle_dmp_messages(iter, 0)
+		DmpQueue::handle_dmp_messages(iter, Weight::zero())
 	}
 }
 
@@ -1048,7 +969,7 @@ pub struct MaintenanceHooks;
 
 impl OnInitialize<BlockNumber> for MaintenanceHooks {
 	fn on_initialize(n: BlockNumber) -> Weight {
-		AllPalletsReversedWithSystemFirst::on_initialize(n)
+		AllPalletsWithSystem::on_initialize(n)
 	}
 }
 
@@ -1060,34 +981,34 @@ impl OnInitialize<BlockNumber> for MaintenanceHooks {
 // we need to provide it here
 impl OnIdle<BlockNumber> for MaintenanceHooks {
 	fn on_idle(_n: BlockNumber, _max_weight: Weight) -> Weight {
-		0
+		Weight::zero()
 	}
 }
 
 impl OnRuntimeUpgrade for MaintenanceHooks {
 	fn on_runtime_upgrade() -> Weight {
-		AllPalletsReversedWithSystemFirst::on_runtime_upgrade()
+		AllPalletsWithSystem::on_runtime_upgrade()
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
-		AllPalletsReversedWithSystemFirst::pre_upgrade()
+		AllPalletsWithSystem::pre_upgrade()
 	}
 
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade() -> Result<(), &'static str> {
-		AllPalletsReversedWithSystemFirst::post_upgrade()
+		AllPalletsWithSystem::post_upgrade()
 	}
 }
 
 impl OnFinalize<BlockNumber> for MaintenanceHooks {
 	fn on_finalize(n: BlockNumber) {
-		AllPalletsReversedWithSystemFirst::on_finalize(n)
+		AllPalletsWithSystem::on_finalize(n)
 	}
 }
 
 impl OffchainWorker<BlockNumber> for MaintenanceHooks {
 	fn offchain_worker(n: BlockNumber) {
-		AllPalletsReversedWithSystemFirst::offchain_worker(n)
+		AllPalletsWithSystem::offchain_worker(n)
 	}
 }
 
@@ -1100,9 +1021,9 @@ impl pallet_maintenance_mode::Config for Runtime {
 	type XcmExecutionManager = XcmExecutionManager;
 	type NormalDmpHandler = DmpQueue;
 	type MaintenanceDmpHandler = MaintenanceDmpHandler;
-	// We use AllPalletsReversedWithSystemFirst because we dont want to change the hooks in normal
+	// We use AllPalletsWithSystem because we dont want to change the hooks in normal
 	// operation
-	type NormalExecutiveHooks = AllPalletsReversedWithSystemFirst;
+	type NormalExecutiveHooks = AllPalletsWithSystem;
 	type MaintenanceExecutiveHooks = MaintenanceHooks;
 }
 
@@ -1112,6 +1033,7 @@ impl pallet_proxy_genesis_companion::Config for Runtime {
 
 parameter_types! {
 	pub DefaultBaseFeePerGas: U256 = (1 * currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
+	pub DefaultElasticity: Permill = Permill::zero();
 }
 
 pub struct BaseFeeThreshold;
@@ -1131,8 +1053,8 @@ impl pallet_base_fee::Config for Runtime {
 	type Event = Event;
 	type Threshold = BaseFeeThreshold;
 	// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	type IsActive = ConstBool<false>;
 	type DefaultBaseFeePerGas = DefaultBaseFeePerGas;
+	type DefaultElasticity = DefaultElasticity;
 }
 
 parameter_types! {
@@ -1263,6 +1185,11 @@ construct_runtime! {
 		Randomness: pallet_randomness::{Pallet, Call, Storage, Config<T>, Event<T>, Inherent} = 39,
 		TreasuryCouncilCollective:
 			pallet_collective::<Instance3>::{Pallet, Call, Storage, Event<T>, Origin<T>, Config<T>} = 40,
+		ConvictionVoting: pallet_conviction_voting::{Pallet, Call, Storage, Event<T>} = 41,
+		Referenda: pallet_referenda::{Pallet, Call, Storage, Event<T>} = 42,
+		Origins: pallet_custom_origins::{Origin} = 43,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event<T>} = 44,
+		Whitelist: pallet_whitelist::{Pallet, Call, Storage, Event<T>} = 45,
 	}
 }
 
@@ -1600,5 +1527,14 @@ mod tests {
 				input
 			);
 		}
+	}
+
+	#[test]
+	fn configured_base_extrinsic_weight_is_evm_compatible() {
+		let min_ethereum_transaction_weight = WeightPerGas::get() * 21_000;
+		let base_extrinsic = <Runtime as frame_system::Config>::BlockWeights::get()
+			.get(frame_support::weights::DispatchClass::Normal)
+			.base_extrinsic;
+		assert!(base_extrinsic.ref_time() <= min_ethereum_transaction_weight);
 	}
 }

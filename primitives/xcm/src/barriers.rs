@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{ensure, traits::Contains, weights::Weight};
+use frame_support::{ensure, traits::Contains};
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
 /// payments into account and if it starts with DescendOrigin.
 ///
@@ -35,8 +35,8 @@ impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDes
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
+		max_weight: u64,
+		_weight_credit: &mut u64,
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",

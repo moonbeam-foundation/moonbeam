@@ -20,7 +20,7 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::{Delegator, DelegatorStatus};
+use crate::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::Get;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -247,6 +247,9 @@ impl<T: Config> Pallet<T> {
 
 				// remove delegation from delegator state
 				state.rm_delegation::<T>(&collator);
+
+				// remove delegation from auto-compounding info
+				<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
 
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
@@ -479,6 +482,7 @@ impl<T: Config> Pallet<T> {
 				}
 
 				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+				<AutoCompoundDelegations<T>>::remove_auto_compound(&bond.owner, &delegator);
 			}
 			<DelegatorState<T>>::remove(&delegator);
 			Self::deposit_event(Event::DelegatorLeft {
@@ -525,7 +529,10 @@ impl<T: Config> Pallet<T> {
 
 			// remove the scheduled request, since it is fulfilled
 			scheduled_requests.remove(request_idx).action.amount();
-			updated_scheduled_requests.push((collator, scheduled_requests));
+			updated_scheduled_requests.push((collator.clone(), scheduled_requests));
+
+			// remove the auto-compounding entry for the delegation
+			<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
 		}
 
 		// set state.total so that state.adjust_bond_lock will remove lock

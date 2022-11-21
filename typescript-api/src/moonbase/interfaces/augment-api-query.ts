@@ -67,18 +67,15 @@ import type {
   PalletMoonbeamOrbitersCollatorPoolInfo,
   PalletParachainStakingBond,
   PalletParachainStakingCandidateMetadata,
-  PalletParachainStakingCollator2,
-  PalletParachainStakingCollatorCandidate,
   PalletParachainStakingCollatorSnapshot,
   PalletParachainStakingDelayedPayout,
   PalletParachainStakingDelegationRequestsScheduledRequest,
   PalletParachainStakingDelegations,
   PalletParachainStakingDelegator,
   PalletParachainStakingInflationInflationInfo,
-  PalletParachainStakingNominator2,
   PalletParachainStakingParachainBondConfig,
   PalletParachainStakingRoundInfo,
-  PalletParachainStakingSetOrderedSetBond,
+  PalletParachainStakingSetOrderedSet,
   PalletProxyAnnouncement,
   PalletProxyProxyDefinition,
   PalletRandomnessRandomnessResult,
@@ -869,6 +866,13 @@ declare module "@polkadot/api-base/types/storage" {
       currentRound: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
+       * If true, it forces the rotation at the next round. A use case: when
+       * changing RotatePeriod, you need a migration code that sets this value
+       * to true to avoid holes in OrbiterPerRound.
+       */
+      forceRotation: AugmentedQuery<ApiType, () => Observable<bool>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
        * Minimum deposit required to be registered as an orbiter
        */
       minOrbiterDeposit: AugmentedQuery<ApiType, () => Observable<Option<u128>>, []> &
@@ -965,44 +969,10 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, []>;
       /**
-       * DEPRECATED Get collator candidate state associated with an account if
-       * account is a candidate else None
-       */
-      candidateState: AugmentedQuery<
-        ApiType,
-        (
-          arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletParachainStakingCollatorCandidate>>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
        * Commission percent taken off of rewards for all collators
        */
       collatorCommission: AugmentedQuery<ApiType, () => Observable<Perbill>, []> &
         QueryableStorageEntry<ApiType, []>;
-      /**
-       * Temporary storage item to track whether a given collator's reserve has
-       * been migrated.
-       */
-      collatorReserveToLockMigrations: AugmentedQuery<
-        ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<bool>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
-       * DEPRECATED in favor of CandidateState Get collator state associated
-       * with an account if account is collating else None
-       */
-      collatorState2: AugmentedQuery<
-        ApiType,
-        (
-          arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletParachainStakingCollator2>>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * Delayed payouts
        */
@@ -1026,16 +996,6 @@ declare module "@polkadot/api-base/types/storage" {
       > &
         QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
-       * Temporary storage item to track whether a given delegator's reserve has
-       * been migrated.
-       */
-      delegatorReserveToLockMigrations: AugmentedQuery<
-        ApiType,
-        (arg: AccountId20 | string | Uint8Array) => Observable<bool>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
-      /**
        * Get delegator state associated with an account if account is delegating else None
        */
       delegatorState: AugmentedQuery<
@@ -1055,18 +1015,6 @@ declare module "@polkadot/api-base/types/storage" {
         []
       > &
         QueryableStorageEntry<ApiType, []>;
-      /**
-       * DEPRECATED in favor of DelegatorState Get nominator state associated
-       * with an account if account is nominating else None
-       */
-      nominatorState2: AugmentedQuery<
-        ApiType,
-        (
-          arg: AccountId20 | string | Uint8Array
-        ) => Observable<Option<PalletParachainStakingNominator2>>,
-        [AccountId20]
-      > &
-        QueryableStorageEntry<ApiType, [AccountId20]>;
       /**
        * Parachain bond config info { account, percent_of_inflation }
        */
@@ -1202,6 +1150,11 @@ declare module "@polkadot/api-base/types/storage" {
        * messages carried by the system inherent.
        */
       lastHrmpMqcHeads: AugmentedQuery<ApiType, () => Observable<BTreeMap<u32, H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The relay chain block number associated with the last parachain block.
+       */
+      lastRelayChainBlockNumber: AugmentedQuery<ApiType, () => Observable<u32>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * Validation code that is set by the parachain and is to be communicated
@@ -1771,6 +1724,51 @@ declare module "@polkadot/api-base/types/storage" {
         [u32]
       > &
         QueryableStorageEntry<ApiType, [u32]>;
+      /**
+       * Generic query
+       */
+      [key: string]: QueryableStorageEntry<ApiType>;
+    };
+    treasuryCouncilCollective: {
+      /**
+       * The current members of the collective. This is stored sorted (just by value).
+       */
+      members: AugmentedQuery<ApiType, () => Observable<Vec<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * The prime member that helps determine the default vote behavior in case
+       * of absentations.
+       */
+      prime: AugmentedQuery<ApiType, () => Observable<Option<AccountId20>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Proposals so far.
+       */
+      proposalCount: AugmentedQuery<ApiType, () => Observable<u32>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Actual proposal for a given hash, if it's current.
+       */
+      proposalOf: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<Call>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
+      /**
+       * The hashes of the active proposals.
+       */
+      proposals: AugmentedQuery<ApiType, () => Observable<Vec<H256>>, []> &
+        QueryableStorageEntry<ApiType, []>;
+      /**
+       * Votes on a given proposal, if it is ongoing.
+       */
+      voting: AugmentedQuery<
+        ApiType,
+        (arg: H256 | string | Uint8Array) => Observable<Option<PalletCollectiveVotes>>,
+        [H256]
+      > &
+        QueryableStorageEntry<ApiType, [H256]>;
       /**
        * Generic query
        */

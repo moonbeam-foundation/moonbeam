@@ -35,12 +35,17 @@ done
 echo "Generating typescript api code..."
 npm run generate:defs && npm run generate:meta
 
-# Manually fix BTreeSet issue
-echo "Manually fix BTreeSet issue..."
-for CHAIN in ${CHAINS[@]}; do
-  sed -i -e 's/BTreeSet,/BTreeSet as BTreeSetType,/g' src/$CHAIN/interfaces/types-lookup.ts
-  sed -i -e 's/BTreeSet<Bytes>/BTreeSetType<Bytes>/g' src/$CHAIN/interfaces/types-lookup.ts
-done
+# We don't need anymore fix for BTreeSet
+#
+## Manually fix BTreeSet issue
+#echo "Manually fix BTreeSet issue..."
+#for CHAIN in ${CHAINS[@]}; do
+#  sed -i -e 's/BTreeSet,/BTreeSet as BTreeSetType,/g' src/$CHAIN/interfaces/types-lookup.ts
+#  sed -i -e 's/BTreeSet<Bytes>/BTreeSetType<Bytes>/g' src/$CHAIN/interfaces/types-lookup.ts
+#done
 
 # Build the package
 npm run build
+
+# Run post build stuff (like formatter)
+npm run postgenerate

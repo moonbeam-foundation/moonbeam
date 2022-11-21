@@ -41,7 +41,7 @@ use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
-		PatchIncorrectDelegationSums, PurgeStaleStorage,
+		MigrateAtStakeAutoCompound, PatchIncorrectDelegationSums, PurgeStaleStorage,
 		SplitDelegatorStateIntoDelegationScheduledRequests,
 	},
 	Config as ParachainStakingConfig,
@@ -150,6 +150,30 @@ impl<T: ParachainStakingConfig> Migration for ParachainStakingPatchIncorrectDele
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
 		PatchIncorrectDelegationSums::<T>::post_upgrade()
+	}
+}
+
+/// Migrate `AtStake` storage item to contain 0% auto-compound values
+pub struct ParachainStakingMigrateAtStakeAutoCompound<T>(PhantomData<T>);
+impl<T: ParachainStakingConfig> Migration for ParachainStakingMigrateAtStakeAutoCompound<T> {
+	fn friendly_name(&self) -> &str {
+		"MM_Parachain_Staking_Migrate_At_Stake_AutoCompound"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		MigrateAtStakeAutoCompound::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<(), &'static str> {
+		MigrateAtStakeAutoCompound::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self) -> Result<(), &'static str> {
+		MigrateAtStakeAutoCompound::<T>::post_upgrade()
 	}
 }
 
@@ -313,7 +337,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeePerGas<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 2 * db_weights.read;
+		let mut weight: Weight = db_weights.reads(2);
 		// BaseFeePerGas storage value
 		{
 			let item: &[u8] = b"BaseFeePerGas";
@@ -612,7 +636,7 @@ impl<T: BaseFeeConfig> OnRuntimeUpgrade for BaseFeeElasticity<T> {
 	fn on_runtime_upgrade() -> Weight {
 		let module: &[u8] = b"BaseFee";
 		let db_weights = T::DbWeight::get();
-		let mut weight: Weight = 1 * db_weights.read;
+		let mut weight: Weight = db_weights.reads(1);
 		// Elasticity storage value
 		{
 			let item: &[u8] = b"Elasticity";
@@ -737,9 +761,10 @@ where
 		// let xcm_supported_assets = XcmPaymentSupportedAssets::<Runtime>(Default::default());
 
 		let migration_elasticity = MigrateBaseFeeElasticity::<Runtime>(Default::default());
+		let staking_at_stake_auto_compound =
+			ParachainStakingMigrateAtStakeAutoCompound::<Runtime>(Default::default());
 		let randomness_remove_not_first_block =
 			RandomnessRemoveNotFirstBlock::<Runtime>(Default::default());
-
 		vec![
 			// completed in runtime 800
 			// Box::new(migration_author_mapping_twox_to_blake),
@@ -778,6 +803,7 @@ where
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
 			Box::new(migration_elasticity),
+			Box::new(staking_at_stake_auto_compound),
 			Box::new(randomness_remove_not_first_block),
 		]
 	}

@@ -21,13 +21,24 @@ jobs:
           # Clear the dummy container if it wasn't properly cleaned up
           docker rm -f dummy 2> /dev/null
           docker create -ti --name dummy $DOCKER_TAG bash
+          mkdir -p build
           docker cp dummy:/moonbeam/moonbeam build/moonbeam
           docker rm -f dummy
       - name: Use Node.js 16.x
         uses: actions/setup-node@v2
         with:
           node-version: 16.x
-      - name: import runtime
+      - name: Upgrade polkadotjs for moonbeam-types-bundle
+        run: |
+          cd moonbeam-types-bundle
+          npm install @polkadot/api@latest
+      - name: Upgrade polkadotjs for typescript-api
+        run: |
+          cd typescript-api
+          npm install @polkadot/api@latest
+          npm install @polkadot/typegen@latest
+          npm run build
+      - name: regenerate typescript api with new runtime metadata
         run: |
           cd typescript-api
           ./scripts/runtime-upgrade.sh ${{ github.event.inputs.spec_version }}
@@ -40,3 +51,4 @@ jobs:
           draft: true
           title: "Upgrade typescript API for runtime  ${{ github.event.inputs.spec_version }}"
           reviewers: "librelois,ekenigs,crystalin"
+          labels: "B0-silent,D2-notlive"

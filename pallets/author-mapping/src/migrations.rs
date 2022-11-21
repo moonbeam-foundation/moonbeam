@@ -55,7 +55,10 @@ impl<T: Config> OnRuntimeUpgrade for AddAccountIdToNimbusLookup<T> {
 			}
 		});
 		// return weight
-		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
+
+		T::DbWeight::get()
+			.reads(read_write_count)
+			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {
@@ -123,7 +126,9 @@ impl<T: Config> OnRuntimeUpgrade for AddKeysToRegistrationInfo<T> {
 			},
 		);
 		// return weight
-		read_write_count.saturating_mul(T::DbWeight::get().read + T::DbWeight::get().write)
+		T::DbWeight::get()
+			.reads(read_write_count)
+			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<(), &'static str> {

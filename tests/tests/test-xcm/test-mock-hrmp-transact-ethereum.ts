@@ -13,6 +13,7 @@ import {
   injectHrmpMessageAndSeal,
   RawXcmMessage,
   XcmFragment,
+  weightMessage,
 } from "../../util/xcm";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
@@ -331,15 +332,34 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (asset fee)
     expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
 
-    // Deposit asset
-    const xcmMessage = new XcmFragment({
+    let config = {
       fees: {
         multilocation: [ASSET_MULTILOCATION],
-        fungible: assetsToTransfer + 800_000_000n,
+        fungible: 0n,
       },
-      weight_limit: new BN(800_000_000),
       beneficiary: descendOriginAddress,
-    })
+    };
+
+    // How much will the message weight?
+    const chargedWeight = await weightMessage(
+      context,
+      context.polkadotApi.createType(
+        "XcmVersionedXcm",
+        new XcmFragment(config)
+          .reserve_asset_deposited()
+          .clear_origin()
+          .buy_execution()
+          .deposit_asset()
+          .as_v2()
+      ) as any
+    );
+
+    // we modify the config now:
+    // we send assetsToTransfer plus whatever we will be charged in weight
+    config.fees.fungible = assetsToTransfer + chargedWeight;
+
+    // Construct the real message
+    const xcmMessage = new XcmFragment(config)
       .reserve_asset_deposited()
       .clear_origin()
       .buy_execution()
@@ -1476,6 +1496,135 @@ describeDevMoonbeam("Mock XCM - transact ETHEREUM input size check fails", (cont
       // Input size is invalid by 1 byte, expect block to not include a transaction.
       // That means the pallet-ethereum-xcm couldn't decode the provided input to a BoundedVec.
       expect(block.transactions.length).to.be.eq(0);
+    }
+  });
+});
+
+describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)", (context) => {
+  let transferredBalance;
+  let sendingAddress;
+  let descendAddress;
+  let random: KeyringPair;
+
+  before("should receive ethereum transact and account weight used", async function () {
+    const { originAddress, descendOriginAddress } = descendOriginFromAddress(context);
+    sendingAddress = originAddress;
+    descendAddress = descendOriginAddress;
+    random = generateKeyringPair();
+    transferredBalance = 10_000_000_000_000_000_000n;
+
+    // We first fund parachain 2000 sovreign account
+    await expectOk(
+      context.createBlock(
+        context.polkadotApi.tx.balances.transfer(descendOriginAddress, transferredBalance)
+      )
+    );
+    const balance = (
+      (await context.polkadotApi.query.system.account(descendOriginAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance).to.eq(transferredBalance);
+  });
+
+  it("should receive transact and should use less weight than gas limit", async function () {
+    // Get Pallet balances index
+    const metadata = await context.polkadotApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+
+    const amountToTransfer = transferredBalance / 10n;
+
+    // We will put a very high gas limit. However, the weight accounted
+    // for the block should only
+    const xcmTransactions = [
+      {
+        V1: {
+          gas_limit: 500_000,
+          fee_payment: {
+            Auto: {
+              Low: null,
+            },
+          },
+          action: {
+            Call: random.address,
+          },
+          value: amountToTransfer,
+          input: [],
+          access_list: null,
+        },
+      },
+    ];
+
+    let expectedTransferredAmount = 0n;
+    let expectedTransferredAmountPlusFees = 0n;
+
+    const targetXcmWeight = 500_000n * 25000n + 25_000_000n + 800000000n;
+    const targetXcmFee = targetXcmWeight * 50_000n;
+
+    for (const xcmTransaction of xcmTransactions) {
+      expectedTransferredAmount += amountToTransfer;
+      expectedTransferredAmountPlusFees += amountToTransfer + targetXcmFee;
+      // TODO need to update lookup types for xcm ethereum transaction V2
+      const transferCall = context.polkadotApi.tx.ethereumXcm.transact(xcmTransaction as any);
+      const transferCallEncoded = transferCall?.method.toHex();
+
+      // We are going to test that we can receive a transact operation from parachain 1
+      // using descendOrigin first
+      const xcmMessage = new XcmFragment({
+        fees: {
+          multilocation: [
+            {
+              parents: 0,
+              interior: {
+                X1: { PalletInstance: balancesPalletIndex },
+              },
+            },
+          ],
+          fungible: targetXcmFee,
+        },
+        weight_limit: new BN(targetXcmWeight.toString()),
+        descend_origin: sendingAddress,
+      })
+        .descend_origin()
+        .withdraw_asset()
+        .buy_execution()
+        .push_any({
+          Transact: {
+            originType: "SovereignAccount",
+            // 500_000 gas limit + db read
+            requireWeightAtMost: new BN(12_500_000_000).add(new BN(25_000_000)),
+            call: {
+              encoded: transferCallEncoded,
+            },
+          },
+        })
+        .as_v2();
+
+      // Send an XCM and create block to execute it
+      await injectHrmpMessageAndSeal(context, 1, {
+        type: "XcmVersionedXcm",
+        payload: xcmMessage,
+      } as RawXcmMessage);
+
+      // Make sure the state has ALITH's foreign parachain tokens
+      const testAccountBalance = (
+        await context.polkadotApi.query.system.account(random.address)
+      ).data.free.toBigInt();
+      expect(testAccountBalance).to.eq(expectedTransferredAmount);
+
+      // Make sure ALITH has been deducted fees once (in xcm-executor) and balance has been
+      // transfered through evm.
+      const alithAccountBalance = await context.web3.eth.getBalance(descendAddress);
+      expect(BigInt(alithAccountBalance)).to.eq(
+        transferredBalance - expectedTransferredAmountPlusFees
+      );
+
+      const weightBlock = await context.polkadotApi.query.system.blockWeight();
+      // Make sure the system block weight corresponds to gas used and not gas limit
+      // It should be sufficient to verify that we used less than what was marked
+      expect(12_500_000_000n + 25_000_000n - weightBlock.mandatory.toBigInt() > 0n).to.be.true;
     }
   });
 });
