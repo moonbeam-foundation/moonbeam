@@ -1463,7 +1463,7 @@ fn root_can_change_default_xcm_vers() {
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-					4000000000
+					WeightLimit::Limited(4000000000)
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1480,7 +1480,7 @@ fn root_can_change_default_xcm_vers() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
-				4000000000
+				WeightLimit::Limited(4000000000)
 			));
 		})
 }
@@ -2324,7 +2324,7 @@ fn make_sure_glmr_can_be_transferred_precompile() {
 					fun: Fungible(1000)
 				})),
 				Box::new(VersionedMultiLocation::V1(dest)),
-				40000
+				WeightLimit::Limited(40000)
 			));
 		});
 }
@@ -2356,7 +2356,7 @@ fn make_sure_glmr_can_be_transferred() {
 				CurrencyId::SelfReserve,
 				100,
 				Box::new(VersionedMultiLocation::V1(dest)),
-				40000
+				WeightLimit::Limited(40000)
 			));
 		});
 }
@@ -2710,8 +2710,8 @@ fn call_xtokens_with_fee() {
 				100_000_000_000_000,
 				100,
 				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-				4000000000
-			),);
+				WeightLimit::Limited(4000000000)
+			));
 
 			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
 			// At least these much (plus fees) should have been charged

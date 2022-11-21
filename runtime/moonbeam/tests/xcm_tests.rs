@@ -164,7 +164,7 @@ fn send_relay_asset_to_relay() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			123,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -265,7 +265,7 @@ fn send_relay_asset_to_para_b() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -332,7 +332,7 @@ fn send_para_a_asset_to_para_b() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			800000
+			WeightLimit::Limited(800000)
 		));
 	});
 
@@ -415,7 +415,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			80
+			WeightLimit::Limited(80)
 		));
 	});
 
@@ -450,7 +450,7 @@ fn send_para_a_asset_from_para_b_to_para_c() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			80
+			WeightLimit::Limited(80)
 		));
 	});
 
@@ -510,7 +510,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			80
+			WeightLimit::Limited(80)
 		));
 	});
 
@@ -544,7 +544,7 @@ fn send_para_a_asset_to_para_b_and_back_to_para_a() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			80
+			WeightLimit::Limited(80)
 		));
 	});
 
@@ -667,7 +667,7 @@ fn send_para_a_asset_to_para_b_with_trader() {
 			parachain::CurrencyId::SelfReserve,
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			10
+			WeightLimit::Limited(10)
 		));
 	});
 	ParaA::execute_with(|| {
@@ -742,7 +742,7 @@ fn send_para_a_asset_to_para_b_with_trader_and_fee() {
 			100,
 			1,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			800000
+			WeightLimit::Limited(800000)
 		));
 	});
 	ParaA::execute_with(|| {
@@ -911,7 +911,7 @@ fn transact_through_derivative_multilocation() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -1052,7 +1052,7 @@ fn transact_through_derivative_with_custom_fee_weight() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -1217,7 +1217,7 @@ fn transact_through_sovereign() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -1366,7 +1366,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 			parachain::CurrencyId::ForeignAsset(source_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			40000
+			WeightLimit::Limited(40000)
 		));
 	});
 
@@ -2041,7 +2041,7 @@ fn send_para_a_local_asset_to_para_b() {
 			parachain::CurrencyId::LocalAssetReserve(asset_id),
 			100,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			800000
+			WeightLimit::Limited(800000)
 		));
 	});
 
@@ -2147,7 +2147,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_glmr() 
 			],
 			0,
 			Box::new(VersionedMultiLocation::V1(dest)),
-			800000
+			WeightLimit::Limited(800000)
 		));
 	});
 
@@ -2193,7 +2193,7 @@ fn send_para_a_local_asset_to_para_b_and_send_it_back_together_with_some_glmr() 
 			],
 			0,
 			Box::new(VersionedMultiLocation::V1(new_dest)),
-			4
+			WeightLimit::Limited(4)
 		));
 	});
 

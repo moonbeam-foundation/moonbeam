@@ -1442,7 +1442,7 @@ fn root_can_change_default_xcm_vers() {
 					CurrencyId::ForeignAsset(source_id),
 					100_000_000_000_000,
 					Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-					4000000000
+					WeightLimit::Limited(4000000000)
 				),
 				orml_xtokens::Error::<Runtime>::XcmExecutionFailed
 			);
@@ -1459,7 +1459,7 @@ fn root_can_change_default_xcm_vers() {
 				CurrencyId::ForeignAsset(source_id),
 				100_000_000_000_000,
 				Box::new(xcm::VersionedMultiLocation::V1(dest)),
-				4000000000
+				WeightLimit::Limited(4000000000)
 			));
 		})
 }
@@ -2624,7 +2624,7 @@ fn call_xtokens_with_fee() {
 				100_000_000_000_000,
 				100,
 				Box::new(xcm::VersionedMultiLocation::V1(dest.clone())),
-				4000000000
+				WeightLimit::Limited(4000000000)
 			),);
 
 			let after_balance = Assets::balance(source_id, &AccountId::from(ALICE));
