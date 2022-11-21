@@ -18,6 +18,8 @@ type BlockFilteredRecord = {
   blockNum: number;
   extrinsics: GenericExtrinsic<AnyTuple>[];
   events: FrameSystemEventRecord[];
+  ethTxns;
+  receipts;
 };
 
 describeSmokeSuite(
@@ -39,8 +41,8 @@ describeSmokeSuite(
           blockNum: blockNum,
           extrinsics: signedBlock.block.extrinsics,
           events: await apiAt.query.system.events(),
-          ethTxns: await apiAt.query.ethereum.currentTransactionStatuses(),
-          receipts: await apiAt.query.ethereum.currentReceipts(),
+          ethTxns: (await apiAt.query.ethereum.currentTransactionStatuses()).unwrap(),
+          receipts: (await apiAt.query.ethereum.currentReceipts()).unwrap(),
         };
       };
 
@@ -146,19 +148,50 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should have a txn in emulated block for each ethereum.transact extrinsic", function () {
-      this.timeout(timeout);
-      // find all ethereum transact exts
-      // length of all eth txns in block == length of transactionsStatuses
-      // iterate through list and check it has matching txn in emulated block
+    it("should have matching amounts in emulated block as there are ethereum.transact extrinsics", function () {
+      const ethExts = blockData.map(({ blockNum, ethTxns, extrinsics }) => {
+        const matched = extrinsics.filter(
+          ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+        );
+
+        return { blockNum, ethTxns: ethTxns.length , ethExts: matched.length };
+      });
+      const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
+      failures.forEach((a) =>
+        debug(
+          `Block #${a.blockNum} has mismatching amounts - ` +
+            `${a.ethExts} eth extrinsics vs ` +
+            `${a.ethTxns} eth txns.`
+        )
+      );
+
+      expect(
+        failures.length,
+        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures.map((a) => a.blockNum).join(`, `)}`
+      ).to.equal(0);
     });
 
     it("should have a receipt in emulated block for each ethereum.transact extrinsic", function () {
-      this.timeout(timeout);
-      // find all ethereum transact exts
-      // length of all eth txns in block == length of receipts
-      // iterate through list and check it has matching txn in emulated block
+      const ethExts = blockData.map(({ blockNum, receipts, extrinsics }) => {
+        const matched = extrinsics.filter(
+          ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+        );
+
+        return { blockNum, ethTxns: receipts.length , ethExts: matched.length };
+      });
+      const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
+      failures.forEach((a) =>
+        debug(
+          `Block #${a.blockNum} has mismatching amounts - ` +
+            `${a.ethExts} eth extrinsics vs ` +
+            `${a.ethTxns} eth txns.`
+        )
+      );
+
+      expect(
+        failures.length,
+        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures.map((a) => a.blockNum).join(`, `)}`
+      ).to.equal(0);
     });
-    /// TODO ADD THE OTHER CASES WE NEED TO FILTER FOR
   }
 );
