@@ -23,7 +23,7 @@ use crate::{
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
-	weights::Weight,
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
 use sp_io;
@@ -62,7 +62,7 @@ parameter_types! {
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = ();
+	type DbWeight = RocksDbWeight;
 	type Origin = Origin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
@@ -141,6 +141,7 @@ impl Config for Test {
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
+	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }
@@ -249,7 +250,7 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-pub(crate) fn roll_one_block() -> BlockNumber {
+fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
@@ -261,7 +262,7 @@ pub(crate) fn roll_one_block() -> BlockNumber {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
+pub(crate) fn roll_to(n: BlockNumber) -> u32 {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -269,6 +270,15 @@ pub(crate) fn roll_to(n: BlockNumber) -> BlockNumber {
 		num_blocks += 1;
 	}
 	num_blocks
+}
+
+/// Rolls desired number of blocks. Returns the final block.
+pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
+	let mut block = System::block_number();
+	for _ in 0..num_blocks {
+		block = roll_one_block();
+	}
+	block
 }
 
 /// Rolls block-by-block to the beginning of the specified round.
