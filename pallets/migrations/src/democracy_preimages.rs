@@ -112,10 +112,12 @@ pub(crate) type PreimageFor<T> = StorageMap<
 
 impl<T: super::Config> super::Pallet<T> {
 	pub(crate) fn migrate_democracy_preimage_inner(
-		_origin: OriginFor<T>,
+		origin: OriginFor<T>,
 		proposal_hash: T::Hash,
 		proposal_len_upper_bound: u32,
 	) -> DispatchResultWithPostInfo {
+		let _who = ensure_signed(origin);
+
 		// Check that this hash doesn't already exist in the new storage.
 		ensure!(
 			!StatusFor::<T>::contains_key(proposal_hash),

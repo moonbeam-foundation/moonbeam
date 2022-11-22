@@ -21,16 +21,21 @@ sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-pol
 sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
+# Benchmarks
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", optional = true, default-features = false }
+
 
 [dev-dependencies]
 environmental = "1.1.2"
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
 default = [ "std" ]
 std = [ "frame-support/std", "frame-system/std", "pallet-democracy/std", "pallet-preimage/std", "scale-info/std", "sp-core/std", "sp-io/std", "sp-runtime/std", "sp-std/std" ]
+runtime-benchmarks = [ "frame-benchmarking" ]
 try-runtime = [
 	"frame-support/try-runtime",
 ]

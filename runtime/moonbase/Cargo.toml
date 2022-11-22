@@ -129,7 +129,7 @@ pallet-author-inherent = { git = "https://github.com/purestake/nimbus", branch =
 pallet-author-slot-filter = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 parachain-info = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
-# Polkadot / XCM 
+# Polkadot / XCM
 orml-traits = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 orml-xcm-support = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 orml-xtokens = { git = "https://github.com/purestake/open-runtime-module-library", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -292,6 +292,7 @@ runtime-benchmarks = [
 	"pallet-crowdloan-rewards/runtime-benchmarks",
 	"pallet-ethereum-xcm/runtime-benchmarks",
 	"pallet-ethereum/runtime-benchmarks",
+	"pallet-migrations/runtime-benchmarks",
 	"pallet-moonbeam-orbiters/runtime-benchmarks",
 	"pallet-parachain-staking/runtime-benchmarks",
 	"pallet-preimage/runtime-benchmarks",

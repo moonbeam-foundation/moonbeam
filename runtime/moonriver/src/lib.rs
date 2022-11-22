@@ -956,6 +956,7 @@ impl pallet_migrations::Config for Runtime {
 		CouncilCollective,
 		TechCommitteeCollective,
 	>;
+	type WeightInfo = pallet_migrations::weights::SubstrateWeight<Runtime>;
 }
 
 /// Maintenance mode Call filter

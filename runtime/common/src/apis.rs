@@ -468,6 +468,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -488,6 +489,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
+					list_benchmark!(list, extra, pallet_migrations, MigrationsBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -600,6 +602,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -710,6 +713,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_randomness,
 						RandomnessBench::<Runtime>
+					);
+
+					add_benchmark!(
+						params,
+						batches,
+						pallet_migrations,
+						MigrationsBench::<Runtime>
 					);
 
 					add_benchmark!(
