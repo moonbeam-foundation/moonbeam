@@ -930,6 +930,13 @@ impl Contains<RuntimeCall> for NormalFilter {
 				pallet_xcm::Call::force_default_xcm_version { .. } => true,
 				_ => false,
 			},
+			// We filter anonymous proxy as they make "reserve" inconsistent
+			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
+			RuntimeCall::Proxy(method) => match method {
+				pallet_proxy::Call::create_pure { .. } => false,
+				pallet_proxy::Call::kill_pure { .. } => false,
+				_ => true,
+			},
 			// Filtering the EVM prevents possible re-entrancy from the precompiles which could
 			// lead to unexpected scenarios.
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
