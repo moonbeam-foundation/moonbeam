@@ -148,28 +148,34 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should have matching amounts in emulated block as there are ethereum.transact extrinsics", function () {
-      const ethExts = blockData.map(({ blockNum, ethTxns, extrinsics }) => {
-        const matched = extrinsics.filter(
-          ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+    it(
+      "should have matching amounts in emulated" +
+        " block as there are ethereum.transact extrinsics",
+      function () {
+        const ethExts = blockData.map(({ blockNum, ethTxns, extrinsics }) => {
+          const matched = extrinsics.filter(
+            ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+          );
+
+          return { blockNum, ethTxns: ethTxns.length, ethExts: matched.length };
+        });
+        const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
+        failures.forEach((a) =>
+          debug(
+            `Block #${a.blockNum} has mismatching amounts - ` +
+              `${a.ethExts} eth extrinsics vs ` +
+              `${a.ethTxns} eth txns.`
+          )
         );
 
-        return { blockNum, ethTxns: ethTxns.length , ethExts: matched.length };
-      });
-      const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
-      failures.forEach((a) =>
-        debug(
-          `Block #${a.blockNum} has mismatching amounts - ` +
-            `${a.ethExts} eth extrinsics vs ` +
-            `${a.ethTxns} eth txns.`
-        )
-      );
-
-      expect(
-        failures.length,
-        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures.map((a) => a.blockNum).join(`, `)}`
-      ).to.equal(0);
-    });
+        expect(
+          failures.length,
+          `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures
+            .map((a) => a.blockNum)
+            .join(`, `)}`
+        ).to.equal(0);
+      }
+    );
 
     it("should have a receipt in emulated block for each ethereum.transact extrinsic", function () {
       const ethExts = blockData.map(({ blockNum, receipts, extrinsics }) => {
@@ -177,7 +183,7 @@ describeSmokeSuite(
           ({ method: { method, section } }) => method === "transact" && section === "ethereum"
         );
 
-        return { blockNum, ethTxns: receipts.length , ethExts: matched.length };
+        return { blockNum, ethTxns: receipts.length, ethExts: matched.length };
       });
       const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
       failures.forEach((a) =>
@@ -190,7 +196,9 @@ describeSmokeSuite(
 
       expect(
         failures.length,
-        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures.map((a) => a.blockNum).join(`, `)}`
+        `Accepted ETH transactions do not match submitted ETH extrinsics for blocks: ${failures
+          .map((a) => a.blockNum)
+          .join(`, `)}`
       ).to.equal(0);
     });
   }
