@@ -27,7 +27,7 @@ describeSmokeSuite(
 
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
 
-      const getErrors = async (blockNum: number) => {
+      const getEvents = async (blockNum: number) => {
         const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockNum);
         const apiAt = await context.polkadotApi.at(blockHash);
         const events = await apiAt.query.system.events();
@@ -35,7 +35,7 @@ describeSmokeSuite(
       };
 
       blockEvents = await Promise.all(
-        blockNumArray.map((num) => limiter.schedule(() => getErrors(num)))
+        blockNumArray.map((num) => limiter.schedule(() => getEvents(num)))
       );
     });
     it("should not have UnsupportedVersion errors on DMP queue", async function () {
@@ -309,7 +309,7 @@ describeSmokeSuite(
 
       const fiveMinutesOfBlocks = await getBlockArray(context.relayApi, FIVE_MINS, limiter);
 
-      const getErrors = async (blockNum: number) => {
+      const getEvents = async (blockNum: number) => {
         const blockHash = await context.relayApi.rpc.chain.getBlockHash(blockNum);
         const apiAt = await context.relayApi.at(blockHash);
         const events = await apiAt.query.system.events();
@@ -317,7 +317,7 @@ describeSmokeSuite(
       };
 
       const fiveMinutesOfEvents = await Promise.all(
-        fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getErrors(num)))
+        fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getEvents(num)))
       );
 
       const responses = channels.map((channel) => {
