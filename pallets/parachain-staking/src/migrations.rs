@@ -35,7 +35,7 @@ use frame_support::Twox64Concat;
 use parity_scale_codec::{Decode, Encode};
 extern crate alloc;
 #[cfg(feature = "try-runtime")]
-use alloc::format;
+use alloc::{format, string::ToString};
 use frame_support::{
 	migration::storage_key_iter,
 	pallet_prelude::PhantomData,

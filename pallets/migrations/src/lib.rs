@@ -28,6 +28,11 @@ use frame_support::{pallet, weights::Weight};
 
 pub use pallet::*;
 
+#[cfg(feature = "try-runtime")]
+extern crate alloc;
+#[cfg(feature = "try-runtime")]
+use alloc::string::{String, ToString};
+
 #[cfg(test)]
 #[macro_use]
 extern crate environmental;
@@ -49,13 +54,13 @@ pub trait Migration {
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		Ok(())
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		Ok(Vec::new())
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), &'static str> {
 		Ok(())
 	}
 }
@@ -145,8 +150,10 @@ pub mod pallet {
 		}
 
 		#[cfg(feature = "try-runtime")]
-		fn pre_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+			let mut state_map: BTreeMap<String, bool> = BTreeMap::new();
+			let mut migration_states_map: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
 			let mut failed = false;
 			for migration in &T::MigrationsList::get_migrations() {
@@ -164,10 +171,11 @@ pub mod pallet {
 
 				// dump the migration name to temp storage so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
-				Self::set_temp_storage(true, migration_name);
+				state_map.insert(migration_name.to_string(), true);
 
 				match migration.pre_upgrade() {
-					Ok(()) => {
+					Ok(state) => {
+						migration_states_map.insert(migration_name.to_string(), state);
 						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
 					}
 					Err(msg) => {
@@ -180,17 +188,21 @@ pub mod pallet {
 			if failed {
 				Err("One or more pre_upgrade tests failed; see output above.")
 			} else {
-				Ok(())
+				Ok((state_map, migration_states_map).encode())
 			}
 		}
 
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		#[cfg(feature = "try-runtime")]
-		fn post_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+
+			let (state_map, migration_states_map): (
+				BTreeMap<String, bool>,
+				BTreeMap<String, Vec<u8>>,
+			) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
-
 			let mut failed = false;
 			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
@@ -198,8 +210,12 @@ pub mod pallet {
 				// we can't query MigrationState because on_runtime_upgrade() would have
 				// unconditionally set it to true, so we read a hint from temp storage which was
 				// left for us by pre_upgrade()
-				match Self::get_temp_storage::<bool>(migration_name) {
-					Some(value) => assert!(true == value, "our dummy value might as well be true"),
+
+				match state_map.get(&migration_name.to_string()) {
+					Some(value) => assert!(
+						true == value.clone(),
+						"our dummy value might as well be true"
+					),
 					None => continue,
 				}
 
@@ -208,18 +224,20 @@ pub mod pallet {
 					"invoking post_upgrade() on migration {}", migration_name
 				);
 
-				let result = migration.post_upgrade();
-				match result {
-					Ok(()) => {
-						log::info!("migration {} post_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!(
-							"migration {} post_upgrade() => Err({})",
-							migration_name,
-							msg
-						);
-						failed = true;
+				if let Some(state) = migration_states_map.get(&migration_name.to_string()) {
+					let result = migration.post_upgrade(state.clone());
+					match result {
+						Ok(()) => {
+							log::info!("migration {} post_upgrade() => Ok()", migration_name);
+						}
+						Err(msg) => {
+							log::error!(
+								"migration {} post_upgrade() => Err({})",
+								migration_name,
+								msg
+							);
+							failed = true;
+						}
 					}
 				}
 			}

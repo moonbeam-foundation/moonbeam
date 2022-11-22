@@ -30,8 +30,6 @@ mod tests;
 use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
-#[cfg(feature = "try-runtime")]
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	codec::{Decode, Encode, MaxEncodedLen},
 	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
