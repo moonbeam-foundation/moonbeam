@@ -191,7 +191,6 @@ where
 	#[precompile::public("propose(bytes32,uint256)")]
 	fn propose(handle: &mut impl PrecompileHandle, proposal_hash: H256, value: U256) -> EvmResult {
 		handle.record_log_costs_manual(2, 32)?;
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		// Fetch data from pallet
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -206,6 +205,7 @@ where
 
 		// This forces it to have the proposal in pre-images.
 		// TODO: REVISIT
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
 			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
 		})?;
@@ -464,6 +464,8 @@ where
 
 		// To mimic imminent preimage behavior, we need to check whether the preimage
 		// has been requested
+		// is_requested implies db read
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let proposal_hash = <Runtime as frame_system::Config>::Hashing::hash(&encoded_proposal);
 		if !<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
 			&proposal_hash.into(),
