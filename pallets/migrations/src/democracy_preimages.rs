@@ -28,7 +28,7 @@ use {
 };
 
 /// Maximum size of preimage we can store is 4mb.
-const MAX_SIZE: u32 = 4 * 1024 * 1024;
+pub const MAX_SIZE: u32 = 4 * 1024 * 1024;
 
 pub type BalanceOf<T> = <<T as pallet_democracy::Config>::Currency as Currency<
 	<T as frame_system::Config>::AccountId,

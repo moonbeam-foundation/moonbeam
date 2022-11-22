@@ -25,6 +25,8 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 [dev-dependencies]
 environmental = "1.1.2"
 sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
 default = [ "std" ]
