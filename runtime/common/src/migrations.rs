@@ -18,7 +18,6 @@
 
 use frame_support::{
 	dispatch::GetStorageVersion,
-	storage::migration::get_storage_value,
 	traits::{Get, Hash as PreimageHash, OnRuntimeUpgrade, PalletInfoAccess},
 	weights::Weight,
 };
@@ -35,7 +34,6 @@ use pallet_author_mapping::{
 };
 use pallet_author_slot_filter::migration::EligibleRatioToEligiblityCount;
 use pallet_author_slot_filter::Config as AuthorSlotFilterConfig;
-use pallet_base_fee::Config as BaseFeeConfig;
 use pallet_migrations::{GetMigrations, Migration};
 use pallet_parachain_staking::{
 	migrations::{
@@ -47,7 +45,6 @@ use pallet_parachain_staking::{
 use pallet_xcm_transactor::{
 	migrations::TransactSignedWeightAndFeePerSecond, Config as XcmTransactorConfig,
 };
-use sp_runtime::Permill;
 use sp_std::{marker::PhantomData, prelude::*};
 use xcm::latest::MultiLocation;
 
