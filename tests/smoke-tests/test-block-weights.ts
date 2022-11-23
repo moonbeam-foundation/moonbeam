@@ -50,6 +50,7 @@ describeSmokeSuite(
         const specVersion = apiAt.consts.system.version.specVersion.toNumber();
         const events = await apiAt.query.system.events();
         if (specVersion >= 1700) {
+          // TODO: replace type when we update to use SpWeightsWeightV2Weight
           const { normal, operational, mandatory } =
             (await apiAt.query.system.blockWeight()) as any;
           return {
