@@ -587,32 +587,6 @@ impl<T: pallet_scheduler::Config> Migration for SchedulerMigrationV3<T> {
 	}
 }*/
 
-pub struct SchedulerMigrationV4<T>(PhantomData<T>);
-impl<T> Migration for SchedulerMigrationV4<T>
-where
-	T: pallet_scheduler::Config<Hash = PreimageHash> + frame_system::Config,
-{
-	fn friendly_name(&self) -> &str {
-		"MM_SchedulerMigrationV4"
-	}
-
-	fn migrate(&self, _available_weight: Weight) -> Weight {
-		pallet_scheduler::migration::v3::MigrateToV4::<T>::on_runtime_upgrade()
-	}
-
-	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
-		pallet_scheduler::migration::v3::MigrateToV4::<T>::pre_upgrade()
-	}
-
-	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
-	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
-		pallet_scheduler::migration::v3::MigrateToV4::<T>::post_upgrade(state)
-	}
-}
-
 /// BaseFee pallet, set Elasticity to zero.
 /// This migration needs to be applied before or at the same time we introduce:
 /// https://github.com/paritytech/frontier/pull/794
@@ -694,6 +668,32 @@ impl<T: BaseFeeConfig> Migration for MigrateBaseFeeElasticity<T> {
 		BaseFeeElasticity::<T>::post_upgrade()
 	}
 }*/
+
+pub struct SchedulerMigrationV4<T>(PhantomData<T>);
+impl<T> Migration for SchedulerMigrationV4<T>
+where
+	T: pallet_scheduler::Config<Hash = PreimageHash> + frame_system::Config,
+{
+	fn friendly_name(&self) -> &str {
+		"MM_SchedulerMigrationV4"
+	}
+
+	fn migrate(&self, _available_weight: Weight) -> Weight {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::on_runtime_upgrade()
+	}
+
+	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::pre_upgrade()
+	}
+
+	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(&self, state: Vec<u8>) -> Result<(), &'static str> {
+		pallet_scheduler::migration::v3::MigrateToV4::<T>::post_upgrade(state)
+	}
+}
 
 pub struct DemocracryMigrationHashToBoundedCall<T>(PhantomData<T>);
 impl<T> Migration for DemocracryMigrationHashToBoundedCall<T>
@@ -853,13 +853,13 @@ where
 			// Box::new(migration_author_slot_filter_eligible_ratio_to_eligibility_count),
 			// Box::new(migration_author_mapping_add_keys_to_registration_info),
 			// Box::new(staking_delegator_state_requests),
-
 			// completed in runtime 1600
 			// Box::new(migration_author_mapping_add_account_id_to_nimbus_lookup),
 			// completed in runtime 1600
 			// Box::new(xcm_transactor_transact_signed),
 			// completed in runtime 1700
 			//Box::new(migration_elasticity),
+			// completed in runtime 1900
 			Box::new(staking_at_stake_auto_compound),
 			Box::new(scheduler_to_v4),
 			Box::new(democracy_migration_hash_to_bounded_call),
