@@ -657,7 +657,6 @@ pub mod pallet {
 					<Pallet<T>>::get_collator_stakable_free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
-				candidate_count = candidate_count.saturating_add(1u32);
 				if let Err(error) = <Pallet<T>>::join_candidates(
 					T::RuntimeOrigin::from(Some(candidate.clone()).into()),
 					balance,
@@ -1773,20 +1772,10 @@ pub mod pallet {
 					bond.amount = match requests.get(&bond.owner) {
 						None => bond.amount,
 						Some(DelegationAction::Revoke(_)) => {
-							log::warn!(
-								"reward for delegator '{:?}' set to zero due to pending \
-								revoke request",
-								bond.owner
-							);
 							uncounted_stake = uncounted_stake.saturating_add(bond.amount);
 							BalanceOf::<T>::zero()
 						}
 						Some(DelegationAction::Decrease(amount)) => {
-							log::warn!(
-								"reward for delegator '{:?}' reduced by set amount due to pending \
-								decrease request",
-								bond.owner
-							);
 							uncounted_stake = uncounted_stake.saturating_add(*amount);
 							bond.amount.saturating_sub(*amount)
 						}
