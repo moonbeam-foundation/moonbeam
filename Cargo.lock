@@ -7501,10 +7501,15 @@ name = "pallet-migrations"
 version = "0.1.0"
 dependencies = [
  "environmental",
+ "frame-benchmarking",
  "frame-support",
  "frame-system",
  "impl-trait-for-tuples",
  "log",
+ "pallet-balances",
+ "pallet-democracy",
+ "pallet-preimage",
+ "pallet-scheduler",
  "parity-scale-codec",
  "scale-info",
  "sp-core",

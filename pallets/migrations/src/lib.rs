@@ -19,10 +19,14 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+mod democracy_preimages;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+pub mod weights;
 
 use frame_support::{pallet, weights::Weight};
 
@@ -88,6 +92,7 @@ impl GetMigrations for Tuple {
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::weights::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
 
@@ -98,11 +103,15 @@ pub mod pallet {
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config:
+		frame_system::Config + pallet_democracy::Config + pallet_preimage::Config
+	{
 		/// Overarching event type
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The list of migrations that will be performed
 		type MigrationsList: GetMigrations;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::event]
@@ -251,6 +260,30 @@ pub mod pallet {
 	/// Maps name (Vec<u8>) -> whether or not migration has been completed (bool)
 	pub(crate) type MigrationState<T: Config> =
 		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
+
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		#[pallet::weight(<T as Config>::WeightInfo::migrate_democracy_preimage(*proposal_len_upper_bound))]
+		pub fn migrate_democracy_preimage(
+			origin: OriginFor<T>,
+			proposal_hash: T::Hash,
+			#[pallet::compact] proposal_len_upper_bound: u32,
+		) -> DispatchResultWithPostInfo {
+			Self::migrate_democracy_preimage_inner(origin, proposal_hash, proposal_len_upper_bound)
+		}
+	}
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// Missing preimage in original democracy storage
+		PreimageMissing,
+		/// Provided upper bound is too low.
+		WrongUpperBound,
+		/// Preimage is larger than the new max size.
+		PreimageIsTooBig,
+		/// Preimage already exists in the new storage.
+		PreimageAlreadyExists,
+	}
 
 	#[pallet::genesis_config]
 	#[derive(Default)]
