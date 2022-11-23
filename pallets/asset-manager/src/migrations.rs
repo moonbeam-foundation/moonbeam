@@ -22,6 +22,7 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat,
 };
+#[cfg(feature = "try-runtime")]
 use parity_scale_codec::{Decode, Encode};
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;

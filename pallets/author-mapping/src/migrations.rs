@@ -23,6 +23,7 @@ use frame_support::{
 use nimbus_primitives::NimbusId;
 use parity_scale_codec::{Decode, Encode};
 
+#[cfg(feature = "try-runtime")]
 use sp_std::vec::Vec;
 /// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
