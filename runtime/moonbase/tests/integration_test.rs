@@ -129,56 +129,58 @@ fn fast_track_available() {
 
 #[test]
 fn verify_pallet_prefixes() {
-	fn is_pallet_prefix<P: 'static>(name: &str) {
-		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
-		// storage item in the pallet P. This pallet prefix is used in conjunction with the
-		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
-		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
-		// expand/storage.rs#L389-L401
-		assert_eq!(
-			<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
-			Some(name)
-		);
+	// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
+	// storage item in the pallet P. This pallet prefix is used in conjunction with the
+	// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
+	// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+	// expand/storage.rs#L389-L401
+	macro_rules! assert_pallet_prefix {
+		( $pallet:ty, $prefix:expr ) => {
+			assert_eq!(
+				<moonbase_runtime::Runtime as frame_system::Config>::PalletInfo::name::<$pallet>(),
+				Some($prefix)
+			);
+		}
 	}
 	// TODO: use StorageInfoTrait from https://github.com/paritytech/substrate/pull/9246
 	// This is now available with polkadot-v0.9.9 dependencies
-	is_pallet_prefix::<moonbase_runtime::System>("System");
-	is_pallet_prefix::<moonbase_runtime::Utility>("Utility");
-	is_pallet_prefix::<moonbase_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
-	is_pallet_prefix::<moonbase_runtime::ParachainSystem>("ParachainSystem");
-	is_pallet_prefix::<moonbase_runtime::TransactionPayment>("TransactionPayment");
-	is_pallet_prefix::<moonbase_runtime::ParachainInfo>("ParachainInfo");
-	is_pallet_prefix::<moonbase_runtime::EthereumChainId>("EthereumChainId");
-	is_pallet_prefix::<moonbase_runtime::EVM>("EVM");
-	is_pallet_prefix::<moonbase_runtime::Ethereum>("Ethereum");
-	is_pallet_prefix::<moonbase_runtime::ParachainStaking>("ParachainStaking");
-	is_pallet_prefix::<moonbase_runtime::Scheduler>("Scheduler");
-	is_pallet_prefix::<moonbase_runtime::Democracy>("Democracy");
-	is_pallet_prefix::<moonbase_runtime::CouncilCollective>("CouncilCollective");
-	is_pallet_prefix::<moonbase_runtime::TechCommitteeCollective>("TechCommitteeCollective");
-	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
-	is_pallet_prefix::<moonbase_runtime::AuthorInherent>("AuthorInherent");
-	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
-	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
-	is_pallet_prefix::<moonbase_runtime::AuthorMapping>("AuthorMapping");
-	is_pallet_prefix::<moonbase_runtime::MaintenanceMode>("MaintenanceMode");
-	is_pallet_prefix::<moonbase_runtime::Identity>("Identity");
-	is_pallet_prefix::<moonbase_runtime::XcmpQueue>("XcmpQueue");
-	is_pallet_prefix::<moonbase_runtime::CumulusXcm>("CumulusXcm");
-	is_pallet_prefix::<moonbase_runtime::DmpQueue>("DmpQueue");
-	is_pallet_prefix::<moonbase_runtime::PolkadotXcm>("PolkadotXcm");
-	is_pallet_prefix::<moonbase_runtime::Assets>("Assets");
-	is_pallet_prefix::<moonbase_runtime::XTokens>("XTokens");
-	is_pallet_prefix::<moonbase_runtime::AssetManager>("AssetManager");
-	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
-	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
-	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
-	is_pallet_prefix::<moonbase_runtime::BaseFee>("BaseFee");
-	is_pallet_prefix::<moonbase_runtime::LocalAssets>("LocalAssets");
-	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
-	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
-	is_pallet_prefix::<moonbase_runtime::Randomness>("Randomness");
-	is_pallet_prefix::<moonbase_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
+	assert_pallet_prefix!(moonbase_runtime::System, "System");
+	assert_pallet_prefix!(moonbase_runtime::Utility, "Utility");
+	assert_pallet_prefix!(moonbase_runtime::RandomnessCollectiveFlip, "RandomnessCollectiveFlip");
+	assert_pallet_prefix!(moonbase_runtime::ParachainSystem, "ParachainSystem");
+	assert_pallet_prefix!(moonbase_runtime::TransactionPayment, "TransactionPayment");
+	assert_pallet_prefix!(moonbase_runtime::ParachainInfo, "ParachainInfo");
+	assert_pallet_prefix!(moonbase_runtime::EthereumChainId, "EthereumChainId");
+	assert_pallet_prefix!(moonbase_runtime::EVM, "EVM");
+	assert_pallet_prefix!(moonbase_runtime::Ethereum, "Ethereum");
+	assert_pallet_prefix!(moonbase_runtime::ParachainStaking, "ParachainStaking");
+	assert_pallet_prefix!(moonbase_runtime::Scheduler, "Scheduler");
+	assert_pallet_prefix!(moonbase_runtime::Democracy, "Democracy");
+	assert_pallet_prefix!(moonbase_runtime::CouncilCollective, "CouncilCollective");
+	assert_pallet_prefix!(moonbase_runtime::TechCommitteeCollective, "TechCommitteeCollective");
+	assert_pallet_prefix!(moonbase_runtime::Treasury, "Treasury");
+	assert_pallet_prefix!(moonbase_runtime::AuthorInherent, "AuthorInherent");
+	assert_pallet_prefix!(moonbase_runtime::AuthorFilter, "AuthorFilter");
+	assert_pallet_prefix!(moonbase_runtime::CrowdloanRewards, "CrowdloanRewards");
+	assert_pallet_prefix!(moonbase_runtime::AuthorMapping, "AuthorMapping");
+	assert_pallet_prefix!(moonbase_runtime::MaintenanceMode, "MaintenanceMode");
+	assert_pallet_prefix!(moonbase_runtime::Identity, "Identity");
+	assert_pallet_prefix!(moonbase_runtime::XcmpQueue, "XcmpQueue");
+	assert_pallet_prefix!(moonbase_runtime::CumulusXcm, "CumulusXcm");
+	assert_pallet_prefix!(moonbase_runtime::DmpQueue, "DmpQueue");
+	assert_pallet_prefix!(moonbase_runtime::PolkadotXcm, "PolkadotXcm");
+	assert_pallet_prefix!(moonbase_runtime::Assets, "Assets");
+	assert_pallet_prefix!(moonbase_runtime::XTokens, "XTokens");
+	assert_pallet_prefix!(moonbase_runtime::AssetManager, "AssetManager");
+	assert_pallet_prefix!(moonbase_runtime::Migrations, "Migrations");
+	assert_pallet_prefix!(moonbase_runtime::XcmTransactor, "XcmTransactor");
+	assert_pallet_prefix!(moonbase_runtime::ProxyGenesisCompanion, "ProxyGenesisCompanion");
+	assert_pallet_prefix!(moonbase_runtime::BaseFee, "BaseFee");
+	assert_pallet_prefix!(moonbase_runtime::LocalAssets, "LocalAssets");
+	assert_pallet_prefix!(moonbase_runtime::MoonbeamOrbiters, "MoonbeamOrbiters");
+	assert_pallet_prefix!(moonbase_runtime::EthereumXcm, "EthereumXcm");
+	assert_pallet_prefix!(moonbase_runtime::Randomness, "Randomness");
+	assert_pallet_prefix!(moonbase_runtime::TreasuryCouncilCollective, "TreasuryCouncilCollective");
 
 	let prefix = |pallet_name, storage_name| {
 		let mut res = [0u8; 32];
