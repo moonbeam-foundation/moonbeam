@@ -122,6 +122,7 @@ impl pallet::Config for Runtime {
 	type BlockInflation = BlockInflation;
 	type RewardsReserveCommission = RewardsReserveCommission;
 	type RewardsCollatorCommission = RewardsCollatorCommission;
+	type CollatorRewardsMapping = ();
 }
 
 pub fn balance(who: &AccountId) -> Balance {

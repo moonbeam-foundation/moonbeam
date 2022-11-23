@@ -31,6 +31,16 @@ use {
 	},
 };
 
+pub trait CollatorRewardsMapping<T: Config> {
+	fn map_collator(collator: &CandidateGen<T>) -> T::AccountId;
+}
+
+impl<T: Config> CollatorRewardsMapping<T> for () {
+	fn map_collator(collator: &CandidateGen<T>) -> T::AccountId {
+		collator.id.clone()
+	}
+}
+
 // We need to return a `DispatchError` since `#[transactional]` itself can return an
 // error if there is too much transaction nesting.
 #[transactional]
@@ -79,16 +89,22 @@ pub(crate) fn distribute_rewards<T: Config>(
 	// 4. Distribute collator AC rewards, since it implies some rounding.
 	//    It is done after 2 as we want rewards to be distributed among all delegators
 	//    according to the pre-reward repartition.
+	let collator_rewards_receiver = T::CollatorRewardsMapping::map_collator(&collator);
+
 	let collator_ac_rewards =
 		compute_collator_ac_rewards_before_rounding::<T>(&collator, collator_rewards)?;
-	let collator_ac_rewards = distribute_collator_ac_rewards::<T>(&collator, collator_ac_rewards)?;
+	let collator_ac_rewards = distribute_collator_ac_rewards::<T>(
+		&collator,
+		&collator_rewards_receiver,
+		collator_ac_rewards,
+	)?;
 
 	// 5. Distribute collator MC rewards, with dust from 4.
 	let collator_mc_rewards = collator_rewards
 		.checked_sub(&collator_ac_rewards)
 		.ok_or(Error::<T>::MathUnderflow)?;
 
-	distribute_collator_mc_rewards::<T>(&collator, collator_mc_rewards)?;
+	distribute_collator_mc_rewards::<T>(&collator_rewards_receiver, collator_mc_rewards)?;
 
 	// Update candidate stake
 	let additional_stake = collator_ac_rewards
@@ -208,6 +224,7 @@ fn compute_collator_ac_rewards_before_rounding<T: Config>(
 // Return the amount really distributed (after rounding).
 fn distribute_collator_ac_rewards<T: Config>(
 	collator: &CandidateGen<T>,
+	collator_rewards_receiver: &T::AccountId,
 	ac_rewards: T::Balance,
 ) -> Result<T::Balance, Error<T>> {
 	if ac_rewards.is_zero() {
@@ -217,7 +234,7 @@ fn distribute_collator_ac_rewards<T: Config>(
 
 		let ac_rewards = pools::auto_compounding::add_shares::<T>(
 			collator.clone(),
-			collator.id.clone(),
+			collator_rewards_receiver.clone(),
 			ac_shares,
 		)?;
 		T::Currency::deposit_creating(&T::StakingAccount::get(), ac_rewards);
@@ -227,11 +244,11 @@ fn distribute_collator_ac_rewards<T: Config>(
 
 // Distribute collator MC rewards.
 fn distribute_collator_mc_rewards<T: Config>(
-	collator: &CandidateGen<T>,
+	collator_rewards_receiver: &T::AccountId,
 	mc_rewards: T::Balance,
 ) -> Result<(), Error<T>> {
 	if !mc_rewards.is_zero() {
-		T::Currency::deposit_creating(&collator.id, mc_rewards);
+		T::Currency::deposit_creating(collator_rewards_receiver, mc_rewards);
 	}
 
 	Ok(())

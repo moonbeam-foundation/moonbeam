@@ -145,6 +145,11 @@ pub mod pallet {
 
 		/// Part of the rewards that will be sent exclusively to the collator.
 		type RewardsCollatorCommission: Get<Perbill>;
+
+		/// Mapping to distribute collator rewards to an account.
+		/// Made to support Moonbeam orbiters program.
+		/// `()` gives rewards to the collator's account.
+		type CollatorRewardsMapping: rewards::CollatorRewardsMapping<Self>;
 	}
 
 	// /// Part of the rewards that will be sent to the reserve.
