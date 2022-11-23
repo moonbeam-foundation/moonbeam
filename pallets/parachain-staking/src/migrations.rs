@@ -30,7 +30,6 @@ use crate::{
 	CandidateMetadata, CapacityStatus, CollatorCandidate, Config, DelayedPayouts, Delegations,
 	Event, Pallet, Points, Round, RoundIndex, Staked, TopDelegations,
 };
-#[cfg(feature = "try-runtime")]
 use frame_support::Twox64Concat;
 use parity_scale_codec::{Decode, Encode};
 extern crate alloc;

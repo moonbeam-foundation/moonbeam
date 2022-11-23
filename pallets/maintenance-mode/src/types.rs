@@ -22,7 +22,9 @@ use frame_support::{
 	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
 	weights::Weight,
 };
-use sp_std::{marker::PhantomData, vec::Vec};
+use sp_std::marker::PhantomData;
+#[cfg(feature = "try-runtime")]
+use sp_std::vec::Vec;
 
 pub struct ExecutiveHooks<T>(PhantomData<T>);
 type BlockNumberOf<T> = <T as frame_system::Config>::BlockNumber;

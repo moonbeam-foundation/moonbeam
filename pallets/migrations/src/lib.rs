@@ -31,7 +31,10 @@ pub use pallet::*;
 #[cfg(feature = "try-runtime")]
 extern crate alloc;
 #[cfg(feature = "try-runtime")]
-use alloc::string::{String, ToString};
+use alloc::{
+	format,
+	string::{String, ToString},
+};
 
 #[cfg(test)]
 #[macro_use]
@@ -155,7 +158,6 @@ pub mod pallet {
 			let mut state_map: BTreeMap<String, bool> = BTreeMap::new();
 			let mut migration_states_map: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
-			let mut failed = false;
 			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
@@ -169,27 +171,15 @@ pub mod pallet {
 					"invoking pre_upgrade() on migration {}", migration_name
 				);
 
-				// dump the migration name to temp storage so post_upgrade will know which
+				// dump the migration name to state_map so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
 				state_map.insert(migration_name.to_string(), true);
-
-				match migration.pre_upgrade() {
-					Ok(state) => {
-						migration_states_map.insert(migration_name.to_string(), state);
-						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
-						failed = true;
-					}
-				}
+				let state = migration
+					.pre_upgrade()
+					.expect(&format!("migration {} pre_upgrade()", migration_name));
+				migration_states_map.insert(migration_name.to_string(), state);
 			}
-
-			if failed {
-				Err("One or more pre_upgrade tests failed; see output above.")
-			} else {
-				Ok((state_map, migration_states_map).encode())
-			}
+			Ok((state_map, migration_states_map).encode())
 		}
 
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
