@@ -263,7 +263,9 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		#[pallet::weight(<T as Config>::WeightInfo::migrate_democracy_preimage(*proposal_len_upper_bound))]
+		#[pallet::weight(
+			<T as Config>::WeightInfo::migrate_democracy_preimage(*proposal_len_upper_bound)
+		)]
 		pub fn migrate_democracy_preimage(
 			origin: OriginFor<T>,
 			proposal_hash: T::Hash,
