@@ -41,11 +41,11 @@ pub(crate) fn distribute_rewards<T: Config>(
 	// Rewards distribution is done in the following order :
 	// 1. Distribute to reserve.
 	// 2. Distribute delegator MC rewards, since it implies some rounding.
-	// 3. Distribute delegator AC rewards with dust from 1.
+	// 3. Distribute delegator AC rewards with dust from 2.
 	// 4. Distribute collator AC rewards, since it implies some rounding.
 	//    It is done after 2 as we want rewards to be distributed among all delegators
 	//    according to the pre-reward repartition.
-	// 5. Distribute collator MC rewards, with dust from 3.
+	// 5. Distribute collator MC rewards, with dust from 4.
 
 	// Compute rewards distribution between collator and delegators.
 	let reserve_rewards = T::RewardsReserveCommission::get() * value;
@@ -69,7 +69,7 @@ pub(crate) fn distribute_rewards<T: Config>(
 	let delegators_mc_rewards =
 		distribute_delegators_mc_rewards::<T>(&collator, delegators_mc_rewards)?;
 
-	// 3. Distribute delegator AC rewards with dust from 1.
+	// 3. Distribute delegator AC rewards with dust from 2.
 	let delegators_ac_rewards = delegators_rewards
 		.checked_sub(&delegators_mc_rewards)
 		.ok_or(Error::<T>::MathUnderflow)?;
@@ -83,7 +83,7 @@ pub(crate) fn distribute_rewards<T: Config>(
 		compute_collator_ac_rewards_before_rounding::<T>(&collator, collator_rewards)?;
 	let collator_ac_rewards = distribute_collator_ac_rewards::<T>(&collator, collator_ac_rewards)?;
 
-	// 5. Distribute collator MC rewards, with dust from 3.
+	// 5. Distribute collator MC rewards, with dust from 4.
 	let collator_mc_rewards = collator_rewards
 		.checked_sub(&collator_ac_rewards)
 		.ok_or(Error::<T>::MathUnderflow)?;
