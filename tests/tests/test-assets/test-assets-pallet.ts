@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { alith, baltathar } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails, PalletAssetsDestroyWitness } from "@polkadot/types/lookup";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 
@@ -80,7 +80,7 @@ describeDevMoonbeam("Pallet Assets - Destruction", (context) => {
 
   it("should destroy asset Balance, ", async function () {
     // We first create the witness
-    const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 1,
       sufficients: 1,
       approvals: 0,

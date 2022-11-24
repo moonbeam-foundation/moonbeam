@@ -89,7 +89,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
   it("should succeed", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
     expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
     // prop author
@@ -153,7 +153,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect(referendumInfoOf.unwrap().asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
+    expect((referendumInfoOf.unwrap() as any).asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
       encodedHash
     );
   });

@@ -13,6 +13,7 @@ import { registerForeignAsset } from "../../util/xcm";
 import { verifyLatestBlockFees } from "../../util/block";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { PalletAssetsDestroyWitness } from "@polkadot/types/lookup";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
@@ -189,7 +190,7 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
   });
 
   it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 0,
       sufficients: 0,
       approvals: 0,
@@ -264,7 +265,7 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
   });
 
   it("should be able to destroy a local asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
       accounts: 0,
       sufficients: 0,
       approvals: 0,
