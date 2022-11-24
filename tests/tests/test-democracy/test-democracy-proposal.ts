@@ -89,6 +89,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
   it("should succeed", async function () {
     // publicProps
+    // TODO: Remove any casting when api-augment is updated
     const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
     expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
@@ -153,6 +154,7 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    // TODO: Remove any casting when api-augment is updated
     expect((referendumInfoOf.unwrap() as any).asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
       encodedHash
     );
