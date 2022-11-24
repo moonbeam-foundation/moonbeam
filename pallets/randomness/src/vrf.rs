@@ -15,9 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! VRF logic
-use crate::{Config, LocalVrfOutput, PreviousLocalVrfOutputs, RandomnessResults, RequestType};
-use frame_support::traits::Get;
-use frame_system::pallet_prelude::BlockNumberFor;
+use crate::{Config, LocalVrfOutput, RandomnessResults, RequestType};
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
 use parity_scale_codec::Decode;
 pub use session_keys_primitives::make_transcript;
@@ -97,16 +95,5 @@ pub(crate) fn verify_and_set_output<T: Config>() {
 	if let Some(mut results) = RandomnessResults::<T>::get(&local_vrf_this_block) {
 		results.randomness = Some(randomness);
 		RandomnessResults::<T>::insert(local_vrf_this_block, results);
-	}
-}
-
-pub(crate) fn set_previous_output<T: Config>(now: BlockNumberFor<T>) {
-	if let Some(randomness) = LocalVrfOutput::<T>::get() {
-		PreviousLocalVrfOutputs::<T>::mutate(|outputs| {
-			if outputs.len() > T::MaxPreviousLocalRandomness::get() as usize {
-				outputs.pop();
-			};
-			outputs.push((randomness.clone(), now));
-		});
 	}
 }
