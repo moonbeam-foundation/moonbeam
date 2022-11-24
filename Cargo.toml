@@ -32,6 +32,39 @@ members = [
 	"runtime/moonriver",
 ]
 
+[workspace.dependencies]
+
+# Substrate
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
+# Frontier
+fp-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+fp-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+fp-self-contained = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+pallet-ethereum = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
+
+# Polkadot
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
+# Nimbus
+nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
+# Cumulus
+cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
+# Benchmarks
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+
 [patch.crates-io]
 jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
