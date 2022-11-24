@@ -54,6 +54,7 @@
 
 use frame_support::pallet;
 pub use pallet::*;
+use sp_std::vec::Vec;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -313,10 +314,10 @@ pub mod pallet {
 		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
 			let local_vrf_output = LocalVrfOutput::<T>::get().expect("randomness must exist; qed");
 			let block_number = frame_system::Pallet::<T>::block_number();
-			let mut digest = vec![];
+			let mut digest = Vec::new();
 			digest.copy_from_slice(local_vrf_output.as_ref());
 			digest.copy_from_slice(subject);
-			let randomness = sp_core::hashing::sha2_256(digest.as_slice());
+			let randomness = sp_io::hashing::sha2_256(digest.as_slice());
 			let randomness = T::Hash::decode(&mut &randomness[..])
 				.expect("bytes can be decoded into T::Hash; qed");
 			(randomness, block_number)

@@ -1182,7 +1182,6 @@ impl pallet_randomness::Config for Runtime {
 	type MaxBlockDelay = ConstU32<2_000>;
 	type BlockExpirationDelay = ConstU32<10_000>;
 	type EpochExpirationDelay = ConstU64<10_000>;
-	type MaxPreviousLocalRandomness = ConstU8<10>;
 }
 
 construct_runtime! {
