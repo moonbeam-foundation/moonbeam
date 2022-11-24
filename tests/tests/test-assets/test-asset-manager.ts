@@ -190,11 +190,14 @@ describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => 
   });
 
   it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
-      accounts: 0,
-      sufficients: 0,
-      approvals: 0,
-    });
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
+      "PalletAssetsDestroyWitness",
+      {
+        accounts: 0,
+        sufficients: 0,
+        approvals: 0,
+      }
+    );
 
     // Destroy foreign asset
     await context.createBlock(
@@ -265,11 +268,14 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
   });
 
   it("should be able to destroy a local asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
-      accounts: 0,
-      sufficients: 0,
-      approvals: 0,
-    });
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
+      "PalletAssetsDestroyWitness",
+      {
+        accounts: 0,
+        sufficients: 0,
+        approvals: 0,
+      }
+    );
 
     // Reserved amount back to creator
     const accountDetailsBefore = await context.polkadotApi.query.system.account(alith.address);
