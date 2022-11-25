@@ -170,9 +170,9 @@ jobs:
   ####### Preparing polkadot binary for parachain tests #######
   ####### For non-official repo, the script will fail if a new version of
   ####### polkadot needs to be pushed.
+  ####### This job must not be skipped (otherwise the ts-tests are not run)
 
   prepare-polkadot:
-    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: self-hosted
     needs: ["set-tags"]
     steps:
@@ -181,6 +181,8 @@ jobs:
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - name: Login to DockerHub
+        # The if must stay on this step (because this job must not be skipped)
+        if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
