@@ -229,7 +229,7 @@ pub mod pallet {
 	/// Set in `on_finalize` of last block
 	#[pallet::storage]
 	#[pallet::getter(fn previous_local_vrf_output)]
-	pub type PreviousLocalVrfOutput<T: Config> = StorageValue<_, Option<T::Hash>, ValueQuery>;
+	pub type PreviousLocalVrfOutput<T: Config> = StorageValue<_, T::Hash, OptionQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -314,31 +314,28 @@ pub mod pallet {
 			);
 
 			// set previous vrf output
-			PreviousLocalVrfOutput::<T>::put(LocalVrfOutput::<T>::get());
+			PreviousLocalVrfOutput::<T>::put(
+				LocalVrfOutput::<T>::get().expect("LocalVrfOutput must exist; qed"),
+			);
 		}
 	}
 
 	// Randomness trait
-	impl<T: Config + pallet_randomness_collective_flip::Config>
-		frame_support::traits::Randomness<T::Hash, BlockNumberFor<T>> for Pallet<T>
-	{
+	impl<T: Config> frame_support::traits::Randomness<T::Hash, BlockNumberFor<T>> for Pallet<T> {
 		/// Uses the vrf output of previous block to generate a random seed. The provided `subject`
 		/// must have the property to uniquely generate different randomness given the same vrf
 		/// output (e.g. relay block number).
 		/// Note: This needs to be updated hen asynchronous backing is in effect.
 		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
-			if let Some(local_vrf_output) = PreviousLocalVrfOutput::<T>::get() {
-				let block_number = frame_system::Pallet::<T>::block_number();
-				let mut digest = Vec::new();
-				digest.copy_from_slice(local_vrf_output.as_ref());
-				digest.copy_from_slice(subject);
-				let hash = sp_io::hashing::sha2_256(digest.as_slice());
-				let randomness = T::Hash::decode(&mut &hash[..])
-					.expect("bytes can be decoded into T::Hash; qed");
-				(randomness, block_number)
-			} else {
-				pallet_randomness_collective_flip::Pallet::<T>::random(subject)
-			}
+			let local_vrf_output = PreviousLocalVrfOutput::<T>::get().unwrap_or_default();
+			let block_number = frame_system::Pallet::<T>::block_number();
+			let mut digest = Vec::new();
+			digest.copy_from_slice(local_vrf_output.as_ref());
+			digest.copy_from_slice(subject);
+			let hash = sp_io::hashing::sha2_256(digest.as_slice());
+			let randomness =
+				T::Hash::decode(&mut &hash[..]).expect("bytes can be decoded into T::Hash; qed");
+			(randomness, block_number)
 		}
 	}
 

@@ -7794,7 +7794,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
- "pallet-randomness-collective-flip",
  "parity-scale-codec",
  "scale-info",
  "serde",
