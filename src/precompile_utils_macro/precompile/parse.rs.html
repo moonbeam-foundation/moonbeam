@@ -1069,7 +1069,7 @@
 		}
 
 		<span class="comment">// Compute the 4-bytes selector.
-		</span><span class="kw">let </span>digest = Keccak256::digest(signature.as_ref());
+		</span><span class="kw">let </span>digest = Keccak256::digest(signature.as_bytes());
 		<span class="kw">let </span>selector = u32::from_be_bytes([digest[<span class="number">0</span>], digest[<span class="number">1</span>], digest[<span class="number">2</span>], digest[<span class="number">3</span>]]);
 
 		<span class="kw">if let </span><span class="prelude-val">Some</span>(previous) = <span class="self">self

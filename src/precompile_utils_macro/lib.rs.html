@@ -146,7 +146,7 @@
 </span><span class="kw">pub fn </span>keccak256(input: TokenStream) -&gt; TokenStream {
 	<span class="kw">let </span>lit_str = <span class="macro">parse_macro_input!</span>(input <span class="kw">as </span>LitStr);
 
-	<span class="kw">let </span>hash = Keccak256::digest(lit_str.value().as_ref());
+	<span class="kw">let </span>hash = Keccak256::digest(lit_str.value().as_bytes());
 
 	<span class="kw">let </span>bytes = Bytes(hash.to_vec());
 	<span class="kw">let </span>eval_str = <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, bytes);
