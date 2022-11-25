@@ -466,7 +466,7 @@ describeDevMoonbeam("Crowdloan", (context) => {
     await context.createBlock(
       context.polkadotApi.tx.sudo.sudoUncheckedWeight(
         context.polkadotApi.tx.democracy.enactProposal(encodedHash, publicPropCount),
-        1
+        "1"
       )
     );
 
