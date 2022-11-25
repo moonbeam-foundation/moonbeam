@@ -85,7 +85,7 @@ pub mod pallet {
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
-	use sp_runtime::traits::{AccountIdConversion, Saturating};
+	use sp_runtime::traits::{AccountIdConversion, Hash, Saturating};
 	use sp_std::convert::TryInto;
 
 	/// The Randomness's pallet id
@@ -332,9 +332,7 @@ pub mod pallet {
 			let mut digest = Vec::new();
 			digest.copy_from_slice(local_vrf_output.as_ref());
 			digest.copy_from_slice(subject);
-			let hash = sp_io::hashing::sha2_256(digest.as_slice());
-			let randomness =
-				T::Hash::decode(&mut &hash[..]).expect("bytes can be decoded into T::Hash; qed");
+			let randomness = T::Hashing::hash(digest.as_slice());
 			(randomness, block_number)
 		}
 	}
