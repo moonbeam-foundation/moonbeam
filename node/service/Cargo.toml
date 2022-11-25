@@ -17,13 +17,13 @@ flume = "0.10.9"
 futures = { version = "0.3.1", features = [ "compat" ] }
 hex-literal = "0.3.4"
 jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros", "server" ] }
-libsecp256k1 = { version = "0.6", features = [ "hmac" ] }
+libsecp256k1 = { version = "0.7", features = [ "hmac" ] }
 log = "0.4"
 maplit = "1.0.2"
 parking_lot = "0.12.0"
 serde = { version = "1.0.101", features = [ "derive" ] }
 serde_json = "1.0"
-sha3 = { version = "0.9", default-features = false }
+sha3 = { version = "0.10", default-features = false }
 structopt = "0.3"
 tiny-bip39 = { version = "0.8", default-features = false }
 tokio = { version = "1.13.0", features = [ "macros", "sync" ] }

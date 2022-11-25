@@ -14,10 +14,10 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 blake2-rfc = { version = "0.2.18", optional = true, default-features = false }
 hex = { version = "0.4", default-features = false }
 impl-serde = { version = "0.3.1", default-features = false }
-libsecp256k1 = { version = "0.6", default-features = false, features = [ "hmac" ] }
+libsecp256k1 = { version = "0.7", default-features = false, features = [ "hmac" ] }
 log = "0.4"
 serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
-sha3 = { version = "0.9", default-features = false }
+sha3 = { version = "0.10", default-features = false }
 
 # Substrate
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }

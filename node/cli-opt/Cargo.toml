@@ -9,9 +9,9 @@ version = "0.28.0"
 [dependencies]
 bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fix", default-features = false, features = [ "bip39" ] }
 clap = { version = "3.1", features = [ "derive" ] }
-libsecp256k1 = "0.6"
+libsecp256k1 = "0.7"
 primitive-types = "0.11.0"
-sha3 = "0.9"
+sha3 = "0.10"
 tiny-bip39 = "0.8"
 url = "2.2.2"
 
