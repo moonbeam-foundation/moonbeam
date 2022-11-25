@@ -229,7 +229,7 @@ pub mod pallet {
 	/// Set in `on_finalize` of last block
 	#[pallet::storage]
 	#[pallet::getter(fn previous_local_vrf_output)]
-	pub type PreviousLocalVrfOutput<T: Config> = StorageValue<_, T::Hash, OptionQuery>;
+	pub type PreviousLocalVrfOutput<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -327,7 +327,7 @@ pub mod pallet {
 		/// output (e.g. relay block number).
 		/// Note: This needs to be updated hen asynchronous backing is in effect.
 		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
-			let local_vrf_output = PreviousLocalVrfOutput::<T>::get().unwrap_or_default();
+			let local_vrf_output = PreviousLocalVrfOutput::<T>::get();
 			let block_number = frame_system::Pallet::<T>::block_number();
 			let mut digest = Vec::new();
 			digest.copy_from_slice(local_vrf_output.as_ref());
