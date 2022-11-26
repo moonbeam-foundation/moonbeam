@@ -15,6 +15,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
+  let runtimeName: string;
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
@@ -31,6 +32,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     specVersion = apiAt.consts.system.version.specVersion.toNumber();
+    runtimeName = apiAt.runtimeVersion.specName.toString();
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID.toLowerCase();
@@ -79,7 +81,8 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       subIdentities,
       democracyDeposits,
       democracyVotes,
-      preimagesDemocracy,
+      democracyPreimages,
+      preimages,
       assets,
       assetsMetadata,
       localAssets,
@@ -101,6 +104,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       apiAt.query.democracy.depositOf.entries(),
       apiAt.query.democracy.votingOf.entries(),
       apiAt.query.democracy.preimages.entries(),
+      specVersion >= 1900 && runtimeName == "moonbase"
+        ? apiAt.query.preimage.statusFor.entries()
+        : [],
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       apiAt.query.localAssets.asset.entries(),
@@ -115,12 +121,6 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         ? apiAt.query.parachainStaking.collatorReserveToLockMigrations.entries()
         : [],
     ]);
-
-    const networkName = context.polkadotApi.runtimeChain.toString();
-    let preimages = [];
-    if (networkName === "Moonbase Stage") {
-      preimages = await apiAt.query.preimage.statusFor.entries();
-    }
 
     const delegatorStakingMigrationAccounts = delegatorStakingMigrations.reduce(
       (p, migration: any) => {
@@ -142,7 +142,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       {} as any
     ) as { [account: string]: boolean };
 
-    const reservesByAccount = [
+    const expectedReserveByAccount: {
+      [accountId: string]: { total: bigint; reserved: { [key: string]: bigint } };
+    } = [
       treasuryProposals.map((proposal) => ({
         accountId: `0x${proposal[1].unwrap().proposer.toHex().slice(-40)}`,
         reserved: {
@@ -244,12 +246,20 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
             }
           )
       ),
-      preimagesDemocracy
+      democracyPreimages
         .filter((preimage: any) => preimage[1].unwrap().isAvailable)
         .map((preimage: any) => ({
           accountId: preimage[1].unwrap().asAvailable.provider.toHex(),
           reserved: {
             preimage: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
+          },
+        })),
+      preimages
+        .filter((preimage: any) => preimage[1].unwrap().isUnrequested)
+        .map((preimage: any) => ({
+          accountId: preimage[1].unwrap().asUnrequested.toJSON()[0].toLowerCase(),
+          reserved: {
+            preimage: BigInt(preimage[1].unwrap().asUnrequested.toJSON()[1]),
           },
         })),
       assets.map((asset) => ({
@@ -301,24 +311,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
             .reduce((accumulator, curr) => accumulator + curr),
         },
       })),
-    ];
-
-    if (networkName === "Moonbase Stage") {
-      reservesByAccount.push(
-        preimages
-          .filter((preimage: any) => preimage[1].unwrap().isUnrequested)
-          .map((preimage: any) => ({
-            accountId: preimage[1].unwrap().asUnrequested.toJSON()[0].toLowerCase(),
-            reserved: {
-              preimage: BigInt(preimage[1].unwrap().asUnrequested.toJSON()[1]),
-            },
-          }))
-      );
-    }
-
-    const expectedReserveByAccount: {
-      [accountId: string]: { total: bigint; reserved: { [key: string]: bigint } };
-    } = reservesByAccount.flat().reduce((p, v) => {
+    ]
+    .flat()
+    .reduce((p, v) => {
       if (!p[v.accountId]) {
         p[v.accountId] = {
           total: 0n,
