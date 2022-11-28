@@ -35,7 +35,7 @@ import type {
   ContractCallRequest,
   ContractExecResult,
   ContractInstantiateResult,
-  InstantiateRequest,
+  InstantiateRequestV1,
 } from "@polkadot/types/interfaces/contracts";
 import type { BlockStats } from "@polkadot/types/interfaces/dev";
 import type { CreatedBlock } from "@polkadot/types/interfaces/engine";
@@ -63,7 +63,7 @@ import type {
 } from "@polkadot/types/interfaces/grandpa";
 import type { MmrLeafBatchProof, MmrLeafProof } from "@polkadot/types/interfaces/mmr";
 import type { StorageKind } from "@polkadot/types/interfaces/offchain";
-import type { FeeDetails, RuntimeDispatchInfo } from "@polkadot/types/interfaces/payment";
+import type { FeeDetails, RuntimeDispatchInfoV1 } from "@polkadot/types/interfaces/payment";
 import type { RpcMethods } from "@polkadot/types/interfaces/rpc";
 import type {
   AccountId,
@@ -311,16 +311,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
       instantiate: AugmentedRpc<
         (
           request:
-            | InstantiateRequest
-            | {
-                origin?: any;
-                value?: any;
-                gasLimit?: any;
-                storageDepositLimit?: any;
-                code?: any;
-                data?: any;
-                salt?: any;
-              }
+            | InstantiateRequestV1
+            | { origin?: any; value?: any; gasLimit?: any; code?: any; data?: any; salt?: any }
             | string
             | Uint8Array,
           at?: BlockHash | string | Uint8Array
@@ -809,7 +801,8 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
     };
     payment: {
       /**
-       * Query the detailed fee of a given encoded extrinsic
+       * @deprecated Use `api.call.transactionPaymentApi.queryFeeDetails`
+       *   instead Query the detailed fee of a given encoded extrinsic
        */
       queryFeeDetails: AugmentedRpc<
         (
@@ -818,13 +811,14 @@ declare module "@polkadot/rpc-core/types/jsonrpc" {
         ) => Observable<FeeDetails>
       >;
       /**
-       * Retrieves the fee information for an encoded extrinsic
+       * @deprecated Use `api.call.transactionPaymentApi.queryInfo` instead
+       *   Retrieves the fee information for an encoded extrinsic
        */
       queryInfo: AugmentedRpc<
         (
           extrinsic: Bytes | string | Uint8Array,
           at?: BlockHash | string | Uint8Array
-        ) => Observable<RuntimeDispatchInfo>
+        ) => Observable<RuntimeDispatchInfoV1>
       >;
     };
     rpc: {

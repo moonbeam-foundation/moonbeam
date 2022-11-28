@@ -48,20 +48,18 @@ import type {
   EvmCoreErrorExitRevert,
   EvmCoreErrorExitSucceed,
   FpRpcTransactionStatus,
+  FrameSupportDispatchDispatchClass,
+  FrameSupportDispatchDispatchInfo,
+  FrameSupportDispatchPays,
+  FrameSupportDispatchPerDispatchClassU32,
+  FrameSupportDispatchPerDispatchClassWeight,
+  FrameSupportDispatchPerDispatchClassWeightsPerClass,
+  FrameSupportDispatchPostDispatchInfo,
   FrameSupportDispatchRawOrigin,
   FrameSupportPalletId,
+  FrameSupportPreimagesBounded,
   FrameSupportScheduleDispatchTime,
-  FrameSupportScheduleLookupError,
-  FrameSupportScheduleMaybeHashed,
   FrameSupportTokensMiscBalanceStatus,
-  FrameSupportWeightsDispatchClass,
-  FrameSupportWeightsDispatchInfo,
-  FrameSupportWeightsPays,
-  FrameSupportWeightsPerDispatchClassU32,
-  FrameSupportWeightsPerDispatchClassWeight,
-  FrameSupportWeightsPerDispatchClassWeightsPerClass,
-  FrameSupportWeightsPostDispatchInfo,
-  FrameSupportWeightsRuntimeDbWeight,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemError,
@@ -145,10 +143,8 @@ import type {
   PalletDemocracyDelegations,
   PalletDemocracyError,
   PalletDemocracyEvent,
-  PalletDemocracyPreimageStatus,
   PalletDemocracyReferendumInfo,
   PalletDemocracyReferendumStatus,
-  PalletDemocracyReleases,
   PalletDemocracyTally,
   PalletDemocracyVoteAccountVote,
   PalletDemocracyVotePriorLock,
@@ -176,6 +172,8 @@ import type {
   PalletMaintenanceModeCall,
   PalletMaintenanceModeError,
   PalletMaintenanceModeEvent,
+  PalletMigrationsCall,
+  PalletMigrationsError,
   PalletMigrationsEvent,
   PalletMoonbeamOrbitersCall,
   PalletMoonbeamOrbitersCollatorPoolInfo,
@@ -223,16 +221,18 @@ import type {
   PalletRandomnessRequestState,
   PalletRandomnessRequestType,
   PalletReferendaCall,
+  PalletReferendaCurve,
   PalletReferendaDecidingStatus,
   PalletReferendaDeposit,
   PalletReferendaError,
   PalletReferendaEvent,
   PalletReferendaReferendumInfo,
   PalletReferendaReferendumStatus,
+  PalletReferendaTrackInfo,
   PalletSchedulerCall,
   PalletSchedulerError,
   PalletSchedulerEvent,
-  PalletSchedulerScheduledV3,
+  PalletSchedulerScheduled,
   PalletSudoCall,
   PalletSudoError,
   PalletSudoEvent,
@@ -288,6 +288,8 @@ import type {
   SpRuntimeTransactionalError,
   SpTrieStorageProof,
   SpVersionRuntimeVersion,
+  SpWeightsRuntimeDbWeight,
+  SpWeightsWeightV2Weight,
   XcmDoubleEncoded,
   XcmPrimitivesEthereumXcmEthereumXcmFee,
   XcmPrimitivesEthereumXcmEthereumXcmTransaction,
@@ -375,20 +377,18 @@ declare module "@polkadot/types/types/registry" {
     EvmCoreErrorExitRevert: EvmCoreErrorExitRevert;
     EvmCoreErrorExitSucceed: EvmCoreErrorExitSucceed;
     FpRpcTransactionStatus: FpRpcTransactionStatus;
+    FrameSupportDispatchDispatchClass: FrameSupportDispatchDispatchClass;
+    FrameSupportDispatchDispatchInfo: FrameSupportDispatchDispatchInfo;
+    FrameSupportDispatchPays: FrameSupportDispatchPays;
+    FrameSupportDispatchPerDispatchClassU32: FrameSupportDispatchPerDispatchClassU32;
+    FrameSupportDispatchPerDispatchClassWeight: FrameSupportDispatchPerDispatchClassWeight;
+    FrameSupportDispatchPerDispatchClassWeightsPerClass: FrameSupportDispatchPerDispatchClassWeightsPerClass;
+    FrameSupportDispatchPostDispatchInfo: FrameSupportDispatchPostDispatchInfo;
     FrameSupportDispatchRawOrigin: FrameSupportDispatchRawOrigin;
     FrameSupportPalletId: FrameSupportPalletId;
+    FrameSupportPreimagesBounded: FrameSupportPreimagesBounded;
     FrameSupportScheduleDispatchTime: FrameSupportScheduleDispatchTime;
-    FrameSupportScheduleLookupError: FrameSupportScheduleLookupError;
-    FrameSupportScheduleMaybeHashed: FrameSupportScheduleMaybeHashed;
     FrameSupportTokensMiscBalanceStatus: FrameSupportTokensMiscBalanceStatus;
-    FrameSupportWeightsDispatchClass: FrameSupportWeightsDispatchClass;
-    FrameSupportWeightsDispatchInfo: FrameSupportWeightsDispatchInfo;
-    FrameSupportWeightsPays: FrameSupportWeightsPays;
-    FrameSupportWeightsPerDispatchClassU32: FrameSupportWeightsPerDispatchClassU32;
-    FrameSupportWeightsPerDispatchClassWeight: FrameSupportWeightsPerDispatchClassWeight;
-    FrameSupportWeightsPerDispatchClassWeightsPerClass: FrameSupportWeightsPerDispatchClassWeightsPerClass;
-    FrameSupportWeightsPostDispatchInfo: FrameSupportWeightsPostDispatchInfo;
-    FrameSupportWeightsRuntimeDbWeight: FrameSupportWeightsRuntimeDbWeight;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemError: FrameSystemError;
@@ -472,10 +472,8 @@ declare module "@polkadot/types/types/registry" {
     PalletDemocracyDelegations: PalletDemocracyDelegations;
     PalletDemocracyError: PalletDemocracyError;
     PalletDemocracyEvent: PalletDemocracyEvent;
-    PalletDemocracyPreimageStatus: PalletDemocracyPreimageStatus;
     PalletDemocracyReferendumInfo: PalletDemocracyReferendumInfo;
     PalletDemocracyReferendumStatus: PalletDemocracyReferendumStatus;
-    PalletDemocracyReleases: PalletDemocracyReleases;
     PalletDemocracyTally: PalletDemocracyTally;
     PalletDemocracyVoteAccountVote: PalletDemocracyVoteAccountVote;
     PalletDemocracyVotePriorLock: PalletDemocracyVotePriorLock;
@@ -503,6 +501,8 @@ declare module "@polkadot/types/types/registry" {
     PalletMaintenanceModeCall: PalletMaintenanceModeCall;
     PalletMaintenanceModeError: PalletMaintenanceModeError;
     PalletMaintenanceModeEvent: PalletMaintenanceModeEvent;
+    PalletMigrationsCall: PalletMigrationsCall;
+    PalletMigrationsError: PalletMigrationsError;
     PalletMigrationsEvent: PalletMigrationsEvent;
     PalletMoonbeamOrbitersCall: PalletMoonbeamOrbitersCall;
     PalletMoonbeamOrbitersCollatorPoolInfo: PalletMoonbeamOrbitersCollatorPoolInfo;
@@ -550,16 +550,18 @@ declare module "@polkadot/types/types/registry" {
     PalletRandomnessRequestState: PalletRandomnessRequestState;
     PalletRandomnessRequestType: PalletRandomnessRequestType;
     PalletReferendaCall: PalletReferendaCall;
+    PalletReferendaCurve: PalletReferendaCurve;
     PalletReferendaDecidingStatus: PalletReferendaDecidingStatus;
     PalletReferendaDeposit: PalletReferendaDeposit;
     PalletReferendaError: PalletReferendaError;
     PalletReferendaEvent: PalletReferendaEvent;
     PalletReferendaReferendumInfo: PalletReferendaReferendumInfo;
     PalletReferendaReferendumStatus: PalletReferendaReferendumStatus;
+    PalletReferendaTrackInfo: PalletReferendaTrackInfo;
     PalletSchedulerCall: PalletSchedulerCall;
     PalletSchedulerError: PalletSchedulerError;
     PalletSchedulerEvent: PalletSchedulerEvent;
-    PalletSchedulerScheduledV3: PalletSchedulerScheduledV3;
+    PalletSchedulerScheduled: PalletSchedulerScheduled;
     PalletSudoCall: PalletSudoCall;
     PalletSudoError: PalletSudoError;
     PalletSudoEvent: PalletSudoEvent;
@@ -615,6 +617,8 @@ declare module "@polkadot/types/types/registry" {
     SpRuntimeTransactionalError: SpRuntimeTransactionalError;
     SpTrieStorageProof: SpTrieStorageProof;
     SpVersionRuntimeVersion: SpVersionRuntimeVersion;
+    SpWeightsRuntimeDbWeight: SpWeightsRuntimeDbWeight;
+    SpWeightsWeightV2Weight: SpWeightsWeightV2Weight;
     XcmDoubleEncoded: XcmDoubleEncoded;
     XcmPrimitivesEthereumXcmEthereumXcmFee: XcmPrimitivesEthereumXcmEthereumXcmFee;
     XcmPrimitivesEthereumXcmEthereumXcmTransaction: XcmPrimitivesEthereumXcmEthereumXcmTransaction;
