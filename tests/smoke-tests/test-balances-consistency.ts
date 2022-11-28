@@ -1,11 +1,20 @@
 import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
-import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
+import { H256 } from "@polkadot/types/interfaces/runtime";
+import { u32 } from "@polkadot/types";
+import type {
+  FrameSystemAccountInfo,
+  PalletReferendaDeposit,
+  PalletPreimageRequestStatus,
+  PalletReferendaReferendumInfoConvictionVotingTally,
+} from "@polkadot/types/lookup";
 import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
+import { Option } from "@polkadot/types-codec";
+import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:balances");
 
 describeSmokeSuite(`Verifying balances consistency...`, (context) => {
@@ -83,6 +92,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       democracyVotes,
       democracyPreimages,
       preimages,
+      referendumInfoFor,
       assets,
       assetsMetadata,
       localAssets,
@@ -106,7 +116,10 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       apiAt.query.democracy.preimages.entries(),
       specVersion >= 1900 && runtimeName == "moonbase"
         ? apiAt.query.preimage.statusFor.entries()
-        : [],
+        : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
+      specVersion >= 1900 && runtimeName == "moonbase"
+        ? apiAt.query.referenda.referendumInfoFor.entries()
+        : ([] as [StorageKey<[u32]>, Option<PalletReferendaReferendumInfoConvictionVotingTally>][]),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       apiAt.query.localAssets.asset.entries(),
@@ -255,13 +268,38 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
           },
         })),
       preimages
-        .filter((preimage: any) => preimage[1].unwrap().isUnrequested)
-        .map((preimage: any) => ({
-          accountId: preimage[1].unwrap().asUnrequested.toJSON()[0].toLowerCase(),
+        .filter((preimage) => preimage[1].unwrap().isUnrequested)
+        .map((preimage) => ({
+          accountId: preimage[1].unwrap().asUnrequested[0].toLowerCase(),
           reserved: {
-            preimage: BigInt(preimage[1].unwrap().asUnrequested.toJSON()[1]),
+            preimage: BigInt(preimage[1].unwrap().asUnrequested[1].toBigInt()),
           },
         })),
+      referendumInfoFor
+        .map((info) => {
+          const deposits = (
+            info[1].unwrap().isApproved
+              ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
+              : info[1].unwrap().isRejected
+              ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
+              : info[1].unwrap().isCancelled
+              ? [info[1].unwrap().asCancelled[1], info[1].unwrap().asCancelled[2].unwrapOr(null)]
+              : info[1].unwrap().isTimedOut
+              ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
+              : info[1].unwrap().isOngoing
+              ? [
+                  info[1].unwrap().asOngoing.submissionDeposit,
+                  info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+                ]
+              : ([] as PalletReferendaDeposit[])
+          ).filter((value) => !!value);
+
+          return deposits.map((deposit) => ({
+            accountId: deposit.who.toHex(),
+            reserved: deposit.amount.toBigInt(),
+          }));
+        })
+        .flat(),
       assets.map((asset) => ({
         accountId: `0x${asset[1].unwrap().owner.toHex().slice(-40)}`,
         reserved: {
@@ -312,18 +350,18 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         },
       })),
     ]
-    .flat()
-    .reduce((p, v) => {
-      if (!p[v.accountId]) {
-        p[v.accountId] = {
-          total: 0n,
-          reserved: {},
-        };
-      }
-      p[v.accountId].total += Object.keys(v.reserved).reduce((p, key) => p + v.reserved[key], 0n);
-      p[v.accountId].reserved = { ...p[v.accountId].reserved, ...v.reserved };
-      return p;
-    }, {} as { [key: string]: { total: bigint; reserved: { [key: string]: bigint } } });
+      .flat()
+      .reduce((p, v) => {
+        if (!p[v.accountId]) {
+          p[v.accountId] = {
+            total: 0n,
+            reserved: {},
+          };
+        }
+        p[v.accountId].total += Object.keys(v.reserved).reduce((p, key) => p + v.reserved[key], 0n);
+        p[v.accountId].reserved = { ...p[v.accountId].reserved, ...v.reserved };
+        return p;
+      }, {} as { [key: string]: { total: bigint; reserved: { [key: string]: bigint } } });
 
     debug(`Retrieved ${Object.keys(expectedReserveByAccount).length} deposits`);
 
