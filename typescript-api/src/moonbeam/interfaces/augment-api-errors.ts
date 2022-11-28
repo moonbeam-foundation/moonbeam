@@ -325,17 +325,9 @@ declare module "@polkadot/api-base/types/errors" {
        */
       AlreadyVetoed: AugmentedError<ApiType>;
       /**
-       * Preimage already noted
-       */
-      DuplicatePreimage: AugmentedError<ApiType>;
-      /**
        * Proposal already made
        */
       DuplicateProposal: AugmentedError<ApiType>;
-      /**
-       * Imminent
-       */
-      Imminent: AugmentedError<ApiType>;
       /**
        * The instant referendum origin is currently disallowed.
        */
@@ -373,10 +365,6 @@ declare module "@polkadot/api-base/types/errors" {
        */
       NotDelegating: AugmentedError<ApiType>;
       /**
-       * Not imminent
-       */
-      NotImminent: AugmentedError<ApiType>;
-      /**
        * Next external proposal not simple majority
        */
       NotSimpleMajority: AugmentedError<ApiType>;
@@ -384,14 +372,6 @@ declare module "@polkadot/api-base/types/errors" {
        * The given account did not vote on the referendum.
        */
       NotVoter: AugmentedError<ApiType>;
-      /**
-       * Invalid preimage
-       */
-      PreimageInvalid: AugmentedError<ApiType>;
-      /**
-       * Preimage not found
-       */
-      PreimageMissing: AugmentedError<ApiType>;
       /**
        * Proposal still blacklisted
        */
@@ -405,13 +385,9 @@ declare module "@polkadot/api-base/types/errors" {
        */
       ReferendumInvalid: AugmentedError<ApiType>;
       /**
-       * Too early
+       * Maximum number of items reached.
        */
-      TooEarly: AugmentedError<ApiType>;
-      /**
-       * Maximum number of proposals reached.
-       */
-      TooManyProposals: AugmentedError<ApiType>;
+      TooMany: AugmentedError<ApiType>;
       /**
        * Value too low
        */
@@ -664,6 +640,28 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    migrations: {
+      /**
+       * Preimage already exists in the new storage.
+       */
+      PreimageAlreadyExists: AugmentedError<ApiType>;
+      /**
+       * Preimage is larger than the new max size.
+       */
+      PreimageIsTooBig: AugmentedError<ApiType>;
+      /**
+       * Missing preimage in original democracy storage
+       */
+      PreimageMissing: AugmentedError<ApiType>;
+      /**
+       * Provided upper bound is too low.
+       */
+      WrongUpperBound: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     moonbeamOrbiters: {
       /**
        * The collator is already added in orbiters program.
@@ -859,6 +857,36 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    preimage: {
+      /**
+       * Preimage has already been noted on-chain.
+       */
+      AlreadyNoted: AugmentedError<ApiType>;
+      /**
+       * The user is not authorized to perform this action.
+       */
+      NotAuthorized: AugmentedError<ApiType>;
+      /**
+       * The preimage cannot be removed since it has not yet been noted.
+       */
+      NotNoted: AugmentedError<ApiType>;
+      /**
+       * The preimage request cannot be removed since no outstanding requests exist.
+       */
+      NotRequested: AugmentedError<ApiType>;
+      /**
+       * A preimage may not be removed when there are outstanding requests.
+       */
+      Requested: AugmentedError<ApiType>;
+      /**
+       * Preimage is too large to store on-chain.
+       */
+      TooBig: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     proxy: {
       /**
        * Account is already a proxy.
@@ -920,6 +948,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Failed to schedule a call
        */
       FailedToSchedule: AugmentedError<ApiType>;
+      /**
+       * Attempt to use a non-named function on a named task.
+       */
+      Named: AugmentedError<ApiType>;
       /**
        * Cannot find the scheduled call.
        */

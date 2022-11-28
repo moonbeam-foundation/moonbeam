@@ -17,8 +17,9 @@
 use super::*;
 use frame_support::{
 	assert_noop,
+	dispatch::{Pays, PostDispatchInfo},
 	traits::ConstU32,
-	weights::{Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 	BoundedVec,
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};

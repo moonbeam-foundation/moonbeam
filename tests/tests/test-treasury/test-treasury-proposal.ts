@@ -196,7 +196,10 @@ describeDevMoonbeam("Treasury proposal #7", (context) => {
           .vote(proposalHash, 0, true)
           .signAsync(dorothy, { nonce: 0 }),
         context.polkadotApi.tx.councilCollective
-          .close(proposalHash, 0, 800_000_000, 1_000)
+          .close(proposalHash, 0,  {
+            refTime: 800_000_000,
+            proofSize: 0
+          } as any, 1_000)
           .signAsync(dorothy, { nonce: 1 }),
       ]);
 
@@ -248,7 +251,10 @@ describeDevMoonbeam("Treasury proposal #8", (context) => {
         result: { events: closeEvents },
       } = await context.createBlock(
         context.polkadotApi.tx.councilCollective
-          .close(councilProposalHash, 0, 800_000_000, 1_000)
+          .close(councilProposalHash, 0, {
+            refTime: 800_000_000,
+            proofSize: 0
+          } as any, 1_000)
           .signAsync(dorothy)
       );
 
@@ -301,7 +307,10 @@ describeDevMoonbeam("Treasury proposal #9", (context) => {
           .vote(proposalHash, 0, true)
           .signAsync(dorothy, { nonce: 0 }),
         context.polkadotApi.tx.treasuryCouncilCollective
-          .close(proposalHash, 0, 800_000_000, 1_000)
+          .close(proposalHash, 0, {
+            refTime: 800_000_000,
+            proofSize: 0
+          } as any, 1_000)
           .signAsync(dorothy, { nonce: 1 }),
       ]);
 
@@ -350,7 +359,15 @@ describeDevMoonbeam("Treasury proposal #10", (context) => {
       result: { events: closeEvents },
     } = await context.createBlock(
       context.polkadotApi.tx.treasuryCouncilCollective
-        .close(councilProposalHash, 0, 800_000_000, 1_000)
+        .close(
+          councilProposalHash,
+          0,
+          {
+            refTime: 800_000_000,
+            proofSize: 0,
+          } as any,
+          1_000
+        )
         .signAsync(dorothy)
     );
     // method: 'Rejected', section: 'treasury', index: '0x1103',

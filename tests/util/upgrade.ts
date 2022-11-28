@@ -49,8 +49,9 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         let encodedHash = blake2AsHex(encodedProposal);
 
         // Check if already in governance
-        const preImageExists = await api.query.democracy.preimages(encodedHash);
-        if (preImageExists.isSome && preImageExists.unwrap().isAvailable) {
+        // TODO: Remove casting when preimage pallet added
+        const preImageExists = await api.query.preimage.statusFor(encodedHash);
+        if (preImageExists.isSome && preImageExists.unwrap().isRequested) {
           process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
         } else {
           process.stdout.write(
@@ -58,7 +59,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
               code.length / 1024
             )} kb])...`
           );
-          await api.tx.democracy
+          await api.tx.preimage
             .notePreimage(encodedProposal)
             .signAndSend(options.from, { nonce: nonce++ });
           process.stdout.write(`✅\n`);
@@ -70,7 +71,8 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           .filter(
             (ref) =>
               ref[1].unwrap().isOngoing &&
-              ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
+              ref[1].unwrap().asOngoing.proposal.isLookup &&
+              ref[1].unwrap().asOngoing.proposal.asLookup.hash.toHex() == encodedHash
           )
           .map((ref) => api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber())?.[0];
         if (referendaIndex !== null && referendaIndex !== undefined) {
@@ -93,7 +95,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           )} kb])...`
         );
         await api.tx.sudo
-          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
+          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), "1")
           .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       }

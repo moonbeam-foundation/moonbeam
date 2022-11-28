@@ -24,8 +24,7 @@ use crate::*;
 const ENACTMENT_OFFSET: u32 = 300;
 
 impl pallet_democracy::Config for Runtime {
-	type Proposal = Call;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type EnactmentPeriod = ConstU32<{ 1 * DAYS + ENACTMENT_OFFSET }>;
 	type LaunchPeriod = ConstU32<{ 1 * DAYS }>;
@@ -63,13 +62,14 @@ impl pallet_democracy::Config for Runtime {
 	// only do it once and it lasts only for the cooloff period.
 	type VetoOrigin = pallet_collective::EnsureMember<AccountId, TechCommitteeInstance>;
 	type CooloffPeriod = ConstU32<{ 7 * DAYS }>;
-	type PreimageByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
 	type Slash = ();
 	type InstantAllowed = ConstBool<true>;
 	type Scheduler = Scheduler;
 	type MaxVotes = ConstU32<100>;
-	type OperationalPreimageOrigin = pallet_collective::EnsureMember<AccountId, CouncilInstance>;
 	type PalletsOrigin = OriginCaller;
 	type WeightInfo = pallet_democracy::weights::SubstrateWeight<Runtime>;
 	type MaxProposals = ConstU32<100>;
+	type Preimages = Preimage;
+	type MaxDeposits = ConstU32<100>;
+	type MaxBlacklisted = ConstU32<100>;
 }

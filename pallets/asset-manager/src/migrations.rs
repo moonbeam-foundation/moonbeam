@@ -22,6 +22,8 @@ use frame_support::{
 	weights::Weight,
 	Blake2_128Concat,
 };
+#[cfg(feature = "try-runtime")]
+use parity_scale_codec::{Decode, Encode};
 //TODO sometimes this is unused, sometimes its necessary
 use sp_std::vec::Vec;
 use xcm::latest::prelude::*;
@@ -33,11 +35,11 @@ use xcm::latest::prelude::*;
 pub struct UnitsWithAssetType<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
+
+		let mut state_vec: Vec<(u32, (T::AssetId, u128))> = Vec::new();
 
 		// We want to test that:
 		// There are no entries in the new storage beforehand
@@ -56,7 +58,6 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		)
 		.collect();
 		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u32, "mapping_count");
 
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
@@ -65,10 +66,10 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 				.next()
 				.expect("We already confirmed that there was at least one item stored");
 
-			Self::set_temp_storage(example_pair, "example_pair");
+			state_vec.push((mapping_count as u32, example_pair.clone()))
 		}
 
-		Ok(())
+		Ok(state_vec.encode())
 	}
 
 	fn on_runtime_upgrade() -> Weight {
@@ -109,8 +110,9 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		let state_vec: Vec<(u32, (T::AssetId, u128))> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdUnitsPerSecond";
@@ -122,23 +124,19 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 		.next()
 		.is_none());
 
-		// Check number of entries matches what was set aside in pre_upgrade
-		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
-			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = AssetTypeUnitsPerSecond::<T>::iter().count() as u64;
-		assert_eq!(old_mapping_count, new_mapping_count);
-
-		// Check that our example pair is still well-mapped after the migration
-		if new_mapping_count > 0 {
-			let (asset_id, units): (T::AssetId, u128) =
-				Self::get_temp_storage("example_pair").expect("qed");
+		if state_vec.len() > 0 {
+			let (old_mapping_count, (asset_id, units)) =
+				state_vec.first().expect("we should have an element");
+			// Check number of entries matches what was set aside in pre_upgrade
+			let new_mapping_count = AssetTypeUnitsPerSecond::<T>::iter().count() as u32;
+			assert_eq!(old_mapping_count.clone(), new_mapping_count);
 
 			let asset_type = AssetIdType::<T>::get(asset_id)
 				.expect("AssetIdType should have the ForeignAssetType");
 
 			let migrated_units = AssetTypeUnitsPerSecond::<T>::get(asset_type).expect("qed");
 			// Check units are identical
-			assert_eq!(migrated_units, units);
+			assert_eq!(migrated_units, units.clone());
 		}
 
 		Ok(())
@@ -150,9 +148,7 @@ impl<T: Config> OnRuntimeUpgrade for UnitsWithAssetType<T> {
 pub struct PopulateAssetTypeIdStorage<T>(PhantomData<T>);
 impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdType";
 
@@ -165,6 +161,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		// Assert new storage is empty
 		assert!(AssetTypeId::<T>::iter().next().is_none());
 
+		let mut state_vec: Vec<(u32, (T::AssetId, T::ForeignAssetType))> = Vec::new();
+
 		// Check number of entries, and set it aside in temp storage
 		let stored_data: Vec<_> = storage_key_iter::<
 			T::AssetId,
@@ -173,7 +171,6 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 		>(pallet_prefix, storage_item_prefix)
 		.collect();
 		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u32, "mapping_count");
 
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
@@ -182,10 +179,10 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 				.next()
 				.expect("We already confirmed that there was at least one item stored");
 
-			Self::set_temp_storage(example_pair, "example_pair");
+			state_vec.push((mapping_count as u32, example_pair.clone()))
 		}
 
-		Ok(())
+		Ok(state_vec.encode())
 	}
 
 	fn on_runtime_upgrade() -> Weight {
@@ -225,25 +222,25 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		// Check number of entries matches what was set aside in pre_upgrade
-		let mapping_count: u64 = Self::get_temp_storage("mapping_count")
-			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = AssetTypeId::<T>::iter().count() as u64;
-		assert_eq!(mapping_count, new_mapping_count);
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		let state_vec: Vec<(u32, (T::AssetId, T::ForeignAssetType))> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		// Check that our example pair is still well-mapped after the migration
-		if new_mapping_count > 0 {
-			let (asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
-				Self::get_temp_storage("example_pair").expect("qed");
+		if state_vec.len() > 0 {
+			let (mapping_count, (asset_id, asset_type)) =
+				state_vec.first().expect("we should have an element");
+			// Check number of entries matches what was set aside in pre_upgrade
 
+			let new_mapping_count = AssetTypeId::<T>::iter().count() as u32;
+			assert_eq!(mapping_count.clone(), new_mapping_count);
+
+			// Check that our example pair is still well-mapped after the migration
 			let stored_asset_id =
 				AssetTypeId::<T>::get(asset_type).expect("AssetTypeId should have the assetId");
 
 			// Check assetIds are identical
-			assert_eq!(asset_id, stored_asset_id);
+			assert_eq!(asset_id.clone(), stored_asset_id);
 		}
 
 		Ok(())
@@ -265,9 +262,7 @@ where
 	T::ForeignAssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetIdType";
 
@@ -284,7 +279,7 @@ where
 
 		let statemine_para_id = StatemineParaIdInfo::get();
 
-		let mut found = false;
+		let mut state_vec: Vec<(T::AssetId, T::ForeignAssetType)> = Vec::new();
 
 		for (asset_id, asset_type) in stored_data {
 			let location: Option<MultiLocation> = asset_type.clone().into();
@@ -294,17 +289,15 @@ where
 					interior: X2(Parachain(para_id), GeneralIndex(_)),
 				}) if para_id == statemine_para_id => {
 					// We are going to note that we found at least one entry matching
-					found = true;
+					state_vec.push((asset_id, asset_type));
 					// And we are going to record its data
-					Self::set_temp_storage((asset_id, asset_type), "example_pair");
 					break;
 				}
 				_ => continue,
 			}
 		}
-		Self::set_temp_storage(found, "matching_type_found");
 
-		Ok(())
+		Ok(state_vec.encode())
 	}
 
 	fn on_runtime_upgrade() -> Weight {
@@ -384,21 +377,18 @@ where
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		// Check if we found a matching type
-		let found: bool = Self::get_temp_storage("matching_type_found")
-			.expect("We stored a matching_type_found and should be here; qed");
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		let state_vec: Vec<(T::AssetId, T::ForeignAssetType)> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		let statemine_para_id = StatemineParaIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 
 		// Check that our example pair suffered the correct migration
-		if found {
-			let (asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
-				Self::get_temp_storage("example_pair").expect("qed");
-			let location: Option<MultiLocation> = asset_type.into();
+		if state_vec.len() > 0 {
+			let (asset_id, asset_type) = state_vec.first().expect("qed");
+
+			let location: Option<MultiLocation> = asset_type.clone().into();
 
 			match location {
 				Some(MultiLocation {
@@ -485,8 +475,8 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		let mut state_vec: Vec<(u32, T::ForeignAssetType)> = Vec::new();
 
 		let pallet_prefix: &[u8] = b"AssetManager";
 		let storage_item_prefix: &[u8] = b"AssetTypeUnitsPerSecond";
@@ -510,7 +500,6 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 		)
 		.collect();
 		let mapping_count = stored_data.len();
-		Self::set_temp_storage(mapping_count as u64, "mapping_count");
 
 		// Read an example pair from old storage and set it aside in temp storage
 		if mapping_count > 0 {
@@ -521,26 +510,22 @@ impl<T: Config> OnRuntimeUpgrade for PopulateSupportedFeePaymentAssets<T> {
 				.clone()
 				.0;
 
-			Self::set_temp_storage(example_key, "example_pair");
+			state_vec.push((mapping_count as u32, example_key))
 		}
 
-		Ok(())
+		Ok(state_vec.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
-		use frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		// Check number of entries matches what was set aside in pre_upgrade
-		let old_mapping_count: u64 = Self::get_temp_storage("mapping_count")
-			.expect("We stored a mapping count; it should be there; qed");
-		let new_mapping_count = SupportedFeePaymentAssets::<T>::get().len() as u64;
-		assert_eq!(old_mapping_count, new_mapping_count);
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		let state_vec: Vec<(u32, T::ForeignAssetType)> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 		// Check that our example pair is still well-mapped after the migration
-		if new_mapping_count > 0 {
-			let asset_type: T::ForeignAssetType =
-				Self::get_temp_storage("example_pair").expect("qed");
+		if state_vec.len() > 0 {
+			let (old_mapping_count, asset_type) = state_vec.first().expect("qed");
+			let new_mapping_count = SupportedFeePaymentAssets::<T>::get().len() as u32;
+			assert_eq!(old_mapping_count.clone(), new_mapping_count);
 			let migrated_info = SupportedFeePaymentAssets::<T>::get();
 			// Check that the asset_id exists in migrated_info
 			assert!(migrated_info.contains(&asset_type));
