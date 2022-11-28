@@ -164,7 +164,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
-								Call::Ethereum(transact { transaction }) => {
+								RuntimeCall::Ethereum(transact { transaction }) => {
 									if known_transactions.contains(&transaction.hash()) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
