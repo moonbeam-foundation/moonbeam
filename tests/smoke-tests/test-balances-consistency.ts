@@ -7,7 +7,6 @@ import type {
   PalletReferendaDeposit,
   PalletPreimageRequestStatus,
 } from "@polkadot/types/lookup";
-import chalk from "chalk";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
@@ -268,10 +267,10 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         })),
       preimageStatuses
         .filter((status) => status[1].unwrap().isUnrequested)
-        .map((status) => ({
-          accountId: status[1].unwrap().asUnrequested.deposit[0].toHex(),
+        .map((status: any) => ({
+          accountId: status[1].unwrap().asUnrequested.unwrap()[0].toHex(),
           reserved: {
-            preimage: BigInt(status[1].unwrap().asUnrequested.deposit[1].toBigInt()),
+            preimage: BigInt(status[1].unwrap().asUnrequested.unwrap()[1].toBigInt()),
           },
         })),
       referendumInfoFor
@@ -295,7 +294,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
 
           return deposits.map((deposit) => ({
             accountId: deposit.who.toHex(),
-            reserved: deposit.amount.toBigInt(),
+            reserved: {
+              referendumInfo: deposit.amount.toBigInt(),
+            },
           }));
         })
         .flat(),
