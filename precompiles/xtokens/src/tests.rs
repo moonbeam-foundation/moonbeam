@@ -106,7 +106,7 @@ fn transfer_self_reserve_works() {
 				),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -153,7 +153,7 @@ fn transfer_to_reserve_works() {
 				),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -208,7 +208,7 @@ fn transfer_to_reserve_with_fee_works() {
 				),
 				fun: Fungibility::Fungible(50),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
 				fee: expected_fee,
@@ -257,7 +257,7 @@ fn transfer_non_reserve_to_non_reserve_works() {
 				),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -312,7 +312,7 @@ fn transfer_non_reserve_to_non_reserve_with_fee_works() {
 				),
 				fun: Fungibility::Fungible(50),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
 				fee: expected_fee,
@@ -359,7 +359,7 @@ fn transfer_multi_asset_to_reserve_works() {
 				id: AssetId::Concrete(asset),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -407,7 +407,7 @@ fn transfer_multi_asset_self_reserve_works() {
 				id: AssetId::Concrete(self_reserve),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -459,7 +459,7 @@ fn transfer_multi_asset_self_reserve_with_fee_works() {
 				id: AssetId::Concrete(self_reserve),
 				fun: Fungibility::Fungible(50),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
 				fee: expected_fee,
@@ -509,7 +509,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve() {
 				id: AssetId::Concrete(asset_location),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone()].into(),
 				fee: expected_asset,
@@ -564,7 +564,7 @@ fn transfer_multi_asset_non_reserve_to_non_reserve_with_fee() {
 				id: AssetId::Concrete(asset_location),
 				fun: Fungibility::Fungible(50),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset.clone(), expected_fee.clone()].into(),
 				fee: expected_fee,
@@ -622,7 +622,7 @@ fn transfer_multi_currencies() {
 				),
 				fun: Fungibility::Fungible(500),
 			};
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: vec![expected_asset_1.clone(), expected_asset_2].into(),
 				fee: expected_asset_1,
@@ -687,7 +687,7 @@ fn transfer_multi_assets() {
 				.expect_no_logs()
 				.execute_returns(vec![]);
 
-			let expected: crate::mock::Event = XtokensEvent::TransferredMultiAssets {
+			let expected: crate::mock::RuntimeEvent = XtokensEvent::TransferredMultiAssets {
 				sender: Alice,
 				assets: multiassets,
 				fee: (asset_1_location, 500).into(),

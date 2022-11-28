@@ -16,7 +16,8 @@
 
 use crate::mock::{
 	Account::{Alice, Bob, Charlie, Precompile},
-	Call, Event, ExtBuilder, Origin, PCall, PrecompilesValue, ProxyType, Runtime,
+	ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
@@ -93,12 +94,12 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -120,12 +121,12 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -147,12 +148,12 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -185,7 +186,7 @@ fn test_add_proxy_succeeds() {
 					},
 				)
 				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
+			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyAdded {
 				delegator: Alice,
 				delegatee: Bob,
 				proxy_type: ProxyType::Something,
@@ -210,12 +211,12 @@ fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -257,12 +258,12 @@ fn test_remove_proxy_succeeds() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -275,7 +276,7 @@ fn test_remove_proxy_succeeds() {
 					},
 				)
 				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyRemoved {
+			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyRemoved {
 				delegator: Alice,
 				delegatee: Bob,
 				proxy_type: ProxyType::Something,
@@ -293,18 +294,18 @@ fn test_remove_proxies_succeeds() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			.dispatch(RuntimeOrigin::signed(Alice)));
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Charlie,
 				proxy_type: ProxyType::Any,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(Alice, Precompile, PCall::remove_proxies {})
@@ -357,12 +358,12 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -385,12 +386,12 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 1,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -413,12 +414,12 @@ fn test_is_proxy_returns_true_if_proxy() {
 		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 1,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			PrecompilesValue::get()
 				.prepare_test(
@@ -467,12 +468,12 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 		.build()
 		.execute_with(|| {
 			// make Bob a ProxyType::Something for Alice
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
 				delegate: Bob,
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice)));
 
 			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::Any
 			let add_proxy_precompile = PCall::add_proxy {
@@ -482,7 +483,7 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 			}
 			.into();
 
-			let evm_call = Call::Evm(EvmCall::call {
+			let evm_call = RuntimeCall::Evm(EvmCall::call {
 				source: Alice.into(),
 				target: Precompile.into(),
 				input: add_proxy_precompile,
@@ -496,14 +497,14 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 
 			// call the evm call in a proxy call
 			assert_ok!(<ProxyPallet<Runtime>>::proxy(
-				Origin::signed(Bob.into()),
+				RuntimeOrigin::signed(Bob.into()),
 				Alice.into(),
 				None,
 				Box::new(evm_call)
 			));
 
 			// assert Bob was not assigned ProxyType::Any
-			assert_event_not_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
+			assert_event_not_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyAdded {
 				delegator: Alice,
 				delegatee: Bob,
 				proxy_type: ProxyType::Any,

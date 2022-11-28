@@ -100,7 +100,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       apiAt.query.identity.subsOf.entries(),
       apiAt.query.democracy.depositOf.entries(),
       apiAt.query.democracy.votingOf.entries(),
-      apiAt.query.democracy.preimages.entries(),
+      apiAt.query.democracy.preimages.entries() as any, // TODO: Replace with preimage pallet
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       apiAt.query.localAssets.asset.entries(),
