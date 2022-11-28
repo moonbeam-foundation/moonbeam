@@ -21,18 +21,20 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{ConstU32, Currency};
+use frame_support::traits::{Bounded, ConstU32, Currency, QueryPreimage};
 use pallet_democracy::{
 	AccountVote, Call as DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
 };
 use pallet_evm::AddressMapping;
+use pallet_preimage::Call as PreimageCall;
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
-use sp_runtime::traits::StaticLookup;
+use sp_runtime::traits::{Hash, StaticLookup};
 use sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec::Vec,
 };
 
 #[cfg(test)]
@@ -49,6 +51,22 @@ type DemocracyOf<Runtime> = pallet_democracy::Pallet<Runtime>;
 pub const ENCODED_PROPOSAL_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetEncodedProposalSizeLimit = ConstU32<ENCODED_PROPOSAL_SIZE_LIMIT>;
 
+/// Solidity selector of the Proposed log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_PROPOSED: [u8; 32] = keccak256!("Proposed(uint32,uint256)");
+
+/// Solidity selector of the Seconded log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_SECONDED: [u8; 32] = keccak256!("Seconded(uint32,address)");
+
+/// Solidity selector of the StandardVote log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_STANDARD_VOTE: [u8; 32] =
+	keccak256!("StandardVote(uint32,address,bool,uint256,uint8)");
+
+/// Solidity selector of the Delegated log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_DELEGATED: [u8; 32] = keccak256!("Delegated(address,address)");
+
+/// Solidity selector of the Undelegated log, which is the Keccak of the Log signature.
+pub const SELECTOR_LOG_UNDELEGATED: [u8; 32] = keccak256!("Undelegated(address)");
+
 /// A precompile to wrap the functionality from pallet democracy.
 ///
 /// Grants evm-based DAOs the right to vote making them first-class citizens.
@@ -60,11 +78,15 @@ pub struct DemocracyPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile::test_concrete_types(mock::Runtime)]
 impl<Runtime> DemocracyPrecompile<Runtime>
 where
-	Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
+	Runtime: pallet_democracy::Config
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_preimage::Config,
 	BalanceOf<Runtime>: TryFrom<U256> + TryInto<u128> + Into<U256> + Debug + EvmData,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<DemocracyCall<Runtime>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: From<DemocracyCall<Runtime>>,
+	Runtime::RuntimeCall: From<PreimageCall<Runtime>>,
 	Runtime::Hash: From<H256> + Into<H256>,
 	Runtime::BlockNumber: Into<U256>,
 {
@@ -140,7 +162,7 @@ where
 
 		Ok((
 			ref_status.end.into(),
-			ref_status.proposal_hash.into(),
+			ref_status.proposal.hash().into(),
 			threshold_u8.into(),
 			ref_status.delay.into(),
 			ref_status.tally.ayes.into(),
@@ -168,7 +190,12 @@ where
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
 	#[precompile::public("propose(bytes32,uint256)")]
 	fn propose(handle: &mut impl PrecompileHandle, proposal_hash: H256, value: U256) -> EvmResult {
-		let proposal_hash = proposal_hash.into();
+		handle.record_log_costs_manual(2, 32)?;
+
+		// Fetch data from pallet
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let prop_count = DemocracyOf::<Runtime>::public_prop_count();
+
 		let value = Self::u256_to_amount(value).in_field("value")?;
 
 		log::trace!(
@@ -176,13 +203,33 @@ where
 			"Proposing with hash {:?}, and amount {:?}", proposal_hash, value
 		);
 
+		// This forces it to have the proposal in pre-images.
+		// TODO: REVISIT
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let len = <Runtime as pallet_democracy::Config>::Preimages::len(&proposal_hash).ok_or({
+			RevertReason::custom("Failure in preimage fetch").in_field("proposal_hash")
+		})?;
+
+		let bounded = Bounded::Lookup::<pallet_democracy::CallOf<Runtime>> {
+			hash: proposal_hash,
+			len,
+		};
+
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::propose {
-			proposal_hash,
+			proposal: bounded,
 			value,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_PROPOSED,
+			H256::from_low_u64_be(prop_count as u64), // proposal index,
+			EvmDataWriter::new().write::<U256>(value.into()).build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -193,6 +240,7 @@ where
 		prop_index: SolidityConvert<U256, u32>,
 		seconds_upper_bound: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32)?;
 		let prop_index = prop_index.converted();
 		let seconds_upper_bound = seconds_upper_bound.converted();
 
@@ -204,10 +252,19 @@ where
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::second {
 			proposal: prop_index,
-			seconds_upper_bound,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_SECONDED,
+			H256::from_low_u64_be(prop_index as u64), // proposal index,
+			EvmDataWriter::new()
+				.write::<Address>(handle.context().caller.into())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -221,28 +278,46 @@ where
 		vote_amount: U256,
 		conviction: SolidityConvert<U256, u8>,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32 * 4)?;
 		let ref_index = ref_index.converted();
-		let vote_amount = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
+		let vote_amount_balance = Self::u256_to_amount(vote_amount).in_field("voteAmount")?;
 
-		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
-			RevertReason::custom("Must be an integer between 0 and 6 included")
-				.in_field("conviction")
-		})?;
+		let conviction_enum: Conviction =
+			conviction.clone().converted().try_into().map_err(|_| {
+				RevertReason::custom("Must be an integer between 0 and 6 included")
+					.in_field("conviction")
+			})?;
 
 		let vote = AccountVote::Standard {
-			vote: Vote { aye, conviction },
-			balance: vote_amount,
+			vote: Vote {
+				aye,
+				conviction: conviction_enum,
+			},
+			balance: vote_amount_balance,
 		};
 
 		log::trace!(target: "democracy-precompile",
 			"Voting {:?} on referendum #{:?}, with conviction {:?}",
-			aye, ref_index, conviction
+			aye, ref_index, conviction_enum
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::vote { ref_index, vote };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_STANDARD_VOTE,
+			H256::from_low_u64_be(ref_index as u64), // referendum index,
+			EvmDataWriter::new()
+				.write::<Address>(handle.context().caller.into())
+				.write::<bool>(aye)
+				.write::<U256>(vote_amount)
+				.write::<u8>(conviction.converted())
+				.build(),
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -276,6 +351,7 @@ where
 		conviction: SolidityConvert<U256, u8>,
 		amount: U256,
 	) -> EvmResult {
+		handle.record_log_costs_manual(2, 32)?;
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 
 		let conviction: Conviction = conviction.converted().try_into().map_err(|_| {
@@ -284,13 +360,11 @@ where
 		})?;
 
 		log::trace!(target: "democracy-precompile",
-			"Delegating vote to {:?} with balance {:?} and {:?}",
-			representative, conviction, amount
+			"Delegating vote to {representative:?} with balance {amount:?} and conviction {conviction:?}",
 		);
 
-		let representative = Runtime::AddressMapping::into_account_id(representative.into());
-		let to: <Runtime::Lookup as StaticLookup>::Source =
-			Runtime::Lookup::unlookup(representative.clone());
+		let to = Runtime::AddressMapping::into_account_id(representative.into());
+		let to: <Runtime::Lookup as StaticLookup>::Source = Runtime::Lookup::unlookup(to.clone());
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::delegate {
 			to,
@@ -300,16 +374,35 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_DELEGATED,
+			handle.context().caller,
+			EvmDataWriter::new()
+				.write::<Address>(representative)
+				.build(),
+		)
+		.record(handle)?;
+
 		Ok(())
 	}
 
 	#[precompile::public("unDelegate()")]
 	#[precompile::public("un_delegate()")]
 	fn un_delegate(handle: &mut impl PrecompileHandle) -> EvmResult {
+		handle.record_log_costs_manual(2, 0)?;
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call = DemocracyCall::<Runtime>::undelegate {};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		log2(
+			handle.context().address,
+			SELECTOR_LOG_UNDELEGATED,
+			handle.context().caller,
+			[],
+		)
+		.record(handle)?;
 
 		Ok(())
 	}
@@ -340,7 +433,7 @@ where
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		let encoded_proposal = encoded_proposal.into();
+		let encoded_proposal: Vec<u8> = encoded_proposal.into();
 
 		log::trace!(
 			target: "democracy-precompile",
@@ -348,8 +441,9 @@ where
 		);
 
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = DemocracyCall::<Runtime>::note_preimage { encoded_proposal };
-
+		let call = PreimageCall::<Runtime>::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())
@@ -361,16 +455,28 @@ where
 		handle: &mut impl PrecompileHandle,
 		encoded_proposal: BoundedBytes<GetEncodedProposalSizeLimit>,
 	) -> EvmResult {
-		let encoded_proposal = encoded_proposal.into();
+		let encoded_proposal: Vec<u8> = encoded_proposal.into();
 
 		log::trace!(
 			target: "democracy-precompile",
 			"Noting imminent preimage {:?}", encoded_proposal
 		);
 
-		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = DemocracyCall::<Runtime>::note_imminent_preimage { encoded_proposal };
+		// To mimic imminent preimage behavior, we need to check whether the preimage
+		// has been requested
+		// is_requested implies db read
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let proposal_hash = <Runtime as frame_system::Config>::Hashing::hash(&encoded_proposal);
+		if !<<Runtime as pallet_democracy::Config>::Preimages as QueryPreimage>::is_requested(
+			&proposal_hash.into(),
+		) {
+			return Err(revert("not imminent preimage (preimage not requested)"));
+		};
 
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = PreimageCall::<Runtime>::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
 		Ok(())

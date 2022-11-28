@@ -127,16 +127,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -160,7 +160,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -170,7 +170,7 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
-	pub const WeightPerGas: u64 = 1;
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
@@ -181,7 +181,7 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -226,7 +226,7 @@ impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type ApproveOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 	type RejectOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	// If spending proposal rejected, transfer proposer bond to treasury
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -245,9 +245,9 @@ impl pallet_treasury::Config for Runtime {
 }
 
 impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<2>;
@@ -370,7 +370,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 	}
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)

@@ -3,7 +3,7 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
-import { fetchHistoricBlockNum, getBlockTime } from "../util/block";
+import { getBlockArray } from "../util/block";
 import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
@@ -38,24 +38,7 @@ describeSmokeSuite(
 
     before("Retrieve all weight limits and usage", async function () {
       this.timeout(timeout);
-
-      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
-        await context.polkadotApi.rpc.chain.getFinalizedHead()
-      );
-
-      const lastBlockNumber = signedBlock.block.header.number.toNumber();
-      const lastBlockTime = getBlockTime(signedBlock);
-
-      const firstBlockTime = lastBlockTime - timePeriod;
-      debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
-      const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
-        context.polkadotApi,
-        lastBlockNumber,
-        firstBlockTime
-      )) as number;
-
-      const length = lastBlockNumber - firstBlockNumber;
-      const blockNumArray = Array.from({ length }, (_, i) => firstBlockNumber + i);
+      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
       const limits = context.polkadotApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {
@@ -67,7 +50,9 @@ describeSmokeSuite(
         const specVersion = apiAt.consts.system.version.specVersion.toNumber();
         const events = await apiAt.query.system.events();
         if (specVersion >= 1700) {
-          const { normal, operational, mandatory } = await apiAt.query.system.blockWeight();
+          // TODO: replace type when we update to use SpWeightsWeightV2Weight
+          const { normal, operational, mandatory } =
+            (await apiAt.query.system.blockWeight()) as any;
           return {
             blockNum,
             hash: blockHash.toString(),
@@ -141,6 +126,12 @@ describeSmokeSuite(
     // by eth signed transactions.
     it("should roughly have a block weight mostly composed of transactions", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -186,6 +177,12 @@ describeSmokeSuite(
     // weight events emitted by signed extrinsics
     it("should have total normal weight matching the signed extrinsics", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -240,6 +237,12 @@ describeSmokeSuite(
     // property of  ethereum.currentBlock()
     it("should have total gas charged similar to eth extrinsics", async function () {
       this.timeout(timeout);
+
+      // Waiting for bugfixes
+      if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum

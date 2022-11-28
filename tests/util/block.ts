@@ -16,6 +16,7 @@ import { DevTestContext } from "./setup-dev-tests";
 
 import type { Block } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
+import Bottleneck from "bottleneck";
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
   api: ApiPromise,
@@ -200,7 +201,7 @@ export const verifyBlockFees = async (
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasUsed =
-                  (dispatchInfo.weight.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
+                  ((dispatchInfo as any).weight.refTime.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
                 let ethTxWrapper = extrinsic.method.args[0] as any;
 
                 let number = blockDetails.block.header.number.toNumber();
@@ -414,4 +415,32 @@ export const fetchHistoricBlockNum = async (
       );
     }
   });
+};
+
+export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter?: Bottleneck) => {
+  /**  
+  @brief Returns an sequential array of block numbers from a given period of time in the past
+  @param api Connected ApiPromise to perform queries on
+  @param timePeriod Moment in the past to search until
+  @param limiter Bottleneck rate limiter to throttle requests
+  */
+
+  if (typeof limiter == "undefined") {
+    limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+  }
+  const signedBlock = await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead());
+
+  const lastBlockNumber = signedBlock.block.header.number.toNumber();
+  const lastBlockTime = getBlockTime(signedBlock);
+
+  const firstBlockTime = lastBlockTime - timePeriod;
+  debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
+  const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
+    api,
+    lastBlockNumber,
+    firstBlockTime
+  )) as number;
+
+  const length = lastBlockNumber - firstBlockNumber;
+  return Array.from({ length }, (_, i) => firstBlockNumber + i);
 };
