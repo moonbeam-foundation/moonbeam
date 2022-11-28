@@ -31,7 +31,7 @@ use fc_rpc::{
 	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
 	SchemaV2Override, SchemaV3Override, StorageOverride,
 };
-use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpsee::RpcModule;
@@ -55,6 +55,28 @@ use sp_blockchain::{
 use sp_core::H256;
 use sp_runtime::traits::{BlakeTwo256, Block as BlockT};
 use std::collections::BTreeMap;
+
+pub struct MoonbeamEGA;
+
+impl fc_rpc::EstimateGasAdapter for MoonbeamEGA {
+	fn adapt_request(mut request: CallRequest) -> CallRequest {
+		// Redirect any call to batch precompile:
+		// force usage of batchAll method for estimation
+		use sp_core::H160;
+		const BATCH_PRECOMPILE_ADDRESS: H160 = H160(hex_literal::hex!(
+			"0000000000000000000000000000000000000808"
+		));
+		const BATCH_PRECOMPILE_BATCH_ALL_SELECTOR: [u8; 4] = hex_literal::hex!("96e292b8");
+		if request.to == Some(BATCH_PRECOMPILE_ADDRESS) {
+			if let Some(ref mut data) = request.data {
+				if data.0.len() >= 4 {
+					data.0[..4].copy_from_slice(&BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+				}
+			}
+		}
+		request
+	}
+}
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, A: ChainApi, BE> {
@@ -215,6 +237,7 @@ where
 			fee_history_limit,
 			10,
 		)
+		.with_estimate_gas_adapter::<MoonbeamEGA>()
 		.into_rpc(),
 	)?;
 

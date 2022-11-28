@@ -39,13 +39,13 @@ describeSmokeSuite(
     it("should have non default field values", async function () {
       this.timeout(6_000_000); // 30 minutes
       const lastBlockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
+      const roundLength = (
+        await context.polkadotApi.query.parachainStaking.round()
+      ).length.toNumber();
       const blocksToWait = process.env.BATCH_OF
         ? parseInt(process.env.BATCH_OF)
         : process.env.ROUNDS_TO_WAIT
-        ? Math.floor(
-            Number(process.env.ROUNDS_TO_WAIT) *
-              context.polkadotApi.consts.parachainStaking.defaultBlocksPerRound.toNumber()
-          )
+        ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
         : 300;
       const firstBlockNumber = lastBlockNumber - blocksToWait + 1;
 

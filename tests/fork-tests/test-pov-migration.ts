@@ -87,8 +87,9 @@ describeParachain(
   },
   (context) => {
     it("should not fail", async function () {
-      const blocksPerRound =
-        context.polkadotApiParaone.consts.parachainStaking.defaultBlocksPerRound.toNumber();
+      const blocksPerRound = (
+        await context.polkadotApiParaone.query.parachainStaking.round()
+      ).length.toNumber();
       const blocksToWait = blocksPerRound * ROUNDS_TO_WAIT;
 
       this.timeout((3600 + blocksToWait * 12) * 1000);
