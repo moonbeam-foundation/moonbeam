@@ -201,7 +201,9 @@ export const verifyBlockFees = async (
               if (extrinsic.method.section == "ethereum") {
                 // For Ethereum tx we caluculate fee by first converting weight to gas
                 const gasUsed =
-                  ((dispatchInfo as any).weight.refTime.toBigInt() + BigInt(EXTRINSIC_BASE_WEIGHT)) / WEIGHT_PER_GAS;
+                  ((dispatchInfo as any).weight.refTime.toBigInt() +
+                    BigInt(EXTRINSIC_BASE_WEIGHT)) /
+                  WEIGHT_PER_GAS;
                 let ethTxWrapper = extrinsic.method.args[0] as any;
 
                 let number = blockDetails.block.header.number.toNumber();
