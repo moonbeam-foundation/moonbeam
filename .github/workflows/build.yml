@@ -447,12 +447,26 @@ jobs:
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
           chmod uog+x build/moonbeam
+
+          ####  Preparing the repository
           cd moonbeam-types-bundle
           npm ci
           npm run build
+
+          ####  Preparing the typescript api
+          cd ../typescript-api
+          npm ci
+
           cd ../tests
           npm ci
+          #### Prepares and copies the typescript generated API to include in the tests
+          npm run setup-typescript-api
+
+          #### Compile typescript tests into javascript (more stable for Mocha)
+          #### This also better display typescript issues
           npm run build
+
+          #### Run tracing tests with mocha
           node_modules/.bin/mocha --exit --parallel -j 2 'build/tracing-tests/**/test-*.js'
 
   typescript-para-tests:
