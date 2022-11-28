@@ -1623,7 +1623,7 @@ mod fee_tests {
 	fn test_multiplier_can_grow_from_zero() {
 		let minimum_multiplier = MinimumMultiplier::get();
 		let target = TargetBlockFullness::get()
-			* BlockWeights::get()
+			* RuntimeBlockWeights::get()
 				.get(DispatchClass::Normal)
 				.max_total
 				.unwrap();
@@ -1646,7 +1646,7 @@ mod fee_tests {
 		// assume the multiplier is initially set to its minimum. We update it with values twice the
 		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 		let mut multiplier = MinimumMultiplier::get();
-		let block_weight = BlockWeights::get()
+		let block_weight = RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap();
@@ -1655,17 +1655,18 @@ mod fee_tests {
 
 		let call = frame_system::Call::<Runtime>::fill_block {
 			ratio: Perbill::from_rational(
-				block_weight,
-				BlockWeights::get()
+				block_weight.ref_time(),
+				RuntimeBlockWeights::get()
 					.get(DispatchClass::Normal)
 					.max_total
-					.unwrap(),
+					.unwrap()
+					.ref_time(),
 			),
 		};
 		println!("calling {:?}", call);
 		let info = call.get_dispatch_info();
 		// convert to outer call.
-		let call = Call::System(call);
+		let call = RuntimeCall::System(call);
 		let len = call.using_encoded(|e| e.len()) as u32;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
@@ -1734,12 +1735,12 @@ mod fee_tests {
 
 	#[test]
 	fn test_fee_calculation() {
-		let base_extrinsic = BlockWeights::get()
+		let base_extrinsic = RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.base_extrinsic;
 		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);
 		let extrinsic_len = 100u32;
-		let extrinsic_weight = 5_000u64;
+		let extrinsic_weight = Weight::from_ref_time(5_000u64);
 		let tip = 42u128;
 		type WeightToFeeImpl = ConstantMultiplier<u128, ConstU128<{ currency::WEIGHT_FEE }>>;
 		type LengthToFeeImpl = LengthToFee;
@@ -1747,7 +1748,7 @@ mod fee_tests {
 		// base_fee + (multiplier * extrinsic_weight_fee) + extrinsic_length_fee + tip
 		let expected_fee = WeightToFeeImpl::weight_to_fee(&base_extrinsic)
 			+ multiplier.saturating_mul_int(WeightToFeeImpl::weight_to_fee(&extrinsic_weight))
-			+ LengthToFeeImpl::weight_to_fee(&(extrinsic_len as u64))
+			+ LengthToFeeImpl::weight_to_fee(&(Weight::from_ref_time(extrinsic_len as u64)))
 			+ tip;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()

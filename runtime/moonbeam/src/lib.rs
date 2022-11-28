@@ -1623,7 +1623,7 @@ mod fee_tests {
 	fn test_multiplier_can_grow_from_zero() {
 		let minimum_multiplier = MinimumMultiplier::get();
 		let target = TargetBlockFullness::get()
-			* BlockWeights::get()
+			* RuntimeBlockWeights::get()
 				.get(DispatchClass::Normal)
 				.max_total
 				.unwrap();
@@ -1646,7 +1646,7 @@ mod fee_tests {
 		// assume the multiplier is initially set to its minimum. We update it with values twice the
 		//target (target is 25%, thus 50%) and we see at which point it reaches 1.
 		let mut multiplier = MinimumMultiplier::get();
-		let block_weight = BlockWeights::get()
+		let block_weight = RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.max_total
 			.unwrap();
@@ -1656,7 +1656,7 @@ mod fee_tests {
 		let call = frame_system::Call::<Runtime>::fill_block {
 			ratio: Perbill::from_rational(
 				block_weight.ref_time(),
-				BlockWeights::get()
+				RuntimeBlockWeights::get()
 					.get(DispatchClass::Normal)
 					.max_total
 					.unwrap()
@@ -1666,7 +1666,7 @@ mod fee_tests {
 		println!("calling {:?}", call);
 		let info = call.get_dispatch_info();
 		// convert to outer call.
-		let call = Call::System(call);
+		let call = RuntimeCall::System(call);
 		let len = call.using_encoded(|e| e.len()) as u32;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
@@ -1735,7 +1735,7 @@ mod fee_tests {
 
 	#[test]
 	fn test_fee_calculation() {
-		let base_extrinsic = BlockWeights::get()
+		let base_extrinsic = RuntimeBlockWeights::get()
 			.get(DispatchClass::Normal)
 			.base_extrinsic;
 		let multiplier = sp_runtime::FixedU128::from_float(0.999000000000000000);

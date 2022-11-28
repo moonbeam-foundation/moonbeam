@@ -1628,7 +1628,7 @@ mod fee_tests {
 		println!("calling {:?}", call);
 		let info = call.get_dispatch_info();
 		// convert to outer call.
-		let call = Call::System(call);
+		let call = RuntimeCall::System(call);
 		let len = call.using_encoded(|e| e.len()) as u32;
 
 		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()

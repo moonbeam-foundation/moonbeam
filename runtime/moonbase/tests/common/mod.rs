@@ -26,8 +26,8 @@ use frame_support::{
 use moonbase_runtime::{asset_config::AssetRegistrarMetadata, xcm_config::AssetType};
 pub use moonbase_runtime::{
 	currency::{GIGAWEI, SUPPLY_FACTOR, UNIT, WEI},
-	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, Call,
-	CrowdloanRewards, Ethereum, Executive, FixedGasPrice, InflationInfo, LocalAssets,
+	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, 
+	CrowdloanRewards, Ethereum, Executive, TransactionPaymentAsGasPrice, InflationInfo, LocalAssets,
 	ParachainStaking, Range, Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter,
 	UncheckedExtrinsic, HOURS, WEEKS,
 };
