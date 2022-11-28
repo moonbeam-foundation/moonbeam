@@ -13,7 +13,7 @@ ethereum-types = "0.14"
 futures = { version = "0.3" }
 jsonrpsee = { version = "0.15.0", default-features = false, features = [ "macros", "server" ] }
 serde = { version = "1.0", features = [ "derive" ] }
-sha3 = "0.9"
+sha3 = "0.10"
 tokio = { version = "1.10", features = [ "sync", "time" ] }
 tracing = "0.1.34"
 
