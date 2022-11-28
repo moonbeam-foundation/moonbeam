@@ -1,7 +1,16 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/submittable";
+
+import type {
+  ApiTypes,
+  AugmentedSubmittable,
+  SubmittableExtrinsic,
+  SubmittableExtrinsicFunction,
+} from "@polkadot/api-base/types";
 import type { Data } from "@polkadot/types";
 import type {
   Bytes,
@@ -27,13 +36,13 @@ import type {
   Perbill,
   Percent,
   Permill,
+  Weight,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPrimitivesParachainInherentParachainInherentData,
   EthereumTransactionTransactionV2,
   FrameSupportScheduleDispatchTime,
   FrameSupportScheduleMaybeHashed,
-  FrameSupportWeightsWeightV2Weight,
   MoonbaseRuntimeAssetConfigAssetRegistrarMetadata,
   MoonbaseRuntimeOriginCaller,
   MoonbaseRuntimeProxyType,
@@ -62,8 +71,13 @@ import type {
   XcmVersionedXcm,
 } from "@polkadot/types/lookup";
 
+export type __AugmentedSubmittable = AugmentedSubmittable<() => unknown>;
+export type __SubmittableExtrinsic<ApiType extends ApiTypes> = SubmittableExtrinsic<ApiType>;
+export type __SubmittableExtrinsicFunction<ApiType extends ApiTypes> =
+  SubmittableExtrinsicFunction<ApiType>;
+
 declare module "@polkadot/api-base/types/submittable" {
-  export interface AugmentedSubmittables<ApiType extends ApiTypes> {
+  interface AugmentedSubmittables<ApiType extends ApiTypes> {
     assetManager: {
       /**
        * Change the xcm type mapping for a given assetId We also change this if
@@ -966,6 +980,7 @@ declare module "@polkadot/api-base/types/submittable" {
        *   `T::DustRemoval::on_unbalanced`.
        * - `transfer_keep_alive` works the same way as `transfer`, but has an
        *   additional check that the transfer will not kill the origin account.
+       *
        * - Origin account is already in memory, so no DB operations for them.
        *
        * # </weight>
@@ -1147,7 +1162,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       removeVote: AugmentedSubmittable<
         (
-          clazz: Option<u16> | null | object | string | Uint8Array,
+          clazz: Option<u16> | null | Uint8Array | u16 | AnyNumber,
           index: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Option<u16>, u32]
@@ -1267,10 +1282,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
+        [H256, Compact<u32>, Compact<Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless
@@ -1399,7 +1414,7 @@ declare module "@polkadot/api-base/types/submittable" {
       setMembers: AugmentedSubmittable<
         (
           newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
-          prime: Option<AccountId20> | null | object | string | Uint8Array,
+          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
           oldCount: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<AccountId20>, Option<AccountId20>, u32]
@@ -1512,7 +1527,7 @@ declare module "@polkadot/api-base/types/submittable" {
             | Vec<ITuple<[U8aFixed, Option<AccountId20>, u128]>>
             | [
                 U8aFixed | string | Uint8Array,
-                Option<AccountId20> | null | object | string | Uint8Array,
+                Option<AccountId20> | null | Uint8Array | AccountId20 | string,
                 u128 | AnyNumber | Uint8Array
               ][]
         ) => SubmittableExtrinsic<ApiType>,
@@ -1551,7 +1566,7 @@ declare module "@polkadot/api-base/types/submittable" {
       blacklist: AugmentedSubmittable<
         (
           proposalHash: H256 | string | Uint8Array,
-          maybeRefIndex: Option<u32> | null | object | string | Uint8Array
+          maybeRefIndex: Option<u32> | null | Uint8Array | u32 | AnyNumber
         ) => SubmittableExtrinsic<ApiType>,
         [H256, Option<u32>]
       >;
@@ -2010,9 +2025,9 @@ declare module "@polkadot/api-base/types/submittable" {
       serviceOverweight: AugmentedSubmittable<
         (
           index: u64 | AnyNumber | Uint8Array,
-          weightLimit: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
+          weightLimit: Weight | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u64, FrameSupportWeightsWeightV2Weight]
+        [u64, Weight]
       >;
       /**
        * Generic tx
@@ -2102,8 +2117,8 @@ declare module "@polkadot/api-base/types/submittable" {
           value: U256 | AnyNumber | Uint8Array,
           gasLimit: u64 | AnyNumber | Uint8Array,
           maxFeePerGas: U256 | AnyNumber | Uint8Array,
-          maxPriorityFeePerGas: Option<U256> | null | object | string | Uint8Array,
-          nonce: Option<U256> | null | object | string | Uint8Array,
+          maxPriorityFeePerGas: Option<U256> | null | Uint8Array | U256 | AnyNumber,
+          nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
             | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
@@ -2131,8 +2146,8 @@ declare module "@polkadot/api-base/types/submittable" {
           value: U256 | AnyNumber | Uint8Array,
           gasLimit: u64 | AnyNumber | Uint8Array,
           maxFeePerGas: U256 | AnyNumber | Uint8Array,
-          maxPriorityFeePerGas: Option<U256> | null | object | string | Uint8Array,
-          nonce: Option<U256> | null | object | string | Uint8Array,
+          maxPriorityFeePerGas: Option<U256> | null | Uint8Array | U256 | AnyNumber,
+          nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
             | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
@@ -2150,8 +2165,8 @@ declare module "@polkadot/api-base/types/submittable" {
           value: U256 | AnyNumber | Uint8Array,
           gasLimit: u64 | AnyNumber | Uint8Array,
           maxFeePerGas: U256 | AnyNumber | Uint8Array,
-          maxPriorityFeePerGas: Option<U256> | null | object | string | Uint8Array,
-          nonce: Option<U256> | null | object | string | Uint8Array,
+          maxPriorityFeePerGas: Option<U256> | null | Uint8Array | U256 | AnyNumber,
+          nonce: Option<U256> | null | Uint8Array | U256 | AnyNumber,
           accessList:
             | Vec<ITuple<[H160, Vec<H256>]>>
             | [H160 | string | Uint8Array, Vec<H256> | (H256 | string | Uint8Array)[]][]
@@ -3646,9 +3661,9 @@ declare module "@polkadot/api-base/types/submittable" {
       execute: AugmentedSubmittable<
         (
           message: XcmVersionedXcm | { V0: any } | { V1: any } | { V2: any } | string | Uint8Array,
-          maxWeight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
+          maxWeight: Weight | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [XcmVersionedXcm, FrameSupportWeightsWeightV2Weight]
+        [XcmVersionedXcm, Weight]
       >;
       /**
        * Set a safe XCM version (the version that XCM should be encoded with if
@@ -3659,7 +3674,7 @@ declare module "@polkadot/api-base/types/submittable" {
        */
       forceDefaultXcmVersion: AugmentedSubmittable<
         (
-          maybeXcmVersion: Option<u32> | null | object | string | Uint8Array
+          maybeXcmVersion: Option<u32> | null | Uint8Array | u32 | AnyNumber
         ) => SubmittableExtrinsic<ApiType>,
         [Option<u32>]
       >;
@@ -4091,7 +4106,20 @@ declare module "@polkadot/api-base/types/submittable" {
       proxy: AugmentedSubmittable<
         (
           real: AccountId20 | string | Uint8Array,
-          forceProxyType: Option<MoonbaseRuntimeProxyType> | null | object | string | Uint8Array,
+          forceProxyType:
+            | Option<MoonbaseRuntimeProxyType>
+            | null
+            | Uint8Array
+            | MoonbaseRuntimeProxyType
+            | "Any"
+            | "NonTransfer"
+            | "Governance"
+            | "Staking"
+            | "CancelProxy"
+            | "Balances"
+            | "AuthorMapping"
+            | "IdentityJudgement"
+            | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
@@ -4124,7 +4152,20 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           delegate: AccountId20 | string | Uint8Array,
           real: AccountId20 | string | Uint8Array,
-          forceProxyType: Option<MoonbaseRuntimeProxyType> | null | object | string | Uint8Array,
+          forceProxyType:
+            | Option<MoonbaseRuntimeProxyType>
+            | null
+            | Uint8Array
+            | MoonbaseRuntimeProxyType
+            | "Any"
+            | "NonTransfer"
+            | "Governance"
+            | "Staking"
+            | "CancelProxy"
+            | "Balances"
+            | "AuthorMapping"
+            | "IdentityJudgement"
+            | number,
           call: Call | IMethod | string | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [AccountId20, AccountId20, Option<MoonbaseRuntimeProxyType>, Call]
@@ -4399,7 +4440,12 @@ declare module "@polkadot/api-base/types/submittable" {
       schedule: AugmentedSubmittable<
         (
           when: u32 | AnyNumber | Uint8Array,
-          maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
+          maybePeriodic:
+            | Option<ITuple<[u32, u32]>>
+            | null
+            | Uint8Array
+            | ITuple<[u32, u32]>
+            | [u32 | AnyNumber | Uint8Array, u32 | AnyNumber | Uint8Array],
           priority: u8 | AnyNumber | Uint8Array,
           call:
             | FrameSupportScheduleMaybeHashed
@@ -4422,7 +4468,12 @@ declare module "@polkadot/api-base/types/submittable" {
       scheduleAfter: AugmentedSubmittable<
         (
           after: u32 | AnyNumber | Uint8Array,
-          maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
+          maybePeriodic:
+            | Option<ITuple<[u32, u32]>>
+            | null
+            | Uint8Array
+            | ITuple<[u32, u32]>
+            | [u32 | AnyNumber | Uint8Array, u32 | AnyNumber | Uint8Array],
           priority: u8 | AnyNumber | Uint8Array,
           call:
             | FrameSupportScheduleMaybeHashed
@@ -4440,7 +4491,12 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           id: Bytes | string | Uint8Array,
           when: u32 | AnyNumber | Uint8Array,
-          maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
+          maybePeriodic:
+            | Option<ITuple<[u32, u32]>>
+            | null
+            | Uint8Array
+            | ITuple<[u32, u32]>
+            | [u32 | AnyNumber | Uint8Array, u32 | AnyNumber | Uint8Array],
           priority: u8 | AnyNumber | Uint8Array,
           call:
             | FrameSupportScheduleMaybeHashed
@@ -4464,7 +4520,12 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           id: Bytes | string | Uint8Array,
           after: u32 | AnyNumber | Uint8Array,
-          maybePeriodic: Option<ITuple<[u32, u32]>> | null | object | string | Uint8Array,
+          maybePeriodic:
+            | Option<ITuple<[u32, u32]>>
+            | null
+            | Uint8Array
+            | ITuple<[u32, u32]>
+            | [u32 | AnyNumber | Uint8Array, u32 | AnyNumber | Uint8Array],
           priority: u8 | AnyNumber | Uint8Array,
           call:
             | FrameSupportScheduleMaybeHashed
@@ -4556,9 +4617,9 @@ declare module "@polkadot/api-base/types/submittable" {
       sudoUncheckedWeight: AugmentedSubmittable<
         (
           call: Call | IMethod | string | Uint8Array,
-          weight: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
+          weight: Weight | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [Call, FrameSupportWeightsWeightV2Weight]
+        [Call, Weight]
       >;
       /**
        * Generic tx
@@ -4718,10 +4779,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
+        [H256, Compact<u32>, Compact<Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless
@@ -4850,7 +4911,7 @@ declare module "@polkadot/api-base/types/submittable" {
       setMembers: AugmentedSubmittable<
         (
           newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
-          prime: Option<AccountId20> | null | object | string | Uint8Array,
+          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
           oldCount: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<AccountId20>, Option<AccountId20>, u32]
@@ -5070,10 +5131,10 @@ declare module "@polkadot/api-base/types/submittable" {
         (
           proposalHash: H256 | string | Uint8Array,
           index: Compact<u32> | AnyNumber | Uint8Array,
-          proposalWeightBound: Compact<FrameSupportWeightsWeightV2Weight> | AnyNumber | Uint8Array,
+          proposalWeightBound: Compact<Weight> | AnyNumber | Uint8Array,
           lengthBound: Compact<u32> | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, Compact<u32>, Compact<FrameSupportWeightsWeightV2Weight>, Compact<u32>]
+        [H256, Compact<u32>, Compact<Weight>, Compact<u32>]
       >;
       /**
        * Disapprove a proposal, close, and remove it from the system, regardless
@@ -5202,7 +5263,7 @@ declare module "@polkadot/api-base/types/submittable" {
       setMembers: AugmentedSubmittable<
         (
           newMembers: Vec<AccountId20> | (AccountId20 | string | Uint8Array)[],
-          prime: Option<AccountId20> | null | object | string | Uint8Array,
+          prime: Option<AccountId20> | null | Uint8Array | AccountId20 | string,
           oldCount: u32 | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
         [Vec<AccountId20>, Option<AccountId20>, u32]
@@ -5387,13 +5448,9 @@ declare module "@polkadot/api-base/types/submittable" {
       dispatchWhitelistedCall: AugmentedSubmittable<
         (
           callHash: H256 | string | Uint8Array,
-          callWeightWitness:
-            | FrameSupportWeightsWeightV2Weight
-            | { refTime?: any }
-            | string
-            | Uint8Array
+          callWeightWitness: Weight | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [H256, FrameSupportWeightsWeightV2Weight]
+        [H256, Weight]
       >;
       dispatchWhitelistedCallWithPreimage: AugmentedSubmittable<
         (call: Call | IMethod | string | Uint8Array) => SubmittableExtrinsic<ApiType>,
@@ -5442,9 +5499,9 @@ declare module "@polkadot/api-base/types/submittable" {
       serviceOverweight: AugmentedSubmittable<
         (
           index: u64 | AnyNumber | Uint8Array,
-          weightLimit: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
+          weightLimit: Weight | AnyNumber | Uint8Array
         ) => SubmittableExtrinsic<ApiType>,
-        [u64, FrameSupportWeightsWeightV2Weight]
+        [u64, Weight]
       >;
       /**
        * Suspends all XCM executions for the XCMP queue, regardless of the
@@ -5495,10 +5552,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `new`: Desired value for `QueueConfigData.threshold_weight`
        */
       updateThresholdWeight: AugmentedSubmittable<
-        (
-          updated: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportWeightsWeightV2Weight]
+        (updated: Weight | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Weight]
       >;
       /**
        * Overwrites the speed to which the available weight approaches the
@@ -5509,10 +5564,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `new`: Desired value for `QueueConfigData.weight_restrict_decay`.
        */
       updateWeightRestrictDecay: AugmentedSubmittable<
-        (
-          updated: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportWeightsWeightV2Weight]
+        (updated: Weight | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Weight]
       >;
       /**
        * Overwrite the maximum amount of weight any individual message may
@@ -5523,10 +5576,8 @@ declare module "@polkadot/api-base/types/submittable" {
        * - `new`: Desired value for `QueueConfigData.xcmp_max_individual_weight`.
        */
       updateXcmpMaxIndividualWeight: AugmentedSubmittable<
-        (
-          updated: FrameSupportWeightsWeightV2Weight | { refTime?: any } | string | Uint8Array
-        ) => SubmittableExtrinsic<ApiType>,
-        [FrameSupportWeightsWeightV2Weight]
+        (updated: Weight | AnyNumber | Uint8Array) => SubmittableExtrinsic<ApiType>,
+        [Weight]
       >;
       /**
        * Generic tx
@@ -5602,7 +5653,7 @@ declare module "@polkadot/api-base/types/submittable" {
           location: XcmVersionedMultiLocation | { V0: any } | { V1: any } | string | Uint8Array,
           transactExtraWeight: u64 | AnyNumber | Uint8Array,
           maxWeight: u64 | AnyNumber | Uint8Array,
-          transactExtraWeightSigned: Option<u64> | null | object | string | Uint8Array
+          transactExtraWeightSigned: Option<u64> | null | Uint8Array | u64 | AnyNumber
         ) => SubmittableExtrinsic<ApiType>,
         [XcmVersionedMultiLocation, u64, u64, Option<u64>]
       >;

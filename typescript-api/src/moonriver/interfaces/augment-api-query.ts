@@ -1,7 +1,11 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/storage";
+
+import type { ApiTypes, AugmentedQuery, QueryableStorageEntry } from "@polkadot/api-base/types";
 import type { Data } from "@polkadot/types";
 import type {
   BTreeMap,
@@ -26,6 +30,7 @@ import type {
   Perbill,
   Percent,
   Permill,
+  Weight,
 } from "@polkadot/types/interfaces/runtime";
 import type {
   CumulusPalletDmpQueueConfigData,
@@ -39,7 +44,6 @@ import type {
   EthereumTransactionTransactionV2,
   FpRpcTransactionStatus,
   FrameSupportWeightsPerDispatchClassWeight,
-  FrameSupportWeightsWeightV2Weight,
   FrameSystemAccountInfo,
   FrameSystemEventRecord,
   FrameSystemLastRuntimeUpgradeInfo,
@@ -100,8 +104,11 @@ import type {
 } from "@polkadot/types/lookup";
 import type { Observable } from "@polkadot/types/types";
 
+export type __AugmentedQuery<ApiType extends ApiTypes> = AugmentedQuery<ApiType, () => unknown>;
+export type __QueryableStorageEntry<ApiType extends ApiTypes> = QueryableStorageEntry<ApiType>;
+
 declare module "@polkadot/api-base/types/storage" {
-  export interface AugmentedQueries<ApiType extends ApiTypes> {
+  interface AugmentedQueries<ApiType extends ApiTypes> {
     assetManager: {
       /**
        * Mapping from an asset id to asset type. This is mostly used when
@@ -1234,21 +1241,13 @@ declare module "@polkadot/api-base/types/storage" {
        * The weight we reserve at the beginning of the block for processing DMP
        * messages. This overrides the amount set in the Config trait.
        */
-      reservedDmpWeightOverride: AugmentedQuery<
-        ApiType,
-        () => Observable<Option<FrameSupportWeightsWeightV2Weight>>,
-        []
-      > &
+      reservedDmpWeightOverride: AugmentedQuery<ApiType, () => Observable<Option<Weight>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * The weight we reserve at the beginning of the block for processing XCMP
        * messages. This overrides the amount set in the Config trait.
        */
-      reservedXcmpWeightOverride: AugmentedQuery<
-        ApiType,
-        () => Observable<Option<FrameSupportWeightsWeightV2Weight>>,
-        []
-      > &
+      reservedXcmpWeightOverride: AugmentedQuery<ApiType, () => Observable<Option<Weight>>, []> &
         QueryableStorageEntry<ApiType, []>;
       /**
        * An option which indicates if the relay-chain restricts signalling a

@@ -1,6 +1,10 @@
 // Auto-generated via `yarn polkadot-types-from-defs`, do not edit
 /* eslint-disable */
 
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/types/types/registry";
+
 import type {
   AccountEthereumSignature,
   CumulusPalletDmpQueueCall,
@@ -55,7 +59,6 @@ import type {
   FrameSupportWeightsPerDispatchClassWeight,
   FrameSupportWeightsPerDispatchClassWeightsPerClass,
   FrameSupportWeightsRuntimeDbWeight,
-  FrameSupportWeightsWeightV2Weight,
   FrameSystemAccountInfo,
   FrameSystemCall,
   FrameSystemError,
@@ -288,7 +291,7 @@ import type {
 } from "@polkadot/types/lookup";
 
 declare module "@polkadot/types/types/registry" {
-  export interface InterfaceTypes {
+  interface InterfaceTypes {
     AccountEthereumSignature: AccountEthereumSignature;
     CumulusPalletDmpQueueCall: CumulusPalletDmpQueueCall;
     CumulusPalletDmpQueueConfigData: CumulusPalletDmpQueueConfigData;
@@ -342,7 +345,6 @@ declare module "@polkadot/types/types/registry" {
     FrameSupportWeightsPerDispatchClassWeight: FrameSupportWeightsPerDispatchClassWeight;
     FrameSupportWeightsPerDispatchClassWeightsPerClass: FrameSupportWeightsPerDispatchClassWeightsPerClass;
     FrameSupportWeightsRuntimeDbWeight: FrameSupportWeightsRuntimeDbWeight;
-    FrameSupportWeightsWeightV2Weight: FrameSupportWeightsWeightV2Weight;
     FrameSystemAccountInfo: FrameSystemAccountInfo;
     FrameSystemCall: FrameSystemCall;
     FrameSystemError: FrameSystemError;
