@@ -55,7 +55,7 @@
   "license": "ISC",
   "dependencies": {
     "@metamask/eth-sig-util": "^4.0.1",
-    "@moonbeam-network/api-augment": "^0.2000.0",
+    "@moonbeam-network/api-augment": "^0.2000.1",
     "@parity/zombienet": "^1.2.70",
     "@polkadot/api": "^9.9.4",
     "@polkadot/keyring": "^10.1.9",
