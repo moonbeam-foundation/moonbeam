@@ -6,7 +6,6 @@ import type {
   FrameSystemAccountInfo,
   PalletReferendaDeposit,
   PalletPreimageRequestStatus,
-  PalletReferendaReferendumInfoConvictionVotingTally,
 } from "@polkadot/types/lookup";
 import chalk from "chalk";
 import { expect } from "chai";
@@ -91,7 +90,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       democracyDeposits,
       democracyVotes,
       democracyPreimages,
-      preimages,
+      preimageStatuses,
       referendumInfoFor,
       assets,
       assetsMetadata,
@@ -119,7 +118,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
       specVersion >= 1900 && runtimeName == "moonbase"
         ? apiAt.query.referenda.referendumInfoFor.entries()
-        : ([] as [StorageKey<[u32]>, Option<PalletReferendaReferendumInfoConvictionVotingTally>][]),
+        : ([] as [StorageKey<[u32]>, Option<any>][]),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       apiAt.query.localAssets.asset.entries(),
@@ -267,12 +266,12 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
             preimage: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
           },
         })),
-      preimages
-        .filter((preimage) => preimage[1].unwrap().isUnrequested)
-        .map((preimage) => ({
-          accountId: preimage[1].unwrap().asUnrequested[0].toLowerCase(),
+      preimageStatuses
+        .filter((status) => status[1].unwrap().isUnrequested)
+        .map((status) => ({
+          accountId: status[1].unwrap().asUnrequested.deposit[0].toHex(),
           reserved: {
-            preimage: BigInt(preimage[1].unwrap().asUnrequested[1].toBigInt()),
+            preimage: BigInt(status[1].unwrap().asUnrequested.deposit[1].toBigInt()),
           },
         })),
       referendumInfoFor
