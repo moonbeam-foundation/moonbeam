@@ -177,16 +177,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = MockDbWeight;
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -208,7 +208,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -263,7 +263,7 @@ pub type PCallV2 = XcmTransactorPrecompileV2Call<Runtime>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
-	pub const WeightPerGas: u64 = 1;
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 /// A mapping function that converts Ethereum gas to Substrate weight
@@ -286,7 +286,7 @@ impl pallet_evm::Config for Runtime {
 	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
 	type AddressMapping = TestAccount;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = TestPrecompiles<Self>;
@@ -384,7 +384,7 @@ parameter_types! {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = MockTransactors;
 	type DerivativeAddressRegistrationOrigin = frame_system::EnsureRoot<AccountId>;
@@ -393,7 +393,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type SelfLocation = SelfLocation;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;

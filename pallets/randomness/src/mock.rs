@@ -63,16 +63,16 @@ parameter_types! {
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -95,7 +95,7 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -106,7 +106,7 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = VrfId;
@@ -130,7 +130,7 @@ parameter_types! {
 	pub const MaxBlockDelay: u32 = 20;
 }
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
@@ -148,7 +148,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::Randomness(inner) = e {
+			if let RuntimeEvent::Randomness(inner) = e {
 				Some(inner)
 			} else {
 				None

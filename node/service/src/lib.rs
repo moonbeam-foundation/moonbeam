@@ -36,7 +36,6 @@ pub use moonbeam_runtime;
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
-use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
@@ -516,7 +515,7 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, system_rpc_tx, start_network) =
+	let (network, system_rpc_tx, tx_handler_controller, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
@@ -573,10 +572,6 @@ where
 		rpc_config.eth_statuses_cache,
 		prometheus_registry.clone(),
 	));
-
-	// variable `rpc_config` will be moved in next code block, we need to
-	// save param `relay_chain_rpc_url` to be able to use it later.
-	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
 	let rpc_builder = {
 		let client = client.clone();
@@ -637,6 +632,7 @@ where
 		backend: backend.clone(),
 		network: network.clone(),
 		system_rpc_tx,
+		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
 	})?;
 
@@ -701,9 +697,6 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue,
-			collator_options: CollatorOptions {
-				relay_chain_rpc_url,
-			},
 		};
 
 		start_full_node(params)?;
@@ -851,7 +844,7 @@ where
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
-	let (network, system_rpc_tx, network_starter) =
+	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -979,6 +972,9 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							// TODO: Recheck
+							para_blocks_per_relay_epoch: 10,
+							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
@@ -1096,6 +1092,7 @@ where
 		backend,
 		system_rpc_tx,
 		config,
+		tx_handler_controller,
 		telemetry: None,
 	})?;
 
@@ -1245,7 +1242,7 @@ mod tests {
 			},
 			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			blocks_pruning: sc_service::BlocksPruning::All,
+			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),
