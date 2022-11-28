@@ -10,15 +10,15 @@ log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Substrate
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-runtime = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Nimbus
-nimbus-primitives = { workspace = true, default-features = false }
+nimbus-primitives = { workspace = true }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 
 # Benchmarking

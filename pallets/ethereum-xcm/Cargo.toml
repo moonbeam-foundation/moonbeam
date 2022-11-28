@@ -21,19 +21,19 @@ rlp = { version = "0.5", default-features = false }
 scale-info = { version = "2.1.2", default-features = false, features = [ "derive" ] }
 
 # Substrate
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
-pallet-timestamp = { workspace = true, default-features = false }
-sp-io = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-timestamp = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-fp-ethereum = { workspace = true, default-features = false }
-fp-evm = { workspace = true, default-features = false }
-fp-rpc = { workspace = true, default-features = false }
-fp-self-contained = { workspace = true, default-features = false }
-pallet-evm = { workspace = true, default-features = false }
+fp-ethereum = { workspace = true }
+fp-evm = { workspace = true }
+fp-rpc = { workspace = true }
+fp-self-contained = { workspace = true }
+pallet-evm = { workspace = true }
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 [dev-dependencies]

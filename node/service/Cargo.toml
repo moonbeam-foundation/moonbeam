@@ -121,11 +121,11 @@ nimbus-primitives = { workspace = true }
 pallet-author-inherent = { workspace = true }
 
 # Polkadot
-polkadot-cli = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
-polkadot-parachain = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
-polkadot-primitives = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
-polkadot-service = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+polkadot-cli = { workspace = true }
+polkadot-parachain = { workspace = true }
+polkadot-primitives = { workspace = true }
+polkadot-service = { workspace = true }
+xcm = { workspace = true, default-features = false }
 
 # Benchmarking
 frame-benchmarking = { workspace = true }
@@ -138,7 +138,7 @@ prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 
 # Polkadot dev-dependencies
-polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
+polkadot-runtime-common = { workspace = true }
 
 # Substrate dev-dependencies
 pallet-sudo = { workspace = true }
