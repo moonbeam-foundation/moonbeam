@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, roll_to, Crowdloan, ExtBuilder, PCall, PrecompilesValue, Runtime, RuntimeCall,
-	RuntimeOrigin, Precompiles, AccountId,
+	events, roll_to, AccountId, Crowdloan, ExtBuilder, PCall, Precompiles, PrecompilesValue,
+	Runtime, RuntimeCall, RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
