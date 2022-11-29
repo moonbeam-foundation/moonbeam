@@ -14,3 +14,6 @@ path = "src/main.rs"
 clap = { version = "4.0.9", features = [ "derive" ] }
 moonbase-runtime = { path = "../../../runtime/moonbase" }
 pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+plotters = "0.3"
+sp-arithmetic = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
