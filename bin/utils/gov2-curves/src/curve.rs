@@ -33,11 +33,11 @@ pub fn plot_curve(curve: &Curve, curve_name: String, days: u32) {
 		.set_label_area_size(LabelAreaPosition::Left, 40)
 		// X axis size is 40 px
 		.set_label_area_size(LabelAreaPosition::Bottom, 40)
-		.build_cartesian_2d(0..days, 0..100)
+		.build_cartesian_2d(0..days + 1, 0..100)
 		.unwrap();
 
 	plot.draw_series(LineSeries::new(
-		(0..days).map(|x| {
+		(0..=days).map(|x| {
 			(
 				x,
 				perbill_to_percent_coordinate(threshold(curve, Perbill::from_rational(x, days))),
