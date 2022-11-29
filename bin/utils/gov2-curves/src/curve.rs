@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-//! Temporary curve threshold until substrate patch is made and pulled in
-
 use pallet_referenda::Curve;
 use plotters::prelude::*;
 use sp_arithmetic::{Rounding::*, SignedRounding::*};
@@ -28,12 +26,17 @@ pub fn plot_curve(curve: &Curve, curve_name: String, days: u32) {
 	grid.fill(&WHITE).unwrap();
 
 	let mut plot = ChartBuilder::on(&grid)
-		.caption(&curve_name, ("Arial", 30))
-		// Y axis size is 40 px
-		.set_label_area_size(LabelAreaPosition::Left, 40)
-		// X axis size is 40 px
-		.set_label_area_size(LabelAreaPosition::Bottom, 40)
+		.caption(&curve_name, ("sans-serif", 30))
+		.margin(5)
+		.set_left_and_bottom_label_area_size(40)
 		.build_cartesian_2d(0..days + 1, 0..100)
+		.unwrap();
+
+	plot.configure_mesh()
+		.y_desc("Percent %")
+		.x_desc("Days into Decision Period")
+		.axis_desc_style(("sans-serif", 15))
+		.draw()
 		.unwrap();
 
 	plot.draw_series(LineSeries::new(
@@ -46,8 +49,6 @@ pub fn plot_curve(curve: &Curve, curve_name: String, days: u32) {
 		&GREEN,
 	))
 	.unwrap();
-
-	plot.configure_mesh().draw().unwrap();
 }
 
 /// Input Perbill, output i32 between 0 and 100
