@@ -73,7 +73,7 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
     // baseFeePerGas is always the requested block range + 1 (the next derived base fee).
     expect(result.baseFeePerGas.length).to.be.eq(block_count + 1);
     // gasUsedRatio for the requested block range.
-    expect(result.gasUsedRatio.length).to.be.eq(block_count);
+    expect(result.gasUsedRatio).to.be.deep.eq(Array(block_count).fill(0.0291662));
     // two-dimensional reward list for the requested block range.
     expect(result.reward.length).to.be.eq(block_count);
     // each block has a reward list which's size is the requested percentile list.
