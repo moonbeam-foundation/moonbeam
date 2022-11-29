@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, Call, ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
+	events, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
@@ -100,7 +100,7 @@ fn add_association_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -137,10 +137,12 @@ fn update_association_works() {
 			let second_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				nimbus_id: first_nimbus_id.clone(),
-			})
-			.dispatch(Origin::signed(Alice.into())));
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: first_nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
 
 			let input = PCall::update_association {
 				old_nimbus_id: H256::from([1u8; 32]),
@@ -149,7 +151,7 @@ fn update_association_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -189,10 +191,12 @@ fn clear_association_works() {
 		.execute_with(|| {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				nimbus_id: nimbus_id.clone(),
-			})
-			.dispatch(Origin::signed(Alice.into())));
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
 
 			let input = PCall::clear_association {
 				nimbus_id: H256::from([1u8; 32]),
@@ -200,7 +204,7 @@ fn clear_association_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -245,15 +249,17 @@ fn remove_keys_works() {
 		.execute_with(|| {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				nimbus_id: nimbus_id.clone(),
-			})
-			.dispatch(Origin::signed(Alice.into())));
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
 
 			let input = PCall::remove_keys {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
@@ -305,10 +311,10 @@ fn set_keys_works() {
 			let second_vrf_key: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::set_keys {
+			assert_ok!(RuntimeCall::AuthorMapping(AuthorMappingCall::set_keys {
 				keys: keys_wrapper::<Runtime>(first_nimbus_id.clone(), first_vrf_key.clone()),
 			})
-			.dispatch(Origin::signed(Alice.into())));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			// Create input with keys inside a Solidity bytes.
 			let input = PCall::set_keys {
@@ -321,7 +327,7 @@ fn set_keys_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(

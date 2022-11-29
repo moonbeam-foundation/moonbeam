@@ -49,11 +49,10 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
 
     // query the block's weight, whose normal portion should reflect only this txn
     const apiAt = await context.polkadotApi.at(block.hash);
-
-    let blockWeightsUsed = await apiAt.query.system.blockWeight();
+    // TODO: Remove casting when updated to use SpWeightsWeightV2Weight
+    let blockWeightsUsed = (await apiAt.query.system.blockWeight()) as any;
     let normalWeight = blockWeightsUsed.normal;
-
-    expect(normalWeight.toBigInt()).to.equal(EXPECTED_WEIGHT);
+    expect(normalWeight.refTime.toBigInt()).to.equal(EXPECTED_WEIGHT);
   });
 
   it("should correctly refund weight from excess gas_limit supplied", async function () {

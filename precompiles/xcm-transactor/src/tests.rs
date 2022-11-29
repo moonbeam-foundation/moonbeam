@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use crate::mock::{
-	AssetAddress, ExtBuilder, Origin, PCallV1, PCallV2, Precompiles, PrecompilesValue, Runtime,
-	TransactorV1, TransactorV2, XcmTransactor,
+	AssetAddress, ExtBuilder, PCallV1, PCallV2, Precompiles, PrecompilesValue, Runtime,
+	RuntimeOrigin, TransactorV1, TransactorV2, XcmTransactor,
 };
 
 use frame_support::assert_ok;
@@ -108,7 +108,11 @@ fn take_index_for_account() {
 				.execute_reverts(|output| output == b"No index assigned");
 
 			// register index
-			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
 
 			// Expected result is zero
 			precompiles()
@@ -141,7 +145,7 @@ fn take_transact_info() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000u64,
@@ -150,7 +154,7 @@ fn take_transact_info() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -186,7 +190,7 @@ fn take_transact_info_with_signed() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000u64,
@@ -195,7 +199,7 @@ fn take_transact_info_with_signed() {
 
 			// Root can set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -232,7 +236,7 @@ fn take_fee_per_second() {
 
 			// Root can set fee per secnd
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -251,7 +255,11 @@ fn test_transact_derivative_multilocation_v2() {
 		.build()
 		.execute_with(|| {
 			// register index
-			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
 
 			// we pay with our current self reserve.
 			let fee_payer_asset = MultiLocation::parent();
@@ -287,11 +295,15 @@ fn test_transact_derivative_multilocation() {
 		.build()
 		.execute_with(|| {
 			// register index
-			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000000,
@@ -300,7 +312,7 @@ fn test_transact_derivative_multilocation() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -336,11 +348,15 @@ fn test_transact_derivative() {
 		.build()
 		.execute_with(|| {
 			// register index
-			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000000,
@@ -349,7 +365,7 @@ fn test_transact_derivative() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -382,7 +398,11 @@ fn test_transact_derivative_v2() {
 		.build()
 		.execute_with(|| {
 			// register index
-			assert_ok!(XcmTransactor::register(Origin::root(), Alice.into(), 0));
+			assert_ok!(XcmTransactor::register(
+				RuntimeOrigin::root(),
+				Alice.into(),
+				0
+			));
 
 			let bytes = vec![1u8, 2u8, 3u8];
 
@@ -417,7 +437,7 @@ fn test_transact_signed() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000000,
@@ -426,7 +446,7 @@ fn test_transact_signed() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -495,7 +515,7 @@ fn test_transact_signed_multilocation() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000000,
@@ -504,7 +524,7 @@ fn test_transact_signed_multilocation() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));

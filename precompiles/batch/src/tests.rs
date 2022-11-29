@@ -15,8 +15,8 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	balance, Batch, Call, ExtBuilder, Origin, PCall, PrecompilesValue, Revert, Runtime,
-	TestPrecompiles,
+	balance, Batch, ExtBuilder, PCall, Precompiles, PrecompilesValue, Revert, Runtime, RuntimeCall,
+	RuntimeOrigin,
 };
 use crate::{
 	log_subcall_failed, log_subcall_succeeded, Mode, LOG_SUBCALL_FAILED, LOG_SUBCALL_SUCCEEDED,
@@ -28,7 +28,7 @@ use pallet_evm::Call as EvmCall;
 use precompile_utils::{costs::call_cost, prelude::*, revert::RevertSelector, testing::*};
 use sp_core::{H160, H256, U256};
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
@@ -140,9 +140,9 @@ fn batch_all_empty() {
 }
 
 fn batch_returns(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let mut counter = 0;
 
 	let (_, total_call_cost) = costs();
@@ -270,9 +270,9 @@ fn batch_all_returns() {
 }
 
 fn batch_out_of_gas(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let (_, total_call_cost) = costs();
 
 	precompiles
@@ -357,9 +357,9 @@ fn batch_all_out_of_gas() {
 }
 
 fn batch_incomplete(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let mut counter = 0;
 
 	let (_, total_call_cost) = costs();
@@ -520,9 +520,9 @@ fn batch_all_incomplete() {
 }
 
 fn batch_log_out_of_gas(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let (log_cost, _) = costs();
 
 	precompiles
@@ -567,9 +567,9 @@ fn batch_some_until_failure_log_out_of_gas() {
 }
 
 fn batch_call_out_of_gas(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let (_, total_call_cost) = costs();
 
 	precompiles
@@ -614,9 +614,9 @@ fn batch_some_until_failure_call_out_of_gas() {
 }
 
 fn batch_gas_limit(
-	precompiles: &TestPrecompiles<Runtime>,
+	precompiles: &Precompiles<Runtime>,
 	mode: Mode,
-) -> PrecompilesTester<TestPrecompiles<Runtime>> {
+) -> PrecompilesTester<Precompiles<Runtime>> {
 	let (_, total_call_cost) = costs();
 
 	precompiles
@@ -669,7 +669,7 @@ fn evm_batch_some_transfers_enough() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some {
 					to: vec![Address(Bob.into()), Address(Charlie.into())].into(),
@@ -679,7 +679,7 @@ fn evm_batch_some_transfers_enough() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 		})
 }
 
@@ -689,7 +689,7 @@ fn evm_batch_some_until_failure_transfers_enough() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some_until_failure {
 					to: vec![Address(Bob.into()), Address(Charlie.into())].into(),
@@ -699,7 +699,7 @@ fn evm_batch_some_until_failure_transfers_enough() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 		})
 }
 
@@ -709,7 +709,7 @@ fn evm_batch_all_transfers_enough() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_all {
 					to: vec![Address(Bob.into()), Address(Charlie.into())].into(),
@@ -719,7 +719,7 @@ fn evm_batch_all_transfers_enough() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Bob), 1_000);
 			assert_eq!(balance(Charlie), 2_000);
@@ -732,7 +732,7 @@ fn evm_batch_some_transfers_too_much() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some {
 					to: vec![
@@ -752,7 +752,7 @@ fn evm_batch_some_transfers_too_much() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 500); // gasprice = 0
 			assert_eq!(balance(Bob), 9_000);
@@ -767,7 +767,7 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some_until_failure {
 					to: vec![
@@ -787,7 +787,7 @@ fn evm_batch_some_until_failure_transfers_too_much() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 1_000); // gasprice = 0
 			assert_eq!(balance(Bob), 9_000);
@@ -802,7 +802,7 @@ fn evm_batch_all_transfers_too_much() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_all {
 					to: vec![
@@ -822,7 +822,7 @@ fn evm_batch_all_transfers_too_much() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 10_000); // gasprice = 0
 			assert_eq!(balance(Bob), 0);
@@ -837,7 +837,7 @@ fn evm_batch_some_contract_revert() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some {
 					to: vec![
@@ -857,7 +857,7 @@ fn evm_batch_some_contract_revert() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 6_000); // gasprice = 0
 			assert_eq!(balance(Bob), 1_000);
@@ -872,7 +872,7 @@ fn evm_batch_some_until_failure_contract_revert() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_some_until_failure {
 					to: vec![
@@ -892,7 +892,7 @@ fn evm_batch_some_until_failure_contract_revert() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 9_000); // gasprice = 0
 			assert_eq!(balance(Bob), 1_000);
@@ -907,7 +907,7 @@ fn evm_batch_all_contract_revert() {
 		.with_balances(vec![(Alice.into(), 10_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Evm(evm_call(
+			assert_ok!(RuntimeCall::Evm(evm_call(
 				Alice,
 				PCall::batch_all {
 					to: vec![
@@ -927,7 +927,7 @@ fn evm_batch_all_contract_revert() {
 				}
 				.into()
 			))
-			.dispatch(Origin::root()));
+			.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 10_000); // gasprice = 0
 			assert_eq!(balance(Bob), 0);
@@ -961,7 +961,7 @@ fn evm_batch_recursion_under_limit() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 9_000); // gasprice = 0
 			assert_eq!(balance(Bob), 1_000);
@@ -1000,7 +1000,7 @@ fn evm_batch_recursion_over_limit() {
 			)
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(balance(Alice), 10_000); // gasprice = 0
 			assert_eq!(balance(Bob), 0);
@@ -1034,7 +1034,7 @@ fn batch_not_callable_by_smart_contract() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
 
 			// batch failed so state is same
 			assert_eq!(balance(Alice), 10_000);
@@ -1072,7 +1072,7 @@ fn batch_is_callable_by_dummy_code() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Alice, input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Alice, input)).dispatch(RuntimeOrigin::root()));
 
 			// batch succeeds
 			assert_eq!(balance(Alice), 9_000);

@@ -571,7 +571,7 @@ fn deposit(data: Vec<u8>) {
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
 			// to the precompile.
 			Evm::call(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				CryptoAlith.into(),
 				Precompile1.into(),
 				data,
@@ -587,27 +587,27 @@ fn deposit(data: Vec<u8>) {
 			assert_eq!(
 				events(),
 				vec![
-					Event::System(frame_system::Event::NewAccount {
+					RuntimeEvent::System(frame_system::Event::NewAccount {
 						account: Precompile1.into()
 					}),
-					Event::Balances(pallet_balances::Event::Endowed {
+					RuntimeEvent::Balances(pallet_balances::Event::Endowed {
 						account: Precompile1.into(),
 						free_balance: 500
 					}),
 					// EVM make a transfer because some value is provided.
-					Event::Balances(pallet_balances::Event::Transfer {
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
 						from: CryptoAlith.into(),
 						to: Precompile1.into(),
 						amount: 500
 					}),
 					// Precompile1 send it back since deposit should be a no-op.
-					Event::Balances(pallet_balances::Event::Transfer {
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
 						from: Precompile1.into(),
 						to: CryptoAlith.into(),
 						amount: 500
 					}),
 					// Log is correctly emited.
-					Event::Evm(pallet_evm::Event::Log {
+					RuntimeEvent::Evm(pallet_evm::Event::Log {
 						log: log2(
 							Precompile1,
 							SELECTOR_LOG_DEPOSIT,
@@ -615,7 +615,7 @@ fn deposit(data: Vec<u8>) {
 							EvmDataWriter::new().write(U256::from(500)).build(),
 						)
 					}),
-					Event::Evm(pallet_evm::Event::Executed {
+					RuntimeEvent::Evm(pallet_evm::Event::Executed {
 						address: Precompile1.into()
 					}),
 				]
@@ -687,7 +687,7 @@ fn deposit_zero() {
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
 			// to the precompile.
 			Evm::call(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				CryptoAlith.into(),
 				Precompile1.into(),
 				PCall::deposit {}.into(),
@@ -702,7 +702,7 @@ fn deposit_zero() {
 
 			assert_eq!(
 				events(),
-				vec![Event::Evm(pallet_evm::Event::ExecutedFailed {
+				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
 					address: Precompile1.into()
 				}),]
 			);
