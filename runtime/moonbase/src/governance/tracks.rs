@@ -187,25 +187,3 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 		}
 	}
 }
-
-#[test]
-#[should_panic] // comment out to see curve info for all tracks
-fn print_all_approval_and_support_curves() {
-	for (_, track_info) in TRACKS_DATA {
-		println!("{} TRACK", track_info.name);
-		let decision_period_days = track_info.decision_period / DAYS;
-		println!(
-			"{} DECISION PERIOD: {} days",
-			track_info.name, decision_period_days
-		);
-		println!("{} MIN APPROVAL:", track_info.name);
-		track_info
-			.min_approval
-			.info(decision_period_days, track_info.name);
-		println!("{} MIN SUPPORT:", track_info.name);
-		track_info
-			.min_support
-			.info(decision_period_days, track_info.name);
-	}
-	assert!(false);
-}

@@ -1,6 +1,7 @@
 [workspace]
 exclude = [ "bin/utils/moonkey" ]
 members = [
+	"bin/utils/gov2-curves",
 	"bin/utils/moonkey",
 	"client/rpc/finality",
 	"client/rpc/manual-xcm",

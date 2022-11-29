@@ -1,0 +1,16 @@
+[package]
+name = "gov2-curves"
+authors = [ "PureStake" ]
+description = "Gov2 Curve Visualization Tool"
+edition = "2021"
+license = "GPL-3.0-only"
+version = "0.1.0"
+
+[[bin]]
+name = "gov2-curves"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.0.9", features = [ "derive" ] }
+moonbase-runtime = { path = "../../../runtime/moonbase" }
+pallet-referenda = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
