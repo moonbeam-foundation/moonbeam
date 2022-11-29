@@ -18,14 +18,10 @@
 
 use super::*;
 
-use codec::{Decode, Encode, MaxEncodedLen};
-use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256, U256};
+use sp_core::{H256, U256};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
 pub type AccountId = MockAccount;

@@ -16,7 +16,7 @@
 
 use crate::mock::{
 	events, roll_to, Crowdloan, ExtBuilder, PCall, PrecompilesValue, Runtime, RuntimeCall,
-	RuntimeOrigin, TestPrecompiles,
+	RuntimeOrigin, Precompiles, AccountId,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};

@@ -17,15 +17,12 @@
 //! Test utilities
 use super::*;
 
-use fp_evm::Precompile;
 use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
+	EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping,
 };
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
-use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
+use sp_core::{H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
