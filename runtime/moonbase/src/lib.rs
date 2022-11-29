@@ -492,7 +492,7 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type ManagerOrigin = EnsureRoot<AccountId>;
-	type BaseDeposit = ConstU128<{ 0 * currency::UNIT * currency::SUPPLY_FACTOR }>;
+	type BaseDeposit = ConstU128<{ 5 * currency::UNIT * currency::SUPPLY_FACTOR }>;
 	type ByteDeposit = ConstU128<{ currency::STORAGE_BYTE_FEE }>;
 }
 

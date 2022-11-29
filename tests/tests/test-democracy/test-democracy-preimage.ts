@@ -24,7 +24,7 @@ describeDevMoonbeam("Democracy - Preimage", (context) => {
 
     const [proposer, balance] = preimageStatus.unwrap().asUnrequested.deposit;
     expect(u8aToHex(proposer)).to.eq(alith.address.toLowerCase());
-    expect(balance.toBigInt()).to.eq(2200n * MICROGLMR);
+    expect(balance.toBigInt()).to.eq(5002200n * MICROGLMR);
   });
 });
 
