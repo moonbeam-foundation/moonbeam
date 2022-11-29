@@ -3472,7 +3472,6 @@ dependencies = [
 name = "gov2-curves"
 version = "0.1.0"
 dependencies = [
- "clap",
  "moonbase-runtime",
  "pallet-referenda",
  "plotters",
