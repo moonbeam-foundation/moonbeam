@@ -40,7 +40,7 @@ jobs:
         srtool_image:
           - purestake/srtool
         srtool_image_tag:
-          - 1.62.0
+          - 1.64.0
     steps:
       - name: Get Timestamp
         run: echo "TMSP=$(date '+%Y%m%d_%H%M%S')" >> $GITHUB_ENV
