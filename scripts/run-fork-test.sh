@@ -52,7 +52,6 @@ echo "SPEC_FILE: ${SPEC_FILE}"
 echo "NODE_OPTIONS: ${NODE_OPTIONS}"
 echo "================================"
 
-
 if [[ $PARA_ID == "" ]]; then
     if [[ $NETWORK == "moonbeam" ]]; then
         export PARA_ID=2004
