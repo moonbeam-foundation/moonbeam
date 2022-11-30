@@ -264,27 +264,6 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have TooExpensive errors on XCMP queue", async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(({ event: { data } }) => (data as any).error.toString() === "TooExpensive");
-        return { blockNum, xcmpQueueEvents };
-      });
-
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM TooExpensive error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
-
     it("should have recent responses for opened HMRP channels", async function () {
       this.timeout(FIVE_MINS);
       if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
