@@ -3,7 +3,7 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
-import { getBlockArray } from "../util/block";
+import { extractWeight, getBlockArray } from "../util/block";
 import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
@@ -51,15 +51,14 @@ describeSmokeSuite(
         const events = await apiAt.query.system.events();
         if (specVersion >= 1700) {
           // TODO: replace type when we update to use SpWeightsWeightV2Weight
-          const { normal, operational, mandatory } =
-            (await apiAt.query.system.blockWeight()) as any;
+          const { normal, operational, mandatory } = await apiAt.query.system.blockWeight();
           return {
             blockNum,
             hash: blockHash.toString(),
             weights: {
-              normal,
-              operational,
-              mandatory,
+              normal: extractWeight(normal),
+              operational: extractWeight(operational),
+              mandatory: extractWeight(mandatory),
             },
             events,
             extrinsics,
@@ -67,9 +66,10 @@ describeSmokeSuite(
         }
       };
 
+      // Support for weight v1 and weight v2.
       blockLimits = {
-        normal: new BN(limits.perClass.normal.maxTotal.toJSON() as number),
-        operational: new BN(limits.perClass.operational.maxTotal.toJSON() as number),
+        normal: extractWeight(limits.perClass.normal.maxTotal).toBn(),
+        operational: extractWeight(limits.perClass.operational.maxTotal).toBn(),
       };
       blockInfoArray = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))

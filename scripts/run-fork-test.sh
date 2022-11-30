@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+if [[ `which jq` == "" ]]; then
+    echo "Missing jq"
+    exit 1
+fi
+
 # This script is expected to be included in a docker image (with node)
 set -e 
 
@@ -45,6 +51,7 @@ echo "RELAY_BINARY_PATH: ${RELAY_BINARY_PATH}"
 echo "SPEC_FILE: ${SPEC_FILE}"
 echo "NODE_OPTIONS: ${NODE_OPTIONS}"
 echo "================================"
+
 
 if [[ $PARA_ID == "" ]]; then
     if [[ $NETWORK == "moonbeam" ]]; then

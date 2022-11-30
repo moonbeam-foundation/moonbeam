@@ -8,10 +8,12 @@ import {
   Extrinsic,
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
-import { FrameSystemEventRecord } from "@polkadot/types/lookup";
+import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
+import { u64, Option } from "@polkadot/types";
+
 import { expect } from "chai";
 
-import { WEIGHT_PER_GAS, EXTRINSIC_BASE_WEIGHT } from "./constants";
+import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 
 import type { Block } from "@polkadot/types/interfaces/runtime/types";
@@ -373,17 +375,20 @@ export const fetchHistoricBlockNum = async (
   blockNumber: number,
   targetTime: number
 ) => {
-  return fetchBlockTime(api, blockNumber).then((time) => {
-    if (time < targetTime) {
-      return blockNumber;
-    } else {
-      return fetchHistoricBlockNum(
-        api,
-        (blockNumber -= Math.ceil((time - targetTime) / 30_000)),
-        targetTime
-      );
-    }
-  });
+  if (blockNumber <= 1) {
+    return 1;
+  }
+  const time = await fetchBlockTime(api, blockNumber);
+
+  if (time <= targetTime) {
+    return blockNumber;
+  }
+
+  return fetchHistoricBlockNum(
+    api,
+    blockNumber - Math.ceil((time - targetTime) / 30_000),
+    targetTime
+  );
 };
 
 export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter?: Bottleneck) => {
@@ -413,3 +418,15 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   const length = lastBlockNumber - firstBlockNumber;
   return Array.from({ length }, (_, i) => firstBlockNumber + i);
 };
+
+export function extractWeight(
+  weightV1OrV2: u64 | SpWeightsWeightV2Weight | Option<SpWeightsWeightV2Weight>
+) {
+  if ("unwrap" in weightV1OrV2) {
+    return weightV1OrV2.unwrap().refTime.unwrap();
+  }
+  if ("refTime" in weightV1OrV2) {
+    return weightV1OrV2.refTime.unwrap();
+  }
+  return weightV1OrV2;
+}

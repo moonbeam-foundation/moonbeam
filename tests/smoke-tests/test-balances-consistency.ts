@@ -111,8 +111,10 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       apiAt.query.identity.subsOf.entries(),
       apiAt.query.democracy.depositOf.entries(),
       apiAt.query.democracy.votingOf.entries(),
-      apiAt.query.democracy.preimages.entries(),
-      specVersion >= 1900 && runtimeName == "moonbase"
+      specVersion < 2000
+        ? apiAt.query.democracy.preimages.entries()
+        : ([] as [StorageKey<[H256]>, Option<any>][]),
+      (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
         ? apiAt.query.preimage.statusFor.entries()
         : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
       specVersion >= 1900 && runtimeName == "moonbase"
