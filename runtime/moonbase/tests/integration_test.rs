@@ -37,7 +37,7 @@ use moonbase_runtime::{
 	asset_config::LocalAssetInstance,
 	get,
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, CrowdloanRewards, LocalAssets,
+	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, LocalAssets,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
 	RuntimeEvent, System, TransactionPayment, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -173,7 +173,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
-	is_pallet_prefix::<moonbase_runtime::BaseFee>("BaseFee");
 	is_pallet_prefix::<moonbase_runtime::LocalAssets>("LocalAssets");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
@@ -350,7 +349,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Migrations>(32);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
-	is_pallet_index::<moonbase_runtime::BaseFee>(35);
 	is_pallet_index::<moonbase_runtime::LocalAssets>(36);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
 	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
@@ -2955,10 +2953,9 @@ fn precompile_existence() {
 #[test]
 fn base_fee_should_default_to_associate_type_value() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(
-			BaseFee::base_fee_per_gas(),
-			(1 * GIGAWEI * SUPPLY_FACTOR).into()
-		);
+		let (base_fee, _) =
+			<moonbase_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
 	});
 }
 
