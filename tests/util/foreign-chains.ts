@@ -71,7 +71,7 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Crust",
         paraId: 2012,
-        endpoints: ["wss://rpc-shadow.crust.network/x"],
+        endpoints: ["wss://rpc-eeeee.crust.network/x"],
       },
       {
         name: "Integritee",

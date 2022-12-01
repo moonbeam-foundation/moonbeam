@@ -41,17 +41,32 @@ describeSmokeSuite(
       this.timeout(timeout * foreignChainInfos.foreignChains.length);
 
       const promises = foreignChainInfos.foreignChains.map(async ({ name, paraId, endpoints }) => {
-        let result: NetworkBlockEvents;
+        let blockEvents: BlockEventsRecord[];
         if (mutedChains.includes(paraId)) {
           debug(`Network tests for ${name} has been muted, skipping.`);
-          return { networkName: name, blockEvents: [] }
+          return { networkName: name, blockEvents: [] };
         }
         try {
-          const api = await ApiPromise.create({
-            provider: new WsProvider(endpoints),
-            noInitWarn: true,
+          const api: ApiPromise = await new Promise((resolve, reject) => {
+            const provider = new WsProvider(endpoints);
+            provider.on("connected", async () => {
+              resolve(
+                await ApiPromise.create({
+                  provider,
+                  noInitWarn: true,
+                })
+              );
+            });
+            provider.on("error", async () => {
+              debug(`Could not connect to ${name}`);
+              provider.disconnect()
+              reject();
+            });
           });
-          api.on("disconnected", () => {throw new Error(`Disconnected`)});
+
+          if (api == null){
+            throw new Error("Cannot Connect")
+          }
 
           const blockNumArray = await getBlockArray(api, timePeriod, limiter);
 
@@ -62,17 +77,14 @@ describeSmokeSuite(
             return { blockNum, events };
           };
 
-          const blockEvents: BlockEventsRecord[] = await Promise.all(
-            blockNumArray.map((num) => getEvents(num))
-          );
+          blockEvents = await Promise.all(blockNumArray.map((num) => getEvents(num)));
           api.disconnect();
-          debug(`Finished loading blocks for ${name}.`)
-          result = { networkName: name, blockEvents };
+          debug(`Finished loading blocks for ${name}.`);
         } catch (e) {
-          debug(e);
-          result = { networkName: name, blockEvents: [] };
+          blockEvents = [];
+        } finally {
+          return { networkName: name, blockEvents };
         }
-        return result;
       });
       networkBlockEvents = await Promise.all(promises);
     });
