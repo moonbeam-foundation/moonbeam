@@ -22,7 +22,9 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     debug(`Loading test data for chainId ${chainId}.`);
     traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);
     const networkName = (await context.polkadotApi.rpc.system.chain()).toString();
-    const latestBlockNumberToCheck = Math.max(...traceStatic.testData.map((d) => d.blockNumber));
+    const latestBlockNumberToCheck = traceStatic
+      ? Math.max(...traceStatic.testData.map((d) => d.blockNumber))
+      : 0;
     blockNumber = (await context.polkadotApi.query.ethereum.currentBlock())
       .unwrap()
       .header.number.toNumber();

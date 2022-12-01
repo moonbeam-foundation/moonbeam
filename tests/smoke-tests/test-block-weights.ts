@@ -183,6 +183,11 @@ describeSmokeSuite(
         this.skip();
       }
 
+      const apiAt = await context.polkadotApi.at(blockInfoArray[0].hash);
+      if (apiAt.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -209,7 +214,11 @@ describeSmokeSuite(
             (a) => a.event.method == "ExtrinsicSuccess" || a.event.method == "ExtrinsicFailed"
           )
           .filter((a) => (a.event.data as any).dispatchInfo.class.toString() == "Normal")
-          .reduce((acc, curr) => acc + (curr.event.data as any).dispatchInfo.weight.toNumber(), 0);
+          .reduce(
+            (acc, curr) =>
+              acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
+            0
+          );
         const normalWeights = Number(blockInfo.weights.normal);
         const difference = (normalWeights - signedExtTotal) / signedExtTotal;
         if (difference > 0.2) {
@@ -266,7 +275,8 @@ describeSmokeSuite(
                   ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
                 )
                 .reduce(
-                  (acc, curr) => acc + (curr.event.data as any).dispatchInfo.weight.toNumber(),
+                  (acc, curr) =>
+                    acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
                   0
                 );
             } else {

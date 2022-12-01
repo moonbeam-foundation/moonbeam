@@ -270,9 +270,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       preimageStatuses
         .filter((status) => status[1].unwrap().isUnrequested)
         .map((status: any) => ({
-          accountId: status[1].unwrap().asUnrequested.unwrap()[0].toHex(),
+          accountId: status[1].unwrap().asUnrequested.deposit[0].toHex(),
           reserved: {
-            preimage: BigInt(status[1].unwrap().asUnrequested.unwrap()[1].toBigInt()),
+            preimage: BigInt(status[1].unwrap().asUnrequested.deposit[1].toBigInt()),
           },
         })),
       referendumInfoFor
