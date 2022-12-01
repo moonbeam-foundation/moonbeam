@@ -10,6 +10,8 @@ export interface ForeignChainInfo {
   endpoints: string[];
 }
 
+export const mutedChains = [2092]
+
 export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
   {
     moonbeamNetworkName: "Moonriver",
@@ -69,7 +71,7 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Crust",
         paraId: 2012,
-        endpoints: ["wss://rpc-shadow.crust.network/"],
+        endpoints: ["wss://rpc-shadow.crust.network/x"],
       },
       {
         name: "Integritee",

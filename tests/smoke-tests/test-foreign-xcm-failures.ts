@@ -4,14 +4,13 @@ import { getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-import { FIVE_MINS } from "../util/constants";
-import { ForeignChainsEndpoints } from "../util/foreign-chains";
+import { ForeignChainsEndpoints, mutedChains } from "../util/foreign-chains";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 const debug = require("debug")("smoke:foreign-xcm-fails");
 
-const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
-const timeout = Math.max(Math.floor(timePeriod / 12), 30000);
-const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 30 * 60 * 1000;
+const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
+const limiter = new Bottleneck({ maxConcurrent: 20 });
 
 type BlockEventsRecord = {
   blockNum: number;
@@ -41,13 +40,19 @@ describeSmokeSuite(
       }
       this.timeout(timeout * foreignChainInfos.foreignChains.length);
 
-      const promises = foreignChainInfos.foreignChains.map(async ({ name, endpoints }) => {
+      const promises = foreignChainInfos.foreignChains.map(async ({ name, paraId, endpoints }) => {
         let result: NetworkBlockEvents;
+        if (mutedChains.includes(paraId)) {
+          debug(`Network tests for ${name} has been muted, skipping.`);
+          return { networkName: name, blockEvents: [] }
+        }
         try {
           const api = await ApiPromise.create({
             provider: new WsProvider(endpoints),
             noInitWarn: true,
           });
+          api.on("disconnected", () => {throw new Error(`Disconnected`)});
+
           const blockNumArray = await getBlockArray(api, timePeriod, limiter);
 
           const getEvents = async (blockNum: number) => {
@@ -61,6 +66,7 @@ describeSmokeSuite(
             blockNumArray.map((num) => getEvents(num))
           );
           api.disconnect();
+          debug(`Finished loading blocks for ${name}.`)
           result = { networkName: name, blockEvents };
         } catch (e) {
           debug(e);
@@ -77,14 +83,12 @@ describeSmokeSuite(
           const dmpQueueEvents = events.filter(
             ({ event }) =>
               event.section.toString() === "dmpQueue" &&
-              // event.method.toString() === "UnsupportedVersion"
-              event.method.toString() === "ExecutedDownward"
+              event.method.toString() === "UnsupportedVersion"
           );
           return { blockNum, dmpQueueEvents };
         });
         return { networkName, errorEvents: filteredEvents };
       });
-      console.log(blockEvents)
 
       const failures = blockEvents
         .map(({ networkName, errorEvents }) => {
@@ -103,7 +107,7 @@ describeSmokeSuite(
 
       expect(
         failures.flatMap((a) => a).length,
-        `XCM errors in networks ${failures
+        `Unexpected XCM errors in networks ${failures
           .map((a) => a.networkName)
           .join(`, `)}; please investigate.`
       ).to.equal(0);
