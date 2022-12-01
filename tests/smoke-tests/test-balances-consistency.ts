@@ -13,7 +13,6 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
-import { getObjectMethods } from "../util/common";
 import { extractPreimageDeposit } from "../util/block";
 const debug = require("debug")("smoke:balances");
 
