@@ -22,13 +22,18 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
     debug(`Loading test data for chainId ${chainId}.`);
     traceStatic = tracingTxns.find((a) => a.chainId.toString() === chainId);
     const networkName = (await context.polkadotApi.rpc.system.chain()).toString();
-    if (!traceStatic || networkName !== traceStatic.networkLabel) {
-      skipTest = { skip: true, networkName, chainId };
-    }
-
+    const latestBlockNumberToCheck = Math.max(...traceStatic.testData.map((d) => d.blockNumber));
     blockNumber = (await context.polkadotApi.query.ethereum.currentBlock())
       .unwrap()
       .header.number.toNumber();
+    if (
+      !traceStatic ||
+      networkName !== traceStatic.networkLabel ||
+      latestBlockNumberToCheck > blockNumber
+    ) {
+      skipTest = { skip: true, networkName, chainId };
+    }
+
     blockHash = (await context.polkadotApi.query.ethereum.blockHash(blockNumber)).toString();
     collatorAddress = (
       await context.polkadotApi.query.parachainStaking.selectedCandidates()
@@ -132,7 +137,9 @@ describeSmokeSuite(`Verifying historic compatibility...`, async (context) => {
 
   it("can call eth_mining", async function () {
     const result = await context.ethers.send("eth_mining", []);
-    expect(result).to.equal(false);
+    expect(result).to.equal(
+      !!(await context.polkadotApi.rpc.system.nodeRoles()).find((role) => role.isAuthority)
+    );
   });
 
   it("can call eth_chainId", async function () {
