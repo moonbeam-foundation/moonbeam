@@ -399,7 +399,7 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   @param limiter Bottleneck rate limiter to throttle requests
   */
 
-  if (typeof limiter == "undefined") {
+  if (limiter == null) {
     limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
   }
   const signedBlock = await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead());
