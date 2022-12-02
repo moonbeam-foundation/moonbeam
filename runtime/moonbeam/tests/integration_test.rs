@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, FeeCalculator};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
