@@ -7,10 +7,9 @@ export interface ForeignChainsInfo {
 export interface ForeignChainInfo {
   name: string;
   paraId: number;
+  muted?: boolean;
   endpoints: string[];
 }
-
-export const mutedChains = [2092]
 
 export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
   {
@@ -71,7 +70,7 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Crust",
         paraId: 2012,
-        endpoints: ["wss://rpc-eeeee.crust.network/x"],
+        endpoints: ["wss://rpc-shadow.crust.network/"],
       },
       {
         name: "Integritee",
@@ -104,6 +103,7 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
       {
         name: "Kintsugi",
         paraId: 2092,
+        muted: true,
         endpoints: [
           "wss://api-kusama.interlay.io/parachain",
           "wss://kintsugi.api.onfinality.io/public-ws",
@@ -118,6 +118,89 @@ export const ForeignChainsEndpoints: ForeignChainsInfo[] = [
         name: "Litmus",
         paraId: 2106,
         endpoints: ["wss://rpc.litmus-parachain.litentry.io"],
+      },
+    ],
+  },
+  {
+    moonbeamNetworkName: "Moonbeam",
+    moonbeamParaId: 2004,
+    foreignChains: [
+      {
+        name: "Statemint",
+        paraId: 1000,
+        endpoints: [
+          "wss://statemint-rpc.polkadot.io",
+          "wss://statemint.api.onfinality.io/public-ws",
+          "wss://statemint-rpc.dwellir.com",
+          "wss://public-rpc.pinknode.io/statemint",
+          "wss://statemint.public.curie.radiumblock.xyz/ws",
+        ],
+      },
+      {
+        name: "Acala",
+        paraId: 2000,
+        endpoints: [
+          "wss://acala-rpc-0.aca-api.network",
+          "wss://acala-rpc-1.aca-api.network",
+          "wss://acala-rpc-2.aca-api.network/ws",
+          "wss://acala-rpc-3.aca-api.network/ws",
+          "wss://acala.polkawallet.io",
+          "wss://acala-polkadot.api.onfinality.io/public-ws",
+          "wss://acala-rpc.dwellir.com",
+          "wss://1rpc.io/aca",
+        ],
+      },
+      {
+        name: "Astar",
+        paraId: 2006,
+        endpoints: [
+          "wss://rpc.astar.network",
+          "wss://astar.public.blastapi.io",
+          "wss://astar-rpc.dwellir.com",
+          "wss://astar.api.onfinality.io/public-ws",
+          "wss://astar.public.curie.radiumblock.co/ws",
+          "wss://public-rpc.pinknode.io/astar",
+          "wss://1rpc.io/astr",
+        ],
+      },
+      {
+        name: "Parallel",
+        paraId: 2012,
+        endpoints: ["wss://rpc.parallel.fi"],
+      },
+      {
+        name: "Bifrost",
+        paraId: 2030,
+        endpoints: [
+          "wss://hk.p.bifrost-rpc.liebi.com/ws",
+          "wss://bifrost-polkadot.api.onfinality.io/public-ws",
+        ],
+      },
+      {
+        name: "Centrifuge",
+        paraId: 2031,
+        endpoints: [
+          "wss://fullnode.parachain.centrifuge.io",
+          "wss://centrifuge-parachain.api.onfinality.io/public-ws",
+        ],
+      },
+      {
+        name: "Interlay",
+        paraId: 2032,
+        endpoints: [
+          "wss://api.interlay.io/parachain",
+          "wss://interlay.api.onfinality.io/public-ws",
+        ],
+      },
+      {
+        name: "Phala",
+        paraId: 2035,
+        endpoints: ["wss://api.phala.network/ws", "wss://phala.api.onfinality.io/public-ws"],
+      },
+      {
+        name: "Darwinia",
+        paraId: 2046,
+        endpoints: ["wss://parachain-rpc.darwinia.network"],
       },
     ],
   },

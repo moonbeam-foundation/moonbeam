@@ -44,7 +44,7 @@
     "smoke-test:alphanet": "WSS_URL=wss://wss.api.moonbase.moonbeam.network RELAY_WSS_URL=wss://frag-moonbase-relay-rpc-ws.g.moonbase.moonbeam.network DEBUG=smoke:* npm run smoke-test",
     "smoke-test:moonriver": "WSS_URL=wss://wss.moonriver.moonbeam.network RELAY_WSS_URL=wss://kusama-rpc.polkadot.io DEBUG=smoke:* npm run smoke-test",
     "smoke-test:moonbeam": "WSS_URL=wss://wss.api.moonbeam.network RELAY_WSS_URL=wss://rpc.polkadot.io DEBUG=smoke:* npm run smoke-test",
-    "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-foreign-xcm-failures.ts'",
+    "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-historic-compatibility.ts'",
     "mocha-smoke": "mocha -r ts-node/register -r ./util/smokeFixtures.ts",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
