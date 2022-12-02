@@ -401,7 +401,7 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   */
 
   if (limiter == null) {
-    limiter = new Bottleneck({ maxConcurrent: 10 });
+    limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
   }
   const finalizedHead = await limiter.schedule(() => api.rpc.chain.getFinalizedHead());
   const signedBlock = await limiter.schedule(() => api.rpc.chain.getBlock(finalizedHead));
