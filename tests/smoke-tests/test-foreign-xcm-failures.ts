@@ -254,7 +254,10 @@ describeSmokeSuite(
       failures.forEach(({ filtered, networkName }) =>
         filtered.forEach(({ blockNum }) =>
           debug(
-            `MultiLocationFull XCM error xcmpQueue.Fail in network ${networkName} block #${blockNum}.`
+            "MultiLocationFull XCM error xcmpQueue. Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
         )
       );
@@ -330,7 +333,10 @@ describeSmokeSuite(
       failures.forEach(({ filtered, networkName }) =>
         filtered.forEach(({ blockNum }) =>
           debug(
-            `DestinationUnsupported XCM error xcmpQueue.Fail in network ${networkName} block #${blockNum}.`
+            "DestinationUnsupported XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
         )
       );
@@ -441,7 +447,10 @@ describeSmokeSuite(
       failures.forEach(({ filtered, networkName }) =>
         filtered.forEach(({ blockNum }) =>
           debug(
-            `UnhandledXcmVersion XCM error xcmpQueue.Fail in network ${networkName} block #${blockNum}.`
+            "UnhandledXcmVersion XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
         )
       );
@@ -480,7 +489,10 @@ describeSmokeSuite(
       failures.forEach(({ filtered, networkName }) =>
         filtered.forEach(({ blockNum }) =>
           debug(
-            `WeightNotComputable XCM error xcmpQueue.Fail in network ${networkName} block #${blockNum}.`
+            "WeightNotComputable XCM error xcmpQueue.Fail in network " +
+              networkName +
+              " block #" +
+              blockNum
           )
         )
       );
