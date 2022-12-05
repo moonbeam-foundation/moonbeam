@@ -586,7 +586,7 @@ totalBondReward               ${totalBondReward} \
   // compute max rounds respecting the current block number and the number of awarded collators
   const maxRoundChecks = Math.min(
     latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
-    awardedCollatorCount
+    collators.size
   );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
@@ -602,6 +602,7 @@ totalBondReward               ${totalBondReward} \
   // accumulate total commission rewards per collator
   let totalCollatorCommissionRewarded = new BN(0);
 
+  let skippedRewardEvents = 0;
   // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
@@ -625,6 +626,13 @@ totalBondReward               ${totalBondReward} \
     totalBondRewarded = totalBondRewarded.add(rewarded.amount.bondReward);
     totalBondRewardedLoss = totalBondRewardedLoss.add(rewarded.amount.bondRewardLoss);
 
+    // This might happen because the collator is not producing blocks
+    // Since now collators are fetched from AtStake, a collator that is not
+    // producing blocks will be checked for rewards, but not be paid
+    if (!rewarded.collator) {
+      skippedRewardEvents += 1;
+      continue;
+    }
     expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
     rewardedCollators.add(rewarded.collator);
@@ -739,6 +747,7 @@ actual loss ${actualBondRewardedLoss.toString()}`
     );
   }
 
+  expect(skippedRewardEvents).to.be.eq(collators.size - rewardedCollators.size);
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
   );
@@ -883,8 +892,9 @@ async function assertRewardedEventsAtBlock(
         `${accountId} (DEL) - Reward`
       );
 
-      // check autoCompound
-      const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
+      const canAutoCompound =
+        !outstandingRevokes[rewarded.collator] ||
+        !outstandingRevokes[rewarded.collator].has(accountId);
       if (specVersion >= 1900 && canAutoCompound) {
         const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
         // skip assertion if auto-compound 0%
