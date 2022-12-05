@@ -4,7 +4,7 @@ import { getBlockArray } from "../util/block";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
-import { ForeignChainsEndpoints } from "../util/foreign-chains";
+import { ForeignChainsEndpoints, getEndpoints } from "../util/foreign-chains";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 const debug = require("debug")("smoke:foreign-xcm-fails");
 
@@ -40,7 +40,18 @@ describeSmokeSuite(
       }
       this.timeout(timeout * foreignChainInfos.foreignChains.length);
 
-      const promises = foreignChainInfos.foreignChains.map(async ({ name, endpoints, muted }) => {
+      const relayName =
+        networkName === "Moonbeam"
+          ? "Polkadot"
+          : networkName === "Moonriver"
+          ? "Kusama"
+          : "Unsupported";
+      const chainsWithRpcs = foreignChainInfos.foreignChains.map((chain) => {
+        const endpoints = getEndpoints(relayName, chain.paraId);
+        return { ...chain, endpoints };
+      });
+
+      const promises = chainsWithRpcs.map(async ({ name, endpoints, muted }) => {
         let blockEvents: BlockEventsRecord[];
         if (muted === true) {
           debug(`Network tests for ${name} has been muted, skipping.`);
