@@ -45,14 +45,18 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
       `Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`
     );
 
-    const prevBlock = queryRound.first.subn(1);
+    const prevBlock = Math.max(queryRound.first.subn(1).toNumber(), 1);
     const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
     apiAt = await context.polkadotApi.at(prevHash);
-    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`);
+    debug(`Snapshot block #${prevBlock} hash ${prevHash.toString()}`);
 
-    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
+    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1).toNumber();
+    if (predecessorBlock <= 1) {
+      debug("Round is too early (fork network probably), skipping test.");
+      this.skip();
+    }
     const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
-    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`);
+    debug(`Reference block #${predecessorBlock} hash ${predecessorHash.toString()}`);
     predecessorApiAt = await context.polkadotApi.at(predecessorHash);
 
     const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();

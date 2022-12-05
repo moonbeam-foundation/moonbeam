@@ -47,7 +47,7 @@ describeSmokeSuite(
         : process.env.ROUNDS_TO_WAIT
         ? Math.floor(Number(process.env.ROUNDS_TO_WAIT) * roundLength)
         : 300;
-      const firstBlockNumber = lastBlockNumber - blocksToWait + 1;
+      const firstBlockNumber = Math.max(lastBlockNumber - blocksToWait + 1, 1);
 
       for (let blockNumber of range(firstBlockNumber, lastBlockNumber)) {
         let api = await context.polkadotApi.at(
