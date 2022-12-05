@@ -73,9 +73,13 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
       subscription.on("data", async function (d: any) {
         if (d.number == block_count) {
           let result = (
-            await customWeb3Request(context.web3, "eth_feeHistory", ["0x2", "latest", reward_percentiles])
+            await customWeb3Request(context.web3, "eth_feeHistory", [
+              "0x2",
+              "latest",
+              reward_percentiles,
+            ])
           ).result;
-      
+
           // baseFeePerGas is always the requested block range + 1 (the next derived base fee).
           expect(result.baseFeePerGas.length).to.be.eq(block_count + 1);
           // gasUsedRatio for the requested block range.
@@ -106,7 +110,11 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
       subscription.on("data", async function (d: any) {
         if (d.number == block_count) {
           let result = (
-            await customWeb3Request(context.web3, "eth_feeHistory", ["0xA", "latest", reward_percentiles])
+            await customWeb3Request(context.web3, "eth_feeHistory", [
+              "0xA",
+              "latest",
+              reward_percentiles,
+            ])
           ).result;
           // Calculate the percentiles in javascript.
           let local_rewards = [];
@@ -117,8 +125,8 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
           for (let i = 0; i < result.reward.length; i++) {
             // We only test if BaseFee update is enabled.
             //
-            // If BaseFee is a constant 1GWEI, that means that there is no effective reward using the
-            // specs formula MIN(tx.maxPriorityFeePerGas, tx.maxFeePerGas-block.baseFee).
+            // If BaseFee is a constant 1GWEI, that means that there is no effective reward using
+            // the specs formula MIN(tx.maxPriorityFeePerGas, tx.maxFeePerGas-block.baseFee).
             //
             // In other words, for this tip oracle there would be no need to provide a priority fee
             // when the block fullness is considered ideal in an EIP-1559 chain.
@@ -129,7 +137,9 @@ describeDevMoonbeamAllEthTxTypes("Fee History", (context) => {
             ) {
               expect(result.reward[i].length).to.be.eq(local_rewards.length);
               for (let j = 0; j < local_rewards.length; j++) {
-                expect(context.web3.utils.hexToNumber(result.reward[i][j])).to.be.eq(local_rewards[j]);
+                expect(context.web3.utils.hexToNumber(result.reward[i][j])).to.be.eq(
+                  local_rewards[j]
+                );
               }
             }
           }
