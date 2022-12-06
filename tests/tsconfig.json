@@ -20,7 +20,8 @@
     "tools/*.ts",
     "util/**/*.json",
     "contracts/*.ts",
-    "contracts/compiled/*.json"
+    "contracts/compiled/*.json",
+    "contract-sim/test-amm.ts"
   ],
   "exclude": ["node_modules/"]
 }

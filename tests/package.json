@@ -47,6 +47,7 @@
     "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-historic-compatibility.ts'",
     "mocha-smoke": "mocha -r ts-node/register -r ./util/smokeFixtures.ts",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
+    "contract-sim-tests": "PARA_ID=2004 OVERRIDE_RUNTIME_PATH=/tmp/fork-chain/moonbeam/target/release/wbuild/moonbeam-runtime/ DEBUG_MODE=true PORT_PREFIX=51 SPEC_FILE=/tmp/fork-test/states/moonbeam-state.mod.json RUNTIME_NAME=moonbeam mocha -r ts-node/register 'fork-tests/test-contract*.ts'",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "tsc; cp -r contracts build/",

@@ -3,7 +3,8 @@ import readline from "readline";
 import chalk from "chalk";
 
 import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
-import { u8aConcat, u8aToHex, hexToBigInt, nToHex } from "@polkadot/util";
+import { u8aConcat, u8aToHex, hexToBigInt, nToHex, bnToHex } from "@polkadot/util";
+import { DOT_ASSET_ID } from "./fork-tests/staticData";
 
 const storageKey = (module, name) => {
   return u8aToHex(u8aConcat(xxhashAsU8a(module, 128), xxhashAsU8a(name, 128)));
@@ -15,12 +16,26 @@ const storageBlake128MapKey = (module, name, key) => {
   );
 };
 
+const storageBlake128DoubleMapKey = (module, name, [key1, key2]) => {
+  return u8aToHex(
+    u8aConcat(
+      xxhashAsU8a(module, 128),
+      xxhashAsU8a(name, 128),
+      blake2AsU8a(key1, 128),
+      key1,
+      blake2AsU8a(key2, 128),
+      key2
+    )
+  );
+};
+
 // const ALITH_PRIV_KEY = "0x5fb92d6e98884f76de468fa3f6278f8807c48bebc13595d45af5bdc4da702133";
 // const BOB_PRIV_KEY = "0x8075991ce870b93a8870eca0c0f91913d12f47948ca0fd25b49c6fa7cdbeee8b";
 
 async function main(inputFile: string, outputFile?: string) {
   const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
   const ALITH_SESSION = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
+  const assetId = "42259045809535163221576417993425387648";
 
   console.log(chalk.blueBright(`  * Preparing Alith: ${ALITH} session ${ALITH_SESSION}`));
 
@@ -62,6 +77,8 @@ async function main(inputFile: string, outputFile?: string) {
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
+
+  const assetsBalancePrefix = `        "${storageKey("Assets", "Account")}`;
 
   const inboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpMessages")}`;
   const inboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpStatus")}`;
@@ -152,6 +169,9 @@ async function main(inputFile: string, outputFile?: string) {
     ).slice(2)}${alithAccountData.slice(66)}`;
     newTotalIssuance = totalIssuance + ALITH_MIN_BALANCE;
   }
+  // const amount = nToHex(1337,{isLe:true})
+  const amount = "00c419f2280c";
+  const newAlithTokenBalanceData = `0x${amount}0000000000000000000001`;
 
   const in2Stream = fs.createReadStream(inputFile, "utf8");
   const rl2 = readline.createInterface({
@@ -308,6 +328,15 @@ async function main(inputFile: string, outputFile?: string) {
       )}",\n`;
       console.log(` ${chalk.green(`  + Adding Balances.TotalIssuance`)}\n\t${newLine}`);
       outStream.write(newLine);
+    } else if (line.startsWith(assetsBalancePrefix)) {
+      console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
+
+      const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+        bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
+        ALITH,
+      ])}": "${newAlithTokenBalanceData}",\n`;
+
+      outStream.write(newLine);
     } else if (line.startsWith(validationDataPrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainSystem.ValidationData`)}\n\t${line}`);
 
@@ -344,6 +373,13 @@ async function main(inputFile: string, outputFile?: string) {
     // !line.startsWith(parachainIdPrefix)
   }
   // outStream.write("}\n")
+  // Extra Inserts
+  console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
+  const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+    bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
+    ALITH,
+  ])}": "${newAlithTokenBalanceData}",\n`;
+  await outStream.write(newLine);
   outStream.end();
 
   console.log(`Forked genesis generated successfully. Find it at ${destFile}`);
