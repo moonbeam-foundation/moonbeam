@@ -374,6 +374,9 @@ async function main(inputFile: string, outputFile?: string) {
         ])}": "${newAlithTokenBalanceData}",\n`;
 
         outStream.write(newLine);
+      } else {
+        outStream.write(line);
+        outStream.write("\n");
       }
     } else {
       outStream.write(line);
