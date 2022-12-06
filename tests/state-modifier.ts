@@ -175,7 +175,7 @@ async function main(inputFile: string, outputFile?: string) {
   }
   // const amount = nToHex(1337,{isLe:true})
   const amount = "00c419f2280c";
-  const newAlithTokenBalanceData = `0x${amount}0000000000000000000001`;
+  const newAlithTokenBalanceData = `0x${amount}000000000000000000000001`;
 
   const in2Stream = fs.createReadStream(inputFile, "utf8");
   const rl2 = readline.createInterface({
