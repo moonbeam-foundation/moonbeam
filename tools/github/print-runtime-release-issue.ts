@@ -30,6 +30,8 @@ async function main() {
 
   const commonTemplate = `
 ## Release
+- [ ] Check all proxy types.
+- [ ] Re-run all extrinsics/hooks benchmarks.
 - [ ] Tag master with runtime-${newVersion} and push to github
 - [ ] Start the github action Publish Runtime Draft
 with runtime-${previousVersion} => runtime-${newVersion}
