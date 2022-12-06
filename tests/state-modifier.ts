@@ -363,16 +363,18 @@ async function main(inputFile: string, outputFile?: string) {
       console.log(` ${chalk.red(`  - Removing overweightCountPrefix`)}\n\t${line}`);
     } else if (line.startsWith(signalMessagesPrefix)) {
       console.log(` ${chalk.red(`  - Removing signalMessagesPrefix`)}\n\t${line}`);
-    } else if (!injected) {
-      injected = true;
-      console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
+    } else if (line.startsWith(assetsBalancePrefix)) {
+      if (!injected) {
+        injected = true;
+        console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
 
-      const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
-        bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
-        ALITH,
-      ])}": "${newAlithTokenBalanceData}",\n`;
+        const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+          bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
+          ALITH,
+        ])}": "${newAlithTokenBalanceData}",\n`;
 
-      outStream.write(newLine);
+        outStream.write(newLine);
+      }
     } else {
       outStream.write(line);
       outStream.write("\n");
