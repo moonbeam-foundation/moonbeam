@@ -89,7 +89,7 @@ fn set_total_selected_fails_if_above_blocks_per_round() {
 		assert_eq!(ParachainStaking::round().length, 5); // test relies on this
 		assert_noop!(
 			ParachainStaking::set_total_selected(RuntimeOrigin::root(), 6u32),
-			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
 	});
 }
@@ -135,7 +135,7 @@ fn set_blocks_per_round_fails_if_below_total_selected() {
 		));
 		assert_noop!(
 			ParachainStaking::set_blocks_per_round(RuntimeOrigin::root(), 14u32),
-			Error::<Test>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+			Error::<Test>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		);
 	});
 }
