@@ -79,6 +79,10 @@ async function main(inputFile: string, outputFile?: string) {
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
 
   const assetsBalancePrefix = `        "${storageKey("Assets", "Account")}`;
+  const alithDotBalancePrefix = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+    bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
+    ALITH,
+  ])}`;
 
   const inboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpMessages")}`;
   const inboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpStatus")}`;
@@ -192,6 +196,8 @@ async function main(inputFile: string, outputFile?: string) {
     "MappingWithDeposit",
     ALITH_SESSION
   )}`;
+
+  let injected = false;
 
   for await (const line of rl2) {
     if (line.startsWith(alithAuthorMappingPrefix)) {
@@ -328,15 +334,6 @@ async function main(inputFile: string, outputFile?: string) {
       )}",\n`;
       console.log(` ${chalk.green(`  + Adding Balances.TotalIssuance`)}\n\t${newLine}`);
       outStream.write(newLine);
-    } else if (line.startsWith(assetsBalancePrefix)) {
-      console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
-
-      const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
-        bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
-        ALITH,
-      ])}": "${newAlithTokenBalanceData}",\n`;
-
-      outStream.write(newLine);
     } else if (line.startsWith(validationDataPrefix)) {
       console.log(` ${chalk.red(`  - Removing ParachainSystem.ValidationData`)}\n\t${line}`);
 
@@ -366,6 +363,16 @@ async function main(inputFile: string, outputFile?: string) {
       console.log(` ${chalk.red(`  - Removing overweightCountPrefix`)}\n\t${line}`);
     } else if (line.startsWith(signalMessagesPrefix)) {
       console.log(` ${chalk.red(`  - Removing signalMessagesPrefix`)}\n\t${line}`);
+    } else if (!injected) {
+      injected = true;
+      console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
+
+      const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+        bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
+        ALITH,
+      ])}": "${newAlithTokenBalanceData}",\n`;
+
+      outStream.write(newLine);
     } else {
       outStream.write(line);
       outStream.write("\n");
@@ -374,12 +381,6 @@ async function main(inputFile: string, outputFile?: string) {
   }
   // outStream.write("}\n")
   // Extra Inserts
-  console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
-  const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
-    bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
-    ALITH,
-  ])}": "${newAlithTokenBalanceData}",\n`;
-  await outStream.write(newLine);
   outStream.end();
 
   console.log(`Forked genesis generated successfully. Find it at ${destFile}`);
