@@ -4,7 +4,7 @@ import chalk from "chalk";
 
 import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
 import { u8aConcat, u8aToHex, hexToBigInt, nToHex, bnToHex } from "@polkadot/util";
-import { DOT_ASSET_ID } from "./fork-tests/staticData";
+import { DOT_ASSET_ID, USDT_ASSET_ID } from "./fork-tests/staticData";
 
 const storageKey = (module, name) => {
   return u8aToHex(u8aConcat(xxhashAsU8a(module, 128), xxhashAsU8a(name, 128)));
@@ -366,14 +366,19 @@ async function main(inputFile: string, outputFile?: string) {
     } else if (line.startsWith(assetsBalancePrefix)) {
       if (!injected) {
         injected = true;
-        console.log(` ${chalk.green(`  + Adding Assets.Account`)}\n\t`);
 
-        const newLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+        console.log(` ${chalk.green(`  + Adding Assets.Account Alith DOT`)}\n\t`);
+        const dotLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
           bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
           ALITH,
         ])}": "${newAlithTokenBalanceData}",\n`;
 
-        outStream.write(newLine);
+        console.log(` ${chalk.green(`  + Adding Assets.Account Alith USDT`)}\n\t`);
+        const usdtLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
+          bnToHex(BigInt(USDT_ASSET_ID), { isLe: true, bitLength: 128 }),
+          ALITH,
+        ])}": "${newAlithTokenBalanceData}",\n`;
+        outStream.write(dotLine+usdtLine);
       } else {
         outStream.write(line);
         outStream.write("\n");
