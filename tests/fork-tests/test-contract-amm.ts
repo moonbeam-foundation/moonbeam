@@ -54,12 +54,7 @@ describeParachain(
     const signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
 
     before(async () => {
-      // const signer = context.ethers.getSigner(0)
-      // console.log(await signer.getAddress());
       console.log(signer.address);
-      // console.log(signer.publicKey);
-      // console.log(await context.ethers.getBalance(signer.address));
-
       const dotContract = new ethers.Contract(xcdotAddress, xcTokenAbi, context.ethers);
       const dotDps = await dotContract.functions.decimals();
       const poolBal = await dotContract.functions.balanceOf(glmrDotPoolAddress);

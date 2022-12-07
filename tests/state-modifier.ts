@@ -389,8 +389,6 @@ async function main(inputFile: string, outputFile?: string) {
     }
     // !line.startsWith(parachainIdPrefix)
   }
-  // outStream.write("}\n")
-  // Extra Inserts
   outStream.end();
 
   console.log(`Forked genesis generated successfully. Find it at ${destFile}`);
