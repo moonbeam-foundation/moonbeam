@@ -289,7 +289,6 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Identity>(33);
 	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
-	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
@@ -315,6 +314,25 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::XTokens>(106);
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonbeam_runtime::LocalAssets>(108);
+}
+
+#[test]
+fn verify_reserved_indices() {
+	use frame_support::metadata::*;
+	let metadata = moonbeam_runtime::Runtime::metadata();
+	let metadata = match metadata.1 {
+		RuntimeMetadata::V14(metadata) => metadata,
+		_ => panic!("metadata has been bumped, test needs to be updated"),
+	};
+	// 40: Sudo
+	// 53: BaseFee
+	let reserved = vec![40, 53];
+	let existing = metadata
+		.pallets
+		.iter()
+		.map(|p| p.index)
+		.collect::<Vec<u8>>();
+	assert!(reserved.iter().all(|index| !existing.contains(index)));
 }
 
 #[test]

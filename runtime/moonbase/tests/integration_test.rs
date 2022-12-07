@@ -357,6 +357,24 @@ fn verify_pallet_indices() {
 }
 
 #[test]
+fn verify_reserved_indices() {
+	use frame_support::metadata::*;
+	let metadata = moonbeam_runtime::Runtime::metadata();
+	let metadata = match metadata.1 {
+		RuntimeMetadata::V14(metadata) => metadata,
+		_ => panic!("metadata has been bumped, test needs to be updated"),
+	};
+	// 35: BaseFee
+	let reserved = vec![35];
+	let existing = metadata
+		.pallets
+		.iter()
+		.map(|p| p.index)
+		.collect::<Vec<u8>>();
+	assert!(reserved.iter().all(|index| !existing.contains(index)));
+}
+
+#[test]
 fn verify_proxy_type_indices() {
 	assert_eq!(moonbase_runtime::ProxyType::Any as u8, 0);
 	assert_eq!(moonbase_runtime::ProxyType::NonTransfer as u8, 1);
