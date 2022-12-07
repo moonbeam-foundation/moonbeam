@@ -70,9 +70,7 @@ then
 
     echo "Retrieving binaries..."
     MOONBEAM_CLIENT_TAG=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bmoonbeam\\b")) | .tag_name' | grep '^v' | head -1) && export MOONBEAM_CLIENT_TAG
-    echo "${MOONBEAM_CLIENT_TAG}"
     POLKADOT_CLIENT_TAG=$(curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bpolkadot\\b")) | .tag_name' | grep '^v' | head -1) && export POLKADOT_CLIENT_TAG
-    echo "${POLKADOT_CLIENT_TAG}"
 
     if [[ ! -f $BINARY_PATH && $USE_LOCAL_CLIENT != "true" ]]
     then
@@ -129,7 +127,7 @@ then
     # Modify state
     cd $ROOT_FOLDER/moonbeam/tests
     echo "Customizing $NETWORK forked state..."
-    node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
+    ./node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
 fi
 
 # Run the node
