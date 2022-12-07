@@ -6553,17 +6553,17 @@ fn delegation_events_convey_correct_position() {
 #[test]
 fn no_rewards_paid_until_after_reward_payment_delay() {
 	ExtBuilder::default()
-		.with_balances(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
+		.with_balances(vec![(1, 20), (2, 20), (3, 20)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20)])
 		.build()
 		.execute_with(|| {
 			roll_to_round_begin(2);
 			// payouts for round 1
 			set_author(1, 1, 1);
 			set_author(1, 2, 1);
+			set_author(1, 2, 1);
 			set_author(1, 3, 1);
-			set_author(1, 4, 1);
-			set_author(1, 4, 1);
+			set_author(1, 3, 1);
 			assert_events_eq!(
 				Event::CollatorChosen {
 					round: 2,
@@ -6580,16 +6580,11 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 					collator_account: 3,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 2,
-					collator_account: 4,
-					total_exposed_amount: 20,
-				},
 				Event::NewRound {
 					starting_block: 5,
 					round: 2,
-					selected_collators_number: 4,
-					total_balance: 80,
+					selected_collators_number: 3,
+					total_balance: 60,
 				},
 			);
 
@@ -6610,30 +6605,18 @@ fn no_rewards_paid_until_after_reward_payment_delay() {
 					collator_account: 3,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 3,
-					collator_account: 4,
-					total_exposed_amount: 20,
-				},
 				Event::NewRound {
 					starting_block: 10,
 					round: 3,
-					selected_collators_number: 4,
-					total_balance: 80,
-				},
-				// rewards will begin immediately following a NewRound
-				Event::Rewarded {
-					account: 3,
-					rewards: 1,
+					selected_collators_number: 3,
+					total_balance: 60,
 				},
 			);
 
-			// roll to the next block where we start round 3; we should have round change and first
-			// payout made.
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
-				account: 4,
-				rewards: 2,
+				account: 3,
+				rewards: 1,
 			});
 
 			roll_blocks(1);
@@ -6742,11 +6725,13 @@ fn deferred_payment_storage_items_are_cleaned_up() {
 					selected_collators_number: 2,
 					total_balance: 40,
 				},
-				Event::Rewarded {
-					account: 1,
-					rewards: 1,
-				},
 			);
+
+			roll_blocks(1);
+			assert_events_eq!(Event::Rewarded {
+				account: 1,
+				rewards: 1,
+			},);
 
 			// payouts should exist for past rounds that haven't been paid out yet..
 			assert!(<AtStake<Test>>::contains_key(3, 1));
