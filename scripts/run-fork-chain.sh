@@ -65,6 +65,7 @@ then
     # Clone moonbeam repo & building
     echo "Cloning repository..."
     git clone https://github.com/purestake/moonbeam
+    git checkout $GIT_TAG
     cd $ROOT_FOLDER/moonbeam
     mkdir binaries
 
@@ -98,7 +99,6 @@ then
     ## Build the runtime to test
     echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
     cd $ROOT_FOLDER/moonbeam
-    git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
     if [[ $USE_LOCAL_CLIENT == "true" ]]
