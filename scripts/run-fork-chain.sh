@@ -127,6 +127,7 @@ then
     # Modify state
     cd $ROOT_FOLDER/moonbeam/tests
     echo "Customizing $NETWORK forked state..."
+    npm ci
     ./node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
 fi
 
