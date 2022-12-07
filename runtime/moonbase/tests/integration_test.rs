@@ -359,7 +359,7 @@ fn verify_pallet_indices() {
 #[test]
 fn verify_reserved_indices() {
 	use frame_support::metadata::*;
-	let metadata = moonbeam_runtime::Runtime::metadata();
+	let metadata = moonbase_runtime::Runtime::metadata();
 	let metadata = match metadata.1 {
 		RuntimeMetadata::V14(metadata) => metadata,
 		_ => panic!("metadata has been bumped, test needs to be updated"),
