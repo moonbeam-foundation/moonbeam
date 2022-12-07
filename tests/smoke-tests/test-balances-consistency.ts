@@ -13,6 +13,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
+import { extractPreimageDeposit } from "../util/block";
 const debug = require("debug")("smoke:balances");
 
 describeSmokeSuite(`Verifying balances consistency...`, (context) => {
@@ -268,13 +269,18 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
           },
         })),
       preimageStatuses
-        .filter((status) => status[1].unwrap().isUnrequested)
-        .map((status: any) => ({
-          accountId: status[1].unwrap().asUnrequested.unwrap()[0].toHex(),
-          reserved: {
-            preimage: BigInt(status[1].unwrap().asUnrequested.unwrap()[1].toBigInt()),
-          },
-        })),
+        .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
+        .map((status) => {
+          const deposit = extractPreimageDeposit(
+            status[1].unwrap().asUnrequested || status[1].unwrap().asRequested
+          );
+          return {
+            accountId: deposit.accountId,
+            reserved: {
+              preimage: deposit.amount.toBigInt(),
+            },
+          };
+        }),
       referendumInfoFor
         .map((info) => {
           const deposits = (

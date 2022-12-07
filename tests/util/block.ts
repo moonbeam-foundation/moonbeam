@@ -9,15 +9,16 @@ import {
   RuntimeDispatchInfo,
 } from "@polkadot/types/interfaces";
 import { FrameSystemEventRecord, SpWeightsWeightV2Weight } from "@polkadot/types/lookup";
-import { u64, Option } from "@polkadot/types";
+import { u32, u64, u128, Option } from "@polkadot/types";
 
 import { expect } from "chai";
 
 import { WEIGHT_PER_GAS } from "./constants";
 import { DevTestContext } from "./setup-dev-tests";
 
-import type { Block } from "@polkadot/types/interfaces/runtime/types";
+import type { Block, AccountId20 } from "@polkadot/types/interfaces/runtime/types";
 import type { TxWithEvent } from "@polkadot/api-derive/types";
+import type { ITuple } from "@polkadot/types-codec/types";
 import Bottleneck from "bottleneck";
 const debug = require("debug")("test:blocks");
 export async function createAndFinalizeBlock(
@@ -399,10 +400,11 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
   @param limiter Bottleneck rate limiter to throttle requests
   */
 
-  if (typeof limiter == "undefined") {
+  if (limiter == null) {
     limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
   }
-  const signedBlock = await api.rpc.chain.getBlock(await api.rpc.chain.getFinalizedHead());
+  const finalizedHead = await limiter.schedule(() => api.rpc.chain.getFinalizedHead());
+  const signedBlock = await limiter.schedule(() => api.rpc.chain.getBlock(finalizedHead));
 
   const lastBlockNumber = signedBlock.block.header.number.toNumber();
   const lastBlockTime = getBlockTime(signedBlock);
@@ -420,13 +422,43 @@ export const getBlockArray = async (api: ApiPromise, timePeriod: number, limiter
 };
 
 export function extractWeight(
-  weightV1OrV2: u64 | SpWeightsWeightV2Weight | Option<SpWeightsWeightV2Weight>
+  weightV1OrV2: u64 | Option<u64> | SpWeightsWeightV2Weight | Option<SpWeightsWeightV2Weight>
 ) {
-  if ("unwrap" in weightV1OrV2) {
-    return weightV1OrV2.unwrap().refTime.unwrap();
+  if ("isSome" in weightV1OrV2) {
+    const weight = weightV1OrV2.unwrap();
+    if ("refTime" in weight) {
+      return weight.refTime.unwrap();
+    }
+    return weight;
   }
   if ("refTime" in weightV1OrV2) {
     return weightV1OrV2.refTime.unwrap();
   }
   return weightV1OrV2;
+}
+
+export function extractPreimageDeposit(
+  request:
+    | Option<ITuple<[AccountId20, u128]>>
+    | {
+        readonly deposit: ITuple<[AccountId20, u128]>;
+        readonly len: u32;
+      }
+    | {
+        readonly deposit: Option<ITuple<[AccountId20, u128]>>;
+        readonly count: u32;
+        readonly len: Option<u32>;
+      }
+) {
+  const deposit = "deposit" in request ? request.deposit : request;
+  if ("isSome" in deposit) {
+    return {
+      accountId: deposit.unwrap()[0].toHex(),
+      amount: deposit.unwrap()[1],
+    };
+  }
+  return {
+    accountId: deposit[0].toHex(),
+    amount: deposit[1],
+  };
 }

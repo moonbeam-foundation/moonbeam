@@ -5,6 +5,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { FIVE_MINS } from "../util/constants";
+import { isMuted } from "../util/foreign-chains";
 const debug = require("debug")("smoke:xcm-failures");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
@@ -299,25 +300,27 @@ describeSmokeSuite(
         fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getEvents(num)))
       );
 
-      const responses = channels.map((channel) => {
-        const record = fiveMinutesOfEvents.find(({ events }) => {
-          const matchedEvent = events
-            .filter(
-              ({ event }) =>
-                event.method.toString() === "CandidateIncluded" &&
-                event.section.toString() === "paraInclusion"
-            )
-            .find(({ event: { data } }) => {
-              const {
-                descriptor: { paraId },
-              } = data[0] as any;
-              return paraId.toNumber() === channel;
-            });
-          return typeof matchedEvent !== "undefined";
+      const responses = channels
+        .filter((a) => !isMuted(chainName, a))
+        .map((channel) => {
+          const record = fiveMinutesOfEvents.find(({ events }) => {
+            const matchedEvent = events
+              .filter(
+                ({ event }) =>
+                  event.method.toString() === "CandidateIncluded" &&
+                  event.section.toString() === "paraInclusion"
+              )
+              .find(({ event: { data } }) => {
+                const {
+                  descriptor: { paraId },
+                } = data[0] as any;
+                return paraId.toNumber() === channel;
+              });
+            return typeof matchedEvent !== "undefined";
+          });
+          const response = typeof record !== "undefined";
+          return { channel, response };
         });
-        const response = typeof record !== "undefined";
-        return { channel, response };
-      });
       const failedResponses = responses.filter((a) => a.response === false);
       failedResponses.forEach((a) =>
         debug(`No response in 5 minutes for connected Parachain #${a.channel}`)
