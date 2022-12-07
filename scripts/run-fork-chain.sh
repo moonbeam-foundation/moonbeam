@@ -69,11 +69,11 @@ then
     mkdir binaries
 
     echo "Retrieving binaries..."
-    MOONBEAM_CLIENT_TAG=`curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bmoonbeam\\b")) | .tag_name' | grep '^v' | head -1`
+    MOONBEAM_CLIENT_TAG=$(curl -s https://api.github.com/repos/purestake/moonbeam/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bmoonbeam\\b")) | .tag_name' | grep '^v' | head -1) && export MOONBEAM_CLIENT_TAG
     echo "${MOONBEAM_CLIENT_TAG}"
-    POLKADOT_CLIENT_TAG=`curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bpolkadot\\b")) | .tag_name' | grep '^v' | head -1`
+    POLKADOT_CLIENT_TAG=$(curl -s https://api.github.com/repos/paritytech/polkadot/releases | jq -r '.[] | select(.assets|.[]|.name|test("\\bpolkadot\\b")) | .tag_name' | grep '^v' | head -1) && export POLKADOT_CLIENT_TAG
     echo "${POLKADOT_CLIENT_TAG}"
-    
+
     if [[ ! -f $BINARY_PATH && $USE_LOCAL_CLIENT != "true" ]]
     then
         echo "Downloading moonbeam ${MOONBEAM_CLIENT_TAG}"
