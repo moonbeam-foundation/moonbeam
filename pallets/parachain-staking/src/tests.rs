@@ -4122,6 +4122,7 @@ fn delegator_schedule_revocation_total() {
 		});
 }
 
+#[ignore]
 #[test]
 fn parachain_bond_inflation_reserve_matches_config() {
 	ExtBuilder::default()
@@ -5077,13 +5078,11 @@ fn payout_distribution_to_solo_collators() {
 			(2, 1000),
 			(3, 1000),
 			(4, 1000),
-			(5, 1000),
-			(6, 1000),
 			(7, 33),
 			(8, 33),
 			(9, 33),
 		])
-		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70), (5, 60), (6, 50)])
+		.with_candidates(vec![(1, 100), (2, 90), (3, 80), (4, 70)])
 		.build()
 		.execute_with(|| {
 			roll_to_round_begin(2);
@@ -5109,16 +5108,11 @@ fn payout_distribution_to_solo_collators() {
 					collator_account: 4,
 					total_exposed_amount: 70,
 				},
-				Event::CollatorChosen {
-					round: 2,
-					collator_account: 5,
-					total_exposed_amount: 60,
-				},
 				Event::NewRound {
 					starting_block: 5,
 					round: 2,
-					selected_collators_number: 5,
-					total_balance: 400,
+					selected_collators_number: 4,
+					total_balance: 340,
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
@@ -5145,23 +5139,18 @@ fn payout_distribution_to_solo_collators() {
 					collator_account: 4,
 					total_exposed_amount: 70,
 				},
-				Event::CollatorChosen {
-					round: 4,
-					collator_account: 5,
-					total_exposed_amount: 60,
-				},
 				Event::NewRound {
 					starting_block: 15,
 					round: 4,
-					selected_collators_number: 5,
-					total_balance: 400,
+					selected_collators_number: 4,
+					total_balance: 340,
 				},
 			);
-			// pay total issuance to 1 at 3rd block
+			// pay total issuance to 1 at 2nd block
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 305,
+				rewards: 205,
 			});
 			// ~ set block author as 1 for 3 blocks this round
 			set_author(4, 1, 60);
@@ -5190,34 +5179,28 @@ fn payout_distribution_to_solo_collators() {
 					collator_account: 4,
 					total_exposed_amount: 70,
 				},
-				Event::CollatorChosen {
-					round: 6,
-					collator_account: 5,
-					total_exposed_amount: 60,
-				},
 				Event::NewRound {
 					starting_block: 25,
 					round: 6,
-					selected_collators_number: 5,
-					total_balance: 400,
+					selected_collators_number: 4,
+					total_balance: 340,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 192,
+				rewards: 129,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 2,
-				rewards: 128,
+				rewards: 86,
 			},);
 			// ~ each collator produces 1 block this round
 			set_author(6, 1, 20);
 			set_author(6, 2, 20);
 			set_author(6, 3, 20);
 			set_author(6, 4, 20);
-			set_author(6, 5, 20);
 			roll_to_round_begin(8);
 			// pay 20% issuance for all collators
 			assert_events_eq!(
@@ -5241,41 +5224,32 @@ fn payout_distribution_to_solo_collators() {
 					collator_account: 4,
 					total_exposed_amount: 70,
 				},
-				Event::CollatorChosen {
-					round: 8,
-					collator_account: 5,
-					total_exposed_amount: 60,
-				},
 				Event::NewRound {
 					starting_block: 35,
 					round: 8,
-					selected_collators_number: 5,
-					total_balance: 400,
-				},
-				Event::Rewarded {
-					account: 5,
-					rewards: 67,
+					selected_collators_number: 4,
+					total_balance: 340,
 				},
 			);
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 3,
-				rewards: 67,
+				rewards: 56,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 4,
-				rewards: 67,
+				rewards: 56,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
-				rewards: 67,
+				rewards: 56,
 			});
 			roll_blocks(1);
 			assert_events_eq!(Event::Rewarded {
 				account: 2,
-				rewards: 67,
+				rewards: 56,
 			});
 			// check that distributing rewards clears awarded pts
 			assert!(ParachainStaking::awarded_pts(1, 1).is_zero());
@@ -5285,7 +5259,6 @@ fn payout_distribution_to_solo_collators() {
 			assert!(ParachainStaking::awarded_pts(6, 2).is_zero());
 			assert!(ParachainStaking::awarded_pts(6, 3).is_zero());
 			assert!(ParachainStaking::awarded_pts(6, 4).is_zero());
-			assert!(ParachainStaking::awarded_pts(6, 5).is_zero());
 		});
 }
 
