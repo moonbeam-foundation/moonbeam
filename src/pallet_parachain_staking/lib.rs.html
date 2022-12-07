@@ -2114,7 +2114,7 @@
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		RoundLengthMustBeAtLeastTotalSelectedCollators,
+		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
@@ -2363,9 +2363,9 @@
 				});
 				<span class="comment">// account for Round and Staked writes
 				</span>weight = weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">0</span>, <span class="number">2</span>));
+			} <span class="kw">else </span>{
+				weight = weight.saturating_add(<span class="self">Self</span>::handle_delayed_payouts(round.current));
 			}
-
-			weight = weight.saturating_add(<span class="self">Self</span>::handle_delayed_payouts(round.current));
 
 			<span class="comment">// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
@@ -2757,7 +2757,7 @@
 			<span class="macro">ensure!</span>(old != new, Error::&lt;T&gt;::NoWritingSameValue);
 			<span class="macro">ensure!</span>(
 				new &lt;= &lt;Round&lt;T&gt;&gt;::get().length,
-				Error::&lt;T&gt;::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::&lt;T&gt;::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			&lt;TotalSelected&lt;T&gt;&gt;::put(new);
 			<span class="self">Self</span>::deposit_event(Event::TotalSelectedSet { old, new });
@@ -2792,7 +2792,7 @@
 			<span class="macro">ensure!</span>(old != new, Error::&lt;T&gt;::NoWritingSameValue);
 			<span class="macro">ensure!</span>(
 				new &gt;= &lt;TotalSelected&lt;T&gt;&gt;::get(),
-				Error::&lt;T&gt;::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::&lt;T&gt;::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
 			<span class="comment">// update per-round inflation given new rounds per year
