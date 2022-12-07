@@ -372,7 +372,7 @@ async function main(inputFile: string, outputFile?: string) {
           ALITH,
         ])}": "${newAlithTokenBalanceData}",\n`;
         console.log(` ${chalk.green(`  + Adding Assets.Account Alith DOT`)}\n\t${dotLine}`);
-        outStream.write(dotLine)
+        outStream.write(dotLine);
 
         const usdtLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
           bnToHex(BigInt(USDT_ASSET_ID), { isLe: true, bitLength: 128 }),
