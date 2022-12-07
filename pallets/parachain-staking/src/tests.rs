@@ -5556,14 +5556,13 @@ fn payouts_follow_delegation_changes() {
 			(2, 100),
 			(3, 100),
 			(4, 100),
-			(5, 100),
 			(6, 100),
 			(7, 100),
 			(8, 100),
 			(9, 100),
 			(10, 100),
 		])
-		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20), (5, 10)])
+		.with_candidates(vec![(1, 20), (2, 20), (3, 20), (4, 20)])
 		.with_delegations(vec![
 			(6, 1, 10),
 			(7, 1, 10),
@@ -5596,16 +5595,11 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 2,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 5,
 					round: 2,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
@@ -5633,35 +5627,30 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 4,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 15,
 					round: 4,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 26,
+					rewards: 23,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 8,
+					rewards: 7,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 8,
+					rewards: 7,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 8,
+					rewards: 7,
 				},
 			);
 			// ~ set block author as 1 for all blocks this round
@@ -5707,23 +5696,18 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 5,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 20,
 					round: 5,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 27,
+					rewards: 24,
 				},
 				Event::Rewarded {
 					account: 6,
@@ -5766,16 +5750,11 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 6,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 25,
 					round: 6,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 				Event::DelegatorLeftCandidate {
 					delegator: 6,
@@ -5792,19 +5771,19 @@ fn payouts_follow_delegation_changes() {
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 29,
+					rewards: 26,
 				},
 				Event::Rewarded {
 					account: 6,
-					rewards: 9,
+					rewards: 8,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 9,
+					rewards: 8,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 9,
+					rewards: 8,
 				},
 			);
 			// 6 won't be paid for this round because they left already
@@ -5832,31 +5811,26 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 7,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 30,
 					round: 7,
-					selected_collators_number: 5,
-					total_balance: 130,
+					selected_collators_number: 4,
+					total_balance: 120,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 35,
+					rewards: 31,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 11,
+					rewards: 10,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 11,
+					rewards: 10,
 				},
 			);
 			roll_to_round_begin(8);
@@ -5881,31 +5855,26 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 8,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 35,
 					round: 8,
-					selected_collators_number: 5,
-					total_balance: 130,
+					selected_collators_number: 4,
+					total_balance: 120,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 36,
+					rewards: 33,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 12,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 12,
+					rewards: 11,
 				},
 			);
 			set_author(8, 1, 100);
@@ -5932,31 +5901,26 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 9,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 40,
 					round: 9,
-					selected_collators_number: 5,
-					total_balance: 130,
+					selected_collators_number: 4,
+					total_balance: 120,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 38,
+					rewards: 34,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 13,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 13,
+					rewards: 11,
 				},
 			);
 			roll_blocks(1);
@@ -5999,31 +5963,26 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 10,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 45,
 					round: 10,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 40,
+					rewards: 36,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 13,
+					rewards: 12,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 13,
+					rewards: 12,
 				},
 			);
 			set_author(10, 1, 100);
@@ -6050,31 +6009,26 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 11,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 50,
 					round: 11,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 42,
+					rewards: 38,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 14,
+					rewards: 12,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 14,
+					rewards: 12,
 				},
 			);
 			roll_to_round_begin(12);
@@ -6101,35 +6055,30 @@ fn payouts_follow_delegation_changes() {
 					collator_account: 4,
 					total_exposed_amount: 20,
 				},
-				Event::CollatorChosen {
-					round: 12,
-					collator_account: 5,
-					total_exposed_amount: 10,
-				},
 				Event::NewRound {
 					starting_block: 55,
 					round: 12,
-					selected_collators_number: 5,
-					total_balance: 140,
+					selected_collators_number: 4,
+					total_balance: 130,
 				},
 			);
 			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
-					rewards: 39,
+					rewards: 34,
 				},
 				Event::Rewarded {
 					account: 7,
-					rewards: 12,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 10,
-					rewards: 12,
+					rewards: 11,
 				},
 				Event::Rewarded {
 					account: 8,
-					rewards: 12,
+					rewards: 11,
 				},
 			);
 		});
