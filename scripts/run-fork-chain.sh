@@ -65,8 +65,8 @@ then
     # Clone moonbeam repo & building
     echo "Cloning repository..."
     git clone https://github.com/purestake/moonbeam
-    git checkout $GIT_TAG
     cd $ROOT_FOLDER/moonbeam
+    git checkout $GIT_TAG
     mkdir binaries
 
     echo "Retrieving binaries..."
