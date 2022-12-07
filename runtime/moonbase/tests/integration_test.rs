@@ -521,7 +521,7 @@ fn reward_block_authors() {
 				1_000 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -570,7 +570,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
