@@ -4879,6 +4879,10 @@ fn paid_collator_commission_matches_config() {
 					selected_collators_number: 2,
 					total_balance: 80,
 				},
+			);
+
+			roll_blocks(1);
+			assert_events_eq!(
 				Event::Rewarded {
 					account: 4,
 					rewards: 18,
