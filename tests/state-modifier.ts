@@ -367,17 +367,18 @@ async function main(inputFile: string, outputFile?: string) {
       if (!injected) {
         injected = true;
 
-        console.log(` ${chalk.green(`  + Adding Assets.Account Alith DOT`)}\n\t`);
         const dotLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
           bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
           ALITH,
         ])}": "${newAlithTokenBalanceData}",\n`;
+        console.log(` ${chalk.green(`  + Adding Assets.Account Alith DOT`)}\n\t${dotLine}`);
         outStream.write(dotLine)
-        console.log(` ${chalk.green(`  + Adding Assets.Account Alith USDT`)}\n\t`);
+
         const usdtLine = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
           bnToHex(BigInt(USDT_ASSET_ID), { isLe: true, bitLength: 128 }),
           ALITH,
         ])}": "${newAlithTokenBalanceData}",\n`;
+        console.log(` ${chalk.green(`  + Adding Assets.Account Alith USDT`)}\n\t${usdtLine}`);
         outStream.write(usdtLine);
       } else {
         outStream.write(line);

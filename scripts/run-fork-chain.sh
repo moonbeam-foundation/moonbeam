@@ -106,16 +106,16 @@ then
         cargo build --release -p moonbeam
         cp target/release/moonbeam $BINARY_PATH
     fi
-
-    echo "Preparing tests... (3 minutes)"
-    cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm install
-    cd $ROOT_FOLDER/moonbeam/tools
-    npm install
-
-    cd $ROOT_FOLDER/moonbeam/tests
-    npm ci
 fi
+
+echo "Preparing tests... (3 minutes)"
+cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
+npm install
+cd $ROOT_FOLDER/moonbeam/tools
+npm install
+
+cd $ROOT_FOLDER/moonbeam/tests
+npm ci
 
 echo " - moonbeam binary: $BINARY_PATH"
 echo "   - $($BINARY_PATH --version)"
@@ -127,7 +127,6 @@ then
     # Modify state
     cd $ROOT_FOLDER/moonbeam/tests
     echo "Customizing $NETWORK forked state..."
-    npm ci
     ./node_modules/.bin/ts-node state-modifier.ts $ROOT_FOLDER/states/${NETWORK}-state.json
 fi
 
