@@ -91,9 +91,9 @@
 <span class="kw">pub type </span>TreasuryCouncilInstance = pallet_collective::Instance3;
 
 <span class="kw">impl </span>pallet_collective::Config&lt;CouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
@@ -106,9 +106,9 @@
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TechCommitteeInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
@@ -121,9 +121,9 @@
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TreasuryCouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;

@@ -214,9 +214,9 @@
 </span><span class="kw">impl</span>&lt;Runtime&gt; AuthorMappingPrecompile&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	Runtime::Call: From&lt;AuthorMappingCall&lt;Runtime&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: From&lt;AuthorMappingCall&lt;Runtime&gt;&gt;,
 	Runtime::Hash: From&lt;H256&gt;,
 {
 	<span class="comment">// The dispatchable wrappers are next. They dispatch a Substrate inner Call.

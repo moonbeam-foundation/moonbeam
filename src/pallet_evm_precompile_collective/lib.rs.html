@@ -322,6 +322,7 @@
 <span id="322">322</span>
 <span id="323">323</span>
 <span id="324">324</span>
+<span id="325">325</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -346,9 +347,10 @@
 <span class="kw">use </span>fp_evm::Log;
 <span class="kw">use </span>frame_support::{
 	dispatch::Dispatchable,
+	dispatch::{GetDispatchInfo, Pays, PostDispatchInfo},
 	sp_runtime::traits::Hash,
 	traits::ConstU32,
-	weights::{GetDispatchInfo, Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
@@ -416,10 +418,10 @@
 <span class="kw">where
 	</span>Instance: <span class="lifetime">&#39;static</span>,
 	Runtime: pallet_collective::Config&lt;Instance&gt; + pallet_evm::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo + Decode,
-	Runtime::Call: From&lt;pallet_collective::Call&lt;Runtime, Instance&gt;&gt;,
-	&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::Proposal: From&lt;Runtime::Call&gt;,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo + Decode,
+	Runtime::RuntimeCall: From&lt;pallet_collective::Call&lt;Runtime, Instance&gt;&gt;,
+	&lt;Runtime <span class="kw">as </span>pallet_collective::Config&lt;Instance&gt;&gt;::Proposal: From&lt;Runtime::RuntimeCall&gt;,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	H256: From&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;
 		+ Into&lt;&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hash&gt;,
@@ -437,7 +439,7 @@
 				.in_field(<span class="string">&quot;proposal&quot;</span>)
 		})<span class="question-mark">?</span>;
 
-		<span class="kw">let </span>proposal = Runtime::Call::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
+		<span class="kw">let </span>proposal = Runtime::RuntimeCall::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
 			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
 			</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);
@@ -477,7 +479,7 @@
 
 		<span class="kw">let </span>proposal_index = pallet_collective::Pallet::&lt;Runtime, Instance&gt;::proposal_count();
 		<span class="kw">let </span>proposal_hash: H256 = hash::&lt;Runtime&gt;(<span class="kw-2">&amp;</span>proposal);
-		<span class="kw">let </span>proposal = Runtime::Call::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
+		<span class="kw">let </span>proposal = Runtime::RuntimeCall::decode(<span class="kw-2">&amp;mut &amp;*</span>proposal)
 			.map_err(|<span class="kw">_</span>| RevertReason::custom(<span class="string">&quot;Failed to decode proposal&quot;</span>).in_field(<span class="string">&quot;proposal&quot;</span>))<span class="question-mark">?
 			</span>.into();
 		<span class="kw">let </span>proposal = Box::new(proposal);

@@ -850,6 +850,43 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -882,12 +919,11 @@
 	CandidateMetadata, CapacityStatus, CollatorCandidate, Config, DelayedPayouts, Delegations,
 	Event, Pallet, Points, Round, RoundIndex, Staked, TopDelegations,
 };
-<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
 <span class="kw">use </span>frame_support::Twox64Concat;
+<span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="kw">extern crate </span>alloc;
 <span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>alloc::format;
+</span><span class="kw">use </span>alloc::{format, string::ToString};
 <span class="kw">use </span>frame_support::{
 	migration::storage_key_iter,
 	pallet_prelude::PhantomData,
@@ -959,9 +995,12 @@
 
 	<span class="attribute">#[allow(deprecated)]
 	#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span><span class="kw-2">mut </span>num_to_update = <span class="number">0u32</span>;
-		<span class="kw">let </span><span class="kw-2">mut </span>rounds_candidates = <span class="macro">vec!</span>[];
+		<span class="kw">let </span><span class="kw-2">mut </span>rounds_candidates: Vec&lt;(RoundIndex, T::AccountId)&gt; = <span class="macro">vec!</span>[];
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+		<span class="kw">let </span><span class="kw-2">mut </span>state_map: BTreeMap&lt;String, String&gt; = BTreeMap::new();
+
 		<span class="kw">for </span>(round, candidate, key) <span class="kw">in </span><span class="self">Self</span>::unpaid_rounds_keys() {
 			<span class="kw">let </span>state: OldCollatorSnapshot&lt;T::AccountId, BalanceOf&lt;T&gt;&gt; =
 				storage::unhashed::get(<span class="kw-2">&amp;</span>key).expect(<span class="string">&quot;unable to decode value&quot;</span>);
@@ -975,23 +1014,29 @@
 					d.owner, d.amount
 				));
 			}
-			<span class="self">Self</span>::set_temp_storage(
+			state_map.insert(
+				(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate)).to_string(),
 				<span class="macro">format!</span>(
 					<span class="string">&quot;bond={:?}_total={:?}_delegations={:?}&quot;</span>,
 					state.bond, state.total, delegation_str
 				),
-				<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate),
 			);
 		}
 
 		rounds_candidates.sort();
-		<span class="self">Self</span>::set_temp_storage(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, rounds_candidates), <span class="string">&quot;rounds_candidates&quot;</span>);
-		<span class="self">Self</span>::set_temp_storage(num_to_update, <span class="string">&quot;num_to_update&quot;</span>);
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>((state_map, rounds_candidates, num_to_update).encode())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span>(state_map, rounds_candidates_received, num_updated_received): (
+			BTreeMap&lt;String, String&gt;,
+			Vec&lt;(RoundIndex, T::AccountId)&gt;,
+			u32,
+		) = Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
+
 		<span class="kw">let </span><span class="kw-2">mut </span>num_updated = <span class="number">0u32</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>rounds_candidates = <span class="macro">vec!</span>[];
 		<span class="kw">for </span>(round, candidate, <span class="kw">_</span>) <span class="kw">in </span><span class="self">Self</span>::unpaid_rounds_keys() {
@@ -1006,11 +1051,12 @@
 				));
 			}
 			<span class="macro">assert_eq!</span>(
-				<span class="prelude-val">Some</span>(<span class="macro">format!</span>(
+				<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
 					<span class="string">&quot;bond={:?}_total={:?}_delegations={:?}&quot;</span>,
 					state.bond, state.total, delegation_str
 				)),
-				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate)),
+				state_map
+					.get(<span class="kw-2">&amp;</span>((<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;round_{:?}_candidate_{:?}&quot;</span>, round, candidate)).to_string())),
 				<span class="string">&quot;incorrect delegations migration for round_{:?}_candidate_{:?}&quot;</span>,
 				round,
 				candidate,
@@ -1018,11 +1064,8 @@
 		}
 
 		rounds_candidates.sort();
-		<span class="macro">assert_eq!</span>(
-			<span class="prelude-val">Some</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, rounds_candidates)),
-			<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;rounds_candidates&quot;</span>)
-		);
-		<span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(num_updated), <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;num_to_update&quot;</span>));
+		<span class="macro">assert_eq!</span>(rounds_candidates, rounds_candidates_received);
+		<span class="macro">assert_eq!</span>(num_updated, num_updated_received);
 		<span class="prelude-val">Ok</span>(())
 	}
 }
@@ -1134,25 +1177,31 @@
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_delegator_state_entries = <span class="number">0u64</span>;
 		<span class="kw">let </span><span class="kw-2">mut </span>expected_requests = <span class="number">0u64</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>delegator_state_map: BTreeMap&lt;String, BalanceOf&lt;T&gt;&gt; = BTreeMap::new();
+
+		<span class="kw">let </span><span class="kw-2">mut </span>collator_state_map: BTreeMap&lt;String, String&gt; = BTreeMap::new();
 		<span class="kw">for </span>(_key, state) <span class="kw">in </span>migration::storage_iter::&lt;OldDelegator&lt;T::AccountId, BalanceOf&lt;T&gt;&gt;&gt;(
 			<span class="self">Self</span>::PALLET_PREFIX,
 			<span class="self">Self</span>::DELEGATOR_STATE_PREFIX,
 		) {
-			<span class="self">Self</span>::set_temp_storage(
+			delegator_state_map.insert(
+				(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, state.id)).to_string(),
 				state.requests.less_total,
-				<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, state.id),
 			);
 
 			<span class="kw">for </span>(collator, request) <span class="kw">in </span>state.requests.requests.iter() {
-				<span class="self">Self</span>::set_temp_storage(
-					<span class="self">Self</span>::old_request_to_string(<span class="kw-2">&amp;</span>state.id, <span class="kw-2">&amp;</span>request),
-					<span class="kw-2">&amp;*</span><span class="macro">format!</span>(
+				collator_state_map.insert(
+					(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(
 						<span class="string">&quot;expected_collator-{:?}_delegator-{:?}_request&quot;</span>,
 						collator, state.id,
-					),
+					))
+						.to_string(),
+					<span class="self">Self</span>::old_request_to_string(<span class="kw-2">&amp;</span>state.id, <span class="kw-2">&amp;</span>request),
 				);
 			}
 			expected_delegator_state_entries = expected_delegator_state_entries.saturating_add(<span class="number">1</span>);
@@ -1160,26 +1209,41 @@
 				expected_requests.saturating_add(state.requests.requests.len() <span class="kw">as </span>u64);
 		}
 
-		<span class="self">Self</span>::set_temp_storage(
-			expected_delegator_state_entries,
-			<span class="string">&quot;expected_delegator_state_entries&quot;</span>,
-		);
-		<span class="self">Self</span>::set_temp_storage(expected_requests, <span class="string">&quot;expected_requests&quot;</span>);
-
 		<span class="kw">use </span>frame_support::migration;
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>((
+			delegator_state_map,
+			collator_state_map,
+			expected_delegator_state_entries,
+			expected_requests,
+		)
+			.encode())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span>(
+			delegator_state_map,
+			collator_state_map,
+			expected_delegator_state_entries,
+			expected_requests,
+		): (
+			BTreeMap&lt;String, BalanceOf&lt;T&gt;&gt;,
+			BTreeMap&lt;String, String&gt;,
+			u64,
+			u64,
+		) = Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
+
 		<span class="comment">// Scheduled decrease amount (bond_less) is correctly migrated
 		</span><span class="kw">let </span><span class="kw-2">mut </span>actual_delegator_state_entries = <span class="number">0</span>;
 		<span class="kw">for </span>(delegator, state) <span class="kw">in </span>&lt;DelegatorState&lt;T&gt;&gt;::iter() {
-			<span class="kw">let </span>expected_delegator_decrease_amount: BalanceOf&lt;T&gt; = <span class="self">Self</span>::get_temp_storage(
-				<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, delegator),
-			)
-			.expect(<span class="string">&quot;must exist&quot;</span>);
+			<span class="kw">let </span>expected_delegator_decrease_amount: BalanceOf&lt;T&gt; = delegator_state_map
+				.get(<span class="kw-2">&amp;</span>(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(<span class="string">&quot;expected_delegator-{:?}_decrease_amount&quot;</span>, state.id)).to_string())
+				.expect(<span class="string">&quot;must exist&quot;</span>)
+				.clone();
+
 			<span class="macro">assert_eq!</span>(
 				expected_delegator_decrease_amount, state.less_total,
 				<span class="string">&quot;decrease amount did not match for delegator {:?}&quot;</span>,
@@ -1188,9 +1252,6 @@
 			actual_delegator_state_entries = actual_delegator_state_entries.saturating_add(<span class="number">1</span>);
 		}
 
-		<span class="comment">// Existing delegator state entries are not removed
-		</span><span class="kw">let </span>expected_delegator_state_entries: u64 =
-			<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;expected_delegator_state_entries&quot;</span>).expect(<span class="string">&quot;must exist&quot;</span>);
 		<span class="macro">assert_eq!</span>(
 			expected_delegator_state_entries, actual_delegator_state_entries,
 			<span class="string">&quot;unexpected change in the number of DelegatorState entries&quot;
@@ -1200,11 +1261,17 @@
 		</span><span class="kw">let </span><span class="kw-2">mut </span>actual_requests = <span class="number">0u64</span>;
 		<span class="kw">for </span>(collator, scheduled_requests) <span class="kw">in </span>&lt;DelegationScheduledRequests&lt;T&gt;&gt;::iter() {
 			<span class="kw">for </span>request <span class="kw">in </span>scheduled_requests {
-				<span class="kw">let </span>expected_delegator_request: String = <span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;*</span><span class="macro">format!</span>(
-					<span class="string">&quot;expected_collator-{:?}_delegator-{:?}_request&quot;</span>,
-					collator, request.delegator,
-				))
-				.expect(<span class="string">&quot;must exist&quot;</span>);
+				<span class="kw">let </span>expected_delegator_request: String = collator_state_map
+					.get(
+						<span class="kw-2">&amp;*</span><span class="macro">format!</span>(
+							<span class="string">&quot;expected_collator-{:?}_delegator-{:?}_request&quot;</span>,
+							collator, request.delegator,
+						)
+						.to_string(),
+					)
+					.expect(<span class="string">&quot;must exist&quot;</span>)
+					.clone();
+
 				<span class="kw">let </span>actual_delegator_request = <span class="self">Self</span>::new_request_to_string(<span class="kw-2">&amp;</span>request);
 				<span class="macro">assert_eq!</span>(
 					expected_delegator_request, actual_delegator_request,
@@ -1215,9 +1282,6 @@
 				actual_requests = actual_requests.saturating_add(<span class="number">1</span>);
 			}
 		}
-
-		<span class="kw">let </span>expected_requests: u64 =
-			<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;expected_requests&quot;</span>).expect(<span class="string">&quot;must exist&quot;</span>);
 		<span class="macro">assert_eq!</span>(
 			expected_requests, actual_requests,
 			<span class="string">&quot;number of scheduled request entries did not match&quot;</span>,
@@ -1293,24 +1357,34 @@
 		</span>Weight::from_ref_time(top.saturating_add(bottom).saturating_add(<span class="number">100_000_000_000</span>))
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span><span class="kw-2">mut </span>candidate_total_counted_map: BTreeMap&lt;String, BalanceOf&lt;T&gt;&gt; = BTreeMap::new();
+
 		<span class="comment">// get total counted for all candidates
 		</span><span class="kw">for </span>(account, state) <span class="kw">in </span>&lt;CandidateInfo&lt;T&gt;&gt;::iter() {
-			<span class="self">Self</span>::set_temp_storage(
+			candidate_total_counted_map.insert(
+				(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, account)[..]).to_string(),
 				state.total_counted,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, account)[..],
 			);
 		}
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(candidate_total_counted_map.encode())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span>candidate_total_counted_map: BTreeMap&lt;String, BalanceOf&lt;T&gt;&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
+
 		<span class="comment">// ensure new total counted = top_delegations.sum() + collator self bond
 		</span><span class="kw">for </span>(account, state) <span class="kw">in </span>&lt;CandidateInfo&lt;T&gt;&gt;::iter() {
-			<span class="kw">let </span>old_count =
-				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, account)[..])
-					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>old_count = candidate_total_counted_map
+				.get(<span class="kw-2">&amp;</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;Candidate{:?}TotalCounted&quot;</span>, account)[..]).to_string())
+				.expect(<span class="string">&quot;qed&quot;</span>)
+				.clone();
 			<span class="kw">let </span>new_count = state.total_counted;
 			<span class="kw">let </span>top_delegations_sum = &lt;TopDelegations&lt;T&gt;&gt;::get(account)
 				.expect(<span class="string">&quot;CandidateInfo exists =&gt; TopDelegations exists&quot;</span>)
@@ -1678,13 +1752,13 @@ impl&lt;T: Config&gt; OnRuntimeUpgrade for SplitCandidateStateToDecreasePoV&lt;T
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="comment">// trivial migration
-		</span><span class="prelude-val">Ok</span>(())
+		</span><span class="prelude-val">Ok</span>(Vec::new())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>post_upgrade(_state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="comment">// expect only the storage items for the last 2 rounds to be stored
 		</span><span class="kw">let </span>staked_count = Staked::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;
 		<span class="kw">let </span>points_count = Points::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;

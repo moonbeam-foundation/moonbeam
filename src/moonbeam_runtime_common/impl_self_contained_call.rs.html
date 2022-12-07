@@ -95,12 +95,12 @@
 </span><span class="attribute">#[macro_export]
 </span><span class="macro">macro_rules! </span>impl_self_contained_call {
 	{} =&gt; {
-		<span class="kw">impl </span>fp_self_contained::SelfContainedCall <span class="kw">for </span>Call {
+		<span class="kw">impl </span>fp_self_contained::SelfContainedCall <span class="kw">for </span>RuntimeCall {
 			<span class="kw">type </span>SignedInfo = H160;
 
 			<span class="kw">fn </span>is_self_contained(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 				<span class="kw">match </span><span class="self">self </span>{
-					Call::Ethereum(call) =&gt; call.is_self_contained(),
+					RuntimeCall::Ethereum(call) =&gt; call.is_self_contained(),
 					<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 				}
 			}
@@ -109,7 +109,7 @@
 				<span class="kw-2">&amp;</span><span class="self">self
 			</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>::SignedInfo, TransactionValidityError&gt;&gt; {
 				<span class="kw">match </span><span class="self">self </span>{
-					Call::Ethereum(call) =&gt; call.check_self_contained(),
+					RuntimeCall::Ethereum(call) =&gt; call.check_self_contained(),
 					<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 				}
 			}
@@ -117,11 +117,11 @@
 			<span class="kw">fn </span>validate_self_contained(
 				<span class="kw-2">&amp;</span><span class="self">self</span>,
 				signed_info: <span class="kw-2">&amp;</span><span class="self">Self</span>::SignedInfo,
-				dispatch_info: <span class="kw-2">&amp;</span>DispatchInfoOf&lt;Call&gt;,
+				dispatch_info: <span class="kw-2">&amp;</span>DispatchInfoOf&lt;RuntimeCall&gt;,
 				len: usize,
 			) -&gt; <span class="prelude-ty">Option</span>&lt;TransactionValidity&gt; {
 				<span class="kw">match </span><span class="self">self </span>{
-					Call::Ethereum(call) =&gt; call.validate_self_contained(signed_info, dispatch_info, len),
+					RuntimeCall::Ethereum(call) =&gt; call.validate_self_contained(signed_info, dispatch_info, len),
 					<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 				}
 			}
@@ -129,11 +129,11 @@
 			<span class="kw">fn </span>pre_dispatch_self_contained(
 				<span class="kw-2">&amp;</span><span class="self">self</span>,
 				info: <span class="kw-2">&amp;</span><span class="self">Self</span>::SignedInfo,
-				dispatch_info: <span class="kw-2">&amp;</span>DispatchInfoOf&lt;Call&gt;,
+				dispatch_info: <span class="kw-2">&amp;</span>DispatchInfoOf&lt;RuntimeCall&gt;,
 				len: usize,
 			) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;(), TransactionValidityError&gt;&gt; {
 				<span class="kw">match </span><span class="self">self </span>{
-					Call::Ethereum(call) =&gt; call.pre_dispatch_self_contained(info, dispatch_info, len),
+					RuntimeCall::Ethereum(call) =&gt; call.pre_dispatch_self_contained(info, dispatch_info, len),
 					<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 				}
 			}
@@ -143,8 +143,8 @@
 				info: <span class="self">Self</span>::SignedInfo,
 			) -&gt; <span class="prelude-ty">Option</span>&lt;sp_runtime::DispatchResultWithInfo&lt;PostDispatchInfoOf&lt;<span class="self">Self</span>&gt;&gt;&gt; {
 				<span class="kw">match </span><span class="self">self </span>{
-					call @ Call::Ethereum(pallet_ethereum::Call::transact { .. }) =&gt; <span class="prelude-val">Some</span>(
-						call.dispatch(Origin::from(
+					call @ RuntimeCall::Ethereum(pallet_ethereum::Call::transact { .. }) =&gt; <span class="prelude-val">Some</span>(
+						call.dispatch(RuntimeOrigin::from(
 							pallet_ethereum::RawOrigin::EthereumTransaction(info)
 						))
 					),

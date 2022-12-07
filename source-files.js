@@ -48,7 +48,7 @@ var sourcesIndex = JSON.parse('{\
 "pallet_evm_precompile_xtokens":["",[],["lib.rs"]],\
 "pallet_evm_precompileset_assets_erc20":["",[],["eip2612.rs","lib.rs"]],\
 "pallet_maintenance_mode":["",[],["lib.rs","types.rs"]],\
-"pallet_migrations":["",[],["lib.rs"]],\
+"pallet_migrations":["",[],["democracy_preimages.rs","lib.rs","weights.rs"]],\
 "pallet_moonbeam_orbiters":["",[],["lib.rs","types.rs","weights.rs"]],\
 "pallet_parachain_staking":["",[],["auto_compound.rs","delegation_requests.rs","inflation.rs","lib.rs","migrations.rs","set.rs","traits.rs","types.rs","weights.rs"]],\
 "pallet_proxy_genesis_companion":["",[],["lib.rs"]],\

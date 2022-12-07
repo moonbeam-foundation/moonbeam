@@ -971,6 +971,12 @@
 <span id="971">971</span>
 <span id="972">972</span>
 <span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1536,7 +1542,13 @@
 						</span><span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">&quot;invalid chain spec&quot;</span>),
 					}
 				}
-				BenchmarkCmd::Storage(cmd) =&gt; {
+				<span class="attribute">#[cfg(not(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+				</span>BenchmarkCmd::Storage(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(
+					<span class="string">&quot;Storage benchmarking can be enabled with `--features runtime-benchmarks`.&quot;
+						</span>.into(),
+				),
+				<span class="attribute">#[cfg(feature = <span class="string">&quot;runtime-benchmarks&quot;</span>)]
+				</span>BenchmarkCmd::Storage(cmd) =&gt; {
 					<span class="kw">let </span>chain_spec = <span class="kw-2">&amp;</span>runner.config().chain_spec;
 					<span class="kw">match </span>chain_spec {
 						<span class="attribute">#[cfg(feature = <span class="string">&quot;moonriver-native&quot;</span>)]

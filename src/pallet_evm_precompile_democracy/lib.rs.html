@@ -457,6 +457,37 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -480,18 +511,20 @@
 
 </span><span class="kw">use </span>fp_evm::PrecompileHandle;
 <span class="kw">use </span>frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-<span class="kw">use </span>frame_support::traits::{ConstU32, Currency};
+<span class="kw">use </span>frame_support::traits::{Bounded, ConstU32, Currency, QueryPreimage};
 <span class="kw">use </span>pallet_democracy::{
 	AccountVote, Call <span class="kw">as </span>DemocracyCall, Conviction, ReferendumInfo, Vote, VoteThreshold,
 };
 <span class="kw">use </span>pallet_evm::AddressMapping;
+<span class="kw">use </span>pallet_preimage::Call <span class="kw">as </span>PreimageCall;
 <span class="kw">use </span>precompile_utils::prelude::<span class="kw-2">*</span>;
 <span class="kw">use </span>sp_core::{H160, H256, U256};
-<span class="kw">use </span>sp_runtime::traits::StaticLookup;
+<span class="kw">use </span>sp_runtime::traits::{Hash, StaticLookup};
 <span class="kw">use </span>sp_std::{
 	convert::{TryFrom, TryInto},
 	fmt::Debug,
 	marker::PhantomData,
+	vec::Vec,
 };
 
 <span class="attribute">#[cfg(test)]
@@ -535,11 +568,15 @@
 #[precompile::test_concrete_types(mock::Runtime)]
 </span><span class="kw">impl</span>&lt;Runtime&gt; DemocracyPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_democracy::Config + pallet_evm::Config + frame_system::Config,
+	</span>Runtime: pallet_democracy::Config
+		+ pallet_evm::Config
+		+ frame_system::Config
+		+ pallet_preimage::Config,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + TryInto&lt;u128&gt; + Into&lt;U256&gt; + Debug + EvmData,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	Runtime::Call: From&lt;DemocracyCall&lt;Runtime&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: From&lt;DemocracyCall&lt;Runtime&gt;&gt;,
+	Runtime::RuntimeCall: From&lt;PreimageCall&lt;Runtime&gt;&gt;,
 	Runtime::Hash: From&lt;H256&gt; + Into&lt;H256&gt;,
 	Runtime::BlockNumber: Into&lt;U256&gt;,
 {
@@ -615,7 +652,7 @@
 
 		<span class="prelude-val">Ok</span>((
 			ref_status.end.into(),
-			ref_status.proposal_hash.into(),
+			ref_status.proposal.hash().into(),
 			threshold_u8.into(),
 			ref_status.delay.into(),
 			ref_status.tally.ayes.into(),
@@ -644,10 +681,11 @@
 	</span><span class="attribute">#[precompile::public(<span class="string">&quot;propose(bytes32,uint256)&quot;</span>)]
 	</span><span class="kw">fn </span>propose(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle, proposal_hash: H256, value: U256) -&gt; EvmResult {
 		handle.record_log_costs_manual(<span class="number">2</span>, <span class="number">32</span>)<span class="question-mark">?</span>;
-		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="comment">// Fetch data from pallet
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>prop_count = DemocracyOf::&lt;Runtime&gt;::public_prop_count();
 
-		<span class="kw">let </span>proposal_hash = proposal_hash.into();
 		<span class="kw">let </span>value = <span class="self">Self</span>::u256_to_amount(value).in_field(<span class="string">&quot;value&quot;</span>)<span class="question-mark">?</span>;
 
 		<span class="macro">log::trace!</span>(
@@ -655,9 +693,21 @@
 			<span class="string">&quot;Proposing with hash {:?}, and amount {:?}&quot;</span>, proposal_hash, value
 		);
 
+		<span class="comment">// This forces it to have the proposal in pre-images.
+		// TODO: REVISIT
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>len = &lt;Runtime <span class="kw">as </span>pallet_democracy::Config&gt;::Preimages::len(<span class="kw-2">&amp;</span>proposal_hash).ok_or({
+			RevertReason::custom(<span class="string">&quot;Failure in preimage fetch&quot;</span>).in_field(<span class="string">&quot;proposal_hash&quot;</span>)
+		})<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>bounded = Bounded::Lookup::&lt;pallet_democracy::CallOf&lt;Runtime&gt;&gt; {
+			hash: proposal_hash,
+			len,
+		};
+
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::propose {
-			proposal_hash,
+			proposal: bounded,
 			value,
 		};
 
@@ -692,7 +742,6 @@
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::second {
 			proposal: prop_index,
-			seconds_upper_bound,
 		};
 
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
@@ -874,7 +923,7 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		encoded_proposal: BoundedBytes&lt;GetEncodedProposalSizeLimit&gt;,
 	) -&gt; EvmResult {
-		<span class="kw">let </span>encoded_proposal = encoded_proposal.into();
+		<span class="kw">let </span>encoded_proposal: Vec&lt;u8&gt; = encoded_proposal.into();
 
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;democracy-precompile&quot;</span>,
@@ -882,8 +931,9 @@
 		);
 
 		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::note_preimage { encoded_proposal };
-
+		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())
@@ -895,16 +945,28 @@
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
 		encoded_proposal: BoundedBytes&lt;GetEncodedProposalSizeLimit&gt;,
 	) -&gt; EvmResult {
-		<span class="kw">let </span>encoded_proposal = encoded_proposal.into();
+		<span class="kw">let </span>encoded_proposal: Vec&lt;u8&gt; = encoded_proposal.into();
 
 		<span class="macro">log::trace!</span>(
 			target: <span class="string">&quot;democracy-precompile&quot;</span>,
 			<span class="string">&quot;Noting imminent preimage {:?}&quot;</span>, encoded_proposal
 		);
 
-		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		<span class="kw">let </span>call = DemocracyCall::&lt;Runtime&gt;::note_imminent_preimage { encoded_proposal };
+		<span class="comment">// To mimic imminent preimage behavior, we need to check whether the preimage
+		// has been requested
+		// is_requested implies db read
+		</span>handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+		<span class="kw">let </span>proposal_hash = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::Hashing::hash(<span class="kw-2">&amp;</span>encoded_proposal);
+		<span class="kw">if </span>!&lt;&lt;Runtime <span class="kw">as </span>pallet_democracy::Config&gt;::Preimages <span class="kw">as </span>QueryPreimage&gt;::is_requested(
+			<span class="kw-2">&amp;</span>proposal_hash.into(),
+		) {
+			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(<span class="string">&quot;not imminent preimage (preimage not requested)&quot;</span>));
+		};
 
+		<span class="kw">let </span>origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		<span class="kw">let </span>call = PreimageCall::&lt;Runtime&gt;::note_preimage {
+			bytes: encoded_proposal.into(),
+		};
 		RuntimeHelper::&lt;Runtime&gt;::try_dispatch(handle, <span class="prelude-val">Some</span>(origin).into(), call)<span class="question-mark">?</span>;
 
 		<span class="prelude-val">Ok</span>(())

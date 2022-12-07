@@ -757,6 +757,16 @@
 <span id="757">757</span>
 <span id="758">758</span>
 <span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -873,7 +883,7 @@
 						// transactions that preceded the requested transaction.
 						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
 							<span class="kw">let _ </span>= <span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
-								Call::Ethereum(transact { transaction }) =&gt; {
+								RuntimeCall::Ethereum(transact { transaction }) =&gt; {
 									<span class="kw">if </span>transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										<span class="kw">return </span><span class="prelude-val">Ok</span>(());
@@ -923,7 +933,7 @@
 						<span class="comment">// Apply all extrinsics. Ethereum extrinsics are traced.
 						</span><span class="kw">for </span>ext <span class="kw">in </span>extrinsics.into_iter() {
 							<span class="kw">match </span><span class="kw-2">&amp;</span>ext.<span class="number">0</span>.function {
-								Call::Ethereum(transact { transaction }) =&gt; {
+								RuntimeCall::Ethereum(transact { transaction }) =&gt; {
 									<span class="kw">if </span>known_transactions.contains(<span class="kw-2">&amp;</span>transaction.hash()) {
 										<span class="comment">// Each known extrinsic is a new call stack.
 										</span>EvmTracer::emit_new();
@@ -956,14 +966,14 @@
 						ready: xts_ready
 							.into_iter()
 							.filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
-								Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
 								<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 							})
 							.collect(),
 						future: xts_future
 							.into_iter()
 							.filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
-								Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
 								<span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
 							})
 							.collect(),
@@ -1101,7 +1111,7 @@
 					xts: Vec&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Extrinsic&gt;,
 				) -&gt; Vec&lt;EthereumTransaction&gt; {
 					xts.into_iter().filter_map(|xt| <span class="kw">match </span>xt.<span class="number">0</span>.function {
-						Call::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
+						RuntimeCall::Ethereum(transact { transaction }) =&gt; <span class="prelude-val">Some</span>(transaction),
 						<span class="kw">_ </span>=&gt; <span class="prelude-val">None
 					</span>}).collect::&lt;Vec&lt;EthereumTransaction&gt;&gt;()
 				}
@@ -1227,6 +1237,7 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
+					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span><span class="kw-2">mut </span>list = Vec::&lt;BenchmarkList&gt;::new();
@@ -1247,6 +1258,7 @@
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::&lt;Runtime&gt;
 					);
+					<span class="macro">list_benchmark!</span>(list, extra, pallet_migrations, MigrationsBench::&lt;Runtime&gt;);
 
 					<span class="kw">let </span>storage_info = AllPalletsWithSystem::storage_info();
 
@@ -1326,7 +1338,7 @@
 					}
 
 					<span class="kw">impl </span>pallet_xcm_benchmarks::generic::Config <span class="kw">for </span>Runtime {
-						<span class="kw">type </span>Call = Call;
+						<span class="kw">type </span>RuntimeCall = RuntimeCall;
 
 						<span class="kw">fn </span>worst_case_response() -&gt; (u64, Response) {
 							(<span class="number">0u64</span>, Response::Version(Default::default()))
@@ -1359,6 +1371,7 @@
 					<span class="kw">use </span>pallet_asset_manager::Pallet <span class="kw">as </span>PalletAssetManagerBench;
 					<span class="kw">use </span>pallet_xcm_transactor::Pallet <span class="kw">as </span>XcmTransactorBench;
 					<span class="kw">use </span>pallet_randomness::Pallet <span class="kw">as </span>RandomnessBench;
+					<span class="kw">use </span>pallet_migrations::Pallet <span class="kw">as </span>MigrationsBench;
 					<span class="kw">use </span>MoonbeamXcmBenchmarks::XcmGenericBenchmarks <span class="kw">as </span>MoonbeamXcmGenericBench;
 
 					<span class="kw">let </span>whitelist: Vec&lt;TrackedStorageKey&gt; = <span class="macro">vec!</span>[
@@ -1469,6 +1482,13 @@
 						batches,
 						pallet_randomness,
 						RandomnessBench::&lt;Runtime&gt;
+					);
+
+					<span class="macro">add_benchmark!</span>(
+						params,
+						batches,
+						pallet_migrations,
+						MigrationsBench::&lt;Runtime&gt;
 					);
 
 					<span class="macro">add_benchmark!</span>(

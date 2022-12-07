@@ -2020,13 +2020,13 @@
 	</span><span class="attribute">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
 		<span class="doccomment">/// Overarching event type
-		</span><span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// The currency type
 		</span><span class="kw">type </span>Currency: Currency&lt;<span class="self">Self</span>::AccountId&gt;
 			+ ReservableCurrency&lt;<span class="self">Self</span>::AccountId&gt;
 			+ LockableCurrency&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// The origin for monetary governance
-		</span><span class="kw">type </span>MonetaryGovernanceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
+		</span><span class="kw">type </span>MonetaryGovernanceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 		<span class="doccomment">/// Minimum number of blocks per round
 		</span><span class="attribute">#[pallet::constant]
 		</span><span class="kw">type </span>MinBlocksPerRound: Get&lt;u32&gt;;
@@ -2567,7 +2567,7 @@
 					<span class="string">&quot;Account does not have enough balance to bond as a candidate.&quot;
 				</span>);
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = &lt;Pallet&lt;T&gt;&gt;::join_candidates(
-					T::Origin::from(<span class="prelude-val">Some</span>(candidate.clone()).into()),
+					T::RuntimeOrigin::from(<span class="prelude-val">Some</span>(candidate.clone()).into()),
 					balance,
 					candidate_count,
 				) {
@@ -2602,7 +2602,7 @@
 					.cloned()
 					.unwrap_or_default();
 				<span class="kw">if let </span><span class="prelude-val">Err</span>(error) = &lt;Pallet&lt;T&gt;&gt;::delegate_with_auto_compound(
-					T::Origin::from(<span class="prelude-val">Some</span>(delegator.clone()).into()),
+					T::RuntimeOrigin::from(<span class="prelude-val">Some</span>(delegator.clone()).into()),
 					target.clone(),
 					balance,
 					auto_compound,

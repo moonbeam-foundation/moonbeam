@@ -293,8 +293,6 @@
 <span id="293">293</span>
 <span id="294">294</span>
 <span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -449,9 +447,7 @@
 		long,
 		conflicts_with = <span class="string">&quot;collator&quot;</span>,
 		conflicts_with = <span class="string">&quot;validator&quot;</span>,
-		use_value_delimiter = <span class="bool-val">true</span>,
-		require_value_delimiter = <span class="bool-val">true</span>,
-		multiple_values = <span class="bool-val">true
+		value_delimiter = <span class="string">&#39;,&#39;
 	</span>)]
 	</span><span class="kw">pub </span>ethapi: Vec&lt;EthApi&gt;,
 

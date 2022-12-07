@@ -529,7 +529,7 @@
 	</span><span class="attribute">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
 		<span class="doccomment">/// Overarching event type
-		</span><span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// Address mapping to convert from H160 to AccountId
 		</span><span class="kw">type </span>AddressMapping: AddressMapping&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// Currency in which the security deposit will be taken.

@@ -323,6 +323,49 @@
 <span id="323">323</span>
 <span id="324">324</span>
 <span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -344,14 +387,26 @@
 </span><span class="attribute">#![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = <span class="string">&quot;std&quot;</span>), no_std)]
 
-#[cfg(test)]
+#[cfg(any(test, feature = <span class="string">&quot;runtime-benchmarks&quot;</span>))]
+</span><span class="kw">mod </span>benchmarks;
+<span class="kw">mod </span>democracy_preimages;
+<span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>mock;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
+<span class="kw">pub mod </span>weights;
 
 <span class="kw">use </span>frame_support::{pallet, weights::Weight};
 
 <span class="kw">pub use </span>pallet::<span class="kw-2">*</span>;
+
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">extern crate </span>alloc;
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>alloc::{
+	format,
+	string::{String, ToString},
+};
 
 <span class="attribute">#[cfg(test)]
 #[macro_use]
@@ -374,13 +429,13 @@
 
 	<span class="doccomment">/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="prelude-val">Ok</span>(())
+	</span><span class="kw">fn </span>pre_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="prelude-val">Ok</span>(Vec::new())
 	}
 
 	<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>post_upgrade(<span class="kw-2">&amp;</span><span class="self">self</span>, _state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="prelude-val">Ok</span>(())
 	}
 }
@@ -405,6 +460,7 @@
 <span class="attribute">#[pallet]
 </span><span class="kw">pub mod </span>pallet {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
+	<span class="kw">use </span><span class="kw">crate</span>::weights::WeightInfo;
 	<span class="kw">use </span>frame_support::pallet_prelude::<span class="kw-2">*</span>;
 	<span class="kw">use </span>frame_system::pallet_prelude::<span class="kw-2">*</span>;
 
@@ -415,11 +471,15 @@
 
 	<span class="doccomment">/// Configuration trait of this pallet.
 	</span><span class="attribute">#[pallet::config]
-	</span><span class="kw">pub trait </span>Config: frame_system::Config {
+	</span><span class="kw">pub trait </span>Config:
+		frame_system::Config + pallet_democracy::Config + pallet_preimage::Config
+	{
 		<span class="doccomment">/// Overarching event type
-		</span><span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// The list of migrations that will be performed
 		</span><span class="kw">type </span>MigrationsList: GetMigrations;
+
+		<span class="kw">type </span>WeightInfo: WeightInfo;
 	}
 
 	<span class="attribute">#[pallet::event]
@@ -470,10 +530,11 @@
 		}
 
 		<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-			<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+			<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+			<span class="kw">let </span><span class="kw-2">mut </span>state_map: BTreeMap&lt;String, bool&gt; = BTreeMap::new();
+			<span class="kw">let </span><span class="kw-2">mut </span>migration_states_map: BTreeMap&lt;String, Vec&lt;u8&gt;&gt; = BTreeMap::new();
 
-			<span class="kw">let </span><span class="kw-2">mut </span>failed = <span class="bool-val">false</span>;
 			<span class="kw">for </span>migration <span class="kw">in </span><span class="kw-2">&amp;</span>T::MigrationsList::get_migrations() {
 				<span class="kw">let </span>migration_name = migration.friendly_name();
 				<span class="kw">let </span>migration_name_as_bytes = migration_name.as_bytes();
@@ -487,35 +548,28 @@
 					<span class="string">&quot;invoking pre_upgrade() on migration {}&quot;</span>, migration_name
 				);
 
-				<span class="comment">// dump the migration name to temp storage so post_upgrade will know which
+				<span class="comment">// dump the migration name to state_map so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
-				</span><span class="self">Self</span>::set_temp_storage(<span class="bool-val">true</span>, migration_name);
-
-				<span class="kw">match </span>migration.pre_upgrade() {
-					<span class="prelude-val">Ok</span>(()) =&gt; {
-						<span class="macro">log::info!</span>(<span class="string">&quot;migration {} pre_upgrade() =&gt; Ok()&quot;</span>, migration_name);
-					}
-					<span class="prelude-val">Err</span>(msg) =&gt; {
-						<span class="macro">log::error!</span>(<span class="string">&quot;migration {} pre_upgrade() =&gt; Err({})&quot;</span>, migration_name, msg);
-						failed = <span class="bool-val">true</span>;
-					}
-				}
+				</span>state_map.insert(migration_name.to_string(), <span class="bool-val">true</span>);
+				<span class="kw">let </span>state = migration
+					.pre_upgrade()
+					.expect(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;migration {} pre_upgrade()&quot;</span>, migration_name));
+				migration_states_map.insert(migration_name.to_string(), state);
 			}
-
-			<span class="kw">if </span>failed {
-				<span class="prelude-val">Err</span>(<span class="string">&quot;One or more pre_upgrade tests failed; see output above.&quot;</span>)
-			} <span class="kw">else </span>{
-				<span class="prelude-val">Ok</span>(())
-			}
+			<span class="prelude-val">Ok</span>((state_map, migration_states_map).encode())
 		}
 
 		<span class="doccomment">/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		</span><span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-		</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-			<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+			<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+			<span class="kw">let </span>(state_map, migration_states_map): (
+				BTreeMap&lt;String, bool&gt;,
+				BTreeMap&lt;String, Vec&lt;u8&gt;&gt;,
+			) = Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 			<span class="comment">// TODO: my desire to DRY all the things feels like this code is very repetitive...
-
 			</span><span class="kw">let </span><span class="kw-2">mut </span>failed = <span class="bool-val">false</span>;
 			<span class="kw">for </span>migration <span class="kw">in </span><span class="kw-2">&amp;</span>T::MigrationsList::get_migrations() {
 				<span class="kw">let </span>migration_name = migration.friendly_name();
@@ -523,8 +577,12 @@
 				<span class="comment">// we can&#39;t query MigrationState because on_runtime_upgrade() would have
 				// unconditionally set it to true, so we read a hint from temp storage which was
 				// left for us by pre_upgrade()
-				</span><span class="kw">match </span><span class="self">Self</span>::get_temp_storage::&lt;bool&gt;(migration_name) {
-					<span class="prelude-val">Some</span>(value) =&gt; <span class="macro">assert!</span>(<span class="bool-val">true </span>== value, <span class="string">&quot;our dummy value might as well be true&quot;</span>),
+
+				</span><span class="kw">match </span>state_map.get(<span class="kw-2">&amp;</span>migration_name.to_string()) {
+					<span class="prelude-val">Some</span>(value) =&gt; <span class="macro">assert!</span>(
+						<span class="bool-val">true </span>== value.clone(),
+						<span class="string">&quot;our dummy value might as well be true&quot;
+					</span>),
 					<span class="prelude-val">None </span>=&gt; <span class="kw">continue</span>,
 				}
 
@@ -533,18 +591,20 @@
 					<span class="string">&quot;invoking post_upgrade() on migration {}&quot;</span>, migration_name
 				);
 
-				<span class="kw">let </span>result = migration.post_upgrade();
-				<span class="kw">match </span>result {
-					<span class="prelude-val">Ok</span>(()) =&gt; {
-						<span class="macro">log::info!</span>(<span class="string">&quot;migration {} post_upgrade() =&gt; Ok()&quot;</span>, migration_name);
-					}
-					<span class="prelude-val">Err</span>(msg) =&gt; {
-						<span class="macro">log::error!</span>(
-							<span class="string">&quot;migration {} post_upgrade() =&gt; Err({})&quot;</span>,
-							migration_name,
-							msg
-						);
-						failed = <span class="bool-val">true</span>;
+				<span class="kw">if let </span><span class="prelude-val">Some</span>(state) = migration_states_map.get(<span class="kw-2">&amp;</span>migration_name.to_string()) {
+					<span class="kw">let </span>result = migration.post_upgrade(state.clone());
+					<span class="kw">match </span>result {
+						<span class="prelude-val">Ok</span>(()) =&gt; {
+							<span class="macro">log::info!</span>(<span class="string">&quot;migration {} post_upgrade() =&gt; Ok()&quot;</span>, migration_name);
+						}
+						<span class="prelude-val">Err</span>(msg) =&gt; {
+							<span class="macro">log::error!</span>(
+								<span class="string">&quot;migration {} post_upgrade() =&gt; Err({})&quot;</span>,
+								migration_name,
+								msg
+							);
+							failed = <span class="bool-val">true</span>;
+						}
 					}
 				}
 			}
@@ -568,6 +628,32 @@
 	/// Maps name (Vec&lt;u8&gt;) -&gt; whether or not migration has been completed (bool)
 	</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">type </span>MigrationState&lt;T: Config&gt; =
 		StorageMap&lt;<span class="kw">_</span>, Twox64Concat, Vec&lt;u8&gt;, bool, ValueQuery&gt;;
+
+	<span class="attribute">#[pallet::call]
+	</span><span class="kw">impl</span>&lt;T: Config&gt; Pallet&lt;T&gt; {
+		<span class="attribute">#[pallet::weight(
+			&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::migrate_democracy_preimage(<span class="kw-2">*</span>proposal_len_upper_bound)
+		)]
+		</span><span class="kw">pub fn </span>migrate_democracy_preimage(
+			origin: OriginFor&lt;T&gt;,
+			proposal_hash: T::Hash,
+			<span class="attribute">#[pallet::compact] </span>proposal_len_upper_bound: u32,
+		) -&gt; DispatchResultWithPostInfo {
+			<span class="self">Self</span>::migrate_democracy_preimage_inner(origin, proposal_hash, proposal_len_upper_bound)
+		}
+	}
+
+	<span class="attribute">#[pallet::error]
+	</span><span class="kw">pub enum </span>Error&lt;T&gt; {
+		<span class="doccomment">/// Missing preimage in original democracy storage
+		</span>PreimageMissing,
+		<span class="doccomment">/// Provided upper bound is too low.
+		</span>WrongUpperBound,
+		<span class="doccomment">/// Preimage is larger than the new max size.
+		</span>PreimageIsTooBig,
+		<span class="doccomment">/// Preimage already exists in the new storage.
+		</span>PreimageAlreadyExists,
+	}
 
 	<span class="attribute">#[pallet::genesis_config]
 	#[derive(Default)]
@@ -604,7 +690,7 @@
 
 				<span class="comment">// when we go overweight, leave a warning... there&#39;s nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
-				</span><span class="kw">let </span>available_for_step = <span class="kw">if </span>available_weight &gt; weight {
+				</span><span class="kw">let </span>available_for_step = <span class="kw">if </span>available_weight.ref_time() &gt; weight.ref_time() {
 					available_weight - weight
 				} <span class="kw">else </span>{
 					<span class="macro">log::error!</span>(
@@ -630,7 +716,7 @@
 				&lt;MigrationState&lt;T&gt;&gt;::insert(migration_name_as_bytes, <span class="bool-val">true</span>);
 
 				weight = weight.saturating_add(consumed_weight);
-				<span class="kw">if </span>weight &gt; available_weight {
+				<span class="kw">if </span>weight.ref_time() &gt; available_weight.ref_time() {
 					<span class="macro">log::error!</span>(
 						<span class="string">&quot;Migration {} consumed more weight than it was given! ({} &gt; {})&quot;</span>,
 						migration_name,

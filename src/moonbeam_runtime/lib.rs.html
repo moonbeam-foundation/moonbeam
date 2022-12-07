@@ -1575,6 +1575,29 @@
 <span id="1575">1575</span>
 <span id="1576">1576</span>
 <span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
+<span id="1591">1591</span>
+<span id="1592">1592</span>
+<span id="1593">1593</span>
+<span id="1594">1594</span>
+<span id="1595">1595</span>
+<span id="1596">1596</span>
+<span id="1597">1597</span>
+<span id="1598">1598</span>
+<span id="1599">1599</span>
+<span id="1600">1600</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -1617,6 +1640,7 @@
 <span class="kw">pub use </span>frame_support::traits::Get;
 <span class="kw">use </span>frame_support::{
 	construct_runtime,
+	dispatch::{DispatchClass, GetDispatchInfo},
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -1626,8 +1650,8 @@
 	},
 	weights::{
 		constants::{RocksDbWeight, WEIGHT_PER_SECOND},
-		ConstantMultiplier, DispatchClass, GetDispatchInfo, Weight, WeightToFeeCoefficient,
-		WeightToFeeCoefficients, WeightToFeePolynomial,
+		ConstantMultiplier, Weight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
 	},
 	PalletId,
 };
@@ -1710,7 +1734,9 @@
 }
 
 <span class="doccomment">/// Maximum weight per block
-</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND.saturating_div(<span class="number">2</span>);
+</span><span class="kw">pub const </span>MAXIMUM_BLOCK_WEIGHT: Weight = WEIGHT_PER_SECOND
+	.saturating_div(<span class="number">2</span>)
+	.set_proof_size(cumulus_primitives_core::relay_chain::v2::MAX_POV_SIZE <span class="kw">as </span>u64);
 
 <span class="kw">pub const </span>MILLISECS_PER_BLOCK: u64 = <span class="number">12000</span>;
 <span class="kw">pub const </span>MINUTES: BlockNumber = <span class="number">60_000 </span>/ (MILLISECS_PER_BLOCK <span class="kw">as </span>BlockNumber);
@@ -1798,7 +1824,7 @@
 	<span class="doccomment">/// The identifier used to distinguish between accounts.
 	</span><span class="kw">type </span>AccountId = AccountId;
 	<span class="doccomment">/// The aggregated dispatch type that is available for extrinsics.
-	</span><span class="kw">type </span>Call = Call;
+	</span><span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="doccomment">/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
 	</span><span class="kw">type </span>Lookup = IdentityLookup&lt;AccountId&gt;;
 	<span class="doccomment">/// The index type for storing how many extrinsics an account has signed.
@@ -1812,9 +1838,9 @@
 	<span class="doccomment">/// The header type.
 	</span><span class="kw">type </span>Header = generic::Header&lt;BlockNumber, BlakeTwo256&gt;;
 	<span class="doccomment">/// The ubiquitous event type.
-	</span><span class="kw">type </span>Event = Event;
+	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="doccomment">/// The ubiquitous origin type.
-	</span><span class="kw">type </span>Origin = Origin;
+	</span><span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 	<span class="doccomment">/// Maximum number of block number to block hash mappings to keep (oldest pruned first).
 	</span><span class="kw">type </span>BlockHashCount = ConstU32&lt;<span class="number">256</span>&gt;;
 	<span class="doccomment">/// Maximum weight of each block. With a default weight system of 1byte == 1weight, 4mb is ok.
@@ -1837,8 +1863,8 @@
 }
 
 <span class="kw">impl </span>pallet_utility::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Call = Call;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
 	<span class="kw">type </span>WeightInfo = pallet_utility::weights::SubstrateWeight&lt;Runtime&gt;;
 }
@@ -1858,7 +1884,7 @@
 	<span class="doccomment">/// The type for recording an account&#39;s balance.
 	</span><span class="kw">type </span>Balance = Balance;
 	<span class="doccomment">/// The ubiquitous event type.
-	</span><span class="kw">type </span>Event = Event;
+	</span><span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>DustRemoval = ();
 	<span class="kw">type </span>ExistentialDeposit = ConstU128&lt;<span class="number">0</span>&gt;;
 	<span class="kw">type </span>AccountStore = System;
@@ -1915,7 +1941,7 @@
 }
 
 <span class="kw">impl </span>pallet_transaction_payment::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>OnChargeTransaction = CurrencyAdapter&lt;Balances, DealWithFees&lt;Runtime&gt;&gt;;
 	<span class="kw">type </span>OperationalFeeMultiplier = ConstU8&lt;<span class="number">5</span>&gt;;
 	<span class="kw">type </span>WeightToFee = ConstantMultiplier&lt;Balance, ConstU128&lt;{ currency::WEIGHT_FEE }&gt;&gt;;
@@ -1956,7 +1982,7 @@
 	/// as a safety net.
 	</span><span class="kw">pub </span>MaximumMultiplier: Multiplier = Multiplier::from(<span class="number">100_000u128</span>);
 	<span class="kw">pub </span>PrecompilesValue: MoonbeamPrecompiles&lt;Runtime&gt; = MoonbeamPrecompiles::&lt;<span class="kw">_</span>&gt;::new();
-	<span class="kw">pub </span>WeightPerGas: u64 = WEIGHT_PER_GAS;
+	<span class="kw">pub </span>WeightPerGas: Weight = Weight::from_ref_time(WEIGHT_PER_GAS);
 }
 
 <span class="kw">pub struct </span>FixedGasPrice;
@@ -2019,7 +2045,7 @@
 	<span class="kw">type </span>WithdrawOrigin = EnsureAddressNever&lt;AccountId&gt;;
 	<span class="kw">type </span>AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	<span class="kw">type </span>Currency = Balances;
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Runner = pallet_evm::runner::stack::Runner&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>PrecompilesType = MoonbeamPrecompiles&lt;<span class="self">Self</span>&gt;;
 	<span class="kw">type </span>PrecompilesValue = PrecompilesValue;
@@ -2048,7 +2074,7 @@
 }
 
 <span class="kw">impl </span>pallet_base_fee::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Threshold = BaseFeeThreshold;
 	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
 	</span><span class="kw">type </span>DefaultBaseFeePerGas = DefaultBaseFeePerGas;
@@ -2060,17 +2086,16 @@
 }
 
 <span class="kw">impl </span>pallet_scheduler::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Origin = Origin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
-	<span class="kw">type </span>Call = Call;
+	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>MaximumWeight = MaximumSchedulerWeight;
 	<span class="kw">type </span>ScheduleOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>MaxScheduledPerBlock = ConstU32&lt;<span class="number">50</span>&gt;;
 	<span class="kw">type </span>WeightInfo = pallet_scheduler::weights::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>OriginPrivilegeCmp = EqualPrivilegeOnly;
-	<span class="kw">type </span>PreimageProvider = ();
-	<span class="kw">type </span>NoPreimagePostponement = ();
+	<span class="kw">type </span>Preimages = Preimage;
 }
 
 <span class="kw">type </span>CouncilInstance = pallet_collective::Instance1;
@@ -2078,9 +2103,9 @@
 <span class="kw">type </span>TreasuryCouncilInstance = pallet_collective::Instance3;
 
 <span class="kw">impl </span>pallet_collective::Config&lt;CouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
@@ -2093,9 +2118,9 @@
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TechCommitteeInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for technical committee members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
@@ -2108,9 +2133,9 @@
 }
 
 <span class="kw">impl </span>pallet_collective::Config&lt;TreasuryCouncilInstance&gt; <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Origin = Origin;
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Proposal = Call;
+	<span class="kw">type </span>RuntimeOrigin = RuntimeOrigin;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Proposal = RuntimeCall;
 	<span class="doccomment">/// The maximum amount of time (in blocks) for treasury council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	</span><span class="kw">type </span>MotionDuration = ConstU32&lt;{ <span class="number">3 </span>* DAYS }&gt;;
@@ -2127,8 +2152,7 @@
 </span><span class="kw">const </span>ENACTMENT_OFFSET: u32 = <span class="number">900</span>;
 
 <span class="kw">impl </span>pallet_democracy::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Proposal = Call;
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>EnactmentPeriod = ConstU32&lt;{ <span class="number">2 </span>* DAYS + ENACTMENT_OFFSET }&gt;;
 	<span class="kw">type </span>LaunchPeriod = ConstU32&lt;{ <span class="number">7 </span>* DAYS }&gt;;
@@ -2166,15 +2190,25 @@
 	// only do it once and it lasts only for the cooloff period.
 	</span><span class="kw">type </span>VetoOrigin = pallet_collective::EnsureMember&lt;AccountId, TechCommitteeInstance&gt;;
 	<span class="kw">type </span>CooloffPeriod = ConstU32&lt;{ <span class="number">7 </span>* DAYS }&gt;;
-	<span class="kw">type </span>PreimageByteDeposit = ConstU128&lt;{ currency::STORAGE_BYTE_FEE }&gt;;
 	<span class="kw">type </span>Slash = ();
 	<span class="kw">type </span>InstantAllowed = ConstBool&lt;<span class="bool-val">true</span>&gt;;
 	<span class="kw">type </span>Scheduler = Scheduler;
 	<span class="kw">type </span>MaxVotes = ConstU32&lt;<span class="number">100</span>&gt;;
-	<span class="kw">type </span>OperationalPreimageOrigin = pallet_collective::EnsureMember&lt;AccountId, CouncilInstance&gt;;
 	<span class="kw">type </span>PalletsOrigin = OriginCaller;
 	<span class="kw">type </span>WeightInfo = pallet_democracy::weights::SubstrateWeight&lt;Runtime&gt;;
 	<span class="kw">type </span>MaxProposals = ConstU32&lt;<span class="number">100</span>&gt;;
+	<span class="kw">type </span>Preimages = Preimage;
+	<span class="kw">type </span>MaxDeposits = ConstU32&lt;<span class="number">100</span>&gt;;
+	<span class="kw">type </span>MaxBlacklisted = ConstU32&lt;<span class="number">100</span>&gt;;
+}
+
+<span class="kw">impl </span>pallet_preimage::Config <span class="kw">for </span>Runtime {
+	<span class="kw">type </span>WeightInfo = pallet_preimage::weights::SubstrateWeight&lt;Runtime&gt;;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>Currency = Balances;
+	<span class="kw">type </span>ManagerOrigin = EnsureRoot&lt;AccountId&gt;;
+	<span class="kw">type </span>BaseDeposit = ConstU128&lt;{ <span class="number">5 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
+	<span class="kw">type </span>ByteDeposit = ConstU128&lt;{ currency::STORAGE_BYTE_FEE }&gt;;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2199,7 +2233,7 @@
 	</span><span class="kw">type </span>ApproveOrigin = TreasuryApproveOrigin;
 	<span class="comment">// More than half of the council is required (or root) to reject a proposal
 	</span><span class="kw">type </span>RejectOrigin = TreasuryRejectOrigin;
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="comment">// If spending proposal rejected, transfer proposer bond to treasury
 	</span><span class="kw">type </span>OnSlash = Treasury;
 	<span class="kw">type </span>ProposalBond = ProposalBond;
@@ -2224,7 +2258,7 @@
 &gt;;
 
 <span class="kw">impl </span>pallet_identity::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="comment">// Add one item in storage and take 258 bytes
 	</span><span class="kw">type </span>BasicDeposit = ConstU128&lt;{ currency::deposit(<span class="number">1</span>, <span class="number">258</span>) }&gt;;
@@ -2266,12 +2300,12 @@
 }
 
 <span class="kw">impl </span>pallet_ethereum::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>StateRoot = pallet_ethereum::IntermediateStateRoot&lt;<span class="self">Self</span>&gt;;
 }
 
 <span class="kw">impl </span>cumulus_pallet_parachain_system::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>OnSystemEvent = ();
 	<span class="kw">type </span>SelfParaId = ParachainInfo;
 	<span class="kw">type </span>DmpMessageHandler = MaintenanceMode;
@@ -2315,7 +2349,7 @@
 }
 
 <span class="kw">impl </span>pallet_parachain_staking::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>MonetaryGovernanceOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="doccomment">/// Minimum round length is 2 minutes (10 * 12 second block times)
@@ -2363,7 +2397,7 @@
 }
 
 <span class="kw">impl </span>pallet_author_slot_filter::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>RandomnessSource = RandomnessCollectiveFlip;
 	<span class="kw">type </span>PotentialAuthors = ParachainStaking;
 	<span class="kw">type </span>WeightInfo = pallet_author_slot_filter::weights::SubstrateWeight&lt;Runtime&gt;;
@@ -2376,7 +2410,7 @@
 }
 
 <span class="kw">impl </span>pallet_crowdloan_rewards::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>Initialized = ConstBool&lt;<span class="bool-val">false</span>&gt;;
 	<span class="kw">type </span>InitializationPayment = InitializationPayment;
 	<span class="kw">type </span>MaxInitContributors = ConstU32&lt;<span class="number">500</span>&gt;;
@@ -2395,7 +2429,7 @@
 <span class="comment">// This is a simple session key manager. It should probably either work with, or be replaced
 // entirely by pallet sessions
 </span><span class="kw">impl </span>pallet_author_mapping::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>DepositCurrency = Balances;
 	<span class="kw">type </span>DepositAmount = ConstU128&lt;{ <span class="number">100 </span>* currency::GLMR * currency::SUPPLY_FACTOR }&gt;;
 	<span class="kw">type </span>Keys = session_keys_primitives::VrfId;
@@ -2432,44 +2466,53 @@
 	}
 }
 
-<span class="kw">impl </span>InstanceFilter&lt;Call&gt; <span class="kw">for </span>ProxyType {
-	<span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <span class="kw-2">&amp;</span>Call) -&gt; bool {
+<span class="kw">impl </span>InstanceFilter&lt;RuntimeCall&gt; <span class="kw">for </span>ProxyType {
+	<span class="kw">fn </span>filter(<span class="kw-2">&amp;</span><span class="self">self</span>, c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span><span class="self">self </span>{
 			ProxyType::Any =&gt; <span class="bool-val">true</span>,
 			ProxyType::NonTransfer =&gt; {
 				<span class="macro">matches!</span>(
 					c,
-					Call::System(..)
-						| Call::Timestamp(..) | Call::ParachainStaking(..)
-						| Call::Democracy(..) | Call::CouncilCollective(..)
-						| Call::Identity(..) | Call::TechCommitteeCollective(..)
-						| Call::Utility(..) | Call::Proxy(..)
-						| Call::AuthorMapping(..)
-						| Call::CrowdloanRewards(pallet_crowdloan_rewards::Call::claim { .. })
+					RuntimeCall::System(..)
+						| RuntimeCall::Timestamp(..)
+						| RuntimeCall::ParachainStaking(..)
+						| RuntimeCall::Democracy(..)
+						| RuntimeCall::CouncilCollective(..)
+						| RuntimeCall::Identity(..)
+						| RuntimeCall::TechCommitteeCollective(..)
+						| RuntimeCall::Utility(..)
+						| RuntimeCall::Proxy(..) | RuntimeCall::AuthorMapping(..)
+						| RuntimeCall::CrowdloanRewards(
+							pallet_crowdloan_rewards::Call::claim { .. }
+						)
 				)
 			}
 			ProxyType::Governance =&gt; <span class="macro">matches!</span>(
 				c,
-				Call::Democracy(..)
-					| Call::CouncilCollective(..)
-					| Call::TechCommitteeCollective(..)
-					| Call::Utility(..)
+				RuntimeCall::Democracy(..)
+					| RuntimeCall::CouncilCollective(..)
+					| RuntimeCall::TechCommitteeCollective(..)
+					| RuntimeCall::Utility(..)
 			),
 			ProxyType::Staking =&gt; <span class="macro">matches!</span>(
 				c,
-				Call::ParachainStaking(..)
-					| Call::Utility(..) | Call::AuthorMapping(..)
-					| Call::MoonbeamOrbiters(..)
+				RuntimeCall::ParachainStaking(..)
+					| RuntimeCall::Utility(..)
+					| RuntimeCall::AuthorMapping(..)
+					| RuntimeCall::MoonbeamOrbiters(..)
 			),
 			ProxyType::CancelProxy =&gt; <span class="macro">matches!</span>(
 				c,
-				Call::Proxy(pallet_proxy::Call::reject_announcement { .. })
+				RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })
 			),
-			ProxyType::Balances =&gt; <span class="macro">matches!</span>(c, Call::Balances(..) | Call::Utility(..)),
-			ProxyType::AuthorMapping =&gt; <span class="macro">matches!</span>(c, Call::AuthorMapping(..)),
+			ProxyType::Balances =&gt; {
+				<span class="macro">matches!</span>(c, RuntimeCall::Balances(..) | RuntimeCall::Utility(..))
+			}
+			ProxyType::AuthorMapping =&gt; <span class="macro">matches!</span>(c, RuntimeCall::AuthorMapping(..)),
 			ProxyType::IdentityJudgement =&gt; <span class="macro">matches!</span>(
 				c,
-				Call::Identity(pallet_identity::Call::provide_judgement { .. }) | Call::Utility(..)
+				RuntimeCall::Identity(pallet_identity::Call::provide_judgement { .. })
+					| RuntimeCall::Utility(..)
 			),
 		}
 	}
@@ -2485,8 +2528,8 @@
 }
 
 <span class="kw">impl </span>pallet_proxy::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
-	<span class="kw">type </span>Call = Call;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
+	<span class="kw">type </span>RuntimeCall = RuntimeCall;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>ProxyType = ProxyType;
 	<span class="comment">// One storage item; key size 32, value size 8
@@ -2506,32 +2549,33 @@
 }
 
 <span class="kw">impl </span>pallet_migrations::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>MigrationsList = moonbeam_runtime_common::migrations::CommonMigrations&lt;
 		Runtime,
 		CouncilCollective,
 		TechCommitteeCollective,
 	&gt;;
+	<span class="kw">type </span>WeightInfo = pallet_migrations::weights::SubstrateWeight&lt;Runtime&gt;;
 }
 
 <span class="doccomment">/// Maintenance mode Call filter
 </span><span class="kw">pub struct </span>MaintenanceFilter;
-<span class="kw">impl </span>Contains&lt;Call&gt; <span class="kw">for </span>MaintenanceFilter {
-	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>Call) -&gt; bool {
+<span class="kw">impl </span>Contains&lt;RuntimeCall&gt; <span class="kw">for </span>MaintenanceFilter {
+	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span>c {
-			Call::Assets(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::LocalAssets(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::Balances(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::CrowdloanRewards(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::Ethereum(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::Identity(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::XTokens(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::ParachainStaking(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::MoonbeamOrbiters(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::PolkadotXcm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::Treasury(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
-			Call::XcmTransactor(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Assets(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::LocalAssets(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Balances(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::CrowdloanRewards(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Ethereum(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Identity(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::XTokens(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::ParachainStaking(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::MoonbeamOrbiters(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::PolkadotXcm(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::Treasury(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			RuntimeCall::XcmTransactor(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
@@ -2543,10 +2587,10 @@
 /// asset-manager, while minting/burning only happens through xcm messages
 /// This can change in the future
 </span><span class="kw">pub struct </span>NormalFilter;
-<span class="kw">impl </span>Contains&lt;Call&gt; <span class="kw">for </span>NormalFilter {
-	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>Call) -&gt; bool {
+<span class="kw">impl </span>Contains&lt;RuntimeCall&gt; <span class="kw">for </span>NormalFilter {
+	<span class="kw">fn </span>contains(c: <span class="kw-2">&amp;</span>RuntimeCall) -&gt; bool {
 		<span class="kw">match </span>c {
-			Call::Assets(method) =&gt; <span class="kw">match </span>method {
+			RuntimeCall::Assets(method) =&gt; <span class="kw">match </span>method {
 				pallet_assets::Call::transfer { .. } =&gt; <span class="bool-val">true</span>,
 				pallet_assets::Call::transfer_keep_alive { .. } =&gt; <span class="bool-val">true</span>,
 				pallet_assets::Call::approve_transfer { .. } =&gt; <span class="bool-val">true</span>,
@@ -2559,27 +2603,27 @@
 			// We also disable destroy, as we want to route destroy through the
 			// asset-manager, which guarantees the removal both at the EVM and
 			// substrate side of things
-			</span>Call::LocalAssets(method) =&gt; <span class="kw">match </span>method {
+			</span>RuntimeCall::LocalAssets(method) =&gt; <span class="kw">match </span>method {
 				pallet_assets::Call::create { .. } =&gt; <span class="bool-val">false</span>,
 				pallet_assets::Call::destroy { .. } =&gt; <span class="bool-val">false</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// We just want to enable this in case of live chains, since the default version
 			// is populated at genesis
-			</span>Call::PolkadotXcm(method) =&gt; <span class="kw">match </span>method {
+			</span>RuntimeCall::PolkadotXcm(method) =&gt; <span class="kw">match </span>method {
 				pallet_xcm::Call::force_default_xcm_version { .. } =&gt; <span class="bool-val">true</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
 			},
-			<span class="comment">// We filter anonymous proxy as they make &quot;reserve&quot; inconsistent
-			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
-			</span>Call::Proxy(method) =&gt; <span class="kw">match </span>method {
-				pallet_proxy::Call::anonymous { .. } =&gt; <span class="bool-val">false</span>,
-				pallet_proxy::Call::kill_anonymous { .. } =&gt; <span class="bool-val">false</span>,
+			<span class="comment">// We filter for now transact through signed
+			</span>RuntimeCall::XcmTransactor(method) =&gt; <span class="kw">match </span>method {
+				pallet_xcm_transactor::Call::transact_through_signed { .. } =&gt; <span class="bool-val">false</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 			},
-			<span class="comment">// We filter for now transact through signed
-			</span>Call::XcmTransactor(method) =&gt; <span class="kw">match </span>method {
-				pallet_xcm_transactor::Call::transact_through_signed { .. } =&gt; <span class="bool-val">false</span>,
+			<span class="comment">// We filter anonymous proxy as they make &quot;reserve&quot; inconsistent
+			// See: https://github.com/paritytech/substrate/blob/37cca710eed3dadd4ed5364c7686608f5175cce1/frame/proxy/src/lib.rs#L270 // editorconfig-checker-disable-line
+			</span>RuntimeCall::Proxy(method) =&gt; <span class="kw">match </span>method {
+				pallet_proxy::Call::create_pure { .. } =&gt; <span class="bool-val">false</span>,
+				pallet_proxy::Call::kill_pure { .. } =&gt; <span class="bool-val">false</span>,
 				<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 			},
 			<span class="comment">// Filtering the EVM prevents possible re-entrancy from the precompiles which could
@@ -2587,7 +2631,7 @@
 			// See https://github.com/PureStake/sr-moonbeam/issues/30
 			// Note: It is also assumed that EVM calls are only allowed through `Origin::Root` so
 			// this can be seen as an additional security
-			</span>Call::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
+			</span>RuntimeCall::EVM(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
 			<span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
 		}
 	}
@@ -2596,10 +2640,10 @@
 <span class="kw">pub struct </span>XcmExecutionManager;
 <span class="kw">impl </span>pallet_maintenance_mode::PauseXcmExecution <span class="kw">for </span>XcmExecutionManager {
 	<span class="kw">fn </span>suspend_xcm_execution() -&gt; DispatchResult {
-		XcmpQueue::suspend_xcm_execution(Origin::root())
+		XcmpQueue::suspend_xcm_execution(RuntimeOrigin::root())
 	}
 	<span class="kw">fn </span>resume_xcm_execution() -&gt; DispatchResult {
-		XcmpQueue::resume_xcm_execution(Origin::root())
+		XcmpQueue::resume_xcm_execution(RuntimeOrigin::root())
 	}
 }
 
@@ -2641,13 +2685,13 @@
 		AllPalletsWithSystem::on_runtime_upgrade()
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		AllPalletsWithSystem::pre_upgrade()
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		AllPalletsWithSystem::post_upgrade()
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		AllPalletsWithSystem::post_upgrade(state)
 	}
 }
 
@@ -2664,7 +2708,7 @@
 }
 
 <span class="kw">impl </span>pallet_maintenance_mode::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>NormalCallFilter = NormalFilter;
 	<span class="kw">type </span>MaintenanceCallFilter = MaintenanceFilter;
 	<span class="kw">type </span>MaintenanceOrigin =
@@ -2687,7 +2731,7 @@
 }
 
 <span class="kw">impl </span>pallet_moonbeam_orbiters::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>AccountLookup = AuthorMapping;
 	<span class="kw">type </span>AddCollatorOrigin = EnsureRoot&lt;AccountId&gt;;
 	<span class="kw">type </span>Currency = Balances;
@@ -2747,7 +2791,7 @@
 }
 
 <span class="kw">impl </span>pallet_randomness::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>Event = Event;
+	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
 	<span class="kw">type </span>AddressMapping = moonbeam_runtime_common::IntoAddressMapping;
 	<span class="kw">type </span>Currency = Balances;
 	<span class="kw">type </span>BabeDataGetter = BabeDataGetter;
@@ -2789,7 +2833,7 @@
 		Proxy: pallet_proxy::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">31</span>,
 		MaintenanceMode: pallet_maintenance_mode::{Pallet, Call, Config, Storage, Event} = <span class="number">32</span>,
 		Identity: pallet_identity::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event&lt;T&gt;} = <span class="number">34</span>,
+		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">34</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">35</span>,
 
 		<span class="comment">// Has been permanently removed for safety reasons.
@@ -2804,6 +2848,7 @@
 		<span class="comment">// Governance stuff.
 		</span>Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">60</span>,
 		Democracy: pallet_democracy::{Pallet, Storage, Config&lt;T&gt;, Event&lt;T&gt;, Call} = <span class="number">61</span>,
+		Preimage: pallet_preimage::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">62</span>,
 
 		<span class="comment">// Council stuff.
 		</span>CouncilCollective:
@@ -2854,9 +2899,10 @@
 );
 <span class="doccomment">/// Unchecked extrinsic type as expected by this runtime.
 </span><span class="kw">pub type </span>UncheckedExtrinsic =
-	fp_self_contained::UncheckedExtrinsic&lt;Address, Call, Signature, SignedExtra&gt;;
+	fp_self_contained::UncheckedExtrinsic&lt;Address, RuntimeCall, Signature, SignedExtra&gt;;
 <span class="doccomment">/// Extrinsic type that has already been checked.
-</span><span class="kw">pub type </span>CheckedExtrinsic = fp_self_contained::CheckedExtrinsic&lt;AccountId, Call, SignedExtra, H160&gt;;
+</span><span class="kw">pub type </span>CheckedExtrinsic =
+	fp_self_contained::CheckedExtrinsic&lt;AccountId, RuntimeCall, SignedExtra, H160&gt;;
 <span class="doccomment">/// Executive: handles dispatch to the various pallets.
 </span><span class="kw">pub type </span>Executive = frame_executive::Executive&lt;
 	Runtime,
@@ -2911,7 +2957,7 @@
 			// according to gas price from pallet ethereum. If it is any other kind of transaction,
 			// we modify its priority.
 			</span><span class="prelude-val">Ok</span>(<span class="kw">match </span><span class="kw-2">&amp;</span>xt.<span class="number">0</span>.function {
-				Call::Ethereum(transact { .. }) =&gt; intermediate_valid,
+				RuntimeCall::Ethereum(transact { .. }) =&gt; intermediate_valid,
 				<span class="kw">_ if </span>dispatch_info.class != DispatchClass::Normal =&gt; intermediate_valid,
 				<span class="kw">_ </span>=&gt; {
 					<span class="kw">let </span>tip = <span class="kw">match </span>xt.<span class="number">0</span>.signature {
@@ -3053,7 +3099,7 @@
 			Balance::from(<span class="number">400 </span>* GLMR)
 		);
 		<span class="macro">assert_eq!</span>(
-			<span class="macro">get!</span>(pallet_democracy, PreimageByteDeposit, u128),
+			<span class="macro">get!</span>(pallet_preimage, ByteDeposit, u128),
 			Balance::from(<span class="number">10 </span>* MILLIGLMR)
 		);
 		<span class="macro">assert_eq!</span>(
@@ -3147,9 +3193,9 @@
 	</span><span class="kw">fn </span>configured_base_extrinsic_weight_is_evm_compatible() {
 		<span class="kw">let </span>min_ethereum_transaction_weight = WeightPerGas::get() * <span class="number">21_000</span>;
 		<span class="kw">let </span>base_extrinsic = &lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockWeights::get()
-			.get(frame_support::weights::DispatchClass::Normal)
+			.get(frame_support::dispatch::DispatchClass::Normal)
 			.base_extrinsic;
-		<span class="macro">assert!</span>(base_extrinsic.ref_time() &lt;= min_ethereum_transaction_weight);
+		<span class="macro">assert!</span>(base_extrinsic.ref_time() &lt;= min_ethereum_transaction_weight.ref_time());
 	}
 }
 </code></pre></div>

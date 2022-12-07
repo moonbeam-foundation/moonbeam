@@ -368,6 +368,29 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -401,7 +424,7 @@
 	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
 	SchemaV2Override, SchemaV3Override, StorageOverride,
 };
-<span class="kw">use </span>fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+<span class="kw">use </span>fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 <span class="kw">use </span>fp_storage::EthereumStorageSchema;
 <span class="kw">use </span>futures::StreamExt;
 <span class="kw">use </span>jsonrpsee::RpcModule;
@@ -425,6 +448,28 @@
 <span class="kw">use </span>sp_core::H256;
 <span class="kw">use </span>sp_runtime::traits::{BlakeTwo256, Block <span class="kw">as </span>BlockT};
 <span class="kw">use </span>std::collections::BTreeMap;
+
+<span class="kw">pub struct </span>MoonbeamEGA;
+
+<span class="kw">impl </span>fc_rpc::EstimateGasAdapter <span class="kw">for </span>MoonbeamEGA {
+	<span class="kw">fn </span>adapt_request(<span class="kw-2">mut </span>request: CallRequest) -&gt; CallRequest {
+		<span class="comment">// Redirect any call to batch precompile:
+		// force usage of batchAll method for estimation
+		</span><span class="kw">use </span>sp_core::H160;
+		<span class="kw">const </span>BATCH_PRECOMPILE_ADDRESS: H160 = H160(<span class="macro">hex_literal::hex!</span>(
+			<span class="string">&quot;0000000000000000000000000000000000000808&quot;
+		</span>));
+		<span class="kw">const </span>BATCH_PRECOMPILE_BATCH_ALL_SELECTOR: [u8; <span class="number">4</span>] = <span class="macro">hex_literal::hex!</span>(<span class="string">&quot;96e292b8&quot;</span>);
+		<span class="kw">if </span>request.to == <span class="prelude-val">Some</span>(BATCH_PRECOMPILE_ADDRESS) {
+			<span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref mut </span>data) = request.data {
+				<span class="kw">if </span>data.<span class="number">0</span>.len() &gt;= <span class="number">4 </span>{
+					data.<span class="number">0</span>[..<span class="number">4</span>].copy_from_slice(<span class="kw-2">&amp;</span>BATCH_PRECOMPILE_BATCH_ALL_SELECTOR);
+				}
+			}
+		}
+		request
+	}
+}
 
 <span class="doccomment">/// Full client dependencies.
 </span><span class="kw">pub struct </span>FullDeps&lt;C, P, A: ChainApi, BE&gt; {
@@ -585,6 +630,7 @@
 			fee_history_limit,
 			<span class="number">10</span>,
 		)
+		.with_estimate_gas_adapter::&lt;MoonbeamEGA&gt;()
 		.into_rpc(),
 	)<span class="question-mark">?</span>;
 

@@ -145,6 +145,7 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
+<span id="148">148</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -178,9 +179,10 @@
 <span class="kw">use </span>xcm_executor::traits::WeightBounds;
 <span class="kw">use </span>xcm_executor::traits::WeightTrader;
 <span class="kw">pub type </span>XcmOriginOf&lt;XcmConfig&gt; =
-	&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Call <span class="kw">as </span>Dispatchable&gt;::Origin;
+	&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin;
 <span class="kw">pub type </span>XcmAccountIdOf&lt;XcmConfig&gt; =
-	&lt;&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Call <span class="kw">as </span>Dispatchable&gt;::Origin <span class="kw">as </span>OriginTrait&gt;::AccountId;
+	&lt;&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall <span class="kw">as </span>Dispatchable&gt;
+		::RuntimeOrigin <span class="kw">as </span>OriginTrait&gt;::AccountId;
 
 <span class="kw">pub const </span>XCM_SIZE_LIMIT: u32 = <span class="number">2u32</span>.pow(<span class="number">16</span>);
 <span class="kw">type </span>GetXcmSizeLimit = ConstU32&lt;XCM_SIZE_LIMIT&gt;;
@@ -274,11 +276,11 @@
 		<span class="kw">let </span>message: Vec&lt;u8&gt; = message.into();
 
 		<span class="kw">let </span>msg =
-			VersionedXcm::&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Call&gt;::decode_all_with_depth_limit(
+			VersionedXcm::&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall&gt;::decode_all_with_depth_limit(
 				MAX_XCM_DECODE_DEPTH,
 				<span class="kw-2">&amp;mut </span>message.as_slice(),
 			)
-			.map(Xcm::&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::Call&gt;::try_from);
+			.map(Xcm::&lt;&lt;XcmConfig <span class="kw">as </span>xcm_executor::Config&gt;::RuntimeCall&gt;::try_from);
 
 		<span class="kw">let </span>result = <span class="kw">match </span>msg {
 			<span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(<span class="kw-2">mut </span>x)) =&gt; {

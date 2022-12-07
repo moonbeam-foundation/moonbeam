@@ -173,20 +173,20 @@
 <span class="kw">impl</span>&lt;Runtime&gt; RuntimeHelper&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: pallet_evm::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
 	<span class="doccomment">/// Try to dispatch a Substrate call.
 	/// Return an error if there are not enough gas, or if the call fails.
 	/// If successful returns the used gas using the Runtime GasWeightMapping.
 	</span><span class="kw">pub fn </span>try_dispatch&lt;Call&gt;(
 		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
-		origin: &lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin,
+		origin: &lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin,
 		call: Call,
 	) -&gt; <span class="prelude-ty">Result</span>&lt;PostDispatchInfo, TryDispatchError&gt;
 	<span class="kw">where
-		</span>Runtime::Call: From&lt;Call&gt;,
+		</span>Runtime::RuntimeCall: From&lt;Call&gt;,
 	{
-		<span class="kw">let </span>call = Runtime::Call::from(call);
+		<span class="kw">let </span>call = Runtime::RuntimeCall::from(call);
 		<span class="kw">let </span>dispatch_info = call.get_dispatch_info();
 
 		<span class="comment">// Make sure there is enough gas.

@@ -101,7 +101,7 @@
 <span class="kw">pub mod </span>account_key;
 
 <span class="doccomment">/// Block authoring scheme to be used by the dev service.
-</span><span class="attribute">#[derive(Debug)]
+</span><span class="attribute">#[derive(Debug, Copy, Clone)]
 </span><span class="kw">pub enum </span>Sealing {
 	<span class="doccomment">/// Author a block immediately upon receiving a transaction into the transaction pool
 	</span>Instant,

@@ -577,9 +577,9 @@
 
 		<span class="kw">let </span><span class="kw-2">mut </span>expected = pallet_utility::Call::&lt;kusama_runtime::Runtime&gt;::as_derivative {
 			index: <span class="number">1</span>,
-			call: kusama_runtime::Call::Staking(
-				pallet_staking::Call::&lt;kusama_runtime::Runtime&gt;::chill {},
-			)
+			call: kusama_runtime::RuntimeCall::Staking(pallet_staking::Call::&lt;
+				kusama_runtime::Runtime,
+			&gt;::chill {})
 			.into(),
 		}
 		.encode();

@@ -217,9 +217,9 @@
 <span class="kw">where
 	</span>Runtime: pallet_crowdloan_rewards::Config + pallet_evm::Config + frame_system::Config,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + TryInto&lt;u128&gt; + Debug,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
-	Runtime::Call: From&lt;pallet_crowdloan_rewards::Call&lt;Runtime&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: From&lt;pallet_crowdloan_rewards::Call&lt;Runtime&gt;&gt;,
 {
 	<span class="comment">// The accessors are first.
 	</span><span class="attribute">#[precompile::public(<span class="string">&quot;isContributor(address)&quot;</span>)]

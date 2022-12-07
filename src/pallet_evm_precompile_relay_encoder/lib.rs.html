@@ -436,7 +436,7 @@
 <span class="kw">where
 	</span>RelayRuntime: StakeEncodeCall,
 	Runtime: pallet_evm::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
 {
 	<span class="attribute">#[precompile::public(<span class="string">&quot;encodeBond(uint256,uint256,bytes)&quot;</span>)]
 	#[precompile::public(<span class="string">&quot;encode_bond(uint256,uint256,bytes)&quot;</span>)]

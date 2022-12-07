@@ -673,9 +673,9 @@
 	</span>Metadata: Erc20Metadata,
 	Instance: InstanceToPrefix + <span class="lifetime">&#39;static</span>,
 	Runtime: pallet_balances::Config&lt;Instance&gt; + pallet_evm::Config + pallet_timestamp::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	Runtime::Call: From&lt;pallet_balances::Call&lt;Runtime, Instance&gt;&gt;,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::RuntimeCall: From&lt;pallet_balances::Call&lt;Runtime, Instance&gt;&gt;,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	BalanceOf&lt;Runtime, Instance&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 {

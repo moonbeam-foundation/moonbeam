@@ -356,19 +356,19 @@
 	</span><span class="attribute">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
 		<span class="doccomment">/// Overarching event type
-		</span><span class="kw">type </span>Event: From&lt;Event&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		</span><span class="kw">type </span>RuntimeEvent: From&lt;Event&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// The base call filter to be used in normal operating mode
 		/// (When we aren&#39;t in the middle of a migration)
-		</span><span class="kw">type </span>NormalCallFilter: Contains&lt;<span class="self">Self</span>::Call&gt;;
+		</span><span class="kw">type </span>NormalCallFilter: Contains&lt;<span class="self">Self</span>::RuntimeCall&gt;;
 		<span class="doccomment">/// The base call filter to be used when we are in the middle of migrations
 		/// This should be very restrictive. Probably not allowing anything except possibly
 		/// something like sudo or other emergency processes
-		</span><span class="kw">type </span>MaintenanceCallFilter: Contains&lt;<span class="self">Self</span>::Call&gt;;
+		</span><span class="kw">type </span>MaintenanceCallFilter: Contains&lt;<span class="self">Self</span>::RuntimeCall&gt;;
 		<span class="doccomment">/// The origin from which the call to enter or exit maintenance mode must come
 		/// Take care when choosing your maintenance call filter to ensure that you&#39;ll still be
 		/// able to return to normal mode. For example, if your MaintenanceOrigin is a council, make
 		/// sure that your councilors can still cast votes.
-		</span><span class="kw">type </span>MaintenanceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
+		</span><span class="kw">type </span>MaintenanceOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 		<span class="doccomment">/// Handler to suspend and resume XCM execution
 		</span><span class="attribute">#[cfg(feature = <span class="string">&quot;xcm-support&quot;</span>)]
 		</span><span class="kw">type </span>XcmExecutionManager: PauseXcmExecution;
@@ -507,8 +507,8 @@
 		}
 	}
 
-	<span class="kw">impl</span>&lt;T: Config&gt; Contains&lt;T::Call&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
-		<span class="kw">fn </span>contains(call: <span class="kw-2">&amp;</span>T::Call) -&gt; bool {
+	<span class="kw">impl</span>&lt;T: Config&gt; Contains&lt;T::RuntimeCall&gt; <span class="kw">for </span>Pallet&lt;T&gt; {
+		<span class="kw">fn </span>contains(call: <span class="kw-2">&amp;</span>T::RuntimeCall) -&gt; bool {
 			<span class="kw">if </span>MaintenanceMode::&lt;T&gt;::get() {
 				T::MaintenanceCallFilter::contains(call)
 			} <span class="kw">else </span>{

@@ -288,8 +288,6 @@
 <span id="288">288</span>
 <span id="289">289</span>
 <span id="290">290</span>
-<span id="291">291</span>
-<span id="292">292</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -322,14 +320,12 @@
 <span class="kw">use </span>ethereum_types::{H160, U256};
 <span class="kw">use </span>fp_ethereum::{TransactionData, ValidatedTransaction};
 <span class="kw">use </span>fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
 <span class="kw">use </span>frame_support::{
 	codec::{Decode, Encode, MaxEncodedLen},
-	dispatch::DispatchResultWithPostInfo,
+	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
 	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
-	weights::{Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 };
 <span class="kw">use </span>frame_system::pallet_prelude::OriginFor;
 <span class="kw">use </span>pallet_evm::{AddressMapping, GasWeightMapping};
@@ -389,13 +385,13 @@
 		<span class="doccomment">/// Handler for applying an already validated transaction
 		</span><span class="kw">type </span>ValidatedTransaction: ValidatedTransaction;
 		<span class="doccomment">/// Origin for xcm transact
-		</span><span class="kw">type </span>XcmEthereumOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin, Success = H160&gt;;
+		</span><span class="kw">type </span>XcmEthereumOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin, Success = H160&gt;;
 		<span class="doccomment">/// Maximum Weight reserved for xcm in a block
 		</span><span class="kw">type </span>ReservedXcmpWeight: Get&lt;Weight&gt;;
 		<span class="doccomment">/// Ensure proxy
 		</span><span class="kw">type </span>EnsureProxy: EnsureProxy&lt;<span class="self">Self</span>::AccountId&gt;;
 		<span class="doccomment">/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
-		</span><span class="kw">type </span>ControllerOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
+		</span><span class="kw">type </span>ControllerOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 	}
 
 	<span class="attribute">#[pallet::pallet]

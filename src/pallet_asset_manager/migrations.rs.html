@@ -534,21 +534,6 @@
 <span id="534">534</span>
 <span id="535">535</span>
 <span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -573,6 +558,8 @@
 	weights::Weight,
 	Blake2_128Concat,
 };
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>parity_scale_codec::{Decode, Encode};
 <span class="comment">//TODO sometimes this is unused, sometimes its necessary
 </span><span class="kw">use </span>sp_std::vec::Vec;
 <span class="kw">use </span>xcm::latest::prelude::<span class="kw-2">*</span>;
@@ -584,11 +571,11 @@
 </span><span class="kw">pub struct </span>UnitsWithAssetType&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>UnitsWithAssetType&lt;T&gt; {
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetIdUnitsPerSecond&quot;</span>;
+
+		<span class="kw">let </span><span class="kw-2">mut </span>state_vec: Vec&lt;(u32, (T::AssetId, u128))&gt; = Vec::new();
 
 		<span class="comment">// We want to test that:
 		// There are no entries in the new storage beforehand
@@ -607,7 +594,6 @@
 		)
 		.collect();
 		<span class="kw">let </span>mapping_count = stored_data.len();
-		<span class="self">Self</span>::set_temp_storage(mapping_count <span class="kw">as </span>u32, <span class="string">&quot;mapping_count&quot;</span>);
 
 		<span class="comment">// Read an example pair from old storage and set it aside in temp storage
 		</span><span class="kw">if </span>mapping_count &gt; <span class="number">0 </span>{
@@ -616,10 +602,10 @@
 				.next()
 				.expect(<span class="string">&quot;We already confirmed that there was at least one item stored&quot;</span>);
 
-			<span class="self">Self</span>::set_temp_storage(example_pair, <span class="string">&quot;example_pair&quot;</span>);
+			state_vec.push((mapping_count <span class="kw">as </span>u32, example_pair.clone()))
 		}
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_vec.encode())
 	}
 
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
@@ -660,8 +646,9 @@
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>state_vec: Vec&lt;(u32, (T::AssetId, u128))&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetIdUnitsPerSecond&quot;</span>;
@@ -673,23 +660,19 @@
 		.next()
 		.is_none());
 
-		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
-		</span><span class="kw">let </span>old_mapping_count: u64 = <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;mapping_count&quot;</span>)
-			.expect(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let </span>new_mapping_count = AssetTypeUnitsPerSecond::&lt;T&gt;::iter().count() <span class="kw">as </span>u64;
-		<span class="macro">assert_eq!</span>(old_mapping_count, new_mapping_count);
-
-		<span class="comment">// Check that our example pair is still well-mapped after the migration
-		</span><span class="kw">if </span>new_mapping_count &gt; <span class="number">0 </span>{
-			<span class="kw">let </span>(asset_id, units): (T::AssetId, u128) =
-				<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;example_pair&quot;</span>).expect(<span class="string">&quot;qed&quot;</span>);
+		<span class="kw">if </span>state_vec.len() &gt; <span class="number">0 </span>{
+			<span class="kw">let </span>(old_mapping_count, (asset_id, units)) =
+				state_vec.first().expect(<span class="string">&quot;we should have an element&quot;</span>);
+			<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
+			</span><span class="kw">let </span>new_mapping_count = AssetTypeUnitsPerSecond::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;
+			<span class="macro">assert_eq!</span>(old_mapping_count.clone(), new_mapping_count);
 
 			<span class="kw">let </span>asset_type = AssetIdType::&lt;T&gt;::get(asset_id)
 				.expect(<span class="string">&quot;AssetIdType should have the ForeignAssetType&quot;</span>);
 
 			<span class="kw">let </span>migrated_units = AssetTypeUnitsPerSecond::&lt;T&gt;::get(asset_type).expect(<span class="string">&quot;qed&quot;</span>);
 			<span class="comment">// Check units are identical
-			</span><span class="macro">assert_eq!</span>(migrated_units, units);
+			</span><span class="macro">assert_eq!</span>(migrated_units, units.clone());
 		}
 
 		<span class="prelude-val">Ok</span>(())
@@ -701,9 +684,7 @@
 </span><span class="kw">pub struct </span>PopulateAssetTypeIdStorage&lt;T&gt;(PhantomData&lt;T&gt;);
 <span class="kw">impl</span>&lt;T: Config&gt; OnRuntimeUpgrade <span class="kw">for </span>PopulateAssetTypeIdStorage&lt;T&gt; {
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetIdType&quot;</span>;
 
@@ -716,6 +697,8 @@
 		// Assert new storage is empty
 		</span><span class="macro">assert!</span>(AssetTypeId::&lt;T&gt;::iter().next().is_none());
 
+		<span class="kw">let </span><span class="kw-2">mut </span>state_vec: Vec&lt;(u32, (T::AssetId, T::ForeignAssetType))&gt; = Vec::new();
+
 		<span class="comment">// Check number of entries, and set it aside in temp storage
 		</span><span class="kw">let </span>stored_data: Vec&lt;<span class="kw">_</span>&gt; = storage_key_iter::&lt;
 			T::AssetId,
@@ -724,7 +707,6 @@
 		&gt;(pallet_prefix, storage_item_prefix)
 		.collect();
 		<span class="kw">let </span>mapping_count = stored_data.len();
-		<span class="self">Self</span>::set_temp_storage(mapping_count <span class="kw">as </span>u32, <span class="string">&quot;mapping_count&quot;</span>);
 
 		<span class="comment">// Read an example pair from old storage and set it aside in temp storage
 		</span><span class="kw">if </span>mapping_count &gt; <span class="number">0 </span>{
@@ -733,10 +715,10 @@
 				.next()
 				.expect(<span class="string">&quot;We already confirmed that there was at least one item stored&quot;</span>);
 
-			<span class="self">Self</span>::set_temp_storage(example_pair, <span class="string">&quot;example_pair&quot;</span>);
+			state_vec.push((mapping_count <span class="kw">as </span>u32, example_pair.clone()))
 		}
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_vec.encode())
 	}
 
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
@@ -776,25 +758,25 @@
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
-		</span><span class="kw">let </span>mapping_count: u64 = <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;mapping_count&quot;</span>)
-			.expect(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let </span>new_mapping_count = AssetTypeId::&lt;T&gt;::iter().count() <span class="kw">as </span>u64;
-		<span class="macro">assert_eq!</span>(mapping_count, new_mapping_count);
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>state_vec: Vec&lt;(u32, (T::AssetId, T::ForeignAssetType))&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration
-		</span><span class="kw">if </span>new_mapping_count &gt; <span class="number">0 </span>{
-			<span class="kw">let </span>(asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
-				<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;example_pair&quot;</span>).expect(<span class="string">&quot;qed&quot;</span>);
+		</span><span class="kw">if </span>state_vec.len() &gt; <span class="number">0 </span>{
+			<span class="kw">let </span>(mapping_count, (asset_id, asset_type)) =
+				state_vec.first().expect(<span class="string">&quot;we should have an element&quot;</span>);
+			<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
 
-			<span class="kw">let </span>stored_asset_id =
+			</span><span class="kw">let </span>new_mapping_count = AssetTypeId::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;
+			<span class="macro">assert_eq!</span>(mapping_count.clone(), new_mapping_count);
+
+			<span class="comment">// Check that our example pair is still well-mapped after the migration
+			</span><span class="kw">let </span>stored_asset_id =
 				AssetTypeId::&lt;T&gt;::get(asset_type).expect(<span class="string">&quot;AssetTypeId should have the assetId&quot;</span>);
 
 			<span class="comment">// Check assetIds are identical
-			</span><span class="macro">assert_eq!</span>(asset_id, stored_asset_id);
+			</span><span class="macro">assert_eq!</span>(asset_id.clone(), stored_asset_id);
 		}
 
 		<span class="prelude-val">Ok</span>(())
@@ -816,9 +798,7 @@
 	T::ForeignAssetType: Into&lt;<span class="prelude-ty">Option</span>&lt;MultiLocation&gt;&gt; + From&lt;MultiLocation&gt;,
 {
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetIdType&quot;</span>;
 
@@ -835,7 +815,7 @@
 
 		<span class="kw">let </span>statemine_para_id = StatemineParaIdInfo::get();
 
-		<span class="kw">let </span><span class="kw-2">mut </span>found = <span class="bool-val">false</span>;
+		<span class="kw">let </span><span class="kw-2">mut </span>state_vec: Vec&lt;(T::AssetId, T::ForeignAssetType)&gt; = Vec::new();
 
 		<span class="kw">for </span>(asset_id, asset_type) <span class="kw">in </span>stored_data {
 			<span class="kw">let </span>location: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = asset_type.clone().into();
@@ -845,17 +825,15 @@
 					interior: X2(Parachain(para_id), GeneralIndex(<span class="kw">_</span>)),
 				}) <span class="kw">if </span>para_id == statemine_para_id =&gt; {
 					<span class="comment">// We are going to note that we found at least one entry matching
-					</span>found = <span class="bool-val">true</span>;
+					</span>state_vec.push((asset_id, asset_type));
 					<span class="comment">// And we are going to record its data
-					</span><span class="self">Self</span>::set_temp_storage((asset_id, asset_type), <span class="string">&quot;example_pair&quot;</span>);
-					<span class="kw">break</span>;
+					</span><span class="kw">break</span>;
 				}
 				<span class="kw">_ </span>=&gt; <span class="kw">continue</span>,
 			}
 		}
-		<span class="self">Self</span>::set_temp_storage(found, <span class="string">&quot;matching_type_found&quot;</span>);
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_vec.encode())
 	}
 
 	<span class="kw">fn </span>on_runtime_upgrade() -&gt; Weight {
@@ -935,21 +913,18 @@
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		<span class="comment">// Check if we found a matching type
-		</span><span class="kw">let </span>found: bool = <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;matching_type_found&quot;</span>)
-			.expect(<span class="string">&quot;We stored a matching_type_found and should be here; qed&quot;</span>);
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>state_vec: Vec&lt;(T::AssetId, T::ForeignAssetType)&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 		<span class="kw">let </span>statemine_para_id = StatemineParaIdInfo::get();
 		<span class="kw">let </span>statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 
 		<span class="comment">// Check that our example pair suffered the correct migration
-		</span><span class="kw">if </span>found {
-			<span class="kw">let </span>(asset_id, asset_type): (T::AssetId, T::ForeignAssetType) =
-				<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;example_pair&quot;</span>).expect(<span class="string">&quot;qed&quot;</span>);
-			<span class="kw">let </span>location: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = asset_type.into();
+		</span><span class="kw">if </span>state_vec.len() &gt; <span class="number">0 </span>{
+			<span class="kw">let </span>(asset_id, asset_type) = state_vec.first().expect(<span class="string">&quot;qed&quot;</span>);
+
+			<span class="kw">let </span>location: <span class="prelude-ty">Option</span>&lt;MultiLocation&gt; = asset_type.clone().into();
 
 			<span class="kw">match </span>location {
 				<span class="prelude-val">Some</span>(MultiLocation {
@@ -1036,8 +1011,8 @@
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span><span class="kw-2">mut </span>state_vec: Vec&lt;(u32, T::ForeignAssetType)&gt; = Vec::new();
 
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetManager&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;AssetTypeUnitsPerSecond&quot;</span>;
@@ -1061,7 +1036,6 @@
 		)
 		.collect();
 		<span class="kw">let </span>mapping_count = stored_data.len();
-		<span class="self">Self</span>::set_temp_storage(mapping_count <span class="kw">as </span>u64, <span class="string">&quot;mapping_count&quot;</span>);
 
 		<span class="comment">// Read an example pair from old storage and set it aside in temp storage
 		</span><span class="kw">if </span>mapping_count &gt; <span class="number">0 </span>{
@@ -1072,26 +1046,22 @@
 				.clone()
 				.<span class="number">0</span>;
 
-			<span class="self">Self</span>::set_temp_storage(example_key, <span class="string">&quot;example_pair&quot;</span>);
+			state_vec.push((mapping_count <span class="kw">as </span>u32, example_key))
 		}
 
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_vec.encode())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
-		</span><span class="kw">let </span>old_mapping_count: u64 = <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;mapping_count&quot;</span>)
-			.expect(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let </span>new_mapping_count = SupportedFeePaymentAssets::&lt;T&gt;::get().len() <span class="kw">as </span>u64;
-		<span class="macro">assert_eq!</span>(old_mapping_count, new_mapping_count);
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>state_vec: Vec&lt;(u32, T::ForeignAssetType)&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration
-		</span><span class="kw">if </span>new_mapping_count &gt; <span class="number">0 </span>{
-			<span class="kw">let </span>asset_type: T::ForeignAssetType =
-				<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;example_pair&quot;</span>).expect(<span class="string">&quot;qed&quot;</span>);
+		</span><span class="kw">if </span>state_vec.len() &gt; <span class="number">0 </span>{
+			<span class="kw">let </span>(old_mapping_count, asset_type) = state_vec.first().expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>new_mapping_count = SupportedFeePaymentAssets::&lt;T&gt;::get().len() <span class="kw">as </span>u32;
+			<span class="macro">assert_eq!</span>(old_mapping_count.clone(), new_mapping_count);
 			<span class="kw">let </span>migrated_info = SupportedFeePaymentAssets::&lt;T&gt;::get();
 			<span class="comment">// Check that the asset_id exists in migrated_info
 			</span><span class="macro">assert!</span>(migrated_info.contains(<span class="kw-2">&amp;</span>asset_type));

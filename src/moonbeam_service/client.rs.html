@@ -664,68 +664,68 @@
 <span class="kw">impl </span>sc_client_api::StorageProvider&lt;Block, <span class="kw">crate</span>::FullBackend&gt; <span class="kw">for </span>Client {
 	<span class="kw">fn </span>storage(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		key: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;StorageData&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage(id, key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage(hash, key))
 	}
 
 	<span class="kw">fn </span>storage_keys(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;Vec&lt;StorageKey&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys(id, key_prefix))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys(hash, key_prefix))
 	}
 
 	<span class="kw">fn </span>storage_hash(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		key: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_hash(id, key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_hash(hash, key))
 	}
 
 	<span class="kw">fn </span>storage_pairs(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;Vec&lt;(StorageKey, StorageData)&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_pairs(id, key_prefix))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_pairs(hash, key_prefix))
 	}
 
 	<span class="kw">fn </span>storage_keys_iter&lt;<span class="lifetime">&#39;a</span>&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
 	) -&gt; sp_blockchain::Result&lt;
 		KeyIterator&lt;<span class="lifetime">&#39;a</span>, &lt;<span class="kw">crate</span>::FullBackend <span class="kw">as </span>sc_client_api::Backend&lt;Block&gt;&gt;::State, Block&gt;,
 	&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys_iter(id, prefix, start_key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, storage_keys_iter(hash, prefix, start_key))
 	}
 
 	<span class="kw">fn </span>child_storage(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		child_info: <span class="kw-2">&amp;</span>ChildInfo,
 		key: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;StorageData&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage(id, child_info, key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage(hash, child_info, key))
 	}
 
 	<span class="kw">fn </span>child_storage_keys(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		child_info: <span class="kw-2">&amp;</span>ChildInfo,
 		key_prefix: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;Vec&lt;StorageKey&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_keys(id, child_info, key_prefix))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_keys(hash, child_info, key_prefix))
 	}
 
 	<span class="kw">fn </span>child_storage_keys_iter&lt;<span class="lifetime">&#39;a</span>&gt;(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		child_info: ChildInfo,
 		prefix: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">&#39;a </span>StorageKey&gt;,
 		start_key: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>StorageKey&gt;,
@@ -734,17 +734,17 @@
 	&gt; {
 		<span class="macro">match_client!</span>(
 			<span class="self">self</span>,
-			child_storage_keys_iter(id, child_info, prefix, start_key)
+			child_storage_keys_iter(hash, child_info, prefix, start_key)
 		)
 	}
 
 	<span class="kw">fn </span>child_storage_hash(
 		<span class="kw-2">&amp;</span><span class="self">self</span>,
-		id: <span class="kw-2">&amp;</span>BlockId&lt;Block&gt;,
+		hash: <span class="kw-2">&amp;</span>&lt;Block <span class="kw">as </span>BlockT&gt;::Hash,
 		child_info: <span class="kw-2">&amp;</span>ChildInfo,
 		key: <span class="kw-2">&amp;</span>StorageKey,
 	) -&gt; sp_blockchain::Result&lt;<span class="prelude-ty">Option</span>&lt;&lt;Block <span class="kw">as </span>BlockT&gt;::Hash&gt;&gt; {
-		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_hash(id, child_info, key))
+		<span class="macro">match_client!</span>(<span class="self">self</span>, child_storage_hash(hash, child_info, key))
 	}
 }
 

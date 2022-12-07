@@ -1081,7 +1081,7 @@
 
 	<span class="attribute">#[pallet::config]
 	</span><span class="kw">pub trait </span>Config: frame_system::Config {
-		<span class="kw">type </span>Event: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::Event&gt;;
+		<span class="kw">type </span>RuntimeEvent: From&lt;Event&lt;<span class="self">Self</span>&gt;&gt; + IsType&lt;&lt;<span class="self">Self </span><span class="kw">as </span>frame_system::Config&gt;::RuntimeEvent&gt;;
 		<span class="doccomment">/// The balance type.
 		</span><span class="kw">type </span>Balance: Parameter
 			+ Member
@@ -1106,13 +1106,13 @@
 		</span><span class="kw">type </span>AssetTransactor: TransactAsset;
 
 		<span class="comment">// The origin that is allowed to register derivative address indices
-		</span><span class="kw">type </span>DerivativeAddressRegistrationOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
+		</span><span class="kw">type </span>DerivativeAddressRegistrationOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 
 		<span class="doccomment">/// Convert `T::AccountId` to `MultiLocation`.
 		</span><span class="kw">type </span>AccountIdToMultiLocation: Convert&lt;<span class="self">Self</span>::AccountId, MultiLocation&gt;;
 
 		<span class="doccomment">/// Means of measuring the weight consumed by an XCM message locally.
-		</span><span class="kw">type </span>Weigher: WeightBounds&lt;<span class="self">Self</span>::Call&gt;;
+		</span><span class="kw">type </span>Weigher: WeightBounds&lt;<span class="self">Self</span>::RuntimeCall&gt;;
 
 		<span class="doccomment">/// Means of inverting a location.
 		</span><span class="kw">type </span>LocationInverter: InvertLocation;
@@ -1122,7 +1122,7 @@
 		</span><span class="kw">type </span>SelfLocation: Get&lt;MultiLocation&gt;;
 
 		<span class="comment">// The origin that is allowed to dispatch calls from the sovereign account directly
-		</span><span class="kw">type </span>SovereignAccountDispatcherOrigin: EnsureOrigin&lt;<span class="self">Self</span>::Origin&gt;;
+		</span><span class="kw">type </span>SovereignAccountDispatcherOrigin: EnsureOrigin&lt;<span class="self">Self</span>::RuntimeOrigin&gt;;
 
 		<span class="doccomment">/// XCM sender.
 		</span><span class="kw">type </span>XcmSender: SendXcm;

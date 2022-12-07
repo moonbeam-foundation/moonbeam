@@ -313,10 +313,6 @@
 <span id="313">313</span>
 <span id="314">314</span>
 <span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -555,9 +551,7 @@ impl&lt;T: Config&gt; OnRuntimeUpgrade for MaxTransactWeight&lt;T&gt; {
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
 		<span class="kw">let </span>pallet_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;XcmTransactor&quot;</span>;
 		<span class="kw">let </span>storage_item_prefix: <span class="kw-2">&amp;</span>[u8] = <span class="string">b&quot;TransactInfoWithWeightLimit&quot;</span>;
 
@@ -573,13 +567,14 @@ impl&lt;T: Config&gt; OnRuntimeUpgrade for MaxTransactWeight&lt;T&gt; {
 		<span class="comment">// Check number of entries, and set it aside in temp storage
 		</span><span class="kw">let </span>stored_data: Vec&lt;<span class="kw">_</span>&gt; = storage_key_iter::&lt;
 			MultiLocation,
-			OldRemoteTransactInfo,
+			OldRemoteTransactInfoWithFeePerSecond,
 			Blake2_128Concat,
 		&gt;(pallet_prefix, storage_item_prefix)
 		.collect();
 		<span class="kw">let </span>mapping_count = stored_data.len();
-		<span class="self">Self</span>::set_temp_storage(mapping_count <span class="kw">as </span>u32, <span class="string">&quot;mapping_count&quot;</span>);
 
+		<span class="kw">let </span><span class="kw-2">mut </span>state_vec: Vec&lt;(u32, (MultiLocation, OldRemoteTransactInfoWithFeePerSecond))&gt; =
+			Vec::new();
 		<span class="comment">// Read an example pair from old storage and set it aside in temp storage
 		</span><span class="kw">if </span>mapping_count &gt; <span class="number">0 </span>{
 			<span class="kw">let </span>example_pair = stored_data
@@ -587,31 +582,29 @@ impl&lt;T: Config&gt; OnRuntimeUpgrade for MaxTransactWeight&lt;T&gt; {
 				.next()
 				.expect(<span class="string">&quot;We already confirmed that there was at least one item stored&quot;</span>);
 
-			<span class="self">Self</span>::set_temp_storage(example_pair, <span class="string">&quot;example_pair&quot;</span>);
+			state_vec.push((mapping_count <span class="kw">as </span>u32, example_pair.clone()))
 		}
-
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_vec.encode())
 	}
 
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-
-		<span class="comment">// Check number of entries matches what was set aside in pre_upgrade
-		</span><span class="kw">let </span>old_mapping_count: u64 = <span class="self">Self</span>::get_temp_storage(<span class="string">&quot;mapping_count&quot;</span>)
-			.expect(<span class="string">&quot;We stored a mapping count; it should be there; qed&quot;</span>);
-		<span class="kw">let </span>new_mapping_count_transact_info =
-			TransactInfoWithWeightLimit::&lt;T&gt;::iter().count() <span class="kw">as </span>u64;
-		<span class="kw">let </span>new_mapping_count_fee_per_second =
-			DestinationAssetFeePerSecond::&lt;T&gt;::iter().count() <span class="kw">as </span>u64;
-
-		<span class="macro">assert_eq!</span>(old_mapping_count, new_mapping_count_transact_info);
-		<span class="macro">assert_eq!</span>(old_mapping_count, new_mapping_count_fee_per_second);
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">let </span>state_vec: Vec&lt;(u32, (MultiLocation, OldRemoteTransactInfoWithFeePerSecond))&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
 
 		<span class="comment">// Check that our example pair is still well-mapped after the migration
-		</span><span class="kw">if </span>new_mapping_count_transact_info &gt; <span class="number">0 </span>{
-			<span class="kw">let </span>(location, original_info): (MultiLocation, OldRemoteTransactInfoWithFeePerSecond) =
-				<span class="self">Self</span>::get_temp_storage(<span class="string">&quot;example_pair&quot;</span>).expect(<span class="string">&quot;qed&quot;</span>);
+		</span><span class="kw">if </span>state_vec.len() &gt; <span class="number">0 </span>{
+			<span class="kw">let </span>(old_mapping_count, (location, original_info)) =
+				state_vec.first().expect(<span class="string">&quot;we should have an element&quot;</span>);
+			<span class="kw">let </span>new_mapping_count_transact_info =
+				TransactInfoWithWeightLimit::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;
+
+			<span class="kw">let </span>new_mapping_count_fee_per_second =
+				DestinationAssetFeePerSecond::&lt;T&gt;::iter().count() <span class="kw">as </span>u32;
+
+			<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>old_mapping_count, new_mapping_count_transact_info);
+			<span class="macro">assert_eq!</span>(<span class="kw-2">*</span>old_mapping_count, new_mapping_count_fee_per_second);
+
 			<span class="kw">let </span>migrated_info_transact_info =
 				TransactInfoWithWeightLimit::&lt;T&gt;::get(<span class="kw-2">&amp;</span>location).expect(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let </span>migrated_info_fee_per_second =
@@ -632,7 +625,6 @@ impl&lt;T: Config&gt; OnRuntimeUpgrade for MaxTransactWeight&lt;T&gt; {
 			</span>);
 			<span class="macro">assert_eq!</span>(original_info.fee_per_second, migrated_info_fee_per_second);
 		}
-
 		<span class="prelude-val">Ok</span>(())
 	}
 }

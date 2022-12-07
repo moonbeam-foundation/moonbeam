@@ -494,9 +494,9 @@
 <span class="kw">impl</span>&lt;Runtime&gt; XcmTransactorWrapper&lt;Runtime&gt;
 <span class="kw">where
 	</span>Runtime: pallet_xcm_transactor::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
-	Runtime::Call: From&lt;pallet_xcm_transactor::Call&lt;Runtime&gt;&gt;,
-	&lt;Runtime::Call <span class="kw">as </span>Dispatchable&gt;::Origin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
+	Runtime::RuntimeCall: Dispatchable&lt;PostInfo = PostDispatchInfo&gt; + GetDispatchInfo,
+	Runtime::RuntimeCall: From&lt;pallet_xcm_transactor::Call&lt;Runtime&gt;&gt;,
+	&lt;Runtime::RuntimeCall <span class="kw">as </span>Dispatchable&gt;::RuntimeOrigin: From&lt;<span class="prelude-ty">Option</span>&lt;Runtime::AccountId&gt;&gt;,
 	TransactorOf&lt;Runtime&gt;: TryFrom&lt;u8&gt;,
 	Runtime::AccountId: Into&lt;H160&gt;,
 	Runtime: AccountIdToCurrencyId&lt;Runtime::AccountId, CurrencyIdOf&lt;Runtime&gt;&gt;,

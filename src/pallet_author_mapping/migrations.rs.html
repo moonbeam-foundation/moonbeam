@@ -180,6 +180,7 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -204,9 +205,9 @@
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>parity_scale_codec::{Decode, Encode};
-<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-</span><span class="kw">use </span>scale_info::prelude::format;
 
+<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
+</span><span class="kw">use </span>sp_std::vec::Vec;
 <span class="doccomment">/// Migrates MappingWithDeposit map value from RegistrationInfo to RegistrationInformation,
 /// thereby adding a keys: T::Keys field to the value to support VRF keys that can be looked up
 /// via NimbusId.
@@ -243,29 +244,28 @@
 			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
-		<span class="kw">use </span>sp_std::vec::Vec;
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
 
 		<span class="kw">let </span><span class="kw-2">mut </span>nimbus_set: Vec&lt;NimbusId&gt; = Vec::new();
+		<span class="kw">let </span><span class="kw-2">mut </span>state_map: BTreeMap&lt;NimbusId, T::AccountId&gt; = BTreeMap::new();
 		<span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
 			<span class="kw">if </span>!nimbus_set.contains(<span class="kw-2">&amp;</span>nimbus_id) {
-				<span class="self">Self</span>::set_temp_storage(
-					info.account,
-					<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..],
-				);
+				state_map.insert(nimbus_id.clone(), info.account);
 				nimbus_set.push(nimbus_id);
 			}
 		}
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_map.encode())
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span>state_map: BTreeMap&lt;NimbusId, T::AccountId&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
+
 		<span class="kw">for </span>(nimbus_id, <span class="kw">_</span>) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
-			<span class="kw">let </span>old_account: T::AccountId =
-				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..])
-					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>old_account = state_map.get(<span class="kw-2">&amp;</span>nimbus_id).expect(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let </span>maybe_account_of_nimbus = &lt;NimbusLookup&lt;T&gt;&gt;::get(old_account);
 			<span class="macro">assert_eq!</span>(
 				<span class="prelude-val">Some</span>(nimbus_id),
@@ -313,44 +313,46 @@
 			.saturating_add(T::DbWeight::get().writes(read_write_count))
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	</span><span class="kw">fn </span>pre_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;u8&gt;, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span><span class="kw-2">mut </span>state_map: BTreeMap&lt;NimbusId, (T::AccountId, BalanceOf&lt;T&gt;)&gt; = BTreeMap::new();
+
 		<span class="comment">// get total deposited and account for all nimbus_keys
 		</span><span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
-			<span class="self">Self</span>::set_temp_storage(
-				info.account,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..],
-			);
-			<span class="self">Self</span>::set_temp_storage(
-				info.deposit,
-				<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, nimbus_id)[..],
-			);
+			state_map.insert(nimbus_id, (info.account, info.deposit));
 		}
-		<span class="prelude-val">Ok</span>(())
+		<span class="prelude-val">Ok</span>(state_map.encode())
 	}
 	<span class="attribute">#[cfg(feature = <span class="string">&quot;try-runtime&quot;</span>)]
-	</span><span class="kw">fn </span>post_upgrade() -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
-		<span class="kw">use </span>frame_support::traits::OnRuntimeUpgradeHelpersExt;
+	</span><span class="kw">fn </span>post_upgrade(state: Vec&lt;u8&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;(), <span class="kw-2">&amp;</span><span class="lifetime">&#39;static </span>str&gt; {
+		<span class="kw">use </span>sp_std::collections::btree_map::BTreeMap;
+
+		<span class="kw">let </span>state_map: BTreeMap&lt;NimbusId, (T::AccountId, BalanceOf&lt;T&gt;)&gt; =
+			Decode::decode(<span class="kw-2">&amp;mut &amp;</span>state[..]).expect(<span class="string">&quot;pre_upgrade provides a valid state; qed&quot;</span>);
+
 		<span class="comment">// ensure new deposit and account are the same as the old ones
 		// ensure new keys are equal to nimbus_id
 		</span><span class="kw">for </span>(nimbus_id, info) <span class="kw">in </span>&lt;MappingWithDeposit&lt;T&gt;&gt;::iter() {
-			<span class="kw">let </span>old_account: T::AccountId =
-				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Account&quot;</span>, nimbus_id)[..])
-					.expect(<span class="string">&quot;qed&quot;</span>);
+			<span class="kw">let </span>(old_account, old_deposit) = state_map.get(<span class="kw-2">&amp;</span>nimbus_id).expect(<span class="string">&quot;qed&quot;</span>);
+
 			<span class="kw">let </span>new_account = info.account;
 			<span class="macro">assert_eq!</span>(
-				old_account, new_account,
+				old_account.clone(),
+				new_account,
 				<span class="string">&quot;Old Account {:?} dne New Account {:?} for NimbusID {:?}&quot;</span>,
-				old_account, new_account, nimbus_id
+				old_account.clone(),
+				new_account,
+				nimbus_id
 			);
-			<span class="kw">let </span>old_deposit: BalanceOf&lt;T&gt; =
-				<span class="self">Self</span>::get_temp_storage(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;MappingWithDeposit{:?}Deposit&quot;</span>, nimbus_id)[..])
-					.expect(<span class="string">&quot;qed&quot;</span>);
 			<span class="kw">let </span>new_deposit = info.deposit;
 			<span class="macro">assert_eq!</span>(
-				old_deposit, new_deposit,
+				old_deposit.clone(),
+				new_deposit,
 				<span class="string">&quot;Old Deposit {:?} dne New Deposit {:?} for NimbusID {:?}&quot;</span>,
-				old_deposit, new_deposit, nimbus_id
+				old_deposit.clone(),
+				new_deposit,
+				nimbus_id
 			);
 			<span class="kw">let </span>nimbus_id_as_keys: T::Keys = nimbus_id.into();
 			<span class="macro">assert_eq!</span>(
