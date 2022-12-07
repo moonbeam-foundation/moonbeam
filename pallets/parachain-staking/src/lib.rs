@@ -205,7 +205,7 @@ pub mod pallet {
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		RoundLengthMustBeAtLeastTotalSelectedCollators,
+		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
@@ -454,9 +454,9 @@ pub mod pallet {
 				});
 				// account for Round and Staked writes
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+			} else {
+				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
-
-			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
 			// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
@@ -848,7 +848,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new <= <Round<T>>::get().length,
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet { old, new });
@@ -883,7 +883,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new >= <TotalSelected<T>>::get(),
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
 			// update per-round inflation given new rounds per year
