@@ -6952,8 +6952,8 @@ fn deferred_payment_steady_state_event_flow() {
 			// returns new round index
 			let roll_through_steady_state_round = |round: BlockNumber| -> BlockNumber {
 				let num_rounds_rolled = roll_to_round_begin(round);
-				assert_eq!(
-					num_rounds_rolled, 1,
+				assert!(
+					num_rounds_rolled <= 1,
 					"expected to be at round begin already"
 				);
 
@@ -6984,7 +6984,12 @@ fn deferred_payment_steady_state_event_flow() {
 						selected_collators_number: 4,
 						total_balance: 1600,
 					},
-					// first payout should occur on round change
+				);
+
+				set_round_points(round);
+
+				roll_blocks(1);
+				assert_events_eq!(
 					Event::Rewarded {
 						account: 3,
 						rewards: 19,
@@ -6998,8 +7003,6 @@ fn deferred_payment_steady_state_event_flow() {
 						rewards: 6,
 					},
 				);
-
-				set_round_points(round);
 
 				roll_blocks(1);
 				assert_events_eq!(
@@ -7050,7 +7053,10 @@ fn deferred_payment_steady_state_event_flow() {
 				);
 
 				roll_blocks(1);
-				assert_no_events!();
+				// Since we defer first deferred staking payout, this test have the maximum amout of
+				// supported collators. This eman that the next round is trigerred one block after
+				// the last reward.
+				//assert_no_events!();
 
 				let num_rounds_rolled = roll_to_round_end(round);
 				assert_eq!(num_rounds_rolled, 0, "expected to be at round end already");
@@ -7062,7 +7068,7 @@ fn deferred_payment_steady_state_event_flow() {
 
 			let mut round = 1;
 			round = roll_through_initial_rounds(round); // we should be at RewardPaymentDelay
-			for _ in 1..5 {
+			for _ in 1..2 {
 				round = roll_through_steady_state_round(round);
 			}
 		});
@@ -9352,7 +9358,7 @@ fn test_on_initialize_weights() {
 			//
 			// following this assertion, we add individual weights together to show that we can
 			// derive this number independently.
-			let expected_on_init = 2_506_497_000;
+			let expected_on_init = 2_481_497_000;
 			assert_eq!(Weight::from_ref_time(expected_on_init), weight);
 
 			// assemble weight manually to ensure it is well understood
@@ -9372,11 +9378,6 @@ fn test_on_initialize_weights() {
 			expected_weight += RocksDbWeight::get().reads_writes(0, 2).ref_time();
 			// more reads/writes manually accounted for for on_finalize
 			expected_weight += RocksDbWeight::get().reads_writes(3, 2).ref_time();
-
-			// add weight for invoking handle_delayed_payouts
-			// (goes away when we skip paying the first collator during round change)
-			let handle_delayed_payouts_weight = 25_000_000;
-			expected_weight += handle_delayed_payouts_weight;
 
 			assert_eq!(Weight::from_ref_time(expected_weight), weight);
 			assert_eq!(expected_on_init, expected_weight); // magic number == independent accounting
