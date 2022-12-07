@@ -27,7 +27,7 @@ describeDevMoonbeam("Staking - Rewards - no scheduled requests", (context) => {
     const blockHash = (await context.createBlock()).block.hash.toString();
     const allEvents = await (await context.polkadotApi.at(blockHash)).query.system.events();
     const rewardedEvents = allEvents.reduce((acc, event) => {
-      if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) { 
+      if (context.polkadotApi.events.parachainStaking.Rewarded.is(event.event)) {
         acc.push({
           account: event.event.data[0].toString(),
           amount: event.event.data[1],
