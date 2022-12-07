@@ -7397,7 +7397,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7411,7 +7411,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_for_previous_rounds_but_not_f
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
 				rewards: 5,
@@ -7469,7 +7469,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
 				rewards: 5,
@@ -7488,7 +7488,7 @@ fn test_delegator_scheduled_for_revoke_is_rewarded_when_request_cancelled() {
 
 			roll_to_round_begin(5);
 			assert_events_emitted_match!(Event::NewRound { round: 5, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7537,7 +7537,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7551,7 +7551,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_for_previous_rounds_bu
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7616,7 +7616,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7641,7 +7641,7 @@ fn test_delegator_scheduled_for_bond_decrease_is_rewarded_when_request_cancelled
 
 			roll_to_round_begin(5);
 			assert_events_emitted_match!(Event::NewRound { round: 5, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7686,7 +7686,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 
 			roll_to_round_begin(3);
 			assert_events_emitted_match!(Event::NewRound { round: 3, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -7700,7 +7700,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_for_previous_rounds_but_not_fo
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
 				rewards: 5,
@@ -7755,7 +7755,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 
 			roll_to_round_begin(4);
 			assert_events_emitted_match!(Event::NewRound { round: 4, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(Event::Rewarded {
 				account: 1,
 				rewards: 5,
@@ -7774,7 +7774,7 @@ fn test_delegator_scheduled_for_leave_is_rewarded_when_request_cancelled() {
 
 			roll_to_round_begin(5);
 			assert_events_emitted_match!(Event::NewRound { round: 5, .. });
-			roll_blocks(2);
+			roll_blocks(3);
 			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
@@ -8635,6 +8635,10 @@ fn test_rewards_do_not_auto_compound_on_payment_if_delegation_scheduled_revoke_e
 					selected_collators_number: 1,
 					total_balance: 500,
 				},
+			);
+
+			roll_blocks(1);
+			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
 					rewards: 9,
@@ -8702,6 +8706,10 @@ fn test_rewards_auto_compound_on_payment_as_per_auto_compound_config() {
 					selected_collators_number: 1,
 					total_balance: 900,
 				},
+			);
+
+			roll_blocks(1);
+			assert_events_eq!(
 				Event::Rewarded {
 					account: 1,
 					rewards: 13,
