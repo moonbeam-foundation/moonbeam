@@ -55,7 +55,8 @@ with ${lastClientVersion} and master
 ## Pre-Release
 - [ ] Cleanup previous migrations (
   https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
-- [ ] Check all proxy types.
+- [ ] Check that proxy types are adapted to extrinsics changes (
+  read all PR descriptions with B7-runtimenoteworthy)
 - [ ] Re-run all extrinsics/hooks benchmarks.
 
 ${commonTemplate}
