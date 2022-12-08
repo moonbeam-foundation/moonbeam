@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":[["decode_revert_message",""]],"struct":[["MockHandle","Mock handle to write tests for precompiles."],["PrecompilesModifierTester",""],["PrecompilesTester",""],["PrettyLog",""],["Subcall",""],["SubcallOutput",""]],"trait":[["PrecompileTesterExt",""],["SubcallTrait",""]],"type":[["SubcallHandle",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["decode_revert_message",""]],"mod":[["account",""],["execution",""],["handle",""],["modifier",""],["solidity","Utility module to interact with solidity file."]],"struct":[["PrettyLog",""]]};
