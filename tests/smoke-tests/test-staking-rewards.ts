@@ -807,6 +807,22 @@ async function assertRewardedEventsAtBlock(
       };
     }
 
+    if (specVersion >= 2000) {
+      // Now orbiters have their own event. To replicate previous behavior,
+      // we take the collator associated and mark rewards as if they were
+      // to the collator
+      if (apiAtBlock.events.moonbeamOrbiters.OrbiterRewarded.is(event)) {
+        rewardCount++;
+        let collator = await apiAtBlock.query.moonbeamOrbiters.accountLookupOverride(
+          event.data[0].toHex()
+        );
+        rewards[collator.unwrap().toHex()] = {
+          account: collator.unwrap().toHex(),
+          amount: event.data[1] as u128,
+        };
+      }
+    }
+
     if (specVersion >= 1900) {
       if (apiAtBlock.events.parachainStaking.Compounded.is(event)) {
         autoCompoundCount++;
