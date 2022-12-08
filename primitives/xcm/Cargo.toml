@@ -19,19 +19,19 @@ serde = { version = "1.0.101", optional = true, default-features = false, featur
 sha3 = { version = "0.8", default-features = false }
 
 # Substrate
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-io = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+sp-std = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true, default-features = false }
-xcm = { workspace = true, default-features = false }
-xcm-builder = { workspace = true, default-features = false }
-xcm-executor = { workspace = true, default-features = false }
+orml-traits = { workspace = true }
+xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
 
 [features]
 default = [ "std" ]

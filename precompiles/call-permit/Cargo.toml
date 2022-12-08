@@ -16,17 +16,17 @@ precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
-pallet-timestamp = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
-sp-io = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+pallet-timestamp = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
 evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
-fp-evm = { workspace = true, default-features = false }
-pallet-evm = { workspace = true, default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
 derive_more = { version = "0.99" }

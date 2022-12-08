@@ -125,7 +125,7 @@ polkadot-cli = { workspace = true }
 polkadot-parachain = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-service = { workspace = true }
-xcm = { workspace = true, default-features = false }
+xcm = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true }

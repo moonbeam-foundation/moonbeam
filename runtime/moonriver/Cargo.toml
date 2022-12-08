@@ -29,7 +29,7 @@ xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 moonbeam-xcm-benchmarks = { path = "../../pallets/moonbeam-xcm-benchmarks", default-features = false }
 pallet-asset-manager = { path = "../../pallets/asset-manager", default-features = false }
 pallet-author-mapping = { path = "../../pallets/author-mapping", default-features = false }
-pallet-crowdloan-rewards = { workspace = true, default-features = false }
+pallet-crowdloan-rewards = { workspace = true }
 pallet-ethereum-chain-id = { path = "../../pallets/ethereum-chain-id", default-features = false }
 pallet-maintenance-mode = { path = "../../pallets/maintenance-mode", default-features = false, features = [ "xcm-support" ] }
 pallet-migrations = { path = "../../pallets/migrations", default-features = false }
@@ -63,78 +63,78 @@ moonbeam-rpc-primitives-debug = { path = "../../primitives/rpc/debug", default-f
 moonbeam-rpc-primitives-txpool = { path = "../../primitives/rpc/txpool", default-features = false }
 
 # Substrate
-frame-executive = { workspace = true, default-features = false }
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
-frame-system-rpc-runtime-api = { workspace = true, default-features = false }
-pallet-assets = { workspace = true, default-features = false }
-pallet-balances = { workspace = true, default-features = false }
-pallet-collective = { workspace = true, default-features = false }
-pallet-democracy = { workspace = true, default-features = false }
-pallet-identity = { workspace = true, default-features = false }
-pallet-preimage = { workspace = true, default-features = false }
-pallet-proxy = { workspace = true, default-features = false }
-pallet-randomness-collective-flip = { workspace = true, default-features = false }
-pallet-scheduler = { workspace = true, default-features = false }
-pallet-society = { workspace = true, default-features = false }
-pallet-timestamp = { workspace = true, default-features = false }
-pallet-transaction-payment = { workspace = true, default-features = false }
-pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-features = false }
-pallet-treasury = { workspace = true, default-features = false }
-pallet-utility = { workspace = true, default-features = false }
+frame-executive = { workspace = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+frame-system-rpc-runtime-api = { workspace = true }
+pallet-assets = { workspace = true }
+pallet-balances = { workspace = true }
+pallet-collective = { workspace = true }
+pallet-democracy = { workspace = true }
+pallet-identity = { workspace = true }
+pallet-preimage = { workspace = true }
+pallet-proxy = { workspace = true }
+pallet-randomness-collective-flip = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-society = { workspace = true }
+pallet-timestamp = { workspace = true }
+pallet-transaction-payment = { workspace = true }
+pallet-transaction-payment-rpc-runtime-api = { workspace = true }
+pallet-treasury = { workspace = true }
+pallet-utility = { workspace = true }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive", "max-encoded-len" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-api = { workspace = true, default-features = false }
-sp-block-builder = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
-sp-debug-derive = { workspace = true, default-features = false }
-sp-inherents = { workspace = true, default-features = false }
-sp-io = { workspace = true, default-features = false }
-sp-offchain = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
-sp-session = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
-sp-transaction-pool = { workspace = true, default-features = false }
-sp-version = { workspace = true, default-features = false }
+sp-api = { workspace = true }
+sp-block-builder = { workspace = true }
+sp-core = { workspace = true }
+sp-debug-derive = { workspace = true }
+sp-inherents = { workspace = true }
+sp-io = { workspace = true }
+sp-offchain = { workspace = true }
+sp-runtime = { workspace = true }
+sp-session = { workspace = true }
+sp-std = { workspace = true }
+sp-transaction-pool = { workspace = true }
+sp-version = { workspace = true }
 
 # Frontier
-fp-evm = { workspace = true, default-features = false }
-fp-rpc = { workspace = true, default-features = false }
-fp-self-contained = { workspace = true, default-features = false }
-pallet-base-fee = { workspace = true, default-features = false }
-pallet-ethereum = { workspace = true, default-features = false, features = [ "forbid-evm-reentrancy" ] }
-pallet-evm = { workspace = true, default-features = false, features = [ "forbid-evm-reentrancy" ] }
-pallet-evm-precompile-blake2 = { workspace = true, default-features = false }
-pallet-evm-precompile-bn128 = { workspace = true, default-features = false }
-pallet-evm-precompile-dispatch = { workspace = true, default-features = false }
-pallet-evm-precompile-modexp = { workspace = true, default-features = false }
-pallet-evm-precompile-sha3fips = { workspace = true, default-features = false }
-pallet-evm-precompile-simple = { workspace = true, default-features = false }
+fp-evm = { workspace = true }
+fp-rpc = { workspace = true }
+fp-self-contained = { workspace = true }
+pallet-base-fee = { workspace = true }
+pallet-ethereum = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
+pallet-evm-precompile-blake2 = { workspace = true }
+pallet-evm-precompile-bn128 = { workspace = true }
+pallet-evm-precompile-dispatch = { workspace = true }
+pallet-evm-precompile-modexp = { workspace = true }
+pallet-evm-precompile-sha3fips = { workspace = true }
+pallet-evm-precompile-simple = { workspace = true }
 
 # Cumulus / Nimbus
-cumulus-pallet-dmp-queue = { workspace = true, default-features = false }
-cumulus-pallet-parachain-system = { workspace = true, default-features = false }
-cumulus-pallet-xcm = { workspace = true, default-features = false }
-cumulus-pallet-xcmp-queue = { workspace = true, default-features = false }
-cumulus-primitives-core = { workspace = true, default-features = false }
-cumulus-primitives-timestamp = { workspace = true, default-features = false }
-cumulus-primitives-utility = { workspace = true, default-features = false }
-nimbus-primitives = { workspace = true, default-features = false }
-pallet-author-inherent = { workspace = true, default-features = false }
-pallet-author-slot-filter = { workspace = true, default-features = false }
-parachain-info = { workspace = true, default-features = false }
+cumulus-pallet-dmp-queue = { workspace = true }
+cumulus-pallet-parachain-system = { workspace = true }
+cumulus-pallet-xcm = { workspace = true }
+cumulus-pallet-xcmp-queue = { workspace = true }
+cumulus-primitives-core = { workspace = true }
+cumulus-primitives-timestamp = { workspace = true }
+cumulus-primitives-utility = { workspace = true }
+nimbus-primitives = { workspace = true }
+pallet-author-inherent = { workspace = true }
+pallet-author-slot-filter = { workspace = true }
+parachain-info = { workspace = true }
 
 # Polkadot / XCM
-orml-traits = { workspace = true, default-features = false }
-orml-xcm-support = { workspace = true, default-features = false }
-orml-xtokens = { workspace = true, default-features = false }
-pallet-xcm = { workspace = true, default-features = false }
+orml-traits = { workspace = true }
+orml-xcm-support = { workspace = true }
+orml-xtokens = { workspace = true }
+pallet-xcm = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true, optional = true, default-features = false }
-polkadot-core-primitives = { workspace = true, default-features = false }
-polkadot-parachain = { workspace = true, default-features = false }
-xcm = { workspace = true, default-features = false }
-xcm-builder = { workspace = true, default-features = false }
-xcm-executor = { workspace = true, default-features = false }
+polkadot-core-primitives = { workspace = true }
+polkadot-parachain = { workspace = true }
+xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
 
 # Benchmarking
 frame-benchmarking = { workspace = true, optional = true, default-features = false }
@@ -146,8 +146,8 @@ ethereum = { version = "0.14.0" }
 hex = "0.4"
 sha3 = "0.9"
 
-cumulus-primitives-parachain-inherent = { workspace = true, default-features = false }
-cumulus-test-relay-sproof-builder = { workspace = true, default-features = false }
+cumulus-primitives-parachain-inherent = { workspace = true }
+cumulus-test-relay-sproof-builder = { workspace = true }
 
 polkadot-runtime-parachains = { workspace = true }
 xcm-simulator = { workspace = true }

@@ -11,18 +11,18 @@ num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
-pallet-crowdloan-rewards = { workspace = true, default-features = false }
+pallet-crowdloan-rewards = { workspace = true }
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
-sp-std = { workspace = true, default-features = false }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-core = { workspace = true }
+sp-std = { workspace = true }
 
 # Frontier
-fp-evm = { workspace = true, default-features = false }
-pallet-evm = { workspace = true, default-features = false, features = [ "forbid-evm-reentrancy" ] }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -38,14 +38,14 @@ pallet-balances = { workspace = true }
 pallet-scheduler = { workspace = true }
 pallet-timestamp = { workspace = true }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-sp-io = { workspace = true, default-features = false }
+sp-io = { workspace = true }
 sp-runtime = { workspace = true }
 
 # Cumulus
-cumulus-pallet-parachain-system = { workspace = true, default-features = false }
-cumulus-primitives-core = { workspace = true, default-features = false }
-cumulus-primitives-parachain-inherent = { workspace = true, default-features = false }
-cumulus-test-relay-sproof-builder = { workspace = true, default-features = false }
+cumulus-pallet-parachain-system = { workspace = true }
+cumulus-primitives-core = { workspace = true }
+cumulus-primitives-parachain-inherent = { workspace = true }
+cumulus-test-relay-sproof-builder = { workspace = true }
 
 [features]
 default = [ "std" ]

@@ -11,11 +11,11 @@ version = "0.1.0"
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", features = [ "derive" ] }
 sp-api = { workspace = true }
-sp-application-crypto = { workspace = true, default-features = false }
-sp-consensus-vrf = { workspace = true, default-features = false }
+sp-application-crypto = { workspace = true }
+sp-consensus-vrf = { workspace = true }
 sp-core = { workspace = true }
-sp-keystore = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
+sp-keystore = { workspace = true }
+sp-runtime = { workspace = true }
 
 # Moonbeam
 session-keys-primitives = { path = "../../primitives/session-keys" }
