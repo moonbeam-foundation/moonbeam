@@ -9623,6 +9623,7 @@ name = "precompile-utils"
 version = "0.1.0"
 dependencies = [
  "affix",
+ "derive_more",
  "evm",
  "fp-evm",
  "frame-support",
@@ -9636,6 +9637,8 @@ dependencies = [
  "parity-scale-codec",
  "paste",
  "precompile-utils-macro",
+ "scale-info",
+ "serde",
  "sha3",
  "similar-asserts",
  "sp-core",

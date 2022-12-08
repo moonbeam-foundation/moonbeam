@@ -15,26 +15,24 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events, roll_to,
-	Account::{Alice, Bob, Charlie, Precompile},
-	Crowdloan, ExtBuilder, PCall, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
-	TestPrecompiles,
+	events, roll_to, AccountId, Crowdloan, ExtBuilder, PCall, Precompiles, PrecompilesValue,
+	Runtime, RuntimeCall, RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
 use pallet_evm::Call as EvmCall;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sha3::{Digest, Keccak256};
-use sp_core::{H160, U256};
+use sp_core::U256;
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: Precompile.into(),
+		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -56,7 +54,7 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default().build().execute_with(|| {
-		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
 
 		tester.test_view_modifier(PCall::is_contributor_selectors());
 		tester.test_view_modifier(PCall::reward_info_selectors());
@@ -70,7 +68,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -79,7 +77,7 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -93,7 +91,7 @@ fn is_contributor_returns_false() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_contributor {
 						contributor: Address(Alice.into()),
 					},
@@ -135,7 +133,7 @@ fn is_contributor_returns_true() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_contributor {
 						contributor: Address(Alice.into()),
 					},
@@ -220,7 +218,7 @@ fn reward_info_works() {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::reward_info {
 						contributor: Address(Alice.into()),
 					},
@@ -278,8 +276,8 @@ fn update_reward_address_works() {
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 			// Assert storage is correctly moved
-			assert!(Crowdloan::accounts_payable(H160::from(Alice)).is_none());
-			assert!(Crowdloan::accounts_payable(H160::from(Charlie)).is_some());
+			assert!(Crowdloan::accounts_payable(AccountId::from(Alice)).is_none());
+			assert!(Crowdloan::accounts_payable(AccountId::from(Charlie)).is_some());
 		});
 }
 
@@ -294,7 +292,7 @@ fn test_bound_checks_for_address_parsing() {
 			input.extend_from_slice(&[1u8; 4]); // incomplete data
 
 			precompiles()
-				.prepare_test(Alice, Precompile, input)
+				.prepare_test(Alice, Precompile1, input)
 				.execute_reverts(|output| output == b"Expected at least 1 arguments")
 		})
 }

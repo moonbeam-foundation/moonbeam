@@ -16,13 +16,11 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{
 	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
 };
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
-use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime,
 	dispatch::UnfilteredDispatchable,
@@ -32,8 +30,8 @@ use frame_support::{
 	weights::Weight,
 };
 use frame_system::{EnsureSigned, RawOrigin};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
@@ -41,10 +39,9 @@ use sp_runtime::{
 	Perbill,
 };
 
-pub type AccountId = H160;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
-pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -64,60 +61,6 @@ construct_runtime!(
 		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
 	}
 );
-
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Copy,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-/// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
-/// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
-/// that is Into<H160> like AccountId20 for example.
-pub struct IntoAddressMapping;
-
-impl<T: From<H160>> AddressMapping<T> for IntoAddressMapping {
-	fn into_account_id(address: H160) -> T {
-		address.into()
-	}
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(value: Account) -> H160 {
-		match value {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
@@ -148,7 +91,7 @@ impl frame_system::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = H160;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
@@ -180,32 +123,14 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	CrowdloanRewardsPrecompile<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Account::Precompile.into() => {
-				Some(CrowdloanRewardsPrecompile::<R>::execute(handle))
-			}
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Account::Precompile.into()
-	}
-}
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, CrowdloanRewardsPrecompile<R>>,)>;
 
 pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
@@ -215,12 +140,12 @@ impl pallet_evm::Config for Runtime {
 	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = IntoAddressMapping;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type PrecompilesType = TestPrecompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
