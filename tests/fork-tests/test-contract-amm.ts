@@ -59,7 +59,7 @@ describeParachain(
     },
   },
   (context) => {
-    const signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
+    let signer;
 
     let usdtContract: Contract,
       poolContract: Contract,
@@ -68,11 +68,14 @@ describeParachain(
       wglmrContract: Contract;
 
     before(async () => {
-      dotContract = new ethers.Contract(xcdotAddress, xcTokenAbi, context.ethers);
-      usdtContract = new ethers.Contract(usdtAddress, xcTokenAbi, context.ethers);
-      wglmrContract = new ethers.Contract(wethAddress, wethAbi, context.ethers);
-      poolContract = new ethers.Contract(glmrDotPoolAddress, glmrDotPoolAbi, context.ethers);
-      routerContract = new ethers.Contract(ammRouterAddress, ammRouterAbi, context.ethers);
+      signer = new ethers.Wallet(ALITH_PRIVATE_KEY, context.ethers);
+      signer.connect(context.ethers);
+
+      dotContract = new ethers.Contract(xcdotAddress, xcTokenAbi, signer);
+      usdtContract = new ethers.Contract(usdtAddress, xcTokenAbi, signer);
+      wglmrContract = new ethers.Contract(wethAddress, wethAbi, signer);
+      poolContract = new ethers.Contract(glmrDotPoolAddress, glmrDotPoolAbi, signer);
+      routerContract = new ethers.Contract(ammRouterAddress, ammRouterAbi, signer);
 
       const alithUsdtBalance = (await usdtContract.functions.balanceOf(signer.address))[0];
       const alithDotBalance = (await dotContract.functions.balanceOf(signer.address))[0];
@@ -113,9 +116,59 @@ describeParachain(
       ).to.be.true;
     });
 
-    // TODO: can calculate the amounts in and out of pool (2x test cases)
+    it("...should calculate swap amount out", async function () {
+      const calculatedAmount = await routerContract.functions.getAmountsOut(
+        ethers.utils.parseEther("1"),
+        [wethAddress, usdtAddress]
+      );
+      debug(
+        `Calculated that 1 GLMR can be swapped for ${ethers.utils.formatUnits(
+          calculatedAmount[0][1],
+          await usdtContract.functions.decimals()
+        )} USDT`
+      );
+      expect(calculatedAmount[0][1].isZero()).to.not.be.true;
+    });
 
-    // TODO: write test to swap some tokens
+    it.only("...should be able to swap approved tokens.", async function () {
+      await dotContract.functions.approve(routerContract.address, ethers.constants.MaxUint256);
+      const approvalAmount = await dotContract.functions.allowance(
+        signer.address,
+        routerContract.address
+      );
+      await context.waitBlocks(1);
+      expect(approvalAmount[0].isZero()).to.be.false;
+
+      // console.log(await dotContract.balanceOf(signer.address))
+
+      const dotBalanceBefore = await dotContract.functions.balanceOf(signer.address);
+      const systemBalanceBefore = await signer.getBalance();
+
+      const deadline = Math.floor(Number(Date.now()) / 1000) + 3000;
+      await routerContract.functions.swapExactETHForTokens(
+        ethers.utils.parseUnits("0.1", await dotContract.functions.decimals()),
+        [wglmrContract.address, dotContract.address],
+        signer.address,
+        deadline,
+        { value: ethers.utils.parseEther("100"), gasLimit: "200000" }
+      );
+      await context.waitBlocks(2);
+
+      const dotBalanceAfter = await dotContract.functions.balanceOf(signer.address);
+      const systemBalanceAfter = await signer.getBalance();
+      debug(
+        `Alith Balances before: ${ethers.utils.formatUnits(
+          dotBalanceBefore[0],
+          await dotContract.functions.decimals()
+        )} DOT, ${ethers.utils.formatEther(
+          systemBalanceBefore
+        )}  GLMR; after:  ${ethers.utils.formatUnits(
+          dotBalanceAfter[0],
+          await dotContract.functions.decimals()
+        )} DOT, ${ethers.utils.formatEther(systemBalanceAfter)} GLMR`
+      );
+      expect([dotBalanceBefore[0].lt(dotBalanceAfter[0]), systemBalanceBefore.gt(systemBalanceAfter)]).to.not.include(false)
+    });
 
     // TODO: write test to add liquidity
 
