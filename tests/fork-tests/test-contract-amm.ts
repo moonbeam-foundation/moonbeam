@@ -25,6 +25,7 @@ import { u8aConcat, u8aToHex, bnToHex } from "@polkadot/util";
 import { u128 } from "@polkadot/types";
 import { hashMessage } from "ethers/lib/utils";
 import { createImportSpecifier } from "typescript";
+import { TWO_MINS } from "../util/constants";
 
 const debug = require("debug")("contract-sim:amm");
 const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
@@ -77,14 +78,14 @@ describeParachain(
       poolContract = new ethers.Contract(glmrDotPoolAddress, glmrDotPoolAbi, signer);
       routerContract = new ethers.Contract(ammRouterAddress, ammRouterAbi, signer);
 
-      const alithUsdtBalance = (await usdtContract.functions.balanceOf(signer.address))[0];
-      const alithDotBalance = (await dotContract.functions.balanceOf(signer.address))[0];
+      const alithUsdtBalance = (await usdtContract.balanceOf(signer.address));
+      const alithDotBalance = (await dotContract.balanceOf(signer.address));
       const alithGlmrBalance = await context.ethers.getBalance(signer.address);
       debug(
         `Alith Balances - USDT:${alithUsdtBalance.div(
-          BigNumber.from((await usdtContract.functions.decimals())[0] ** 10)
+          BigNumber.from((await usdtContract.decimals()) ** 10)
         )} DOT:${alithDotBalance.div(
-          BigNumber.from((await dotContract.functions.decimals())[0] ** 10)
+          BigNumber.from((await dotContract.decimals()) ** 10)
         )} GLMR:${ethers.utils.formatEther(alithGlmrBalance)}`
       );
 
@@ -95,58 +96,57 @@ describeParachain(
     });
 
     it("...should have DOT/WGLMR token balances in pool", async function () {
-      const dotPoolBalance = await dotContract.functions.balanceOf(poolContract.address);
-      const wglmrPoolBalance = await wglmrContract.functions.balanceOf(poolContract.address);
-      expect([dotPoolBalance[0].isZero(), wglmrPoolBalance[0].isZero()]).to.not.include(true);
+      const dotPoolBalance = await dotContract.balanceOf(poolContract.address);
+      const wglmrPoolBalance = await wglmrContract.balanceOf(poolContract.address);
+      expect([dotPoolBalance.isZero(), wglmrPoolBalance.isZero()]).to.not.include(true);
     });
 
     it("...should have expected token addresses for pool", async function () {
-      const token0Address = await poolContract.functions.token0();
-      const token1Address = await poolContract.functions.token1();
+      const token0Address = await poolContract.token0();
+      const token1Address = await poolContract.token1();
       expect([
-        token0Address[0].toLowerCase() === wglmrContract.address.toLowerCase(),
-        token1Address[0].toLowerCase() === dotContract.address.toLowerCase(),
+        token0Address.toLowerCase() === wglmrContract.address.toLowerCase(),
+        token1Address.toLowerCase() === dotContract.address.toLowerCase(),
       ]).to.not.include(false);
     });
 
     it("...should have matching WETH address for router", async function () {
       expect(
-        (await routerContract.functions.WETH())[0].toLowerCase() === wethAddress.toLowerCase(),
+        (await routerContract.WETH()).toLowerCase() === wethAddress.toLowerCase(),
         `❌ WETH address is not match, is this the right network? (moonbeam)`
       ).to.be.true;
     });
 
     it("...should calculate swap amount out", async function () {
-      const calculatedAmount = await routerContract.functions.getAmountsOut(
+      const calculatedAmount = await routerContract.getAmountsOut(
         ethers.utils.parseEther("1"),
         [wethAddress, usdtAddress]
       );
       debug(
         `Calculated that 1 GLMR can be swapped for ${ethers.utils.formatUnits(
-          calculatedAmount[0][1],
-          await usdtContract.functions.decimals()
+          calculatedAmount[1],
+          await usdtContract.decimals()
         )} USDT`
       );
-      expect(calculatedAmount[0][1].isZero()).to.not.be.true;
+      expect(calculatedAmount[1].isZero()).to.not.be.true;
     });
 
-    it.only("...should be able to swap approved tokens.", async function () {
-      await dotContract.functions.approve(routerContract.address, ethers.constants.MaxUint256);
-      const approvalAmount = await dotContract.functions.allowance(
+    it("...should be able to swap approved tokens.", async function () {
+      this.timeout(TWO_MINS)
+      await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
+      const approvalAmount = await dotContract.allowance(
         signer.address,
         routerContract.address
       );
       await context.waitBlocks(1);
-      expect(approvalAmount[0].isZero()).to.be.false;
+      expect(approvalAmount.isZero()).to.be.false;
 
-      // console.log(await dotContract.balanceOf(signer.address))
-
-      const dotBalanceBefore = await dotContract.functions.balanceOf(signer.address);
+      const dotBalanceBefore = await dotContract.balanceOf(signer.address);
       const systemBalanceBefore = await signer.getBalance();
 
       const deadline = Math.floor(Number(Date.now()) / 1000) + 3000;
-      await routerContract.functions.swapExactETHForTokens(
-        ethers.utils.parseUnits("0.1", await dotContract.functions.decimals()),
+      await routerContract.swapExactETHForTokens(
+        ethers.utils.parseUnits("0.1", await dotContract.decimals()),
         [wglmrContract.address, dotContract.address],
         signer.address,
         deadline,
@@ -154,20 +154,20 @@ describeParachain(
       );
       await context.waitBlocks(2);
 
-      const dotBalanceAfter = await dotContract.functions.balanceOf(signer.address);
+      const dotBalanceAfter = await dotContract.balanceOf(signer.address);
       const systemBalanceAfter = await signer.getBalance();
       debug(
         `Alith Balances before: ${ethers.utils.formatUnits(
-          dotBalanceBefore[0],
-          await dotContract.functions.decimals()
+          dotBalanceBefore,
+          await dotContract.decimals()
         )} DOT, ${ethers.utils.formatEther(
           systemBalanceBefore
         )}  GLMR; after:  ${ethers.utils.formatUnits(
-          dotBalanceAfter[0],
-          await dotContract.functions.decimals()
+          dotBalanceAfter,
+          await dotContract.decimals()
         )} DOT, ${ethers.utils.formatEther(systemBalanceAfter)} GLMR`
       );
-      expect([dotBalanceBefore[0].lt(dotBalanceAfter[0]), systemBalanceBefore.gt(systemBalanceAfter)]).to.not.include(false)
+      expect([dotBalanceBefore.lt(dotBalanceAfter), systemBalanceBefore.gt(systemBalanceAfter)]).to.not.include(false)
     });
 
     // TODO: write test to add liquidity
