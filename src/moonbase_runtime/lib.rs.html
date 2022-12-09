@@ -1521,33 +1521,6 @@
 <span id="1521">1521</span>
 <span id="1522">1522</span>
 <span id="1523">1523</span>
-<span id="1524">1524</span>
-<span id="1525">1525</span>
-<span id="1526">1526</span>
-<span id="1527">1527</span>
-<span id="1528">1528</span>
-<span id="1529">1529</span>
-<span id="1530">1530</span>
-<span id="1531">1531</span>
-<span id="1532">1532</span>
-<span id="1533">1533</span>
-<span id="1534">1534</span>
-<span id="1535">1535</span>
-<span id="1536">1536</span>
-<span id="1537">1537</span>
-<span id="1538">1538</span>
-<span id="1539">1539</span>
-<span id="1540">1540</span>
-<span id="1541">1541</span>
-<span id="1542">1542</span>
-<span id="1543">1543</span>
-<span id="1544">1544</span>
-<span id="1545">1545</span>
-<span id="1546">1546</span>
-<span id="1547">1547</span>
-<span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2591,32 +2564,6 @@
 }
 
 <span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>DefaultBaseFeePerGas: U256 = (<span class="number">1 </span>* currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
-	<span class="kw">pub </span>DefaultElasticity: Permill = Permill::zero();
-}
-
-<span class="kw">pub struct </span>BaseFeeThreshold;
-<span class="kw">impl </span>pallet_base_fee::BaseFeeThreshold <span class="kw">for </span>BaseFeeThreshold {
-	<span class="kw">fn </span>lower() -&gt; Permill {
-		Permill::zero()
-	}
-	<span class="kw">fn </span>ideal() -&gt; Permill {
-		Permill::from_parts(<span class="number">500_000</span>)
-	}
-	<span class="kw">fn </span>upper() -&gt; Permill {
-		Permill::from_parts(<span class="number">1_000_000</span>)
-	}
-}
-
-<span class="kw">impl </span>pallet_base_fee::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>Threshold = BaseFeeThreshold;
-	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	</span><span class="kw">type </span>DefaultBaseFeePerGas = DefaultBaseFeePerGas;
-	<span class="kw">type </span>DefaultElasticity = DefaultElasticity;
-}
-
-<span class="macro">parameter_types! </span>{
 	<span class="kw">pub </span>OrbiterReserveIdentifier: [u8; <span class="number">4</span>] = [<span class="string">b&#39;o&#39;</span>, <span class="string">b&#39;r&#39;</span>, <span class="string">b&#39;b&#39;</span>, <span class="string">b&#39;i&#39;</span>];
 }
 
@@ -2737,7 +2684,6 @@
 		Migrations: pallet_migrations::{Pallet, Call, Storage, Config, Event&lt;T&gt;} = <span class="number">32</span>,
 		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">33</span>,
 		ProxyGenesisCompanion: pallet_proxy_genesis_companion::{Pallet, Config&lt;T&gt;} = <span class="number">34</span>,
-		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config&lt;T&gt;, Event} = <span class="number">35</span>,
 		LocalAssets: pallet_assets::&lt;Instance1&gt;::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">36</span>,
 		MoonbeamOrbiters: pallet_moonbeam_orbiters::{Pallet, Call, Storage, Event&lt;T&gt;} = <span class="number">37</span>,
 		EthereumXcm: pallet_ethereum_xcm::{Pallet, Call, Storage, Origin} = <span class="number">38</span>,

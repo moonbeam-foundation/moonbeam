@@ -363,8 +363,6 @@
 <span id="363">363</span>
 <span id="364">364</span>
 <span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -393,18 +391,17 @@
 <span class="kw">use </span>hex_literal::hex;
 <span class="kw">use </span>moonbase_runtime::{
 	currency::UNIT, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
-	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
-	EligibilityValue, EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig,
-	InflationInfo, MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig,
-	PolkadotXcmConfig, Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
+	CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig, EligibilityValue,
+	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
+	MaintenanceModeConfig, ParachainInfoConfig, ParachainStakingConfig, PolkadotXcmConfig,
+	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig,
 	TreasuryCouncilCollectiveConfig, HOURS, WASM_BINARY,
 };
 <span class="kw">use </span>nimbus_primitives::NimbusId;
 <span class="kw">use </span>sc_service::ChainType;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">use </span>sp_core::ecdsa;
-<span class="kw">use </span>sp_core::U256;
-<span class="kw">use </span>sp_runtime::{Perbill, Percent, Permill};
+<span class="kw">use </span>sp_runtime::{Perbill, Percent};
 
 <span class="doccomment">/// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
 </span><span class="kw">pub type </span>ChainSpec = sc_service::GenericChainSpec&lt;GenesisConfig, Extensions&gt;;
@@ -646,7 +643,6 @@
 				.collect(),
 		},
 		ethereum: EthereumConfig {},
-		base_fee: BaseFeeConfig::new(U256::from(<span class="number">1_000_000_000u64</span>), Permill::zero()),
 		democracy: DemocracyConfig::default(),
 		parachain_staking: ParachainStakingConfig {
 			candidates: candidates

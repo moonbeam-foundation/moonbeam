@@ -497,7 +497,7 @@
 
 </span><span class="kw">extern crate </span>alloc;
 
-<span class="kw">use </span>fp_evm::{Context, ExitReason, Log, PrecompileHandle};
+<span class="kw">use </span>fp_evm::{Context, ExitReason, FeeCalculator, Log, PrecompileHandle};
 <span class="kw">use </span>frame_support::traits::Get;
 <span class="kw">use </span>pallet_evm::GasWeightMapping;
 <span class="kw">use </span>pallet_randomness::{
@@ -547,14 +547,13 @@
 	clean_up_cost: u64,
 ) -&gt; EvmResult&lt;()&gt;
 <span class="kw">where
-	</span>Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	</span>Runtime: pallet_randomness::Config + pallet_evm::Config,
 	BalanceOf&lt;Runtime&gt;: Into&lt;U256&gt;,
 {
 	<span class="comment">// assert fee &gt; gasLimit * base_fee
 	</span><span class="kw">let </span>gas_limit_as_u256: U256 = gas_limit.into();
-	<span class="kw">if let </span><span class="prelude-val">Some</span>(gas_limit_times_base_fee) =
-		gas_limit_as_u256.checked_mul(pallet_base_fee::Pallet::&lt;Runtime&gt;::base_fee_per_gas())
-	{
+	<span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
+	<span class="kw">if let </span><span class="prelude-val">Some</span>(gas_limit_times_base_fee) = gas_limit_as_u256.checked_mul(base_fee) {
 		<span class="kw">if </span>gas_limit_times_base_fee &gt;= request_fee.into() {
 			<span class="kw">return </span><span class="prelude-val">Err</span>(revert(
 				<span class="string">&quot;Gas limit at current price must be less than fees allotted&quot;</span>,
@@ -625,7 +624,7 @@
 <span class="attribute">#[precompile_utils::precompile]
 </span><span class="kw">impl</span>&lt;Runtime&gt; RandomnessPrecompile&lt;Runtime&gt;
 <span class="kw">where
-	</span>Runtime: pallet_randomness::Config + pallet_evm::Config + pallet_base_fee::Config,
+	</span>Runtime: pallet_randomness::Config + pallet_evm::Config,
 	&lt;Runtime <span class="kw">as </span>frame_system::Config&gt;::BlockNumber: TryInto&lt;u32&gt; + TryFrom&lt;u32&gt;,
 	BalanceOf&lt;Runtime&gt;: TryFrom&lt;U256&gt; + Into&lt;U256&gt;,
 {
@@ -893,8 +892,9 @@
 			.ok_or(revert(<span class="string">&quot;Before remaining gas &lt; After remaining gas&quot;</span>))<span class="question-mark">?
 			</span>.into();
 		<span class="comment">// cost of execution is before_remaining_gas less after_remaining_gas
-		</span><span class="kw">let </span>cost_of_execution: BalanceOf&lt;Runtime&gt; = gas_used
-			.checked_mul(pallet_base_fee::Pallet::&lt;Runtime&gt;::base_fee_per_gas())
+		</span><span class="kw">let </span>(base_fee, <span class="kw">_</span>) = &lt;Runtime <span class="kw">as </span>pallet_evm::Config&gt;::FeeCalculator::min_gas_price();
+		<span class="kw">let </span>cost_of_execution: BalanceOf&lt;Runtime&gt; = gas_used
+			.checked_mul(base_fee)
 			.ok_or(revert(<span class="string">&quot;Multiply gas used by base fee overflowed&quot;</span>))<span class="question-mark">?
 			</span>.try_into()
 			.map_err(|<span class="kw">_</span>| revert(<span class="string">&quot;amount is too large for provided balance type&quot;</span>))<span class="question-mark">?</span>;

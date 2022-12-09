@@ -1571,33 +1571,6 @@
 <span id="1571">1571</span>
 <span id="1572">1572</span>
 <span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
-<span id="1600">1600</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -2053,32 +2026,6 @@
 	<span class="kw">type </span>OnChargeTransaction = OnChargeEVMTransaction&lt;DealWithFees&lt;Runtime&gt;&gt;;
 	<span class="kw">type </span>BlockGasLimit = BlockGasLimit;
 	<span class="kw">type </span>FindAuthor = FindAuthorAdapter&lt;AuthorInherent&gt;;
-}
-
-<span class="macro">parameter_types! </span>{
-	<span class="kw">pub </span>DefaultBaseFeePerGas: U256 = (<span class="number">1 </span>* currency::GIGAWEI * currency::SUPPLY_FACTOR).into();
-	<span class="kw">pub </span>DefaultElasticity: Permill = Permill::zero();
-}
-
-<span class="kw">pub struct </span>BaseFeeThreshold;
-<span class="kw">impl </span>pallet_base_fee::BaseFeeThreshold <span class="kw">for </span>BaseFeeThreshold {
-	<span class="kw">fn </span>lower() -&gt; Permill {
-		Permill::zero()
-	}
-	<span class="kw">fn </span>ideal() -&gt; Permill {
-		Permill::from_parts(<span class="number">500_000</span>)
-	}
-	<span class="kw">fn </span>upper() -&gt; Permill {
-		Permill::from_parts(<span class="number">1_000_000</span>)
-	}
-}
-
-<span class="kw">impl </span>pallet_base_fee::Config <span class="kw">for </span>Runtime {
-	<span class="kw">type </span>RuntimeEvent = RuntimeEvent;
-	<span class="kw">type </span>Threshold = BaseFeeThreshold;
-	<span class="comment">// Tells `pallet_base_fee` whether to calculate a new BaseFee `on_finalize` or not.
-	</span><span class="kw">type </span>DefaultBaseFeePerGas = DefaultBaseFeePerGas;
-	<span class="kw">type </span>DefaultElasticity = DefaultElasticity;
 }
 
 <span class="macro">parameter_types! </span>{
@@ -2843,7 +2790,6 @@
 		</span>EthereumChainId: pallet_ethereum_chain_id::{Pallet, Storage, Config} = <span class="number">50</span>,
 		EVM: pallet_evm::{Pallet, Config, Call, Storage, Event&lt;T&gt;} = <span class="number">51</span>,
 		Ethereum: pallet_ethereum::{Pallet, Call, Storage, Event, Origin, Config} = <span class="number">52</span>,
-		BaseFee: pallet_base_fee::{Pallet, Call, Storage, Config&lt;T&gt;, Event} = <span class="number">53</span>,
 
 		<span class="comment">// Governance stuff.
 		</span>Scheduler: pallet_scheduler::{Pallet, Storage, Event&lt;T&gt;, Call} = <span class="number">60</span>,
