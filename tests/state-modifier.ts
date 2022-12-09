@@ -167,8 +167,7 @@ async function main(inputFile: string, outputFile?: string) {
     newTotalIssuance = totalIssuance + ALITH_MIN_BALANCE;
   }
   const amount = nToHex(15_000_000_000_000, { isLe: true });
-  const newAlithTokenBalanceData = "0x" + amount.slice(2).padEnd(31, "0") + "1";
-  console.log(newAlithTokenBalanceData);
+  const newAlithTokenBalanceData = "0x" + amount.slice(2).padEnd(35, "0") + "1";
 
   const in2Stream = fs.createReadStream(inputFile, "utf8");
   const rl2 = readline.createInterface({
