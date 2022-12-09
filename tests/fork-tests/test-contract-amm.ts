@@ -1,5 +1,4 @@
-import child_process from "child_process";
-import { alith, ALITH_PRIVATE_KEY } from "../util/accounts";
+import { ALITH_PRIVATE_KEY } from "../util/accounts";
 import { expect } from "chai";
 import { BigNumber, Contract, ethers } from "ethers";
 import {
@@ -7,10 +6,6 @@ import {
   ammRouterAddress,
   glmrDotPoolAbi,
   glmrDotPoolAddress,
-  usdcGlmrPoolAbi,
-  usdcGlmrPoolAddress,
-  usdcwhAbi,
-  usdcwhAddress,
   usdtAddress,
   wethAbi,
   wethAddress,
@@ -19,12 +14,6 @@ import {
 } from "./staticData";
 
 import { describeParachain } from "../util/setup-para-tests";
-
-import { xxhashAsU8a, blake2AsU8a } from "@polkadot/util-crypto";
-import { u8aConcat, u8aToHex, bnToHex } from "@polkadot/util";
-import { u128 } from "@polkadot/types";
-import { hashMessage } from "ethers/lib/utils";
-import { createImportSpecifier } from "typescript";
 import { TWO_MINS } from "../util/constants";
 
 const debug = require("debug")("contract-sim:amm");
@@ -78,20 +67,41 @@ describeParachain(
       poolContract = new ethers.Contract(glmrDotPoolAddress, glmrDotPoolAbi, signer);
       routerContract = new ethers.Contract(ammRouterAddress, ammRouterAbi, signer);
 
-      const alithUsdtBalance = (await usdtContract.balanceOf(signer.address));
-      const alithDotBalance = (await dotContract.balanceOf(signer.address));
+      const alithUsdtBalance = await usdtContract.balanceOf(signer.address);
+      const alithDotBalance = await dotContract.balanceOf(signer.address);
       const alithGlmrBalance = await context.ethers.getBalance(signer.address);
+
       debug(
-        `Alith Balances - USDT:${alithUsdtBalance.div(
-          BigNumber.from((await usdtContract.decimals()) ** 10)
-        )} DOT:${alithDotBalance.div(
-          BigNumber.from((await dotContract.decimals()) ** 10)
-        )} GLMR:${ethers.utils.formatEther(alithGlmrBalance)}`
+        `Alith Balances - ${ethers.utils.formatEther(
+          alithGlmrBalance
+        )} GLMR, ${ethers.utils.formatUnits(
+          alithUsdtBalance,
+          await usdtContract.decimals()
+        )} USDT, ${ethers.utils.formatUnits(alithDotBalance, await dotContract.decimals())} DOT`
       );
 
       expect(
         [alithUsdtBalance.isZero(), alithDotBalance.isZero(), alithGlmrBalance.isZero()],
         "❌ Balances not injected into Alith Account"
+      ).to.not.include(true);
+
+      // Perform token approvals
+      await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
+      await usdtContract.approve(routerContract.address, ethers.constants.MaxUint256);
+      await poolContract.approve(routerContract.address, ethers.constants.MaxUint256);
+      await context.waitBlocks(2);
+      const dotApprovalAmount = await dotContract.allowance(signer.address, routerContract.address);
+      const usdtApprovalAmount = await usdtContract.allowance(
+        signer.address,
+        routerContract.address
+      );
+      const poolApprovalAmount = await poolContract.allowance(
+        signer.address,
+        routerContract.address
+      );
+      expect(
+        [dotApprovalAmount.isZero(), usdtApprovalAmount.isZero(), poolApprovalAmount.isZero()],
+        "Approval amount has not been increased"
       ).to.not.include(true);
     });
 
@@ -118,10 +128,10 @@ describeParachain(
     });
 
     it("...should calculate swap amount out", async function () {
-      const calculatedAmount = await routerContract.getAmountsOut(
-        ethers.utils.parseEther("1"),
-        [wethAddress, usdtAddress]
-      );
+      const calculatedAmount = await routerContract.getAmountsOut(ethers.utils.parseEther("1"), [
+        wethAddress,
+        usdtAddress,
+      ]);
       debug(
         `Calculated that 1 GLMR can be swapped for ${ethers.utils.formatUnits(
           calculatedAmount[1],
@@ -131,16 +141,9 @@ describeParachain(
       expect(calculatedAmount[1].isZero()).to.not.be.true;
     });
 
-    it("...should be able to swap approved tokens.", async function () {
-      this.timeout(TWO_MINS)
-      await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
-      const approvalAmount = await dotContract.allowance(
-        signer.address,
-        routerContract.address
-      );
-      await context.waitBlocks(1);
-      expect(approvalAmount.isZero()).to.be.false;
-
+    it("...should be able to swap tokens.", async function () {
+      this.slow(30000);
+      this.timeout(TWO_MINS);
       const dotBalanceBefore = await dotContract.balanceOf(signer.address);
       const systemBalanceBefore = await signer.getBalance();
 
@@ -167,17 +170,72 @@ describeParachain(
           await dotContract.decimals()
         )} DOT, ${ethers.utils.formatEther(systemBalanceAfter)} GLMR`
       );
-      expect([dotBalanceBefore.lt(dotBalanceAfter), systemBalanceBefore.gt(systemBalanceAfter)]).to.not.include(false)
+      expect(
+        [dotBalanceBefore.lt(dotBalanceAfter), systemBalanceBefore.gt(systemBalanceAfter)],
+        "Balances post-swap have not been updated"
+      ).to.not.include(false);
     });
 
-    // TODO: write test to add liquidity
+    it("...should be able to add/remove liquidity to the pool", async function () {
+      this.slow(50000);
+      this.timeout(TWO_MINS);
 
-    // TODO: write test to remove liquidity
+      const poolTokenBalanceBefore = await poolContract.balanceOf(signer.address);
+      const dotTokenBalanceBefore = await dotContract.balanceOf(signer.address);
+      const glmrTokenBalanceBefore = await signer.getBalance();
+      const glmrAmount = ethers.utils.parseEther("130");
+      const dotAmount = ethers.utils.parseUnits("10", await dotContract.decimals());
 
-    // TODO: Deposit LP token to farm
+      /// Add liquidity
+      await routerContract.addLiquidityETH(
+        dotContract.address,
+        dotAmount,
+        BigNumber.from(0),
+        BigNumber.from(0),
+        signer.address,
+        Math.floor(Number(Date.now()) / 1000) + 3000,
+        { value: glmrAmount, gasLimit: "300000" }
+      );
+      await context.waitBlocks(2);
 
-    // TODO: Harvest rewards from farm
+      /// baalnces again
+      const poolTokenBalanceAfter = await poolContract.balanceOf(signer.address);
+      const dotTokenBalanceAfter = await dotContract.balanceOf(signer.address);
+      const glmrTokenBalanceAfter = await signer.getBalance();
 
-    // TODO: Withdraw LP token from farm
+      expect(
+        [
+          poolTokenBalanceBefore.lt(poolTokenBalanceAfter),
+          dotTokenBalanceBefore.gt(dotTokenBalanceAfter),
+          glmrTokenBalanceBefore.gt(glmrTokenBalanceAfter),
+        ],
+        "Balances have not been updated after AddLiquidityETH call"
+      ).to.not.include(false);
+
+      // Remove Liquidity
+      await routerContract.removeLiquidityETH(
+        dotContract.address,
+        poolTokenBalanceAfter,
+        BigNumber.from(0),
+        BigNumber.from(0),
+        signer.address,
+        Math.floor(Number(Date.now()) / 1000) + 3000,
+        { gasLimit: "300000" }
+      );
+      await context.waitBlocks(2);
+
+      const poolTokenBalanceFinally = await poolContract.balanceOf(signer.address);
+      const dotTokenBalanceFinally = await dotContract.balanceOf(signer.address);
+      const glmrTokenBalanceFinally = await signer.getBalance();
+
+      expect(
+        [
+          poolTokenBalanceFinally.lt(poolTokenBalanceAfter),
+          dotTokenBalanceFinally.gt(dotTokenBalanceAfter),
+          glmrTokenBalanceFinally.gt(glmrTokenBalanceAfter),
+        ],
+        "Balances have not been updated after RemoveLiquidityETH call"
+      ).to.not.include(false);
+    });
   }
 );

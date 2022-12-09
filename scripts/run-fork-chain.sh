@@ -99,6 +99,7 @@ then
     ## Build the runtime to test
     echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
     cd $ROOT_FOLDER/moonbeam
+    git checkout $GIT_TAG
     cargo build --release -p ${RUNTIME_NAME}-runtime
 
     if [[ $USE_LOCAL_CLIENT == "true" ]]
@@ -116,6 +117,7 @@ npm install
 
 cd $ROOT_FOLDER/moonbeam/tests
 npm ci
+
 
 echo " - moonbeam binary: $BINARY_PATH"
 echo "   - $($BINARY_PATH --version)"

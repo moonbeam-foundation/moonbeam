@@ -35,7 +35,6 @@ const storageBlake128DoubleMapKey = (module, name, [key1, key2]) => {
 async function main(inputFile: string, outputFile?: string) {
   const ALITH = "0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac";
   const ALITH_SESSION = "0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d";
-  const assetId = "42259045809535163221576417993425387648";
 
   console.log(chalk.blueBright(`  * Preparing Alith: ${ALITH} session ${ALITH_SESSION}`));
 
@@ -77,13 +76,7 @@ async function main(inputFile: string, outputFile?: string) {
   const lastDmqMqcHeadPrefix = `        "${storageKey("ParachainSystem", "LastDmqMqcHead")}`;
   const alithBalancePrefix = `        "${storageBlake128MapKey("System", "Account", ALITH)}`;
   const totalIssuanceBalancePrefix = `        "${storageKey("Balances", "TotalIssuance")}`;
-
   const assetsBalancePrefix = `        "${storageKey("Assets", "Account")}`;
-  const alithDotBalancePrefix = `        "${storageBlake128DoubleMapKey("Assets", "Account", [
-    bnToHex(BigInt(DOT_ASSET_ID), { isLe: true, bitLength: 128 }),
-    ALITH,
-  ])}`;
-
   const inboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpMessages")}`;
   const inboundXcmpStatusPrefix = `        "${storageKey("XcmpQueue", "InboundXcmpStatus")}`;
   const outboundXcmpMessagesPrefix = `        "${storageKey("XcmpQueue", "OutboundXcmpMessages")}`;
@@ -173,9 +166,9 @@ async function main(inputFile: string, outputFile?: string) {
     ).slice(2)}${alithAccountData.slice(66)}`;
     newTotalIssuance = totalIssuance + ALITH_MIN_BALANCE;
   }
-  // const amount = nToHex(1337,{isLe:true})
-  const amount = "00c419f2280c";
-  const newAlithTokenBalanceData = `0x${amount}000000000000000000000001`;
+  const amount = nToHex(15_000_000_000_000, { isLe: true });
+  const newAlithTokenBalanceData = "0x" + amount.slice(2).padEnd(31, "0") + "1";
+  console.log(newAlithTokenBalanceData);
 
   const in2Stream = fs.createReadStream(inputFile, "utf8");
   const rl2 = readline.createInterface({
