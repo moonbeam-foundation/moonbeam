@@ -348,7 +348,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 
 				fn elasticity() -> Option<Permill> {
-					Some(BaseFee::elasticity())
+					None
 				}
 			}
 
