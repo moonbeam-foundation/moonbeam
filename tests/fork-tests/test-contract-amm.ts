@@ -86,10 +86,6 @@ describeParachain(
       ).to.not.include(true);
 
       // Perform token approvals
-      await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
-      await usdtContract.approve(routerContract.address, ethers.constants.MaxUint256);
-      await poolContract.approve(routerContract.address, ethers.constants.MaxUint256);
-      await context.waitBlocks(2);
       const dotApprovalAmount = await dotContract.allowance(signer.address, routerContract.address);
       const usdtApprovalAmount = await usdtContract.allowance(
         signer.address,
@@ -99,10 +95,36 @@ describeParachain(
         signer.address,
         routerContract.address
       );
-      expect(
-        [dotApprovalAmount.isZero(), usdtApprovalAmount.isZero(), poolApprovalAmount.isZero()],
-        "Approval amount has not been increased"
-      ).to.not.include(true);
+
+      if (
+        dotApprovalAmount.isZero() ||
+        usdtApprovalAmount.isZero() ||
+        poolApprovalAmount.isZero()
+      ) {
+        await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
+        await usdtContract.approve(routerContract.address, ethers.constants.MaxUint256);
+        await poolContract.approve(routerContract.address, ethers.constants.MaxUint256);
+        debug(`ℹ️ Setting allowances, please wait ...`);
+        await context.waitBlocks(2);
+        const dotApprovalAmount = await dotContract.allowance(
+          signer.address,
+          routerContract.address
+        );
+        const usdtApprovalAmount = await usdtContract.allowance(
+          signer.address,
+          routerContract.address
+        );
+        const poolApprovalAmount = await poolContract.allowance(
+          signer.address,
+          routerContract.address
+        );
+        expect(
+          [dotApprovalAmount.isZero(), usdtApprovalAmount.isZero(), poolApprovalAmount.isZero()],
+          "Approval amount has not been increased"
+        ).to.not.include(true);
+      } else {
+        debug(`✅ Allowances already set, skipping approvals`);
+      }
     });
 
     it("...should have DOT/WGLMR token balances in pool", async function () {
