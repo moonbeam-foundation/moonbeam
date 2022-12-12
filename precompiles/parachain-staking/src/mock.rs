@@ -125,16 +125,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -156,7 +156,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -194,16 +194,18 @@ pub type PCall = ParachainStakingPrecompileCall<Runtime>;
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(Default::default());
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = TestPrecompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
@@ -245,7 +247,7 @@ parameter_types! {
 	pub const BlockAuthor: Account = Account::Alice;
 }
 impl pallet_parachain_staking::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
@@ -264,6 +266,7 @@ impl pallet_parachain_staking::Config for Runtime {
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
 	type BlockAuthor = BlockAuthor;
+	type PayoutCollatorReward = ();
 	type OnCollatorPayout = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
@@ -400,7 +403,7 @@ pub(crate) fn roll_to_round_begin(round: BlockNumber) {
 	roll_to(block)
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)

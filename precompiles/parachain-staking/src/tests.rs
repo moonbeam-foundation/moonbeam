@@ -17,7 +17,8 @@
 use crate::mock::{
 	events, roll_to, roll_to_round_begin, set_points,
 	Account::{self, Alice, Bob, Bogus, Charlie, Precompile},
-	Call, ExtBuilder, Origin, PCall, ParachainStaking, PrecompilesValue, Runtime, TestPrecompiles,
+	ExtBuilder, PCall, ParachainStaking, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
+	TestPrecompiles,
 };
 use core::str::from_utf8;
 use frame_support::sp_runtime::Percent;
@@ -79,6 +80,46 @@ fn selectors() {
 	assert!(PCall::schedule_delegator_bond_less_selectors().contains(&0xc172fd2b));
 	assert!(PCall::execute_delegation_request_selectors().contains(&0xe98c8abe));
 	assert!(PCall::cancel_delegation_request_selectors().contains(&0xc90eee83));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_delegator_selectors());
+		tester.test_view_modifier(PCall::is_candidate_selectors());
+		tester.test_view_modifier(PCall::is_selected_candidate_selectors());
+		tester.test_view_modifier(PCall::points_selectors());
+		tester.test_view_modifier(PCall::min_delegation_selectors());
+		tester.test_view_modifier(PCall::candidate_count_selectors());
+		tester.test_view_modifier(PCall::round_selectors());
+		tester.test_view_modifier(PCall::candidate_delegation_count_selectors());
+		tester.test_view_modifier(PCall::delegator_delegation_count_selectors());
+		tester.test_view_modifier(PCall::selected_candidates_selectors());
+		tester.test_view_modifier(PCall::delegation_request_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_exit_is_pending_selectors());
+		tester.test_view_modifier(PCall::candidate_request_is_pending_selectors());
+		tester.test_default_modifier(PCall::join_candidates_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::execute_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_candidates_selectors());
+		tester.test_default_modifier(PCall::go_offline_selectors());
+		tester.test_default_modifier(PCall::go_online_selectors());
+		tester.test_default_modifier(PCall::candidate_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::cancel_candidate_bond_less_selectors());
+		tester.test_default_modifier(PCall::delegate_selectors());
+		tester.test_default_modifier(PCall::schedule_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::execute_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::cancel_leave_delegators_selectors());
+		tester.test_default_modifier(PCall::schedule_revoke_delegation_selectors());
+		tester.test_default_modifier(PCall::delegator_bond_more_selectors());
+		tester.test_default_modifier(PCall::schedule_delegator_bond_less_selectors());
+		tester.test_default_modifier(PCall::execute_delegation_request_selectors());
+		tester.test_default_modifier(PCall::cancel_delegation_request_selectors());
+	});
 }
 
 #[test]
@@ -619,9 +660,11 @@ fn join_candidates_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::JoinedCollatorCandidates {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::JoinedCollatorCandidates {
 				account: Alice,
 				amount_locked: 1000,
 				new_total_amt_locked: 1000,
@@ -646,9 +689,11 @@ fn schedule_leave_candidates_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CandidateScheduledExit {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateScheduledExit {
 				exit_allowed_round: 1,
 				candidate: Alice,
 				scheduled_exit: 3,
@@ -667,7 +712,7 @@ fn execute_leave_candidates_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(Alice),
+				RuntimeOrigin::signed(Alice),
 				1
 			));
 			roll_to(10);
@@ -679,9 +724,11 @@ fn execute_leave_candidates_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CandidateLeft {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateLeft {
 				ex_candidate: Alice,
 				unlocked_amount: 1_000,
 				new_total_amt_locked: 0,
@@ -700,7 +747,7 @@ fn cancel_leave_candidates_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_leave_candidates(
-				Origin::signed(Alice),
+				RuntimeOrigin::signed(Alice),
 				1
 			));
 
@@ -710,9 +757,11 @@ fn cancel_leave_candidates_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event =
+			let expected: crate::mock::RuntimeEvent =
 				StakingEvent::CancelledCandidateExit { candidate: Alice }.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -726,14 +775,16 @@ fn go_online_works() {
 		.with_candidates(vec![(Alice, 1_000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::go_offline(Origin::signed(Alice)));
+			assert_ok!(ParachainStaking::go_offline(RuntimeOrigin::signed(Alice)));
 
 			let input_data = PCall::go_online {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event =
+			let expected: crate::mock::RuntimeEvent =
 				StakingEvent::CandidateBackOnline { candidate: Alice }.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -749,9 +800,11 @@ fn go_offline_works() {
 		.execute_with(|| {
 			let input_data = PCall::go_offline {}.into();
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event =
+			let expected: crate::mock::RuntimeEvent =
 				StakingEvent::CandidateWentOffline { candidate: Alice }.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -768,9 +821,11 @@ fn candidate_bond_more_works() {
 			let input_data = PCall::candidate_bond_more { more: 500.into() }.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CandidateBondedMore {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondedMore {
 				candidate: Alice,
 				amount: 500,
 				new_total_bond: 1500,
@@ -791,9 +846,11 @@ fn schedule_candidate_bond_less_works() {
 			let input_data = PCall::schedule_candidate_bond_less { less: 500.into() }.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CandidateBondLessRequested {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondLessRequested {
 				candidate: Alice,
 				amount_to_decrease: 500,
 				execute_round: 3,
@@ -812,7 +869,7 @@ fn execute_candidate_bond_less_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(Alice),
+				RuntimeOrigin::signed(Alice),
 				500
 			));
 			roll_to(10);
@@ -823,9 +880,11 @@ fn execute_candidate_bond_less_works() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CandidateBondedLess {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CandidateBondedLess {
 				candidate: Alice,
 				amount: 500,
 				new_bond: 1000,
@@ -844,16 +903,18 @@ fn cancel_candidate_bond_less_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_candidate_bond_less(
-				Origin::signed(Alice),
+				RuntimeOrigin::signed(Alice),
 				200
 			));
 
 			let input_data = PCall::cancel_candidate_bond_less {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::CancelledCandidateBondLess {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledCandidateBondLess {
 				candidate: Alice,
 				amount: 200,
 				execute_round: 3,
@@ -880,11 +941,11 @@ fn delegate_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
 			assert!(ParachainStaking::is_delegator(&Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::Delegation {
 				delegator: Bob,
 				locked_amount: 1_000,
 				candidate: Alice,
@@ -910,9 +971,9 @@ fn schedule_leave_delegators_works() {
 			let input_data = PCall::schedule_leave_delegators {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegatorExitScheduled {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegatorExitScheduled {
 				round: 1,
 				delegator: Bob,
 				scheduled_exit: 3,
@@ -931,9 +992,9 @@ fn execute_leave_delegators_works() {
 		.with_delegations(vec![(Bob, Alice, 500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				Bob
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(Bob)
+			));
 			roll_to(10);
 
 			let input_data = PCall::execute_leave_delegators {
@@ -943,9 +1004,11 @@ fn execute_leave_delegators_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::DelegatorLeft {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegatorLeft {
 				delegator: Bob,
 				unstaked_amount: 500,
 			}
@@ -963,16 +1026,16 @@ fn cancel_leave_delegators_works() {
 		.with_delegations(vec![(Bob, Alice, 500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ParachainStaking::schedule_leave_delegators(Origin::signed(
-				Bob
-			)));
+			assert_ok!(ParachainStaking::schedule_leave_delegators(
+				RuntimeOrigin::signed(Bob)
+			));
 
 			let input_data = PCall::cancel_leave_delegators {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event =
+			let expected: crate::mock::RuntimeEvent =
 				StakingEvent::DelegatorExitCancelled { delegator: Bob }.into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
@@ -993,9 +1056,9 @@ fn schedule_revoke_delegation_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevocationScheduled {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationRevocationScheduled {
 				round: 1,
 				delegator: Bob,
 				candidate: Alice,
@@ -1021,9 +1084,9 @@ fn delegator_bond_more_works() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::DelegationIncreased {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationIncreased {
 				delegator: Bob,
 				candidate: Alice,
 				amount: 500,
@@ -1049,16 +1112,17 @@ fn schedule_delegator_bond_less_works() {
 			}
 			.into();
 
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
 			// Check for the right events.
-			let expected_event: crate::mock::Event = StakingEvent::DelegationDecreaseScheduled {
-				delegator: Bob,
-				candidate: Alice,
-				amount_to_decrease: 500,
-				execute_round: 3,
-			}
-			.into();
+			let expected_event: crate::mock::RuntimeEvent =
+				StakingEvent::DelegationDecreaseScheduled {
+					delegator: Bob,
+					candidate: Alice,
+					amount_to_decrease: 500,
+					execute_round: 3,
+				}
+				.into();
 
 			assert!(events().contains(&expected_event));
 		});
@@ -1073,7 +1137,7 @@ fn execute_revoke_delegation_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(Bob),
+				RuntimeOrigin::signed(Bob),
 				Alice
 			));
 			roll_to(10);
@@ -1085,9 +1149,11 @@ fn execute_revoke_delegation_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::DelegationRevoked {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationRevoked {
 				delegator: Bob,
 				candidate: Alice,
 				unstaked_amount: 1_000,
@@ -1107,7 +1173,7 @@ fn execute_delegator_bond_less_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(Bob),
+				RuntimeOrigin::signed(Bob),
 				Alice,
 				500
 			));
@@ -1120,9 +1186,11 @@ fn execute_delegator_bond_less_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Alice, input_data)).dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Evm(evm_call(Alice, input_data)).dispatch(RuntimeOrigin::root())
+			);
 
-			let expected: crate::mock::Event = StakingEvent::DelegationDecreased {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::DelegationDecreased {
 				delegator: Bob,
 				candidate: Alice,
 				amount: 500,
@@ -1143,7 +1211,7 @@ fn cancel_revoke_delegation_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_revoke_delegation(
-				Origin::signed(Bob),
+				RuntimeOrigin::signed(Bob),
 				Alice
 			));
 
@@ -1153,9 +1221,9 @@ fn cancel_revoke_delegation_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledDelegationRequest {
 				delegator: Bob,
 				collator: Alice,
 				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
@@ -1178,7 +1246,7 @@ fn cancel_delegator_bonded_less_works() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(ParachainStaking::schedule_delegator_bond_less(
-				Origin::signed(Bob),
+				RuntimeOrigin::signed(Bob),
 				Alice,
 				500
 			));
@@ -1189,9 +1257,9 @@ fn cancel_delegator_bonded_less_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = StakingEvent::CancelledDelegationRequest {
+			let expected: crate::mock::RuntimeEvent = StakingEvent::CancelledDelegationRequest {
 				delegator: Bob,
 				collator: Alice,
 				cancelled_request: pallet_parachain_staking::CancelledScheduledRequest {
@@ -1207,74 +1275,141 @@ fn cancel_delegator_bonded_less_works() {
 
 #[test]
 fn delegate_with_auto_compound_works() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = PCall::delegate_with_auto_compound {
-				candidate: Address(Alice.into()),
-				amount: 1_000.into(),
-				auto_compound: 50,
-				candidate_delegation_count: 0.into(),
-				candidate_auto_compounding_delegation_count: 0.into(),
-				delegator_delegation_count: 0.into(),
-			}
-			.into();
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::delegate_with_auto_compound {
+					candidate: Address(Alice.into()),
+					amount: 1_000.into(),
+					auto_compound: auto_compound_percent,
+					candidate_delegation_count: 0.into(),
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 0.into(),
+				}
+				.into();
 
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+				// Make sure the call goes through successfully
+				assert_ok!(
+					RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root())
+				);
 
-			assert!(ParachainStaking::is_delegator(&Bob));
+				assert!(ParachainStaking::is_delegator(&Bob));
 
-			let expected: crate::mock::Event = StakingEvent::Delegation {
-				delegator: Bob,
-				locked_amount: 1_000,
-				candidate: Alice,
-				delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
-					new_total: 2_000,
-				},
-				auto_compound: Percent::from_percent(50),
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
+				let expected: crate::mock::RuntimeEvent = StakingEvent::Delegation {
+					delegator: Bob,
+					locked_amount: 1_000,
+					candidate: Alice,
+					delegator_position: pallet_parachain_staking::DelegatorAdded::AddedToTop {
+						new_total: 2_000,
+					},
+					auto_compound: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn delegate_with_auto_compound_returns_error_if_percent_above_hundred() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::delegate_with_auto_compound {
+							candidate: Address(Alice.into()),
+							amount: 1_000.into(),
+							auto_compound: auto_compound_percent,
+							candidate_delegation_count: 0.into(),
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 0.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output).unwrap().contains(
+							"auto_compound: Must be an integer between 0 and 100 included",
+						)
+					});
+			});
+	}
 }
 
 #[test]
 fn set_auto_compound_works_if_delegation() {
-	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
-		.with_candidates(vec![(Alice, 1_000)])
-		.with_delegations(vec![(Bob, Alice, 1_000)])
-		.build()
-		.execute_with(|| {
-			let input_data = PCall::set_auto_compound {
-				candidate: Address(Alice.into()),
-				value: 50,
-				candidate_auto_compounding_delegation_count: 0.into(),
-				delegator_delegation_count: 1.into(),
-			}
-			.into();
+	for auto_compound_percent in [0, 50, 100] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				let input_data = PCall::set_auto_compound {
+					candidate: Address(Alice.into()),
+					value: auto_compound_percent,
+					candidate_auto_compounding_delegation_count: 0.into(),
+					delegator_delegation_count: 1.into(),
+				}
+				.into();
 
-			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(Bob, input_data)).dispatch(Origin::root()));
+				// Make sure the call goes through successfully
+				assert_ok!(
+					RuntimeCall::Evm(evm_call(Bob, input_data)).dispatch(RuntimeOrigin::root())
+				);
 
-			assert_eq!(
-				ParachainStaking::delegation_auto_compound(&Alice, &Bob),
-				Percent::from_percent(50)
-			);
+				assert_eq!(
+					ParachainStaking::delegation_auto_compound(&Alice, &Bob),
+					Percent::from_percent(auto_compound_percent)
+				);
 
-			let expected: crate::mock::Event = StakingEvent::AutoCompoundSet {
-				candidate: Alice,
-				delegator: Bob,
-				value: Percent::from_percent(50),
-			}
-			.into();
-			// Assert that the events vector contains the one expected
-			assert!(events().contains(&expected));
-		});
+				let expected: crate::mock::RuntimeEvent = StakingEvent::AutoCompoundSet {
+					candidate: Alice,
+					delegator: Bob,
+					value: Percent::from_percent(auto_compound_percent),
+				}
+				.into();
+				// Assert that the events vector contains the one expected
+				assert!(events().contains(&expected));
+			});
+	}
+}
+
+#[test]
+fn set_auto_compound_returns_error_if_value_above_hundred_percent() {
+	for auto_compound_percent in [101, 255] {
+		ExtBuilder::default()
+			.with_balances(vec![(Alice, 1_000), (Bob, 1_000)])
+			.with_candidates(vec![(Alice, 1_000)])
+			.with_delegations(vec![(Bob, Alice, 1_000)])
+			.build()
+			.execute_with(|| {
+				PrecompilesValue::get()
+					.prepare_test(
+						Bob,
+						Precompile,
+						PCall::set_auto_compound {
+							candidate: Address(Alice.into()),
+							value: auto_compound_percent,
+							candidate_auto_compounding_delegation_count: 0.into(),
+							delegator_delegation_count: 1.into(),
+						},
+					)
+					.execute_reverts(|output| {
+						from_utf8(&output)
+							.unwrap()
+							.contains("value: Must be an integer between 0 and 100 included")
+					});
+			});
+	}
 }
 
 #[test]

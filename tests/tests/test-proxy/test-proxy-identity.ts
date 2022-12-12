@@ -6,19 +6,30 @@ import { alith, baltathar } from "../../util/accounts";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) => {
+  let identityHash;
   before("setup one identity and registrar", async () => {
+    const identityData = {
+      display: { Raw: "foobar" },
+    };
+    const identity = context.polkadotApi.registry.createType(
+      "PalletIdentityIdentityInfo",
+      identityData
+    );
+    identityHash = identity.hash.toHex();
+
     const block = await context.createBlock([
       context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
-      context.polkadotApi.tx.identity
-        .setIdentity({
-          display: { Raw: "foobar" },
-        })
-        .signAsync(baltathar),
+      context.polkadotApi.tx.identity.setIdentity(identityData).signAsync(baltathar),
     ]);
 
     block.result.forEach((r, idx) => {
       expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
     });
+
+    const identityOf = await context.polkadotApi.query.identity.identityOf(baltathar.address);
+    expect(identityOf.unwrap().info.hash.toHex(), "Identity hash should match").to.equal(
+      identityHash
+    );
   });
 
   it("should fail providing judgement", async () => {
@@ -27,10 +38,15 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
         .proxy(
           alith.address,
           null,
-          // TODO: removes as any once we import new identity pallet (v0.9.29 probably)
-          (context.polkadotApi.tx.identity as any).provideJudgement(0, baltathar.address, {
-            Reasonable: true,
-          })
+          // TODO: Remove any casting when api-augment is updated
+          (context.polkadotApi.tx.identity as any).provideJudgement(
+            0,
+            baltathar.address,
+            {
+              Reasonable: true,
+            },
+            identityHash
+          )
         )
         .signAsync(baltathar)
     );
@@ -41,19 +57,29 @@ describeDevMoonbeam("Proxy : IdentityJudgement fails without proxy", (context) =
 });
 
 describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) => {
+  let identityHash;
   before("setup one identity and registrar", async () => {
+    const identityData = {
+      display: { Raw: "foobar" },
+    };
+    const identity = context.polkadotApi.registry.createType(
+      "PalletIdentityIdentityInfo",
+      identityData
+    );
+    identityHash = identity.hash.toHex();
     const block = await context.createBlock([
       context.polkadotApi.tx.sudo.sudo(context.polkadotApi.tx.identity.addRegistrar(alith.address)),
-      context.polkadotApi.tx.identity
-        .setIdentity({
-          display: { Raw: "foobar" },
-        })
-        .signAsync(baltathar),
+      context.polkadotApi.tx.identity.setIdentity(identityData).signAsync(baltathar),
     ]);
 
     block.result.forEach((r, idx) => {
       expect(r.successful, `tx[${idx}] - ${r.error?.name}`).to.be.true;
     });
+
+    const identityOf = await context.polkadotApi.query.identity.identityOf(baltathar.address);
+    expect(identityOf.unwrap().info.hash.toHex(), "Identity hash should match").to.equal(
+      identityHash
+    );
   });
 
   it("should succeed providing judgement", async () => {
@@ -83,10 +109,15 @@ describeDevMoonbeam("Proxy : IdentityJudgement succeeds with proxy", (context) =
         .proxy(
           alith.address,
           null,
-          // TODO: removes as any once we import new identity pallet (v0.9.29 probably)
-          (context.polkadotApi.tx.identity as any).provideJudgement(0, baltathar.address, {
-            Reasonable: true,
-          })
+          // TODO: Remove any casting when api-augment is updated
+          (context.polkadotApi.tx.identity as any).provideJudgement(
+            0,
+            baltathar.address,
+            {
+              Reasonable: true,
+            },
+            identityHash
+          )
         )
         .signAsync(baltathar)
     );

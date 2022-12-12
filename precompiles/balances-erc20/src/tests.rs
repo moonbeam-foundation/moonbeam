@@ -70,6 +70,32 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Account::Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let mut tester =
+				PrecompilesModifierTester::new(precompiles(), Account::Alice, Account::Precompile);
+
+			tester.test_view_modifier(PCall::balance_of_selectors());
+			tester.test_view_modifier(PCall::total_supply_selectors());
+			tester.test_default_modifier(PCall::approve_selectors());
+			tester.test_view_modifier(PCall::allowance_selectors());
+			tester.test_default_modifier(PCall::transfer_selectors());
+			tester.test_default_modifier(PCall::transfer_from_selectors());
+			tester.test_view_modifier(PCall::name_selectors());
+			tester.test_view_modifier(PCall::symbol_selectors());
+			tester.test_view_modifier(PCall::decimals_selectors());
+			tester.test_payable_modifier(PCall::deposit_selectors());
+			tester.test_default_modifier(PCall::withdraw_selectors());
+			tester.test_view_modifier(PCall::eip2612_nonces_selectors());
+			tester.test_default_modifier(PCall::eip2612_permit_selectors());
+			tester.test_view_modifier(PCall::eip2612_domain_separator_selectors());
+		});
+}
+
+#[test]
 fn get_total_supply() {
 	ExtBuilder::default()
 		.with_balances(vec![(Account::Alice, 1000), (Account::Bob, 2500)])
@@ -549,7 +575,7 @@ fn deposit(data: Vec<u8>) {
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
 			// to the precompile.
 			Evm::call(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Account::Alice.into(),
 				Account::Precompile.into(),
 				data,
@@ -565,27 +591,27 @@ fn deposit(data: Vec<u8>) {
 			assert_eq!(
 				events(),
 				vec![
-					Event::System(frame_system::Event::NewAccount {
+					RuntimeEvent::System(frame_system::Event::NewAccount {
 						account: Account::Precompile
 					}),
-					Event::Balances(pallet_balances::Event::Endowed {
+					RuntimeEvent::Balances(pallet_balances::Event::Endowed {
 						account: Account::Precompile,
 						free_balance: 500
 					}),
 					// EVM make a transfer because some value is provided.
-					Event::Balances(pallet_balances::Event::Transfer {
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
 						from: Account::Alice,
 						to: Account::Precompile,
 						amount: 500
 					}),
 					// Precompile send it back since deposit should be a no-op.
-					Event::Balances(pallet_balances::Event::Transfer {
+					RuntimeEvent::Balances(pallet_balances::Event::Transfer {
 						from: Account::Precompile,
 						to: Account::Alice,
 						amount: 500
 					}),
 					// Log is correctly emited.
-					Event::Evm(pallet_evm::Event::Log {
+					RuntimeEvent::Evm(pallet_evm::Event::Log {
 						log: log2(
 							Precompile,
 							SELECTOR_LOG_DEPOSIT,
@@ -593,7 +619,7 @@ fn deposit(data: Vec<u8>) {
 							EvmDataWriter::new().write(U256::from(500)).build(),
 						)
 					}),
-					Event::Evm(pallet_evm::Event::Executed {
+					RuntimeEvent::Evm(pallet_evm::Event::Executed {
 						address: Account::Precompile.into()
 					}),
 				]
@@ -665,7 +691,7 @@ fn deposit_zero() {
 			// We need to call using EVM pallet so we can check the EVM correctly sends the amount
 			// to the precompile.
 			Evm::call(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Account::Alice.into(),
 				Account::Precompile.into(),
 				PCall::deposit {}.into(),
@@ -680,7 +706,7 @@ fn deposit_zero() {
 
 			assert_eq!(
 				events(),
-				vec![Event::Evm(pallet_evm::Event::ExecutedFailed {
+				vec![RuntimeEvent::Evm(pallet_evm::Event::ExecutedFailed {
 					address: Account::Precompile.into()
 				}),]
 			);

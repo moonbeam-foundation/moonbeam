@@ -21,28 +21,165 @@
 use crate::delegation_requests::{DelegationAction, ScheduledRequest};
 use crate::pallet::{DelegationScheduledRequests, DelegatorState, Total};
 #[allow(deprecated)]
-use crate::types::deprecated::{DelegationChange, Delegator as OldDelegator};
-use crate::types::Delegator;
-use crate::{
-	BalanceOf, Bond, BottomDelegations, CandidateInfo, CandidateMetadata, CapacityStatus,
-	CollatorCandidate, Config, Delegations, Event, Pallet, Points, Round, Staked, TopDelegations,
+use crate::types::deprecated::{
+	CollatorSnapshot as OldCollatorSnapshot, DelegationChange, Delegator as OldDelegator,
 };
-#[cfg(feature = "try-runtime")]
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+use crate::types::{CollatorSnapshot, Delegator};
+use crate::{
+	AtStake, BalanceOf, Bond, BondWithAutoCompound, BottomDelegations, CandidateInfo,
+	CandidateMetadata, CapacityStatus, CollatorCandidate, Config, DelayedPayouts, Delegations,
+	Event, Pallet, Points, Round, RoundIndex, Staked, TopDelegations,
+};
 use frame_support::Twox64Concat;
+use parity_scale_codec::{Decode, Encode};
 extern crate alloc;
 #[cfg(feature = "try-runtime")]
-use alloc::format;
+use alloc::{format, string::ToString};
 use frame_support::{
 	migration::storage_key_iter,
 	pallet_prelude::PhantomData,
+	storage,
 	traits::{Get, OnRuntimeUpgrade, ReservableCurrency},
 	weights::Weight,
 };
 #[cfg(feature = "try-runtime")]
 use scale_info::prelude::string::String;
 use sp_runtime::traits::{Saturating, Zero};
-use sp_std::{convert::TryInto, vec::Vec};
+use sp_runtime::Percent;
+use sp_std::{convert::TryInto, vec, vec::Vec};
+
+/// Migrate `AtStake` storage item to include auto-compound value for unpaid rounds.
+pub struct MigrateAtStakeAutoCompound<T>(PhantomData<T>);
+impl<T: Config> MigrateAtStakeAutoCompound<T> {
+	/// Get keys for the `AtStake` storage for the rounds up to `RewardPaymentDelay` rounds ago.
+	/// We migrate only the last unpaid rounds due to the presence of stale entries in `AtStake`
+	/// which significantly increase the PoV size.
+	fn unpaid_rounds_keys() -> impl Iterator<Item = (RoundIndex, T::AccountId, Vec<u8>)> {
+		let current_round = <Round<T>>::get().current;
+		let max_unpaid_round = current_round.saturating_sub(T::RewardPaymentDelay::get());
+		(max_unpaid_round..=current_round)
+			.into_iter()
+			.flat_map(|round| {
+				<AtStake<T>>::iter_key_prefix(round).map(move |candidate| {
+					let key = <AtStake<T>>::hashed_key_for(round.clone(), candidate.clone());
+					(round, candidate, key)
+				})
+			})
+	}
+}
+impl<T: Config> OnRuntimeUpgrade for MigrateAtStakeAutoCompound<T> {
+	#[allow(deprecated)]
+	fn on_runtime_upgrade() -> Weight {
+		log::info!(
+			target: "MigrateAtStakeAutoCompound",
+			"running migration to add auto-compound values"
+		);
+		let mut reads = 0u64;
+		let mut writes = 0u64;
+		for (round, candidate, key) in Self::unpaid_rounds_keys() {
+			let old_state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>> =
+				storage::unhashed::get(&key).expect("unable to decode value");
+			reads = reads.saturating_add(1);
+			writes = writes.saturating_add(1);
+			log::info!(
+				target: "MigrateAtStakeAutoCompound",
+				"migration from old format round {:?}, candidate {:?}", round, candidate
+			);
+			let new_state = CollatorSnapshot {
+				bond: old_state.bond,
+				delegations: old_state
+					.delegations
+					.into_iter()
+					.map(|d| BondWithAutoCompound {
+						owner: d.owner,
+						amount: d.amount,
+						auto_compound: Percent::zero(),
+					})
+					.collect(),
+				total: old_state.total,
+			};
+			storage::unhashed::put(&key, &new_state);
+		}
+
+		T::DbWeight::get().reads_writes(reads, writes)
+	}
+
+	#[allow(deprecated)]
+	#[cfg(feature = "try-runtime")]
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		let mut num_to_update = 0u32;
+		let mut rounds_candidates: Vec<(RoundIndex, T::AccountId)> = vec![];
+		use sp_std::collections::btree_map::BTreeMap;
+		let mut state_map: BTreeMap<String, String> = BTreeMap::new();
+
+		for (round, candidate, key) in Self::unpaid_rounds_keys() {
+			let state: OldCollatorSnapshot<T::AccountId, BalanceOf<T>> =
+				storage::unhashed::get(&key).expect("unable to decode value");
+
+			num_to_update = num_to_update.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound=0%",
+					d.owner, d.amount
+				));
+			}
+			state_map.insert(
+				(&*format!("round_{:?}_candidate_{:?}", round, candidate)).to_string(),
+				format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				),
+			);
+		}
+
+		rounds_candidates.sort();
+		Ok((state_map, rounds_candidates, num_to_update).encode())
+	}
+
+	#[cfg(feature = "try-runtime")]
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let (state_map, rounds_candidates_received, num_updated_received): (
+			BTreeMap<String, String>,
+			Vec<(RoundIndex, T::AccountId)>,
+			u32,
+		) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
+		let mut num_updated = 0u32;
+		let mut rounds_candidates = vec![];
+		for (round, candidate, _) in Self::unpaid_rounds_keys() {
+			let state = <AtStake<T>>::get(&round, &candidate);
+			num_updated = num_updated.saturating_add(1);
+			rounds_candidates.push((round.clone(), candidate.clone()));
+			let mut delegation_str = vec![];
+			for d in state.delegations {
+				delegation_str.push(format!(
+					"owner={:?}_amount={:?}_autoCompound={:?}",
+					d.owner, d.amount, d.auto_compound
+				));
+			}
+			assert_eq!(
+				Some(&format!(
+					"bond={:?}_total={:?}_delegations={:?}",
+					state.bond, state.total, delegation_str
+				)),
+				state_map
+					.get(&((&*format!("round_{:?}_candidate_{:?}", round, candidate)).to_string())),
+				"incorrect delegations migration for round_{:?}_candidate_{:?}",
+				round,
+				candidate,
+			);
+		}
+
+		rounds_candidates.sort();
+		assert_eq!(rounds_candidates, rounds_candidates_received);
+		assert_eq!(num_updated, num_updated_received);
+		Ok(())
+	}
+}
 
 /// Migration to move delegator requests towards a delegation, from [DelegatorState] into
 /// [DelegationScheduledRequests] storage item.
@@ -151,25 +288,31 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
 		let mut expected_delegator_state_entries = 0u64;
 		let mut expected_requests = 0u64;
+		let mut delegator_state_map: BTreeMap<String, BalanceOf<T>> = BTreeMap::new();
+
+		let mut collator_state_map: BTreeMap<String, String> = BTreeMap::new();
 		for (_key, state) in migration::storage_iter::<OldDelegator<T::AccountId, BalanceOf<T>>>(
 			Self::PALLET_PREFIX,
 			Self::DELEGATOR_STATE_PREFIX,
 		) {
-			Self::set_temp_storage(
+			delegator_state_map.insert(
+				(&*format!("expected_delegator-{:?}_decrease_amount", state.id)).to_string(),
 				state.requests.less_total,
-				&*format!("expected_delegator-{:?}_decrease_amount", state.id),
 			);
 
 			for (collator, request) in state.requests.requests.iter() {
-				Self::set_temp_storage(
-					Self::old_request_to_string(&state.id, &request),
-					&*format!(
+				collator_state_map.insert(
+					(&*format!(
 						"expected_collator-{:?}_delegator-{:?}_request",
 						collator, state.id,
-					),
+					))
+						.to_string(),
+					Self::old_request_to_string(&state.id, &request),
 				);
 			}
 			expected_delegator_state_entries = expected_delegator_state_entries.saturating_add(1);
@@ -177,26 +320,41 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 				expected_requests.saturating_add(state.requests.requests.len() as u64);
 		}
 
-		Self::set_temp_storage(
-			expected_delegator_state_entries,
-			"expected_delegator_state_entries",
-		);
-		Self::set_temp_storage(expected_requests, "expected_requests");
-
 		use frame_support::migration;
 
-		Ok(())
+		Ok((
+			delegator_state_map,
+			collator_state_map,
+			expected_delegator_state_entries,
+			expected_requests,
+		)
+			.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let (
+			delegator_state_map,
+			collator_state_map,
+			expected_delegator_state_entries,
+			expected_requests,
+		): (
+			BTreeMap<String, BalanceOf<T>>,
+			BTreeMap<String, String>,
+			u64,
+			u64,
+		) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
 		// Scheduled decrease amount (bond_less) is correctly migrated
 		let mut actual_delegator_state_entries = 0;
 		for (delegator, state) in <DelegatorState<T>>::iter() {
-			let expected_delegator_decrease_amount: BalanceOf<T> = Self::get_temp_storage(
-				&*format!("expected_delegator-{:?}_decrease_amount", delegator),
-			)
-			.expect("must exist");
+			let expected_delegator_decrease_amount: BalanceOf<T> = delegator_state_map
+				.get(&(&*format!("expected_delegator-{:?}_decrease_amount", state.id)).to_string())
+				.expect("must exist")
+				.clone();
+
 			assert_eq!(
 				expected_delegator_decrease_amount, state.less_total,
 				"decrease amount did not match for delegator {:?}",
@@ -205,9 +363,6 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 			actual_delegator_state_entries = actual_delegator_state_entries.saturating_add(1);
 		}
 
-		// Existing delegator state entries are not removed
-		let expected_delegator_state_entries: u64 =
-			Self::get_temp_storage("expected_delegator_state_entries").expect("must exist");
 		assert_eq!(
 			expected_delegator_state_entries, actual_delegator_state_entries,
 			"unexpected change in the number of DelegatorState entries"
@@ -217,11 +372,17 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 		let mut actual_requests = 0u64;
 		for (collator, scheduled_requests) in <DelegationScheduledRequests<T>>::iter() {
 			for request in scheduled_requests {
-				let expected_delegator_request: String = Self::get_temp_storage(&*format!(
-					"expected_collator-{:?}_delegator-{:?}_request",
-					collator, request.delegator,
-				))
-				.expect("must exist");
+				let expected_delegator_request: String = collator_state_map
+					.get(
+						&*format!(
+							"expected_collator-{:?}_delegator-{:?}_request",
+							collator, request.delegator,
+						)
+						.to_string(),
+					)
+					.expect("must exist")
+					.clone();
+
 				let actual_delegator_request = Self::new_request_to_string(&request);
 				assert_eq!(
 					expected_delegator_request, actual_delegator_request,
@@ -232,9 +393,6 @@ impl<T: Config> OnRuntimeUpgrade for SplitDelegatorStateIntoDelegationScheduledR
 				actual_requests = actual_requests.saturating_add(1);
 			}
 		}
-
-		let expected_requests: u64 =
-			Self::get_temp_storage("expected_requests").expect("must exist");
 		assert_eq!(
 			expected_requests, actual_requests,
 			"number of scheduled request entries did not match",
@@ -310,24 +468,34 @@ impl<T: Config> OnRuntimeUpgrade for PatchIncorrectDelegationSums<T> {
 		Weight::from_ref_time(top.saturating_add(bottom).saturating_add(100_000_000_000))
 	}
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let mut candidate_total_counted_map: BTreeMap<String, BalanceOf<T>> = BTreeMap::new();
+
 		// get total counted for all candidates
 		for (account, state) in <CandidateInfo<T>>::iter() {
-			Self::set_temp_storage(
+			candidate_total_counted_map.insert(
+				(&format!("Candidate{:?}TotalCounted", account)[..]).to_string(),
 				state.total_counted,
-				&format!("Candidate{:?}TotalCounted", account)[..],
 			);
 		}
-		Ok(())
+		Ok(candidate_total_counted_map.encode())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+		use sp_std::collections::btree_map::BTreeMap;
+
+		let candidate_total_counted_map: BTreeMap<String, BalanceOf<T>> =
+			Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
+
 		// ensure new total counted = top_delegations.sum() + collator self bond
 		for (account, state) in <CandidateInfo<T>>::iter() {
-			let old_count =
-				Self::get_temp_storage(&format!("Candidate{:?}TotalCounted", account)[..])
-					.expect("qed");
+			let old_count = candidate_total_counted_map
+				.get(&(&format!("Candidate{:?}TotalCounted", account)[..]).to_string())
+				.expect("qed")
+				.clone();
 			let new_count = state.total_counted;
 			let top_delegations_sum = <TopDelegations<T>>::get(account)
 				.expect("CandidateInfo exists => TopDelegations exists")
@@ -695,13 +863,13 @@ impl<T: Config> OnRuntimeUpgrade for PurgeStaleStorage<T> {
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		// trivial migration
-		Ok(())
+		Ok(Vec::new())
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
+	fn post_upgrade(_state: Vec<u8>) -> Result<(), &'static str> {
 		// expect only the storage items for the last 2 rounds to be stored
 		let staked_count = Staked::<T>::iter().count() as u32;
 		let points_count = Points::<T>::iter().count() as u32;

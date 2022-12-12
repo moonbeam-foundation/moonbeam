@@ -50,7 +50,7 @@ use nimbus_primitives::{AccountLookup, NimbusId};
 pub mod pallet {
 	use super::*;
 	use frame_support::pallet_prelude::*;
-	use frame_support::traits::{Currency, Imbalance, NamedReservableCurrency};
+	use frame_support::traits::{Currency, NamedReservableCurrency};
 	use frame_system::pallet_prelude::*;
 	use sp_runtime::traits::{CheckedSub, One, Saturating, StaticLookup, Zero};
 
@@ -68,20 +68,20 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type.
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
 		/// orbiters authoring.
 		type AccountLookup: AccountLookup<Self::AccountId>;
 
 		/// Origin that is allowed to add a collator in orbiters program.
-		type AddCollatorOrigin: EnsureOrigin<Self::Origin>;
+		type AddCollatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// The currency type.
 		type Currency: NamedReservableCurrency<Self::AccountId>;
 
 		/// Origin that is allowed to remove a collator from orbiters program.
-		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
+		type DelCollatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		#[pallet::constant]
 		/// Maximum number of orbiters per collator.
@@ -534,25 +534,22 @@ pub mod pallet {
 			amount: BalanceOf<T>,
 		) -> Weight {
 			if let Some(orbiter) = OrbiterPerRound::<T>::take(pay_for_round, &collator) {
-				if let Ok(amount_to_transfer) = T::Currency::withdraw(
-					&collator,
-					amount,
-					frame_support::traits::WithdrawReasons::TRANSFER,
-					frame_support::traits::ExistenceRequirement::KeepAlive,
-				) {
-					let real_reward = amount_to_transfer.peek();
-					if T::Currency::resolve_into_existing(&orbiter, amount_to_transfer).is_ok() {
-						Self::deposit_event(Event::OrbiterRewarded {
-							account: orbiter,
-							rewards: real_reward,
-						});
-					}
+				if T::Currency::deposit_into_existing(&orbiter, amount).is_ok() {
+					Self::deposit_event(Event::OrbiterRewarded {
+						account: orbiter,
+						rewards: amount,
+					});
 				}
 				T::WeightInfo::distribute_rewards()
 			} else {
 				// writes: take
 				T::DbWeight::get().writes(1)
 			}
+		}
+
+		/// Check if an account is an orbiter account for a given round
+		pub fn is_orbiter(for_round: T::RoundIndex, collator: T::AccountId) -> bool {
+			OrbiterPerRound::<T>::contains_key(for_round, &collator)
 		}
 	}
 }

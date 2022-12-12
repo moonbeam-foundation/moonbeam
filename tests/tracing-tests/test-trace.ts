@@ -5,6 +5,7 @@ import { ethers } from "ethers";
 import { Contract } from "web3-eth-contract";
 
 import { alith, ALITH_PRIVATE_KEY, baltathar } from "../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS, PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS } from "../util/constants";
 import { getCompiled } from "../util/contracts";
 import { customWeb3Request } from "../util/providers";
 import {
@@ -285,7 +286,7 @@ describeDevMoonbeamAllEthTxTypes(
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000801",
+          to: PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
           gas: "0xdb3b",
           value: "0x0",
           data: "0x4e71d92d",
@@ -341,7 +342,7 @@ describeDevMoonbeam(
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000801",
+          to: PRECOMPILE_CROWDLOAN_REWARDS_ADDRESS,
           gas: "0xdb3b",
           value: "0x0",
           data: "0x4e71d92d",
@@ -636,7 +637,7 @@ describeDevMoonbeam(
       let callTx = await context.web3.eth.accounts.signTransaction(
         {
           from: alith.address,
-          to: "0x0000000000000000000000000000000000000808",
+          to: PRECOMPILE_BATCH_ADDRESS,
           gas: "0x100000",
           value: "0x00",
           data: batchInterface.encodeFunctionData("batchAll", [
@@ -668,10 +669,10 @@ describeDevMoonbeam(
       ]);
 
       expect(trace.result.from).to.be.eq(alith.address.toLowerCase());
-      expect(trace.result.to).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.to).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls.length).to.be.eq(2);
 
-      expect(trace.result.calls[0].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[0].from).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls[0].to).to.be.eq(contractProxy.options.address.toLowerCase());
       expect(trace.result.calls[0].type).to.be.eq("CALL");
 
@@ -684,7 +685,7 @@ describeDevMoonbeam(
       );
       expect(trace.result.calls[0].calls[0].type).to.be.eq("CALL");
 
-      expect(trace.result.calls[1].from).to.be.eq("0x0000000000000000000000000000000000000808");
+      expect(trace.result.calls[1].from).to.be.eq(PRECOMPILE_BATCH_ADDRESS);
       expect(trace.result.calls[1].to).to.be.eq(contractProxy.options.address.toLowerCase());
       expect(trace.result.calls[1].type).to.be.eq("CALL");
 
@@ -733,7 +734,8 @@ describeDevMoonbeam("Raw trace limits", (context) => {
 
     expect(trace.error).to.deep.eq({
       code: -32603,
-      message: "replayed transaction generated too much data. \
+      message:
+        "replayed transaction generated too much data. \
 try disabling memory or storage?",
     });
   });

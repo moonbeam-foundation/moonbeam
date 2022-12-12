@@ -39,14 +39,14 @@ pub struct ProxyPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ProxyPrecompile<Runtime>
 where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
-	<<Runtime as pallet_proxy::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	<Runtime as pallet_proxy::Config>::ProxyType: Decode,
-	<Runtime as frame_system::Config>::Call:
+	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<ProxyCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ProxyCall<Runtime>>,
 {
 	#[precompile::pre_check]
 	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
@@ -55,7 +55,7 @@ where
 		// Check that caller is not a smart contract s.t. no code is inserted into
 		// pallet_evm::AccountCodes except if the caller is another precompile i.e. CallPermit
 		if !(caller_code.is_empty() || &caller_code == &[0x60, 0x00, 0x60, 0x00, 0xfd]) {
-			Err(revert("Batch not callable by smart contracts"))
+			Err(revert("Proxy not callable by smart contracts"))
 		} else {
 			Ok(())
 		}

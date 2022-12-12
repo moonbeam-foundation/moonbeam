@@ -18,7 +18,7 @@ use crate::{
 	assert_event_emitted, hash, log_closed, log_executed, log_proposed, log_voted,
 	mock::{
 		Account::{self, Alice, Bob, Charlie, Precompile},
-		ExtBuilder, Origin, PCall, Precompiles, PrecompilesValue, Runtime,
+		ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeOrigin,
 	},
 };
 use frame_support::{assert_ok, dispatch::Encode};
@@ -81,6 +81,30 @@ fn selectors() {
 	assert!(PCall::vote_selectors().contains(&0x73e37688));
 	assert!(PCall::close_selectors().contains(&0x638d9d47));
 	assert!(PCall::proposal_hash_selectors().contains(&0xfc379417));
+	assert!(PCall::proposals_selectors().contains(&0x55ef20e6));
+	assert!(PCall::members_selectors().contains(&0xbdd4d18d));
+	assert!(PCall::is_member_selectors().contains(&0xa230c524));
+	assert!(PCall::prime_selectors().contains(&0xc7ee005e));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice, 1000)])
+		.build()
+		.execute_with(|| {
+			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+			tester.test_default_modifier(PCall::execute_selectors());
+			tester.test_default_modifier(PCall::propose_selectors());
+			tester.test_default_modifier(PCall::vote_selectors());
+			tester.test_default_modifier(PCall::close_selectors());
+			tester.test_view_modifier(PCall::proposal_hash_selectors());
+			tester.test_view_modifier(PCall::proposals_selectors());
+			tester.test_view_modifier(PCall::members_selectors());
+			tester.test_view_modifier(PCall::is_member_selectors());
+			tester.test_view_modifier(PCall::prime_selectors());
+		});
 }
 
 #[test]
@@ -90,7 +114,7 @@ fn non_member_cannot_propose() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 
 		precompiles()
@@ -132,7 +156,7 @@ fn non_member_cannot_execute() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 
 		precompiles()
@@ -192,7 +216,7 @@ fn member_can_make_instant_proposal() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -225,7 +249,7 @@ fn member_can_make_delayed_proposal() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -258,7 +282,7 @@ fn member_can_vote_on_proposal() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -305,7 +329,7 @@ fn cannot_close_if_not_enough_votes() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -345,7 +369,7 @@ fn can_close_execute_if_enough_votes() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -433,7 +457,7 @@ fn can_close_refuse_if_enough_votes() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 		let length_bound = proposal.len() as u32;
@@ -508,7 +532,7 @@ fn multiple_propose_increase_index() {
 			amount: 1,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -528,7 +552,7 @@ fn multiple_propose_increase_index() {
 			amount: 2,
 			beneficiary: Account::Alice,
 		};
-		let proposal: <Runtime as frame_system::Config>::Call = proposal.into();
+		let proposal: <Runtime as frame_system::Config>::RuntimeCall = proposal.into();
 		let proposal = proposal.encode();
 		let proposal_hash: H256 = hash::<Runtime>(&proposal);
 
@@ -573,7 +597,7 @@ fn view_some_prime() {
 			Runtime,
 			pallet_collective::Instance1,
 		>::set_members(
-			Origin::root(), vec![Alice, Bob], Some(Alice), 2
+			RuntimeOrigin::root(), vec![Alice, Bob], Some(Alice), 2
 		));
 
 		precompiles()

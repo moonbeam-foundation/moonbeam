@@ -17,7 +17,8 @@
 use crate::mock::{
 	events, roll_to,
 	Account::{Alice, Bob, Charlie, Precompile},
-	Call, Crowdloan, ExtBuilder, Origin, PCall, PrecompilesValue, Runtime, TestPrecompiles,
+	Crowdloan, ExtBuilder, PCall, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
+	TestPrecompiles,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_crowdloan_rewards::{Call as CrowdloanCall, Event as CrowdloanEvent};
@@ -50,6 +51,18 @@ fn selectors() {
 	assert!(PCall::reward_info_selectors().contains(&0xcbecf6b5));
 	assert!(PCall::claim_selectors().contains(&0x4e71d92d));
 	assert!(PCall::update_reward_address_selectors().contains(&0x944dd5a2));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+
+		tester.test_view_modifier(PCall::is_contributor_selectors());
+		tester.test_view_modifier(PCall::reward_info_selectors());
+		tester.test_default_modifier(PCall::claim_selectors());
+		tester.test_default_modifier(PCall::update_reward_address_selectors());
+	});
 }
 
 #[test]
@@ -103,16 +116,18 @@ fn is_contributor_returns_true() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
-				rewards: vec![
-					([1u8; 32], Some(Alice.into()), 50u32.into()),
-					([2u8; 32], Some(Bob.into()), 50u32.into()),
-				]
-			})
-			.dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
+					rewards: vec![
+						([1u8; 32], Some(Alice.into()), 50u32.into()),
+						([2u8; 32], Some(Bob.into()), 50u32.into()),
+					]
+				})
+				.dispatch(RuntimeOrigin::root())
+			);
 
 			assert_ok!(Crowdloan::complete_initialization(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				init_block + VESTING
 			));
 
@@ -143,16 +158,18 @@ fn claim_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
-				rewards: vec![
-					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-				]
-			})
-			.dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
+					rewards: vec![
+						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+					]
+				})
+				.dispatch(RuntimeOrigin::root())
+			);
 
 			assert_ok!(Crowdloan::complete_initialization(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				init_block + VESTING
 			));
 
@@ -161,9 +178,10 @@ fn claim_works() {
 			let input = PCall::claim {}.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event = CrowdloanEvent::RewardsPaid(Alice.into(), 25).into();
+			let expected: crate::mock::RuntimeEvent =
+				CrowdloanEvent::RewardsPaid(Alice.into(), 25).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));
 		});
@@ -181,16 +199,18 @@ fn reward_info_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
-				rewards: vec![
-					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-				]
-			})
-			.dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
+					rewards: vec![
+						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+					]
+				})
+				.dispatch(RuntimeOrigin::root())
+			);
 
 			assert_ok!(Crowdloan::complete_initialization(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				init_block + VESTING
 			));
 
@@ -228,16 +248,18 @@ fn update_reward_address_works() {
 			roll_to(2);
 
 			let init_block = Crowdloan::init_vesting_block();
-			assert_ok!(Call::Crowdloan(CrowdloanCall::initialize_reward_vec {
-				rewards: vec![
-					([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
-					([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
-				]
-			})
-			.dispatch(Origin::root()));
+			assert_ok!(
+				RuntimeCall::Crowdloan(CrowdloanCall::initialize_reward_vec {
+					rewards: vec![
+						([1u8; 32].into(), Some(Alice.into()), 50u32.into()),
+						([2u8; 32].into(), Some(Bob.into()), 50u32.into()),
+					]
+				})
+				.dispatch(RuntimeOrigin::root())
+			);
 
 			assert_ok!(Crowdloan::complete_initialization(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				init_block + VESTING
 			));
 
@@ -249,9 +271,9 @@ fn update_reward_address_works() {
 			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
-			let expected: crate::mock::Event =
+			let expected: crate::mock::RuntimeEvent =
 				CrowdloanEvent::RewardAddressUpdated(Alice.into(), Charlie.into()).into();
 			// Assert that the events vector contains the one expected
 			assert!(events().contains(&expected));

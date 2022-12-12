@@ -30,14 +30,12 @@ mod tests;
 use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
-#[cfg(feature = "try-runtime")]
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	codec::{Decode, Encode, MaxEncodedLen},
-	dispatch::DispatchResultWithPostInfo,
+	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
 	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
-	weights::{Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
@@ -97,13 +95,13 @@ pub mod pallet {
 		/// Handler for applying an already validated transaction
 		type ValidatedTransaction: ValidatedTransaction;
 		/// Origin for xcm transact
-		type XcmEthereumOrigin: EnsureOrigin<Self::Origin, Success = H160>;
+		type XcmEthereumOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = H160>;
 		/// Maximum Weight reserved for xcm in a block
 		type ReservedXcmpWeight: Get<Weight>;
 		/// Ensure proxy
 		type EnsureProxy: EnsureProxy<Self::AccountId>;
 		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
-		type ControllerOrigin: EnsureOrigin<Self::Origin>;
+		type ControllerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 	}
 
 	#[pallet::pallet]
@@ -136,12 +134,15 @@ pub mod pallet {
 	{
 		/// Xcm Transact an Ethereum transaction.
 		/// Weight: Gas limit plus the db read involving the suspension check
-		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
-			match xcm_transaction {
-				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
-			}
-		}).saturating_add(T::DbWeight::get().reads(1)))]
+		#[pallet::weight({
+			let without_base_extrinsic_weight = false;
+			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+				match xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(1))
+		})]
 		pub fn transact(
 			origin: OriginFor<T>,
 			xcm_transaction: EthereumXcmTransaction,
@@ -162,12 +163,15 @@ pub mod pallet {
 
 		/// Xcm Transact an Ethereum transaction through proxy.
 		/// Weight: Gas limit plus the db reads involving the suspension and proxy checks
-		#[pallet::weight(<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
-			match xcm_transaction {
-				EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
-				EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
-			}
-		}).saturating_add(T::DbWeight::get().reads(2)))]
+		#[pallet::weight({
+			let without_base_extrinsic_weight = false;
+			<T as pallet_evm::Config>::GasWeightMapping::gas_to_weight({
+				match xcm_transaction {
+					EthereumXcmTransaction::V1(v1_tx) =>  v1_tx.gas_limit.unique_saturated_into(),
+					EthereumXcmTransaction::V2(v2_tx) =>  v2_tx.gas_limit.unique_saturated_into()
+				}
+			}, without_base_extrinsic_weight).saturating_add(T::DbWeight::get().reads(2))
+		})]
 		pub fn transact_through_proxy(
 			origin: OriginFor<T>,
 			transact_as: H160,

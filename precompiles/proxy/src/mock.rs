@@ -19,6 +19,7 @@ use crate::{ProxyPrecompile, ProxyPrecompileCall};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, InstanceFilter},
+	weights::Weight,
 };
 use pallet_evm::{
 	AddressMapping, EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping,
@@ -122,16 +123,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = Account;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -153,7 +154,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -189,15 +190,17 @@ impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressAlways;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = Account;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = TestPrecompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -234,8 +237,8 @@ impl std::default::Default for ProxyType {
 	}
 }
 
-impl InstanceFilter<Call> for ProxyType {
-	fn filter(&self, _: &Call) -> bool {
+impl InstanceFilter<RuntimeCall> for ProxyType {
+	fn filter(&self, _: &RuntimeCall) -> bool {
 		true
 	}
 
@@ -251,8 +254,8 @@ parameter_types! {
 	pub const MaxPending: u32 = 5;
 }
 impl pallet_proxy::Config for Runtime {
-	type Event = Event;
-	type Call = Call;
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
 	type Currency = Balances;
 	type ProxyType = ProxyType;
 	type ProxyDepositBase = ProxyDepositBase;
@@ -304,7 +307,7 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)

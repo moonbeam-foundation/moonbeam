@@ -51,9 +51,9 @@ impl<Runtime> ParachainStakingPrecompile<Runtime>
 where
 	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
 	Runtime::AccountId: Into<H160>,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<pallet_parachain_staking::Call<Runtime>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: From<pallet_parachain_staking::Call<Runtime>>,
 	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 {
 	// Constants
@@ -557,6 +557,14 @@ where
 		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
 		delegator_delegation_count: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		if auto_compound > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("auto_compound")
+					.into(),
+			);
+		}
+
 		let amount = Self::u256_to_amount(amount).in_field("amount")?;
 		let auto_compound = Percent::from_percent(auto_compound);
 		let candidate_delegation_count = candidate_delegation_count.converted();
@@ -749,6 +757,14 @@ where
 		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
 		delegator_delegation_count: SolidityConvert<U256, u32>,
 	) -> EvmResult {
+		if value > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("value")
+					.into(),
+			);
+		}
+
 		let value = Percent::from_percent(value);
 		let candidate_auto_compounding_delegation_count_hint =
 			candidate_auto_compounding_delegation_count.converted();

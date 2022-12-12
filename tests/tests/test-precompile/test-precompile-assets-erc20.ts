@@ -5,17 +5,20 @@ import { BN, bnToHex, numberToHex, stringToHex } from "@polkadot/util";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, baltathar, charleth } from "../../util/accounts";
+import { alith, ALITH_ADDRESS, baltathar, charleth } from "../../util/accounts";
 import { mockAssetBalance } from "../../util/assets";
 import { getCompiled } from "../../util/contracts";
 import { web3EthCall } from "../../util/providers";
 import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
+
 import {
   ALITH_TRANSACTION_TEMPLATE,
   BALTATHAR_TRANSACTION_TEMPLATE,
   createContract,
   createTransaction,
 } from "../../util/transactions";
+import { createImportSpecifier } from "typescript";
 
 const ADDRESS_ERC20 = "0xFfFFfFff1FcaCBd218EDc0EbA20Fc2308C778080";
 const ASSET_ID = new BN("42259045809535163221576417993425387648");
@@ -37,18 +40,25 @@ describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let assetId: u128;
+    let contractInstanceAddress: string;
     before("Setup contract and mock balance", async () => {
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = new BN("100000000000000");
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
       assetId = context.polkadotApi.createType("u128", ASSET_ID);
 
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+        }
+      );
 
       await mockAssetBalance(
         context,
@@ -60,7 +70,8 @@ describeDevMoonbeamAllEthTxTypes(
         true
       );
 
-      const { rawTx } = await createContract(context, "ERC20Instance");
+      const { contract, rawTx } = await createContract(context, "ERC20Instance");
+      contractInstanceAddress = contract.options.address;
       await context.createBlock(rawTx);
     });
 
@@ -69,6 +80,21 @@ describeDevMoonbeamAllEthTxTypes(
         (
           await web3EthCall(context.web3, {
             to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("name", []),
+          })
+        ).result
+      ).equals(
+        numberToHex(32, 256) +
+          numberToHex(3, 256).slice(2) +
+          stringToHex("DOT").slice(2).padEnd(64, "0")
+      );
+    });
+
+    it("allows to call name via wrapper", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: contractInstanceAddress,
             data: ERC20_INTERFACE.encodeFunctionData("name", []),
           })
         ).result
@@ -94,11 +120,37 @@ describeDevMoonbeamAllEthTxTypes(
       );
     });
 
+    it("allows to call symbol via wrapper", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: contractInstanceAddress,
+            data: ERC20_INTERFACE.encodeFunctionData("symbol", []),
+          })
+        ).result
+      ).equals(
+        numberToHex(32, 256) +
+          numberToHex(3, 256).slice(2) +
+          stringToHex("DOT").slice(2).padEnd(64, "0")
+      );
+    });
+
     it("allows to call decimals", async function () {
       expect(
         (
           await web3EthCall(context.web3, {
             to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("decimals", []),
+          })
+        ).result
+      ).equals(numberToHex(12, 256));
+    });
+
+    it("allows to call decimals via wrapper", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: contractInstanceAddress,
             data: ERC20_INTERFACE.encodeFunctionData("decimals", []),
           })
         ).result
@@ -116,11 +168,33 @@ describeDevMoonbeamAllEthTxTypes(
       ).equals(bnToHex(100000000000000n, { bitLength: 256 }));
     });
 
+    it("allows to call getBalance via wrapper", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: contractInstanceAddress,
+            data: ERC20_INTERFACE.encodeFunctionData("balanceOf", [alith.address]),
+          })
+        ).result
+      ).equals(bnToHex(100000000000000n, { bitLength: 256 }));
+    });
+
     it("allows to call totalSupply", async function () {
       expect(
         (
           await web3EthCall(context.web3, {
             to: ADDRESS_ERC20,
+            data: ERC20_INTERFACE.encodeFunctionData("totalSupply", []),
+          })
+        ).result
+      ).equals(bnToHex(100000000000000n, { bitLength: 256 }));
+    });
+
+    it("allows to call totalSupply via wrapper", async function () {
+      expect(
+        (
+          await web3EthCall(context.web3, {
+            to: contractInstanceAddress,
             data: ERC20_INTERFACE.encodeFunctionData("totalSupply", []),
           })
         ).result
@@ -138,13 +212,19 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+        }
+      );
       assetId = context.polkadotApi.createType("u128", ASSET_ID);
 
       await mockAssetBalance(
@@ -160,6 +240,7 @@ describeDevMoonbeamAllEthTxTypes(
       const { rawTx } = await createContract(context, "ERC20Instance");
       await context.createBlock(rawTx);
     });
+
     it("allows to approve transfers, and allowance matches", async function () {
       const tx = await createTransaction(context, {
         ...ALITH_TRANSACTION_TEMPLATE,
@@ -184,6 +265,7 @@ describeDevMoonbeamAllEthTxTypes(
 
       expect(approvals.unwrap().amount.toBigInt()).to.equal(1000n);
     });
+
     it("should gather the allowance", async function () {
       expect(
         (
@@ -209,14 +291,20 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
       assetId = context.polkadotApi.createType("u128", ASSET_ID);
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+        }
+      );
 
       await mockAssetBalance(
         context,
@@ -227,9 +315,6 @@ describeDevMoonbeamAllEthTxTypes(
         alith.address,
         true
       );
-
-      const { rawTx } = await createContract(context, "ERC20Instance");
-      await context.createBlock(rawTx);
     });
     it("allows to approve transfer and use transferFrom", async function () {
       await context.createBlock(
@@ -295,14 +380,20 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
       assetId = context.polkadotApi.createType("u128", ASSET_ID);
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+        }
+      );
 
       await mockAssetBalance(
         context,
@@ -347,14 +438,20 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-      balance: balance,
-    });
+    const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+      "PalletAssetsAssetAccount",
+      {
+        balance: balance,
+      }
+    );
 
     assetId = context.polkadotApi.createType("u128", ASSET_ID);
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
-    });
+    const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+      "PalletAssetsAssetDetails",
+      {
+        supply: balance,
+      }
+    );
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     await context.createBlock(rawTx);
@@ -471,14 +568,20 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Assets-ERC20 Wasm", (context) =>
     // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
     // And we need relay tokens for issuing a transaction to be executed in the relay
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-      balance: balance,
-    });
+    const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+      "PalletAssetsAssetAccount",
+      {
+        balance: balance,
+      }
+    );
 
     assetId = context.polkadotApi.createType("u128", ASSET_ID);
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
-    });
+    const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+      "PalletAssetsAssetDetails",
+      {
+        supply: balance,
+      }
+    );
 
     const { contract, rawTx } = await createContract(context, "ERC20Instance");
     contractInstanceAddress = contract.options.address;
@@ -567,14 +670,20 @@ describeDevMoonbeamAllEthTxTypes(
       // We need to mint units with sudo.setStorage, as we dont have xcm mocker yet
       // And we need relay tokens for issuing a transaction to be executed in the relay
       const balance = context.polkadotApi.createType("Balance", 100000000000000);
-      const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-        balance: balance,
-      });
+      const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+        "PalletAssetsAssetAccount",
+        {
+          balance: balance,
+        }
+      );
 
       assetId = context.polkadotApi.createType("u128", ASSET_ID);
-      const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-        supply: balance,
-      });
+      const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+        "PalletAssetsAssetDetails",
+        {
+          supply: balance,
+        }
+      );
 
       const { contract, rawTx } = await createContract(context, "ERC20Instance");
       contractInstanceAddress = contract.options.address;

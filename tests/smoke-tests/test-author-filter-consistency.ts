@@ -5,10 +5,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author");
 
-const wssUrl = process.env.WSS_URL || null;
-const relayWssUrl = process.env.RELAY_WSS_URL || null;
-
-describeSmokeSuite(`Verify author filter consistency`, { wssUrl, relayWssUrl }, (context) => {
+describeSmokeSuite(`Verify author filter consistency`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;

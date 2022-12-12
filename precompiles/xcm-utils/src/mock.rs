@@ -240,16 +240,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = MockDbWeight;
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = TestAccount;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -271,7 +271,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -307,13 +307,14 @@ pub fn precompile_address() -> H160 {
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
 	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 /// A mapping function that converts Ethereum gas to Substrate weight
 /// We are mocking this 1-1 to test db read charges too
 pub struct MockGasWeightMapping;
 impl GasWeightMapping for MockGasWeightMapping {
-	fn gas_to_weight(gas: u64) -> Weight {
+	fn gas_to_weight(gas: u64, _without_base_weight: bool) -> Weight {
 		Weight::from_ref_time(gas)
 	}
 	fn weight_to_gas(weight: Weight) -> u64 {
@@ -324,11 +325,12 @@ impl GasWeightMapping for MockGasWeightMapping {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = MockGasWeightMapping;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<TestAccount>;
 	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
 	type AddressMapping = TestAccount;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type PrecompilesType = TestPrecompiles<Self>;
@@ -433,11 +435,11 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
 	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
 	// foreign chains who want to have a local sovereign account on this chain which they control.
-	SovereignSignedViaLocation<LocationToAccountId, Origin>,
+	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 );
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
@@ -445,13 +447,13 @@ impl xcm_executor::Config for XcmConfig {
 	type IsTeleporter = ();
 	type LocationInverter = InvertNothing;
 	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
+	type Weigher = FixedWeightBounds<BaseXcmWeight, RuntimeCall, MaxInstructions>;
 	type Trader = DummyWeightTrader;
 	type ResponseHandler = ();
 	type SubscriptionService = ();
 	type AssetTrap = ();
 	type AssetClaims = ();
-	type CallDispatcher = Call;
+	type CallDispatcher = RuntimeCall;
 }
 
 pub(crate) struct ExtBuilder {}
