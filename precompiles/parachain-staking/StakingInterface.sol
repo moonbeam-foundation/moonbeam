@@ -265,4 +265,13 @@ interface ParachainStaking {
         uint256 candidateAutoCompoundingDelegationCount,
         uint256 delegatorDelegationCount
     ) external;
+
+    /// @dev Fetch the total staked amount of a delegator, regardless of the
+    /// candidate.
+    /// @param delegator Address of the delegator.
+    /// @return Total amount of stake.
+    function getDelegatorTotalStaked(address delegator)
+        external
+        view
+        returns (uint256);
 }

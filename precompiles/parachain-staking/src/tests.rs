@@ -1464,6 +1464,56 @@ fn set_auto_compound_fails_if_not_delegation() {
 }
 
 #[test]
+fn get_delegator_total_staked_getter() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 1_000),
+			(Charlie.into(), 1_500),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
+		.with_delegations(vec![
+			(Charlie.into(), Alice.into(), 1_000),
+			(Charlie.into(), Bob.into(), 499),
+		])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::get_delegator_total_staked {
+						delegator: Address(Charlie.into()),
+					},
+				)
+				.execute_returns_encoded(U256::from(1_499));
+		});
+}
+
+#[test]
+fn get_delegator_total_staked_getter_unknown() {
+	ExtBuilder::default()
+		.with_balances(vec![
+			(Alice.into(), 1_000),
+			(Bob.into(), 1_000),
+			(Charlie.into(), 1_500),
+		])
+		.with_candidates(vec![(Alice.into(), 1_000), (Bob.into(), 1_000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::get_delegator_total_staked {
+						delegator: Address(Charlie.into()),
+					},
+				)
+				.execute_returns_encoded(U256::zero());
+		});
+}
+
+#[test]
 fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
 	for file in ["StakingInterface.sol"] {
 		for solidity_fn in solidity::get_selectors(file) {

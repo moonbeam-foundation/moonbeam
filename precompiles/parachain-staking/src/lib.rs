@@ -787,6 +787,23 @@ where
 		Ok(())
 	}
 
+	#[precompile::public("getDelegatorTotalStaked(address)")]
+	#[precompile::view]
+	fn get_delegator_total_staked(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+	) -> EvmResult<U256> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+
+		let amount = <pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+			.map(|state| state.total)
+			.unwrap_or_default();
+
+		Ok(amount.into())
+	}
+
 	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
 		value
 			.try_into()
