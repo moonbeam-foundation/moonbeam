@@ -138,7 +138,6 @@ prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
 sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
-
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 

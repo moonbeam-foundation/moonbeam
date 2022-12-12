@@ -1263,7 +1263,10 @@ mod tests {
 		}
 
 		fn invalid_sig() -> sp_core::ed25519::Signature {
-			let signature = hex_literal::hex!("a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf7351dd90b71447041a83583a52cee1cf21b36ba7fd1d0211dca58b48d997fc78d9bc82ab7a38e");
+			let signature = hex_literal::hex!(
+				"a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf
+		7351dd90b71447041a83583a52cee1cf21b36ba7fd1d0211dca58b48d997fc78d9bc82ab7a38e"
+			);
 			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
 		}
 
