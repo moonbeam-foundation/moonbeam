@@ -4968,7 +4968,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "clap",
  "cumulus-client-cli",
@@ -4999,7 +4999,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-cli-opt"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "account",
  "bip32",
@@ -5420,7 +5420,7 @@ dependencies = [
 
 [[package]]
 name = "moonbeam-service"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "ansi_term",
  "assert_cmd",
