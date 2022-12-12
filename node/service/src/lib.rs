@@ -1261,7 +1261,10 @@ mod tests {
 		fn zero_ed_pub() -> sp_core::ed25519::Public {
 			sp_core::ed25519::Public([0u8; 32])
 		}
-
+ 
+		// This is an invalid signature
+		// this breaks after ed25519 1.3. It makes the signature panic at creation
+		// This test ensures we should never panic
 		fn invalid_sig() -> sp_core::ed25519::Signature {
 			let signature = hex_literal::hex!(
 				"a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf
