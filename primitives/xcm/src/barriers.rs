@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use frame_support::{ensure, traits::Contains, weights::Weight};
+use frame_support::{ensure, traits::Contains};
 /// Allows execution from `origin` if it is contained in `T` (i.e. `T::Contains(origin)`) taking
 /// payments into account and if it starts with DescendOrigin.
 ///
@@ -28,17 +28,19 @@ use xcm::latest::{
 };
 use xcm_executor::traits::ShouldExecute;
 
-pub struct AllowDescendOriginFromLocal<T>(PhantomData<T>);
-impl<T: Contains<MultiLocation>> ShouldExecute for AllowDescendOriginFromLocal<T> {
+/// Barrier allowing a top level paid message with DescendOrigin instruction
+/// first
+pub struct AllowTopLevelPaidExecutionDescendOriginFirst<T>(PhantomData<T>);
+impl<T: Contains<MultiLocation>> ShouldExecute for AllowTopLevelPaidExecutionDescendOriginFirst<T> {
 	fn should_execute<Call>(
 		origin: &MultiLocation,
 		message: &mut Xcm<Call>,
-		max_weight: Weight,
-		_weight_credit: &mut Weight,
+		max_weight: u64,
+		_weight_credit: &mut u64,
 	) -> Result<(), ()> {
 		log::trace!(
 			target: "xcm::barriers",
-			"AllowTopLevelPaidExecutionFromLocal origin:
+			"AllowTopLevelPaidExecutionDescendOriginFirst origin:
 			{:?}, message: {:?}, max_weight: {:?}, weight_credit: {:?}",
 			origin, message, max_weight, _weight_credit,
 		);

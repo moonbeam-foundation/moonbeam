@@ -18,7 +18,7 @@
 
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
-use cumulus_client_service::genesis::generate_genesis_block;
+use cumulus_client_cli::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::BenchmarkCmd;
 use log::info;
@@ -409,7 +409,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonriver-native")]
 				chain_spec if chain_spec.is_moonriver() => {
 					let block: service::moonriver_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -421,7 +421,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbeam-native")]
 				chain_spec if chain_spec.is_moonbeam() => {
 					let block: service::moonbeam_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -433,7 +433,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbase-native")]
 				_ => {
 					let block: service::moonbase_runtime::Block =
-						generate_genesis_block(&chain_spec, state_version)?;
+						generate_genesis_block(&*chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -563,6 +563,12 @@ pub fn run() -> Result<()> {
 						_ => panic!("invalid chain spec"),
 					}
 				}
+				#[cfg(not(feature = "runtime-benchmarks"))]
+				BenchmarkCmd::Storage(_) => Err(
+					"Storage benchmarking can be enabled with `--features runtime-benchmarks`."
+						.into(),
+				),
+				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => {
 					let chain_spec = &runner.config().chain_spec;
 					match chain_spec {
@@ -613,6 +619,7 @@ pub fn run() -> Result<()> {
 					}
 				}
 				BenchmarkCmd::Overhead(_) => Err("Unsupported benchmarking command".into()),
+				BenchmarkCmd::Extrinsic(_) => Err("Unsupported benchmarking command".into()),
 				BenchmarkCmd::Machine(cmd) => {
 					return runner.sync_run(|config| {
 						cmd.run(
@@ -778,19 +785,19 @@ pub fn run() -> Result<()> {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						let block: service::moonriver_runtime::Block =
-							generate_genesis_block(&spec, state_version)?;
+							generate_genesis_block(&**spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbeam-native")]
 					spec if spec.is_moonbeam() => {
 						let block: service::moonbeam_runtime::Block =
-							generate_genesis_block(&spec, state_version)?;
+							generate_genesis_block(&**spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbase-native")]
 					_ => {
 						let block: service::moonbase_runtime::Block =
-							generate_genesis_block(&config.chain_spec, state_version)?;
+							generate_genesis_block(&*config.chain_spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(not(feature = "moonbase-native"))]
@@ -877,7 +884,7 @@ impl CliConfiguration<Self> for RelayChainCli {
 	fn base_path(&self) -> Result<Option<BasePath>> {
 		Ok(self
 			.shared_params()
-			.base_path()
+			.base_path()?
 			.or_else(|| self.base_path.clone().map(Into::into)))
 	}
 
@@ -930,12 +937,8 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.role(is_dev)
 	}
 
-	fn transaction_pool(&self) -> Result<sc_service::config::TransactionPoolOptions> {
-		self.base.base.transaction_pool()
-	}
-
-	fn state_cache_child_ratio(&self) -> Result<Option<usize>> {
-		self.base.base.state_cache_child_ratio()
+	fn transaction_pool(&self, is_dev: bool) -> Result<sc_service::config::TransactionPoolOptions> {
+		self.base.base.transaction_pool(is_dev)
 	}
 
 	fn rpc_methods(&self) -> Result<sc_service::config::RpcMethods> {

@@ -4,6 +4,7 @@ import { expect } from "chai";
 import { ethers } from "ethers";
 
 import { alith, ALITH_PRIVATE_KEY, generateKeyringPair } from "../../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
@@ -23,7 +24,7 @@ describeDevMoonbeam("Precompile Batch - Overflowing gasLimit", (context) => {
     let batchAllTx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         gas: "0x110000",
         value: "0x00",
         nonce: 0,

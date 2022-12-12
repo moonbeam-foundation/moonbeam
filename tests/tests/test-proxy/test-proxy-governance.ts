@@ -13,7 +13,14 @@ describeDevMoonbeam("Proxing governance", (context) => {
   before("Create accounts and fast-tracking referundum", async () => {
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({
+        Lookup: {
+          hash: proposalHash,
+          // this test does not test scheduling, therefore this lenght should not
+          // matter
+          len: 22,
+        },
+      } as any)
     );
     await execTechnicalCommitteeProposal(
       context,
@@ -55,7 +62,7 @@ describeDevMoonbeam("Proxing governance", (context) => {
     expect(context.polkadotApi.events.democracy.Voted.is(events[1].event)).to.be.true;
     expect(events[2].event.data[0].toString()).to.equal("Ok");
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4].event)).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5].event)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[6].event)).to.be.true;
 
     // Verify that dorothy hasn't paid for the transaction but the vote locked her tokens
     let dorothyAccountData = await context.polkadotApi.query.system.account(dorothy.address);
@@ -65,10 +72,10 @@ describeDevMoonbeam("Proxing governance", (context) => {
     // Verify that vote is registered
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(proposalHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
   });

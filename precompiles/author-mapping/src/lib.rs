@@ -19,75 +19,54 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use fp_evm::{PrecompileHandle, PrecompileOutput};
-use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use fp_evm::PrecompileHandle;
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::Get,
+};
 use pallet_author_mapping::Call as AuthorMappingCall;
-use pallet_evm::{AddressMapping, Precompile};
+use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::crypto::UncheckedFrom;
 use sp_core::H256;
-use sp_std::{fmt::Debug, marker::PhantomData};
+use sp_std::marker::PhantomData;
 
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	AddAssociation = "add_association(bytes32)",
-	UpdateAssociation = "update_association(bytes32,bytes32)",
-	ClearAssociation = "clear_association(bytes32)",
-	RemoveKeys = "remove_keys()",
-	SetKeys = "set_keys(bytes)",
-}
-
 /// A precompile to wrap the functionality from pallet author mapping.
-pub struct AuthorMappingWrapper<Runtime>(PhantomData<Runtime>);
+pub struct AuthorMappingPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for AuthorMappingWrapper<Runtime>
-where
-	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<AuthorMappingCall<Runtime>>,
-	Runtime::Hash: From<H256>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		log::trace!(target: "author-mapping-precompile", "In author mapping wrapper");
+/// Bound for the keys size.
+/// Pallet will check that the size exactly matches, but we want to bound the parser to
+/// not accept larger bytes.
+pub struct GetKeysSize<R>(PhantomData<R>);
 
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(FunctionModifier::NonPayable)?;
-
-		match selector {
-			// Dispatchables
-			Action::AddAssociation => Self::add_association(handle),
-			Action::UpdateAssociation => Self::update_association(handle),
-			Action::ClearAssociation => Self::clear_association(handle),
-			Action::RemoveKeys => Self::remove_keys(handle),
-			Action::SetKeys => Self::set_keys(handle),
-		}
+impl<R: pallet_author_mapping::Config> Get<u32> for GetKeysSize<R> {
+	fn get() -> u32 {
+		pallet_author_mapping::pallet::keys_size::<R>()
+			.try_into()
+			.expect("keys size to fit in u32")
 	}
 }
 
-impl<Runtime> AuthorMappingWrapper<Runtime>
+#[precompile_utils::precompile]
+#[precompile::test_concrete_types(mock::Runtime)]
+impl<Runtime> AuthorMappingPrecompile<Runtime>
 where
 	Runtime: pallet_author_mapping::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<AuthorMappingCall<Runtime>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: From<AuthorMappingCall<Runtime>>,
 	Runtime::Hash: From<H256>,
 {
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.
-	fn add_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-
-		// Bound check
-		input.expect_arguments(1)?;
-
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+	#[precompile::public("addAssociation(bytes32)")]
+	#[precompile::public("add_association(bytes32)")]
+	fn add_association(handle: &mut impl PrecompileHandle, nimbus_id: H256) -> EvmResult {
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -99,16 +78,18 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn update_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(2)?;
-
-		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
-		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+	#[precompile::public("updateAssociation(bytes32,bytes32)")]
+	#[precompile::public("update_association(bytes32,bytes32)")]
+	fn update_association(
+		handle: &mut impl PrecompileHandle,
+		old_nimbus_id: H256,
+		new_nimbus_id: H256,
+	) -> EvmResult {
+		let old_nimbus_id = sp_core::sr25519::Public::unchecked_from(old_nimbus_id).into();
+		let new_nimbus_id = sp_core::sr25519::Public::unchecked_from(new_nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -123,14 +104,13 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn clear_association(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let mut input = handle.read_input()?;
-		// Bound check
-		input.expect_arguments(1)?;
-		let nimbus_id = sp_core::sr25519::Public::unchecked_from(input.read::<H256>()?).into();
+	#[precompile::public("clearAssociation(bytes32)")]
+	#[precompile::public("clear_association(bytes32)")]
+	fn clear_association(handle: &mut impl PrecompileHandle, nimbus_id: H256) -> EvmResult {
+		let nimbus_id = sp_core::sr25519::Public::unchecked_from(nimbus_id).into();
 
 		log::trace!(
 			target: "author-mapping-precompile",
@@ -142,10 +122,12 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn remove_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("removeKeys()")]
+	#[precompile::public("remove_keys()")]
+	fn remove_keys(handle: &mut impl PrecompileHandle) -> EvmResult {
 		log::trace!(
 			target: "author-mapping-precompile",
 			"Removing keys"
@@ -156,18 +138,20 @@ where
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 
-	fn set_keys(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("setKeys(bytes)")]
+	#[precompile::public("set_keys(bytes)")]
+	fn set_keys(
+		handle: &mut impl PrecompileHandle,
+		keys: BoundedBytes<GetKeysSize<Runtime>>,
+	) -> EvmResult {
 		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let call = AuthorMappingCall::<Runtime>::set_keys {
-			// Taking all input minus selector (4 bytes)
-			keys: handle.input()[4..].to_vec(),
-		};
+		let call = AuthorMappingCall::<Runtime>::set_keys { keys: keys.into() };
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
 
-		Ok(succeed([]))
+		Ok(())
 	}
 }

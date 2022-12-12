@@ -81,7 +81,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.
@@ -365,8 +365,23 @@ pub mod pallet {
 	}
 
 	impl<T: Config> KeysLookup<NimbusId, T::Keys> for Pallet<T> {
+		#[cfg(feature = "runtime-benchmarks")]
+		type Account = T::AccountId;
 		fn lookup_keys(author: &NimbusId) -> Option<T::Keys> {
 			Self::keys_of(author)
+		}
+		/// Sets keys WITHOUT reserving deposit, for benchmarking purposes only
+		#[cfg(feature = "runtime-benchmarks")]
+		fn set_keys(id: NimbusId, account: T::AccountId, keys: T::Keys) {
+			use sp_runtime::traits::Zero;
+			MappingWithDeposit::<T>::insert(
+				id,
+				RegistrationInfo {
+					account,
+					deposit: Zero::zero(),
+					keys,
+				},
+			);
 		}
 	}
 

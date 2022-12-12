@@ -7,9 +7,9 @@ import { describeParachain } from "../../../util/setup-para-tests";
 
 // This test will run on local until the new runtime is available
 
-const runtimeVersion = "runtime-1200";
+const runtimeTag = "runtime-1200";
 describeParachain(
-  `Runtime ${runtimeVersion} migration`,
+  `Runtime ${runtimeTag} migration`,
   {
     parachain: {
       chain: "moonbase-local",
@@ -31,7 +31,7 @@ describeParachain(
       // It takes 10 blocks
       let hasMoreBlockPassed = false;
       const runtimePromise = context
-        .upgradeRuntime(alith, "moonbase", runtimeVersion)
+        .upgradeRuntime({ runtimeName: "moonbase", runtimeTag })
         .then(async (blockNumber) => {
           context.waitBlocks(3).then(() => {
             hasMoreBlockPassed = true;

@@ -32,7 +32,6 @@ use session_keys_primitives::VrfId;
 use sp_consensus_babe::Slot;
 use sp_core::{H160, H256};
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
@@ -41,7 +40,7 @@ use precompile_utils::precompile_set::*;
 
 pub type AccountId = H160;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -63,7 +62,7 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const MaximumBlockWeight: Weight = 1024;
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
@@ -72,16 +71,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -104,7 +103,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -119,23 +118,25 @@ pub fn precompile_address() -> H160 {
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, RandomnessWrapper<R>, LimitRecursionTo<1>>,
+		PrecompileAt<AddressU64<1>, RandomnessPrecompile<R>, LimitRecursionTo<1>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
+	pub const WeightPerGas: u64 = 1;
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<Account>;
 	type WithdrawOrigin = EnsureAddressNever<Account>;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = TestPrecompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
@@ -161,7 +162,7 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = VrfId;
@@ -186,7 +187,7 @@ parameter_types! {
 	pub const MinEpochDelay: u32 = 2;
 }
 impl Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;

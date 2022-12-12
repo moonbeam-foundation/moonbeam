@@ -3,11 +3,16 @@ import fs from "fs";
 import path from "path";
 import { killAll, run } from "polkadot-launch";
 import tcpPortUsed from "tcp-port-used";
+import {
+  generateRawSpecs,
+  getMoonbeamReleaseBinary,
+  getPolkadotReleaseBinary,
+  getRawSpecsFromTag,
+} from "./binaries";
 
 import {
   BINARY_PATH,
   DISPLAY_LOG,
-  OVERRIDE_RUNTIME_PATH,
   RELAY_BINARY_PATH,
   RELAY_CHAIN_NODE_NAMES,
   RELAY_LOG,
@@ -141,132 +146,6 @@ export interface NodePorts {
   wsPort: number;
 }
 
-const RUNTIME_DIRECTORY = process.env.RUNTIME_DIRECTORY || "runtimes";
-const BINARY_DIRECTORY = process.env.BINARY_DIRECTORY || "binaries";
-const SPECS_DIRECTORY = process.env.SPECS_DIRECTORY || "specs";
-
-// Downloads the runtime and return the filepath
-export async function getRuntimeWasm(
-  runtimeName: "moonbase" | "moonriver" | "moonbeam",
-  runtimeTag: "local" | string
-): Promise<string> {
-  const runtimePath = path.join(RUNTIME_DIRECTORY, `${runtimeName}-${runtimeTag}.wasm`);
-
-  if (!fs.existsSync(RUNTIME_DIRECTORY)) {
-    fs.mkdirSync(RUNTIME_DIRECTORY, { recursive: true });
-  }
-
-  if (runtimeTag == "local") {
-    const builtRuntimePath = path.join(
-      OVERRIDE_RUNTIME_PATH || `../target/release/wbuild/${runtimeName}-runtime/`,
-      `${runtimeName}_runtime.compact.compressed.wasm`
-    );
-
-    const code = fs.readFileSync(builtRuntimePath);
-    fs.writeFileSync(runtimePath, `0x${code.toString("hex")}`);
-  } else if (!fs.existsSync(runtimePath)) {
-    console.log(`     Missing ${runtimePath} locally, downloading it...`);
-    child_process.execSync(
-      `mkdir -p ${path.dirname(runtimePath)} && ` +
-        `wget -q https://github.com/PureStake/moonbeam/releases/` +
-        `download/${runtimeTag}/${runtimeName}-${runtimeTag}.wasm ` +
-        `-O ${runtimePath}.bin`
-    );
-    const code = fs.readFileSync(`${runtimePath}.bin`);
-    fs.writeFileSync(runtimePath, `0x${code.toString("hex")}`);
-    console.log(`${runtimePath} downloaded !`);
-  }
-  return runtimePath;
-}
-
-export async function getGithubReleaseBinary(url: string, binaryPath: string): Promise<string> {
-  if (!fs.existsSync(binaryPath)) {
-    console.log(`     Missing ${binaryPath} locally, downloading it...`);
-    child_process.execSync(
-      `mkdir -p ${path.dirname(binaryPath)} &&` +
-        ` wget -q ${url}` +
-        ` -O ${binaryPath} &&` +
-        ` chmod u+x ${binaryPath}`
-    );
-    console.log(`${binaryPath} downloaded !`);
-  }
-  return binaryPath;
-}
-
-// Downloads the binary and return the filepath
-export async function getMoonbeamReleaseBinary(binaryTag: string): Promise<string> {
-  const binaryPath = path.join(BINARY_DIRECTORY, `moonbeam-${binaryTag}`);
-  return getGithubReleaseBinary(
-    `https://github.com/PureStake/moonbeam/releases/download/${binaryTag}/moonbeam`,
-    binaryPath
-  );
-}
-export async function getPolkadotReleaseBinary(binaryTag: string): Promise<string> {
-  const binaryPath = path.join(BINARY_DIRECTORY, `polkadot-${binaryTag}`);
-  return getGithubReleaseBinary(
-    `https://github.com/paritytech/polkadot/releases/download/${binaryTag}/polkadot`,
-    binaryPath
-  );
-}
-
-export async function getMoonbeamDockerBinary(binaryTag: string): Promise<string> {
-  const sha = child_process.execSync(`git rev-list -1 ${binaryTag}`);
-  if (!sha) {
-    console.error(`Invalid runtime tag ${binaryTag}`);
-    return;
-  }
-  const sha8 = sha.slice(0, 8);
-
-  const binaryPath = path.join(BINARY_DIRECTORY, `moonbeam-${sha8}`);
-  if (!fs.existsSync(binaryPath)) {
-    if (process.platform != "linux") {
-      console.error(`docker binaries are only supported on linux.`);
-      process.exit(1);
-    }
-    const dockerImage = `purestake/moonbeam:sha-${sha8}`;
-
-    console.log(`     Missing ${binaryPath} locally, downloading it...`);
-    child_process.execSync(`mkdir -p ${path.dirname(binaryPath)} && \
-        docker create --pull always --name moonbeam-tmp ${dockerImage} && \
-        docker cp moonbeam-tmp:/moonbeam/moonbeam ${binaryPath} && \
-        docker rm moonbeam-tmp`);
-    console.log(`${binaryPath} downloaded !`);
-  }
-  return binaryPath;
-}
-
-export async function getRawSpecsFromTag(
-  runtimeName: "moonbase" | "moonriver" | "moonbeam",
-  tag: string
-) {
-  const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-${tag}-raw-specs.json`);
-  if (!fs.existsSync(specPath)) {
-    const binaryPath = await getMoonbeamDockerBinary(tag);
-
-    child_process.execSync(
-      `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local ` +
-        `--raw --disable-default-bootnode > ${specPath}`
-    );
-  }
-  return specPath;
-}
-
-export async function generateRawSpecs(
-  binaryPath: string,
-  runtimeName: "moonbase-local" | "moonriver-local" | "moonbeam-local"
-) {
-  const specPath = path.join(SPECS_DIRECTORY, `${runtimeName}-raw-specs.json`);
-  if (!fs.existsSync(specPath)) {
-    child_process.execSync(
-      `mkdir -p ${path.dirname(specPath)} && ` +
-        `${binaryPath} build-spec --chain moonbase-local ` +
-        `--raw --disable-default-bootnode > ${specPath}`
-    );
-  }
-  return specPath;
-}
-
 // log listeners to kill at the end;
 const logListener: child_process.ChildProcessWithoutNullStreams[] = [];
 
@@ -328,7 +207,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
       : !("runtime" in options.parachain) || options.parachain.runtime == "local"
       ? await generateRawSpecs(paraBinary, options.parachain.chain || "moonbase-local")
       : await getRawSpecsFromTag(
-          (options.parachain.chain || "moonbase-local").split("-")[0] as any,
+          options.parachain.chain || "moonbase-local",
           options.parachain.runtime
         );
 
@@ -387,6 +266,7 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               : "--log=parachain::candidate-backing=trace,parachain::candidate-selection=trace," +
                 "parachain::pvf=trace,parachain::collator-protocol=trace," +
                 "parachain::provisioner=trace",
+            "--state-pruning=archive",
           ],
         };
       }),
@@ -405,13 +285,17 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 1].key,
             name: "alice",
             flags: [
-              "--log=info,evm=trace,ethereum=trace,sc_basic_authorship=trace,author=trace," +
-                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace,filtering=trace",
+              "--log=info,evm=trace,ethereum=trace," +
+                "pallet_parachain_staking=error," +
+                "cumulus-consensus=trace,cumulus-collator=trace," +
+                "parachain::collator_protocol=trace,parachain::candidate-selection=trace," +
+                "parachain::collation_generation=trace,parachain::filtering=trace",
+              "--state-pruning=archive",
               "--unsafe-rpc-external",
               "--execution=wasm",
               "--pruning=archive",
               "--no-hardware-benchmarks",
+              "--trie-cache-size=0", //prevents huge genesis out of memory
               process.env.FORCE_COMPILED_WASM
                 ? `--wasm-execution=compiled`
                 : `--wasm-execution=interpreted-i-know-what-i-do`,
@@ -419,6 +303,8 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
               "--no-telemetry",
               "--rpc-cors=all",
               "--",
+              "--trie-cache-size=0",
+              "--state-pruning=archive",
               "--execution=wasm",
               "--pruning=archive",
               "--no-hardware-benchmarks",
@@ -440,25 +326,29 @@ export async function startParachainNodes(options: ParaTestOptions): Promise<{
             nodeKey: NODE_KEYS[i * 2 + numberOfParachains + 3].key,
             name: "bob",
             flags: [
-              "--log=info,rpc=debug,evm=trace,ethereum=trace,sc_basic_authorship=trace," +
-                "cumulus-consensus=trace,cumulus-collator=trace,collator_protocol=trace," +
-                "collation_generation=trace,author=trace,filtering=trace",
+              "--log=info,evm=trace,ethereum=trace," +
+                "pallet_parachain_staking=error," +
+                "cumulus-consensus=trace,cumulus-collator=trace," +
+                "parachain::collator_protocol=trace,parachain::candidate-selection=trace," +
+                "parachain::collation_generation=trace,parachain::filtering=trace",
               "--unsafe-rpc-external",
               "--execution=wasm",
-              "--pruning=archive",
+              "--state-pruning=archive",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
               "--no-prometheus",
               "--no-telemetry",
               "--rpc-cors=all",
+              "--trie-cache-size=0", //prevents huge genesis out of memory
               "--",
               "--execution=wasm",
-              "--pruning=archive",
+              "--state-pruning=archive",
               "--wasm-execution=interpreted-i-know-what-i-do",
               "--no-hardware-benchmarks",
               "--no-mdns",
               "--no-prometheus",
               "--no-telemetry",
+              "--trie-cache-size=0",
               `--port=${ports[i * 4 + numberOfParachains + 4].p2pPort}`,
               `--rpc-port=${ports[i * 4 + numberOfParachains + 4].rpcPort}`,
               `--ws-port=${ports[i * 4 + numberOfParachains + 4].wsPort}`,

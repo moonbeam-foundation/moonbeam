@@ -20,7 +20,7 @@ use crate::pallet::{
 	BalanceOf, CandidateInfo, Config, DelegationScheduledRequests, DelegatorState, Error, Event,
 	Pallet, Round, RoundIndex, Total,
 };
-use crate::Delegator;
+use crate::{auto_compound::AutoCompoundDelegations, Delegator, DelegatorStatus};
 use frame_support::ensure;
 use frame_support::traits::Get;
 use frame_support::{dispatch::DispatchResultWithPostInfo, RuntimeDebug};
@@ -248,6 +248,9 @@ impl<T: Config> Pallet<T> {
 				// remove delegation from delegator state
 				state.rm_delegation::<T>(&collator);
 
+				// remove delegation from auto-compounding info
+				<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
+
 				// remove delegation from collator state delegations
 				Self::delegator_leaves_candidate(collator.clone(), delegator.clone(), amount)?;
 				Self::deposit_event(Event::DelegationRevoked {
@@ -292,8 +295,6 @@ impl<T: Config> Pallet<T> {
 									new_total >= T::MinDelegatorStk::get(),
 									<Error<T>>::DelegatorBondBelowMin
 								);
-
-								Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
 
 								Ok(())
 							})?;
@@ -341,6 +342,13 @@ impl<T: Config> Pallet<T> {
 		let mut updated_scheduled_requests = vec![];
 		let now = <Round<T>>::get().current;
 		let when = now.saturating_add(T::LeaveDelegatorsDelay::get());
+
+		// lazy migration for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+		}
 
 		// it is assumed that a multiple delegations to the same collator does not exist, else this
 		// will cause a bug - the last duplicate delegation update will be the only one applied.
@@ -398,6 +406,15 @@ impl<T: Config> Pallet<T> {
 		let mut state = <DelegatorState<T>>::get(&delegator).ok_or(<Error<T>>::DelegatorDNE)?;
 		let mut updated_scheduled_requests = vec![];
 
+		// backwards compatible handling for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if matches!(state.status, DelegatorStatus::Leaving(_)) {
+			state.status = DelegatorStatus::Active;
+			<DelegatorState<T>>::insert(delegator.clone(), state.clone());
+			Self::deposit_event(Event::DelegatorExitCancelled { delegator });
+			return Ok(().into());
+		}
+
 		// pre-validate that all delegations have a Revoke request.
 		for bond in &state.delegations.0 {
 			let collator = bond.owner.clone();
@@ -444,6 +461,37 @@ impl<T: Config> Pallet<T> {
 		);
 		let now = <Round<T>>::get().current;
 
+		// backwards compatible handling for DelegatorStatus::Leaving
+		#[allow(deprecated)]
+		if let DelegatorStatus::Leaving(when) = state.status {
+			ensure!(
+				<Round<T>>::get().current >= when,
+				Error::<T>::DelegatorCannotLeaveYet
+			);
+
+			for bond in state.delegations.0.clone() {
+				if let Err(error) = Self::delegator_leaves_candidate(
+					bond.owner.clone(),
+					delegator.clone(),
+					bond.amount,
+				) {
+					log::warn!(
+						"STORAGE CORRUPTED \nDelegator leaving collator failed with error: {:?}",
+						error
+					);
+				}
+
+				Self::delegation_remove_request_with_state(&bond.owner, &delegator, &mut state);
+				<AutoCompoundDelegations<T>>::remove_auto_compound(&bond.owner, &delegator);
+			}
+			<DelegatorState<T>>::remove(&delegator);
+			Self::deposit_event(Event::DelegatorLeft {
+				delegator,
+				unstaked_amount: state.total,
+			});
+			return Ok(().into());
+		}
+
 		let mut validated_scheduled_requests = vec![];
 		// pre-validate that all delegations have a Revoke request that can be executed now.
 		for bond in &state.delegations.0 {
@@ -481,11 +529,11 @@ impl<T: Config> Pallet<T> {
 
 			// remove the scheduled request, since it is fulfilled
 			scheduled_requests.remove(request_idx).action.amount();
-			updated_scheduled_requests.push((collator, scheduled_requests));
-		}
+			updated_scheduled_requests.push((collator.clone(), scheduled_requests));
 
-		// TODO: reveiew -- we're about to leave, so this is mostly extra work (extra writes)
-		Self::jit_ensure_delegator_reserve_migrated(&delegator)?;
+			// remove the auto-compounding entry for the delegation
+			<AutoCompoundDelegations<T>>::remove_auto_compound(&collator, &delegator);
+		}
 
 		// set state.total so that state.adjust_bond_lock will remove lock
 		let unstaked_amount = state.total();

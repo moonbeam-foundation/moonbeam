@@ -15,7 +15,7 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Solidity types for randomness precompile.
-use precompile_utils::prelude::*;
+use precompile_utils::{data::String, prelude::*};
 
 pub enum RequestStatus {
 	DoesNotExist,
@@ -30,13 +30,13 @@ pub enum RandomnessSource {
 }
 
 impl EvmData for RequestStatus {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		match reader.read()? {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		match reader.read().in_field("variant")? {
 			0u8 => Ok(RequestStatus::DoesNotExist),
 			1u8 => Ok(RequestStatus::Pending),
 			2u8 => Ok(RequestStatus::Ready),
 			3u8 => Ok(RequestStatus::Expired),
-			_ => Err(revert("Not available enum")),
+			_ => Err(RevertReason::custom("Unknown RequestStatus variant").into()),
 		}
 	}
 
@@ -53,14 +53,18 @@ impl EvmData for RequestStatus {
 	fn has_static_size() -> bool {
 		true
 	}
+
+	fn solidity_type() -> String {
+		u8::solidity_type()
+	}
 }
 
 impl EvmData for RandomnessSource {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		match reader.read()? {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		match reader.read().in_field("variant")? {
 			0u8 => Ok(RandomnessSource::LocalVRF),
 			1u8 => Ok(RandomnessSource::RelayBabeEpoch),
-			_ => Err(revert("Not available enum")),
+			_ => Err(RevertReason::custom("Unknown RandomnessSource variant").into()),
 		}
 	}
 
@@ -74,5 +78,9 @@ impl EvmData for RandomnessSource {
 
 	fn has_static_size() -> bool {
 		true
+	}
+
+	fn solidity_type() -> String {
+		u8::solidity_type()
 	}
 }

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+if [[ `which jq` == "" ]]; then
+    echo "Missing jq"
+    exit 1
+fi
+
 # This script is expected to be included in a docker image (with node)
 set -e 
 
@@ -59,7 +65,9 @@ fi
 echo "Preparation..."
 echo " - moonbeam: ${GIT_TAG} [folder: ${ROOT_FOLDER} - port-prefix: ${PORT_PREFIX}]"
 echo " -  network: ${NETWORK} [runtime: ${RUNTIME_NAME} - id: ${PARA_ID}]"
-trap "trap - TERM && kill -- -$$" INT TERM EXIT
+
+# Forces child processes to exit when this script exits
+trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 mkdir -p $ROOT_FOLDER/states
 cd $ROOT_FOLDER
@@ -103,7 +111,13 @@ then
     echo "Building $GIT_TAG $RUNTIME_NAME runtime... (5 minutes)"
     cd $ROOT_FOLDER/moonbeam
     git checkout $GIT_TAG
-    cargo build --release -p ${RUNTIME_NAME}-runtime
+    cargo build --quiet --release -p ${RUNTIME_NAME}-runtime
+
+    if [[ $USE_LOCAL_CLIENT == "true" ]]
+    then
+        cargo build --quiet --release -p moonbeam
+        cp target/release/moonbeam $BINARY_PATH
+    fi
 
     if [[ $USE_LOCAL_CLIENT == "true" ]]
     then
@@ -113,13 +127,13 @@ then
 
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm ci
+    npm install --quiet
     cd $ROOT_FOLDER/moonbeam/tools
-    npm ci
+    npm install --quiet
 
     cd $ROOT_FOLDER/moonbeam/tests
     git checkout $GIT_TEST_TAG
-    npm ci
+    npm ci --quiet
 fi
 
 echo " - moonbeam binary: $BINARY_PATH"
@@ -151,27 +165,33 @@ export WSS_URL=ws://localhost:51102
 # Run the fork test (without spawning the node using DEBUG_MODE)
 echo "Running fork tests... (10 minutes)"
 SUCCESS_UPGRADE=false
-DEBUG_MODE=true DEBUG=test:setup* npm run fork-test && SUCCESS_UPGRADE=true || \
-  "Failed to do runtime upgrade"
+DEBUG_MODE=true DEBUG=test:setup* npm run fork-test -- --reporter min && \
+  SUCCESS_UPGRADE=true || \
+  echo "Failed to do runtime upgrade"
 
 if [[ $SUCCESS_UPGRADE == "true" ]]
 then
+    SUCCESS_TEST=false
     echo "Running smoke tests... (10 minutes)"
-    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* npm run smoke-test
+    SKIP_BLOCK_CONSISTENCY_TESTS=true SKIP_RELAY_TESTS=true DEBUG=smoke:* \
+      npm run smoke-test -- --reporter min && \
+      SUCCESS_TEST=true ||echo "Failed to pass smoke test"
 fi
 
 echo "Retrieving runtime stats..."
 cd $ROOT_FOLDER/moonbeam/tools
 node_modules/.bin/ts-node extract-migration-logs.ts --log ../tests/51102.log
 
+echo "[Upgrade $SUCCESS_UPGRADE, Test: $($SUCCESS_TEST && echo "Passed" || echo "Failed")]"
+
 if [[ $KEEP_RUNNING == "true" ]]
 then
-    echo "Keep running forever..."
-    while true
-    do
-        sleep 10
-    done
-fi 
-
+  while true; do sleep 5; done
+fi
 echo "Done !!"
-[[ $SUCCESS_UPGRADE == "true" ]] && exit 0 || exit 1
+
+kill $PID 2> /dev/null > /dev/null || \
+  kill $(ps aux | grep spawn-fork-node.ts | grep -v grep | tr -s ' ' | cut -f2 -d ' ') \
+    2> /dev/null > /dev/null || \
+  echo "PID not found"
+[[ $SUCCESS_UPGRADE == "true" && $SUCCESS_TEST == "true"  ]] && exit 0 || exit 1

@@ -95,7 +95,7 @@ pub struct BuildSpecCommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisStateCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
 
 	/// Id of the parachain this state is for.
@@ -115,7 +115,7 @@ pub struct ExportGenesisStateCommand {
 #[derive(Debug, Parser)]
 pub struct ExportGenesisWasmCommand {
 	/// Output file name or stdout if unspecified.
-	#[clap(parse(from_os_str))]
+	#[clap(value_parser)]
 	pub output: Option<PathBuf>,
 
 	/// Write output in binary. Default is to write in hex.
@@ -152,9 +152,7 @@ pub struct RunCmd {
 		long,
 		conflicts_with = "collator",
 		conflicts_with = "validator",
-		use_value_delimiter = true,
-		require_value_delimiter = true,
-		multiple_values = true
+		value_delimiter = ','
 	)]
 	pub ethapi: Vec<EthApi>,
 

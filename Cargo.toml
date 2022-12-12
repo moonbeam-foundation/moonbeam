@@ -16,11 +16,14 @@ members = [
 	"precompiles/balances-erc20",
 	"precompiles/batch",
 	"precompiles/call-permit",
+	"precompiles/collective",
 	"precompiles/crowdloan-rewards",
 	"precompiles/pallet-democracy",
 	"precompiles/parachain-staking",
+	"precompiles/proxy",
 	"precompiles/randomness",
 	"precompiles/relay-encoder",
+	"precompiles/utils",
 	"precompiles/utils/macro",
 	"precompiles/xcm-transactor",
 	"precompiles/xtokens",
@@ -28,6 +31,11 @@ members = [
 	"runtime/moonbeam",
 	"runtime/moonriver",
 ]
+
+[patch.crates-io]
+jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
+jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
+jsonrpsee-types = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
 
 # make sure dev builds with backtrace do
 # not slow us down

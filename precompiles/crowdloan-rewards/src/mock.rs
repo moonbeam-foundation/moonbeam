@@ -16,7 +16,6 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{
 	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
 };
@@ -28,22 +27,21 @@ use frame_support::{
 	inherent::{InherentData, ProvideInherent},
 	parameter_types,
 	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
+	weights::Weight,
 };
 use frame_system::{EnsureSigned, RawOrigin};
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet};
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
-pub type AccountId = H160;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
-pub type BlockNumber = u64;
-pub const PRECOMPILE_ADDRESS: u64 = 1;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -64,92 +62,39 @@ construct_runtime!(
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Copy,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-/// And ipmlementation of Frontier's AddressMapping trait for Moonbeam Accounts.
-/// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
-/// that is Into<H160> like AccountId20 for example.
-pub struct IntoAddressMapping;
-
-impl<T: From<H160>> AddressMapping<T> for IntoAddressMapping {
-	fn into_account_id(address: H160) -> T {
-		address.into()
-	}
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(value: Account) -> H160 {
-		match value {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
-
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = ParachainId;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = H160;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -171,50 +116,36 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
+pub type Precompiles<R> =
+	PrecompileSetBuilder<R, (PrecompileAt<AddressU64<1>, CrowdloanRewardsPrecompile<R>>,)>;
 
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	CrowdloanRewardsWrapper<R>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == Account::Precompile.into() => {
-				Some(CrowdloanRewardsWrapper::<R>::execute(handle))
-			}
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == Account::Precompile.into()
-	}
-}
+pub type PCall = CrowdloanRewardsPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
-	type AddressMapping = IntoAddressMapping;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type PrecompilesType = TestPrecompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
 	type BlockGasLimit = BlockGasLimit;
@@ -242,7 +173,7 @@ parameter_types! {
 }
 
 impl pallet_crowdloan_rewards::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Initialized = TestInitialized;
 	type InitializationPayment = TestInitializationPayment;
 	type MaxInitContributors = TestMaxInitContributors;
@@ -307,14 +238,14 @@ impl ExtBuilder {
 }
 
 //TODO Add pallets here if necessary
-pub(crate) fn roll_to(n: u64) {
+pub(crate) fn roll_to(n: BlockNumber) {
 	while System::block_number() < n {
 		// Relay chain Stuff. I might actually set this to a number different than N
 		let sproof_builder = RelayStateSproofBuilder::default();
 		let (relay_parent_storage_root, relay_chain_state) =
 			sproof_builder.into_state_root_and_proof();
 		let vfp = PersistedValidationData {
-			relay_parent_number: (System::block_number() + 1u64) as RelayChainBlockNumber,
+			relay_parent_number: (System::block_number() + 1) as RelayChainBlockNumber,
 			relay_parent_storage_root,
 			..Default::default()
 		};
@@ -350,7 +281,7 @@ pub(crate) fn roll_to(n: u64) {
 	}
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)

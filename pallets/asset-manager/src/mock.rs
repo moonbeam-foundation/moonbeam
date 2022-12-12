@@ -25,11 +25,8 @@ use frame_system::EnsureRoot;
 use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_runtime::traits::Hash as THash;
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use sp_runtime::DispatchError;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
 use xcm::latest::prelude::*;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
@@ -37,6 +34,7 @@ type Block = frame_system::mocking::MockBlock<Test>;
 
 pub type AccountId = u64;
 pub type Balance = u64;
+pub type BlockNumber = u32;
 
 construct_runtime!(
 	pub enum Test where
@@ -51,22 +49,22 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
-	type BlockNumber = u64;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
 	type Version = ();
@@ -87,7 +85,7 @@ parameter_types! {
 impl pallet_balances::Config for Test {
 	type Balance = Balance;
 	type DustRemoval = ();
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
@@ -182,7 +180,7 @@ impl AssetRegistrar<Test> for MockAssetPalletRegistrar {
 	}
 
 	fn destroy_asset_dispatch_info_weight(_asset: u32, _witness: u32) -> Weight {
-		0
+		Weight::from_ref_time(0)
 	}
 }
 
@@ -203,7 +201,7 @@ parameter_types! {
 }
 
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type AssetId = u32;
 	type AssetRegistrarMetadata = u32;
@@ -255,7 +253,7 @@ pub(crate) fn events() -> Vec<super::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::AssetManager(inner) = e {
+			if let RuntimeEvent::AssetManager(inner) = e {
 				Some(inner)
 			} else {
 				None

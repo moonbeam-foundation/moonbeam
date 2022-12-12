@@ -18,9 +18,9 @@
 //!
 
 use super::{
-	AccountId, AssetId, AssetManager, Assets, Balance, Balances, Call, DealWithFees, Event,
-	LocalAssets, Origin, ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, Treasury, XcmpQueue,
-	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
+	AccountId, AssetId, AssetManager, Assets, Balance, Balances, DealWithFees, LocalAssets,
+	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	Treasury, XcmpQueue, FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 
 use pallet_evm_precompileset_assets_erc20::AccountIdAssetIdConversion;
@@ -29,7 +29,6 @@ use sp_runtime::traits::Hash as THash;
 use frame_support::{
 	parameter_types,
 	traits::{Everything, Nothing, PalletInfoAccess},
-	weights::Weight,
 };
 
 use frame_system::EnsureRoot;
@@ -51,6 +50,7 @@ use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
 	FirstAssetTrader, SignedToAccountId20, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};
@@ -67,7 +67,7 @@ parameter_types! {
 	// The network Id of the relay
 	pub const RelayNetwork: NetworkId = NetworkId::Kusama;
 	// The relay chain Origin type
-	pub RelayChainOrigin: Origin = cumulus_pallet_xcm::Origin::Relay.into();
+	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	// The ancestry, defines the multilocation describing this consensus system
 	pub Ancestry: MultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 
@@ -189,30 +189,30 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Sovereign account converter; this attempts to derive an `AccountId` from the origin location
 	// using `LocationToAccountId` and then turn that into the usual `Signed` origin. Useful for
 	// foreign chains who want to have a local sovereign account on this chain which they control.
-	SovereignSignedViaLocation<LocationToAccountId, Origin>,
+	SovereignSignedViaLocation<LocationToAccountId, RuntimeOrigin>,
 	// Native converter for Relay-chain (Parent) location; will converts to a `Relay` origin when
 	// recognised.
-	RelayChainAsNative<RelayChainOrigin, Origin>,
+	RelayChainAsNative<RelayChainOrigin, RuntimeOrigin>,
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognised.
-	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, Origin>,
+	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
-	pallet_xcm::XcmPassthrough<Origin>,
+	pallet_xcm::XcmPassthrough<RuntimeOrigin>,
 	// Xcm Origins defined by a Multilocation of type AccountKey20 can be converted to a 20 byte-
 	// account local origin
-	SignedAccountKey20AsNative<RelayNetwork, Origin>,
+	SignedAccountKey20AsNative<RelayNetwork, RuntimeOrigin>,
 );
 
 parameter_types! {
 	/// The amount of weight an XCM operation takes. This is safe overestimate.
-	pub UnitWeightCost: Weight = 200_000_000;
+	pub UnitWeightCost: XcmV2Weight = 200_000_000;
 	/// Maximum number of instructions in a single XCM fragment. A sanity check against
 	/// weight caculations getting too crazy.
 	pub MaxInstructions: u32 = 100;
 }
 
 /// Xcm Weigher shared between multiple Xcm-related configs.
-pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+pub type XcmWeigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 
 // Allow paid executions
 pub type XcmBarrier = (
@@ -248,7 +248,7 @@ pub type XcmFeesToAccount = xcm_primitives::XcmFeesToAccount<
 
 pub struct XcmExecutorConfig;
 impl xcm_executor::Config for XcmExecutorConfig {
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
@@ -280,13 +280,13 @@ impl xcm_executor::Config for XcmExecutorConfig {
 	type SubscriptionService = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
-	type CallDispatcher = Call;
+	type CallDispatcher = RuntimeCall;
 }
 
 type XcmExecutor = xcm_executor::XcmExecutor<XcmExecutorConfig>;
 
 // Converts a Signed Local Origin into a MultiLocation
-pub type LocalOriginToLocation = SignedToAccountId20<Origin, AccountId, RelayNetwork>;
+pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, RelayNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
@@ -298,29 +298,29 @@ pub type XcmRouter = (
 );
 
 impl pallet_xcm::Config for Runtime {
-	type Event = Event;
-	type SendXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
+	type RuntimeEvent = RuntimeEvent;
+	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmRouter = XcmRouter;
-	type ExecuteXcmOrigin = EnsureXcmOrigin<Origin, LocalOriginToLocation>;
+	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
 	type XcmExecuteFilter = Nothing;
 	type XcmExecutor = XcmExecutor;
 	type XcmTeleportFilter = Nothing;
 	type XcmReserveTransferFilter = Everything;
 	type Weigher = XcmWeigher;
 	type LocationInverter = LocationInverter<Ancestry>;
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
 	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor;
 }
 
 impl cumulus_pallet_xcmp_queue::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor;
 	type ChannelInfo = ParachainSystem;
 	type VersionWrapper = PolkadotXcm;
@@ -331,7 +331,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 impl cumulus_pallet_dmp_queue::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor;
 	type ExecuteOverweightOrigin = EnsureRoot<AccountId>;
 }
@@ -432,7 +432,7 @@ where
 }
 
 parameter_types! {
-	pub const BaseXcmWeight: Weight = 100_000_000;
+	pub const BaseXcmWeight: XcmV2Weight = 200_000_000;
 	pub const MaxAssetsForTransfer: usize = 2;
 
 	// This is how we are going to detect whether the asset is a Reserve asset
@@ -455,7 +455,7 @@ parameter_type_with_key! {
 }
 
 impl orml_xtokens::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation<AccountId>;
@@ -478,6 +478,14 @@ impl orml_xtokens::Config for Runtime {
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, TypeInfo)]
 pub enum Transactors {
 	Relay,
+}
+
+// Default for benchmarking
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
 }
 
 impl TryFrom<u8> for Transactors {
@@ -509,7 +517,7 @@ impl XcmTransact for Transactors {
 }
 
 impl pallet_xcm_transactor::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<AccountId>;
@@ -520,10 +528,38 @@ impl pallet_xcm_transactor::Config for Runtime {
 		CurrencyIdtoMultiLocation<AsAssetType<AssetId, AssetType, AssetManager>>;
 	type XcmSender = XcmRouter;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, Call, MaxInstructions>;
+	type Weigher = xcm_builder::FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type LocationInverter = LocationInverter<Ancestry>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+mod testing {
+	use super::*;
+
+	/// This From exists for benchmarking purposes. It has the potential side-effect of calling
+	/// AssetManager::set_asset_type_asset_id() and should NOT be used in any production code.
+	impl From<MultiLocation> for CurrencyId {
+		fn from(location: MultiLocation) -> CurrencyId {
+			use xcm_executor::traits::Convert as XConvert;
+			use xcm_primitives::AssetTypeGetter;
+
+			// If it does not exist, for benchmarking purposes, we create the association
+			let asset_id = if let Ok(asset_id) =
+				AsAssetType::<AssetId, AssetType, AssetManager>::convert_ref(&location)
+			{
+				asset_id
+			} else {
+				let asset_type = AssetType::Xcm(location);
+				let asset_id: AssetId = asset_type.clone().into();
+				AssetManager::set_asset_type_asset_id(asset_type, asset_id);
+				asset_id
+			};
+
+			CurrencyId::ForeignAsset(asset_id)
+		}
+	}
 }

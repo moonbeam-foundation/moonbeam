@@ -18,13 +18,17 @@
 
 use {
 	crate::{
-		data::{Bytes, EvmData, EvmDataReader, EvmDataWriter},
-		revert, EvmResult,
+		data::{BoundedBytes, EvmData, EvmDataReader, EvmDataWriter, UnboundedBytes},
+		revert::{InjectBacktrace, MayRevert, RevertReason},
 	},
-	frame_support::ensure,
+	alloc::string::String,
+	frame_support::{ensure, traits::ConstU32},
 	sp_std::vec::Vec,
 	xcm::latest::{Junction, Junctions, MultiLocation, NetworkId},
 };
+
+pub const JUNCTION_SIZE_LIMIT: u32 = 2u32.pow(16);
+
 // Function to convert network id to bytes
 // We don't implement EVMData here as these bytes will be appended only
 // to certain Junction variants
@@ -41,9 +45,9 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 			encoded.push(0u8);
 			encoded
 		}
-		NetworkId::Named(mut name) => {
+		NetworkId::Named(name) => {
 			encoded.push(1u8);
-			encoded.append(&mut name);
+			encoded.append(&mut name.into_inner());
 			encoded
 		}
 		NetworkId::Polkadot => {
@@ -58,38 +62,50 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 }
 
 // Function to convert bytes to networkId
-pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> EvmResult<NetworkId> {
-	ensure!(encoded_bytes.len() > 0, revert("Junctions cannot be empty"));
+pub(crate) fn network_id_from_bytes(encoded_bytes: Vec<u8>) -> MayRevert<NetworkId> {
+	ensure!(
+		encoded_bytes.len() > 0,
+		RevertReason::custom("Junctions cannot be empty")
+	);
 	let mut encoded_network_id = EvmDataReader::new(&encoded_bytes);
 
-	let network_selector = encoded_network_id.read_raw_bytes(1)?;
+	let network_selector = encoded_network_id
+		.read_raw_bytes(1)
+		.map_err(|_| RevertReason::read_out_of_bounds("network selector (1 byte)"))?;
 
 	match network_selector[0] {
 		0 => Ok(NetworkId::Any),
 		1 => Ok(NetworkId::Named(
-			encoded_network_id.read_till_end()?.to_vec(),
+			encoded_network_id
+				.read_till_end()
+				.in_field("name")?
+				.to_vec()
+				.try_into()
+				.map_err(|_| RevertReason::value_is_too_large("network name").in_field("name"))?,
 		)),
 		2 => Ok(NetworkId::Polkadot),
 		3 => Ok(NetworkId::Kusama),
-		_ => Err(revert("Non-valid Network Id")),
+		_ => Err(RevertReason::custom("Non-valid Network Id").into()),
 	}
 }
 
 impl EvmData for Junction {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let junction = reader.read::<Bytes>()?;
-		let junction_bytes = junction.as_bytes();
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let junction = reader.read::<BoundedBytes<ConstU32<JUNCTION_SIZE_LIMIT>>>()?;
+		let junction_bytes: Vec<_> = junction.into();
 
 		ensure!(
 			junction_bytes.len() > 0,
-			revert("Junctions cannot be empty")
+			RevertReason::custom("Junctions cannot be empty")
 		);
 
 		// For simplicity we use an EvmReader here
 		let mut encoded_junction = EvmDataReader::new(&junction_bytes);
 
 		// We take the first byte
-		let enum_selector = encoded_junction.read_raw_bytes(1)?;
+		let enum_selector = encoded_junction
+			.read_raw_bytes(1)
+			.map_err(|_| RevertReason::read_out_of_bounds("junction variant"))?;
 
 		// The firs byte selects the enum variant
 		match enum_selector[0] {
@@ -143,16 +159,20 @@ impl EvmData for Junction {
 				Ok(Junction::GeneralIndex(u128::from_be_bytes(general_index)))
 			}
 			6 => Ok(Junction::GeneralKey(
-				encoded_junction.read_till_end()?.to_vec(),
+				encoded_junction
+					.read_till_end()?
+					.to_vec()
+					.try_into()
+					.map_err(|_| RevertReason::custom("junction general key is too long"))?,
 			)),
 			7 => Ok(Junction::OnlyChild),
-			_ => Err(revert("No selector for this")),
+			_ => Err(RevertReason::custom("Unknown Junction variant").into()),
 		}
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
-		let encoded_bytes: Bytes = match value {
+		let encoded_bytes: UnboundedBytes = match value {
 			Junction::Parachain(para_id) => {
 				encoded.push(0u8);
 				encoded.append(&mut para_id.to_be_bytes().to_vec());
@@ -186,9 +206,9 @@ impl EvmData for Junction {
 				encoded.append(&mut id.to_be_bytes().to_vec());
 				encoded.as_slice().into()
 			}
-			Junction::GeneralKey(mut key) => {
+			Junction::GeneralKey(key) => {
 				encoded.push(6u8);
-				encoded.append(&mut key);
+				encoded.append(&mut key.into_inner());
 				encoded.as_slice().into()
 			}
 			Junction::OnlyChild => {
@@ -205,16 +225,20 @@ impl EvmData for Junction {
 	fn has_static_size() -> bool {
 		false
 	}
+
+	fn solidity_type() -> String {
+		UnboundedBytes::solidity_type()
+	}
 }
 
 impl EvmData for Junctions {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let junctions_bytes: Vec<Junction> = reader.read()?;
 		let mut junctions = Junctions::Here;
 		for item in junctions_bytes {
 			junctions
 				.push(item)
-				.map_err(|_| revert("overflow when reading junctions"))?;
+				.map_err(|_| RevertReason::custom("overflow when reading junctions"))?;
 		}
 
 		Ok(junctions)
@@ -228,12 +252,15 @@ impl EvmData for Junctions {
 	fn has_static_size() -> bool {
 		false
 	}
+
+	fn solidity_type() -> String {
+		Vec::<Junction>::solidity_type()
+	}
 }
 
 impl EvmData for MultiLocation {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let (parents, interior) = reader.read()?;
-
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		crate::read_struct!(reader, {parents: u8, interior: Junctions});
 		Ok(MultiLocation { parents, interior })
 	}
 
@@ -243,5 +270,9 @@ impl EvmData for MultiLocation {
 
 	fn has_static_size() -> bool {
 		<(u8, Junctions)>::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		<(u8, Junctions)>::solidity_type()
 	}
 }

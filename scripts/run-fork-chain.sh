@@ -109,7 +109,7 @@ then
 
     echo "Preparing tests... (3 minutes)"
     cd $ROOT_FOLDER/moonbeam/moonbeam-types-bundle
-    npm ci
+    npm install
     cd $ROOT_FOLDER/moonbeam/tools
     npm ci
     cd $ROOT_FOLDER/moonbeam/tests

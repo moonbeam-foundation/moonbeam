@@ -27,7 +27,6 @@ use pallet_evm::IdentityAddressMapping;
 use session_keys_primitives::VrfId;
 use sp_core::{H160, H256};
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
@@ -35,7 +34,7 @@ use sp_std::convert::{TryFrom, TryInto};
 
 pub type AccountId = H160;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -55,8 +54,8 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -64,16 +63,16 @@ parameter_types! {
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -96,7 +95,7 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -107,7 +106,7 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = VrfId;
@@ -120,7 +119,7 @@ impl crate::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 		1u64
 	}
 	fn get_epoch_randomness() -> Option<H256> {
-		None
+		Some(H256::default())
 	}
 }
 
@@ -131,7 +130,7 @@ parameter_types! {
 	pub const MaxBlockDelay: u32 = 20;
 }
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type AddressMapping = IdentityAddressMapping;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
@@ -149,7 +148,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::Randomness(inner) = e {
+			if let RuntimeEvent::Randomness(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -226,5 +225,23 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
+	}
+}
+
+pub const ALICE: H160 = H160::repeat_byte(0xAA);
+pub const BOB: H160 = H160::repeat_byte(0xBB);
+
+/// Helps test same effects for all 4 variants of RequestType
+pub fn build_default_request(
+	info: RequestType<Test>,
+) -> Request<BalanceOf<Test>, RequestType<Test>> {
+	Request {
+		refund_address: BOB,
+		contract_address: ALICE,
+		fee: 5,
+		gas_limit: 100u64,
+		num_words: 1u8,
+		salt: H256::default(),
+		info,
 	}
 }

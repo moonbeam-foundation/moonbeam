@@ -22,11 +22,11 @@ describeDevMoonbeam("Sudo - successful setParachainBondAccount", (context) => {
     expect(parachainBondInfo.account.toString()).to.equal(alith.address);
     expect(parachainBondInfo.percent.toNumber()).to.equal(30);
     //check events
-    expect(events.length).to.eq(5);
+    expect(events.length).to.eq(6);
     expect(context.polkadotApi.events.parachainStaking.ParachainBondAccountSet.is(events[1].event))
       .to.be.true;
     expect(context.polkadotApi.events.balances.Deposit.is(events[3].event)).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[4].event)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicSuccess.is(events[5].event)).to.be.true;
     // check balance diff (diff should be null for sudo - funds are sent back)
     expect(await context.web3.eth.getBalance(alith.address, 1)).to.equal(
       ALITH_GENESIS_TRANSFERABLE_BALANCE.toString()
@@ -80,11 +80,11 @@ describeDevMoonbeam("Sudo - Only sudo account", (context) => {
     expect(parachainBondInfo.account.toString()).to.equal(ZERO_ADDRESS);
     expect(parachainBondInfo.percent.toNumber()).to.equal(30);
     //check events
-    expect(events.length === 6).to.be.true;
+    expect(events.length === 7).to.be.true;
     expect(context.polkadotApi.events.system.NewAccount.is(events[2].event)).to.be.true;
     expect(context.polkadotApi.events.balances.Endowed.is(events[3].event)).to.be.true;
     expect(context.polkadotApi.events.treasury.Deposit.is(events[4].event)).to.be.true;
-    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[5].event)).to.be.true;
+    expect(context.polkadotApi.events.system.ExtrinsicFailed.is(events[6].event)).to.be.true;
     // check balance diff (should not be null for a failed extrinsic)
     expect(
       BigInt(await context.web3.eth.getBalance(baltathar.address, 1)) - DEFAULT_GENESIS_BALANCE !==
