@@ -141,8 +141,8 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
     expect(receipt.status).to.be.true;
 
     const successEvent = result.events.filter(({ event }) => event.method == "ExtrinsicSuccess")[0];
-    let weight = (successEvent.event.data as any).dispatchInfo.weight.toBigInt();
-    expect(weight).to.equal(3_912_425_000n);
+    let weight = (successEvent.event.data as any).dispatchInfo.weight.refTime.toBigInt();
+    expect(weight).to.equal(4_162_425_000n);
 
     const withdrawEvents = result.events.filter(({ event }) => event.method == "Withdraw");
     expect(withdrawEvents.length).to.equal(1);
