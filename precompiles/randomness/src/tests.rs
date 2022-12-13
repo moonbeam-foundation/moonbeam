@@ -15,59 +15,30 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Randomness precompile unit tests
+use crate::mock::*;
+use precompile_utils::testing::solidity;
 
-// use std::collections::HashSet;
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["Randomness.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
 
-// use precompile_utils::solidity;
-// use crate::mock::*;
-
-// #[test]
-// fn test_all_actions_are_implemented_in_solidity_interface() {
-// 	let selectors = solidity::get_selectors("Randomness.sol")
-// 		.into_iter()
-// 		.map(|sf| sf.compute_selector())
-// 		.collect::<HashSet<_>>();
-
-// 	assert_eq!(Action::RelayEpochIndex as u32, 0x81797566);
-// 	assert!(selectors.contains(&(Action::RelayEpochIndex as u32)));
-
-// 	assert_eq!(Action::RequestBabeRandomness as u32, 0xbbc9e95f);
-// 	assert!(selectors.contains(&(Action::RequestBabeRandomness as u32)));
-
-// 	assert_eq!(Action::RequestLocalRandomness as u32, 0xb4a11763);
-// 	assert!(selectors.contains(&(Action::RequestLocalRandomness as u32)));
-
-// 	assert_eq!(Action::FulfillRequest as u32, 0xb9904a86);
-// 	assert!(selectors.contains(&(Action::FulfillRequest as u32)));
-
-// 	assert_eq!(Action::IncreaseRequestFee as u32, 0x6a5b3380);
-// 	assert!(selectors.contains(&(Action::IncreaseRequestFee as u32)));
-
-// 	assert_eq!(Action::ExecuteRequestExpiration as u32, 0x8fcdcc49);
-// 	assert!(selectors.contains(&(Action::ExecuteRequestExpiration as u32)));
-// }
-
-// #[test]
-// fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
-// 	for file in ["Randomness.sol"] {
-// 		for solidity_fn in solidity::get_selectors(file) {
-// 			assert_eq!(
-// 				solidity_fn.compute_selector_hex(),
-// 				solidity_fn.docs_selector,
-// 				"documented selector for '{}' did not match for file '{}'",
-// 				solidity_fn.signature(),
-// 				file,
-// 			);
-
-// 			let selector = solidity_fn.compute_selector();
-// 			if !PCall::supports_selector(selector) {
-// 				panic!(
-// 					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
-// 					selector,
-// 					solidity_fn.signature(),
-// 					file,
-// 				)
-// 			}
-// 		}
-// 	}
-// }
+			let selector = solidity_fn.compute_selector();
+			if !PCall::supports_selector(selector) {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
