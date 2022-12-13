@@ -2989,15 +2989,6 @@ fn precompile_existence() {
 }
 
 #[test]
-fn base_fee_should_default_to_associate_type_value() {
-	ExtBuilder::default().build().execute_with(|| {
-		let (base_fee, _) =
-			<moonbase_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
-		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
-	});
-}
-
-#[test]
 fn substrate_based_fees_zero_txn_costs_only_base_extrinsic() {
 	use frame_support::dispatch::{DispatchInfo, Pays};
 	use moonbase_runtime::{currency, EXTRINSIC_BASE_WEIGHT};
