@@ -25,7 +25,7 @@ use nimbus_primitives::NimbusId;
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
 use precompile_utils::{precompile_set::*, testing::MockAccount};
 use session_keys_primitives::VrfId;
-use sp_core::{H160, H256};
+use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
@@ -102,11 +102,6 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-}
-
-/// The randomness precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
 }
 
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
@@ -246,4 +241,11 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<RuntimeEvent> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }
