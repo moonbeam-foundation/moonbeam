@@ -38,7 +38,7 @@ use account::AccountId20;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, DispatchInfo, GetDispatchInfo},
+	dispatch::{DispatchClass, GetDispatchInfo},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -1537,7 +1537,7 @@ mod tests {
 mod fee_tests {
 	use super::*;
 	use frame_support::weights::WeightToFee;
-	use frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize, weights::DispatchInfo};
+	use frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize};
 	use sp_runtime::traits::Convert;
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
@@ -1696,7 +1696,7 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual_fee = TransactionPayment::compute_fee(
 				extrinsic_len,
-				&DispatchInfo {
+				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
 					weight: Weight::from_ref_time(extrinsic_weight),

@@ -39,7 +39,7 @@ pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, DispatchInfo, GetDispatchInfo},
+	dispatch::{DispatchClass, GetDispatchInfo},
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -1732,7 +1732,7 @@ mod fee_tests {
 			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
 			let actual_fee = TransactionPayment::compute_fee(
 				extrinsic_len,
-				&DispatchInfo {
+				&frame_support::dispatch::DispatchInfo {
 					class: DispatchClass::Normal,
 					pays_fee: frame_support::dispatch::Pays::Yes,
 					weight: extrinsic_weight,
