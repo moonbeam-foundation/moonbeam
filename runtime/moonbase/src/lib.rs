@@ -38,7 +38,7 @@ use account::AccountId20;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, GetDispatchInfo},
+	dispatch::{DispatchClass, DispatchInfo, GetDispatchInfo},
 	ensure,
 	pallet_prelude::DispatchResult,
 	parameter_types,
@@ -1698,7 +1698,7 @@ mod fee_tests {
 				extrinsic_len,
 				&DispatchInfo {
 					class: DispatchClass::Normal,
-					pays_fee: frame_support::weights::Pays::Yes,
+					pays_fee: frame_support::dispatch::Pays::Yes,
 					weight: Weight::from_ref_time(extrinsic_weight),
 				},
 				tip,
@@ -1761,8 +1761,6 @@ mod fee_tests {
 			.unwrap()
 			.into();
 		t.execute_with(|| {
-			let multiplier = sp_runtime::FixedU128::from_u32(1);
-
 			let weight_fee_per_gas = currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128);
 			let sim = |start_gas_price: u128, fullness: Perbill, num_blocks: u64| -> U256 {
 				let start_multiplier =

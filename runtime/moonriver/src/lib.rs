@@ -39,7 +39,7 @@ pub use fp_evm::GenesisAccount;
 pub use frame_support::traits::Get;
 use frame_support::{
 	construct_runtime,
-	dispatch::{DispatchClass, GetDispatchInfo},
+	dispatch::{DispatchClass, DispatchInfo, GetDispatchInfo},
 	pallet_prelude::DispatchResult,
 	parameter_types,
 	traits::{
@@ -1575,7 +1575,7 @@ mod tests {
 mod fee_tests {
 	use super::*;
 	use frame_support::weights::WeightToFee;
-	use frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize, weights::DispatchInfo};
+	use frame_support::{dispatch::GetDispatchInfo, traits::OnFinalize};
 	use sp_runtime::traits::Convert;
 
 	fn run_with_system_weight<F>(w: Weight, mut assertions: F)
@@ -1734,7 +1734,7 @@ mod fee_tests {
 				extrinsic_len,
 				&DispatchInfo {
 					class: DispatchClass::Normal,
-					pays_fee: frame_support::weights::Pays::Yes,
+					pays_fee: frame_support::dispatch::Pays::Yes,
 					weight: extrinsic_weight,
 				},
 				tip,
