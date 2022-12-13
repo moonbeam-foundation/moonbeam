@@ -47,7 +47,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
           "0x0",
           100n * GLMR,
           12_000_000n,
-          1_000_000_000n,
+          10_000_000_000n,
           "0",
           undefined,
           []
