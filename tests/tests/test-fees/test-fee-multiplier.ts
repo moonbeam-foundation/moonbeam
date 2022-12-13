@@ -32,11 +32,6 @@ describeDevMoonbeam("Max Fee Multiplier", (context) => {
       .key(0)
       .toString();
 
-    const initialValue = (
-      await context.polkadotApi.query.transactionPayment.nextFeeMultiplier()
-    ).toBigInt();
-    expect(initialValue).to.equal(8_000_000_000_000_000_000n);
-
     const U128_MAX = new BN("340282366920938463463374607431768211455");
     const newMultiplierValue = context.polkadotApi.createType("u128", U128_MAX);
 
