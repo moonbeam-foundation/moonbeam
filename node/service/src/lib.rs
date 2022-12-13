@@ -50,7 +50,8 @@ use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
 use nimbus_primitives::NimbusId;
-use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
+use sc_client_api::ExecutorProvider;
+use sc_executor::NativeElseWasmExecutor;
 use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
@@ -78,6 +79,24 @@ pub type HostFunctions = (
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
+/// A trait that must be implemented by all moon* runtimes executors.
+///
+/// This feature allows, for instance, to customize the client extensions according to the type
+/// of network.
+/// For the moment, this feature is only used to specify the first block compatible with
+/// ed25519-zebra, but it could be used for other things in the future.
+pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
+	/// The host function ed25519_verify has changed its behavior in the substrate history,
+	/// because of the change from lib ed25519-dalek to lib ed25519-zebra.
+	/// Some networks may have old blocks that are not compatible with ed25519-zebra,
+	/// for these networks this function should return the 1st block compatible with the new lib.
+	/// If this function returns None (default behavior), it implies that all blocks are compatible
+	/// with the new lib (ed25519-zebra).
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		None
+	}
+}
+
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;
 
@@ -91,6 +110,13 @@ impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
 
 	fn native_version() -> sc_executor::NativeVersion {
 		moonbeam_runtime::native_version()
+	}
+}
+
+#[cfg(feature = "moonbeam-native")]
+impl ExecutorT for MoonbeamExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(2_000_000)
 	}
 }
 
@@ -110,6 +136,13 @@ impl sc_executor::NativeExecutionDispatch for MoonriverExecutor {
 	}
 }
 
+#[cfg(feature = "moonriver-native")]
+impl ExecutorT for MoonriverExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(3_000_000)
+	}
+}
+
 #[cfg(feature = "moonbase-native")]
 pub struct MoonbaseExecutor;
 
@@ -123,6 +156,13 @@ impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
 
 	fn native_version() -> sc_executor::NativeVersion {
 		moonbase_runtime::native_version()
+	}
+}
+
+#[cfg(feature = "moonbase-native")]
+impl ExecutorT for MoonbaseExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(3_000_000)
 	}
 }
 
@@ -282,7 +322,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	let PartialComponents {
@@ -347,7 +387,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	set_prometheus_registry(config)?;
 
@@ -378,6 +418,15 @@ where
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
 		)?;
+
+	if let Some(block_number) = Executor::first_block_number_compatible_with_ed25519_zebra() {
+		client
+			.execution_extensions()
+			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
+			Block,
+			sp_io::UseDalekExt,
+		>::new(block_number));
+	}
 
 	let client = Arc::new(client);
 
@@ -462,7 +511,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
 		Option<&Registry>,
@@ -722,7 +771,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	start_node_impl(
 		parachain_config,
@@ -818,7 +867,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	use async_io::Timer;
 	use futures::Stream;

@@ -15,19 +15,16 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
-	mock::{
-		Account::{Alice, Bob, Charlie, Precompile},
-		ExtBuilder, PCall, PrecompilesValue, Runtime, TestPrecompiles, ALICE_SECRET_KEY,
-	},
+	mock::{CallPermit, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime},
 	CallPermitPrecompile,
 };
 use evm::ExitReason;
 use fp_evm::{ExitRevert, ExitSucceed};
 use libsecp256k1::{sign, Message, SecretKey};
-use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, solidity, testing::*};
+use precompile_utils::{costs::call_cost, encoded_revert, prelude::*, testing::*};
 use sp_core::{H160, H256, U256};
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
@@ -45,10 +42,10 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+			let mut tester = PrecompilesModifierTester::new(precompiles(), CryptoAlith, CallPermit);
 
 			tester.test_default_modifier(PCall::dispatch_selectors());
 			tester.test_view_modifier(PCall::nonces_selectors());
@@ -59,10 +56,10 @@ fn modifiers() {
 #[test]
 fn valid_permit_returns() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = b"Test".to_vec();
@@ -70,7 +67,7 @@ fn valid_permit_returns() {
 			let nonce: U256 = 0u8.into();
 			let deadline: U256 = 1_000u32.into();
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
-				Precompile.into(),
+				CallPermit.into(),
 				from,
 				to,
 				value,
@@ -80,16 +77,16 @@ fn valid_permit_returns() {
 				deadline,
 			);
 
-			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -101,7 +98,7 @@ fn valid_permit_returns() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -125,13 +122,13 @@ fn valid_permit_returns() {
 					} = subcall;
 
 					// Called on the behalf of the permit maker.
-					assert_eq!(context.caller, Alice.into());
+					assert_eq!(context.caller, CryptoAlith.into());
 					assert_eq!(address, Bob.into());
 					assert_eq!(is_static, false);
 					assert_eq!(target_gas, Some(100_000), "forward requested gas");
 
 					let transfer = transfer.expect("there is a transfer");
-					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.source, CryptoAlith.into());
 					assert_eq!(transfer.target, Bob.into());
 					assert_eq!(transfer.value, 42u8.into());
 
@@ -161,10 +158,10 @@ fn valid_permit_returns() {
 #[test]
 fn valid_permit_reverts() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = b"Test".to_vec();
@@ -173,7 +170,7 @@ fn valid_permit_reverts() {
 			let deadline: U256 = 1_000u32.into();
 
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
-				Precompile.into(),
+				CallPermit.into(),
 				from,
 				to,
 				value,
@@ -183,16 +180,16 @@ fn valid_permit_reverts() {
 				deadline,
 			);
 
-			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -204,7 +201,7 @@ fn valid_permit_reverts() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -228,13 +225,13 @@ fn valid_permit_reverts() {
 					} = subcall;
 
 					// Called on the behalf of the permit maker.
-					assert_eq!(context.caller, Alice.into());
+					assert_eq!(context.caller, CryptoAlith.into());
 					assert_eq!(address, Bob.into());
 					assert_eq!(is_static, false);
 					assert_eq!(target_gas, Some(100_000), "forward requested gas");
 
 					let transfer = transfer.expect("there is a transfer");
-					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.source, CryptoAlith.into());
 					assert_eq!(transfer.target, Bob.into());
 					assert_eq!(transfer.value, 42u8.into());
 
@@ -260,10 +257,10 @@ fn valid_permit_reverts() {
 #[test]
 fn invalid_permit_nonce() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = b"Test".to_vec();
@@ -272,7 +269,7 @@ fn invalid_permit_nonce() {
 			let deadline: U256 = 1_000u32.into();
 
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
-				Precompile.into(),
+				CallPermit.into(),
 				from,
 				to,
 				value,
@@ -282,16 +279,16 @@ fn invalid_permit_nonce() {
 				deadline,
 			);
 
-			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -303,7 +300,7 @@ fn invalid_permit_nonce() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -326,10 +323,10 @@ fn invalid_permit_nonce() {
 #[test]
 fn invalid_permit_gas_limit_too_low() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = b"Test".to_vec();
@@ -338,7 +335,7 @@ fn invalid_permit_gas_limit_too_low() {
 			let deadline: U256 = 1_000u32.into();
 
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
-				Precompile.into(),
+				CallPermit.into(),
 				from,
 				to,
 				value,
@@ -348,16 +345,16 @@ fn invalid_permit_gas_limit_too_low() {
 				deadline,
 			);
 
-			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -369,7 +366,7 @@ fn invalid_permit_gas_limit_too_low() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -392,10 +389,10 @@ fn invalid_permit_gas_limit_too_low() {
 #[test]
 fn invalid_permit_gas_limit_overflow() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = b"Test".to_vec();
@@ -404,7 +401,7 @@ fn invalid_permit_gas_limit_overflow() {
 			let deadline: U256 = 1_000u32.into();
 
 			let permit = CallPermitPrecompile::<Runtime>::generate_permit(
-				Precompile.into(),
+				CallPermit.into(),
 				from,
 				to,
 				value,
@@ -416,16 +413,16 @@ fn invalid_permit_gas_limit_overflow() {
 
 			dbg!(H256::from(permit));
 
-			let secret_key = SecretKey::parse(&ALICE_SECRET_KEY).unwrap();
+			let secret_key = SecretKey::parse(&alith_secret_key()).unwrap();
 			let message = Message::parse(&permit);
 			let (rs, v) = sign(&message, &secret_key);
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -435,7 +432,7 @@ fn invalid_permit_gas_limit_overflow() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -457,7 +454,7 @@ fn invalid_permit_gas_limit_overflow() {
 
 // // This test checks the validity of a metamask signed message against the permit precompile
 // // The code used to generate the signature is the following.
-// // You will need to import ALICE_PRIV_KEY in metamask.
+// // You will need to import CryptoAlith_PRIV_KEY in metamask.
 // // If you put this code in the developer tools console, it will log the signature
 
 // await window.ethereum.enable();
@@ -535,7 +532,7 @@ fn invalid_permit_gas_limit_overflow() {
 // 	},
 // 	primaryType: "CallPermit",
 // 	domain: {
-// 		name: "Call Permit Precompile",
+// 		name: "Call Permit CallPermit",
 // 		version: "1",
 // 		chainId: 0,
 // 		verifyingContract: "0x0000000000000000000000000000000000000001",
@@ -586,10 +583,10 @@ fn invalid_permit_gas_limit_overflow() {
 #[test]
 fn valid_permit_returns_with_metamask_signed_data() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 2000)])
+		.with_balances(vec![(CryptoAlith.into(), 2000)])
 		.build()
 		.execute_with(|| {
-			let from: H160 = Alice.into();
+			let from: H160 = CryptoAlith.into();
 			let to: H160 = Bob.into();
 			let value: U256 = 42u8.into();
 			let data: Vec<u8> = hex_literal::hex!("deadbeef").to_vec();
@@ -610,10 +607,10 @@ fn valid_permit_returns_with_metamask_signed_data() {
 
 			precompiles()
 				.prepare_test(
-					Alice,
-					Precompile,
+					CryptoAlith,
+					CallPermit,
 					PCall::nonces {
-						owner: Address(Alice.into()),
+						owner: Address(CryptoAlith.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -625,7 +622,7 @@ fn valid_permit_returns_with_metamask_signed_data() {
 			precompiles()
 				.prepare_test(
 					Charlie, // can be anyone
-					Precompile,
+					CallPermit,
 					PCall::dispatch {
 						from: Address(from),
 						to: Address(to),
@@ -649,13 +646,13 @@ fn valid_permit_returns_with_metamask_signed_data() {
 					} = subcall;
 
 					// Called on the behalf of the permit maker.
-					assert_eq!(context.caller, Alice.into());
+					assert_eq!(context.caller, CryptoAlith.into());
 					assert_eq!(address, Bob.into());
 					assert_eq!(is_static, false);
 					assert_eq!(target_gas, Some(100_000), "forward requested gas");
 
 					let transfer = transfer.expect("there is a transfer");
-					assert_eq!(transfer.source, Alice.into());
+					assert_eq!(transfer.source, CryptoAlith.into());
 					assert_eq!(transfer.target, Bob.into());
 					assert_eq!(transfer.value, 42u8.into());
 

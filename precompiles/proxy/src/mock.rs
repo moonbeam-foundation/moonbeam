@@ -21,86 +21,23 @@ use frame_support::{
 	traits::{Everything, InstanceFilter},
 	weights::Weight,
 };
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping,
-};
-use precompile_utils::precompile_set::{
-	AddressU64, LimitRecursionTo, PrecompileAt, PrecompileSetBuilder,
+use pallet_evm::{EnsureAddressNever, EnsureAddressOrigin, SubstrateBlockHashMapping};
+use precompile_utils::{
+	precompile_set::{AddressU64, LimitRecursionTo, PrecompileAt, PrecompileSetBuilder},
+	testing::MockAccount,
 };
 use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
 use sp_core::{H160, H256, U256};
 use sp_io;
 use sp_runtime::codec::{Decode, Encode, MaxEncodedLen};
 use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(value: Account) -> H160 {
-		match value {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
 
 construct_runtime!(
 	pub enum Runtime where
@@ -129,7 +66,7 @@ impl frame_system::Config for Runtime {
 	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = Account;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
 	type RuntimeEvent = RuntimeEvent;
@@ -161,9 +98,9 @@ impl pallet_balances::Config for Runtime {
 	type WeightInfo = ();
 }
 
-pub type TestPrecompiles<R> = PrecompileSetBuilder<
+pub type Precompiles<R> = PrecompileSetBuilder<
 	R,
-	(PrecompileAt<AddressU64<PRECOMPILE_ADDRESS>, ProxyPrecompile<R>, LimitRecursionTo<1>>,),
+	(PrecompileAt<AddressU64<1>, ProxyPrecompile<R>, LimitRecursionTo<1>>,),
 >;
 
 pub type PCall = ProxyPrecompileCall<Runtime>;
@@ -189,7 +126,7 @@ impl<OuterOrigin> EnsureAddressOrigin<OuterOrigin> for EnsureAddressAlways {
 
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
 	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 impl pallet_evm::Config for Runtime {
@@ -197,12 +134,12 @@ impl pallet_evm::Config for Runtime {
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressAlways;
-	type WithdrawOrigin = EnsureAddressNever<Account>;
-	type AddressMapping = Account;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = TestPrecompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
@@ -312,33 +249,4 @@ pub(crate) fn events() -> Vec<RuntimeEvent> {
 		.into_iter()
 		.map(|r| r.event)
 		.collect::<Vec<_>>()
-}
-
-#[test]
-fn test_account_id_mapping_works() {
-	// Bidirectional conversions for normal accounts
-	assert_eq!(
-		Account::Alice,
-		Account::into_account_id(Account::Alice.into())
-	);
-	assert_eq!(Account::Bob, Account::into_account_id(Account::Bob.into()));
-	assert_eq!(
-		Account::Charlie,
-		Account::into_account_id(Account::Charlie.into())
-	);
-
-	// Bidirectional conversion between bogus and default H160
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::default()));
-	assert_eq!(H160::default(), Account::Bogus.into());
-
-	// All other H160s map to bogus
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::zero()));
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0x12))
-	);
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0xFF))
-	);
 }

@@ -15,16 +15,14 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	events,
-	Account::{Alice, Precompile},
-	ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
+	events, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
 use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
 use pallet_evm::{Call as EvmCall, Event as EvmEvent};
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::crypto::UncheckedFrom;
 use sp_core::{H256, U256};
 
@@ -35,7 +33,7 @@ fn precompiles() -> Precompiles<Runtime> {
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: Precompile.into(),
+		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -51,7 +49,7 @@ fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -60,7 +58,7 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -77,7 +75,7 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default().build().execute_with(|| {
-		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile);
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
 
 		tester.test_default_modifier(PCall::add_association_selectors());
 		tester.test_default_modifier(PCall::update_association_selectors());
@@ -90,7 +88,7 @@ fn modifiers() {
 #[test]
 fn add_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let expected_nimbus_id: NimbusId =
@@ -109,18 +107,18 @@ fn add_association_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: expected_nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: expected_nimbus_id.into(),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -131,7 +129,7 @@ fn add_association_works() {
 #[test]
 fn update_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let first_nimbus_id: NimbusId =
@@ -143,7 +141,7 @@ fn update_association_works() {
 				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
 					nimbus_id: first_nimbus_id.clone(),
 				})
-				.dispatch(RuntimeOrigin::signed(Alice))
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
 			);
 
 			let input = PCall::update_association {
@@ -160,24 +158,24 @@ fn update_association_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: first_nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: first_nimbus_id.into(),
 					}
 					.into(),
 					AuthorMappingEvent::KeysRotated {
 						new_nimbus_id: second_nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						new_keys: second_nimbus_id.into(),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -188,7 +186,7 @@ fn update_association_works() {
 #[test]
 fn clear_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
@@ -197,7 +195,7 @@ fn clear_association_works() {
 				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
 					nimbus_id: nimbus_id.clone(),
 				})
-				.dispatch(RuntimeOrigin::signed(Alice))
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
 			);
 
 			let input = PCall::clear_association {
@@ -213,29 +211,29 @@ fn clear_association_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: nimbus_id.clone().into(),
 					}
 					.into(),
 					BalancesEvent::Unreserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRemoved {
 						nimbus_id: nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: nimbus_id.into(),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -246,7 +244,7 @@ fn clear_association_works() {
 #[test]
 fn remove_keys_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
@@ -255,7 +253,7 @@ fn remove_keys_works() {
 				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
 					nimbus_id: nimbus_id.clone(),
 				})
-				.dispatch(RuntimeOrigin::signed(Alice))
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
 			);
 
 			let input = PCall::remove_keys {}.into();
@@ -268,29 +266,29 @@ fn remove_keys_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: nimbus_id.clone().into(),
 					}
 					.into(),
 					BalancesEvent::Unreserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRemoved {
 						nimbus_id: nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: nimbus_id.into(),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]
@@ -301,7 +299,7 @@ fn remove_keys_works() {
 #[test]
 fn set_keys_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let first_nimbus_id: NimbusId =
@@ -316,7 +314,7 @@ fn set_keys_works() {
 			assert_ok!(RuntimeCall::AuthorMapping(AuthorMappingCall::set_keys {
 				keys: keys_wrapper::<Runtime>(first_nimbus_id.clone(), first_vrf_key.clone()),
 			})
-			.dispatch(RuntimeOrigin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			// Create input with keys inside a Solidity bytes.
 			let input = PCall::set_keys {
@@ -336,24 +334,24 @@ fn set_keys_works() {
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
 					AuthorMappingEvent::KeysRegistered {
 						nimbus_id: first_nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						keys: first_vrf_key.into(),
 					}
 					.into(),
 					AuthorMappingEvent::KeysRotated {
 						new_nimbus_id: second_nimbus_id.clone(),
-						account_id: Alice,
+						account_id: Alice.into(),
 						new_keys: second_vrf_key.into(),
 					}
 					.into(),
 					EvmEvent::Executed {
-						address: Precompile.into()
+						address: Precompile1.into()
 					}
 					.into(),
 				]

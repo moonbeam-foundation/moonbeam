@@ -28,9 +28,6 @@ pub mod revert;
 pub mod substrate;
 
 #[cfg(feature = "testing")]
-pub mod solidity;
-
-#[cfg(feature = "testing")]
 pub mod testing;
 
 #[cfg(test)]

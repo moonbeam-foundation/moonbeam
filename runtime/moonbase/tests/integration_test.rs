@@ -21,7 +21,7 @@ use common::*;
 
 use precompile_utils::{prelude::*, testing::*};
 
-use fp_evm::Context;
+use fp_evm::{Context, FeeCalculator};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -37,7 +37,7 @@ use moonbase_runtime::{
 	asset_config::LocalAssetInstance,
 	get,
 	xcm_config::{AssetType, SelfReserve},
-	AccountId, AssetId, AssetManager, Assets, Balances, BaseFee, CrowdloanRewards, LocalAssets,
+	AccountId, AssetId, AssetManager, Assets, Balances, CrowdloanRewards, LocalAssets,
 	ParachainStaking, PolkadotXcm, Precompiles, Runtime, RuntimeBlockWeights, RuntimeCall,
 	RuntimeEvent, System, TransactionPayment, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
@@ -176,7 +176,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbase_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbase_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
-	is_pallet_prefix::<moonbase_runtime::BaseFee>("BaseFee");
 	is_pallet_prefix::<moonbase_runtime::LocalAssets>("LocalAssets");
 	is_pallet_prefix::<moonbase_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonbase_runtime::EthereumXcm>("EthereumXcm");
@@ -353,12 +352,29 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::Migrations>(32);
 	is_pallet_index::<moonbase_runtime::XcmTransactor>(33);
 	is_pallet_index::<moonbase_runtime::ProxyGenesisCompanion>(34);
-	is_pallet_index::<moonbase_runtime::BaseFee>(35);
 	is_pallet_index::<moonbase_runtime::LocalAssets>(36);
 	is_pallet_index::<moonbase_runtime::MoonbeamOrbiters>(37);
 	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
+}
+
+#[test]
+fn verify_reserved_indices() {
+	use frame_support::metadata::*;
+	let metadata = moonbase_runtime::Runtime::metadata();
+	let metadata = match metadata.1 {
+		RuntimeMetadata::V14(metadata) => metadata,
+		_ => panic!("metadata has been bumped, test needs to be updated"),
+	};
+	// 35: BaseFee
+	let reserved = vec![35];
+	let existing = metadata
+		.pallets
+		.iter()
+		.map(|p| p.index)
+		.collect::<Vec<u8>>();
+	assert!(reserved.iter().all(|index| !existing.contains(index)));
 }
 
 #[test]
@@ -523,7 +539,7 @@ fn reward_block_authors() {
 				1_000 * UNIT,
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -572,7 +588,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			);
 			assert_eq!(Balances::usable_balance(AccountId::from(BOB)), 500 * UNIT,);
 			assert_eq!(Balances::usable_balance(AccountId::from(CHARLIE)), UNIT,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(1201, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -2975,10 +2991,9 @@ fn precompile_existence() {
 #[test]
 fn base_fee_should_default_to_associate_type_value() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(
-			BaseFee::base_fee_per_gas(),
-			(1 * GIGAWEI * SUPPLY_FACTOR).into()
-		);
+		let (base_fee, _) =
+			<moonbase_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
 	});
 }
 

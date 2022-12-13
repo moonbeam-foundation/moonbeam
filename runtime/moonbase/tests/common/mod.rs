@@ -292,12 +292,6 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
-		<pallet_base_fee::GenesisConfig<Runtime> as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_base_fee::GenesisConfig::<Runtime>::default(),
-			&mut t,
-		)
-		.unwrap();
-
 		<pallet_transaction_payment::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
 			&pallet_transaction_payment::GenesisConfig {
 				multiplier: Multiplier::from(8u128),

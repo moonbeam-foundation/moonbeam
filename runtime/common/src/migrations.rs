@@ -458,7 +458,6 @@ where
 	Runtime: pallet_author_mapping::Config,
 	Runtime: pallet_parachain_staking::Config,
 	Runtime: pallet_scheduler::Config<Hash = PreimageHash>,
-	Runtime: pallet_base_fee::Config,
 	Runtime: AuthorSlotFilterConfig,
 	Council: GetStorageVersion + PalletInfoAccess + 'static,
 	Tech: GetStorageVersion + PalletInfoAccess + 'static,
