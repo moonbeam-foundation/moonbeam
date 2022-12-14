@@ -441,11 +441,15 @@ describeDevMoonbeam("Staking - Rewards Auto-Compound - bottom delegation kick", 
     expect(autoCompoundDelegationsAlithBefore.toJSON()).to.not.be.empty;
     expect(autoCompoundDelegationsBaltatharBefore.toJSON()).to.not.be.empty;
 
+    const maxDelegationCount =
+      context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber() +
+      context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
+
     // This kicks ethan from bottom delegations for alith
     await expectOk(
       context.createBlock(
         context.polkadotApi.tx.parachainStaking
-          .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, delegationCount++, 0)
+          .delegate(alith.address, MIN_GLMR_DELEGATOR + 10n * GLMR, maxDelegationCount, 0)
           .signAsync(newDelegator)
       )
     );
