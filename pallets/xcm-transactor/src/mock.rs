@@ -15,36 +15,30 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
+
 use super::*;
-use crate::{self as xcm_transactor};
-use frame_support::{construct_runtime, parameter_types};
-use frame_support::{
-	traits::{EnsureOrigin, Everything, OriginTrait, PalletInfo as PalletInfoTrait},
-	weights::Weight,
-};
+use crate as pallet_xcm_transactor;
+use frame_support::traits::PalletInfo as PalletInfoTrait;
+use frame_support::{construct_runtime, parameter_types, weights::Weight};
 use frame_system::EnsureRoot;
 use parity_scale_codec::{Decode, Encode};
 
 use sp_core::{H160, H256};
 use sp_io;
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
-};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 use xcm::latest::{
-	Error as XcmError,
+	opaque, Error as XcmError, Instruction,
 	Junction::{AccountKey20, PalletInstance, Parachain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
+pub use xcm_primitives::XcmV2Weight;
 use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
 
-use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
-
+use sp_std::cell::RefCell;
 use xcm_executor::{
-	traits::{InvertLocation, TransactAsset, WeightTrader},
-	Assets, XcmExecutor,
+	traits::{InvertLocation, TransactAsset, WeightBounds, WeightTrader},
+	Assets,
 };
-
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -58,38 +52,37 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		XcmTransactor: xcm_transactor::{Pallet, Call, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		XcmTransactor: pallet_xcm_transactor::{Pallet, Call, Event<T>},
 	}
 );
 
 pub type Balance = u128;
-
+pub type BlockNumber = u32;
 pub type AccountId = u64;
 
 parameter_types! {
 	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
 }
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub BlockWeights: frame_system::limits::BlockWeights =
-		frame_system::limits::BlockWeights::simple_max(1024);
+		frame_system::limits::BlockWeights::simple_max(Weight::from_ref_time(1024));
 }
 
 impl frame_system::Config for Test {
 	type BaseCallFilter = frame_support::traits::Nothing;
 	type BlockWeights = ();
 	type BlockLength = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
-	type Call = Call;
-	type BlockNumber = u64;
+	type RuntimeCall = RuntimeCall;
+	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
 	type Version = ();
@@ -100,6 +93,7 @@ impl frame_system::Config for Test {
 	type OnSetCode = ();
 	type SystemWeightInfo = ();
 	type SS58Prefix = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -109,7 +103,7 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -126,28 +120,12 @@ impl pallet_timestamp::Config for Test {
 	type MinimumPeriod = MinimumPeriod;
 	type WeightInfo = ();
 }
-pub struct ConvertOriginToLocal;
-impl<Origin: OriginTrait> EnsureOrigin<Origin> for ConvertOriginToLocal {
-	type Success = MultiLocation;
-
-	fn try_origin(_: Origin) -> Result<MultiLocation, Origin> {
-		Ok(MultiLocation::here())
-	}
-
-	#[cfg(feature = "runtime-benchmarks")]
-	fn successful_origin() -> Origin {
-		Origin::root()
-	}
-}
 pub struct DoNothingRouter;
 impl SendXcm for DoNothingRouter {
 	fn send_xcm(_dest: impl Into<MultiLocation>, _msg: Xcm<()>) -> SendResult {
 		Ok(())
 	}
 }
-
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
 	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
@@ -165,7 +143,7 @@ impl WeightTrader for DummyWeightTrader {
 		DummyWeightTrader
 	}
 
-	fn buy_weight(&mut self, _weight: Weight, _payment: Assets) -> Result<Assets, XcmError> {
+	fn buy_weight(&mut self, _weight: XcmV2Weight, _payment: Assets) -> Result<Assets, XcmError> {
 		Ok(Assets::default())
 	}
 }
@@ -174,43 +152,22 @@ impl InvertLocation for InvertNothing {
 	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
 		Ok(MultiLocation::here())
 	}
+
+	fn ancestry() -> MultiLocation {
+		MultiLocation::here()
+	}
 }
 
-impl pallet_xcm::Config for Test {
-	// The config types here are entirely configurable, since the only one that is sorely needed
-	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
-	type Event = Event;
-	type ExecuteXcmOrigin = ConvertOriginToLocal;
-	type LocationInverter = InvertNothing;
-	type SendXcmOrigin = ConvertOriginToLocal;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type XcmRouter = DoNothingRouter;
-	type XcmExecuteFilter = frame_support::traits::Everything;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = frame_support::traits::Everything;
-	type XcmReserveTransferFilter = frame_support::traits::Everything;
-	type Origin = Origin;
-	type Call = Call;
-	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-}
+use sp_std::marker::PhantomData;
+pub struct DummyWeigher<C>(PhantomData<C>);
 
-pub struct XcmConfig;
-impl xcm_executor::Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = DoNothingRouter;
-	type AssetTransactor = DummyAssetTransactor;
-	type OriginConverter = pallet_xcm::XcmPassthrough<Origin>;
-	type IsReserve = ();
-	type IsTeleporter = ();
-	type LocationInverter = InvertNothing;
-	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = DummyWeightTrader;
-	type ResponseHandler = ();
-	type SubscriptionService = ();
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
+impl<C: Decode> WeightBounds<C> for DummyWeigher<C> {
+	fn weight(_message: &mut Xcm<C>) -> Result<XcmV2Weight, ()> {
+		Ok(0)
+	}
+	fn instr_weight(_instruction: &Instruction<C>) -> Result<XcmV2Weight, ()> {
+		Ok(0)
+	}
 }
 
 pub struct AccountIdToMultiLocation;
@@ -218,7 +175,7 @@ impl sp_runtime::traits::Convert<u64, MultiLocation> for AccountIdToMultiLocatio
 	fn convert(_account: u64) -> MultiLocation {
 		let as_h160: H160 = H160::repeat_byte(0xAA);
 		MultiLocation::new(
-			1,
+			0,
 			Junctions::X1(AccountKey20 {
 				network: NetworkId::Any,
 				key: as_h160.as_fixed_bytes().clone(),
@@ -230,7 +187,7 @@ impl sp_runtime::traits::Convert<u64, MultiLocation> for AccountIdToMultiLocatio
 parameter_types! {
 	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
 
-	pub const BaseXcmWeight: Weight = 1000;
+	pub const BaseXcmWeight: XcmV2Weight = 1000;
 	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
 
 	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
@@ -263,15 +220,17 @@ pub enum Transactors {
 	Relay,
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl Default for Transactors {
+	fn default() -> Self {
+		Transactors::Relay
+	}
+}
+
 impl XcmTransact for Transactors {
 	fn destination(self) -> MultiLocation {
 		match self {
 			Transactors::Relay => MultiLocation::parent(),
-		}
-	}
-	fn max_transact_weight(self) -> Weight {
-		match self {
-			Transactors::Relay => 20000000000,
 		}
 	}
 }
@@ -319,8 +278,36 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 	}
 }
 
+#[cfg(feature = "runtime-benchmarks")]
+impl From<MultiLocation> for CurrencyId {
+	fn from(location: MultiLocation) -> CurrencyId {
+		if location == SelfReserve::get() {
+			CurrencyId::SelfReserve
+		} else if location == MultiLocation::parent() {
+			CurrencyId::OtherReserve(0)
+		} else {
+			CurrencyId::OtherReserve(1)
+		}
+	}
+}
+
+// Simulates sending a XCM message
+thread_local! {
+	pub static SENT_XCM: RefCell<Vec<(MultiLocation, opaque::Xcm)>> = RefCell::new(Vec::new());
+}
+pub fn sent_xcm() -> Vec<(MultiLocation, opaque::Xcm)> {
+	SENT_XCM.with(|q| (*q.borrow()).clone())
+}
+pub struct TestSendXcm;
+impl SendXcm for TestSendXcm {
+	fn send_xcm(dest: impl Into<MultiLocation>, msg: opaque::Xcm) -> SendResult {
+		SENT_XCM.with(|q| q.borrow_mut().push((dest.into(), msg)));
+		Ok(())
+	}
+}
+
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
@@ -329,12 +316,13 @@ impl Config for Test {
 	type CurrencyId = CurrencyId;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
+	type Weigher = DummyWeigher<RuntimeCall>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
-	type XcmSender = DoNothingRouter;
+	type XcmSender = TestSendXcm;
+	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
+	type WeightInfo = ();
 }
 
 pub(crate) struct ExtBuilder {
@@ -375,7 +363,7 @@ pub(crate) fn events() -> Vec<super::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::XcmTransactor(inner) = e {
+			if let RuntimeEvent::XcmTransactor(inner) = e {
 				Some(inner)
 			} else {
 				None

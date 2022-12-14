@@ -17,22 +17,24 @@
 #![allow(dead_code)]
 
 use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use fp_evm::GenesisAccount;
 use frame_support::{
 	assert_ok,
 	dispatch::Dispatchable,
 	traits::{GenesisBuild, OnFinalize, OnInitialize},
 };
-use frame_system::InitKind;
 pub use moonbeam_runtime::{
-	currency::{GLMR, WEI},
-	AccountId, AuthorInherent, Balance, Balances, Call, CrowdloanRewards, Ethereum, Event,
-	Executive, FixedGasPrice, InflationInfo, ParachainStaking, Range, Runtime, System,
-	TransactionConverter, UncheckedExtrinsic, WEEKS,
+	asset_config::AssetRegistrarMetadata,
+	currency::{GIGAWEI, GLMR, SUPPLY_FACTOR, WEI},
+	xcm_config::AssetType,
+	AccountId, AssetId, AssetManager, Assets, AuthorInherent, Balance, Balances, CrowdloanRewards,
+	Ethereum, Executive, FixedGasPrice, InflationInfo, LocalAssets, ParachainStaking, Range,
+	Runtime, RuntimeCall, RuntimeEvent, System, TransactionConverter, UncheckedExtrinsic, HOURS,
+	WEEKS,
 };
 use nimbus_primitives::{NimbusId, NIMBUS_ENGINE_ID};
-use pallet_evm::GenesisAccount;
 use sp_core::{Encode, H160};
-use sp_runtime::{Digest, DigestItem, Perbill};
+use sp_runtime::{Digest, DigestItem, Perbill, Percent};
 
 use std::collections::BTreeMap;
 
@@ -50,25 +52,32 @@ pub const INVALID_ETH_TX: &str =
 	0e2d49fcc2afbc582e1abd3eeb027242b92abcebcec7cdefab63ea001732f6fac84acdd5b096554230\
 	75003e7f07430652c3d6722e18f50b3d34e29";
 
+pub fn rpc_run_to_block(n: u32) {
+	while System::block_number() < n {
+		Ethereum::on_finalize(System::block_number());
+		System::set_block_number(System::block_number() + 1);
+		Ethereum::on_initialize(System::block_number());
+	}
+}
+
 /// Utility function that advances the chain to the desired block number.
 /// If an author is provided, that author information is injected to all the blocks in the meantime.
 pub fn run_to_block(n: u32, author: Option<NimbusId>) {
+	// Finalize the first block
+	Ethereum::on_finalize(System::block_number());
+	AuthorInherent::on_finalize(System::block_number());
 	while System::block_number() < n {
-		// Finalize the previous block
-		Ethereum::on_finalize(System::block_number());
-		AuthorInherent::on_finalize(System::block_number());
-
 		// Set the new block number and author
 		match author {
 			Some(ref author) => {
 				let pre_digest = Digest {
 					logs: vec![DigestItem::PreRuntime(NIMBUS_ENGINE_ID, author.encode())],
 				};
+				System::reset_events();
 				System::initialize(
 					&(System::block_number() + 1),
 					&System::parent_hash(),
 					&pre_digest,
-					InitKind::Full,
 				);
 			}
 			None => {
@@ -80,10 +89,15 @@ pub fn run_to_block(n: u32, author: Option<NimbusId>) {
 		AuthorInherent::on_initialize(System::block_number());
 		ParachainStaking::on_initialize(System::block_number());
 		Ethereum::on_initialize(System::block_number());
+
+		// Finalize the block
+		Ethereum::on_finalize(System::block_number());
+		AuthorInherent::on_finalize(System::block_number());
+		ParachainStaking::on_finalize(System::block_number());
 	}
 }
 
-pub fn last_event() -> Event {
+pub fn last_event() -> RuntimeEvent {
 	System::events().pop().expect("Event expected").event
 }
 
@@ -98,13 +112,24 @@ pub fn evm_test_context() -> fp_evm::Context {
 	}
 }
 
+// Test struct with the purpose of initializing xcm assets
+#[derive(Clone)]
+pub struct XcmAssetInitialization {
+	pub asset_type: AssetType,
+	pub metadata: AssetRegistrarMetadata,
+	pub balances: Vec<(AccountId, Balance)>,
+	pub is_sufficient: bool,
+}
+
 pub struct ExtBuilder {
+	// [asset, Vec<Account, Balance>, owner]
+	local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
 	// endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
 	// [delegator, collator, nomination_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// per-round inflation config
 	inflation: InflationInfo<Balance>,
 	// AuthorId -> AccoutId mappings
@@ -115,11 +140,15 @@ pub struct ExtBuilder {
 	chain_id: u64,
 	// EVM genesis accounts
 	evm_accounts: BTreeMap<H160, GenesisAccount>,
+	// [assettype, metadata, Vec<Account, Balance,>, is_sufficient]
+	xcm_assets: Vec<XcmAssetInitialization>,
+	safe_xcm_version: Option<u32>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
+			local_assets: vec![],
 			balances: vec![],
 			delegations: vec![],
 			collators: vec![],
@@ -146,6 +175,8 @@ impl Default for ExtBuilder {
 			crowdloan_fund: 0,
 			chain_id: CHAIN_ID,
 			evm_accounts: BTreeMap::new(),
+			xcm_assets: vec![],
+			safe_xcm_version: None,
 		}
 	}
 }
@@ -167,7 +198,10 @@ impl ExtBuilder {
 	}
 
 	pub fn with_delegations(mut self, delegations: Vec<(AccountId, AccountId, Balance)>) -> Self {
-		self.delegations = delegations;
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
 		self
 	}
 
@@ -178,6 +212,24 @@ impl ExtBuilder {
 
 	pub fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
+		self
+	}
+
+	pub fn with_local_assets(
+		mut self,
+		local_assets: Vec<(AssetId, Vec<(AccountId, Balance)>, AccountId)>,
+	) -> Self {
+		self.local_assets = local_assets;
+		self
+	}
+
+	pub fn with_xcm_assets(mut self, xcm_assets: Vec<XcmAssetInitialization>) -> Self {
+		self.xcm_assets = xcm_assets;
+		self
+	}
+
+	pub fn with_safe_xcm_version(mut self, safe_xcm_version: u32) -> Self {
+		self.safe_xcm_version = Some(safe_xcm_version);
 		self
 	}
 
@@ -198,10 +250,13 @@ impl ExtBuilder {
 		.assimilate_storage(&mut t)
 		.unwrap();
 
-		parachain_staking::GenesisConfig::<Runtime> {
+		pallet_parachain_staking::GenesisConfig::<Runtime> {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: Perbill::from_percent(20),
+			parachain_bond_reserve_percent: Percent::from_percent(30),
+			blocks_per_round: 6 * HOURS,
 		}
 		.assimilate_storage(&mut t)
 		.unwrap();
@@ -240,8 +295,48 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
+		<pallet_xcm::GenesisConfig as GenesisBuild<Runtime>>::assimilate_storage(
+			&pallet_xcm::GenesisConfig {
+				safe_xcm_version: self.safe_xcm_version,
+			},
+			&mut t,
+		)
+		.unwrap();
+
 		let mut ext = sp_io::TestExternalities::new(t);
-		ext.execute_with(|| System::set_block_number(1));
+		let local_assets = self.local_assets.clone();
+		let xcm_assets = self.xcm_assets.clone();
+		ext.execute_with(|| {
+			// If any local assets specified, we create them here
+			for (asset_id, balances, owner) in local_assets.clone() {
+				LocalAssets::force_create(root_origin(), asset_id, owner, true, 1).unwrap();
+				for (account, balance) in balances {
+					LocalAssets::mint(origin_of(owner.into()), asset_id, account, balance).unwrap();
+				}
+			}
+			// If any xcm assets specified, we register them here
+			for xcm_asset_initialization in xcm_assets {
+				let asset_id: AssetId = xcm_asset_initialization.asset_type.clone().into();
+				AssetManager::register_foreign_asset(
+					root_origin(),
+					xcm_asset_initialization.asset_type,
+					xcm_asset_initialization.metadata,
+					1,
+					xcm_asset_initialization.is_sufficient,
+				)
+				.unwrap();
+				for (account, balance) in xcm_asset_initialization.balances {
+					Assets::mint(
+						origin_of(AssetManager::account_id()),
+						asset_id,
+						account,
+						balance,
+					)
+					.unwrap();
+				}
+			}
+			System::set_block_number(1);
+		});
 		ext
 	}
 }
@@ -254,16 +349,16 @@ pub const CHARLIE: [u8; 20] = [6u8; 20];
 pub const DAVE: [u8; 20] = [7u8; 20];
 pub const EVM_CONTRACT: [u8; 20] = [8u8; 20];
 
-pub fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::signed(account_id)
+pub fn origin_of(account_id: AccountId) -> <Runtime as frame_system::Config>::RuntimeOrigin {
+	<Runtime as frame_system::Config>::RuntimeOrigin::signed(account_id)
 }
 
-pub fn inherent_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::none()
+pub fn inherent_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
+	<Runtime as frame_system::Config>::RuntimeOrigin::none()
 }
 
-pub fn root_origin() -> <Runtime as frame_system::Config>::Origin {
-	<Runtime as frame_system::Config>::Origin::root()
+pub fn root_origin() -> <Runtime as frame_system::Config>::RuntimeOrigin {
+	<Runtime as frame_system::Config>::RuntimeOrigin::root()
 }
 
 /// Mock the inherent that sets validation data in ParachainSystem, which
@@ -285,7 +380,7 @@ pub fn set_parachain_inherent_data() {
 		downward_messages: Default::default(),
 		horizontal_messages: Default::default(),
 	};
-	assert_ok!(Call::ParachainSystem(
+	assert_ok!(RuntimeCall::ParachainSystem(
 		cumulus_pallet_parachain_system::Call::<Runtime>::set_validation_data {
 			data: parachain_inherent_data
 		}
@@ -300,7 +395,7 @@ pub fn unchecked_eth_tx(raw_hex_tx: &str) -> UncheckedExtrinsic {
 
 pub fn ethereum_transaction(raw_hex_tx: &str) -> pallet_ethereum::Transaction {
 	let bytes = hex::decode(raw_hex_tx).expect("Transaction bytes.");
-	let transaction = rlp::decode::<pallet_ethereum::Transaction>(&bytes[..]);
+	let transaction = ethereum::EnvelopedDecodable::decode(&bytes[..]);
 	assert!(transaction.is_ok());
 	transaction.unwrap()
 }

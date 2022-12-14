@@ -1,33 +1,34 @@
 [package]
 name = "pallet-asset-manager"
 authors = [ "PureStake" ]
-edition = "2018"
+edition = "2021"
 version = "0.1.0"
 
 [dependencies]
+log = { version = "0.4", default-features = false }
 serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-parity-scale-codec = { version = "2.0.0", default-features = false, features = [ "derive" ] }
-scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
+scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
+sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
+sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Polkadot
-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.13", default-features = false }
+xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Benchmarks
-frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13", optional = true, default-features = false }
+frame-benchmarking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", optional = true, default-features = false }
 
 [dev-dependencies]
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.13" }
+pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
 default = [ "std" ]
@@ -44,6 +45,5 @@ std = [
 	"xcm/std",
 ]
 
-runtime-benchmarks = [
-	"frame-benchmarking",
-]
+runtime-benchmarks = [ "frame-benchmarking", "xcm-primitives/runtime-benchmarks" ]
+try-runtime = [ "frame-support/try-runtime" ]

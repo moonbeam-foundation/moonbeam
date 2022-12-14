@@ -6,6 +6,7 @@ import path from "path";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
 import { blake2AsHex } from "@polkadot/util-crypto";
 
+const BREAKING_CHANGES_LABEL = "D2-breaksapi";
 const RUNTIME_CHANGES_LABEL = "B7-runtimenoteworthy";
 // `ParachainSystem` is pallet index 6. `authorize_upgrade` is extrinsic index 2.
 const MOONBASE_PREFIX_PARACHAINSYSTEM_AUTHORIZE_UPGRADE = "0x0602";
@@ -73,6 +74,16 @@ async function main() {
         describe: "current tag to draft",
         required: true,
       },
+      owner: {
+        type: "string",
+        describe: "Repository owner (Ex: PureStake)",
+        required: true,
+      },
+      repo: {
+        type: "string",
+        describe: "Repository name (Ex: moonbeam)",
+        required: true,
+      },
     })
     .demandOption(["srtool-report-folder", "from", "to"])
     .help().argv;
@@ -95,12 +106,20 @@ async function main() {
 
   const { prByLabels } = await getCommitAndLabels(
     octokit,
-    "purestake",
-    "moonbeam",
+    argv.owner,
+    argv.repo,
     previousTag,
     newTag
   );
   const filteredPr = prByLabels[RUNTIME_CHANGES_LABEL] || [];
+
+  const printPr = (pr) => {
+    if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
+      return "⚠️ " + pr.title + " (#" + pr.number + ")";
+    } else {
+      return pr.title + " (#" + pr.number + ")";
+    }
+  };
 
   //
 
@@ -130,11 +149,11 @@ WASM runtime built using \`${runtimes[0]?.srtool.info.rustc}\`
 
 ## Changes
 
-${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 
-Moonbeam: https://github.com/PureStake/moonbeam/compare/${previousTag}...${newTag}
+Moonbeam: https://github.com/${argv.owner}/${argv.repo}/compare/${previousTag}...${newTag}
 ${moduleLinks.map((modules) => `${capitalize(modules.name)}: ${modules.link}`).join("\n")}
 `;
   console.log(template);

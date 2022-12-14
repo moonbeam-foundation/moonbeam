@@ -18,6 +18,7 @@
 
 use super::*;
 use crate as pallet_migrations;
+use frame_support::traits::EqualPrivilegeOnly;
 use frame_support::{
 	construct_runtime,
 	pallet_prelude::*,
@@ -25,55 +26,60 @@ use frame_support::{
 	traits::{Everything, GenesisBuild},
 	weights::{constants::RocksDbWeight, Weight},
 };
+use frame_system::{EnsureRoot, EnsureSigned};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
 pub type AccountId = u64;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
+pub type Balance = u128;
 
-type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
-type Block = frame_system::mocking::MockBlock<Test>;
+type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
+type Block = frame_system::mocking::MockBlock<Runtime>;
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
-	pub enum Test where
+	pub enum Runtime where
 		Block = Block,
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>},
+		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
+		Migrations: pallet_migrations::{Pallet, Storage, Config, Event<T>, Call},
+		Democracy: pallet_democracy::{Pallet, Storage, Config<T>, Event<T>, Call},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
+		Preimage: pallet_preimage::{Pallet, Event<T>, Call},
 	}
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
-impl frame_system::Config for Test {
+impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = RocksDbWeight;
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = ();
+	type AccountData = pallet_balances::AccountData<Balance>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -81,6 +87,93 @@ impl frame_system::Config for Test {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
+}
+
+parameter_types! {
+	pub const ExistentialDeposit: u128 = 0;
+}
+impl pallet_balances::Config for Runtime {
+	type MaxReserves = ();
+	type ReserveIdentifier = ();
+	type MaxLocks = ();
+	type Balance = Balance;
+	type RuntimeEvent = RuntimeEvent;
+	type DustRemoval = ();
+	type ExistentialDeposit = ExistentialDeposit;
+	type AccountStore = System;
+	type WeightInfo = ();
+}
+
+parameter_types! {
+	pub const LaunchPeriod: BlockNumber = 10;
+	pub const VotingPeriod: BlockNumber = 10;
+	pub const VoteLockingPeriod: BlockNumber = 10;
+	pub const FastTrackVotingPeriod: BlockNumber = 5;
+	pub const EnactmentPeriod: BlockNumber = 10;
+	pub const CooloffPeriod: BlockNumber = 10;
+	pub const MinimumDeposit: Balance = 10;
+	pub const MaxVotes: u32 = 10;
+	pub const MaxProposals: u32 = 10;
+	pub const PreimageByteDeposit: Balance = 10;
+	pub const InstantAllowed: bool = false;
+}
+
+impl pallet_democracy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type EnactmentPeriod = EnactmentPeriod;
+	type LaunchPeriod = LaunchPeriod;
+	type VotingPeriod = VotingPeriod;
+	type VoteLockingPeriod = VoteLockingPeriod;
+	type FastTrackVotingPeriod = FastTrackVotingPeriod;
+	type MinimumDeposit = MinimumDeposit;
+	type ExternalOrigin = EnsureRoot<AccountId>;
+	type ExternalMajorityOrigin = EnsureRoot<AccountId>;
+	type ExternalDefaultOrigin = EnsureRoot<AccountId>;
+	type FastTrackOrigin = EnsureRoot<AccountId>;
+	type InstantOrigin = EnsureRoot<AccountId>;
+	type CancellationOrigin = EnsureRoot<AccountId>;
+	type CancelProposalOrigin = EnsureRoot<AccountId>;
+	type BlacklistOrigin = EnsureRoot<AccountId>;
+	type VetoOrigin = EnsureSigned<AccountId>;
+	type CooloffPeriod = CooloffPeriod;
+	type Slash = ();
+	type InstantAllowed = InstantAllowed;
+	type Scheduler = Scheduler;
+	type MaxVotes = MaxVotes;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+	type MaxProposals = MaxProposals;
+	type Preimages = Preimage;
+	type MaxDeposits = ConstU32<1000>;
+	type MaxBlacklisted = ConstU32<5>;
+}
+impl pallet_scheduler::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
+	type MaximumWeight = ();
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ();
+	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
+	type Preimages = ();
+}
+
+parameter_types! {
+	pub const BaseDeposit: u64 = 10;
+	pub const ByteDeposit: u64 = 10;
+}
+
+impl pallet_preimage::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type BaseDeposit = BaseDeposit;
+	type ByteDeposit = ByteDeposit;
 }
 
 /// MockMigrationManager stores the test-side callbacks/closures used in the Migrations list glue.
@@ -208,7 +301,7 @@ impl Migration for MockMigration {
 		result
 	}
 	fn migrate(&self, available_weight: Weight) -> Weight {
-		let mut result: Weight = 0u64.into();
+		let mut result = Weight::zero();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			result = mgr.invoke_migrate_fn(self.index, available_weight);
 		});
@@ -235,8 +328,8 @@ impl Migration for MockMigration {
 /// Implementation of Migrations. Generates a Vec of MockMigrations on the fly based on the current
 /// contents of MOCK_MIGRATIONS_LIST.
 pub struct MockMigrations;
-impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
-	fn get() -> Vec<Box<dyn Migration>> {
+impl GetMigrations for MockMigrations {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
 		let mut migrations: Vec<Box<dyn Migration>> = Vec::new();
 		MOCK_MIGRATIONS_LIST::with(|mgr: &mut MockMigrationManager| {
 			migrations = mgr.generate_migrations_list();
@@ -245,9 +338,10 @@ impl Get<Vec<Box<dyn Migration>>> for MockMigrations {
 	}
 }
 
-impl Config for Test {
-	type Event = Event;
+impl Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type MigrationsList = MockMigrations;
+	type WeightInfo = ();
 }
 
 /// Externality builder for pallet migration's mock runtime
@@ -271,17 +365,20 @@ impl ExtBuilder {
 	}
 	pub(crate) fn build(self) -> sp_io::TestExternalities {
 		let mut storage = frame_system::GenesisConfig::default()
-			.build_storage::<Test>()
+			.build_storage::<Runtime>()
 			.expect("Frame system builds valid default genesis config");
 
-		GenesisBuild::<Test>::assimilate_storage(&pallet_migrations::GenesisConfig, &mut storage)
-			.expect("Pallet migration's storage can be assimilated");
+		GenesisBuild::<Runtime>::assimilate_storage(
+			&pallet_migrations::GenesisConfig,
+			&mut storage,
+		)
+		.expect("Pallet migration's storage can be assimilated");
 
 		let mut ext = sp_io::TestExternalities::new(storage);
 		if !self.uncompleted_migrations.is_empty() {
 			for migration_name in self.uncompleted_migrations {
 				ext.insert(
-					<crate::pallet::MigrationState<Test>>::hashed_key_for(
+					<crate::pallet::MigrationState<Runtime>>::hashed_key_for(
 						migration_name.as_bytes(),
 					),
 					false.encode(),
@@ -293,12 +390,12 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn events() -> Vec<pallet_migrations::Event<Test>> {
+pub(crate) fn events() -> Vec<pallet_migrations::Event<Runtime>> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::Migrations(inner) = e {
+			if let RuntimeEvent::Migrations(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -316,7 +413,7 @@ pub(crate) fn invoke_all_upgrade_hooks() -> Weight {
 	weight
 }
 
-pub(crate) fn roll_to(block_number: u64, invoke_on_runtime_upgrade_first: bool) {
+pub(crate) fn roll_to(block_number: BlockNumber, invoke_on_runtime_upgrade_first: bool) {
 	if invoke_on_runtime_upgrade_first {
 		Migrations::on_runtime_upgrade();
 	}

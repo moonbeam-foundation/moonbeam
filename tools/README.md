@@ -23,7 +23,7 @@ npm install
 ### Usage
 
 ```
-npm run launch -- --parachain moonbase-0.11.2
+npm run launch -- --parachain moonbase-0.18.1
 ```
 
 The launch script accepts a preconfigured network (default is "local", see further).
@@ -66,8 +66,9 @@ local: {
   binary: "../../polkadot/target/release/polkadot",
   chain: "rococo-local",
 },
-
 ```
+
+In addition, you can run a runtime different from the client using `--parachain-runtime <git-tag>`
 
 - "binary" is the path to the binary to execute (related to the tools folder)
 
@@ -91,6 +92,8 @@ Options:
                      [choices: "moonbase", "moonriver", "moonbeam",
                       "moonbase-local", "moonriver-local",
                       "moonbeam-local"]
+
+  --parachain-runtime <git-tag> to use for runtime specs                [string]
 
   --parachain-id     overrides parachain-id             [number] [default: 1000]
 
@@ -245,4 +248,19 @@ found 55 total commits in https://github.com/paritytech/substrate/compare/polkad
   (paritytech/substrate#9083) Migrate pallet-staking to pallet attribute macro
   (paritytech/substrate#9085) Enforce pub calls in pallets
   (paritytech/substrate#8912) staking/election: prolonged era and emergency mode for governance submission.
+```
+
+## Download binary
+
+Using `npm run get-binary...` it is possible to retrieve a binary from github builds or releases.
+Ex:
+
+```
+npm run get-binary -- --tag v0.25.0
+```
+
+or
+
+```
+npm run get-binary -- --tag sha-a9e8dfc1
 ```

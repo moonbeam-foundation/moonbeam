@@ -13,14 +13,16 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+use bip32::ExtendedPrivateKey;
 use bip39::{Language, Mnemonic, Seed};
+use cli_opt::account_key::Secp256k1SecretKey;
+use libsecp256k1::{PublicKey, PublicKeyFormat};
 use log::debug;
 pub use moonbeam_core_primitives::AccountId;
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use serde::{Deserialize, Serialize};
 use sha3::{Digest, Keccak256};
 use sp_core::{ecdsa, Pair, Public, H160, H256};
-use tiny_hderive::bip32::ExtendedPrivKey;
 
 pub mod fake_spec;
 #[cfg(feature = "moonbase-native")]
@@ -94,12 +96,16 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 
 	let mut childs = Vec::new();
 	for i in 0..num_accounts {
-		if let Some(child_pair) =
-			ExtendedPrivKey::derive(seed.as_bytes(), format!("m/44'/60'/0'/0/{}", i).as_ref())
-				.ok()
-				.map(|account| TPublic::Pair::from_seed_slice(&account.secret()).ok())
-				.flatten()
-		{
+		if let Some(child_pair) = format!("m/44'/60'/0'/0/{}", i)
+			.parse()
+			.ok()
+			.and_then(|derivation_path| {
+				ExtendedPrivateKey::<Secp256k1SecretKey>::derive_from_path(&seed, &derivation_path)
+					.ok()
+			})
+			.and_then(|extended| {
+				TPublic::Pair::from_seed_slice(&extended.private_key().0.serialize()).ok()
+			}) {
 			childs.push(child_pair);
 		} else {
 			log::error!("An error ocurred while deriving key {} from parent", i)
@@ -110,12 +116,9 @@ pub fn derive_bip44_pairs_from_mnemonic<TPublic: Public>(
 
 /// Helper function to get an `AccountId` from an ECDSA Key Pair.
 pub fn get_account_id_from_pair(pair: ecdsa::Pair) -> Option<AccountId> {
-	let decompressed = libsecp256k1::PublicKey::parse_slice(
-		&pair.public().0,
-		Some(libsecp256k1::PublicKeyFormat::Compressed),
-	)
-	.ok()?
-	.serialize();
+	let decompressed = PublicKey::parse_slice(&pair.public().0, Some(PublicKeyFormat::Compressed))
+		.ok()?
+		.serialize();
 
 	let mut m = [0u8; 64];
 	m.copy_from_slice(&decompressed[1..65]);
@@ -130,7 +133,7 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 	debug!("Account Generation");
 	childs
 		.iter()
-		.map(|par| {
+		.filter_map(|par| {
 			let account = get_account_id_from_pair(par.clone());
 			debug!(
 				"private_key {} --------> Account {:x?}",
@@ -139,7 +142,6 @@ pub fn generate_accounts(mnemonic: String, num_accounts: u32) -> Vec<AccountId> 
 			);
 			account
 		})
-		.flatten()
 		.collect()
 }
 

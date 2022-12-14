@@ -1,4 +1,4 @@
-// Copyright 2019-2020 PureStake Inc.
+// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
@@ -19,18 +19,32 @@
 #![allow(non_camel_case_types)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(any(test, feature = "runtime-benchmarks"))]
+mod benchmarks;
+mod democracy_preimages;
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+pub mod weights;
 
 use frame_support::{pallet, weights::Weight};
 
 pub use pallet::*;
 
+#[cfg(feature = "try-runtime")]
+extern crate alloc;
+#[cfg(feature = "try-runtime")]
+use alloc::{
+	format,
+	string::{String, ToString},
+};
+
 #[cfg(test)]
 #[macro_use]
 extern crate environmental;
+
+use sp_std::prelude::*;
 
 /// A Migration that must happen on-chain upon a runtime-upgrade
 pub trait Migration {
@@ -47,44 +61,73 @@ pub trait Migration {
 
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		Ok(())
+	fn pre_upgrade(&self) -> Result<Vec<u8>, &'static str> {
+		Ok(Vec::new())
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade(&self) -> Result<(), &'static str> {
+	fn post_upgrade(&self, _state: Vec<u8>) -> Result<(), &'static str> {
 		Ok(())
+	}
+}
+
+// The migration trait
+pub trait GetMigrations {
+	// Migration list Getter
+	fn get_migrations() -> Vec<Box<dyn Migration>>;
+}
+
+#[impl_trait_for_tuples::impl_for_tuples(30)]
+impl GetMigrations for Tuple {
+	fn get_migrations() -> Vec<Box<dyn Migration>> {
+		let mut migrations = Vec::new();
+
+		for_tuples!( #( migrations.extend(Tuple::get_migrations()); )* );
+
+		migrations
 	}
 }
 
 #[pallet]
 pub mod pallet {
 	use super::*;
+	use crate::weights::WeightInfo;
 	use frame_support::pallet_prelude::*;
 	use frame_system::pallet_prelude::*;
-	use sp_std::prelude::*;
 
 	/// Pallet for migrations
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config:
+		frame_system::Config + pallet_democracy::Config + pallet_preimage::Config
+	{
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The list of migrations that will be performed
-		type MigrationsList: Get<Vec<Box<dyn Migration>>>;
+		type MigrationsList: GetMigrations;
+
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Runtime upgrade started
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(Weight),
-		MigrationStarted(Vec<u8>),
-		MigrationCompleted(Vec<u8>, Weight),
+		/// Runtime upgrade completed
+		RuntimeUpgradeCompleted { weight: Weight },
+		/// Migration started
+		MigrationStarted { migration_name: Vec<u8> },
+		/// Migration completed
+		MigrationCompleted {
+			migration_name: Vec<u8>,
+			consumed_weight: Weight,
+		},
 	}
 
 	#[pallet::hooks]
@@ -95,16 +138,18 @@ pub mod pallet {
 		fn on_runtime_upgrade() -> Weight {
 			log::warn!("Performing on_runtime_upgrade");
 
-			let mut weight: Weight = 0u64.into();
+			let mut weight = Weight::zero();
 			// TODO: derive a suitable value here, which is probably something < max_block
 			let available_weight: Weight = T::BlockWeights::get().max_block;
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
-			weight += T::DbWeight::get().writes(1);
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
+				available_weight.saturating_sub(weight),
+			));
 
 			if !<FullyUpgraded<T>>::get() {
 				log::error!(
@@ -117,11 +162,12 @@ pub mod pallet {
 		}
 
 		#[cfg(feature = "try-runtime")]
-		fn pre_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+			let mut state_map: BTreeMap<String, bool> = BTreeMap::new();
+			let mut migration_states_map: BTreeMap<String, Vec<u8>> = BTreeMap::new();
 
-			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 				let migration_name_as_bytes = migration_name.as_bytes();
 
@@ -134,44 +180,41 @@ pub mod pallet {
 					"invoking pre_upgrade() on migration {}", migration_name
 				);
 
-				// dump the migration name to temp storage so post_upgrade will know which
+				// dump the migration name to state_map so post_upgrade will know which
 				// migrations were performed (as opposed to skipped)
-				Self::set_temp_storage(true, migration_name);
-
-				match migration.pre_upgrade() {
-					Ok(()) => {
-						log::info!("migration {} pre_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!("migration {} pre_upgrade() => Err({})", migration_name, msg);
-						failed = true;
-					}
-				}
+				state_map.insert(migration_name.to_string(), true);
+				let state = migration
+					.pre_upgrade()
+					.expect(&format!("migration {} pre_upgrade()", migration_name));
+				migration_states_map.insert(migration_name.to_string(), state);
 			}
-
-			if failed {
-				Err("One or more pre_upgrade tests failed; see output above.")
-			} else {
-				Ok(())
-			}
+			Ok((state_map, migration_states_map).encode())
 		}
 
 		/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 		#[cfg(feature = "try-runtime")]
-		fn post_upgrade() -> Result<(), &'static str> {
-			use frame_support::traits::OnRuntimeUpgradeHelpersExt;
+		fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
+			use sp_std::collections::btree_map::BTreeMap;
+
+			let (state_map, migration_states_map): (
+				BTreeMap<String, bool>,
+				BTreeMap<String, Vec<u8>>,
+			) = Decode::decode(&mut &state[..]).expect("pre_upgrade provides a valid state; qed");
 
 			// TODO: my desire to DRY all the things feels like this code is very repetitive...
-
 			let mut failed = false;
-			for migration in &T::MigrationsList::get() {
+			for migration in &T::MigrationsList::get_migrations() {
 				let migration_name = migration.friendly_name();
 
 				// we can't query MigrationState because on_runtime_upgrade() would have
 				// unconditionally set it to true, so we read a hint from temp storage which was
 				// left for us by pre_upgrade()
-				match Self::get_temp_storage::<bool>(migration_name) {
-					Some(value) => assert!(true == value, "our dummy value might as well be true"),
+
+				match state_map.get(&migration_name.to_string()) {
+					Some(value) => assert!(
+						true == value.clone(),
+						"our dummy value might as well be true"
+					),
 					None => continue,
 				}
 
@@ -180,18 +223,20 @@ pub mod pallet {
 					"invoking post_upgrade() on migration {}", migration_name
 				);
 
-				let result = migration.post_upgrade();
-				match result {
-					Ok(()) => {
-						log::info!("migration {} post_upgrade() => Ok()", migration_name);
-					}
-					Err(msg) => {
-						log::error!(
-							"migration {} post_upgrade() => Err({})",
-							migration_name,
-							msg
-						);
-						failed = true;
+				if let Some(state) = migration_states_map.get(&migration_name.to_string()) {
+					let result = migration.post_upgrade(state.clone());
+					match result {
+						Ok(()) => {
+							log::info!("migration {} post_upgrade() => Ok()", migration_name);
+						}
+						Err(msg) => {
+							log::error!(
+								"migration {} post_upgrade() => Err({})",
+								migration_name,
+								msg
+							);
+							failed = true;
+						}
 					}
 				}
 			}
@@ -216,6 +261,32 @@ pub mod pallet {
 	pub(crate) type MigrationState<T: Config> =
 		StorageMap<_, Twox64Concat, Vec<u8>, bool, ValueQuery>;
 
+	#[pallet::call]
+	impl<T: Config> Pallet<T> {
+		#[pallet::weight(
+			<T as Config>::WeightInfo::migrate_democracy_preimage(*proposal_len_upper_bound)
+		)]
+		pub fn migrate_democracy_preimage(
+			origin: OriginFor<T>,
+			proposal_hash: T::Hash,
+			#[pallet::compact] proposal_len_upper_bound: u32,
+		) -> DispatchResultWithPostInfo {
+			Self::migrate_democracy_preimage_inner(origin, proposal_hash, proposal_len_upper_bound)
+		}
+	}
+
+	#[pallet::error]
+	pub enum Error<T> {
+		/// Missing preimage in original democracy storage
+		PreimageMissing,
+		/// Provided upper bound is too low.
+		WrongUpperBound,
+		/// Preimage is larger than the new max size.
+		PreimageIsTooBig,
+		/// Preimage already exists in the new storage.
+		PreimageAlreadyExists,
+	}
+
 	#[pallet::genesis_config]
 	#[derive(Default)]
 	pub struct GenesisConfig;
@@ -225,7 +296,7 @@ pub mod pallet {
 		fn build(&self) {
 			// When building a new genesis, all listed migrations should be considered as already
 			// applied, they only make sense for networks that had been launched in the past.
-			for migration_name in T::MigrationsList::get()
+			for migration_name in T::MigrationsList::get_migrations()
 				.into_iter()
 				.map(|migration| migration.friendly_name().as_bytes().to_vec())
 			{
@@ -235,9 +306,9 @@ pub mod pallet {
 	}
 
 	fn perform_runtime_upgrades<T: Config>(available_weight: Weight) -> Weight {
-		let mut weight: Weight = 0u64.into();
+		let mut weight = Weight::zero();
 
-		for migration in &T::MigrationsList::get() {
+		for migration in &T::MigrationsList::get_migrations() {
 			let migration_name = migration.friendly_name();
 			let migration_name_as_bytes = migration_name.as_bytes();
 			log::debug!( target: "pallet-migrations", "evaluating migration {}", migration_name);
@@ -245,11 +316,13 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted {
+					migration_name: migration_name_as_bytes.into(),
+				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
-				let available_for_step = if available_weight > weight {
+				let available_for_step = if available_weight.ref_time() > weight.ref_time() {
 					available_weight - weight
 				} else {
 					log::error!(
@@ -258,7 +331,7 @@ pub mod pallet {
 						migration_name,
 					);
 
-					0u64.into()
+					Weight::zero()
 				};
 
 				log::info!( target: "pallet-migrations",
@@ -268,14 +341,14 @@ pub mod pallet {
 				);
 
 				let consumed_weight = migration.migrate(available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-					migration_name_as_bytes.into(),
-					consumed_weight,
-				));
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted {
+					migration_name: migration_name_as_bytes.into(),
+					consumed_weight: consumed_weight,
+				});
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
-				weight += consumed_weight;
-				if weight > available_weight {
+				weight = weight.saturating_add(consumed_weight);
+				if weight.ref_time() > available_weight.ref_time() {
 					log::error!(
 						"Migration {} consumed more weight than it was given! ({} > {})",
 						migration_name,
@@ -287,8 +360,8 @@ pub mod pallet {
 		}
 
 		<FullyUpgraded<T>>::put(true);
-		weight += T::DbWeight::get().writes(1);
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
+		weight = weight.saturating_add(T::DbWeight::get().writes(1));
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight
 	}

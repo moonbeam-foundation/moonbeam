@@ -28,11 +28,6 @@ To release `vX.Y.Z`:
 Publish Docker with `vX.Y.Z` and master
 1. Documentation/Website/Tutorials have been updated
 
-Below are the steps of the release workflow. Steps prefixed with NOACTION are
-automated and require no human action.
-
-1. To initiate the release process, tag the current master.
-
 ## Moonbeam runtime release
 
 ### Branches

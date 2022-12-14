@@ -16,13 +16,11 @@
 
 use ethereum_types::{H160, H256, U256};
 use fc_rpc::{internal_err, public_key};
-use jsonrpc_core::Result as RpcResult;
+use jsonrpsee::core::RpcResult;
 pub use moonbeam_rpc_core_txpool::{
-	GetT, Summary, Transaction, TransactionMap, TxPool as TxPoolT, TxPoolResult, TxPoolServer,
+	GetT, Summary, Transaction, TransactionMap, TxPoolResult, TxPoolServer,
 };
-// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
-// Is it only for tests? Should we use it here?
-use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::InPoolTransaction;
 use serde::Serialize;
 use sha3::{Digest, Keccak256};
@@ -82,9 +80,9 @@ where
 		{
 			api_version
 		} else {
-			return Err(internal_err(format!(
-				"failed to retrieve Runtime Api version"
-			)));
+			return Err(internal_err(
+				"failed to retrieve Runtime Api version".to_string(),
+			));
 		};
 		let ethereum_txns: TxPoolResponse = if api_version == 1 {
 			#[allow(deprecated)]
@@ -159,7 +157,7 @@ impl<B: BlockT, C, A: ChainApi> TxPool<B, C, A> {
 	}
 }
 
-impl<B, C, A> TxPoolT for TxPool<B, C, A>
+impl<B, C, A> TxPoolServer for TxPool<B, C, A>
 where
 	C: ProvideRuntimeApi<B>,
 	C: HeaderMetadata<B, Error = BlockChainError> + HeaderBackend<B>,

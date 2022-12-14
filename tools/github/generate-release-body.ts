@@ -3,6 +3,7 @@ import yargs from "yargs";
 import { getCommitAndLabels, getCompareLink } from "./github-utils";
 
 const BINARY_CHANGES_LABEL = "B5-clientnoteworthy";
+const BREAKING_CHANGES_LABEL = "D2-breaksapi";
 
 function capitalize(s) {
   return s[0].toUpperCase() + s.slice(1);
@@ -23,6 +24,16 @@ async function main() {
         describe: "current tag being drafted",
         required: true,
       },
+      owner: {
+        type: "string",
+        describe: "Repository owner (Ex: PureStake)",
+        required: true,
+      },
+      repo: {
+        type: "string",
+        describe: "Repository name (Ex: moonbeam)",
+        required: true,
+      },
     })
     .demandOption(["from", "to"])
     .help().argv;
@@ -41,21 +52,29 @@ async function main() {
 
   const { prByLabels } = await getCommitAndLabels(
     octokit,
-    "PureStake",
-    "moonbeam",
+    argv.owner,
+    argv.repo,
     previousTag,
     newTag
   );
   const filteredPr = prByLabels[BINARY_CHANGES_LABEL] || [];
 
+  const printPr = (pr) => {
+    if (pr.labels.includes(BREAKING_CHANGES_LABEL)) {
+      return "⚠️ " + pr.title + " (#" + pr.number + ")";
+    } else {
+      return pr.title + " (#" + pr.number + ")";
+    }
+  };
+
   const template = `
 ## Changes
 
-${filteredPr.map((pr) => `* ${pr.title} (#${pr.number})`).join("\n")}
+${filteredPr.map((pr) => `* ${printPr(pr)}`).join("\n")}
 
 ## Dependency changes
 
-Moonbeam: https://github.com/PureStake/moonbeam/compare/${previousTag}...${newTag}
+Moonbeam: https://github.com/${argv.owner}/${argv.repo}/compare/${previousTag}...${newTag}
 ${moduleLinks.map((modules) => `${capitalize(modules.name)}: ${modules.link}`).join("\n")}
 `;
   console.log(template);

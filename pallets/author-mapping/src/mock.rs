@@ -26,10 +26,9 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 #[cfg(feature = "std")]
 use serde::{Deserialize, Serialize};
-use sp_core::{Public, H256};
+use sp_core::{ByteArray, H256};
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, RuntimeDebug,
 };
@@ -53,12 +52,13 @@ impl Into<NimbusId> for TestAuthor {
 			Self::Bob => NimbusId::from_slice(&[1u8; 32]),
 			Self::Charlie => NimbusId::from_slice(&[2u8; 32]),
 		}
+		.expect("valid ids")
 	}
 }
 
 pub type AccountId = u64;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -77,24 +77,24 @@ construct_runtime!(
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 }
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -106,6 +106,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = ();
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 1;
@@ -115,7 +116,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -126,9 +127,10 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
+	type Keys = NimbusId;
 	type WeightInfo = ();
 }
 
@@ -184,6 +186,6 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn last_event() -> Event {
+pub(crate) fn last_event() -> RuntimeEvent {
 	System::events().pop().expect("Event expected").event
 }

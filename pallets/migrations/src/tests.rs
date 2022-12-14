@@ -15,13 +15,24 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
-use crate::mock::{events, ExtBuilder, Migrations, MockMigrationManager, System};
-use crate::Event;
-use frame_support::{
-	traits::OnRuntimeUpgrade,
-	weights::{constants::RocksDbWeight, Weight},
+use {
+	crate::{
+		democracy_preimages::*,
+		mock::{
+			events, ExtBuilder, Migrations, MockMigrationManager, Runtime, RuntimeOrigin, System,
+		},
+		Error, Event,
+	},
+	frame_support::{
+		assert_err, assert_ok,
+		traits::OnRuntimeUpgrade,
+		weights::{constants::RocksDbWeight, Weight},
+		BoundedVec,
+	},
+	pallet_preimage::RequestStatus,
+	sp_runtime::traits::Hash,
+	std::sync::{Arc, Mutex},
 };
-use std::sync::{Arc, Mutex};
 
 #[test]
 fn genesis_builder_works() {
@@ -58,7 +69,7 @@ fn mock_migrations_static_hack_works() {
 				// mock Migration::step()
 				move |_| -> Weight {
 					*step_fn_called.lock().unwrap() = true;
-					0u64.into()
+					Weight::zero()
 				},
 			);
 		},
@@ -106,7 +117,9 @@ fn on_runtime_upgrade_emits_events() {
 
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
-			Event::RuntimeUpgradeCompleted(100000000u64.into()),
+			Event::RuntimeUpgradeCompleted {
+				weight: Weight::from_ref_time(100000000u64),
+			},
 		];
 		assert_eq!(events(), expected);
 	});
@@ -131,7 +144,7 @@ fn migration_should_only_be_invoked_once() {
 				move |_| -> Weight {
 					let mut num_step_fn_calls = num_step_fn_calls.lock().unwrap();
 					*num_step_fn_calls += 1;
-					1u32.into()
+					Weight::from_ref_time(1)
 				},
 			);
 		},
@@ -157,9 +170,16 @@ fn migration_should_only_be_invoked_once() {
 					);
 					let mut expected = vec![
 						Event::RuntimeUpgradeStarted(),
-						Event::MigrationStarted("migration1".into()),
-						Event::MigrationCompleted("migration1".into(), 1u32.into()),
-						Event::RuntimeUpgradeCompleted(100000001u32.into()), // includes reads/writes
+						Event::MigrationStarted {
+							migration_name: "migration1".into(),
+						},
+						Event::MigrationCompleted {
+							migration_name: "migration1".into(),
+							consumed_weight: Weight::from_ref_time(1),
+						},
+						Event::RuntimeUpgradeCompleted {
+							weight: Weight::from_ref_time(100000001u64),
+						}, // includes reads/writes
 					];
 					assert_eq!(events(), expected);
 
@@ -181,7 +201,9 @@ fn migration_should_only_be_invoked_once() {
 					);
 					expected.append(&mut vec![
 						Event::RuntimeUpgradeStarted(),
-						Event::RuntimeUpgradeCompleted(100000000u32.into()),
+						Event::RuntimeUpgradeCompleted {
+							weight: Weight::from_ref_time(100000000u64),
+						},
 					]);
 					assert_eq!(events(), expected);
 
@@ -239,7 +261,7 @@ fn overweight_migrations_tolerated() {
 					*num_migration1_calls.lock().unwrap() += 1;
 					// TODO: this is brittle because it assumes it is larger than the value used at
 					// the top of process_runtime_upgrades()
-					1_000_000_000_000u64.into()
+					Weight::from_ref_time(1_000_000_000_000u64)
 				},
 			);
 
@@ -247,7 +269,7 @@ fn overweight_migrations_tolerated() {
 				move || "migration2",
 				move |_| -> Weight {
 					*num_migration2_calls.lock().unwrap() += 1;
-					1_000_000_000_000u64.into()
+					Weight::from_ref_time(1_000_000_000_000u64)
 				},
 			);
 
@@ -255,7 +277,7 @@ fn overweight_migrations_tolerated() {
 				move || "migration3",
 				move |_| -> Weight {
 					*num_migration3_calls.lock().unwrap() += 1;
-					1_000_000_000_000u64.into()
+					Weight::from_ref_time(1_000_000_000_000u64)
 				},
 			);
 		},
@@ -315,5 +337,171 @@ fn try_runtime_functions_work() {
 		"mock migration should call post_upgrade()"
 	);
 }
+
+#[test]
+fn preimage_lazy_migration_works() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup mock preimage
+		let data = b"hello world!".to_vec();
+		let bounded_data: BoundedVec<_, _> = data.clone().try_into().expect("fits in bound");
+		let len = data.len() as u32;
+		let hash = <Runtime as frame_system::Config>::Hashing::hash_of(&data);
+
+		DeprecatedDemocracyPreimages::<Runtime>::insert(
+			hash,
+			PreimageStatus::Available {
+				data,
+				provider: 42,
+				deposit: 142,
+				since: 0,
+				expiry: None,
+			},
+		);
+
+		// Call migration
+		assert_ok!(Migrations::migrate_democracy_preimage(
+			RuntimeOrigin::signed(1),
+			hash,
+			len,
+		));
+
+		// Check migration was successful.
+		assert!(DeprecatedDemocracyPreimages::<Runtime>::get(hash).is_none());
+		assert_eq!(
+			StatusFor::<Runtime>::get(hash),
+			Some(RequestStatus::Unrequested {
+				deposit: (42, 142),
+				len
+			})
+		);
+		assert_eq!(PreimageFor::<Runtime>::get((hash, len)), Some(bounded_data));
+	});
+}
+
+#[test]
+fn preimage_lazy_migration_fails_if_their_is_nothing_to_migrate() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup mock preimage
+		let data = b"hello world!".to_vec();
+		let len = data.len() as u32;
+		let hash = <Runtime as frame_system::Config>::Hashing::hash_of(&data);
+
+		// (we don't insert it, there is nothing to migrate)
+
+		// Call migration
+		assert_err!(
+			Migrations::migrate_democracy_preimage(RuntimeOrigin::signed(1), hash, len,),
+			Error::<Runtime>::PreimageMissing
+		);
+	});
+}
+
+#[test]
+fn preimage_lazy_migration_fails_if_preimage_already_exists() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup mock preimage
+		let data = b"hello world!".to_vec();
+		let len = data.len() as u32;
+		let hash = <Runtime as frame_system::Config>::Hashing::hash_of(&data);
+
+		DeprecatedDemocracyPreimages::<Runtime>::insert(
+			hash,
+			PreimageStatus::Available {
+				data,
+				provider: 42,
+				deposit: 142,
+				since: 0,
+				expiry: None,
+			},
+		);
+
+		// Setup mock preimage in new pallet
+		StatusFor::<Runtime>::insert(
+			hash,
+			RequestStatus::Unrequested {
+				deposit: (42, 142),
+				len,
+			},
+		);
+
+		// Call migration
+		assert_err!(
+			Migrations::migrate_democracy_preimage(RuntimeOrigin::signed(1), hash, len,),
+			Error::<Runtime>::PreimageAlreadyExists
+		);
+
+		// Check there was no migration.
+		assert!(DeprecatedDemocracyPreimages::<Runtime>::get(hash).is_some());
+	});
+}
+
+#[test]
+fn preimage_lazy_migration_fails_if_len_hint_is_wrong() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup mock preimage
+		let data = b"hello world!".to_vec();
+		let len = data.len() as u32;
+		let hash = <Runtime as frame_system::Config>::Hashing::hash_of(&data);
+
+		DeprecatedDemocracyPreimages::<Runtime>::insert(
+			hash,
+			PreimageStatus::Available {
+				data,
+				provider: 42,
+				deposit: 142,
+				since: 0,
+				expiry: None,
+			},
+		);
+
+		// Call migration
+		assert_err!(
+			Migrations::migrate_democracy_preimage(
+				RuntimeOrigin::signed(1),
+				hash,
+				len - 1, // too short !
+			),
+			Error::<Runtime>::WrongUpperBound
+		);
+
+		// Check there was no migration.
+		assert!(DeprecatedDemocracyPreimages::<Runtime>::get(hash).is_some());
+		assert!(StatusFor::<Runtime>::get(hash).is_none());
+		assert!(PreimageFor::<Runtime>::get((hash, len)).is_none());
+	});
+}
+
+#[test]
+fn preimage_lazy_migration_fails_if_preimage_is_too_big() {
+	ExtBuilder::default().build().execute_with(|| {
+		// Setup mock preimage
+		let data = [1; (MAX_SIZE as usize) + 1].to_vec();
+		let len = data.len() as u32;
+		let hash = <Runtime as frame_system::Config>::Hashing::hash_of(&data);
+
+		DeprecatedDemocracyPreimages::<Runtime>::insert(
+			hash,
+			PreimageStatus::Available {
+				data,
+				provider: 42,
+				deposit: 142,
+				since: 0,
+				expiry: None,
+			},
+		);
+
+		// Call migration
+		assert_err!(
+			Migrations::migrate_democracy_preimage(RuntimeOrigin::signed(1), hash, len,),
+			Error::<Runtime>::PreimageIsTooBig
+		);
+
+		// Check there was no migration.
+		assert!(DeprecatedDemocracyPreimages::<Runtime>::get(hash).is_some());
+		assert!(StatusFor::<Runtime>::get(hash).is_none());
+		assert!(PreimageFor::<Runtime>::get((hash, len)).is_none());
+	});
+}
+
 // TODO: a test to ensure that post_upgrade invokes the same set of migrations that pre_upgrade
 // does would be useful

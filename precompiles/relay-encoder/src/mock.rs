@@ -17,24 +17,18 @@
 //! Test utilities
 use super::*;
 
-use frame_support::traits::Everything;
-use frame_support::{construct_runtime, parameter_types};
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
-};
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
-use serde::{Deserialize, Serialize};
-use sp_core::H160;
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use sp_core::H256;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 
-pub type AccountId = TestAccount;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -54,74 +48,23 @@ construct_runtime!(
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	scale_info::TypeInfo,
-)]
-pub enum TestAccount {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-}
-
-impl Default for TestAccount {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<TestAccount> for TestAccount {
-	fn into_account_id(h160_account: H160) -> TestAccount {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for TestAccount {
-	fn from(x: H160) -> TestAccount {
-		TestAccount::into_account_id(x)
-	}
-}
-
-/// The relay encoder precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
-}
-
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = TestAccount;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -133,6 +76,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -141,13 +85,14 @@ parameter_types! {
 
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = ParachainId;
-	type Event = Event;
-	type OnValidationData = ();
+	type RuntimeEvent = RuntimeEvent;
+	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
 	type DmpMessageHandler = ();
 	type ReservedDmpWeight = ();
+	type CheckAssociatedRelayNumber = cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 }
 
 parameter_types! {
@@ -158,62 +103,41 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct TestPrecompiles<R>(PhantomData<R>);
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(PrecompileAt<AddressU64<1>, RelayEncoderPrecompile<R, test_relay_runtime::TestEncoder>>,),
+>;
 
-impl<R> PrecompileSet for TestPrecompiles<R>
-where
-	RelayEncoderWrapper<R, test_relay_runtime::TestEncoder>: Precompile,
-{
-	fn execute(
-		&self,
-		address: H160,
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> Option<EvmResult<PrecompileOutput>> {
-		match address {
-			a if a == precompile_address() => Some(RelayEncoderWrapper::<
-				R,
-				test_relay_runtime::TestEncoder,
-			>::execute(
-				input, target_gas, context, is_static
-			)),
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == precompile_address()
-	}
-}
+pub type PCall = RelayEncoderPrecompileCall<Runtime, test_relay_runtime::TestEncoder>;
 
 parameter_types! {
-	pub const PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles(PhantomData);
+	pub BlockGasLimit: U256 = U256::max_value();
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<TestAccount>;
-	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
-	type AddressMapping = TestAccount;
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesValue = PrecompilesValue;
-	type PrecompilesType = TestPrecompiles<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
@@ -266,16 +190,5 @@ impl ExtBuilder {
 		let mut ext = sp_io::TestExternalities::new(t);
 		ext.execute_with(|| System::set_block_number(1));
 		ext
-	}
-}
-
-// Helper function to give a simple evm context suitable for tests.
-// We can remove this once https://github.com/rust-blockchain/evm/pull/35
-// is in our dependency graph.
-pub fn evm_test_context() -> fp_evm::Context {
-	fp_evm::Context {
-		address: Default::default(),
-		caller: Default::default(),
-		apparent_value: From::from(0),
 	}
 }

@@ -24,77 +24,18 @@ mod mock;
 #[cfg(test)]
 mod tests;
 
-use fp_evm::{Context, ExitSucceed, PrecompileOutput};
+use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
+use frame_support::sp_runtime::Percent;
 use frame_support::traits::{Currency, Get};
 use pallet_evm::AddressMapping;
-use pallet_evm::Precompile;
-use precompile_utils::{
-	Address, EvmData, EvmDataReader, EvmDataWriter, EvmResult, FunctionModifier, Gasometer,
-	RuntimeHelper,
-};
-use sp_std::convert::TryInto;
-use sp_std::fmt::Debug;
-use sp_std::marker::PhantomData;
-use sp_std::vec;
+use precompile_utils::prelude::*;
+use sp_core::{H160, U256};
+use sp_std::{convert::TryInto, marker::PhantomData, vec::Vec};
 
-type BalanceOf<Runtime> = <<Runtime as parachain_staking::Config>::Currency as Currency<
+type BalanceOf<Runtime> = <<Runtime as pallet_parachain_staking::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
-
-#[precompile_utils::generate_function_selector]
-#[derive(Debug, PartialEq)]
-enum Action {
-	// DEPRECATED
-	MinNomination = "min_nomination()",
-	MinDelegation = "min_delegation()",
-	Points = "points(uint256)",
-	CandidateCount = "candidate_count()",
-	// DEPRECATED
-	CollatorNominationCount = "collator_nomination_count(address)",
-	// DEPRECATED
-	NominatorNominationCount = "nominator_nomination_count(address)",
-	CandidateDelegationCount = "candidate_delegation_count(address)",
-	DelegatorDelegationCount = "delegator_delegation_count(address)",
-	// DEPRECATED
-	IsNominator = "is_nominator(address)",
-	IsDelegator = "is_delegator(address)",
-	IsCandidate = "is_candidate(address)",
-	IsSelectedCandidate = "is_selected_candidate(address)",
-	JoinCandidates = "join_candidates(uint256,uint256)",
-	// DEPRECATED
-	LeaveCandidates = "leave_candidates(uint256)",
-	ScheduleLeaveCandidates = "schedule_leave_candidates(uint256)",
-	ExecuteLeaveCandidates = "execute_leave_candidates(address)",
-	CancelLeaveCandidates = "cancel_leave_candidates(uint256)",
-	GoOffline = "go_offline()",
-	GoOnline = "go_online()",
-	// DEPRECATED
-	CandidateBondLess = "candidate_bond_less(uint256)",
-	ScheduleCandidateBondLess = "schedule_candidate_bond_less(uint256)",
-	CandidateBondMore = "candidate_bond_more(uint256)",
-	ExecuteCandidateBondLess = "execute_candidate_bond_less(address)",
-	CancelCandidateBondLess = "cancel_candidate_bond_less()",
-	// DEPRECATED
-	Nominate = "nominate(address,uint256,uint256,uint256)",
-	Delegate = "delegate(address,uint256,uint256,uint256)",
-	// DEPRECATED
-	LeaveNominators = "leave_nominators(uint256)",
-	ScheduleLeaveDelegators = "schedule_leave_delegators()",
-	ExecuteLeaveDelegators = "execute_leave_delegators(address,uint256)",
-	CancelLeaveDelegators = "cancel_leave_delegators()",
-	// DEPRECATED
-	RevokeNomination = "revoke_nomination(address)",
-	ScheduleRevokeDelegation = "schedule_revoke_delegation(address)",
-	// DEPRECATED
-	NominatorBondLess = "nominator_bond_less(address,uint256)",
-	ScheduleDelegatorBondLess = "schedule_delegator_bond_less(address,uint256)",
-	// DEPRECATED
-	NominatorBondMore = "nominator_bond_more(address,uint256)",
-	DelegatorBondMore = "delegator_bond_more(address,uint256)",
-	ExecuteDelegationRequest = "execute_delegation_request(address,address)",
-	CancelDelegationRequest = "cancel_delegation_request(address)",
-}
 
 /// A precompile to wrap the functionality from parachain_staking.
 ///
@@ -103,742 +44,752 @@ enum Action {
 /// toward one fixed address chosen by the deployer.
 /// Such a contract could be deployed by a collator candidate, and the deploy address distributed to
 /// supporters who want to donate toward a perpetual nomination fund.
-pub struct ParachainStakingWrapper<Runtime>(PhantomData<Runtime>);
+pub struct ParachainStakingPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for ParachainStakingWrapper<Runtime>
+#[precompile_utils::precompile]
+impl<Runtime> ParachainStakingPrecompile<Runtime>
 where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<parachain_staking::Call<Runtime>>,
-{
-	fn execute(
-		input: &[u8],
-		target_gas: Option<u64>,
-		context: &Context,
-		is_static: bool,
-	) -> EvmResult<PrecompileOutput> {
-		let mut gasometer = Gasometer::new(target_gas);
-		let gasometer = &mut gasometer;
-
-		let (mut input, selector) = EvmDataReader::new_with_selector(gasometer, input)?;
-		let input = &mut input;
-
-		gasometer.check_function_modifier(
-			context,
-			is_static,
-			match selector {
-				Action::IsNominator
-				| Action::IsDelegator
-				| Action::IsCandidate
-				| Action::IsSelectedCandidate
-				| Action::Points
-				| Action::MinNomination
-				| Action::MinDelegation
-				| Action::CandidateCount
-				| Action::CollatorNominationCount
-				| Action::CandidateDelegationCount
-				| Action::NominatorNominationCount
-				| Action::DelegatorDelegationCount => FunctionModifier::View,
-				_ => FunctionModifier::NonPayable,
-			},
-		)?;
-
-		// Return early if storage getter; return (origin, call) if dispatchable
-		let (origin, call) = match selector {
-			// DEPRECATED
-			Action::MinNomination => return Self::min_delegation(gasometer),
-			Action::MinDelegation => return Self::min_delegation(gasometer),
-			Action::Points => return Self::points(input, gasometer),
-			Action::CandidateCount => return Self::candidate_count(gasometer),
-			// DEPRECATED
-			Action::CollatorNominationCount => {
-				return Self::candidate_delegation_count(input, gasometer)
-			}
-			// DEPRECATED
-			Action::NominatorNominationCount => {
-				return Self::delegator_delegation_count(input, gasometer)
-			}
-			Action::CandidateDelegationCount => {
-				return Self::candidate_delegation_count(input, gasometer)
-			}
-			Action::DelegatorDelegationCount => {
-				return Self::delegator_delegation_count(input, gasometer)
-			}
-			// DEPRECATED
-			Action::IsNominator => return Self::is_delegator(input, gasometer),
-			Action::IsDelegator => return Self::is_delegator(input, gasometer),
-			Action::IsCandidate => return Self::is_candidate(input, gasometer),
-			Action::IsSelectedCandidate => return Self::is_selected_candidate(input, gasometer),
-			// runtime methods (dispatchables)
-			Action::JoinCandidates => Self::join_candidates(input, gasometer, context)?,
-			// DEPRECATED
-			Action::LeaveCandidates => Self::schedule_leave_candidates(input, gasometer, context)?,
-			Action::ScheduleLeaveCandidates => {
-				Self::schedule_leave_candidates(input, gasometer, context)?
-			}
-			Action::ExecuteLeaveCandidates => {
-				Self::execute_leave_candidates(input, gasometer, context)?
-			}
-			Action::CancelLeaveCandidates => {
-				Self::cancel_leave_candidates(input, gasometer, context)?
-			}
-			Action::GoOffline => Self::go_offline(context)?,
-			Action::GoOnline => Self::go_online(context)?,
-			// DEPRECATED
-			Action::CandidateBondLess => {
-				Self::schedule_candidate_bond_less(input, gasometer, context)?
-			}
-			Action::ScheduleCandidateBondLess => {
-				Self::schedule_candidate_bond_less(input, gasometer, context)?
-			}
-			Action::CandidateBondMore => Self::candidate_bond_more(input, gasometer, context)?,
-			Action::ExecuteCandidateBondLess => {
-				Self::execute_candidate_bond_less(input, gasometer, context)?
-			}
-			Action::CancelCandidateBondLess => Self::cancel_candidate_bond_less(context)?,
-			// DEPRECATED
-			Action::Nominate => Self::delegate(input, gasometer, context)?,
-			Action::Delegate => Self::delegate(input, gasometer, context)?,
-			// DEPRECATED
-			Action::LeaveNominators => Self::schedule_leave_delegators(context)?,
-			Action::ScheduleLeaveDelegators => Self::schedule_leave_delegators(context)?,
-			Action::ExecuteLeaveDelegators => {
-				Self::execute_leave_delegators(input, gasometer, context)?
-			}
-			Action::CancelLeaveDelegators => Self::cancel_leave_delegators(context)?,
-			// DEPRECATED
-			Action::RevokeNomination => {
-				Self::schedule_revoke_delegation(input, gasometer, context)?
-			}
-			Action::ScheduleRevokeDelegation => {
-				Self::schedule_revoke_delegation(input, gasometer, context)?
-			}
-			// DEPRECATED
-			Action::NominatorBondLess => {
-				Self::schedule_delegator_bond_less(input, gasometer, context)?
-			}
-			Action::ScheduleDelegatorBondLess => {
-				Self::schedule_delegator_bond_less(input, gasometer, context)?
-			}
-			// DEPRECATED
-			Action::NominatorBondMore => Self::delegator_bond_more(input, gasometer, context)?,
-			Action::DelegatorBondMore => Self::delegator_bond_more(input, gasometer, context)?,
-			Action::ExecuteDelegationRequest => {
-				Self::execute_delegation_request(input, gasometer, context)?
-			}
-			Action::CancelDelegationRequest => {
-				Self::cancel_delegation_request(input, gasometer, context)?
-			}
-		};
-
-		// Dispatch call (if enough gas).
-		RuntimeHelper::<Runtime>::try_dispatch(origin, call, gasometer)?;
-
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: vec![],
-			logs: vec![],
-		})
-	}
-}
-
-impl<Runtime> ParachainStakingWrapper<Runtime>
-where
-	Runtime: parachain_staking::Config + pallet_evm::Config,
-	BalanceOf<Runtime>: EvmData,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
-	Runtime::Call: From<parachain_staking::Call<Runtime>>,
+	Runtime: pallet_parachain_staking::Config + pallet_evm::Config,
+	Runtime::AccountId: Into<H160>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: From<pallet_parachain_staking::Call<Runtime>>,
+	BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 {
 	// Constants
-
-	fn min_delegation(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("minDelegation()")]
+	#[precompile::public("min_delegation()")]
+	#[precompile::view]
+	fn min_delegation(handle: &mut impl PrecompileHandle) -> EvmResult<u128> {
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let min_nomination: u128 = <<Runtime as parachain_staking::Config>::MinDelegation as Get<
-			BalanceOf<Runtime>,
-		>>::get()
-		.try_into()
-		.map_err(|_| gasometer.revert("Amount is too large for provided balance type"))?;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let min_nomination: u128 =
+			<<Runtime as pallet_parachain_staking::Config>::MinDelegation as Get<
+				BalanceOf<Runtime>,
+			>>::get()
+			.try_into()
+			.map_err(|_| revert("Amount is too large for provided balance type"))?;
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(min_nomination).build(),
-			logs: vec![],
-		})
+		Ok(min_nomination)
 	}
 
 	// Storage Getters
-
-	fn points(input: &mut EvmDataReader, gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let round = input.read::<u32>(gasometer)?;
-
+	#[precompile::public("points(uint256)")]
+	#[precompile::view]
+	fn points(
+		handle: &mut impl PrecompileHandle,
+		round: SolidityConvert<U256, u32>,
+	) -> EvmResult<u32> {
+		let round = round.converted();
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let points: u32 = parachain_staking::Pallet::<Runtime>::points(round);
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let points: u32 = pallet_parachain_staking::Pallet::<Runtime>::points(round);
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(points).build(),
-			logs: vec![],
-		})
+		Ok(points)
 	}
 
-	fn candidate_count(gasometer: &mut Gasometer) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("candidateCount()")]
+	#[precompile::public("candidate_count()")]
+	#[precompile::view]
+	fn candidate_count(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let candidate_count: u32 = <parachain_staking::Pallet<Runtime>>::candidate_pool()
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let candidate_count: u32 = <pallet_parachain_staking::Pallet<Runtime>>::candidate_pool()
 			.0
 			.len() as u32;
 
 		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(candidate_count).build(),
-			logs: vec![],
-		})
+		Ok(candidate_count)
 	}
 
+	#[precompile::public("round()")]
+	#[precompile::view]
+	fn round(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let round: u32 = <pallet_parachain_staking::Pallet<Runtime>>::round().current;
+
+		Ok(round)
+	}
+
+	#[precompile::public("candidateDelegationCount(address)")]
+	#[precompile::public("candidate_delegation_count(address)")]
+	#[precompile::view]
 	fn candidate_delegation_count(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let address = input.read::<Address>(gasometer)?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<u32> {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::candidate_state(&address) {
-				let candidate_delegation_count: u32 = state.delegators.0.len() as u32;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+		{
+			let candidate_delegation_count: u32 = state.delegation_count;
 
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					candidate_delegation_count
-				);
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
 				candidate_delegation_count
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Candidate {:?} not found, so delegation count is 0",
-					address
-				);
-				0u32
-			};
+			);
+			candidate_delegation_count
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate {:?} not found, so delegation count is 0",
+				candidate
+			);
+			0u32
+		};
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(result).build(),
-			logs: vec![],
-		})
+		Ok(result)
 	}
 
+	#[precompile::public("delegatorDelegationCount(address)")]
+	#[precompile::public("delegator_delegation_count(address)")]
+	#[precompile::view]
 	fn delegator_delegation_count(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let address = input.read::<Address>(gasometer)?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+	) -> EvmResult<u32> {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let result =
-			if let Some(state) = <parachain_staking::Pallet<Runtime>>::delegator_state(&address) {
-				let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let result = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::delegator_state(&delegator)
+		{
+			let delegator_delegation_count: u32 = state.delegations.0.len() as u32;
 
-				log::trace!(
-					target: "staking-precompile",
-					"Result from pallet is {:?}",
-					delegator_delegation_count
-				);
-
+			log::trace!(
+				target: "staking-precompile",
+				"Result from pallet is {:?}",
 				delegator_delegation_count
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Delegator {:?} not found, so delegation count is 0",
-					address
-				);
-				0u32
-			};
+			);
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(result).build(),
-			logs: vec![],
-		})
+			delegator_delegation_count
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Delegator {:?} not found, so delegation count is 0",
+				delegator
+			);
+			0u32
+		};
+
+		Ok(result)
+	}
+
+	#[precompile::public("selectedCandidates()")]
+	#[precompile::public("selected_candidates()")]
+	#[precompile::view]
+	fn selected_candidates(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<Address>> {
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let selected_candidates: Vec<Address> =
+			pallet_parachain_staking::Pallet::<Runtime>::selected_candidates()
+				.into_iter()
+				.map(|address| Address(address.into()))
+				.collect();
+
+		Ok(selected_candidates)
 	}
 
 	// Role Verifiers
-
-	fn is_delegator(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let address = input.read::<Address>(gasometer)?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+	#[precompile::public("isDelegator(address)")]
+	#[precompile::public("is_delegator(address)")]
+	#[precompile::view]
+	fn is_delegator(handle: &mut impl PrecompileHandle, delegator: Address) -> EvmResult<bool> {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_delegator = parachain_staking::Pallet::<Runtime>::is_delegator(&address);
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let is_delegator = pallet_parachain_staking::Pallet::<Runtime>::is_delegator(&delegator);
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(is_delegator).build(),
-			logs: vec![],
-		})
+		Ok(is_delegator)
 	}
 
-	fn is_candidate(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let address = input.read::<Address>(gasometer)?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+	#[precompile::public("isCandidate(address)")]
+	#[precompile::public("is_candidate(address)")]
+	#[precompile::view]
+	fn is_candidate(handle: &mut impl PrecompileHandle, candidate: Address) -> EvmResult<bool> {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_candidate = parachain_staking::Pallet::<Runtime>::is_candidate(&address);
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let is_candidate = pallet_parachain_staking::Pallet::<Runtime>::is_candidate(&candidate);
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(is_candidate).build(),
-			logs: vec![],
-		})
+		Ok(is_candidate)
 	}
 
+	#[precompile::public("isSelectedCandidate(address)")]
+	#[precompile::public("is_selected_candidate(address)")]
+	#[precompile::view]
 	fn is_selected_candidate(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-	) -> EvmResult<PrecompileOutput> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let address = input.read::<Address>(gasometer)?.0;
-		let address = Runtime::AddressMapping::into_account_id(address);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<bool> {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Fetch info.
-		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_selected = parachain_staking::Pallet::<Runtime>::is_selected_candidate(&address);
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let is_selected =
+			pallet_parachain_staking::Pallet::<Runtime>::is_selected_candidate(&candidate);
 
-		// Build output.
-		Ok(PrecompileOutput {
-			exit_status: ExitSucceed::Returned,
-			cost: gasometer.used_gas(),
-			output: EvmDataWriter::new().write(is_selected).build(),
-			logs: vec![],
-		})
+		Ok(is_selected)
+	}
+
+	#[precompile::public("delegationRequestIsPending(address,address)")]
+	#[precompile::public("delegation_request_is_pending(address,address)")]
+	#[precompile::view]
+	fn delegation_request_is_pending(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult<bool> {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// Users can call `is_delegator` to determine when this happens
+		let pending = <pallet_parachain_staking::Pallet<Runtime>>::delegation_request_exists(
+			&candidate, &delegator,
+		);
+
+		Ok(pending)
+	}
+
+	#[precompile::public("candidateExitIsPending(address)")]
+	#[precompile::public("candidate_exit_is_pending(address)")]
+	#[precompile::view]
+	fn candidate_exit_is_pending(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<bool> {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get delegator state, we return false
+		// Users can call `is_candidate` to determine when this happens
+		let pending = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+		{
+			state.is_leaving()
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate state for {:?} not found, so pending exit is false",
+				candidate
+			);
+			false
+		};
+
+		Ok(pending)
+	}
+
+	#[precompile::public("candidateRequestIsPending(address)")]
+	#[precompile::public("candidate_request_is_pending(address)")]
+	#[precompile::view]
+	fn candidate_request_is_pending(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult<bool> {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		// If we are not able to get candidate metadata, we return false
+		// Users can call `is_candidate` to determine when this happens
+		let pending = if let Some(state) =
+			<pallet_parachain_staking::Pallet<Runtime>>::candidate_info(&candidate)
+		{
+			state.request.is_some()
+		} else {
+			log::trace!(
+				target: "staking-precompile",
+				"Candidate metadata for {:?} not found, so pending request is false",
+				candidate
+			);
+			false
+		};
+
+		Ok(pending)
+	}
+
+	#[precompile::public("delegationAutoCompound(address,address)")]
+	#[precompile::view]
+	fn delegation_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult<u8> {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Fetch info.
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let value = <pallet_parachain_staking::Pallet<Runtime>>::delegation_auto_compound(
+			&candidate, &delegator,
+		);
+
+		Ok(value.deconstruct())
 	}
 
 	// Runtime Methods (dispatchables)
 
+	#[precompile::public("joinCandidates(uint256,uint256)")]
+	#[precompile::public("join_candidates(uint256,uint256)")]
 	fn join_candidates(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 2)?;
-		let bond: BalanceOf<Runtime> = input.read(gasometer)?;
-		let candidate_count = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		amount: U256,
+		candidate_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let amount = Self::u256_to_amount(amount).in_field("amount")?;
+		let candidate_count = candidate_count.converted();
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::join_candidates {
-			bond,
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::join_candidates {
+			bond: amount,
 			candidate_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("scheduleLeaveCandidates(uint256)")]
+	#[precompile::public("schedule_leave_candidates(uint256)")]
 	fn schedule_leave_candidates(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let candidate_count = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		candidate_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let candidate_count = candidate_count.converted();
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call =
-			parachain_staking::Call::<Runtime>::schedule_leave_candidates { candidate_count };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_candidates {
+			candidate_count,
+		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("executeLeaveCandidates(address,uint256)")]
+	#[precompile::public("execute_leave_candidates(address,uint256)")]
 	fn execute_leave_candidates(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		candidate_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let candidate_count = candidate_count.converted();
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_candidates { candidate };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_candidates {
+			candidate,
+			candidate_delegation_count: candidate_count,
+		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("cancelLeaveCandidates(uint256)")]
+	#[precompile::public("cancel_leave_candidates(uint256)")]
 	fn cancel_leave_candidates(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let candidate_count = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		candidate_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let candidate_count = candidate_count.converted();
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::cancel_leave_candidates { candidate_count };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn go_offline(
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
+	#[precompile::public("goOffline()")]
+	#[precompile::public("go_offline()")]
+	fn go_offline(handle: &mut impl PrecompileHandle) -> EvmResult {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_offline {};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::go_offline {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn go_online(
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
+	#[precompile::public("goOnline()")]
+	#[precompile::public("go_online()")]
+	fn go_online(handle: &mut impl PrecompileHandle) -> EvmResult {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::go_online {};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::go_online {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn candidate_bond_more(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let more: BalanceOf<Runtime> = input.read(gasometer)?;
+	#[precompile::public("candidateBondMore(uint256)")]
+	#[precompile::public("candidate_bond_more(uint256)")]
+	fn candidate_bond_more(handle: &mut impl PrecompileHandle, more: U256) -> EvmResult {
+		let more = Self::u256_to_amount(more).in_field("more")?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::candidate_bond_more { more };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::candidate_bond_more { more };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn schedule_candidate_bond_less(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let less: BalanceOf<Runtime> = input.read(gasometer)?;
+	#[precompile::public("scheduleCandidateBondLess(uint256)")]
+	#[precompile::public("schedule_candidate_bond_less(uint256)")]
+	fn schedule_candidate_bond_less(handle: &mut impl PrecompileHandle, less: U256) -> EvmResult {
+		let less = Self::u256_to_amount(less).in_field("less")?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_candidate_bond_less { less };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("executeCandidateBondLess(address)")]
+	#[precompile::public("execute_candidate_bond_less(address)")]
 	fn execute_candidate_bond_less(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::execute_candidate_bond_less { candidate };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn cancel_candidate_bond_less(
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
+	#[precompile::public("cancelCandidateBondLess()")]
+	#[precompile::public("cancel_candidate_bond_less()")]
+	fn cancel_candidate_bond_less(handle: &mut impl PrecompileHandle) -> EvmResult {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::cancel_candidate_bond_less {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("delegate(address,uint256,uint256,uint256)")]
 	fn delegate(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 4)?;
-		let collator = input.read::<Address>(gasometer)?.0;
-		let collator = Runtime::AddressMapping::into_account_id(collator);
-		let amount: BalanceOf<Runtime> = input.read(gasometer)?;
-		let candidate_delegation_count = input.read(gasometer)?;
-		let delegation_count = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		amount: U256,
+		candidate_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let amount = Self::u256_to_amount(amount).in_field("amount")?;
+		let candidate_delegation_count = candidate_delegation_count.converted();
+		let delegator_delegation_count = delegator_delegation_count.converted();
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegate {
-			collator,
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::delegate {
+			candidate,
 			amount,
 			candidate_delegation_count,
-			delegation_count,
+			delegation_count: delegator_delegation_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn schedule_leave_delegators(
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
+	#[precompile::public("delegateWithAutoCompound(address,uint256,uint8,uint256,uint256,uint256)")]
+	fn delegate_with_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		amount: U256,
+		auto_compound: u8,
+		candidate_delegation_count: SolidityConvert<U256, u32>,
+		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		if auto_compound > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("auto_compound")
+					.into(),
+			);
+		}
+
+		let amount = Self::u256_to_amount(amount).in_field("amount")?;
+		let auto_compound = Percent::from_percent(auto_compound);
+		let candidate_delegation_count = candidate_delegation_count.converted();
+		let candidate_auto_compounding_delegation_count =
+			candidate_auto_compounding_delegation_count.converted();
+		let delegator_delegation_count = delegator_delegation_count.converted();
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::delegate_with_auto_compound {
+			candidate,
+			amount,
+			auto_compound,
+			candidate_delegation_count,
+			candidate_auto_compounding_delegation_count,
+			delegation_count: delegator_delegation_count,
+		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	/// Deprecated in favor of batch util
+	#[precompile::public("scheduleLeaveDelegators()")]
+	#[precompile::public("schedule_leave_delegators()")]
+	fn schedule_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult {
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_leave_delegators {};
+
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	/// Deprecated in favor of batch util
+	#[precompile::public("executeLeaveDelegators(address,uint256)")]
+	#[precompile::public("execute_leave_delegators(address,uint256)")]
 	fn execute_leave_delegators(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 2)?;
-		let delegator = input.read::<Address>(gasometer)?.0;
-		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let delegation_count = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let delegator_delegation_count = delegator_delegation_count.converted();
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_leave_delegators {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_leave_delegators {
 			delegator,
-			delegation_count,
+			delegation_count: delegator_delegation_count,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn cancel_leave_delegators(
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
+	/// Deprecated in favor of batch util
+	#[precompile::public("cancelLeaveDelegators()")]
+	#[precompile::public("cancel_leave_delegators()")]
+	fn cancel_leave_delegators(handle: &mut impl PrecompileHandle) -> EvmResult {
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::cancel_leave_delegators {};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("scheduleRevokeDelegation(address)")]
+	#[precompile::public("schedule_revoke_delegation(address)")]
 	fn schedule_revoke_delegation(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let collator = input.read::<Address>(gasometer)?.0;
-		let collator = Runtime::AddressMapping::into_account_id(collator);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::schedule_revoke_delegation { collator };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_revoke_delegation {
+			collator: candidate,
+		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("delegatorBondMore(address,uint256)")]
+	#[precompile::public("delegator_bond_more(address,uint256)")]
 	fn delegator_bond_more(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 2)?;
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let more: BalanceOf<Runtime> = input.read(gasometer)?;
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		more: U256,
+	) -> EvmResult {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+		let more = Self::u256_to_amount(more).in_field("more")?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
-
-		// Return call information
-		Ok((Some(origin).into(), call))
-	}
-
-	fn schedule_delegator_bond_less(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 2)?;
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
-		let less: BalanceOf<Runtime> = input.read(gasometer)?;
-
-		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
 		let call =
-			parachain_staking::Call::<Runtime>::schedule_delegator_bond_less { candidate, less };
+			pallet_parachain_staking::Call::<Runtime>::delegator_bond_more { candidate, more };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
-	fn execute_delegation_request(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 2)?;
-		let delegator = input.read::<Address>(gasometer)?.0;
-		let delegator = Runtime::AddressMapping::into_account_id(delegator);
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+	#[precompile::public("scheduleDelegatorBondLess(address,uint256)")]
+	#[precompile::public("schedule_delegator_bond_less(address,uint256)")]
+	fn schedule_delegator_bond_less(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		less: U256,
+	) -> EvmResult {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+		let less = Self::u256_to_amount(less).in_field("less")?;
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::execute_delegation_request {
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::schedule_delegator_bond_less {
+			candidate,
+			less,
+		};
+
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("executeDelegationRequest(address,address)")]
+	#[precompile::public("execute_delegation_request(address,address)")]
+	fn execute_delegation_request(
+		handle: &mut impl PrecompileHandle,
+		delegator: Address,
+		candidate: Address,
+	) -> EvmResult {
+		let delegator = Runtime::AddressMapping::into_account_id(delegator.0);
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::execute_delegation_request {
 			delegator,
 			candidate,
 		};
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
 	}
 
+	#[precompile::public("cancelDelegationRequest(address)")]
+	#[precompile::public("cancel_delegation_request(address)")]
 	fn cancel_delegation_request(
-		input: &mut EvmDataReader,
-		gasometer: &mut Gasometer,
-		context: &Context,
-	) -> EvmResult<(
-		<Runtime::Call as Dispatchable>::Origin,
-		parachain_staking::Call<Runtime>,
-	)> {
-		// Read input.
-		input.expect_arguments(gasometer, 1)?;
-		let candidate = input.read::<Address>(gasometer)?.0;
-		let candidate = Runtime::AddressMapping::into_account_id(candidate);
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+	) -> EvmResult {
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
 
 		// Build call with origin.
-		let origin = Runtime::AddressMapping::into_account_id(context.caller);
-		let call = parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call =
+			pallet_parachain_staking::Call::<Runtime>::cancel_delegation_request { candidate };
 
-		// Return call information
-		Ok((Some(origin).into(), call))
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	#[precompile::public("setAutoCompound(address,uint8,uint256,uint256)")]
+	fn set_auto_compound(
+		handle: &mut impl PrecompileHandle,
+		candidate: Address,
+		value: u8,
+		candidate_auto_compounding_delegation_count: SolidityConvert<U256, u32>,
+		delegator_delegation_count: SolidityConvert<U256, u32>,
+	) -> EvmResult {
+		if value > 100 {
+			return Err(
+				RevertReason::custom("Must be an integer between 0 and 100 included")
+					.in_field("value")
+					.into(),
+			);
+		}
+
+		let value = Percent::from_percent(value);
+		let candidate_auto_compounding_delegation_count_hint =
+			candidate_auto_compounding_delegation_count.converted();
+		let delegation_count_hint = delegator_delegation_count.converted();
+
+		let candidate = Runtime::AddressMapping::into_account_id(candidate.0);
+
+		// Build call with origin.
+		let origin = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		let call = pallet_parachain_staking::Call::<Runtime>::set_auto_compound {
+			candidate,
+			value,
+			candidate_auto_compounding_delegation_count_hint,
+			delegation_count_hint,
+		};
+
+		// Dispatch call (if enough gas).
+		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
+
+		Ok(())
+	}
+
+	fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
+		value
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large("balance type").into())
 	}
 }

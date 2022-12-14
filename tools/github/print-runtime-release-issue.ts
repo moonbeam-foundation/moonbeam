@@ -21,34 +21,62 @@ async function main() {
         required: true,
       },
     })
-    .demandOption(["from", "to"])
+    .demandOption(["from", "to", "client"])
     .help().argv;
 
   const previousVersion = argv.from;
   const newVersion = argv.to;
   const lastClientVersion = argv.client;
 
-  const template = `
-  - [ ] Create a PR that increment spec version (like #1051)
-  - [ ] Cleanup previous migrations (only for major release,
-  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
-  - [ ] Get that PR approved and merged
-  - [ ] Tag master with runtime-${newVersion} and push to github
-  - [ ] Start the github action Publish Runtime Draft
-  with runtime-${previousVersion} => runtime-${newVersion}
-  - [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
-  - [ ] Create the tracing runtime on moonbeam-runtime-overrides
-  (see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
-  - [ ] Add new substitute in stagenet configuration 
-  - [ ] Upgrade stagenet
-  - [ ] Add new substitute in alphanet configuration 
-  - [ ] Upgrade alphanet
-  - [ ] Create new tracing image for partners: start the github action Publish Docker
-  with ${lastClientVersion} and master
-  - [ ] When everything is ok, publish the draft release
+  const commonTemplate = `
+## Release
+- [ ] Check all proxy types.
+- [ ] Re-run all extrinsics/hooks benchmarks.
+- [ ] Tag master with runtime-${newVersion} and push to github
+- [ ] Start the github action Publish Runtime Draft
+with runtime-${previousVersion} => runtime-${newVersion}
+- [ ] Review the generated Draft and clean a bit the messages if needed (keep it draft)
+- [ ] Create the tracing runtime on moonbeam-runtime-overrides
+(see https://github.com/PureStake/moonbeam-runtime-overrides/blob/master/README.md)
+- [ ] Upgrade typescript API: Start the github action "Upgrade typescript API"
+- [ ] Add new tracing substitute in network configuration
+- [ ] Upgrade stagenet
+- [ ] Create new tracing image for partners: start the github action Publish Docker
+with ${lastClientVersion} and master
+- [ ] Upgrade alphanet
+- [ ] When everything is ok, publish the draft release
   `;
 
-  console.log(template);
+  if (newVersion.endsWith("00")) {
+    const template = `
+## Requirements
+- [ ] To be manually edited (add pending PRs)
+
+## Pre-Release
+- [ ] Cleanup previous migrations (
+  https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
+- [ ] Check that proxy types are adapted to extrinsics changes (
+  read all PR descriptions with B7-runtimenoteworthy)
+- [ ] Re-run all extrinsics/hooks benchmarks.
+
+${commonTemplate}
+
+## Post Release
+- [ ] Create a PR that increment spec version (like #1051)
+    `;
+    console.log(template);
+  } else {
+    const template = `
+## Requirements
+- [ ] To be manually edited (add pending PRs)
+
+## Pre-Release
+- [ ] Bump spec version to ${newVersion}
+
+${commonTemplate}
+    `;
+    console.log(template);
+  }
 }
 
 main();

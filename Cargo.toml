@@ -2,18 +2,53 @@
 exclude = [ "bin/utils/moonkey" ]
 members = [
 	"bin/utils/moonkey",
+	"client/rpc/finality",
 	"client/rpc/manual-xcm",
+	"client/vrf",
 	"node",
 	"node/cli",
 	"node/service",
 	"pallets/maintenance-mode",
 	"pallets/migrations",
+	"pallets/moonbeam-orbiters",
 	"pallets/proxy-genesis-companion",
+	"precompiles/author-mapping",
+	"precompiles/balances-erc20",
+	"precompiles/batch",
+	"precompiles/call-permit",
+	"precompiles/collective",
+	"precompiles/crowdloan-rewards",
+	"precompiles/pallet-democracy",
+	"precompiles/parachain-staking",
+	"precompiles/proxy",
+	"precompiles/randomness",
+	"precompiles/relay-encoder",
+	"precompiles/utils",
 	"precompiles/utils/macro",
+	"precompiles/xcm-transactor",
+	"precompiles/xtokens",
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
 ]
 
+[patch.crates-io]
+jsonrpsee = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
+jsonrpsee-core = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
+jsonrpsee-types = { git = "https://github.com/PureStake/jsonrpsee", branch = "moonbeam-v0.15.1" }
+
+# make sure dev builds with backtrace do
+# not slow us down
+[profile.dev.package.backtrace]
+inherits = "release"
+
+[profile.production]
+codegen-units = 1
+incremental = false
+inherits = "release"
+lto = true
+
 [profile.release]
+# Moonbeam runtime requires unwinding.
+opt-level = 3
 panic = "unwind"

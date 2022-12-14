@@ -14,23 +14,17 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
-use crate::{
-	mock::{
-		events, evm_test_context, Call, ExtBuilder, Origin, Precompiles, PrecompilesValue, Runtime,
-		TestAccount::{Alice, Precompile},
-	},
-	Action,
+use crate::mock::{
+	events, ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime, RuntimeCall, RuntimeOrigin,
 };
-use fp_evm::PrecompileFailure;
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use nimbus_primitives::NimbusId;
-use pallet_author_mapping::{Call as AuthorMappingCall, Event as AuthorMappingEvent};
+use pallet_author_mapping::{keys_wrapper, Call as AuthorMappingCall, Event as AuthorMappingEvent};
 use pallet_balances::Event as BalancesEvent;
-use pallet_evm::{Call as EvmCall, Event as EvmEvent, PrecompileSet};
-use precompile_utils::EvmDataWriter;
+use pallet_evm::{Call as EvmCall, Event as EvmEvent};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::crypto::UncheckedFrom;
-use sp_core::U256;
-use std::assert_matches::assert_matches;
+use sp_core::{H256, U256};
 
 fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
@@ -39,7 +33,7 @@ fn precompiles() -> Precompiles<Runtime> {
 fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 	EvmCall::call {
 		source: Alice.into(),
-		target: Precompile.into(),
+		target: Precompile1.into(),
 		input,
 		value: U256::zero(), // No value sent in EVM
 		gas_limit: u64::max_value(),
@@ -54,75 +48,79 @@ fn evm_call(input: Vec<u8>) -> EvmCall<Runtime> {
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		// This selector is only three bytes long when four are required.
-		let bogus_selector = vec![1u8, 2u8, 3u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"tried to parse selector out of bounds",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
+			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
 
 #[test]
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
-		let bogus_selector = vec![1u8, 2u8, 3u8, 4u8];
-
-		assert_matches!(
-			precompiles().execute(
-				Precompile.into(),
-				&bogus_selector,
-				None,
-				&evm_test_context(),
-				false,
-			),
-			Some(Err(PrecompileFailure::Revert { output, ..}))
-				if output == b"unknown selector",
-		);
+		precompiles()
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
+			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
 
 #[test]
 fn selectors() {
-	assert_eq!(Action::AddAssociation as u32, 0xaa5ac585);
-	assert_eq!(Action::UpdateAssociation as u32, 0xd9cef879);
-	assert_eq!(Action::ClearAssociation as u32, 0x7354c91d);
+	assert!(PCall::add_association_selectors().contains(&0xef8b6cd8));
+	assert!(PCall::update_association_selectors().contains(&0x25a39da5));
+	assert!(PCall::clear_association_selectors().contains(&0x448b54d6));
+	assert!(PCall::remove_keys_selectors().contains(&0xa36fee17));
+	assert!(PCall::set_keys_selectors().contains(&0xf1ec919c));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
+
+		tester.test_default_modifier(PCall::add_association_selectors());
+		tester.test_default_modifier(PCall::update_association_selectors());
+		tester.test_default_modifier(PCall::clear_association_selectors());
+		tester.test_default_modifier(PCall::remove_keys_selectors());
+		tester.test_default_modifier(PCall::set_keys_selectors());
+	});
 }
 
 #[test]
 fn add_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let expected_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			let input = EvmDataWriter::new_with_selector(Action::AddAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.build();
+			let input = PCall::add_association {
+				nimbus_id: H256::from([1u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(expected_nimbus_id, Alice).into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: expected_nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: expected_nimbus_id.into(),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile1.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -131,7 +129,7 @@ fn add_association_works() {
 #[test]
 fn update_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let first_nimbus_id: NimbusId =
@@ -139,31 +137,47 @@ fn update_association_works() {
 			let second_nimbus_id: NimbusId =
 				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: first_nimbus_id.clone(),
-			})
-			.dispatch(Origin::signed(Alice)));
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: first_nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
 
-			let input = EvmDataWriter::new_with_selector(Action::UpdateAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.write(sp_core::H256::from([2u8; 32]))
-				.build();
+			let input = PCall::update_association {
+				old_nimbus_id: H256::from([1u8; 32]),
+				new_nimbus_id: H256::from([2u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(first_nimbus_id, Alice).into(),
-					AuthorMappingEvent::AuthorRotated(second_nimbus_id, Alice).into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: first_nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: first_nimbus_id.into(),
+					}
+					.into(),
+					AuthorMappingEvent::KeysRotated {
+						new_nimbus_id: second_nimbus_id.clone(),
+						account_id: Alice.into(),
+						new_keys: second_nimbus_id.into(),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile1.into()
+					}
+					.into(),
 				]
 			);
 		})
@@ -172,41 +186,219 @@ fn update_association_works() {
 #[test]
 fn clear_association_works() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
 
-			assert_ok!(Call::AuthorMapping(AuthorMappingCall::add_association {
-				author_id: nimbus_id.clone(),
-			})
-			.dispatch(Origin::signed(Alice)));
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
 
-			let input = EvmDataWriter::new_with_selector(Action::ClearAssociation)
-				.write(sp_core::H256::from([1u8; 32]))
-				.build();
+			let input = PCall::clear_association {
+				nimbus_id: H256::from([1u8; 32]),
+			}
+			.into();
 
 			// Make sure the call goes through successfully
-			assert_ok!(Call::Evm(evm_call(input)).dispatch(Origin::root()));
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
 
 			// Assert that the events are as expected
 			assert_eq!(
 				events(),
 				vec![
 					BalancesEvent::Reserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(nimbus_id.clone(), Alice).into(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: nimbus_id.clone().into(),
+					}
+					.into(),
 					BalancesEvent::Unreserved {
-						who: Alice,
+						who: Alice.into(),
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorDeRegistered(nimbus_id).into(),
-					EvmEvent::Executed(Precompile.into()).into(),
+					AuthorMappingEvent::KeysRemoved {
+						nimbus_id: nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: nimbus_id.into(),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile1.into()
+					}
+					.into(),
 				]
 			);
 		})
+}
+
+#[test]
+fn remove_keys_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let nimbus_id: NimbusId = sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+
+			assert_ok!(
+				RuntimeCall::AuthorMapping(AuthorMappingCall::add_association {
+					nimbus_id: nimbus_id.clone(),
+				})
+				.dispatch(RuntimeOrigin::signed(Alice.into()))
+			);
+
+			let input = PCall::remove_keys {}.into();
+
+			// Make sure the call goes through successfully
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved {
+						who: Alice.into(),
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: nimbus_id.clone().into(),
+					}
+					.into(),
+					BalancesEvent::Unreserved {
+						who: Alice.into(),
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::KeysRemoved {
+						nimbus_id: nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: nimbus_id.into(),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile1.into()
+					}
+					.into(),
+				]
+			);
+		})
+}
+
+#[test]
+fn set_keys_works() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			let first_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([1u8; 32]).into();
+			let second_nimbus_id: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([2u8; 32]).into();
+			let first_vrf_key: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([3u8; 32]).into();
+			let second_vrf_key: NimbusId =
+				sp_core::sr25519::Public::unchecked_from([4u8; 32]).into();
+
+			assert_ok!(RuntimeCall::AuthorMapping(AuthorMappingCall::set_keys {
+				keys: keys_wrapper::<Runtime>(first_nimbus_id.clone(), first_vrf_key.clone()),
+			})
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
+
+			// Create input with keys inside a Solidity bytes.
+			let input = PCall::set_keys {
+				keys: EvmDataWriter::new()
+					.write(sp_core::H256::from([2u8; 32]))
+					.write(sp_core::H256::from([4u8; 32]))
+					.build()
+					.into(),
+			}
+			.into();
+
+			// Make sure the call goes through successfully
+			assert_ok!(RuntimeCall::Evm(evm_call(input)).dispatch(RuntimeOrigin::root()));
+
+			// Assert that the events are as expected
+			assert_eq!(
+				events(),
+				vec![
+					BalancesEvent::Reserved {
+						who: Alice.into(),
+						amount: 10
+					}
+					.into(),
+					AuthorMappingEvent::KeysRegistered {
+						nimbus_id: first_nimbus_id.clone(),
+						account_id: Alice.into(),
+						keys: first_vrf_key.into(),
+					}
+					.into(),
+					AuthorMappingEvent::KeysRotated {
+						new_nimbus_id: second_nimbus_id.clone(),
+						account_id: Alice.into(),
+						new_keys: second_vrf_key.into(),
+					}
+					.into(),
+					EvmEvent::Executed {
+						address: Precompile1.into()
+					}
+					.into(),
+				]
+			);
+		})
+}
+
+#[test]
+fn test_solidity_interface_has_all_function_selectors_documented_and_implemented() {
+	for file in ["AuthorMappingInterface.sol"] {
+		for solidity_fn in solidity::get_selectors(file) {
+			assert_eq!(
+				solidity_fn.compute_selector_hex(),
+				solidity_fn.docs_selector,
+				"documented selector for '{}' did not match for file '{}'",
+				solidity_fn.signature(),
+				file,
+			);
+
+			let selector = solidity_fn.compute_selector();
+			if !PCall::supports_selector(selector) {
+				panic!(
+					"failed decoding selector 0x{:x} => '{}' as Action for file '{}'",
+					selector,
+					solidity_fn.signature(),
+					file,
+				)
+			}
+		}
+	}
+}
+
+#[test]
+fn test_deprecated_solidity_selectors_are_supported() {
+	for deprecated_function in [
+		"add_association(bytes32)",
+		"update_association(bytes32,bytes32)",
+		"clear_association(bytes32)",
+		"remove_keys()",
+		"set_keys(bytes)",
+	] {
+		let selector = solidity::compute_selector(deprecated_function);
+		if !PCall::supports_selector(selector) {
+			panic!(
+				"failed decoding selector 0x{:x} => '{}' as Action",
+				selector, deprecated_function,
+			)
+		}
+	}
 }

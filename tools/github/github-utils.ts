@@ -38,11 +38,10 @@ export async function getCommitAndLabels(
   let more = true;
   let page = 0;
   while (more) {
-    const compare = await octokit.rest.repos.compareCommits({
+    const compare = await octokit.rest.repos.compareCommitsWithBasehead({
       owner,
       repo,
-      base: previousTag,
-      head: newTag,
+      basehead: previousTag + "..." + newTag,
       per_page: 200,
       page,
     });
@@ -51,22 +50,57 @@ export async function getCommitAndLabels(
     page++;
   }
 
+  // Determine commits to exclude
+  // - commits reverted in the same range
+  const excludedCommits: number[] = [];
+  const revertedCommits: number[] = [];
+  for (let i = commits.length - 1; i >= 0; i--) {
+    const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
+
+    if (revertedCommits[commitMessageFirstLine] != null) {
+      excludedCommits.push(i);
+      excludedCommits.push(revertedCommits[commitMessageFirstLine]);
+    } else {
+      const foundRevertedCommitName = commitMessageFirstLine.match(/Revert \"(.*)\"/);
+      if (foundRevertedCommitName?.length > 0) {
+        revertedCommits[foundRevertedCommitName[1]] = i;
+      }
+    }
+  }
+
   const prByLabels = {};
-  for (const commit of commits) {
-    const prs = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-      owner,
-      repo,
-      commit_sha: commit.sha,
-    });
-    for (const pr of prs.data) {
-      if (pr.labels && pr.labels.length > 0) {
-        for (const label of pr.labels) {
-          prByLabels[label.name] = prByLabels[label.name] || [];
-          prByLabels[label.name].push(pr);
+  for (let i = 0; i < commits.length; i++) {
+    const commitMessageFirstLine = commits[i].commit.message.split("\n")[0].trim();
+    if (!excludedCommits.includes(i)) {
+      const foundPrsNumbers = commitMessageFirstLine.match(/\(#([0-9]+)\)$/);
+      if (foundPrsNumbers && foundPrsNumbers.length > 1) {
+        // This will check current repo and if the PR is not found, will try the official repo
+        const repos = [
+          { owner, repo },
+          { owner: "purestake", repo: "moonbeam" },
+        ];
+        for (const { owner, repo } of repos) {
+          try {
+            const pr = await octokit.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: parseInt(foundPrsNumbers[1]),
+            });
+
+            if (pr.data.labels && pr.data.labels.length > 0) {
+              for (const label of pr.data.labels) {
+                prByLabels[label.name] = prByLabels[label.name] || [];
+                prByLabels[label.name].push(pr.data);
+              }
+            } else {
+              prByLabels[""] = prByLabels[""] || [];
+              prByLabels[""].push(pr);
+            }
+            break;
+          } catch (e) {
+            // PR not found... let's try the other repo
+          }
         }
-      } else {
-        prByLabels[""] = prByLabels[""] || [];
-        prByLabels[""].push(pr);
       }
     }
   }

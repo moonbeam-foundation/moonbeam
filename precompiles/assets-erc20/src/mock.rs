@@ -18,135 +18,101 @@
 
 use super::*;
 
-use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::{construct_runtime, parameter_types, traits::Everything};
+use frame_support::{construct_runtime, parameter_types, traits::Everything, weights::Weight};
 
 use frame_system::EnsureRoot;
-use pallet_evm::{AddressMapping, EnsureAddressNever, EnsureAddressRoot};
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256};
-use sp_runtime::{
-	testing::Header,
-	traits::{BlakeTwo256, IdentityLookup},
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{
+	mock_account,
+	precompile_set::*,
+	testing::{AddressInPrefixedSet, MockAccount},
 };
+use sp_core::{H160, H256};
+use sp_runtime::traits::{BlakeTwo256, IdentityLookup};
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type AssetId = u128;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 pub type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 pub type Block = frame_system::mocking::MockBlock<Runtime>;
 
-/// A simple account type.
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	AssetId(AssetId),
+/// The foreign asset precompile address prefix. Addresses that match against this prefix will
+/// be routed to Erc20AssetsPrecompileSet being marked as foreign
+pub const FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xffffffff;
+
+/// The local asset precompile address prefix. Addresses that match against this prefix will
+/// be routed to Erc20AssetsPrecompileSet being marked as local
+pub const LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX: u32 = 0xfffffffe;
+
+parameter_types! {
+	pub ForeignAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xff];
+	pub LocalAssetPrefix: &'static [u8] = &[0xff, 0xff, 0xff, 0xfe];
 }
 
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			_ => {
-				let mut data = [0u8; 16];
-				let (prefix_part, id_part) = h160_account.as_fixed_bytes().split_at(4);
-				if prefix_part == &[255u8; 4] {
-					data.copy_from_slice(id_part);
-
-					return Self::AssetId(u128::from_be_bytes(data));
-				}
-				Self::Bogus
-			}
-		}
-	}
-}
+mock_account!(ForeignAssetId(AssetId), |value: ForeignAssetId| {
+	AddressInPrefixedSet(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
+});
+mock_account!(LocalAssetId(AssetId), |value: LocalAssetId| {
+	AddressInPrefixedSet(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX, value.0).into()
+});
 
 // Implement the trait, where we convert AccountId to AssetID
 impl AccountIdAssetIdConversion<AccountId, AssetId> for Runtime {
 	/// The way to convert an account to assetId is by ensuring that the prefix is 0XFFFFFFFF
 	/// and by taking the lowest 128 bits as the assetId
-	fn account_to_asset_id(account: AccountId) -> Option<AssetId> {
-		match account {
-			Account::AssetId(asset_id) => Some(asset_id),
-			_ => None,
+	fn account_to_asset_id(account: AccountId) -> Option<(Vec<u8>, AssetId)> {
+		if account.has_prefix_u32(FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX) {
+			return Some((
+				FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX
+					.to_be_bytes()
+					.to_vec(),
+				account.without_prefix(),
+			));
 		}
-	}
 
-	fn asset_id_to_account(asset_id: AssetId) -> AccountId {
-		Account::AssetId(asset_id)
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(x: Account) -> H160 {
-		match x {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::AssetId(asset_id) => {
-				let mut data = [0u8; 20];
-				let id_as_bytes = asset_id.to_be_bytes();
-				data[0..4].copy_from_slice(&[255u8; 4]);
-				data[4..20].copy_from_slice(&id_as_bytes);
-				H160::from_slice(&data)
-			}
-			Account::Bogus => Default::default(),
+		if account.has_prefix_u32(LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX) {
+			return Some((
+				LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX.to_be_bytes().to_vec(),
+				account.without_prefix(),
+			));
 		}
-	}
-}
 
-impl From<Account> for H256 {
-	fn from(x: Account) -> H256 {
-		let x: H160 = x.into();
-		x.into()
+		None
+	}
+
+	// Not used for now
+	fn asset_id_to_account(prefix: &[u8], asset_id: AssetId) -> AccountId {
+		if prefix
+			== LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX
+				.to_be_bytes()
+				.as_slice()
+		{
+			LocalAssetId(asset_id).into()
+		} else {
+			ForeignAssetId(asset_id).into()
+		}
 	}
 }
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
+	pub const BlockHashCount: u32 = 250;
 	pub const SS58Prefix: u8 = 42;
 }
 
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -158,6 +124,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
@@ -180,35 +147,57 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(
+		PrecompileSetStartingWith<
+			ForeignAssetPrefix,
+			Erc20AssetsPrecompileSet<R, IsForeign, pallet_assets::Instance1>,
+		>,
+		PrecompileSetStartingWith<
+			LocalAssetPrefix,
+			Erc20AssetsPrecompileSet<R, IsLocal, pallet_assets::Instance2>,
+		>,
+	),
+>;
+
+pub type LocalPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance2>;
+pub type ForeignPCall = Erc20AssetsPrecompileSetCall<Runtime, IsLocal, pallet_assets::Instance1>;
+
 parameter_types! {
-	pub const PrecompilesValue: Erc20AssetsPrecompileSet<Runtime> =
-		Erc20AssetsPrecompileSet(PhantomData);
+	pub BlockGasLimit: U256 = U256::max_value();
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
-	type GasWeightMapping = ();
+	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
+	type WeightPerGas = WeightPerGas;
 	type CallOrigin = EnsureAddressRoot<AccountId>;
 	type WithdrawOrigin = EnsureAddressNever<AccountId>;
 	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
-	type PrecompilesType = Erc20AssetsPrecompileSet<Self>;
+	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
 	type ChainId = ();
 	type OnChargeTransaction = ();
-	type BlockGasLimit = ();
+	type BlockGasLimit = BlockGasLimit;
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
 }
+
+type ForeignAssetInstance = pallet_assets::Instance1;
+type LocalAssetInstance = pallet_assets::Instance2;
 
 // These parameters dont matter much as this will only be called by root with the forced arguments
 // No deposit is substracted with those methods
@@ -218,10 +207,11 @@ parameter_types! {
 	pub const AssetsStringLimit: u32 = 50;
 	pub const MetadataDepositBase: Balance = 0;
 	pub const MetadataDepositPerByte: Balance = 0;
+	pub const AssetAccountDeposit: Balance = 0;
 }
 
-impl pallet_assets::Config for Runtime {
-	type Event = Event;
+impl pallet_assets::Config<ForeignAssetInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type AssetId = AssetId;
 	type Currency = Balances;
@@ -233,6 +223,24 @@ impl pallet_assets::Config for Runtime {
 	type StringLimit = AssetsStringLimit;
 	type Freezer = ();
 	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
+	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
+}
+
+impl pallet_assets::Config<LocalAssetInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type AssetId = AssetId;
+	type Currency = Balances;
+	type ForceOrigin = EnsureRoot<AccountId>;
+	type AssetDeposit = AssetDeposit;
+	type MetadataDepositBase = MetadataDepositBase;
+	type MetadataDepositPerByte = MetadataDepositPerByte;
+	type ApprovalDeposit = ApprovalDeposit;
+	type StringLimit = AssetsStringLimit;
+	type Freezer = ();
+	type Extra = ();
+	type AssetAccountDeposit = AssetAccountDeposit;
 	type WeightInfo = pallet_assets::weights::SubstrateWeight<Runtime>;
 }
 
@@ -245,9 +253,10 @@ construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		Assets: pallet_assets::{Pallet, Call, Storage, Event<T>},
+		ForeignAssets: pallet_assets::<Instance1>::{Pallet, Call, Storage, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
+		LocalAssets: pallet_assets::<Instance2>::{Pallet, Call, Storage, Event<T>}
 	}
 );
 

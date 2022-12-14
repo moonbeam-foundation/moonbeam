@@ -17,12 +17,12 @@
 #[macro_export]
 macro_rules! impl_self_contained_call {
 	{} => {
-		impl fp_self_contained::SelfContainedCall for Call {
+		impl fp_self_contained::SelfContainedCall for RuntimeCall {
 			type SignedInfo = H160;
 
 			fn is_self_contained(&self) -> bool {
 				match self {
-					Call::Ethereum(call) => call.is_self_contained(),
+					RuntimeCall::Ethereum(call) => call.is_self_contained(),
 					_ => false,
 				}
 			}
@@ -31,19 +31,19 @@ macro_rules! impl_self_contained_call {
 				&self
 			) -> Option<Result<Self::SignedInfo, TransactionValidityError>> {
 				match self {
-					Call::Ethereum(call) => call.check_self_contained(),
+					RuntimeCall::Ethereum(call) => call.check_self_contained(),
 					_ => None,
 				}
 			}
 
 			fn validate_self_contained(
 				&self,
-				signed_info: &Self::SignedInfo
+				signed_info: &Self::SignedInfo,
+				dispatch_info: &DispatchInfoOf<RuntimeCall>,
+				len: usize,
 			) -> Option<TransactionValidity> {
 				match self {
-					Call::Ethereum(ref call) => {
-						Some(validate_self_contained_inner(&self, &call, signed_info))
-					}
+					RuntimeCall::Ethereum(call) => call.validate_self_contained(signed_info, dispatch_info, len),
 					_ => None,
 				}
 			}
@@ -51,9 +51,11 @@ macro_rules! impl_self_contained_call {
 			fn pre_dispatch_self_contained(
 				&self,
 				info: &Self::SignedInfo,
+				dispatch_info: &DispatchInfoOf<RuntimeCall>,
+				len: usize,
 			) -> Option<Result<(), TransactionValidityError>> {
 				match self {
-					Call::Ethereum(call) => call.pre_dispatch_self_contained(info),
+					RuntimeCall::Ethereum(call) => call.pre_dispatch_self_contained(info, dispatch_info, len),
 					_ => None,
 				}
 			}
@@ -63,48 +65,13 @@ macro_rules! impl_self_contained_call {
 				info: Self::SignedInfo,
 			) -> Option<sp_runtime::DispatchResultWithInfo<PostDispatchInfoOf<Self>>> {
 				match self {
-					call @ Call::Ethereum(pallet_ethereum::Call::transact { .. }) => Some(
-						call.dispatch(Origin::from(
+					call @ RuntimeCall::Ethereum(pallet_ethereum::Call::transact { .. }) => Some(
+						call.dispatch(RuntimeOrigin::from(
 							pallet_ethereum::RawOrigin::EthereumTransaction(info)
 						))
 					),
 					_ => None,
 				}
-			}
-		}
-
-		fn validate_self_contained_inner(
-			call: &Call,
-			eth_call: &pallet_ethereum::Call<Runtime>,
-			signed_info: &<Call as fp_self_contained::SelfContainedCall>::SignedInfo
-		) -> TransactionValidity {
-			if let pallet_ethereum::Call::transact { ref transaction } = eth_call {
-				// Previously, ethereum transactions were contained in an unsigned
-				// extrinsic, we now use a new form of dedicated extrinsic defined by
-				// frontier, but to keep the same behavior as before, we must perform
-				// the controls that were performed on the unsigned extrinsic.
-				use sp_runtime::traits::SignedExtension as _;
-				let input_len = match transaction {
-					pallet_ethereum::Transaction::Legacy(t) => t.input.len(),
-					pallet_ethereum::Transaction::EIP2930(t) => t.input.len(),
-					pallet_ethereum::Transaction::EIP1559(t) => t.input.len(),
-				};
-				let extra_validation = SignedExtra::validate_unsigned(
-					call,
-					&call.get_dispatch_info(),
-					input_len,
-				)?;
-				// Then, do the controls defined by the ethereum pallet.
-				use fp_self_contained::SelfContainedCall as _;
-				let self_contained_validation = eth_call
-					.validate_self_contained(signed_info)
-					.ok_or(TransactionValidityError::Invalid(InvalidTransaction::BadProof))??;
-
-				Ok(extra_validation.combine_with(self_contained_validation))
-			} else {
-				Err(TransactionValidityError::Unknown(
-					sp_runtime::transaction_validity::UnknownTransaction::CannotLookup
-				))
 			}
 		}
 	}

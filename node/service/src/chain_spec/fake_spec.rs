@@ -44,7 +44,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn boot_nodes(&self) -> &[sc_network::config::MultiaddrWithPeerId] {
+	fn boot_nodes(&self) -> &[sc_network_common::config::MultiaddrWithPeerId] {
 		todo!()
 	}
 
@@ -53,6 +53,10 @@ impl sc_service::ChainSpec for FakeSpec {
 	}
 
 	fn protocol_id(&self) -> Option<&str> {
+		todo!()
+	}
+
+	fn fork_id(&self) -> Option<&str> {
 		todo!()
 	}
 
@@ -68,7 +72,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn add_boot_node(&mut self, _addr: sc_network::config::MultiaddrWithPeerId) {
+	fn add_boot_node(&mut self, _addr: sc_network_common::config::MultiaddrWithPeerId) {
 		todo!()
 	}
 
@@ -88,7 +92,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn code_substitutes(&self) -> std::collections::HashMap<String, Vec<u8>> {
+	fn code_substitutes(&self) -> std::collections::BTreeMap<String, Vec<u8>> {
 		todo!()
 	}
 }
