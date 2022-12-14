@@ -43,6 +43,26 @@ interface ParachainStaking {
     /// @return The total points awarded to all collators in the round
     function points(uint256 round) external view returns (uint256);
 
+    /// @dev The amount delegated in support of the candidate by the delegator
+    /// @custom:selector a73e51bc
+    /// @param candidate The candidate for which the delegation is in support of
+    /// @param delegator Who made this delegation
+    /// @return The amount of the delegation in support of the candidate by the delegator
+    function delegationAmount(address candidate, address delegator)
+        external
+        view
+        returns (uint256);
+
+    /// @dev Whether the delegation is in the top delegations
+    /// @custom:selector 91cc8657
+    /// @param candidate The candidate for which the delegation is in support of
+    /// @param delegator Who made this delegation
+    /// @return If delegation is in top delegations (is counted)
+    function isInTopDelegations(address candidate, address delegator)
+        external
+        view
+        returns (bool);
+
     /// @dev Get the minimum delegation amount
     /// @custom:selector 02985992
     /// @return The minimum delegation amount
