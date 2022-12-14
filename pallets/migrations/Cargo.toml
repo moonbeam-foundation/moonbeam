@@ -6,6 +6,11 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
+
+# Local
+xcm-primitives = { path = "../../primitives/xcm", default-features = false }
+
+# Crates.io
 impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
@@ -44,6 +49,7 @@ std = [
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",
+	"xcm-primitives/std"
 ]
 runtime-benchmarks = [ "frame-benchmarking" ]
 try-runtime = [ "frame-support/try-runtime" ]
