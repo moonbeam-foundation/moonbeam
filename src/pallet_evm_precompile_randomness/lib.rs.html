@@ -508,9 +508,9 @@
 <span class="kw">use </span>sp_core::{H160, H256, U256};
 <span class="kw">use </span>sp_std::{marker::PhantomData, vec, vec::Vec};
 
-<span class="comment">// #[cfg(test)]
-// mod mock;
-</span><span class="kw">mod </span>solidity_types;
+<span class="attribute">#[cfg(test)]
+</span><span class="kw">mod </span>mock;
+<span class="kw">mod </span>solidity_types;
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests;
 <span class="kw">use </span>solidity_types::<span class="kw-2">*</span>;
