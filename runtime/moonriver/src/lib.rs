@@ -1748,44 +1748,4 @@ mod fee_tests {
 			);
 		});
 	}
-
-	#[test]
-	fn test_min_gas_price_is_deterministic() {
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
-			.unwrap()
-			.into();
-		t.execute_with(|| {
-			let multiplier = sp_runtime::FixedU128::from_u32(1);
-			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier);
-			let actual = FixedGasPrice::min_gas_price().0;
-			let expected: U256 = multiplier
-				.saturating_mul_int(currency::WEIGHT_FEE.saturating_mul(WEIGHT_PER_GAS as u128))
-				.into();
-
-			assert_eq!(expected, actual);
-		});
-	}
-
-	#[test]
-	fn test_min_gas_price_has_no_precision_loss_from_saturating_mul_int() {
-		let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-			.build_storage::<Runtime>()
-			.unwrap()
-			.into();
-		t.execute_with(|| {
-			let multiplier_1 = sp_runtime::FixedU128::from_float(0.999593900000000000);
-			let multiplier_2 = sp_runtime::FixedU128::from_float(0.999593200000000000);
-
-			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_1);
-			let a = FixedGasPrice::min_gas_price();
-			pallet_transaction_payment::NextFeeMultiplier::<Runtime>::set(multiplier_2);
-			let b = FixedGasPrice::min_gas_price();
-
-			assert_ne!(
-				a, b,
-				"both gas prices were equal, unexpected precision loss incurred"
-			);
-		});
-	}
 }
