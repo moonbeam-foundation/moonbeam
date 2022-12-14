@@ -68,20 +68,20 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type.
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// A type to convert between AuthorId and AccountId. This pallet wrap the lookup to allow
 		/// orbiters authoring.
 		type AccountLookup: AccountLookup<Self::AccountId>;
 
 		/// Origin that is allowed to add a collator in orbiters program.
-		type AddCollatorOrigin: EnsureOrigin<Self::Origin>;
+		type AddCollatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// The currency type.
 		type Currency: NamedReservableCurrency<Self::AccountId>;
 
 		/// Origin that is allowed to remove a collator from orbiters program.
-		type DelCollatorOrigin: EnsureOrigin<Self::Origin>;
+		type DelCollatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		#[pallet::constant]
 		/// Maximum number of orbiters per collator.

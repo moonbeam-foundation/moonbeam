@@ -30,14 +30,12 @@ mod tests;
 use ethereum_types::{H160, U256};
 use fp_ethereum::{TransactionData, ValidatedTransaction};
 use fp_evm::{CheckEvmTransaction, CheckEvmTransactionConfig, InvalidEvmTransactionError};
-#[cfg(feature = "try-runtime")]
-use frame_support::traits::OnRuntimeUpgradeHelpersExt;
 use frame_support::{
 	codec::{Decode, Encode, MaxEncodedLen},
-	dispatch::DispatchResultWithPostInfo,
+	dispatch::{DispatchResultWithPostInfo, Pays, PostDispatchInfo},
 	scale_info::TypeInfo,
 	traits::{EnsureOrigin, Get},
-	weights::{Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 };
 use frame_system::pallet_prelude::OriginFor;
 use pallet_evm::{AddressMapping, GasWeightMapping};
@@ -97,13 +95,13 @@ pub mod pallet {
 		/// Handler for applying an already validated transaction
 		type ValidatedTransaction: ValidatedTransaction;
 		/// Origin for xcm transact
-		type XcmEthereumOrigin: EnsureOrigin<Self::Origin, Success = H160>;
+		type XcmEthereumOrigin: EnsureOrigin<Self::RuntimeOrigin, Success = H160>;
 		/// Maximum Weight reserved for xcm in a block
 		type ReservedXcmpWeight: Get<Weight>;
 		/// Ensure proxy
 		type EnsureProxy: EnsureProxy<Self::AccountId>;
 		/// The origin that is allowed to resume or suspend the XCM to Ethereum executions.
-		type ControllerOrigin: EnsureOrigin<Self::Origin>;
+		type ControllerOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 	}
 
 	#[pallet::pallet]

@@ -151,9 +151,9 @@ mod tests {
 
 		let mut expected = pallet_utility::Call::<kusama_runtime::Runtime>::as_derivative {
 			index: 1,
-			call: kusama_runtime::Call::Staking(
-				pallet_staking::Call::<kusama_runtime::Runtime>::chill {},
-			)
+			call: kusama_runtime::RuntimeCall::Staking(pallet_staking::Call::<
+				kusama_runtime::Runtime,
+			>::chill {})
 			.into(),
 		}
 		.encode();
