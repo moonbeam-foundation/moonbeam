@@ -222,7 +222,7 @@ pub mod pallet {
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
 	#[pallet::getter(fn randomness_results)]
-	pub(crate) type RandomnessResults<T: Config> =
+	pub type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
 	#[pallet::call]

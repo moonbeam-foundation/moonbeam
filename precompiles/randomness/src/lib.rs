@@ -32,8 +32,8 @@ use precompile_utils::{costs::call_cost, prelude::*};
 use sp_core::{H160, H256, U256};
 use sp_std::{marker::PhantomData, vec, vec::Vec};
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 mod solidity_types;
 #[cfg(test)]
 mod tests;
