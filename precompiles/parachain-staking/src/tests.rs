@@ -198,8 +198,8 @@ fn delegation_amount_zero() {
 					Alice,
 					Precompile1,
 					PCall::delegation_amount {
-						candidate: Address(Alice.into()),
 						delegator: Address(Alice.into()),
+						candidate: Address(Alice.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -221,8 +221,8 @@ fn delegation_amount_nonzero() {
 					Alice,
 					Precompile1,
 					PCall::delegation_amount {
-						candidate: Address(Alice.into()),
 						delegator: Address(Bob.into()),
+						candidate: Address(Alice.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -242,8 +242,8 @@ fn is_not_in_top_delegations_when_delegation_dne() {
 					Alice,
 					Precompile1,
 					PCall::delegation_amount {
-						candidate: Address(Alice.into()),
 						delegator: Address(Alice.into()),
+						candidate: Address(Alice.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -274,8 +274,8 @@ fn is_not_in_top_delegations_because_not_in_top() {
 					Alice,
 					Precompile1,
 					PCall::is_in_top_delegations {
-						candidate: Address(Alice.into()),
 						delegator: Address(Bob.into()),
+						candidate: Address(Alice.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -297,8 +297,8 @@ fn is_in_top_delegations() {
 					Alice,
 					Precompile1,
 					PCall::is_in_top_delegations {
-						candidate: Address(Alice.into()),
 						delegator: Address(Bob.into()),
+						candidate: Address(Alice.into()),
 					},
 				)
 				.expect_cost(0) // TODO: Test db read/write costs

@@ -200,8 +200,8 @@ where
 	#[precompile::view]
 	fn delegation_amount(
 		handle: &mut impl PrecompileHandle,
-		candidate: Address,
 		delegator: Address,
+		candidate: Address,
 	) -> EvmResult<U256> {
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
@@ -245,8 +245,8 @@ where
 	#[precompile::view]
 	fn is_in_top_delegations(
 		handle: &mut impl PrecompileHandle,
-		candidate: Address,
 		delegator: Address,
+		candidate: Address,
 	) -> EvmResult<bool> {
 		let (candidate, delegator) = (
 			Runtime::AddressMapping::into_account_id(candidate.0),
