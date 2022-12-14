@@ -149,21 +149,20 @@ describeSmokeSuite(
     });
 
     it(
-      "should have matching amounts in emulated" +
-        " block as there are ethereum.transact extrinsics",
+      "should have matching amounts in emulated" + " block as there are ethereum.executed events",
       function () {
-        const ethExts = blockData.map(({ blockNum, ethTxns, extrinsics }) => {
-          const matched = extrinsics.filter(
-            ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+        const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
+          const successes = events.filter(({ event }) =>
+            context.polkadotApi.events.ethereum.Executed.is(event)
           );
-
-          return { blockNum, ethTxns: ethTxns.length, ethExts: matched.length };
+          return { blockNum, ethEvents: successes.length, ethTxns: ethTxns.length };
         });
-        const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
+
+        const failures = ethEvents.filter((a) => a.ethEvents !== a.ethTxns);
         failures.forEach((a) =>
           debug(
             `Block #${a.blockNum} has mismatching amounts - ` +
-              `${a.ethExts} eth extrinsics vs ` +
+              `${a.ethEvents} eth extrinsics vs ` +
               `${a.ethTxns} eth txns.`
           )
         );
@@ -177,20 +176,20 @@ describeSmokeSuite(
       }
     );
 
-    it("should have a receipt in emulated block for each ethereum.transact extrinsic", function () {
-      const ethExts = blockData.map(({ blockNum, receipts, extrinsics }) => {
-        const matched = extrinsics.filter(
-          ({ method: { method, section } }) => method === "transact" && section === "ethereum"
+    it("should have a receipt in emulated block for each ethereum.executed event", function () {
+      const ethEvents = blockData.map(({ blockNum, events, ethTxns }) => {
+        const successes = events.filter(({ event }) =>
+          context.polkadotApi.events.ethereum.Executed.is(event)
         );
-
-        return { blockNum, ethTxns: receipts.length, ethExts: matched.length };
+        return { blockNum, ethEvents: successes.length, ethReceipts: ethTxns.length };
       });
-      const failures = ethExts.filter((a) => a.ethExts !== a.ethTxns);
+
+      const failures = ethEvents.filter((a) => a.ethEvents !== a.ethReceipts);
       failures.forEach((a) =>
         debug(
           `Block #${a.blockNum} has mismatching amounts - ` +
-            `${a.ethExts} eth extrinsics vs ` +
-            `${a.ethTxns} eth txns.`
+            `${a.ethEvents} eth extrinsics vs ` +
+            `${a.ethReceipts} eth receipts.`
         )
       );
 

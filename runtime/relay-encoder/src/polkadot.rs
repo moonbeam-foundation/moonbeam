@@ -153,7 +153,7 @@ mod tests {
 
 		let mut expected = pallet_utility::Call::<polkadot_runtime::Runtime>::as_derivative {
 			index: 1,
-			call: polkadot_runtime::Call::Staking(pallet_staking::Call::<
+			call: polkadot_runtime::RuntimeCall::Staking(pallet_staking::Call::<
 				polkadot_runtime::Runtime,
 			>::chill {})
 			.into(),
