@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { alith } from "../../util/accounts";
+import { alith, ALITH_GENESIS_FREE_BALANCE } from "../../util/accounts";
 
 import { describeParachain } from "../../util/setup-para-tests";
 
@@ -14,9 +14,9 @@ describeParachain(
     it("should be accessible through polkadotjs", async function () {
       expect(
         (
-          (await context.polkadotApiParaone.query.system.account(alith.address.toString())) as any
-        ).data.free.toBigInt() // TODO: fix type
-      ).to.eq(1207825819614629174706176n);
+          await context.polkadotApiParaone.query.system.account(alith.address.toString())
+        ).data.free.toBigInt()
+      ).to.eq(ALITH_GENESIS_FREE_BALANCE);
     });
   }
 );

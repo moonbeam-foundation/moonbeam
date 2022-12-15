@@ -14,70 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
+pub mod bytes;
+pub mod native;
 pub mod xcm;
 
+pub use affix::paste;
+pub use alloc::string::String;
+pub use bytes::*;
+pub use native::*;
+
 use {
-	crate::{revert, EvmResult},
+	crate::revert::{InjectBacktrace, MayRevert, RevertReason},
 	alloc::borrow::ToOwned,
-	core::{any::type_name, ops::Range},
+	core::{any::type_name, marker::PhantomData, ops::Range},
+	frame_support::traits::{ConstU32, Get},
 	impl_trait_for_tuples::impl_for_tuples,
 	sp_core::{H160, H256, U256},
 	sp_std::{convert::TryInto, vec, vec::Vec},
 };
 
-/// The `address` type of Solidity.
-/// H160 could represent 2 types of data (bytes20 and address) that are not encoded the same way.
-/// To avoid issues writing H160 is thus not supported.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Address(pub H160);
-
-impl From<H160> for Address {
-	fn from(a: H160) -> Address {
-		Address(a)
-	}
-}
-
-impl From<Address> for H160 {
-	fn from(a: Address) -> H160 {
-		a.0
-	}
-}
-
-/// The `bytes`/`string` type of Solidity.
-/// It is different from `Vec<u8>` which will be serialized with padding for each `u8` element
-/// of the array, while `Bytes` is tightly packed.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Bytes(pub Vec<u8>);
-
-impl Bytes {
-	/// Interpret as `bytes`.
-	pub fn as_bytes(&self) -> &[u8] {
-		&self.0
-	}
-
-	/// Interpret as `string`.
-	/// Can fail if the string is not valid UTF8.
-	pub fn as_str(&self) -> Result<&str, sp_std::str::Utf8Error> {
-		sp_std::str::from_utf8(&self.0)
-	}
-}
-
-impl From<&[u8]> for Bytes {
-	fn from(a: &[u8]) -> Self {
-		Self(a.to_owned())
-	}
-}
-
-impl From<&str> for Bytes {
-	fn from(a: &str) -> Self {
-		a.as_bytes().into()
-	}
-}
-
-impl Into<Vec<u8>> for Bytes {
-	fn into(self) -> Vec<u8> {
-		self.0
-	}
+/// Data that can be converted from and to EVM data types.
+pub trait EvmData: Sized {
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self>;
+	fn write(writer: &mut EvmDataWriter, value: Self);
+	fn has_static_size() -> bool;
+	fn solidity_type() -> String;
 }
 
 /// Wrapper around an EVM input slice, helping to parse it.
@@ -95,12 +56,12 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Create a new input parser from a selector-initial input.
-	pub fn read_selector<T>(input: &'a [u8]) -> EvmResult<T>
+	pub fn read_selector<T>(input: &'a [u8]) -> MayRevert<T>
 	where
 		T: num_enum::TryFromPrimitive<Primitive = u32>,
 	{
 		if input.len() < 4 {
-			return Err(revert("tried to parse selector out of bounds"));
+			return Err(RevertReason::read_out_of_bounds("selector").into());
 		}
 
 		let mut buffer = [0u8; 4];
@@ -111,59 +72,59 @@ impl<'a> EvmDataReader<'a> {
 				"Failed to match function selector for {}",
 				type_name::<T>()
 			);
-			revert("unknown selector")
+			RevertReason::UnknownSelector
 		})?;
 
 		Ok(selector)
 	}
 
 	/// Create a new input parser from a selector-initial input.
-	pub fn new_skip_selector(input: &'a [u8]) -> EvmResult<Self> {
+	pub fn new_skip_selector(input: &'a [u8]) -> MayRevert<Self> {
 		if input.len() < 4 {
-			return Err(revert("input is too short"));
+			return Err(RevertReason::read_out_of_bounds("selector").into());
 		}
 
 		Ok(Self::new(&input[4..]))
 	}
 
 	/// Check the input has at least the correct amount of arguments before the end (32 bytes values).
-	pub fn expect_arguments(&self, args: usize) -> EvmResult {
+	pub fn expect_arguments(&self, args: usize) -> MayRevert<()> {
 		if self.input.len() >= self.cursor + args * 32 {
 			Ok(())
 		} else {
-			Err(revert("input doesn't match expected length"))
+			Err(RevertReason::ExpectedAtLeastNArguments(args).into())
 		}
 	}
 
 	/// Read data from the input.
-	pub fn read<T: EvmData>(&mut self) -> EvmResult<T> {
+	pub fn read<T: EvmData>(&mut self) -> MayRevert<T> {
 		T::read(self)
 	}
 
 	/// Read raw bytes from the input.
 	/// Doesn't handle any alignment checks, prefer using `read` instead of possible.
 	/// Returns an error if trying to parse out of bounds.
-	pub fn read_raw_bytes(&mut self, len: usize) -> EvmResult<&[u8]> {
+	pub fn read_raw_bytes(&mut self, len: usize) -> MayRevert<&[u8]> {
 		let range = self.move_cursor(len)?;
 
 		let data = self
 			.input
 			.get(range)
-			.ok_or_else(|| revert("tried to parse raw bytes out of bounds"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("raw bytes"))?;
 
 		Ok(data)
 	}
 
 	/// Reads a pointer, returning a reader targetting the pointed location.
-	pub fn read_pointer(&mut self) -> EvmResult<Self> {
+	pub fn read_pointer(&mut self) -> MayRevert<Self> {
 		let offset: usize = self
 			.read::<U256>()
-			.map_err(|_| revert("tried to parse array offset out of bounds"))?
+			.map_err(|_| RevertReason::read_out_of_bounds("pointer"))?
 			.try_into()
-			.map_err(|_| revert("array offset is too large"))?;
+			.map_err(|_| RevertReason::value_is_too_large("pointer"))?;
 
 		if offset >= self.input.len() {
-			return Err(revert("pointer points out of bounds"));
+			return Err(RevertReason::PointerToOutofBound.into());
 		}
 
 		Ok(Self {
@@ -173,13 +134,13 @@ impl<'a> EvmDataReader<'a> {
 	}
 
 	/// Read remaining bytes
-	pub fn read_till_end(&mut self) -> EvmResult<&[u8]> {
+	pub fn read_till_end(&mut self) -> MayRevert<&[u8]> {
 		let range = self.move_cursor(self.input.len() - self.cursor)?;
 
 		let data = self
 			.input
 			.get(range)
-			.ok_or_else(|| revert("tried to parse raw bytes out of bounds"))?;
+			.ok_or_else(|| RevertReason::read_out_of_bounds("raw bytes"))?;
 
 		Ok(data)
 	}
@@ -187,12 +148,12 @@ impl<'a> EvmDataReader<'a> {
 	/// Move the reading cursor with provided length, and return a range from the previous cursor
 	/// location to the new one.
 	/// Checks cursor overflows.
-	fn move_cursor(&mut self, len: usize) -> EvmResult<Range<usize>> {
+	fn move_cursor(&mut self, len: usize) -> MayRevert<Range<usize>> {
 		let start = self.cursor;
 		let end = self
 			.cursor
 			.checked_add(len)
-			.ok_or_else(|| revert("data reading cursor overflow"))?;
+			.ok_or_else(|| RevertReason::CursorOverflow)?;
 
 		self.cursor = end;
 
@@ -317,256 +278,117 @@ impl Default for EvmDataWriter {
 	}
 }
 
-/// Data that can be converted from and to EVM data types.
-pub trait EvmData: Sized {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self>;
-	fn write(writer: &mut EvmDataWriter, value: Self);
-	fn has_static_size() -> bool;
+/// Adapter to parse data as a first type then convert it to another one.
+/// Useful for old precompiles in which Solidity arguments where set larger than
+/// the needed Rust type.
+#[derive(Clone, Copy, Debug)]
+pub struct SolidityConvert<P, C> {
+	inner: C,
+	_phantom: PhantomData<P>,
 }
 
-#[impl_for_tuples(1, 18)]
-impl EvmData for Tuple {
-	fn has_static_size() -> bool {
-		for_tuples!(#( Tuple::has_static_size() )&*)
-	}
-
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		if !Self::has_static_size() {
-			let reader = &mut reader.read_pointer()?;
-			Ok(for_tuples!( ( #( reader.read::<Tuple>()? ),* ) ))
-		} else {
-			Ok(for_tuples!( ( #( reader.read::<Tuple>()? ),* ) ))
-		}
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		if !Self::has_static_size() {
-			let mut inner_writer = EvmDataWriter::new();
-			for_tuples!( #( Tuple::write(&mut inner_writer, value.Tuple); )* );
-			writer.write_pointer(inner_writer.build());
-		} else {
-			for_tuples!( #( Tuple::write(writer, value.Tuple); )* );
+impl<P, C> From<C> for SolidityConvert<P, C> {
+	fn from(value: C) -> Self {
+		Self {
+			inner: value,
+			_phantom: PhantomData,
 		}
 	}
 }
 
-impl EvmData for H256 {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range = reader.move_cursor(32)?;
-
-		let data = reader
-			.input
-			.get(range)
-			.ok_or_else(|| revert("tried to parse H256 out of bounds"))?;
-
-		Ok(H256::from_slice(data))
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		writer.data.extend_from_slice(value.as_bytes());
-	}
-
-	fn has_static_size() -> bool {
-		true
+impl<P, C> SolidityConvert<P, C> {
+	pub fn converted(self) -> C {
+		self.inner
 	}
 }
 
-impl EvmData for Address {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range = reader.move_cursor(32)?;
+impl<P, C> EvmData for SolidityConvert<P, C>
+where
+	P: EvmData + TryInto<C>,
+	C: EvmData + Into<P>,
+{
+	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+		let c = P::read(reader)?
+			.try_into()
+			.map_err(|_| RevertReason::value_is_too_large(C::solidity_type()))?;
 
-		let data = reader
-			.input
-			.get(range)
-			.ok_or_else(|| revert("tried to parse H160 out of bounds"))?;
-
-		Ok(H160::from_slice(&data[12..32]).into())
+		Ok(Self {
+			inner: c,
+			_phantom: PhantomData,
+		})
 	}
 
 	fn write(writer: &mut EvmDataWriter, value: Self) {
-		H256::write(writer, value.0.into());
+		P::write(writer, value.inner.into())
 	}
 
 	fn has_static_size() -> bool {
-		true
+		P::has_static_size()
+	}
+
+	fn solidity_type() -> String {
+		P::solidity_type()
 	}
 }
 
-impl EvmData for U256 {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let range = reader.move_cursor(32)?;
-
-		let data = reader
-			.input
-			.get(range)
-			.ok_or_else(|| revert("tried to parse U256 out of bounds"))?;
-
-		Ok(U256::from_big_endian(data))
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut buffer = [0u8; 32];
-		value.to_big_endian(&mut buffer);
-		writer.data.extend_from_slice(&buffer);
-	}
-
-	fn has_static_size() -> bool {
-		true
-	}
-}
-
-macro_rules! impl_evmdata_for_uints {
-	($($uint:ty, )*) => {
-		$(
-			impl EvmData for $uint {
-				fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-					let value256: U256 = reader.read()?;
-
-					value256
-						.try_into()
-						.map_err(|_| revert(alloc::format!(
-							"value too big for {}",
-							core::any::type_name::<Self>()
-						)))
-				}
-
-				fn write(writer: &mut EvmDataWriter, value: Self) {
-					U256::write(writer, value.into());
-				}
-
-				fn has_static_size() -> bool {
-					true
-				}
-			}
-		)*
+/// Helper to write `EvmData` impl for Solidity structs.
+/// Identifiers used should match Solidity ones.
+/// Types are infered from context, which should always be
+/// possible when parsing input to build a Rust struct.
+///
+/// ```rust,ignore
+/// impl EvmData for Currency {
+/// 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
+/// 		read_struct!(reader, (address, amount));
+/// 		Ok(Currency { address, amount })
+/// 	}
+///
+/// 	fn write(writer: &mut EvmDataWriter, value: Self) {
+/// 		EvmData::write(writer, (value.address, value.amount));
+/// 	}
+///
+/// 	fn has_static_size() -> bool {
+/// 		<(Address, U256)>::has_static_size()
+/// 	}
+/// }
+/// ```
+#[macro_export]
+macro_rules! read_struct {
+	($reader:ident, {$($field:ident: $type:ty),+}) => {
+		use $crate::revert::BacktraceExt as _;
+		let ($($field),*): ($($type),*) = $reader
+			.read()
+			.map_in_tuple_to_field(&[$(stringify!($field)),*])?;
 	};
 }
 
-impl_evmdata_for_uints!(u8, u16, u32, u64, u128,);
-
-impl EvmData for bool {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let h256 = H256::read(reader).map_err(|_| revert("tried to parse bool out of bounds"))?;
-
-		Ok(!h256.is_zero())
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut buffer = [0u8; 32];
-		if value {
-			buffer[31] = 1;
+/// Helper to read arguments of a Solidity function.
+/// Arguments are read in the provided order using the provided types.
+/// Those types should match the ones in the Solidity file,
+/// and identifiers used should match Solidity ones.
+///
+/// Identifiers written in Rust in snake_case are converted to
+/// camelCase to match Solidity conventions.
+///
+/// ```rust,ignore
+/// // Reading Solidity function `f(address ownner, uint256 accountIndex)`.
+/// read_args!(handle, {owner: Address, account_index: U256});
+/// let owner: H160 = owner.into();
+///
+/// ```
+#[macro_export]
+macro_rules! read_args {
+	(@count) => (0usize);
+	(@count $x:ident $($xs:ident)* ) => (1usize + read_args!(@count $($xs)*));
+	($handle:ident, {$($field:ident: $type:ty),*}) => {
+		$crate::data::paste! {
+			let mut input = $handle.read_after_selector()?;
+			input.expect_arguments(read_args!(@count $($field)*))?;
+			$(
+				let $field: $type = input.read().in_field(
+					stringify!([<$field:camel>])
+				)?;
+			)*
 		}
-
-		writer.data.extend_from_slice(&buffer);
-	}
-
-	fn has_static_size() -> bool {
-		true
-	}
-}
-
-impl<T: EvmData> EvmData for Vec<T> {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-
-		let array_size: usize = inner_reader
-			.read::<U256>()
-			.map_err(|_| revert("tried to parse array length out of bounds"))?
-			.try_into()
-			.map_err(|_| revert("array length is too large"))?;
-
-		let mut array = vec![];
-
-		let mut item_reader = EvmDataReader {
-			input: inner_reader
-				.input
-				.get(32..)
-				.ok_or_else(|| revert("try to read array items out of bound"))?,
-			cursor: 0,
-		};
-
-		for _ in 0..array_size {
-			array.push(item_reader.read()?);
-		}
-
-		Ok(array)
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let mut inner_writer = EvmDataWriter::new().write(U256::from(value.len()));
-
-		for inner in value {
-			// Any offset in items are relative to the start of the item instead of the
-			// start of the array. However if there is offseted data it must but appended after
-			// all items (offsets) are written. We thus need to rely on `compute_offsets` to do
-			// that, and must store a "shift" to correct the offsets.
-			let shift = inner_writer.data.len();
-			let item_writer = EvmDataWriter::new().write(inner);
-
-			inner_writer = inner_writer.write_raw_bytes(&item_writer.data);
-			for mut offset_datum in item_writer.offset_data {
-				offset_datum.offset_shift += 32;
-				offset_datum.offset_position += shift;
-				inner_writer.offset_data.push(offset_datum);
-			}
-		}
-
-		writer.write_pointer(inner_writer.build());
-	}
-
-	fn has_static_size() -> bool {
-		false
-	}
-}
-
-impl EvmData for Bytes {
-	fn read(reader: &mut EvmDataReader) -> EvmResult<Self> {
-		let mut inner_reader = reader.read_pointer()?;
-
-		// Read bytes/string size.
-		let array_size: usize = inner_reader
-			.read::<U256>()
-			.map_err(|_| revert("tried to parse bytes/string length out of bounds"))?
-			.try_into()
-			.map_err(|_| revert("bytes/string length is too large"))?;
-
-		// Get valid range over the bytes data.
-		let range = inner_reader.move_cursor(array_size)?;
-
-		let data = inner_reader
-			.input
-			.get(range)
-			.ok_or_else(|| revert("tried to parse bytes/string out of bounds"))?;
-
-		let bytes = Self(data.to_owned());
-
-		Ok(bytes)
-	}
-
-	fn write(writer: &mut EvmDataWriter, value: Self) {
-		let length = value.0.len();
-
-		// Pad the data.
-		// Leave it as is if a multiple of 32, otherwise pad to next
-		// multiple or 32.
-		let chunks = length / 32;
-		let padded_size = match length % 32 {
-			0 => chunks * 32,
-			_ => (chunks + 1) * 32,
-		};
-
-		let mut value = value.0.to_vec();
-		value.resize(padded_size, 0);
-
-		writer.write_pointer(
-			EvmDataWriter::new()
-				.write(U256::from(length))
-				.write_raw_bytes(&value)
-				.build(),
-		);
-	}
-
-	fn has_static_size() -> bool {
-		false
-	}
+	};
 }

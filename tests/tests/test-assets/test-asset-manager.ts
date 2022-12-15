@@ -4,55 +4,29 @@ import { BN, bnToHex } from "@polkadot/util";
 import { expect } from "chai";
 
 import { alith } from "../../util/accounts";
-import { PARA_1000_SOURCE_LOCATION, RELAY_SOURCE_LOCATION } from "../../util/assets";
+import {
+  PARA_1000_SOURCE_LOCATION,
+  RELAY_SOURCE_LOCATION,
+  relayAssetMetadata,
+} from "../../util/assets";
+import { registerForeignAsset } from "../../util/xcm";
 import { verifyLatestBlockFees } from "../../util/block";
 import { GLMR } from "../../util/constants";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { PalletAssetsDestroyWitness } from "@polkadot/types/lookup";
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
-const assetMetadata = {
-  name: "DOT",
-  symbol: "DOT",
-  decimals: new BN(12),
-  isFrozen: false,
-};
-
 describeDevMoonbeam("XCM - asset manager - foreign asset", (context) => {
   it("should be registerable and have unit per seconds set", async function () {
-    const parachainOne = context.polkadotApi;
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
-    );
-    // Look for assetId in events
-    const assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 0, 0)
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      RELAY_SOURCE_LOCATION,
+      relayAssetMetadata
     );
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -96,39 +70,16 @@ describeDevMoonbeam("XCM - asset manager - register local asset", (context) => {
 describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => {
   let assetId: string;
   before("should be able to change existing asset type", async function () {
-    const parachainOne = context.polkadotApi;
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      RELAY_SOURCE_LOCATION,
+      relayAssetMetadata,
+      1
     );
-
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -177,39 +128,16 @@ describeDevMoonbeam("XCM - asset manager - Change existing asset", (context) => 
 describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (context) => {
   let assetId: string;
   before("should be able to change existing asset type", async function () {
-    const parachainOne = context.polkadotApi;
     // registerForeignAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      RELAY_SOURCE_LOCATION,
+      relayAssetMetadata,
+      1
     );
-
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
@@ -246,50 +174,30 @@ describeDevMoonbeam("XCM - asset manager - Remove asset from supported", (contex
 describeDevMoonbeam("XCM - asset manager - destroy foreign asset", (context) => {
   let assetId: string;
   before("should be able to change existing asset type", async function () {
-    const parachainOne = context.polkadotApi;
-    // registerAsset
-    const {
-      result: { events: eventsRegister },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.registerForeignAsset(
-          RELAY_SOURCE_LOCATION,
-          assetMetadata,
-          new BN(1),
-          true
-        )
-      )
+    // registerForeignAsset
+    const { registeredAssetId, events, registeredAsset } = await registerForeignAsset(
+      context,
+      RELAY_SOURCE_LOCATION,
+      relayAssetMetadata,
+      1
     );
-
-    assetId = eventsRegister
-      .find(({ event: { section } }) => section.toString() === "assetManager")
-      .event.data[0].toHex()
-      .replace(/,/g, "");
-
-    // setAssetUnitsPerSecond
-    const {
-      result: { events },
-    } = await context.createBlock(
-      parachainOne.tx.sudo.sudo(
-        parachainOne.tx.assetManager.setAssetUnitsPerSecond(RELAY_SOURCE_LOCATION, 1, 0)
-      )
-    );
+    assetId = registeredAssetId;
     expect(events[1].event.method.toString()).to.eq("UnitsPerSecondChanged");
-    expect(events[4].event.method.toString()).to.eq("ExtrinsicSuccess");
-
-    // check asset in storage
-    const registeredAsset = (await parachainOne.query.assets.asset(assetId)).unwrap();
+    expect(events[5].event.method.toString()).to.eq("ExtrinsicSuccess");
     expect(registeredAsset.owner.toString()).to.eq(palletId);
 
     await verifyLatestBlockFees(context);
   });
 
   it("should be able to destroy a foreign asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
-      accounts: 0,
-      sufficients: 0,
-      approvals: 0,
-    });
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
+      "PalletAssetsDestroyWitness",
+      {
+        accounts: 0,
+        sufficients: 0,
+        approvals: 0,
+      }
+    );
 
     // Destroy foreign asset
     await context.createBlock(
@@ -360,11 +268,14 @@ describeDevMoonbeam("XCM - asset manager - destroy local asset", (context) => {
   });
 
   it("should be able to destroy a local asset through pallet-asset-manager", async function () {
-    const assetDestroyWitness = context.polkadotApi.createType("PalletAssetsDestroyWitness", {
-      accounts: 0,
-      sufficients: 0,
-      approvals: 0,
-    });
+    const assetDestroyWitness: PalletAssetsDestroyWitness = context.polkadotApi.createType(
+      "PalletAssetsDestroyWitness",
+      {
+        accounts: 0,
+        sufficients: 0,
+        approvals: 0,
+      }
+    );
 
     // Reserved amount back to creator
     const accountDetailsBefore = await context.polkadotApi.query.system.account(alith.address);

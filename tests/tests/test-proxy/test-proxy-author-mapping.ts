@@ -28,7 +28,7 @@ describeDevMoonbeam("Proxy : Author Mapping - simple association", (context) => 
     );
     expect(events[2].event.method).to.be.eq("ProxyAdded");
     expect(events[2].event.data[2].toString()).to.be.eq("AuthorMapping"); //ProxyType
-    expect(events[7].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events[8].event.method).to.be.eq("ExtrinsicSuccess");
     const {
       result: { events: events2 },
     } = await context.createBlock(
@@ -43,7 +43,7 @@ describeDevMoonbeam("Proxy : Author Mapping - simple association", (context) => 
 
     expect(events2[3].event.method).to.be.eq("ProxyExecuted");
     expect(events2[3].event.data[0].toString()).to.be.eq("Ok");
-    expect(events2[6].event.method).to.be.eq("ExtrinsicSuccess");
+    expect(events2[7].event.method).to.be.eq("ExtrinsicSuccess");
 
     // // check association
     expect((await getMappingInfo(context, BALTATHAR_SESSION_ADDRESS)).account).to.eq(alith.address);

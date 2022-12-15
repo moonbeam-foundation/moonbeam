@@ -4,13 +4,14 @@ import { u128 } from "@polkadot/types";
 import { BN, hexToU8a } from "@polkadot/util";
 import { expect } from "chai";
 
-import { alith, baltathar, charleth, generateKeyingPair } from "../../util/accounts";
+import { alith, baltathar, charleth, generateKeyringPair } from "../../util/accounts";
 import { mockAssetBalance, RELAY_SOURCE_LOCATION } from "../../util/assets";
 import { GLMR } from "../../util/constants";
 import { execTechnicalCommitteeProposal } from "../../util/governance";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { createTransfer } from "../../util/transactions";
+import type { PalletAssetsAssetAccount, PalletAssetsAssetDetails } from "@polkadot/types/lookup";
 
 const ARBITRARY_ASSET_ID = 42259045809535163221576417993425387648n;
 const RELAYCHAIN_ARBITRARY_ADDRESS_1: string =
@@ -35,7 +36,7 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should allow EVM extrinsic from sudo", async function () {
-    const randomAccount = generateKeyingPair();
+    const randomAccount = generateKeyringPair();
     const {
       result: { successful },
     } = await context.createBlock(
@@ -85,14 +86,20 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
 
   it("should forbid assets transfer", async () => {
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-      balance: balance,
-    });
+    const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+      "PalletAssetsAssetAccount",
+      {
+        balance: balance,
+      }
+    );
 
     const assetId = context.polkadotApi.createType("u128", ARBITRARY_ASSET_ID);
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
-    });
+    const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+      "PalletAssetsAssetDetails",
+      {
+        supply: balance,
+      }
+    );
 
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, alith.address);
 
@@ -122,7 +129,9 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
                   },
                 },
               },
-              4000000000n
+              {
+                Limited: 4000000000,
+              }
             )
             .signAsync(baltathar)
         )
@@ -131,11 +140,25 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   });
 
   it("should forbid xcmTransactor to", async () => {
+    const transactWeights = context.polkadotApi.createType("PalletXcmTransactorTransactWeights", {
+      transactRequiredWeightAtMost: 0,
+      overallWeight: null,
+    });
+
+    let fee = context.polkadotApi.createType("PalletXcmTransactorCurrencyPayment", {
+      currency: {
+        AsCurrencyId: {
+          SelfReserve: null,
+        },
+      },
+      feeAmount: null,
+    });
+
     expect(
       await context
         .createBlock(
           context.polkadotApi.tx.xcmTransactor
-            .transactThroughDerivative("Relay", 0, "SelfReserve", 4000000000n, "")
+            .transactThroughDerivative("Relay", 0, fee as any, "", transactWeights as any)
             .signAsync(baltathar)
         )
         .catch((e) => e.toString())
@@ -147,14 +170,20 @@ describeDevMoonbeam("Maintenance Mode - Filter", (context) => {
   let assetId: u128;
   before("registering asset", async function () {
     const balance = context.polkadotApi.createType("Balance", 100000000000000);
-    const assetBalance = context.polkadotApi.createType("PalletAssetsAssetAccount", {
-      balance: balance,
-    });
+    const assetBalance: PalletAssetsAssetAccount = context.polkadotApi.createType(
+      "PalletAssetsAssetAccount",
+      {
+        balance: balance,
+      }
+    );
 
     assetId = context.polkadotApi.createType("u128", ARBITRARY_ASSET_ID);
-    const assetDetails = context.polkadotApi.createType("PalletAssetsAssetDetails", {
-      supply: balance,
-    });
+    const assetDetails: PalletAssetsAssetDetails = context.polkadotApi.createType(
+      "PalletAssetsAssetDetails",
+      {
+        supply: balance,
+      }
+    );
 
     await mockAssetBalance(context, assetBalance, assetDetails, alith, assetId, baltathar.address);
 

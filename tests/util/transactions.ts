@@ -1,10 +1,20 @@
 import { AccessListish } from "@ethersproject/transactions";
 import { ethers } from "ethers";
-import fetch from "node-fetch";
 import * as RLP from "rlp";
 import { Contract } from "web3-eth-contract";
 
-import { alith, ALITH_PRIVATE_KEY, baltathar, BALTATHAR_PRIVATE_KEY } from "./accounts";
+import {
+  alith,
+  ALITH_PRIVATE_KEY,
+  baltathar,
+  BALTATHAR_PRIVATE_KEY,
+  charleth,
+  CHARLETH_PRIVATE_KEY,
+  dorothy,
+  DOROTHY_PRIVATE_KEY,
+  ethan,
+  ETHAN_PRIVATE_KEY,
+} from "./accounts";
 import { getCompiled } from "./contracts";
 import { customWeb3Request } from "./providers";
 import { DevTestContext } from "./setup-dev-tests";
@@ -30,7 +40,7 @@ export interface TransactionOptions {
 
 export const TRANSACTION_TEMPLATE: TransactionOptions = {
   nonce: null,
-  gas: 12_000_000,
+  gas: 500_000,
   gasPrice: 1_000_000_000,
   value: "0x00",
 };
@@ -45,6 +55,24 @@ export const BALTATHAR_TRANSACTION_TEMPLATE: TransactionOptions = {
   ...TRANSACTION_TEMPLATE,
   from: baltathar.address,
   privateKey: BALTATHAR_PRIVATE_KEY,
+};
+
+export const CHARLETH_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: charleth.address,
+  privateKey: CHARLETH_PRIVATE_KEY,
+};
+
+export const DOROTHY_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: dorothy.address,
+  privateKey: DOROTHY_PRIVATE_KEY,
+};
+
+export const ETHAN_TRANSACTION_TEMPLATE: TransactionOptions = {
+  ...TRANSACTION_TEMPLATE,
+  from: ethan.address,
+  privateKey: ETHAN_PRIVATE_KEY,
 };
 
 export const createTransaction = async (
@@ -73,7 +101,10 @@ export const createTransaction = async (
 
   const maxFeePerGas = options.maxFeePerGas || 1_000_000_000;
   const accessList = options.accessList || [];
-  const nonce = options.nonce || (await context.web3.eth.getTransactionCount(from, "pending"));
+  const nonce =
+    options.nonce != null
+      ? options.nonce
+      : await context.web3.eth.getTransactionCount(from, "pending");
 
   let data, rawTransaction;
   if (isLegacy) {
@@ -167,7 +198,7 @@ export const createTransfer = async (
 export async function createContract(
   context: DevTestContext,
   contractName: string,
-  options: TransactionOptions = ALITH_TRANSACTION_TEMPLATE,
+  options: TransactionOptions = { ...ALITH_TRANSACTION_TEMPLATE, gas: 5_000_000 },
   contractArguments: any[] = []
 ): Promise<{ rawTx: string; contract: Contract; contractAddress: string }> {
   const contractCompiled = getCompiled(contractName);

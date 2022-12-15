@@ -150,6 +150,11 @@ pub mod pallet {
 		fn get_asset_id(asset_type: T::ForeignAssetType) -> Option<T::AssetId> {
 			AssetTypeId::<T>::get(asset_type)
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		fn set_asset_type_asset_id(asset_type: T::ForeignAssetType, asset_id: T::AssetId) {
+			AssetTypeId::<T>::insert(&asset_type, asset_id);
+			AssetIdType::<T>::insert(&asset_id, asset_type);
+		}
 	}
 
 	impl<T: Config> xcm_primitives::UnitsToWeightRatio<T::ForeignAssetType> for Pallet<T> {
@@ -161,11 +166,22 @@ pub mod pallet {
 		fn get_units_per_second(asset_type: T::ForeignAssetType) -> Option<u128> {
 			AssetTypeUnitsPerSecond::<T>::get(asset_type)
 		}
+		#[cfg(feature = "runtime-benchmarks")]
+		fn set_units_per_second(asset_type: T::ForeignAssetType, fee_per_second: u128) {
+			// Grab supported assets
+			let mut supported_assets = SupportedFeePaymentAssets::<T>::get();
+			// Only if the asset is not supported we need to push it
+			if let Err(index) = supported_assets.binary_search(&asset_type) {
+				supported_assets.insert(index, asset_type.clone());
+				SupportedFeePaymentAssets::<T>::put(supported_assets);
+			}
+			AssetTypeUnitsPerSecond::<T>::insert(&asset_type, &fee_per_second);
+		}
 	}
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
 		/// The Asset Id. This will be used to create the asset and to associate it with
 		/// a assetType
@@ -185,10 +201,10 @@ pub mod pallet {
 		type AssetRegistrar: AssetRegistrar<Self>;
 
 		/// Origin that is allowed to create and modify asset information for foreign assets
-		type ForeignAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type ForeignAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Origin that is allowed to create and modify asset information for local assets
-		type LocalAssetModifierOrigin: EnsureOrigin<Self::Origin>;
+		type LocalAssetModifierOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Ways of creating local asset Ids
 		type LocalAssetIdCreator: LocalAssetIdCreator<Self>;

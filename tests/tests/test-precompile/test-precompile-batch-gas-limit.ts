@@ -3,14 +3,15 @@ import "@moonbeam-network/api-augment";
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, ALITH_PRIVATE_KEY, generateKeyingPair } from "../../util/accounts";
+import { alith, ALITH_PRIVATE_KEY, generateKeyringPair } from "../../util/accounts";
+import { PRECOMPILE_BATCH_ADDRESS } from "../../util/constants";
 import { customWeb3Request } from "../../util/providers";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 
 // Casting of type in solidity is performing truncation:
 // https://docs.soliditylang.org/en/latest/types.html#conversions-between-elementary-types
 describeDevMoonbeam("Precompile Batch - Overflowing gasLimit", (context) => {
-  const randomAccount = generateKeyingPair();
+  const randomAccount = generateKeyringPair();
   // This case can no longer be tested from frontier 0.9.23 because it is no longer possible to
   // enter a gas_limit that exceeds 65% of the block.
   it.skip("should get truncated and valid", async function () {
@@ -23,7 +24,7 @@ describeDevMoonbeam("Precompile Batch - Overflowing gasLimit", (context) => {
     let batchAllTx = await context.web3.eth.accounts.signTransaction(
       {
         from: alith.address,
-        to: "0x0000000000000000000000000000000000000808",
+        to: PRECOMPILE_BATCH_ADDRESS,
         gas: "0x110000",
         value: "0x00",
         nonce: 0,

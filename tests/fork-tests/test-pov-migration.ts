@@ -18,6 +18,7 @@ import { describeParachain } from "../util/setup-para-tests";
 
 const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
 const SPEC_FILE = process.env.SPEC_FILE;
+const ROUNDS_TO_WAIT = (process.env.ROUNDS_TO_WAIT && parseInt(process.env.ROUNDS_TO_WAIT)) || 2;
 const PARA_ID = process.env.PARA_ID && parseInt(process.env.PARA_ID);
 const SKIP_INTERMEDIATE_RUNTIME = process.env.SKIP_INTERMEDIATE_RUNTIME == "true";
 
@@ -86,7 +87,12 @@ describeParachain(
   },
   (context) => {
     it("should not fail", async function () {
-      this.timeout(5000000);
+      const blocksPerRound = (
+        await context.polkadotApiParaone.query.parachainStaking.round()
+      ).length.toNumber();
+      const blocksToWait = blocksPerRound * ROUNDS_TO_WAIT;
+
+      this.timeout((3600 + blocksToWait * 12) * 1000);
 
       // Wait for chain to start
       await context.waitBlocks(1);
@@ -110,7 +116,11 @@ describeParachain(
         for (const runtime of allPreviousMajorRuntimes) {
           if (runtime > currentVersion.specVersion.toNumber()) {
             console.log(`Found already released runtime not deployed: ${runtime}`);
-            await context.upgradeRuntime(alith, RUNTIME_NAME, `runtime-${runtime}`, {
+            await context.upgradeRuntime({
+              from: alith,
+              runtimeName: RUNTIME_NAME,
+              runtimeTag: `runtime-${runtime}`,
+              waitMigration: true,
               useGovernance: true,
             });
             // Wait for upgrade cooldown
@@ -119,7 +129,11 @@ describeParachain(
         }
       }
 
-      await context.upgradeRuntime(alith, RUNTIME_NAME, "local", { useGovernance: true });
+      await context.upgradeRuntime({
+        runtimeName: RUNTIME_NAME,
+        runtimeTag: `local`,
+        useGovernance: true,
+      });
 
       const postCurrentVersion = await (
         (await context.polkadotApiParaone.query.system.lastRuntimeUpgrade()) as any
@@ -129,8 +143,8 @@ describeParachain(
           ` ${postCurrentVersion.specVersion.toString()}`
       );
 
-      process.stdout.write("Waiting extra block being produced...");
-      await context.waitBlocks(20); // Make sure the new runtime is producing blocks
+      process.stdout.write(`Waiting extra ${blocksToWait} block being produced...`);
+      await context.waitBlocks(blocksToWait); // Make sure the new runtime is producing blocks
       process.stdout.write(`✅ total ${context.blockNumber} block produced\n`);
     });
   }

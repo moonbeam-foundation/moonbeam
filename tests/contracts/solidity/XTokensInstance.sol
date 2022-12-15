@@ -1,31 +1,27 @@
 // SPDX-License-Identifier: GPL-3.0-only
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.3;
 
 import "../../../precompiles/xtokens/Xtokens.sol";
 
 contract XtokensInstance is Xtokens {
-    /// The Xtokens wrapper at the known pre-compile address.
-    Xtokens public xtokens =
-        Xtokens(0x0000000000000000000000000000000000000804);
-
     function transfer(
-        address currency_address,
+        address currencyAddress,
         uint256 amount,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer(currency_address, amount, destination, weight);
+        XTOKENS_CONTRACT.transfer(currencyAddress, amount, destination, weight);
     }
 
-    function transfer_with_fee(
-        address currency_address,
+    function transferWithFee(
+        address currencyAddress,
         uint256 amount,
         uint256 fee,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer_with_fee(
-            currency_address,
+        XTOKENS_CONTRACT.transferWithFee(
+            currencyAddress,
             amount,
             fee,
             destination,
@@ -33,23 +29,23 @@ contract XtokensInstance is Xtokens {
         );
     }
 
-    function transfer_multiasset(
+    function transferMultiasset(
         Multilocation memory asset,
         uint256 amount,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer_multiasset(asset, amount, destination, weight);
+        XTOKENS_CONTRACT.transferMultiasset(asset, amount, destination, weight);
     }
 
-    function transfer_multiasset_with_fee(
+    function transferMultiassetWithFee(
         Multilocation memory asset,
         uint256 amount,
         uint256 fee,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer_multiasset_with_fee(
+        XTOKENS_CONTRACT.transferMultiassetWithFee(
             asset,
             amount,
             fee,
@@ -58,26 +54,31 @@ contract XtokensInstance is Xtokens {
         );
     }
 
-    function transfer_multi_currencies(
+    function transferMultiCurrencies(
         Currency[] memory currencies,
-        uint32 fee_item,
+        uint32 feeItem,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer_multi_currencies(
+        XTOKENS_CONTRACT.transferMultiCurrencies(
             currencies,
-            fee_item,
+            feeItem,
             destination,
             weight
         );
     }
 
-    function transfer_multi_assets(
+    function transferMultiAssets(
         MultiAsset[] memory assets,
-        uint32 fee_item,
+        uint32 feeItem,
         Multilocation memory destination,
         uint64 weight
     ) external override {
-        xtokens.transfer_multi_assets(assets, fee_item, destination, weight);
+        XTOKENS_CONTRACT.transferMultiAssets(
+            assets,
+            feeItem,
+            destination,
+            weight
+        );
     }
 }

@@ -1,10 +1,16 @@
 // Auto-generated via `yarn polkadot-types-from-chain`, do not edit
 /* eslint-disable */
 
-import type { ApiTypes } from "@polkadot/api-base/types";
+// import type lookup before we augment - in some environments
+// this is required to allow for ambient/previous definitions
+import "@polkadot/api-base/types/errors";
+
+import type { ApiTypes, AugmentedError } from "@polkadot/api-base/types";
+
+export type __AugmentedError<ApiType extends ApiTypes> = AugmentedError<ApiType>;
 
 declare module "@polkadot/api-base/types/errors" {
-  export interface AugmentedErrors<ApiType extends ApiTypes> {
+  interface AugmentedErrors<ApiType extends ApiTypes> {
     assetManager: {
       AssetAlreadyExists: AugmentedError<ApiType>;
       AssetDoesNotExist: AugmentedError<ApiType>;
@@ -319,17 +325,9 @@ declare module "@polkadot/api-base/types/errors" {
        */
       AlreadyVetoed: AugmentedError<ApiType>;
       /**
-       * Preimage already noted
-       */
-      DuplicatePreimage: AugmentedError<ApiType>;
-      /**
        * Proposal already made
        */
       DuplicateProposal: AugmentedError<ApiType>;
-      /**
-       * Imminent
-       */
-      Imminent: AugmentedError<ApiType>;
       /**
        * The instant referendum origin is currently disallowed.
        */
@@ -367,10 +365,6 @@ declare module "@polkadot/api-base/types/errors" {
        */
       NotDelegating: AugmentedError<ApiType>;
       /**
-       * Not imminent
-       */
-      NotImminent: AugmentedError<ApiType>;
-      /**
        * Next external proposal not simple majority
        */
       NotSimpleMajority: AugmentedError<ApiType>;
@@ -378,14 +372,6 @@ declare module "@polkadot/api-base/types/errors" {
        * The given account did not vote on the referendum.
        */
       NotVoter: AugmentedError<ApiType>;
-      /**
-       * Invalid preimage
-       */
-      PreimageInvalid: AugmentedError<ApiType>;
-      /**
-       * Preimage not found
-       */
-      PreimageMissing: AugmentedError<ApiType>;
       /**
        * Proposal still blacklisted
        */
@@ -399,13 +385,9 @@ declare module "@polkadot/api-base/types/errors" {
        */
       ReferendumInvalid: AugmentedError<ApiType>;
       /**
-       * Too early
+       * Maximum number of items reached.
        */
-      TooEarly: AugmentedError<ApiType>;
-      /**
-       * Maximum number of proposals reached.
-       */
-      TooManyProposals: AugmentedError<ApiType>;
+      TooMany: AugmentedError<ApiType>;
       /**
        * Value too low
        */
@@ -415,6 +397,10 @@ declare module "@polkadot/api-base/types/errors" {
        * succeed until these are removed, either through `unvote` or `reap_vote`.
        */
       VotesExist: AugmentedError<ApiType>;
+      /**
+       * Voting period too low
+       */
+      VotingPeriodLow: AugmentedError<ApiType>;
       /**
        * Invalid upper bound.
        */
@@ -462,6 +448,14 @@ declare module "@polkadot/api-base/types/errors" {
        */
       FeeOverflow: AugmentedError<ApiType>;
       /**
+       * Gas limit is too high.
+       */
+      GasLimitTooHigh: AugmentedError<ApiType>;
+      /**
+       * Gas limit is too low.
+       */
+      GasLimitTooLow: AugmentedError<ApiType>;
+      /**
        * Gas price is too low.
        */
       GasPriceTooLow: AugmentedError<ApiType>;
@@ -470,13 +464,17 @@ declare module "@polkadot/api-base/types/errors" {
        */
       InvalidNonce: AugmentedError<ApiType>;
       /**
-       * Maximum address count exceeded
-       */
-      MaxAddressCountExceeded: AugmentedError<ApiType>;
-      /**
        * Calculating total payment overflowed
        */
       PaymentOverflow: AugmentedError<ApiType>;
+      /**
+       * EVM reentrancy
+       */
+      Reentrancy: AugmentedError<ApiType>;
+      /**
+       * Undefined error.
+       */
+      Undefined: AugmentedError<ApiType>;
       /**
        * Withdraw fee failed
        */
@@ -511,6 +509,10 @@ declare module "@polkadot/api-base/types/errors" {
        * The target is invalid.
        */
       InvalidTarget: AugmentedError<ApiType>;
+      /**
+       * The provided judgement was for a different identity.
+       */
+      JudgementForDifferentIdentity: AugmentedError<ApiType>;
       /**
        * Judgement given.
        */
@@ -638,6 +640,28 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    migrations: {
+      /**
+       * Preimage already exists in the new storage.
+       */
+      PreimageAlreadyExists: AugmentedError<ApiType>;
+      /**
+       * Preimage is larger than the new max size.
+       */
+      PreimageIsTooBig: AugmentedError<ApiType>;
+      /**
+       * Missing preimage in original democracy storage
+       */
+      PreimageMissing: AugmentedError<ApiType>;
+      /**
+       * Provided upper bound is too low.
+       */
+      WrongUpperBound: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     moonbeamOrbiters: {
       /**
        * The collator is already added in orbiters program.
@@ -717,11 +741,14 @@ declare module "@polkadot/api-base/types/errors" {
       PendingDelegationRequestNotDueYet: AugmentedError<ApiType>;
       PendingDelegationRevoke: AugmentedError<ApiType>;
       RoundLengthMustBeAtLeastTotalSelectedCollators: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToAutoCompound: AugmentedError<ApiType>;
+      TooLowCandidateAutoCompoundingDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateCountToLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintCancelLeaveCandidates: AugmentedError<ApiType>;
       TooLowCandidateCountWeightHintJoinCandidates: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowCandidateDelegationCountToLeaveCandidates: AugmentedError<ApiType>;
+      TooLowDelegationCountToAutoCompound: AugmentedError<ApiType>;
       TooLowDelegationCountToDelegate: AugmentedError<ApiType>;
       TooLowDelegationCountToLeaveDelegators: AugmentedError<ApiType>;
       /**
@@ -830,6 +857,36 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    preimage: {
+      /**
+       * Preimage has already been noted on-chain.
+       */
+      AlreadyNoted: AugmentedError<ApiType>;
+      /**
+       * The user is not authorized to perform this action.
+       */
+      NotAuthorized: AugmentedError<ApiType>;
+      /**
+       * The preimage cannot be removed since it has not yet been noted.
+       */
+      NotNoted: AugmentedError<ApiType>;
+      /**
+       * The preimage request cannot be removed since no outstanding requests exist.
+       */
+      NotRequested: AugmentedError<ApiType>;
+      /**
+       * A preimage may not be removed when there are outstanding requests.
+       */
+      Requested: AugmentedError<ApiType>;
+      /**
+       * Preimage is too large to store on-chain.
+       */
+      TooBig: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     proxy: {
       /**
        * Account is already a proxy.
@@ -868,11 +925,33 @@ declare module "@polkadot/api-base/types/errors" {
        */
       [key: string]: AugmentedError<ApiType>;
     };
+    randomness: {
+      CannotRequestMoreWordsThanMax: AugmentedError<ApiType>;
+      CannotRequestRandomnessAfterMaxDelay: AugmentedError<ApiType>;
+      CannotRequestRandomnessBeforeMinDelay: AugmentedError<ApiType>;
+      MustRequestAtLeastOneWord: AugmentedError<ApiType>;
+      OnlyRequesterCanIncreaseFee: AugmentedError<ApiType>;
+      RandomnessResultDNE: AugmentedError<ApiType>;
+      RandomnessResultNotFilled: AugmentedError<ApiType>;
+      RequestCannotYetBeFulfilled: AugmentedError<ApiType>;
+      RequestCounterOverflowed: AugmentedError<ApiType>;
+      RequestDNE: AugmentedError<ApiType>;
+      RequestFeeOverflowed: AugmentedError<ApiType>;
+      RequestHasNotExpired: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
     scheduler: {
       /**
        * Failed to schedule a call
        */
       FailedToSchedule: AugmentedError<ApiType>;
+      /**
+       * Attempt to use a non-named function on a named task.
+       */
+      Named: AugmentedError<ApiType>;
       /**
        * Cannot find the scheduled call.
        */
@@ -972,6 +1051,11 @@ declare module "@polkadot/api-base/types/errors" {
     };
     treasury: {
       /**
+       * The spend origin is valid but the amount it is allowed to spend is
+       * lower than the amount to be spent.
+       */
+      InsufficientPermission: AugmentedError<ApiType>;
+      /**
        * Proposer's balance is too low.
        */
       InsufficientProposersBalance: AugmentedError<ApiType>;
@@ -980,9 +1064,59 @@ declare module "@polkadot/api-base/types/errors" {
        */
       InvalidIndex: AugmentedError<ApiType>;
       /**
+       * Proposal has not been approved.
+       */
+      ProposalNotApproved: AugmentedError<ApiType>;
+      /**
        * Too many approvals in the queue.
        */
       TooManyApprovals: AugmentedError<ApiType>;
+      /**
+       * Generic error
+       */
+      [key: string]: AugmentedError<ApiType>;
+    };
+    treasuryCouncilCollective: {
+      /**
+       * Members are already initialized!
+       */
+      AlreadyInitialized: AugmentedError<ApiType>;
+      /**
+       * Duplicate proposals not allowed
+       */
+      DuplicateProposal: AugmentedError<ApiType>;
+      /**
+       * Duplicate vote ignored
+       */
+      DuplicateVote: AugmentedError<ApiType>;
+      /**
+       * Account is not a member
+       */
+      NotMember: AugmentedError<ApiType>;
+      /**
+       * Proposal must exist
+       */
+      ProposalMissing: AugmentedError<ApiType>;
+      /**
+       * The close call was made too early, before the end of the voting.
+       */
+      TooEarly: AugmentedError<ApiType>;
+      /**
+       * There can only be a maximum of `MaxProposals` active proposals.
+       */
+      TooManyProposals: AugmentedError<ApiType>;
+      /**
+       * Mismatched index
+       */
+      WrongIndex: AugmentedError<ApiType>;
+      /**
+       * The given length bound for the proposal was too low.
+       */
+      WrongProposalLength: AugmentedError<ApiType>;
+      /**
+       * The given weight bound for the proposal was too low.
+       */
+      WrongProposalWeight: AugmentedError<ApiType>;
       /**
        * Generic error
        */
@@ -1094,6 +1228,10 @@ declare module "@polkadot/api-base/types/errors" {
        * Invalid transfer destination.
        */
       InvalidDest: AugmentedError<ApiType>;
+      /**
+       * MinXcmFee not registered for certain reserve location
+       */
+      MinXcmFeeNotDefined: AugmentedError<ApiType>;
       /**
        * Not cross-chain transfer.
        */

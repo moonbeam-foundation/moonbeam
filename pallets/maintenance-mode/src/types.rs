@@ -23,6 +23,8 @@ use frame_support::{
 	weights::Weight,
 };
 use sp_std::marker::PhantomData;
+#[cfg(feature = "try-runtime")]
+use sp_std::vec::Vec;
 
 pub struct ExecutiveHooks<T>(PhantomData<T>);
 type BlockNumberOf<T> = <T as frame_system::Config>::BlockNumber;
@@ -92,7 +94,7 @@ where
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn pre_upgrade() -> Result<(), &'static str> {
+	fn pre_upgrade() -> Result<Vec<u8>, &'static str> {
 		if Pallet::<T>::maintenance_mode() {
 			T::MaintenanceExecutiveHooks::pre_upgrade()
 		} else {
@@ -101,11 +103,23 @@ where
 	}
 
 	#[cfg(feature = "try-runtime")]
-	fn post_upgrade() -> Result<(), &'static str> {
+	fn post_upgrade(state: Vec<u8>) -> Result<(), &'static str> {
 		if Pallet::<T>::maintenance_mode() {
-			T::MaintenanceExecutiveHooks::post_upgrade()
+			T::MaintenanceExecutiveHooks::post_upgrade(state)
 		} else {
-			T::NormalExecutiveHooks::post_upgrade()
+			T::NormalExecutiveHooks::post_upgrade(state)
 		}
+	}
+}
+
+#[cfg(feature = "try-runtime")]
+impl<T: frame_system::Config> frame_support::traits::TryState<BlockNumberOf<T>>
+	for ExecutiveHooks<T>
+{
+	fn try_state(
+		_: BlockNumberOf<T>,
+		_: frame_support::traits::TryStateSelect,
+	) -> Result<(), &'static str> {
+		Ok(())
 	}
 }

@@ -87,13 +87,14 @@ fn is_block_finalized_inner<B: Block<Hash = H256>, C: HeaderBackend<B> + 'static
 	client: &C,
 	raw_hash: H256,
 ) -> RpcResult<bool> {
-	let substrate_hash = match frontier_backend_client::load_hash::<B>(backend, raw_hash)? {
-		// If we find this hash in the frontier data base, we know it is an eth hash
-		Some(BlockId::Hash(hash)) => hash,
-		Some(BlockId::Number(_)) => panic!("is_canon test only works with hashes."),
-		// Otherwise, we assume this is a Substrate hash.
-		None => raw_hash,
-	};
+	let substrate_hash =
+		match frontier_backend_client::load_hash::<B, C>(client, backend, raw_hash)? {
+			// If we find this hash in the frontier data base, we know it is an eth hash
+			Some(BlockId::Hash(hash)) => hash,
+			Some(BlockId::Number(_)) => panic!("is_canon test only works with hashes."),
+			// Otherwise, we assume this is a Substrate hash.
+			None => raw_hash,
+		};
 
 	// First check whether the block is in the best chain
 	if !is_canon(client, substrate_hash) {

@@ -16,7 +16,7 @@
 
 //! Unit testing
 use crate::mock::{
-	events, mock_events, Call as OuterCall, ExtBuilder, MaintenanceMode, Origin, Test,
+	events, mock_events, ExtBuilder, MaintenanceMode, RuntimeCall as OuterCall, RuntimeOrigin, Test,
 };
 use crate::{Call, Error, Event, ExecutiveHooks};
 use cumulus_primitives_core::DmpMessageHandler;
@@ -24,13 +24,14 @@ use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::Dispatchable,
 	traits::{OffchainWorker, OnFinalize, OnIdle, OnInitialize, OnRuntimeUpgrade},
+	weights::Weight,
 };
 
 #[test]
 fn can_remark_during_normal_operation() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: OuterCall = frame_system::Call::remark { remark: vec![] }.into();
-		assert_ok!(call.dispatch(Origin::signed(1)));
+		assert_ok!(call.dispatch(RuntimeOrigin::signed(1)));
 	})
 }
 
@@ -42,7 +43,7 @@ fn cannot_remark_during_maintenance_mode() {
 		.execute_with(|| {
 			let call: OuterCall = frame_system::Call::remark { remark: vec![] }.into();
 			assert_noop!(
-				call.dispatch(Origin::signed(1)),
+				call.dispatch(RuntimeOrigin::signed(1)),
 				frame_system::Error::<Test>::CallFiltered
 			);
 		})
@@ -52,7 +53,7 @@ fn cannot_remark_during_maintenance_mode() {
 fn can_enter_maintenance_mode() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: OuterCall = Call::enter_maintenance_mode {}.into();
-		assert_ok!(call.dispatch(Origin::root()));
+		assert_ok!(call.dispatch(RuntimeOrigin::root()));
 
 		assert_eq!(events(), vec![Event::EnteredMaintenanceMode,]);
 	})
@@ -66,7 +67,7 @@ fn cannot_enter_maintenance_mode_from_wrong_origin() {
 		.execute_with(|| {
 			let call: OuterCall = Call::enter_maintenance_mode {}.into();
 			assert_noop!(
-				call.dispatch(Origin::signed(1)),
+				call.dispatch(RuntimeOrigin::signed(1)),
 				frame_system::Error::<Test>::CallFiltered
 			);
 		})
@@ -80,7 +81,7 @@ fn cannot_enter_maintenance_mode_when_already_in_it() {
 		.execute_with(|| {
 			let call: OuterCall = Call::enter_maintenance_mode {}.into();
 			assert_noop!(
-				call.dispatch(Origin::root()),
+				call.dispatch(RuntimeOrigin::root()),
 				Error::<Test>::AlreadyInMaintenanceMode
 			);
 		})
@@ -93,7 +94,7 @@ fn can_resume_normal_operation() {
 		.build()
 		.execute_with(|| {
 			let call: OuterCall = Call::resume_normal_operation {}.into();
-			assert_ok!(call.dispatch(Origin::root()));
+			assert_ok!(call.dispatch(RuntimeOrigin::root()));
 
 			assert_eq!(events(), vec![Event::NormalOperationResumed,]);
 		})
@@ -107,7 +108,7 @@ fn cannot_resume_normal_operation_from_wrong_origin() {
 		.execute_with(|| {
 			let call: OuterCall = Call::resume_normal_operation {}.into();
 			assert_noop!(
-				call.dispatch(Origin::signed(1)),
+				call.dispatch(RuntimeOrigin::signed(1)),
 				frame_system::Error::<Test>::CallFiltered
 			);
 		})
@@ -118,7 +119,7 @@ fn cannot_resume_normal_operation_while_already_operating_normally() {
 	ExtBuilder::default().build().execute_with(|| {
 		let call: OuterCall = Call::resume_normal_operation {}.into();
 		assert_noop!(
-			call.dispatch(Origin::root()),
+			call.dispatch(RuntimeOrigin::root()),
 			Error::<Test>::NotInMaintenanceMode
 		);
 	})
@@ -132,8 +133,8 @@ fn normal_dmp_in_non_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				0
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_ref_time(1)),
+				Weight::zero()
 			);
 		})
 }
@@ -146,8 +147,8 @@ fn maintenance_dmp_in_maintenance() {
 		.build()
 		.execute_with(|| {
 			assert_eq!(
-				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), 1),
-				1
+				MaintenanceMode::handle_dmp_messages(vec![].into_iter(), Weight::from_ref_time(1)),
+				Weight::from_ref_time(1)
 			);
 		})
 }
@@ -158,9 +159,12 @@ fn normal_hooks_in_non_maintenance() {
 		.with_maintenance_mode(false)
 		.build()
 		.execute_with(|| {
-			assert_eq!(ExecutiveHooks::<Test>::on_idle(0, 0), 0);
-			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), 0);
-			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), 0);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_idle(0, Weight::zero()),
+				Weight::zero()
+			);
+			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), Weight::zero());
+			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), Weight::zero());
 			ExecutiveHooks::<Test>::on_finalize(0);
 			ExecutiveHooks::<Test>::offchain_worker(0);
 
@@ -183,9 +187,18 @@ fn maintenance_hooks_in_maintenance() {
 		.with_maintenance_mode(true)
 		.build()
 		.execute_with(|| {
-			assert_eq!(ExecutiveHooks::<Test>::on_idle(0, 0), 1);
-			assert_eq!(ExecutiveHooks::<Test>::on_initialize(0), 1);
-			assert_eq!(ExecutiveHooks::<Test>::on_runtime_upgrade(), 1);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_idle(0, Weight::zero()),
+				Weight::from_ref_time(1)
+			);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_initialize(0),
+				Weight::from_ref_time(1)
+			);
+			assert_eq!(
+				ExecutiveHooks::<Test>::on_runtime_upgrade(),
+				Weight::from_ref_time(1)
+			);
 
 			ExecutiveHooks::<Test>::on_finalize(0);
 			ExecutiveHooks::<Test>::offchain_worker(0);

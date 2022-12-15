@@ -36,7 +36,6 @@ pub use moonbeam_runtime;
 pub use moonriver_runtime;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
-use cumulus_client_cli::CollatorOptions;
 use cumulus_client_consensus_common::ParachainConsensus;
 use cumulus_client_network::BlockAnnounceValidator;
 use cumulus_client_service::{
@@ -50,11 +49,13 @@ use cumulus_relay_chain_inprocess_interface::build_inprocess_relay_chain;
 use cumulus_relay_chain_interface::{RelayChainError, RelayChainInterface};
 use nimbus_consensus::NimbusManualSealConsensusDataProvider;
 use nimbus_consensus::{BuildNimbusConsensusParams, NimbusConsensus};
-use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch};
-use sc_network::NetworkService;
+use nimbus_primitives::NimbusId;
+use sc_client_api::ExecutorProvider;
+use sc_executor::NativeElseWasmExecutor;
+use sc_network::{NetworkBlock, NetworkService};
 use sc_service::config::PrometheusConfig;
 use sc_service::{
-	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents, Role,
+	error::Error as ServiceError, BasePath, ChainSpec, Configuration, PartialComponents,
 	TFullBackend, TFullClient, TaskManager,
 };
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
@@ -78,6 +79,24 @@ pub type HostFunctions = (
 	moonbeam_primitives_ext::moonbeam_ext::HostFunctions,
 );
 
+/// A trait that must be implemented by all moon* runtimes executors.
+///
+/// This feature allows, for instance, to customize the client extensions according to the type
+/// of network.
+/// For the moment, this feature is only used to specify the first block compatible with
+/// ed25519-zebra, but it could be used for other things in the future.
+pub trait ExecutorT: sc_executor::NativeExecutionDispatch {
+	/// The host function ed25519_verify has changed its behavior in the substrate history,
+	/// because of the change from lib ed25519-dalek to lib ed25519-zebra.
+	/// Some networks may have old blocks that are not compatible with ed25519-zebra,
+	/// for these networks this function should return the 1st block compatible with the new lib.
+	/// If this function returns None (default behavior), it implies that all blocks are compatible
+	/// with the new lib (ed25519-zebra).
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		None
+	}
+}
+
 #[cfg(feature = "moonbeam-native")]
 pub struct MoonbeamExecutor;
 
@@ -91,6 +110,13 @@ impl sc_executor::NativeExecutionDispatch for MoonbeamExecutor {
 
 	fn native_version() -> sc_executor::NativeVersion {
 		moonbeam_runtime::native_version()
+	}
+}
+
+#[cfg(feature = "moonbeam-native")]
+impl ExecutorT for MoonbeamExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(2_000_000)
 	}
 }
 
@@ -110,6 +136,13 @@ impl sc_executor::NativeExecutionDispatch for MoonriverExecutor {
 	}
 }
 
+#[cfg(feature = "moonriver-native")]
+impl ExecutorT for MoonriverExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(3_000_000)
+	}
+}
+
 #[cfg(feature = "moonbase-native")]
 pub struct MoonbaseExecutor;
 
@@ -123,6 +156,13 @@ impl sc_executor::NativeExecutionDispatch for MoonbaseExecutor {
 
 	fn native_version() -> sc_executor::NativeVersion {
 		moonbase_runtime::native_version()
+	}
+}
+
+#[cfg(feature = "moonbase-native")]
+impl ExecutorT for MoonbaseExecutor {
+	fn first_block_number_compatible_with_ed25519_zebra() -> Option<u32> {
+		Some(3_000_000)
 	}
 }
 
@@ -199,8 +239,15 @@ pub fn frontier_database_dir(config: &Configuration, path: &str) -> std::path::P
 
 // TODO This is copied from frontier. It should be imported instead after
 // https://github.com/paritytech/frontier/issues/333 is solved
-pub fn open_frontier_backend(config: &Configuration) -> Result<Arc<fc_db::Backend<Block>>, String> {
+pub fn open_frontier_backend<C>(
+	client: Arc<C>,
+	config: &Configuration,
+) -> Result<Arc<fc_db::Backend<Block>>, String>
+where
+	C: sp_blockchain::HeaderBackend<Block>,
+{
 	Ok(Arc::new(fc_db::Backend::<Block>::new(
+		client,
 		&fc_db::DatabaseSettings {
 			source: match config.database {
 				DatabaseSource::RocksDb { .. } => DatabaseSource::RocksDb {
@@ -275,7 +322,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	config.keystore = sc_service::config::KeystoreConfig::InMemory;
 	let PartialComponents {
@@ -340,7 +387,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	set_prometheus_registry(config)?;
 
@@ -372,6 +419,15 @@ where
 			executor,
 		)?;
 
+	if let Some(block_number) = Executor::first_block_number_compatible_with_ed25519_zebra() {
+		client
+			.execution_extensions()
+			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
+			Block,
+			sp_io::UseDalekExt,
+		>::new(block_number));
+	}
+
 	let client = Arc::new(client);
 
 	let telemetry_worker_handle = telemetry.as_ref().map(|(worker, _)| worker.handle());
@@ -400,7 +456,7 @@ where
 	let filter_pool: Option<FilterPool> = Some(Arc::new(Mutex::new(BTreeMap::new())));
 	let fee_history_cache: FeeHistoryCache = Arc::new(Mutex::new(BTreeMap::new()));
 
-	let frontier_backend = open_frontier_backend(config)?;
+	let frontier_backend = open_frontier_backend(client.clone(), config)?;
 
 	let frontier_block_import =
 		FrontierBlockImport::new(client.clone(), client.clone(), frontier_backend.clone());
@@ -455,7 +511,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 	BIC: FnOnce(
 		Arc<TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>>,
 		Option<&Registry>,
@@ -473,10 +529,6 @@ where
 		bool,
 	) -> Result<Box<dyn ParachainConsensus<Block>>, sc_service::Error>,
 {
-	if matches!(parachain_config.role, Role::Light) {
-		return Err("Light client not supported!".into());
-	}
-
 	let mut parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&mut parachain_config, false)?;
@@ -512,7 +564,7 @@ where
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
 	let transaction_pool = params.transaction_pool.clone();
 	let import_queue = cumulus_client_service::SharedImportQueue::new(params.import_queue);
-	let (network, system_rpc_tx, start_network) =
+	let (network, system_rpc_tx, tx_handler_controller, start_network) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &parachain_config,
 			client: client.clone(),
@@ -569,10 +621,6 @@ where
 		rpc_config.eth_statuses_cache,
 		prometheus_registry.clone(),
 	));
-
-	// variable `rpc_config` will be moved in next code block, we need to
-	// save param `relay_chain_rpc_url` to be able to use it later.
-	let relay_chain_rpc_url = rpc_config.relay_chain_rpc_url.clone();
 
 	let rpc_builder = {
 		let client = client.clone();
@@ -633,6 +681,7 @@ where
 		backend: backend.clone(),
 		network: network.clone(),
 		system_rpc_tx,
+		tx_handler_controller,
 		telemetry: telemetry.as_mut(),
 	})?;
 
@@ -697,9 +746,6 @@ where
 			relay_chain_interface,
 			relay_chain_slot_duration,
 			import_queue,
-			collator_options: CollatorOptions {
-				relay_chain_rpc_url,
-			},
 		};
 
 		start_full_node(params)?;
@@ -725,7 +771,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	start_node_impl(
 		parachain_config,
@@ -775,8 +821,21 @@ where
 
 					let author = nimbus_primitives::InherentDataProvider;
 
-					Ok((time, parachain_inherent, author))
+					let randomness = session_keys_primitives::InherentDataProvider;
+
+					Ok((time, parachain_inherent, author, randomness))
 				}
+			};
+			let client_clone = client.clone();
+			let keystore_clone = keystore.clone();
+			let maybe_provide_vrf_digest = move |nimbus_id: NimbusId, parent: Hash|
+				-> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
 			};
 
 			Ok(NimbusConsensus::build(BuildNimbusConsensusParams {
@@ -787,6 +846,7 @@ where
 				keystore,
 				skip_prediction: force_authoring,
 				create_inherent_data_providers: provider,
+				additional_digests_provider: maybe_provide_vrf_digest,
 			}))
 		},
 	)
@@ -797,7 +857,7 @@ where
 /// the parachain inherent.
 pub fn new_dev<RuntimeApi, Executor>(
 	mut config: Configuration,
-	_author_id: Option<nimbus_primitives::NimbusId>,
+	_author_id: Option<NimbusId>,
 	sealing: cli_opt::Sealing,
 	rpc_config: RpcConfig,
 	hwbench: Option<sc_sysinfo::HwBench>,
@@ -807,7 +867,7 @@ where
 		ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>> + Send + Sync + 'static,
 	RuntimeApi::RuntimeApi:
 		RuntimeApiCollection<StateBackend = sc_client_api::StateBackendFor<FullBackend, Block>>,
-	Executor: NativeExecutionDispatch + 'static,
+	Executor: ExecutorT + 'static,
 {
 	use async_io::Timer;
 	use futures::Stream;
@@ -833,7 +893,7 @@ where
 			),
 	} = new_partial::<RuntimeApi, Executor>(&mut config, true)?;
 
-	let (network, system_rpc_tx, network_starter) =
+	let (network, system_rpc_tx, tx_handler_controller, network_starter) =
 		sc_service::build_network(sc_service::BuildNetworkParams {
 			config: &config,
 			client: client.clone(),
@@ -916,6 +976,18 @@ where
 		let (hrmp_xcm_sender, hrmp_xcm_receiver) = flume::bounded::<(ParaId, Vec<u8>)>(100);
 		xcm_senders = Some((downward_xcm_sender, hrmp_xcm_sender));
 
+		let client_clone = client.clone();
+		let keystore_clone = keystore_container.sync_keystore().clone();
+		let maybe_provide_vrf_digest =
+			move |nimbus_id: NimbusId, parent: Hash| -> Option<sp_runtime::generic::DigestItem> {
+				moonbeam_vrf::vrf_pre_digest::<Block, FullClient<RuntimeApi, Executor>>(
+					&client_clone,
+					&keystore_clone,
+					nimbus_id,
+					parent,
+				)
+			};
+
 		task_manager.spawn_essential_handle().spawn_blocking(
 			"authorship_task",
 			Some("block-authoring"),
@@ -929,6 +1001,8 @@ where
 				consensus_data_provider: Some(Box::new(NimbusManualSealConsensusDataProvider {
 					keystore: keystore_container.sync_keystore(),
 					client: client.clone(),
+					additional_digests_provider: maybe_provide_vrf_digest,
+					_phantom: Default::default(),
 				})),
 				create_inherent_data_providers: move |block: H256, ()| {
 					let current_para_block = client_set_aside_for_cidp
@@ -947,6 +1021,9 @@ where
 							current_para_block,
 							relay_offset: 1000,
 							relay_blocks_per_para_block: 2,
+							// TODO: Recheck
+							para_blocks_per_relay_epoch: 10,
+							relay_randomness_config: (),
 							xcm_config: MockXcmConfig::new(
 								&*client_for_xcm,
 								block,
@@ -957,7 +1034,9 @@ where
 							raw_horizontal_messages: hrmp_xcm_receiver.drain().collect(),
 						};
 
-						Ok((time, mocked_parachain))
+						let randomness = session_keys_primitives::InherentDataProvider;
+
+						Ok((time, mocked_parachain, randomness))
 					}
 				},
 			}),
@@ -1062,6 +1141,7 @@ where
 		backend,
 		system_rpc_tx,
 		config,
+		tx_handler_controller,
 		telemetry: None,
 	})?;
 
@@ -1092,7 +1172,7 @@ mod tests {
 	use sc_service::ChainType;
 	use sc_service::{
 		config::{BasePath, DatabaseSource, KeystoreConfig},
-		Configuration, KeepBlocks, Role,
+		Configuration, Role,
 	};
 	use std::path::Path;
 	use std::str::FromStr;
@@ -1179,6 +1259,7 @@ mod tests {
 					vec![],
 					vec![],
 					vec![],
+					vec![],
 					1000 * UNIT,
 					ParaId::new(0),
 					0,
@@ -1208,10 +1289,9 @@ mod tests {
 				path: "db".into(),
 				cache_size: 128,
 			},
-			state_cache_size: 16777216,
-			state_cache_child_ratio: None,
+			trie_cache_maximum_size: Some(16777216),
 			state_pruning: Default::default(),
-			keep_blocks: KeepBlocks::All,
+			blocks_pruning: sc_service::BlocksPruning::KeepAll,
 			chain_spec: Box::new(spec),
 			wasm_method: sc_service::config::WasmExecutionMethod::Interpreted,
 			wasm_runtime_overrides: Default::default(),

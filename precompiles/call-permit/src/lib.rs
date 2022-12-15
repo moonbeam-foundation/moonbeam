@@ -1,5 +1,5 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is 	part of Moonbeam.
+// This file is part of Moonbeam.
 
 // Moonbeam is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -18,13 +18,11 @@
 
 use core::marker::PhantomData;
 use evm::ExitReason;
-use fp_evm::{
-	Context, Precompile, PrecompileFailure, PrecompileHandle, PrecompileOutput, Transfer,
-};
+use fp_evm::{Context, ExitRevert, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::{
 	ensure,
 	storage::types::{StorageMap, ValueQuery},
-	traits::{Get, StorageInstance},
+	traits::{ConstU32, Get, StorageInstance},
 	Blake2_128Concat,
 };
 use precompile_utils::{costs::call_cost, prelude::*};
@@ -70,40 +68,14 @@ const PERMIT_DOMAIN: [u8; 32] = keccak256!(
 	"EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
 );
 
-#[generate_function_selector]
-#[derive(Debug, PartialEq)]
-pub enum Action {
-	Dispatch = "dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)",
-	Nonces = "nonces(address)",
-	DomainSeparator = "DOMAIN_SEPARATOR()",
-}
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
 
 /// Precompile allowing to issue and dispatch call permits for gasless transactions.
 /// A user can sign a permit for a call that can be dispatched and paid by another user or
 /// smart contract.
 pub struct CallPermitPrecompile<Runtime>(PhantomData<Runtime>);
 
-impl<Runtime> Precompile for CallPermitPrecompile<Runtime>
-where
-	Runtime: pallet_evm::Config + pallet_timestamp::Config,
-	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
-{
-	fn execute(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
-		let selector = handle.read_selector()?;
-
-		handle.check_function_modifier(match selector {
-			Action::Dispatch => FunctionModifier::NonPayable,
-			_ => FunctionModifier::View,
-		})?;
-
-		match selector {
-			Action::Dispatch => Self::dispatch(handle),
-			Action::Nonces => Self::nonces(handle),
-			Action::DomainSeparator => Self::domain_separator(handle),
-		}
-	}
-}
-
+#[precompile_utils::precompile]
 impl<Runtime> CallPermitPrecompile<Runtime>
 where
 	Runtime: pallet_evm::Config + pallet_timestamp::Config,
@@ -149,7 +121,6 @@ where
 			.write(deadline)
 			.build();
 		let permit_content = keccak_256(&permit_content);
-
 		let mut pre_digest = Vec::with_capacity(2 + 32 + 32);
 		pre_digest.extend_from_slice(b"\x19\x01");
 		pre_digest.extend_from_slice(&domain_separator);
@@ -163,37 +134,43 @@ where
 			+ RuntimeHelper::<Runtime>::db_write_gas_cost() // we write nonce
 	}
 
-	fn dispatch(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public(
+		"dispatch(address,address,uint256,bytes,uint64,uint256,uint8,bytes32,bytes32)"
+	)]
+	fn dispatch(
+		handle: &mut impl PrecompileHandle,
+		from: Address,
+		to: Address,
+		value: U256,
+		data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
+		gas_limit: u64,
+		deadline: U256,
+		v: u8,
+		r: H256,
+		s: H256,
+	) -> EvmResult<UnboundedBytes> {
 		handle.record_cost(Self::dispatch_inherent_cost())?;
 
-		// PARSE INPUT
-		let mut input = handle.read_input()?;
-		let from = input.read::<Address>()?.0;
-		let to = input.read::<Address>()?.0;
-		let value: U256 = input.read()?;
-		let data = input.read::<Bytes>()?.0;
-		let gas_limit: u64 = input.read()?;
-		let deadline: U256 = input.read()?;
-		let v: u8 = input.read()?;
-		let r: H256 = input.read()?;
-		let s: H256 = input.read()?;
+		let from: H160 = from.into();
+		let to: H160 = to.into();
+		let data: Vec<u8> = data.into();
 
 		// ENSURE GASLIMIT IS SUFFICIENT
 		let call_cost = call_cost(value, <Runtime as pallet_evm::Config>::config());
 
 		let total_cost = gas_limit
 			.checked_add(call_cost)
-			.ok_or_else(|| revert("call require too much gas (u64 overflow)"))?;
+			.ok_or_else(|| revert("Call require too much gas (uint64 overflow)"))?;
 
 		if total_cost > handle.remaining_gas() {
-			return Err(revert("gaslimit is too low to dispatch provided call"));
+			return Err(revert("Gaslimit is too low to dispatch provided call"));
 		}
 
 		// VERIFY PERMIT
 
 		// pallet_timestamp is in ms while Ethereum use second timestamps.
 		let timestamp: U256 = (pallet_timestamp::Pallet::<Runtime>::get()).into() / 1000;
-		ensure!(deadline >= timestamp, revert("permit expired"));
+		ensure!(deadline >= timestamp, revert("Permit expired"));
 
 		let nonce = NoncesStorage::get(from);
 
@@ -214,12 +191,12 @@ where
 		sig[64] = v;
 
 		let signer = sp_io::crypto::secp256k1_ecdsa_recover(&sig, &permit)
-			.map_err(|_| revert("invalid permit"))?;
+			.map_err(|_| revert("Invalid permit"))?;
 		let signer = H160::from(H256::from_slice(keccak_256(&signer).as_slice()));
 
 		ensure!(
 			signer != H160::zero() && signer == from,
-			revert("invalid permit")
+			revert("Invalid permit")
 		);
 
 		NoncesStorage::insert(from, nonce + U256::one());
@@ -243,34 +220,37 @@ where
 
 		let (reason, output) =
 			handle.call(to, transfer, data, Some(gas_limit), false, &sub_context);
-
 		match reason {
 			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(_) => Err(revert(output)),
-			ExitReason::Succeed(_) => Ok(succeed(output)),
+			ExitReason::Revert(_) => Err(PrecompileFailure::Revert {
+				exit_status: ExitRevert::Reverted,
+				output,
+			}),
+			ExitReason::Succeed(_) => Ok(output.into()),
 		}
 	}
 
-	fn nonces(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("nonces(address)")]
+	#[precompile::view]
+	fn nonces(handle: &mut impl PrecompileHandle, owner: Address) -> EvmResult<U256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
-		let mut input = handle.read_input()?;
-		let from: H160 = input.read::<Address>()?.into();
+		let owner: H160 = owner.into();
 
-		let nonce = NoncesStorage::get(from);
+		let nonce = NoncesStorage::get(owner);
 
-		Ok(succeed(EvmDataWriter::new().write(nonce).build()))
+		Ok(nonce)
 	}
 
-	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<PrecompileOutput> {
+	#[precompile::public("DOMAIN_SEPARATOR()")]
+	#[precompile::view]
+	fn domain_separator(handle: &mut impl PrecompileHandle) -> EvmResult<H256> {
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 
 		let domain_separator: H256 =
 			Self::compute_domain_separator(handle.context().address).into();
 
-		Ok(succeed(
-			EvmDataWriter::new().write(domain_separator).build(),
-		))
+		Ok(domain_separator)
 	}
 }

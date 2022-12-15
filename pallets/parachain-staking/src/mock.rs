@@ -16,23 +16,25 @@
 
 //! Test utilities
 use crate as pallet_parachain_staking;
-use crate::{pallet, AwardedPts, Config, InflationInfo, Points, Range};
+use crate::{
+	pallet, AwardedPts, Config, Event as ParachainStakingEvent, InflationInfo, Points, Range,
+	COLLATOR_LOCK_ID, DELEGATOR_LOCK_ID,
+};
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild, OnFinalize, OnInitialize},
-	weights::Weight,
+	traits::{Everything, GenesisBuild, LockIdentifier, OnFinalize, OnInitialize},
+	weights::{constants::RocksDbWeight, Weight},
 };
 use sp_core::H256;
 use sp_io;
 use sp_runtime::{
-	testing::Header,
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill, Percent,
 };
 
 pub type AccountId = u64;
 pub type Balance = u128;
-pub type BlockNumber = u64;
+pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Test>;
 type Block = frame_system::mocking::MockBlock<Test>;
@@ -47,29 +49,30 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		ParachainStaking: pallet_parachain_staking::{Pallet, Call, Storage, Config<T>, Event<T>},
+		BlockAuthor: block_author::{Pallet, Storage},
 	}
 );
 
 parameter_types! {
-	pub const BlockHashCount: u64 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const BlockHashCount: u32 = 250;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type DbWeight = ();
-	type Origin = Origin;
+	type DbWeight = RocksDbWeight;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
-	type Header = Header;
-	type Event = Event;
+	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -91,12 +94,13 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
+impl block_author::Config for Test {}
 parameter_types! {
 	pub const MinBlocksPerRound: u32 = 3;
 	pub const DefaultBlocksPerRound: u32 = 5;
@@ -117,11 +121,10 @@ parameter_types! {
 	pub const MinDelegation: u128 = 3;
 }
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type MonetaryGovernanceOrigin = frame_system::EnsureRoot<AccountId>;
 	type MinBlocksPerRound = MinBlocksPerRound;
-	type DefaultBlocksPerRound = DefaultBlocksPerRound;
 	type LeaveCandidatesDelay = LeaveCandidatesDelay;
 	type CandidateBondLessDelay = CandidateBondLessDelay;
 	type LeaveDelegatorsDelay = LeaveDelegatorsDelay;
@@ -132,13 +135,13 @@ impl Config for Test {
 	type MaxTopDelegationsPerCandidate = MaxTopDelegationsPerCandidate;
 	type MaxBottomDelegationsPerCandidate = MaxBottomDelegationsPerCandidate;
 	type MaxDelegationsPerDelegator = MaxDelegationsPerDelegator;
-	type DefaultCollatorCommission = DefaultCollatorCommission;
-	type DefaultParachainBondReservePercent = DefaultParachainBondReservePercent;
 	type MinCollatorStk = MinCollatorStk;
 	type MinCandidateStk = MinCollatorStk;
 	type MinDelegatorStk = MinDelegatorStk;
 	type MinDelegation = MinDelegation;
+	type BlockAuthor = BlockAuthor;
 	type OnCollatorPayout = ();
+	type PayoutCollatorReward = ();
 	type OnNewRound = ();
 	type WeightInfo = ();
 }
@@ -148,8 +151,8 @@ pub(crate) struct ExtBuilder {
 	balances: Vec<(AccountId, Balance)>,
 	// [collator, amount]
 	collators: Vec<(AccountId, Balance)>,
-	// [delegator, collator, delegation_amount]
-	delegations: Vec<(AccountId, AccountId, Balance)>,
+	// [delegator, collator, delegation_amount, auto_compound_percent]
+	delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
 	// inflation config
 	inflation: InflationInfo<Balance>,
 }
@@ -198,6 +201,17 @@ impl ExtBuilder {
 		mut self,
 		delegations: Vec<(AccountId, AccountId, Balance)>,
 	) -> Self {
+		self.delegations = delegations
+			.into_iter()
+			.map(|d| (d.0, d.1, d.2, Percent::zero()))
+			.collect();
+		self
+	}
+
+	pub(crate) fn with_auto_compounding_delegations(
+		mut self,
+		delegations: Vec<(AccountId, AccountId, Balance, Percent)>,
+	) -> Self {
 		self.delegations = delegations;
 		self
 	}
@@ -222,6 +236,9 @@ impl ExtBuilder {
 			candidates: self.collators,
 			delegations: self.delegations,
 			inflation_config: self.inflation,
+			collator_commission: DefaultCollatorCommission::get(),
+			parachain_bond_reserve_percent: DefaultParachainBondReservePercent::get(),
+			blocks_per_round: DefaultBlocksPerRound::get(),
 		}
 		.assimilate_storage(&mut t)
 		.expect("Parachain Staking's storage can be assimilated");
@@ -233,11 +250,11 @@ impl ExtBuilder {
 }
 
 /// Rolls forward one block. Returns the new block number.
-pub(crate) fn roll_one_block() -> u64 {
-	ParachainStaking::on_finalize(System::block_number());
+fn roll_one_block() -> BlockNumber {
 	Balances::on_finalize(System::block_number());
 	System::on_finalize(System::block_number());
 	System::set_block_number(System::block_number() + 1);
+	System::reset_events();
 	System::on_initialize(System::block_number());
 	Balances::on_initialize(System::block_number());
 	ParachainStaking::on_initialize(System::block_number());
@@ -245,7 +262,7 @@ pub(crate) fn roll_one_block() -> u64 {
 }
 
 /// Rolls to the desired block. Returns the number of blocks played.
-pub(crate) fn roll_to(n: u64) -> u64 {
+pub(crate) fn roll_to(n: BlockNumber) -> u32 {
 	let mut num_blocks = 0;
 	let mut block = System::block_number();
 	while block < n {
@@ -255,23 +272,28 @@ pub(crate) fn roll_to(n: u64) -> u64 {
 	num_blocks
 }
 
+/// Rolls desired number of blocks. Returns the final block.
+pub(crate) fn roll_blocks(num_blocks: u32) -> BlockNumber {
+	let mut block = System::block_number();
+	for _ in 0..num_blocks {
+		block = roll_one_block();
+	}
+	block
+}
+
 /// Rolls block-by-block to the beginning of the specified round.
 /// This will complete the block in which the round change occurs.
 /// Returns the number of blocks played.
-pub(crate) fn roll_to_round_begin(round: u64) -> u64 {
-	let block = (round - 1) * DefaultBlocksPerRound::get() as u64;
+pub(crate) fn roll_to_round_begin(round: BlockNumber) -> BlockNumber {
+	let block = (round - 1) * DefaultBlocksPerRound::get();
 	roll_to(block)
 }
 
 /// Rolls block-by-block to the end of the specified round.
 /// The block following will be the one in which the specified round change occurs.
-pub(crate) fn roll_to_round_end(round: u64) -> u64 {
-	let block = round * DefaultBlocksPerRound::get() as u64 - 1;
+pub(crate) fn roll_to_round_end(round: BlockNumber) -> BlockNumber {
+	let block = round * DefaultBlocksPerRound::get() - 1;
 	roll_to(block)
-}
-
-pub(crate) fn last_event() -> Event {
-	System::events().pop().expect("Event expected").event
 }
 
 pub(crate) fn events() -> Vec<pallet::Event<Test>> {
@@ -279,7 +301,7 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::ParachainStaking(inner) = e {
+			if let RuntimeEvent::ParachainStaking(inner) = e {
 				Some(inner)
 			} else {
 				None
@@ -288,121 +310,214 @@ pub(crate) fn events() -> Vec<pallet::Event<Test>> {
 		.collect::<Vec<_>>()
 }
 
-/// Assert input equal to the last event emitted
+/// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_no_events!();
+/// ```
 #[macro_export]
-macro_rules! assert_last_event {
+macro_rules! assert_no_events {
+	() => {
+		similar_asserts::assert_eq!(Vec::<Event<Test>>::new(), crate::mock::events())
+	};
+}
+
+/// Asserts that emitted events match exactly the given input.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_eq {
 	($event:expr) => {
-		match &$event {
-			e => assert_eq!(*e, crate::mock::last_event()),
-		}
+		similar_asserts::assert_eq!(vec![$event], crate::mock::events());
+	};
+	($($events:expr,)+) => {
+		similar_asserts::assert_eq!(vec![$($events,)+], crate::mock::events());
 	};
 }
 
-/// Compares the system events with passed in events
-/// Prints highlighted diff iff assert_eq fails
-#[macro_export]
-macro_rules! assert_eq_events {
-	($events:expr) => {
-		match &$events {
-			e => similar_asserts::assert_eq!(*e, crate::mock::events()),
-		}
-	};
-}
-
-/// Compares the last N system events with passed in events, where N is the length of events passed
-/// in.
+/// Asserts that some emitted events match the given input.
 ///
-/// Prints highlighted diff iff assert_eq fails.
-/// The last events from frame_system will be taken in order to match the number passed to this
-/// macro. If there are insufficient events from frame_system, they will still be compared; the
-/// output may or may not be helpful.
+/// # Example
 ///
-/// Examples:
-/// If frame_system has events [A, B, C, D, E] and events [C, D, E] are passed in, the result would
-/// be a successful match ([C, D, E] == [C, D, E]).
-///
-/// If frame_system has events [A, B, C, D] and events [B, C] are passed in, the result would be an
-/// error and a hopefully-useful diff will be printed between [C, D] and [B, C].
-///
-/// Note that events are filtered to only match parachain-staking (see events()).
+/// ```
+/// assert_events_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
 #[macro_export]
-macro_rules! assert_eq_last_events {
-	($events:expr $(,)?) => {
-		assert_tail_eq!($events, crate::mock::events());
-	};
-	($events:expr, $($arg:tt)*) => {
-		assert_tail_eq!($events, crate::mock::events(), $($arg)*);
-	};
-}
-
-/// Assert that one array is equal to the tail of the other. A more generic and testable version of
-/// assert_eq_last_events.
-#[macro_export]
-macro_rules! assert_tail_eq {
-	($tail:expr, $arr:expr $(,)?) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..]);
-		}
-	};
-	($tail:expr, $arr:expr, $($arg:tt)*) => {
-		if $tail.len() != 0 {
-			// 0-length always passes
-
-			if $tail.len() > $arr.len() {
-				similar_asserts::assert_eq!($tail, $arr, $($arg)*); // will fail
-			}
-
-			let len_diff = $arr.len() - $tail.len();
-			similar_asserts::assert_eq!($tail, $arr[len_diff..], $($arg)*);
-		}
-	};
-}
-
-/// Panics if an event is not found in the system log of events
-#[macro_export]
-macro_rules! assert_event_emitted {
+macro_rules! assert_events_emitted {
 	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_some(),
-					"Event {:?} was not found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
+	};
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x == &e).is_some(),
+			"Event {:?} was not found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
 	};
 }
 
-/// Panics if an event is found in the system log of events
+/// Asserts that some events were never emitted.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted!(
+///		Foo { x: 1, y: 2 },
+///		Bar { value: "test" },
+/// );
+/// ```
 #[macro_export]
-macro_rules! assert_event_not_emitted {
+macro_rules! assert_events_not_emitted {
 	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_none(),
-					"Event {:?} was found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
+		[$event].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
+	};
+	($($events:expr,)+) => {
+		[$($events,)+].into_iter().for_each(|e| assert!(
+			crate::mock::events().into_iter().find(|x| x != &e).is_some(),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			e,
+			crate::mock::events()
+		));
 	};
 }
 
-// Same storage changes as EventHandler::note_author impl
-pub(crate) fn set_author(round: u32, acc: u64, pts: u32) {
+/// Asserts that the emitted events are exactly equal to the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_eq_match!(
+///		Foo { x: 1, .. },
+///		Bar { .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_eq_match {
+	($index:expr;) => {
+		assert_eq!(
+			$index,
+			crate::mock::events().len(),
+			"Found {} extra event(s): \n{:#?}",
+			crate::mock::events().len()-$index,
+			crate::mock::events()
+		);
+	};
+	($index:expr; $event:pat_param, $($events:pat_param,)*) => {
+		assert!(
+			matches!(
+				crate::mock::events().get($index),
+				Some($event),
+			),
+			"Event {:#?} was not found at index {}: \n{:#?}",
+			stringify!($event),
+			$index,
+			crate::mock::events()
+		);
+		assert_events_eq_match!($index+1; $($events,)*);
+	};
+	($event:pat_param) => {
+		assert_events_eq_match!(0; $event,);
+	};
+	($($events:pat_param,)+) => {
+		assert_events_eq_match!(0; $($events,)+);
+	};
+}
+
+/// Asserts that some emitted events match the input patterns.
+///
+/// # Example
+///
+/// ```
+/// assert_events_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| matches!(x, $event)),
+			"Event {:?} was not found in events: \n{:#?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_emitted_match!($event);
+		$(
+			assert_events_emitted_match!($events);
+		)+
+	};
+}
+
+/// Asserts that the input patterns match none of the emitted events.
+///
+/// # Example
+///
+/// ```
+/// assert_events_not_emitted_match!(
+///		Foo { x: 1, .. },
+///		Baz { a: 10, b: 20 },
+/// );
+/// ```
+#[macro_export]
+macro_rules! assert_events_not_emitted_match {
+	($event:pat_param) => {
+		assert!(
+			crate::mock::events().into_iter().any(|x| !matches!(x, $event)),
+			"Event {:?} was unexpectedly found in events: \n{:#?}",
+			stringify!($event),
+			crate::mock::events()
+		);
+	};
+	($event:pat_param, $($events:pat_param,)+) => {
+		assert_events_not_emitted_match!($event);
+		$(
+			assert_events_not_emitted_match!($events);
+		)+
+	};
+}
+
+// Same storage changes as ParachainStaking::on_finalize
+pub(crate) fn set_author(round: BlockNumber, acc: u64, pts: u32) {
 	<Points<Test>>::mutate(round, |p| *p += pts);
 	<AwardedPts<Test>>::mutate(round, acc, |p| *p += pts);
+}
+
+/// fn to query the lock amount
+pub(crate) fn query_lock_amount(account_id: u64, id: LockIdentifier) -> Option<Balance> {
+	for lock in Balances::locks(&account_id) {
+		if lock.id == id {
+			return Some(lock.amount);
+		}
+	}
+	None
 }
 
 #[test]
@@ -425,28 +540,45 @@ fn geneses() {
 		.execute_with(|| {
 			assert!(System::events().is_empty());
 			// collators
-			assert_eq!(Balances::reserved_balance(&1), 500);
-			assert_eq!(Balances::free_balance(&1), 500);
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&1),
+				500
+			);
+			assert_eq!(query_lock_amount(1, COLLATOR_LOCK_ID), Some(500));
 			assert!(ParachainStaking::is_candidate(&1));
-			assert_eq!(Balances::reserved_balance(&2), 200);
-			assert_eq!(Balances::free_balance(&2), 100);
+			assert_eq!(query_lock_amount(2, COLLATOR_LOCK_ID), Some(200));
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&2),
+				100
+			);
 			assert!(ParachainStaking::is_candidate(&2));
 			// delegators
 			for x in 3..7 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 0);
-				assert_eq!(Balances::reserved_balance(&x), 100);
+				assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&x), 0);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(100));
 			}
 			// uninvolved
 			for x in 7..10 {
 				assert!(!ParachainStaking::is_delegator(&x));
 			}
-			assert_eq!(Balances::free_balance(&7), 100);
-			assert_eq!(Balances::reserved_balance(&7), 0);
-			assert_eq!(Balances::free_balance(&8), 9);
-			assert_eq!(Balances::reserved_balance(&8), 0);
-			assert_eq!(Balances::free_balance(&9), 4);
-			assert_eq!(Balances::reserved_balance(&9), 0);
+			// no delegator staking locks
+			assert_eq!(query_lock_amount(7, DELEGATOR_LOCK_ID), None);
+			assert_eq!(
+				ParachainStaking::get_delegator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(query_lock_amount(8, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&8), 9);
+			assert_eq!(query_lock_amount(9, DELEGATOR_LOCK_ID), None);
+			assert_eq!(ParachainStaking::get_delegator_stakable_free_balance(&9), 4);
+			// no collator staking locks
+			assert_eq!(
+				ParachainStaking::get_collator_stakable_free_balance(&7),
+				100
+			);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&8), 9);
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&9), 4);
 		});
 	ExtBuilder::default()
 		.with_balances(vec![
@@ -475,19 +607,46 @@ fn geneses() {
 			// collators
 			for x in 1..5 {
 				assert!(ParachainStaking::is_candidate(&x));
-				assert_eq!(Balances::free_balance(&x), 80);
-				assert_eq!(Balances::reserved_balance(&x), 20);
+				assert_eq!(query_lock_amount(x, COLLATOR_LOCK_ID), Some(20));
+				assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&x), 80);
 			}
 			assert!(ParachainStaking::is_candidate(&5));
-			assert_eq!(Balances::free_balance(&5), 90);
-			assert_eq!(Balances::reserved_balance(&5), 10);
+			assert_eq!(query_lock_amount(5, COLLATOR_LOCK_ID), Some(10));
+			assert_eq!(ParachainStaking::get_collator_stakable_free_balance(&5), 90);
 			// delegators
 			for x in 6..11 {
 				assert!(ParachainStaking::is_delegator(&x));
-				assert_eq!(Balances::free_balance(&x), 90);
-				assert_eq!(Balances::reserved_balance(&x), 10);
+				assert_eq!(query_lock_amount(x, DELEGATOR_LOCK_ID), Some(10));
+				assert_eq!(
+					ParachainStaking::get_delegator_stakable_free_balance(&x),
+					90
+				);
 			}
 		});
+}
+
+#[frame_support::pallet]
+pub mod block_author {
+	use super::*;
+	use frame_support::pallet_prelude::*;
+	use frame_support::traits::Get;
+
+	#[pallet::config]
+	pub trait Config: frame_system::Config {}
+
+	#[pallet::pallet]
+	#[pallet::generate_store(pub(super) trait Store)]
+	pub struct Pallet<T>(_);
+
+	#[pallet::storage]
+	#[pallet::getter(fn block_author)]
+	pub(super) type BlockAuthor<T> = StorageValue<_, AccountId, ValueQuery>;
+
+	impl<T: Config> Get<AccountId> for Pallet<T> {
+		fn get() -> AccountId {
+			<BlockAuthor<T>>::get()
+		}
+	}
 }
 
 #[test]
@@ -531,39 +690,372 @@ fn roll_to_round_end_works() {
 }
 
 #[test]
-fn assert_tail_eq_works() {
-	assert_tail_eq!(vec![1, 2], vec![0, 1, 2]);
+#[should_panic]
+fn test_assert_events_eq_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
 
-	assert_tail_eq!(vec![1], vec![1]);
-
-	assert_tail_eq!(
-		vec![0u32; 0], // 0 length array
-		vec![0u32; 1]  // 1-length array
-	);
-
-	assert_tail_eq!(vec![0u32, 0], vec![0u32, 0]);
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_non_equal_tail() {
-	assert_tail_eq!(vec![2, 2], vec![0, 1, 2]);
+fn test_assert_events_eq_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 200,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_empty_arr() {
-	assert_tail_eq!(vec![2, 2], vec![0u32; 0]);
+fn test_assert_events_eq_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_longer_tail() {
-	assert_tail_eq!(vec![1, 2, 3], vec![1, 2]);
+fn test_assert_events_eq_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 50,
+			},
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_eq_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				round: 2,
+				selected_collators_number: 1,
+				total_balance: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
 }
 
 #[test]
 #[should_panic]
-fn assert_tail_eq_panics_on_unequal_elements_same_length_array() {
-	assert_tail_eq!(vec![1, 2, 3], vec![0, 1, 2]);
+fn test_assert_events_emitted_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			delegator: 3,
+			scheduled_exit: 4,
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 50,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted!(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				total_exposed_amount: 10,
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_extra() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::Rewarded { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_order() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::Rewarded { .. },
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_eq_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen { .. },
+			ParachainStakingEvent::NewRound { .. },
+			ParachainStakingEvent::Rewarded { rewards: 50, .. },
+		);
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_eq_match!(ParachainStakingEvent::Rewarded { account: 1, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_eq_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_eq_match!(
+			ParachainStakingEvent::CollatorChosen {
+				round: 2,
+				collator_account: 1,
+				..
+			},
+			ParachainStakingEvent::NewRound {
+				starting_block: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_missing() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::DelegatorExitScheduled {
+			round: 2,
+			..
+		});
+	});
+}
+
+#[test]
+#[should_panic]
+fn test_assert_events_emitted_match_fails_if_event_wrong_value() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 50, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_single() {
+	ExtBuilder::default().build().execute_with(|| {
+		System::deposit_event(ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		});
+
+		assert_events_emitted_match!(ParachainStakingEvent::Rewarded { rewards: 100, .. });
+	});
+}
+
+#[test]
+fn test_assert_events_emitted_match_passes_if_all_events_present_multiple() {
+	ExtBuilder::default().build().execute_with(|| {
+		inject_test_events();
+
+		assert_events_emitted_match!(
+			ParachainStakingEvent::CollatorChosen {
+				total_exposed_amount: 10,
+				..
+			},
+			ParachainStakingEvent::Rewarded {
+				account: 1,
+				rewards: 100,
+			},
+		);
+	});
+}
+
+fn inject_test_events() {
+	[
+		ParachainStakingEvent::CollatorChosen {
+			round: 2,
+			collator_account: 1,
+			total_exposed_amount: 10,
+		},
+		ParachainStakingEvent::NewRound {
+			starting_block: 10,
+			round: 2,
+			selected_collators_number: 1,
+			total_balance: 10,
+		},
+		ParachainStakingEvent::Rewarded {
+			account: 1,
+			rewards: 100,
+		},
+	]
+	.into_iter()
+	.for_each(System::deposit_event);
 }

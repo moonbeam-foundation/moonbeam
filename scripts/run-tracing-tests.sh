@@ -20,7 +20,17 @@ else
   echo "The tracing runtime is not rebuilt, if you want to rebuild it, use the option '-f'."
 fi
 
+echo "Preparing tests dependencies…"
+cd moonbeam-types-bundle
+npm ci
+npm run build
+cd ../typescript-api
+npm ci
+
 echo "Run tracing tests…"
-cd tests
-ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'tracing-tests/**/test-*.ts'
+cd ../tests
+npm ci
+npm run setup-typescript-api
+npm run build
+ETHAPI_CMD="--ethapi=txpool,debug,trace" FORCE_WASM_EXECUTION="true" WASM_RUNTIME_OVERRIDES="moonbase-overrides" node_modules/.bin/mocha --parallel -j 2 -r ts-node/register 'build/tracing-tests/**/test-*.js' --timeout 30000
 cd ..

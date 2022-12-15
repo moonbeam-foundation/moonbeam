@@ -256,7 +256,7 @@ Using `npm run get-binary...` it is possible to retrieve a binary from github bu
 Ex:
 
 ```
-npm run get-binary -- --tag v0.24.0
+npm run get-binary -- --tag v0.25.0
 ```
 
 or
