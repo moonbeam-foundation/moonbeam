@@ -13,6 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 
+use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 use sp_std::vec::Vec;
 use xcm::latest::MultiLocation;
 
@@ -23,6 +24,15 @@ pub enum UtilityAvailableCalls {
 	AsDerivative(u16, Vec<u8>),
 }
 
+// The hrmp calls that need to be implemented as part of
+// this pallet
+#[derive(Debug, PartialEq, Eq)]
+pub enum HrmpAvailableCalls {
+	InitOpenChannel(ParaId, u32, u32),
+	AcceptOpenChannel(ParaId),
+	CloseChannel(HrmpChannelId),
+}
+
 // Trait that the ensures we can encode a call with utility functions.
 // With this trait we ensure that the user cannot control entirely the call
 // to be performed in the destination chain. It only can control the call inside
@@ -30,6 +40,13 @@ pub enum UtilityAvailableCalls {
 // derivative account
 pub trait UtilityEncodeCall {
 	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+}
+
+// Trait that the ensures we can encode a call with hrmp functions.
+// With this trait we ensure that the user cannot control entirely the call
+// to be performed in the destination chain.
+pub trait HrmpEncodeCall {
+	fn encode_call(self, call: HrmpAvailableCalls) -> Vec<u8>;
 }
 
 // Trait to ensure we can retrieve the destination if a given type
