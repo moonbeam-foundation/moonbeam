@@ -23,12 +23,7 @@ use {
 		},
 		Error, Event,
 	},
-	frame_support::{
-		assert_err, assert_ok,
-		traits::OnRuntimeUpgrade,
-		weights::Weight,
-		BoundedVec,
-	},
+	frame_support::{assert_err, assert_ok, traits::OnRuntimeUpgrade, weights::Weight, BoundedVec},
 	pallet_preimage::RequestStatus,
 	sp_runtime::traits::Hash,
 	std::sync::{Arc, Mutex},
