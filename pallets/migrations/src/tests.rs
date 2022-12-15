@@ -26,7 +26,7 @@ use {
 	frame_support::{
 		assert_err, assert_ok,
 		traits::OnRuntimeUpgrade,
-		weights::{constants::RocksDbWeight, Weight},
+		weights::Weight,
 		BoundedVec,
 	},
 	pallet_preimage::RequestStatus,
@@ -224,14 +224,6 @@ fn migration_should_only_be_invoked_once() {
 				});
 		},
 	);
-}
-
-#[test]
-fn on_runtime_upgrade_charges_minimum_two_db_writes() {
-	ExtBuilder::default().build().execute_with(|| {
-		let weight = Migrations::on_runtime_upgrade();
-		assert_eq!(weight, RocksDbWeight::get().writes(2));
-	})
 }
 
 #[test]
