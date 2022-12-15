@@ -137,6 +137,32 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     ).to.equal(alith.address, "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
   });
+
+  it("should have correct delegation amount for ethan to ALITH", async function () {
+    // Check that delegation amount equals MIN_GLMR_STAKING
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegationAmount", [
+        ethan.address,
+        alith.address,
+      ]),
+    });
+
+    expect(Number(result)).to.equal(MIN_GLMR_STAKING);
+  });
+
+  it("should have ethan's delegation to ALITH in top delegations", async function () {
+    // Check that delegation is in top delegations
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("isInTopDelegations", [
+        ethan.address,
+        alith.address,
+      ]),
+    });
+
+    expect(result).to.equal(true);
+  });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (context) => {
