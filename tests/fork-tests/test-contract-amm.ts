@@ -1,6 +1,6 @@
 import { ALITH_PRIVATE_KEY } from "../util/accounts";
 import { expect } from "chai";
-import { BigNumber, Contract, ethers } from "ethers";
+import { BigNumber, Contract, ethers, Wallet } from "ethers";
 import {
   ammRouterAbi,
   ammRouterAddress,
@@ -15,41 +15,14 @@ import {
 
 import { describeParachain } from "../util/setup-para-tests";
 import { TWO_MINS } from "../util/constants";
+import { describeDevMoonbeam } from "../util/setup-dev-tests";
 
-const debug = require("debug")("contract-sim:amm");
-const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
-const SPEC_FILE = process.env.SPEC_FILE;
-const PARA_ID = process.env.PARA_ID && parseInt(process.env.PARA_ID);
+const debug = require("debug")("contract-simulation:AMM");
 
-if (!RUNTIME_NAME) {
-  console.error(`Missing RUNTIME_NAME (ex: moonbeam)`);
-  process.exit(1);
-}
-
-if (!SPEC_FILE) {
-  console.error(`Missing SPEC_FILE (ex: ~/exports/moonbeam-state.mod.json)`);
-  process.exit(1);
-}
-
-if (!PARA_ID) {
-  console.error(`Missing PARA_ID (ex: 2004)`);
-  process.exit(1);
-}
-
-describeParachain(
-  `When interacting with AMM contracts on forked ${RUNTIME_NAME} network...`,
-  {
-    parachain: {
-      spec: SPEC_FILE,
-      binary: "local",
-    },
-    paraId: PARA_ID,
-    relaychain: {
-      binary: "local",
-    },
-  },
+describeDevMoonbeam(
+  `When interacting with AMM contracts on forked Moonbeam network...`,
   (context) => {
-    let signer;
+    let signer: Wallet;
 
     let usdtContract: Contract,
       poolContract: Contract,
@@ -104,8 +77,8 @@ describeParachain(
         await dotContract.approve(routerContract.address, ethers.constants.MaxUint256);
         await usdtContract.approve(routerContract.address, ethers.constants.MaxUint256);
         await poolContract.approve(routerContract.address, ethers.constants.MaxUint256);
-        debug(`ℹ️ Setting allowances, please wait ...`);
-        await context.waitBlocks(2);
+        debug(`ℹ️  Setting allowances, please wait ...`);
+        await context.createBlock()
         const dotApprovalAmount = await dotContract.allowance(
           signer.address,
           routerContract.address
@@ -177,7 +150,8 @@ describeParachain(
         deadline,
         { value: ethers.utils.parseEther("100"), gasLimit: "200000" }
       );
-      await context.waitBlocks(2);
+      debug(`ℹ️  Swapping GLMR for DOT ...`);
+      await context.createBlock()
 
       const dotBalanceAfter = await dotContract.balanceOf(signer.address);
       const systemBalanceAfter = await signer.getBalance();
@@ -218,7 +192,8 @@ describeParachain(
         Math.floor(Number(Date.now()) / 1000) + 3000,
         { value: glmrAmount, gasLimit: "300000" }
       );
-      await context.waitBlocks(2);
+      debug(`ℹ️  Adding liquidity to pool ...`);
+      await context.createBlock()
 
       /// baalnces again
       const poolTokenBalanceAfter = await poolContract.balanceOf(signer.address);
@@ -244,7 +219,8 @@ describeParachain(
         Math.floor(Number(Date.now()) / 1000) + 3000,
         { gasLimit: "300000" }
       );
-      await context.waitBlocks(2);
+      debug(`ℹ️  Removing liquidity from pool ...`);
+      await context.createBlock()
 
       const poolTokenBalanceFinally = await poolContract.balanceOf(signer.address);
       const dotTokenBalanceFinally = await dotContract.balanceOf(signer.address);

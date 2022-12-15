@@ -47,7 +47,7 @@
     "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-historic-compatibility.ts'",
     "mocha-smoke": "mocha -r ts-node/register -r ./util/smokeFixtures.ts",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
-    "contract-sim-tests": "PARA_ID=2004 OVERRIDE_RUNTIME_PATH=/tmp/fork-chain/moonbeam/binaries/ DEBUG_MODE=true PORT_PREFIX=51 SPEC_FILE=/tmp/fork-test/states/moonbeam-state.mod.json RUNTIME_NAME=moonbeam mocha -r ts-node/register 'fork-tests/test-contract*.ts'",
+    "contract-simulation": "DEBUG_MODE=true mocha -r ts-node/register 'fork-tests/test-contract*.ts'",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "tsc; cp -r contracts build/",
@@ -64,8 +64,8 @@
     "@parity/zombienet": "^1.2.70",
     "@polkadot/api": "^9.9.4",
     "@polkadot/apps-config": "^0.122.2",
-    "@polkadot/keyring": "^10.1.9",
-    "@polkadot/util": "^10.1.9",
+    "@polkadot/keyring": "^10.2.1",
+    "@polkadot/util": "^10.2.1",
     "@substrate/txwrapper-core": "^3.2.2",
     "@substrate/txwrapper-substrate": "^3.2.2",
     "@types/chai": "^4.2.11",
@@ -110,6 +110,8 @@
     "@polkadot/types-support": "$@polkadot/api",
     "@polkadot/types-codec": "$@polkadot/api",
     "@polkadot/types": "$@polkadot/api",
-    "@polkadot/types-known": "$@polkadot/api"
+    "@polkadot/types-known": "$@polkadot/api",
+    "@polkadot/util": "$@polkadot/util",
+    "@polkadot/util-crypto": "$@polkadot/util"
   }
 }
