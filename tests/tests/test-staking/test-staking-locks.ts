@@ -8,11 +8,11 @@ import {
   execTechnicalCommitteeProposal,
   notePreimage,
 } from "../../util/governance";
-import { GLMR, MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
+import { MICROGLMR, MILLIGLMR, GLMR, MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { expectOk } from "../../util/expect";
-import { getBlockExtrinsic, jumpRounds } from "../../util/block";
+import { jumpRounds } from "../../util/block";
 import { ExtrinsicCreation } from "../../util/substrate-rpc";
 
 describeDevMoonbeam("Staking - Locks - join delegators", (context) => {
@@ -510,6 +510,11 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
 
   before("setup candidate & delegations", async function () {
     this.timeout(20000);
+    const numBottomDelegations = await context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
+    console.log(`numBottomDel: ${numBottomDelegations}`);
+
+    const numTopDelegations = await context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
+    console.log(`numTopDel: ${numTopDelegations}`);
 
     // Create the delegators to fill the lists
     bottomDelegators = new Array(
@@ -527,7 +532,7 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
       context.createBlock(
         [...bottomDelegators, ...topDelegators].map((account, i) =>
           context.polkadotApi.tx.balances
-            .transfer(account.address, MIN_GLMR_DELEGATOR + 2n * GLMR)
+            .transfer(account.address, MIN_GLMR_DELEGATOR + 20n * GLMR)
             .signAsync(alith, { nonce: i })
         )
       )
@@ -535,52 +540,60 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
   });
 
   it("should be set for bottom and top list delegators", async function () {
-    this.timeout(1000000)
-    for (let i=0; i<topDelegators.length; i++) {
-      const account = topDelegators[i];
-      const tx = context.polkadotApi.tx.parachainStaking
-        .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, i+1, 1)
-        .signAsync(account);
-      const result = await context.createBlock(tx);
-      const {extrinsic, resultEvent } = await getBlockExtrinsic(
-        context.polkadotApi,
-        result.block.hash,
-        "parachainStaking",
-        "delegate"
-      );
-
-      expect(extrinsic).to.exist;
-      expect(resultEvent.method).to.equal("ExtrinsicSuccess");
-    }
-
-    for (let i=0; i<bottomDelegators.length; i++) {
-      const account = bottomDelegators[i];
-      const tx = context.polkadotApi.tx.parachainStaking
-        .delegate(alith.address, MIN_GLMR_DELEGATOR, topDelegators.length + i + 1, 1)
-        .signAsync(account);
-      const result = await context.createBlock(tx);
-      const {extrinsic, resultEvent } = await getBlockExtrinsic(
-        context.polkadotApi,
-        result.block.hash,
-        "parachainStaking",
-        "delegate"
-      );
-
-      expect(extrinsic).to.exist;
-      expect(resultEvent.method).to.equal("ExtrinsicSuccess");
-    }
-
-    const topLocks = await context.polkadotApi.query.balances.locks.multi(
-      topDelegators.map((delegator) => delegator.address)
+    await expectOk(
+      context.createBlock(
+        [...topDelegators].map((account, i) => {
+          // add a tip such that the delegation ordering will be preserved, e.g. the first txns sent
+          // will have the highest tip
+          let tip = BigInt(topDelegators.length - i + 1) * MILLIGLMR;
+          return context.polkadotApi.tx.parachainStaking
+            .delegate(alith.address, MIN_GLMR_DELEGATOR + 1n * GLMR, i + 1, 1)
+            .signAsync(account, { tip });
+        })
+      )
     );
-    expect(
-      topLocks.filter((lockSet) =>
+
+    // allow more block(s) for txns to be processed...
+    // note: this only seems necessary when a tip is added, otherwise all 300 txns make it into a
+    // single block. A tip is necessary if the txns are not otherwise executed in order of
+    // submission, which is highly dependent on txpool prioritization logic.
+    // TODO: it would be good to diagnose this further: why does adding a tip appear to reduce the
+    // number of txns included?
+    const numBlocksToWait = 1;
+    let numBlocksWaited = 0;
+    while (numBlocksWaited < numBlocksToWait) {
+      await context.createBlock();
+      const topLocks = await context.polkadotApi.query.balances.locks.multi(
+        topDelegators.map((delegator) => delegator.address)
+      );
+      let numDelegatorLocks = topLocks.filter((lockSet) =>
         lockSet.find((lock) => lock.id.toHuman().toString() == "stkngdel")
-      ).length
-    ).to.equal(
-      context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber()
+      ).length;
+
+      if (numDelegatorLocks < topDelegators.length) {
+        numBlocksWaited += 1;
+        expect(numBlocksWaited).to.be.lt(numBlocksToWait, "Top delegation extrinsics not included in time");
+      } else {
+        expect(numDelegatorLocks).to.eq(topDelegators.length, "More delegations than expected");
+        break;
+      }
+    }
+
+    await expectOk(
+      context.createBlock(
+        [...bottomDelegators].map((account, i) => {
+          // add a tip such that the delegation ordering will be preserved, e.g. the first txns sent
+          // will have the highest tip
+          let tip = BigInt(topDelegators.length + (bottomDelegators.length - i) + 1) * MILLIGLMR;
+          return context.polkadotApi.tx.parachainStaking
+            .delegate(alith.address, MIN_GLMR_DELEGATOR, topDelegators.length + i + 1, 1)
+            .signAsync(account, { tip });
+        })
+      )
     );
 
+    // note that we don't need to wait for further blocks here because bottom delegations is much
+    // smaller than top delegations, so all txns reliably fit within one block.
     const bottomLocks = await context.polkadotApi.query.balances.locks.multi(
       bottomDelegators.map((delegator) => delegator.address)
     );
