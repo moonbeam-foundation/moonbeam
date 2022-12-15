@@ -161,7 +161,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
       ]),
     });
 
-    expect(result).to.equal(true);
+    expect(Number(result)).to.equal(1);
   });
 });
 
