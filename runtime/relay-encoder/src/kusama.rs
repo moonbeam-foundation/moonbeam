@@ -99,16 +99,16 @@ impl xcm_primitives::UtilityEncodeCall for KusamaEncoder {
 }
 
 impl xcm_primitives::HrmpEncodeCall for KusamaEncoder {
-	fn encode_call(self, call: xcm_primitives::HrmpAvailableCalls) -> Vec<u8> {
+	fn encode_call(self, call: xcm_primitives::HrmpAvailableCalls) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
 			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
-				RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone())).encode()
+				Ok(RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
-				RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode()
+				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
 			}
 			xcm_primitives::HrmpAvailableCalls::CloseChannel(a) => {
-				RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode()
+				Ok(RelayCall::Hrmp(HrmpCall::CloseChannel(a.clone())).encode())
 			}
 		}
 	}
@@ -482,7 +482,7 @@ mod tests {
 					100u32.into()
 				)
 			),
-			expected_encoded
+			Ok(expected_encoded)
 		);
 	}
 }

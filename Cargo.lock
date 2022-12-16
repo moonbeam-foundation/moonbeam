@@ -5102,6 +5102,7 @@ dependencies = [
  "sp-runtime",
  "sp-std",
  "westend-runtime",
+ "xcm",
  "xcm-primitives",
 ]
 

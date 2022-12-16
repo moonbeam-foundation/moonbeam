@@ -134,6 +134,9 @@ pub mod pallet {
 		// The origin that is allowed to register derivative address indices
 		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
+		// The origin that is allowed to register derivative address indices
+		type HrmpManipulatorOrigin: EnsureOrigin<Self::RuntimeOrigin>;
+
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
@@ -292,6 +295,7 @@ pub mod pallet {
 		FeePerSecondNotSet,
 		SignedTransactNotAllowedForDestination,
 		FailedMultiLocationToJunction,
+		HrmpHandlerNotImplemented
 	}
 
 	#[pallet::event]
@@ -630,6 +634,21 @@ pub mod pallet {
 			Self::deposit_event(Event::DestFeePerSecondRemoved {
 				location: asset_location,
 			});
+			Ok(())
+		}
+
+		/// Manage HRMP operations
+		#[pallet::weight(0)]
+		pub fn hrmp_mananger(
+			origin: OriginFor<T>,
+			// destination to which the message should be sent
+			dest: T::Transactor,
+			// fee to be used
+			fee: CurrencyPayment<CurrencyIdOf<T>>,
+			// weight information to be used
+			weight_info: TransactWeights,
+		) -> DispatchResult {
+			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			Ok(())
 		}
 	}

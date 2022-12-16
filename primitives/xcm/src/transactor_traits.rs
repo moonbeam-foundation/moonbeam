@@ -15,7 +15,7 @@
 
 use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 use sp_std::vec::Vec;
-use xcm::latest::MultiLocation;
+use xcm::latest::{MultiLocation, Error as XcmError};
 
 // The utility calls that need to be implemented as part of
 // this pallet
@@ -46,14 +46,14 @@ pub trait UtilityEncodeCall {
 // With this trait we ensure that the user cannot control entirely the call
 // to be performed in the destination chain.
 pub trait HrmpEncodeCall {
-	fn encode_call(self, call: HrmpAvailableCalls) -> Vec<u8>;
+	fn encode_call(self, call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError>;
 }
 
 // Trait to ensure we can retrieve the destination if a given type
 // It must implement UtilityEncodeCall
 // We separate this in two traits to be able to implement UtilityEncodeCall separately
 // for different runtimes of our choice
-pub trait XcmTransact: UtilityEncodeCall {
+pub trait XcmTransact: UtilityEncodeCall + HrmpEncodeCall {
 	/// Encode call from the relay.
 	fn destination(self) -> MultiLocation;
 }
