@@ -7109,7 +7109,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
  "session-keys-primitives",
  "sp-core",
  "sp-io",

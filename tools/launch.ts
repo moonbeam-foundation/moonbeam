@@ -376,7 +376,7 @@ async function start() {
       }
       // If it is an array, push the position at which we are
       else if (Array.isArray(argv["parachain-chain"])) {
-        parachainsChains.push(argv["parachain-chain"] || parachains[parachainName].chain);
+        parachainsChains.push(argv["parachain-chain"][i] || parachains[parachainName].chain);
       }
       // Else, push the value to the first parachain if it exists, else the default
       else {
