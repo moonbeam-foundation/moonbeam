@@ -114,7 +114,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
 							let _ = match &ext.0.function {
-								Call::Ethereum(transact { transaction }) => {
+								RuntimeCall::Ethereum(transact { transaction }) => {
 									if transaction == traced_transaction {
 										EvmTracer::new().trace(|| Executive::apply_extrinsic(ext));
 										return Ok(());
@@ -164,7 +164,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// Apply all extrinsics. Ethereum extrinsics are traced.
 						for ext in extrinsics.into_iter() {
 							match &ext.0.function {
-								Call::Ethereum(transact { transaction }) => {
+								RuntimeCall::Ethereum(transact { transaction }) => {
 									if known_transactions.contains(&transaction.hash()) {
 										// Each known extrinsic is a new call stack.
 										EvmTracer::emit_new();
@@ -197,14 +197,14 @@ macro_rules! impl_runtime_apis_plus_common {
 						ready: xts_ready
 							.into_iter()
 							.filter_map(|xt| match xt.0.function {
-								Call::Ethereum(transact { transaction }) => Some(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
 						future: xts_future
 							.into_iter()
 							.filter_map(|xt| match xt.0.function {
-								Call::Ethereum(transact { transaction }) => Some(transaction),
+								RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 								_ => None,
 							})
 							.collect(),
@@ -342,13 +342,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					xts: Vec<<Block as BlockT>::Extrinsic>,
 				) -> Vec<EthereumTransaction> {
 					xts.into_iter().filter_map(|xt| match xt.0.function {
-						Call::Ethereum(transact { transaction }) => Some(transaction),
+						RuntimeCall::Ethereum(transact { transaction }) => Some(transaction),
 						_ => None
 					}).collect::<Vec<EthereumTransaction>>()
 				}
 
 				fn elasticity() -> Option<Permill> {
-					Some(BaseFee::elasticity())
+					None
 				}
 			}
 
@@ -468,6 +468,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
@@ -488,6 +489,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
+					list_benchmark!(list, extra, pallet_migrations, MigrationsBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -567,7 +569,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					}
 
 					impl pallet_xcm_benchmarks::generic::Config for Runtime {
-						type Call = Call;
+						type RuntimeCall = RuntimeCall;
 
 						fn worst_case_response() -> (u64, Response) {
 							(0u64, Response::Version(Default::default()))
@@ -600,6 +602,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
 					use pallet_xcm_transactor::Pallet as XcmTransactorBench;
 					use pallet_randomness::Pallet as RandomnessBench;
+					use pallet_migrations::Pallet as MigrationsBench;
 					use MoonbeamXcmBenchmarks::XcmGenericBenchmarks as MoonbeamXcmGenericBench;
 
 					let whitelist: Vec<TrackedStorageKey> = vec![
@@ -715,6 +718,13 @@ macro_rules! impl_runtime_apis_plus_common {
 					add_benchmark!(
 						params,
 						batches,
+						pallet_migrations,
+						MigrationsBench::<Runtime>
+					);
+
+					add_benchmark!(
+						params,
+						batches,
 						moonbeam_xcm_benchmarks_generic,
 						MoonbeamXcmGenericBench::<Runtime>
 					);
@@ -735,7 +745,7 @@ macro_rules! impl_runtime_apis_plus_common {
 					// fail, we shall stop right here and right now.
 					let weight = Executive::try_runtime_upgrade()
 						.expect("runtime upgrade logic *must* be infallible");
-					(weight, BlockWeights::get().max_block)
+					(weight, RuntimeBlockWeights::get().max_block)
 				}
 
 				fn execute_block(

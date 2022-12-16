@@ -27,7 +27,6 @@ import {
 } from "../../util/transactions";
 
 import { expectOk } from "../../util/expect";
-import { expectEVMResult } from "../../util/eth-transactions";
 
 describeDevMoonbeamAllRuntimes(
   "Mock XCM - receive horizontal transact ETHEREUM (transfer)",
@@ -1661,7 +1660,8 @@ describeDevMoonbeam("Mock XCM - receive horizontal transact ETHEREUM (transfer)"
       const weightBlock = await context.polkadotApi.query.system.blockWeight();
       // Make sure the system block weight corresponds to gas used and not gas limit
       // It should be sufficient to verify that we used less than what was marked
-      expect(12_500_000_000n + 25_000_000n - weightBlock.mandatory.toBigInt() > 0n).to.be.true;
+      expect(12_500_000_000n + 25_000_000n - weightBlock.mandatory.refTime.toBigInt() > 0n).to.be
+        .true;
     }
   });
 });

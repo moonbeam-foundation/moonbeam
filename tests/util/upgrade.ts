@@ -49,8 +49,19 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
         let encodedHash = blake2AsHex(encodedProposal);
 
         // Check if already in governance
-        const preImageExists = await api.query.democracy.preimages(encodedHash);
-        if (preImageExists.isSome && preImageExists.unwrap().isAvailable) {
+        const preImageExists =
+          api.query.preimage && (await api.query.preimage.statusFor(encodedHash));
+        const democracyPreImageExists =
+          !api.query.preimage && ((await api.query.democracy.preimages(encodedHash)) as any);
+
+        if (api.query.preimage && preImageExists.isSome && preImageExists.unwrap().isRequested) {
+          process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
+        } else if (
+          // TODO: remove support for democracy preimage support after 2000
+          !api.query.preimage &&
+          democracyPreImageExists.isSome &&
+          democracyPreImageExists.unwrap().isAvailable
+        ) {
           process.stdout.write(`Preimage ${encodedHash} already exists !\n`);
         } else {
           process.stdout.write(
@@ -58,21 +69,43 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
               code.length / 1024
             )} kb])...`
           );
-          await api.tx.democracy
-            .notePreimage(encodedProposal)
-            .signAndSend(options.from, { nonce: nonce++ });
+          if (api.query.preimage) {
+            await api.tx.preimage
+              .notePreimage(encodedProposal)
+              .signAndSend(options.from, { nonce: nonce++ });
+          } else {
+            // TODO: remove support for democracy after 2000
+            await api.tx.democracy
+              .notePreimage(encodedProposal)
+              .signAndSend(options.from, { nonce: nonce++ });
+          }
           process.stdout.write(`✅\n`);
         }
 
         // Check if already in referendum
         const referendum = await api.query.democracy.referendumInfoOf.entries();
-        const referendaIndex = referendum
-          .filter(
-            (ref) =>
-              ref[1].unwrap().isOngoing &&
-              ref[1].unwrap().asOngoing.proposalHash.toHex() == encodedHash
-          )
-          .map((ref) => api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber())?.[0];
+        // TODO: remove support for democracy after 2000
+        const referendaIndex = api.query.preimage
+          ? referendum
+              .filter(
+                (ref) =>
+                  ref[1].unwrap().isOngoing &&
+                  ref[1].unwrap().asOngoing.proposal.isLookup &&
+                  ref[1].unwrap().asOngoing.proposal.asLookup.hash.toHex() == encodedHash
+              )
+              .map((ref) =>
+                api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
+              )?.[0]
+          : referendum
+              .filter(
+                (ref) =>
+                  ref[1].unwrap().isOngoing &&
+                  (ref[1].unwrap().asOngoing as any).proposalHash.toHex() == encodedHash
+              )
+              .map((ref) =>
+                api.registry.createType("u32", ref[0].toU8a().slice(-4)).toNumber()
+              )?.[0];
+
         if (referendaIndex !== null && referendaIndex !== undefined) {
           process.stdout.write(`Vote for upgrade already in referendum, cancelling it.\n`);
           await cancelReferendaWithCouncil(api, referendaIndex);
@@ -93,7 +126,7 @@ export async function upgradeRuntime(api: ApiPromise, preferences: UpgradePrefer
           )} kb])...`
         );
         await api.tx.sudo
-          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), 1)
+          .sudoUncheckedWeight(await api.tx.system.setCodeWithoutChecks(code), "1")
           .signAndSend(options.from, { nonce: nonce++ });
         process.stdout.write(`✅\n`);
       }

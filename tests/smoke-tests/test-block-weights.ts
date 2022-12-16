@@ -3,7 +3,7 @@ import { BN } from "@polkadot/util";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
-import { fetchHistoricBlockNum, getBlockTime } from "../util/block";
+import { extractWeight, getBlockArray } from "../util/block";
 import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
@@ -38,24 +38,7 @@ describeSmokeSuite(
 
     before("Retrieve all weight limits and usage", async function () {
       this.timeout(timeout);
-
-      const signedBlock = await context.polkadotApi.rpc.chain.getBlock(
-        await context.polkadotApi.rpc.chain.getFinalizedHead()
-      );
-
-      const lastBlockNumber = signedBlock.block.header.number.toNumber();
-      const lastBlockTime = getBlockTime(signedBlock);
-
-      const firstBlockTime = lastBlockTime - timePeriod;
-      debug(`Searching for the block at: ${new Date(firstBlockTime)}`);
-      const firstBlockNumber = (await limiter.wrap(fetchHistoricBlockNum)(
-        context.polkadotApi,
-        lastBlockNumber,
-        firstBlockTime
-      )) as number;
-
-      const length = lastBlockNumber - firstBlockNumber;
-      const blockNumArray = Array.from({ length }, (_, i) => firstBlockNumber + i);
+      const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
       const limits = context.polkadotApi.consts.system.blockWeights;
 
       const getLimits = async (blockNum: number) => {
@@ -67,14 +50,15 @@ describeSmokeSuite(
         const specVersion = apiAt.consts.system.version.specVersion.toNumber();
         const events = await apiAt.query.system.events();
         if (specVersion >= 1700) {
+          // TODO: replace type when we update to use SpWeightsWeightV2Weight
           const { normal, operational, mandatory } = await apiAt.query.system.blockWeight();
           return {
             blockNum,
             hash: blockHash.toString(),
             weights: {
-              normal,
-              operational,
-              mandatory,
+              normal: extractWeight(normal),
+              operational: extractWeight(operational),
+              mandatory: extractWeight(mandatory),
             },
             events,
             extrinsics,
@@ -82,9 +66,10 @@ describeSmokeSuite(
         }
       };
 
+      // Support for weight v1 and weight v2.
       blockLimits = {
-        normal: new BN(limits.perClass.normal.maxTotal.toJSON() as number),
-        operational: new BN(limits.perClass.operational.maxTotal.toJSON() as number),
+        normal: extractWeight(limits.perClass.normal.maxTotal).toBn(),
+        operational: extractWeight(limits.perClass.operational.maxTotal).toBn(),
       };
       blockInfoArray = await Promise.all(
         blockNumArray.map((num) => limiter.schedule(() => getLimits(num)))
@@ -198,6 +183,11 @@ describeSmokeSuite(
         this.skip();
       }
 
+      const apiAt = await context.polkadotApi.at(blockInfoArray[0].hash);
+      if (apiAt.consts.system.version.specVersion.toNumber() < 2000) {
+        this.skip();
+      }
+
       debug(
         `Checking if #${blockInfoArray[0].blockNum} - #${
           blockInfoArray[blockInfoArray.length - 1].blockNum
@@ -224,7 +214,11 @@ describeSmokeSuite(
             (a) => a.event.method == "ExtrinsicSuccess" || a.event.method == "ExtrinsicFailed"
           )
           .filter((a) => (a.event.data as any).dispatchInfo.class.toString() == "Normal")
-          .reduce((acc, curr) => acc + (curr.event.data as any).dispatchInfo.weight.toNumber(), 0);
+          .reduce(
+            (acc, curr) =>
+              acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
+            0
+          );
         const normalWeights = Number(blockInfo.weights.normal);
         const difference = (normalWeights - signedExtTotal) / signedExtTotal;
         if (difference > 0.2) {
@@ -281,7 +275,8 @@ describeSmokeSuite(
                   ({ event }) => event.method == "ExtrinsicSuccess" && event.section == "system"
                 )
                 .reduce(
-                  (acc, curr) => acc + (curr.event.data as any).dispatchInfo.weight.toNumber(),
+                  (acc, curr) =>
+                    acc + extractWeight((curr.event.data as any).dispatchInfo.weight).toNumber(),
                   0
                 );
             } else {

@@ -107,7 +107,7 @@ pub mod pallet {
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The balance type.
 		type Balance: Parameter
 			+ Member
@@ -132,13 +132,13 @@ pub mod pallet {
 		type AssetTransactor: TransactAsset;
 
 		// The origin that is allowed to register derivative address indices
-		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::Origin>;
+		type DerivativeAddressRegistrationOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// Convert `T::AccountId` to `MultiLocation`.
 		type AccountIdToMultiLocation: Convert<Self::AccountId, MultiLocation>;
 
 		/// Means of measuring the weight consumed by an XCM message locally.
-		type Weigher: WeightBounds<Self::Call>;
+		type Weigher: WeightBounds<Self::RuntimeCall>;
 
 		/// Means of inverting a location.
 		type LocationInverter: InvertLocation;
@@ -148,7 +148,7 @@ pub mod pallet {
 		type SelfLocation: Get<MultiLocation>;
 
 		// The origin that is allowed to dispatch calls from the sovereign account directly
-		type SovereignAccountDispatcherOrigin: EnsureOrigin<Self::Origin>;
+		type SovereignAccountDispatcherOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 
 		/// XCM sender.
 		type XcmSender: SendXcm;

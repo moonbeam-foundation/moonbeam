@@ -6,6 +6,7 @@ import { alith, generateKeyringPair } from "../../util/accounts";
 import { GLMR, VOTE_AMOUNT, ZERO_ADDRESS } from "../../util/constants";
 import { instantFastTrack, notePreimage } from "../../util/governance";
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { expectOk } from "../../util/expect";
 
 describeDevMoonbeam("Democracy - Referendum", (context) => {
   let encodedHash: string;
@@ -29,15 +30,15 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     // referendumInfoOf
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(encodedHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    for (let i = 0; i < onGoing.end.toNumber() - blockNumber; i++) {
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
       await context.createBlock();
     }
 
@@ -75,15 +76,15 @@ describeDevMoonbeam("Democracy - Referendum", (context) => {
     // referendumInfoOf
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(encodedHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(encodedHash);
     expect(onGoing.tally.nays.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
 
     const blockNumber = (await context.polkadotApi.rpc.chain.getHeader()).number.toNumber();
-    for (let i = 0; i < onGoing.end.toNumber() - blockNumber; i++) {
+    for (let i = 0; i < onGoing.end.toNumber() - blockNumber + 1; i++) {
       await context.createBlock();
     }
     const finishedReferendum = (
