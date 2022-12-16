@@ -136,6 +136,7 @@ assert_cmd = "0.12"
 nix = "0.23"
 prometheus = { version = "0.13.0", default-features = false }
 rand = "0.7.3"
+sc-block-builder = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 # Polkadot dev-dependencies
 polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
@@ -143,6 +144,7 @@ polkadot-runtime-common = { git = "https://github.com/purestake/polkadot", branc
 # Substrate dev-dependencies
 pallet-sudo = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 substrate-test-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
+substrate-test-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 substrate-test-runtime-client = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 [build-dependencies]
