@@ -96,10 +96,11 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
+	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
-	use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+	use xcm_primitives::{HrmpAvailableCalls, UtilityAvailableCalls, UtilityEncodeCall, HrmpEncodeCall, XcmTransact};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -202,6 +203,21 @@ pub mod pallet {
 		fn default() -> Currency<T> {
 			Currency::<T>::AsMultiLocation(Box::new(MultiLocation::default().into()))
 		}
+	}
+
+	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	pub struct HrmpInitParams {
+		para_id: ParaId,
+		proposed_max_capacity: u32,
+		proposed_max_message_size: u32
+	}
+
+	/// Enum defining the way to express a Currency.
+	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
+	pub enum HrmpOperation {
+		InitOpen(HrmpInitParams),
+		Accept(ParaId),
+		Close(HrmpChannelId),
 	}
 
 	#[derive(
@@ -432,9 +448,7 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = dest
-				.clone()
-				.encode_call(UtilityAvailableCalls::AsDerivative(index, inner_call));
+			let call_bytes: Vec<u8> = UtilityEncodeCall::encode_call(dest.clone(), UtilityAvailableCalls::AsDerivative(index, inner_call));
 
 			// Grab the destination
 			let dest = dest.destination();
@@ -643,12 +657,19 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
 			dest: T::Transactor,
+			action: HrmpOperation,
 			// fee to be used
 			fee: CurrencyPayment<CurrencyIdOf<T>>,
 			// weight information to be used
 			weight_info: TransactWeights,
 		) -> DispatchResult {
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
+			let encoded_call = match action {
+				HrmpOperation::InitOpen(params) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::InitOpenChannel(params.para_id, params.proposed_max_capacity, params.proposed_max_message_size)),
+				HrmpOperation::Accept(para_id) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::AcceptOpenChannel(para_id)),
+				HrmpOperation::Close(close_params) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::CloseChannel(close_params)),
+			}.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
+
 			Ok(())
 		}
 	}
