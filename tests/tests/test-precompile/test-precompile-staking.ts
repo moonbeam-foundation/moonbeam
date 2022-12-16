@@ -148,7 +148,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
       ]),
     });
 
-    expect(Number(result)).to.equal(MIN_GLMR_STAKING);
+    expect(BigInt(result)).to.equal(MIN_GLMR_STAKING);
   });
 
   it("should have ethan's delegation to ALITH in top delegations", async function () {
