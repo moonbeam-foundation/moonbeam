@@ -73,16 +73,16 @@ impl frame_system::Config for Test {
 	type BaseCallFilter = frame_support::traits::Nothing;
 	type BlockWeights = ();
 	type BlockLength = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type BlockNumber = BlockNumber;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type DbWeight = ();
 	type Version = ();
@@ -103,7 +103,7 @@ impl pallet_balances::Config for Test {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -307,7 +307,7 @@ impl SendXcm for TestSendXcm {
 }
 
 impl Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
 	type Transactor = Transactors;
 	type DerivativeAddressRegistrationOrigin = EnsureRoot<u64>;
@@ -317,7 +317,7 @@ impl Config for Test {
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type SelfLocation = SelfLocation;
-	type Weigher = DummyWeigher<Call>;
+	type Weigher = DummyWeigher<RuntimeCall>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = TestSendXcm;
@@ -363,7 +363,7 @@ pub(crate) fn events() -> Vec<super::Event<Test>> {
 		.into_iter()
 		.map(|r| r.event)
 		.filter_map(|e| {
-			if let Event::XcmTransactor(inner) = e {
+			if let RuntimeEvent::XcmTransactor(inner) = e {
 				Some(inner)
 			} else {
 				None

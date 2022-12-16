@@ -2,6 +2,7 @@
 
 This procedural macro allows to simplify the implementation of an EVM precompile or precompile set
 using an `impl` block with annotations to automatically generate:
+
 - the implementation of the trait `Precompile` or `PrecompileSet` (exposed by the `fp_evm` crate)
 - parsing of the method parameters from Solidity encoding into Rust type, based on the `EvmData`
   trait (exposed by the `precompile-utils` crate)
@@ -138,7 +139,7 @@ attribute matches the Rust parameters of the function, thanks to the `EvmData` t
 If any **parsed** argument (discriminant is not concerned) depends on the type parameters of the
 `impl` block, the macro will not be able to produce valid code and output an error like:
 
-```ignore
+```text
 error[E0412]: cannot find type `R` in this scope
   --> tests/precompile/compile-fail/test/generic-arg.rs:25:63
    |

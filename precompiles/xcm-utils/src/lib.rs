@@ -23,9 +23,10 @@ use codec::DecodeLimit;
 use fp_evm::PrecompileHandle;
 use frame_support::codec::Decode;
 use frame_support::traits::ConstU32;
-
-use frame_support::weights::{GetDispatchInfo, PostDispatchInfo};
-use frame_support::{dispatch::Dispatchable, traits::OriginTrait};
+use frame_support::{
+	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
+	traits::OriginTrait,
+};
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
 use sp_core::{H160, U256};
@@ -39,11 +40,12 @@ use xcm_executor::traits::ConvertOrigin;
 use xcm_executor::traits::WeightBounds;
 use xcm_executor::traits::WeightTrader;
 pub type XcmOriginOf<XcmConfig> =
-	<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin;
+	<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin;
 pub type XcmAccountIdOf<XcmConfig> =
-	<<<XcmConfig as xcm_executor::Config>::Call as Dispatchable>::Origin as OriginTrait>::AccountId;
+	<<<XcmConfig as xcm_executor::Config>::RuntimeCall as Dispatchable>
+		::RuntimeOrigin as OriginTrait>::AccountId;
 
-pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::Call;
+pub type SystemCallOf<Runtime> = <Runtime as frame_system::Config>::RuntimeCall;
 pub const XCM_SIZE_LIMIT: u32 = 2u32.pow(16);
 type GetXcmSizeLimit = ConstU32<XCM_SIZE_LIMIT>;
 
@@ -63,9 +65,9 @@ where
 	XcmAccountIdOf<XcmConfig>: Into<H160>,
 	XcmConfig: xcm_executor::Config,
 	SystemCallOf<Runtime>: Dispatchable<PostInfo = PostDispatchInfo> + Decode + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<pallet_xcm::Call<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<pallet_xcm::Call<Runtime>>,
 {
 	#[precompile::pre_check]
 	fn pre_check(handle: &mut impl PrecompileHandle) -> EvmResult {
@@ -126,39 +128,28 @@ where
 		// We will construct an asset with the max amount, and check how much we
 		// get in return to substract
 		let multiasset: xcm::latest::MultiAsset = (multilocation.clone(), u128::MAX).into();
-		let payment: xcm_executor::Assets = vec![multiasset].into();
 		let weight_per_second = 1_000_000_000_000u64;
-		let mut trader = XcmConfig::Trader::new();
-		let remaining: Vec<xcm::latest::MultiAsset> = trader
-			.buy_weight(weight_per_second, payment.clone())
-			.map_err(|_| revert("Trader does not support multiasset"))?
-			.into();
 
-		// If remaining is empty, it means we spent the whole max u128,
-		// shouldnt happen
-		let remaining_asset = remaining
-			.first()
-			.ok_or(revert("spent whole weight, shouldnt happen"))?;
+		let mut trader = <XcmConfig as xcm_executor::Config>::Trader::new();
 
-		let paid_assets: Vec<xcm::latest::MultiAsset> = payment
-			.clone()
-			.checked_sub(remaining_asset.clone())
-			.map_err(|_| revert("spent more than U128 MAX, shouldnt happen"))?
-			.into();
+		// buy_weight returns unused assets
+		let unused = trader
+			.buy_weight(weight_per_second, vec![multiasset.clone()].into())
+			.map_err(|_| {
+				RevertReason::custom("Asset not supported as fee payment").in_field("multilocation")
+			})?;
 
-		// Its safe to assume that if paid_assets is empty, is because we didnt
-		// consume anything
-		match paid_assets
-			.first()
-			.unwrap_or(&(multilocation, 0u128).into())
+		// we just need to substract from u128::MAX the unused assets
+		if let Some(amount) = unused
+			.fungible
+			.get(&multiasset.id)
+			.map(|&value| u128::MAX.saturating_sub(value))
 		{
-			MultiAsset {
-				id: Concrete(_),
-				fun: Fungible(amount),
-			} => Ok((*amount).into()),
-			_ => Err(revert(
-				"Non-concrete or non-fungible assets not evaluated by trader",
-			)),
+			Ok(amount.into())
+		} else {
+			Err(revert(
+				"Weight was too expensive to be bought with this asset",
+			))
 		}
 	}
 
@@ -171,11 +162,11 @@ where
 		let message: Vec<u8> = message.into();
 
 		let msg =
-			VersionedXcm::<<XcmConfig as xcm_executor::Config>::Call>::decode_all_with_depth_limit(
+			VersionedXcm::<<XcmConfig as xcm_executor::Config>::RuntimeCall>::decode_all_with_depth_limit(
 				MAX_XCM_DECODE_DEPTH,
 				&mut message.as_slice(),
 			)
-			.map(Xcm::<<XcmConfig as xcm_executor::Config>::Call>::try_from);
+			.map(Xcm::<<XcmConfig as xcm_executor::Config>::RuntimeCall>::try_from);
 
 		let result = match msg {
 			Ok(Ok(mut x)) => {
@@ -208,7 +199,7 @@ where
 
 		let call = pallet_xcm::Call::<Runtime>::execute {
 			message: Box::new(xcm),
-			max_weight: frame_support::weights::Weight::from_ref_time(weight),
+			max_weight: weight,
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

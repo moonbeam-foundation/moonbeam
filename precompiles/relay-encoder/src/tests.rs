@@ -13,21 +13,18 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
-use crate::mock::{
-	Account::{Alice, Precompile},
-	ExtBuilder, PCall, PrecompilesValue, Runtime, TestPrecompiles,
-};
+use crate::mock::{ExtBuilder, PCall, Precompiles, PrecompilesValue, Runtime};
 use crate::test_relay_runtime::TestEncoder;
 use crate::AvailableStakeCalls;
 use crate::StakeEncodeCall;
 use crate::*;
 use pallet_staking::RewardDestination;
 use pallet_staking::ValidatorPrefs;
-use precompile_utils::{solidity, testing::*};
+use precompile_utils::testing::*;
 use sp_core::U256;
 use sp_runtime::Perbill;
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
@@ -46,10 +43,29 @@ fn selectors() {
 }
 
 #[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester =
+			PrecompilesModifierTester::new(PrecompilesValue::get(), Alice, Precompile1);
+
+		tester.test_view_modifier(PCall::encode_bond_selectors());
+		tester.test_view_modifier(PCall::encode_bond_extra_selectors());
+		tester.test_view_modifier(PCall::encode_unbond_selectors());
+		tester.test_view_modifier(PCall::encode_withdraw_unbonded_selectors());
+		tester.test_view_modifier(PCall::encode_validate_selectors());
+		tester.test_view_modifier(PCall::encode_nominate_selectors());
+		tester.test_view_modifier(PCall::encode_chill_selectors());
+		tester.test_view_modifier(PCall::encode_set_payee_selectors());
+		tester.test_view_modifier(PCall::encode_set_controller_selectors());
+		tester.test_view_modifier(PCall::encode_rebond_selectors());
+	});
+}
+
+#[test]
 fn selector_less_than_four_bytes() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -58,7 +74,7 @@ fn selector_less_than_four_bytes() {
 fn no_selector_exists_but_length_is_right() {
 	ExtBuilder::default().build().execute_with(|| {
 		precompiles()
-			.prepare_test(Alice, Precompile, vec![1u8, 2u8, 3u8, 4u8])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2u8, 3u8, 4u8])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -66,13 +82,13 @@ fn no_selector_exists_but_length_is_right() {
 #[test]
 fn test_encode_bond() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_bond {
 						controller_address: [1u8; 32].into(),
 						amount: 100.into(),
@@ -99,13 +115,13 @@ fn test_encode_bond() {
 #[test]
 fn test_encode_bond_more() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_bond_extra { amount: 100.into() },
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -124,11 +140,11 @@ fn test_encode_bond_more() {
 #[test]
 fn test_encode_chill() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
-				.prepare_test(Alice, Precompile, PCall::encode_chill {})
+				.prepare_test(Alice, Precompile1, PCall::encode_chill {})
 				.expect_cost(0) // TODO: Test db read/write costs
 				.expect_no_logs()
 				.execute_returns(
@@ -144,13 +160,13 @@ fn test_encode_chill() {
 #[test]
 fn test_encode_nominate() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_nominate {
 						nominees: vec![U256::from([1u8; 32]), U256::from([2u8; 32])].into(),
 					},
@@ -174,13 +190,13 @@ fn test_encode_nominate() {
 #[test]
 fn test_encode_rebond() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_rebond { amount: 100.into() },
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -199,13 +215,13 @@ fn test_encode_rebond() {
 #[test]
 fn test_encode_set_controller() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_set_controller {
 						controller: [1u8; 32].into(),
 					},
@@ -228,13 +244,13 @@ fn test_encode_set_controller() {
 #[test]
 fn test_encode_set_payee() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_set_payee {
 						reward_destination: RewardDestinationWrapper(RewardDestination::Controller),
 					},
@@ -257,13 +273,13 @@ fn test_encode_set_payee() {
 #[test]
 fn test_encode_unbond() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_unbond { amount: 100.into() },
 				)
 				.expect_cost(0) // TODO: Test db read/write costs
@@ -282,13 +298,13 @@ fn test_encode_unbond() {
 #[test]
 fn test_encode_validate() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_validate {
 						comission: 100.into(),
 						blocked: true,
@@ -315,13 +331,13 @@ fn test_encode_validate() {
 #[test]
 fn test_encode_withdraw_unbonded() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000)])
+		.with_balances(vec![(Alice.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			precompiles()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::encode_withdraw_unbonded { slashes: 100 },
 				)
 				.expect_cost(0) // TODO: Test db read/write costs

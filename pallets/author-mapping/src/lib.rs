@@ -81,7 +81,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Currency in which the security deposit will be taken.
 		type DepositCurrency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		/// The amount that should be taken as a security deposit when registering a NimbusId.

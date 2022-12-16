@@ -12,15 +12,21 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
   let encodedHash: string;
 
   before("Create preimage & proposal", async () => {
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
     // notePreimage
-    encodedHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    encodedHash = await notePreimage(context, proposal, alith);
     // propose
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose(
+        {
+          Lookup: {
+            hash: encodedHash,
+            len: proposal.method.encodedLength,
+          },
+        } as any,
+        PROPOSAL_AMOUNT
+      )
     );
   });
 
@@ -38,9 +44,9 @@ describeDevMoonbeam("Democracy - proposing a vote", (context) => {
 
   it("should create a proposal", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
     // depositOf
@@ -57,28 +63,36 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+
     //launchPeriod
     launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
 
     // notePreimage
-    encodedHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    encodedHash = await notePreimage(context, proposal, alith);
 
     // propose & second
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose(
+        {
+          Lookup: {
+            hash: encodedHash,
+            len: proposal.method.encodedLength,
+          },
+        } as any,
+        PROPOSAL_AMOUNT
+      )
     );
-    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock((context.polkadotApi.tx.democracy as any).second(0));
   });
 
   it("should succeed", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    // TODO: Remove any casting when api-augment is updated
+    const publicProps = (await context.polkadotApi.query.democracy.publicProps()) as any;
     // encodedHash
-    expect(publicProps[0][1].toString()).to.equal(encodedHash);
+    expect(publicProps[0][1].asLookup.hash_.toHex().toString()).to.equal(encodedHash);
     // prop author
     expect(publicProps[0][2].toString()).to.equal(alith.address);
 
@@ -99,21 +113,28 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
   let launchPeriod: u32;
 
   before("Setup genesis account for substrate", async () => {
+    const proposal = context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address);
+    const encodedProposal = proposal.method.toHex() || "";
+
     //launchPeriod
     launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
 
     // notePreimage
-    encodedHash = await notePreimage(
-      context,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(alith.address),
-      alith
-    );
+    encodedHash = await notePreimage(context, proposal, alith);
 
     // propose & second
     await context.createBlock(
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.polkadotApi.tx.democracy.propose(
+        {
+          Lookup: {
+            hash: encodedHash,
+            len: proposal.method.encodedLength,
+          },
+        } as any,
+        PROPOSAL_AMOUNT
+      )
     );
-    await context.createBlock(context.polkadotApi.tx.democracy.second(0, 1000));
+    await context.createBlock((context.polkadotApi.tx.democracy as any).second(0));
   });
 
   it("should end-up in a valid referendum", async function () {
@@ -133,6 +154,9 @@ describeDevMoonbeam("Democracy - Seconding a proposal", (context) => {
 
     // referendumInfoOf
     const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
-    expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
+    // TODO: Remove any casting when api-augment is updated
+    expect((referendumInfoOf.unwrap() as any).asOngoing.proposal.asLookup.hash_.toHex()).to.equal(
+      encodedHash
+    );
   });
 });

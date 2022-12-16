@@ -13,24 +13,37 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+
 use crate::mock::{
-	sent_xcm, Balances, ExtBuilder, PCall, PrecompilesValue, Runtime, System,
-	TestAccount::{self, *},
-	TestPrecompiles,
+	sent_xcm, AccountId, Balances, ExtBuilder, PCall, ParentAccount, Precompiles, PrecompilesValue,
+	Runtime, SiblingParachainAccount, System,
 };
 use codec::Encode;
 use frame_support::traits::PalletInfo;
-use precompile_utils::{prelude::*, solidity, testing::*};
+use precompile_utils::{prelude::*, testing::*};
 use sp_core::{H160, U256};
 use xcm::prelude::*;
 
-fn precompiles() -> TestPrecompiles<Runtime> {
+fn precompiles() -> Precompiles<Runtime> {
 	PrecompilesValue::get()
 }
 
 #[test]
 fn test_selector_enum() {
 	assert!(PCall::multilocation_to_address_selectors().contains(&0x343b3e00));
+	assert!(PCall::weight_message_selectors().contains(&0x25d54154));
+	assert!(PCall::get_units_per_second_selectors().contains(&0x3f0f65db));
+}
+
+#[test]
+fn modifiers() {
+	ExtBuilder::default().build().execute_with(|| {
+		let mut tester = PrecompilesModifierTester::new(precompiles(), Alice, Precompile1);
+
+		tester.test_view_modifier(PCall::multilocation_to_address_selectors());
+		tester.test_view_modifier(PCall::weight_message_selectors());
+		tester.test_view_modifier(PCall::get_units_per_second_selectors());
+	});
 }
 
 #[test]
@@ -40,10 +53,10 @@ fn test_get_account_parent() {
 			multilocation: MultiLocation::parent(),
 		};
 
-		let expected_address: H160 = TestAccount::Parent.into();
+		let expected_address: H160 = ParentAccount.into();
 
 		precompiles()
-			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
 			.execute_returns(
@@ -64,10 +77,10 @@ fn test_get_account_sibling() {
 			},
 		};
 
-		let expected_address: H160 = TestAccount::SiblingParachain(2000u32).into();
+		let expected_address: H160 = SiblingParachainAccount(2000u32).into();
 
 		precompiles()
-			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
 			.execute_returns(
@@ -88,7 +101,7 @@ fn test_weight_message() {
 		};
 
 		precompiles()
-			.prepare_test(Alice, Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(0)
 			.expect_no_logs()
 			.execute_returns_encoded(1000u64);
@@ -103,7 +116,7 @@ fn test_get_units_per_second() {
 		};
 
 		precompiles()
-			.prepare_test(Alice, Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(1)
 			.expect_no_logs()
 			.execute_returns_encoded(U256::from(1_000_000_000_000u128));
@@ -121,7 +134,7 @@ fn test_executor_clear_origin() {
 		};
 
 		precompiles()
-			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100001001)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
@@ -148,7 +161,7 @@ fn test_executor_send() {
 		};
 
 		precompiles()
-			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.prepare_test(Alice, Precompile1, input)
 			.expect_cost(100002001)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
@@ -163,7 +176,7 @@ fn test_executor_send() {
 #[test]
 fn test_executor_transact() {
 	ExtBuilder::default()
-		.with_balances(vec![(TestAccount::Alice, 1000000000)])
+		.with_balances(vec![(CryptoAlith.into(), 1000000000)])
 		.build()
 		.execute_with(|| {
 			let mut encoded: Vec<u8> = Vec::new();
@@ -174,7 +187,7 @@ fn test_executor_transact() {
 
 			// Then call bytes
 			let mut call_bytes = pallet_balances::Call::<Runtime>::transfer {
-				dest: TestAccount::Bob,
+				dest: CryptoBaltathar.into(),
 				value: 100u32.into(),
 			}
 			.encode();
@@ -192,13 +205,14 @@ fn test_executor_transact() {
 			};
 
 			precompiles()
-				.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+				.prepare_test(CryptoAlith, Precompile1, input)
 				.expect_cost(1100001001)
 				.expect_no_logs()
 				.execute_returns(EvmDataWriter::new().build());
 
 			// Transact executed
-			assert_eq!(System::account(TestAccount::Bob).data.free, 100);
+			let baltathar_account: AccountId = CryptoBaltathar.into();
+			assert_eq!(System::account(baltathar_account).data.free, 100);
 		});
 }
 
@@ -213,7 +227,7 @@ fn test_send_clear_origin() {
 		};
 
 		precompiles()
-			.prepare_test(TestAccount::Alice, TestAccount::Precompile, input)
+			.prepare_test(CryptoAlith, Precompile1, input)
 			.expect_cost(100000000)
 			.expect_no_logs()
 			.execute_returns(EvmDataWriter::new().build());
@@ -228,7 +242,10 @@ fn test_send_clear_origin() {
 #[test]
 fn execute_fails_if_called_by_smart_contract() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![
+			(CryptoAlith.into(), 1000),
+			(CryptoBaltathar.into(), 1000),
+		])
 		.build()
 		.execute_with(|| {
 			// Set code to Alice address as it if was a smart contract.
@@ -242,7 +259,7 @@ fn execute_fails_if_called_by_smart_contract() {
 			};
 
 			PrecompilesValue::get()
-				.prepare_test(Alice, Precompile, input)
+				.prepare_test(Alice, Precompile1, input)
 				.execute_reverts(|output| output == b"XcmExecute not callable by smart contracts");
 		})
 }
