@@ -16,8 +16,23 @@ import {
   xcTokenAbi,
 } from "./staticData";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { BASE_PATH, CUSTOM_SPEC_PATH, DEBUG_MODE } from "../util/constants";
 
 const debug = require("debug")("contract-simulation:MM");
+
+if (!CUSTOM_SPEC_PATH && !DEBUG_MODE) {
+  console.error(`Missing CUSTOM_SPEC_PATH var`);
+  console.log("Please provide path to modified chainSpec.")
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  process.exit(1);
+}
+
+if (!BASE_PATH && !DEBUG_MODE) {
+  console.error(`Missing BASE_PATH var`);
+  console.log("Please provide path to already setup node base folder.")
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  process.exit(1);
+}
 
 describeDevMoonbeam(
   `When interacting with MoneyMarket contracts on forked Moonbeam network...`,
@@ -202,5 +217,5 @@ describeDevMoonbeam(
       expect(depositedGlmrBalanceAfter.lt(depositedGlmrBalanceFinally), "GLMR not withdrawn").to.be
         .true;
     });
-  }
+  },null,null,null,true
 );

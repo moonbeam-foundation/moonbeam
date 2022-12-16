@@ -14,8 +14,27 @@ import {
 } from "./staticData";
 
 import { describeParachain } from "../util/setup-para-tests";
-import { TWO_MINS } from "../util/constants";
+import { BASE_PATH, CUSTOM_SPEC_PATH, DEBUG_MODE, TWO_MINS } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
+const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
+const SPEC_FILE = process.env.SPEC_FILE;
+const ROUNDS_TO_WAIT = (process.env.ROUNDS_TO_WAIT && parseInt(process.env.ROUNDS_TO_WAIT)) || 2;
+const PARA_ID = process.env.PARA_ID && parseInt(process.env.PARA_ID);
+const SKIP_INTERMEDIATE_RUNTIME = process.env.SKIP_INTERMEDIATE_RUNTIME == "true";
+
+if (!CUSTOM_SPEC_PATH && !DEBUG_MODE) {
+  console.error(`Missing CUSTOM_SPEC_PATH var`);
+  console.log("Please provide path to modified chainSpec.")
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  process.exit(1);
+}
+
+if (!BASE_PATH && !DEBUG_MODE) {
+  console.error(`Missing BASE_PATH var`);
+  console.log("Please provide path to already setup node base folder.")
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  process.exit(1);
+}
 
 const debug = require("debug")("contract-simulation:AMM");
 
@@ -235,5 +254,5 @@ describeDevMoonbeam(
         "Balances have not been updated after RemoveLiquidityETH call"
       ).to.not.include(false);
     });
-  }
+  }, null, null, null,true
 );

@@ -125,6 +125,7 @@ export type ParaTestOptions = {
     // specify the version of the binary using tag. Ex: "v0.18.1"
     // "local" uses target/release/moonbeam binary
     binary?: "local" | string;
+    basePath?: string;
   };
   paraId?: number;
   relaychain?: {

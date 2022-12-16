@@ -47,7 +47,7 @@
     "smoke-test-single": "npm run mocha-smoke -- 'smoke-tests/test-historic-compatibility.ts'",
     "mocha-smoke": "mocha -r ts-node/register -r ./util/smokeFixtures.ts",
     "fork-test": "mocha -r ts-node/register 'fork-tests/**/test-*.ts'",
-    "contract-simulation": "DEBUG_MODE=true mocha -r ts-node/register 'fork-tests/test-contract*.ts'",
+    "contract-simulation": "DEBUG=contract* CUSTOM_SPEC_PATH=/tmp/fork-data/moonbeam-state.mod.json BASE_PATH=/tmp/fork-data/moonbeam/para-alith ./node_modules/.bin/mocha -r ts-node/register fork-tests/test-contract*.ts",
     "zombie-test": "mocha -r ts-node/register 'zombie-tests/**/test-*.ts'",
     "watch": "npm-watch",
     "build": "tsc; cp -r contracts build/",
