@@ -791,7 +791,6 @@ async function assertRewardedEventsAtBlock(
   const blockToQueryOrbiters = round.first.sub(new BN(1)).sub(round.length)
   const apiToQueryOrbiter = await api.at(await api.rpc.chain.getBlockHash(blockToQueryOrbiters));
 
-
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
   const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
   const autoCompounds: { [key: HexString]: { candidate: string; account: string; amount: u128 } } =
@@ -821,7 +820,6 @@ async function assertRewardedEventsAtBlock(
         let collator = await apiToQueryOrbiter.query.moonbeamOrbiters.accountLookupOverride(
           event.data[0].toHex()
         );
-
         rewards[collator.unwrap().toHex()] = {
           account: collator.unwrap().toHex(),
           amount: event.data[1] as u128,
