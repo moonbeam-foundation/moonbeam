@@ -786,6 +786,11 @@ async function assertRewardedEventsAtBlock(
 ): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> {
   const nowRoundRewardBlockHash = await api.rpc.chain.getBlockHash(rewardedBlockNumber);
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
+  const apiAtPreviousBlock = await api.at(
+    await api.rpc.chain.getBlockHash(rewardedBlockNumber.toNumber() - 1)
+  );
+
+  const round = await apiAtBlock.query.parachainStaking.round();
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
   const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
@@ -813,11 +818,19 @@ async function assertRewardedEventsAtBlock(
       // to the collator
       if (apiAtBlock.events.moonbeamOrbiters.OrbiterRewarded.is(event)) {
         rewardCount++;
-        let collator = await apiAtBlock.query.moonbeamOrbiters.accountLookupOverride(
-          event.data[0].toHex()
+        // The orbiter is removed from the list at the block of the reward so we query the previous
+        // block instead.
+        // The round rewarded is 2 rounds before the current one.
+        let collators = await apiAtPreviousBlock.query.moonbeamOrbiters.orbiterPerRound.entries(
+          round.current.toNumber() - 2
         );
-        rewards[collator.unwrap().toHex()] = {
-          account: collator.unwrap().toHex(),
+
+        const collator = `0x${collators
+          .find((orbit) => orbit[1].toHex() == event.data[0].toHex())[0]
+          .toHex()
+          .slice(-40)}`;
+        rewards[collator] = {
+          account: collator,
           amount: event.data[1] as u128,
         };
       }
