@@ -89,6 +89,7 @@ pub mod pallet {
 
 	use crate::weights::WeightInfo;
 	use crate::CurrencyIdOf;
+	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 	use frame_support::{pallet_prelude::*, weights::constants::WEIGHT_PER_SECOND};
 	use frame_system::{ensure_signed, pallet_prelude::*};
 	use orml_traits::location::{Parse, Reserve};
@@ -96,11 +97,12 @@ pub mod pallet {
 	use sp_std::boxed::Box;
 	use sp_std::convert::TryFrom;
 	use sp_std::prelude::*;
-	use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
-	use xcm_primitives::{HrmpAvailableCalls, UtilityAvailableCalls, UtilityEncodeCall, HrmpEncodeCall, XcmTransact};
+	use xcm_primitives::{
+		HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
+	};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -209,7 +211,7 @@ pub mod pallet {
 	pub struct HrmpInitParams {
 		para_id: ParaId,
 		proposed_max_capacity: u32,
-		proposed_max_message_size: u32
+		proposed_max_message_size: u32,
 	}
 
 	/// Enum defining the way to express a Currency.
@@ -311,7 +313,7 @@ pub mod pallet {
 		FeePerSecondNotSet,
 		SignedTransactNotAllowedForDestination,
 		FailedMultiLocationToJunction,
-		HrmpHandlerNotImplemented
+		HrmpHandlerNotImplemented,
 	}
 
 	#[pallet::event]
@@ -448,19 +450,23 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = UtilityEncodeCall::encode_call(dest.clone(), UtilityAvailableCalls::AsDerivative(index, inner_call));
+			let call_bytes: Vec<u8> = UtilityEncodeCall::encode_call(
+				dest.clone(),
+				UtilityAvailableCalls::AsDerivative(index, inner_call),
+			);
 
 			// Grab the destination
 			let dest = dest.destination();
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
-				who.clone(),
+				Some(who.clone()),
 				fee_location,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
 				fee.fee_amount,
 				weight_info,
+				None,
 			)?;
 
 			// Deposit event
@@ -506,12 +512,13 @@ pub mod pallet {
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
-				fee_payer.clone(),
+				Some(fee_payer.clone()),
 				fee_location,
 				call.clone(),
 				origin_kind,
 				fee.fee_amount,
 				weight_info,
+				None,
 			)?;
 
 			// Deposit event
@@ -601,6 +608,7 @@ pub mod pallet {
 				OriginKind::SovereignAccount,
 				fee.fee_amount,
 				weight_info,
+				None,
 			)?;
 
 			// Deposit event
@@ -663,12 +671,49 @@ pub mod pallet {
 			// weight information to be used
 			weight_info: TransactWeights,
 		) -> DispatchResult {
+			// WithdrawAsset
+			// BuyExecution
+			// SetAppendix(DepositAsset(sov account))
+			// Transact
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
-			let encoded_call = match action {
-				HrmpOperation::InitOpen(params) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::InitOpenChannel(params.para_id, params.proposed_max_capacity, params.proposed_max_message_size)),
-				HrmpOperation::Accept(para_id) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::AcceptOpenChannel(para_id)),
-				HrmpOperation::Close(close_params) =>  HrmpEncodeCall::encode_call(dest, HrmpAvailableCalls::CloseChannel(close_params)),
-			}.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
+			let call_bytes = match action {
+				HrmpOperation::InitOpen(params) => HrmpEncodeCall::encode_call(
+					dest.clone(),
+					HrmpAvailableCalls::InitOpenChannel(
+						params.para_id,
+						params.proposed_max_capacity,
+						params.proposed_max_message_size,
+					),
+				),
+				HrmpOperation::Accept(para_id) => HrmpEncodeCall::encode_call(
+					dest.clone(),
+					HrmpAvailableCalls::AcceptOpenChannel(para_id),
+				),
+				HrmpOperation::Close(close_params) => HrmpEncodeCall::encode_call(
+					dest.clone(),
+					HrmpAvailableCalls::CloseChannel(close_params),
+				),
+			}
+			.map_err(|_| Error::<T>::HrmpHandlerNotImplemented)?;
+
+			let fee_location = Self::currency_to_multilocation(fee.currency)
+				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
+
+			// Grab the destination
+			let destination = dest.destination();
+
+			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination).unwrap();
+
+			Self::transact_in_dest_chain_asset_non_signed(
+				destination,
+				None,
+				fee_location,
+				call_bytes.clone(),
+				OriginKind::Native,
+				fee.fee_amount,
+				weight_info,
+				Some(vec![appendix]),
+			)?;
 
 			Ok(())
 		}
@@ -677,13 +722,13 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		fn transact_in_dest_chain_asset_non_signed(
 			dest: MultiLocation,
-			fee_payer: T::AccountId,
+			fee_payer: Option<T::AccountId>,
 			fee_location: MultiLocation,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
-
 			fee_amount: Option<u128>,
 			weight_info: TransactWeights,
+			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -696,16 +741,19 @@ pub mod pallet {
 				},
 				|v| Ok(v),
 			)?;
+
 			// Calculate fee based on FeePerSecond and total_weight
 			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
 
-			// Convert origin to multilocation
-			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
+			if let Some(fee_payer) = fee_payer {
+				// Convert origin to multilocation
+				let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
 
-			// Construct the local withdraw message with the previous calculated amount
-			// This message deducts and burns "amount" from the caller when executed
-			T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult)
-				.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
+				// Construct the local withdraw message with the previous calculated amount
+				// This message deducts and burns "amount" from the caller when executed
+				T::AssetTransactor::withdraw_asset(&fee.clone().into(), &origin_as_mult)
+					.map_err(|_| Error::<T>::UnableToWithdrawAsset)?;
+			}
 
 			// Construct the transact message. This is composed of WithdrawAsset||BuyExecution||
 			// Transact.
@@ -720,6 +768,7 @@ pub mod pallet {
 				call,
 				weight_info.transact_required_weight_at_most,
 				origin_kind,
+				with_appendix,
 			)?;
 
 			// Send to sovereign
@@ -736,6 +785,7 @@ pub mod pallet {
 			origin_kind: OriginKind,
 			fee_amount: Option<u128>,
 			weight_info: TransactWeights,
+			_with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
 			// Calculate the total weight that the xcm message is going to spend in the
 			// destination chain
@@ -768,6 +818,7 @@ pub mod pallet {
 				call,
 				weight_info.transact_required_weight_at_most,
 				origin_kind,
+				None,
 			)?;
 
 			// We append DescendOrigin as the first instruction in the message
@@ -822,16 +873,21 @@ pub mod pallet {
 			call: Vec<u8>,
 			dispatch_weight: XcmV2Weight,
 			origin_kind: OriginKind,
+			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> Result<Xcm<()>, DispatchError> {
-			Ok(Xcm(vec![
+			let mut instructions = vec![
 				Self::withdraw_instruction(asset.clone(), &dest)?,
 				Self::buy_execution(asset, &dest, dest_weight)?,
-				Transact {
-					origin_type: origin_kind,
-					require_weight_at_most: dispatch_weight,
-					call: call.into(),
-				},
-			]))
+			];
+			if let Some(appendix) = with_appendix {
+				instructions.push(Self::appendix_instruction(appendix)?);
+			}
+			instructions.push(Transact {
+				origin_type: origin_kind,
+				require_weight_at_most: dispatch_weight,
+				call: call.into(),
+			});
+			Ok(Xcm(instructions))
 		}
 
 		/// Construct a buy execution xcm order with the provided parameters
@@ -862,6 +918,29 @@ pub mod pallet {
 				.map_err(|_| Error::<T>::CannotReanchor)?;
 
 			Ok(WithdrawAsset(fees.into()))
+		}
+
+		/// Construct a deposit instruction to a sovereign account
+		fn deposit_instruction(
+			mut beneficiary: MultiLocation,
+			at: &MultiLocation,
+		) -> Result<Instruction<()>, DispatchError> {
+			let ancestry = T::LocationInverter::ancestry();
+			beneficiary
+				.reanchor(at, &ancestry)
+				.map_err(|_| Error::<T>::CannotReanchor)?;
+			Ok(DepositAsset {
+				assets: Wild(All),
+				max_assets: 1,
+				beneficiary,
+			})
+		}
+
+		/// Construct a withdraw instruction from a sovereign account
+		fn appendix_instruction(
+			instructions: Vec<Instruction<()>>,
+		) -> Result<Instruction<()>, DispatchError> {
+			Ok(SetAppendix(Xcm(instructions)))
 		}
 
 		/// Ensure `dest` has chain part and none recipient part.

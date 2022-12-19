@@ -100,11 +100,15 @@ impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
 }
 
 impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
-	fn encode_call(self, call: xcm_primitives::HrmpAvailableCalls) -> Result<Vec<u8>, xcm::latest::Error> {
+	fn encode_call(
+		self,
+		call: xcm_primitives::HrmpAvailableCalls,
+	) -> Result<Vec<u8>, xcm::latest::Error> {
 		match call {
-			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => {
-				Ok(RelayCall::Hrmp(HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone())).encode())
-			}
+			xcm_primitives::HrmpAvailableCalls::InitOpenChannel(a, b, c) => Ok(RelayCall::Hrmp(
+				HrmpCall::InitOpenChannel(a.clone(), b.clone(), c.clone()),
+			)
+			.encode()),
 			xcm_primitives::HrmpAvailableCalls::AcceptOpenChannel(a) => {
 				Ok(RelayCall::Hrmp(HrmpCall::AcceptOpenChannel(a.clone())).encode())
 			}

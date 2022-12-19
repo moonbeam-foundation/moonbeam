@@ -15,7 +15,7 @@
 
 use cumulus_primitives_core::{relay_chain::v2::HrmpChannelId, ParaId};
 use sp_std::vec::Vec;
-use xcm::latest::{MultiLocation, Error as XcmError};
+use xcm::latest::{Error as XcmError, MultiLocation};
 
 // The utility calls that need to be implemented as part of
 // this pallet
