@@ -1907,6 +1907,10 @@
 <span id="1907">1907</span>
 <span id="1908">1908</span>
 <span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3184,6 +3188,8 @@
 		<span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_revoke_delegation())]
 		</span><span class="doccomment">/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
+		/// The delegation receives no rewards for the rounds while a revoke is pending.
+		/// A revoke may not be performed if any other scheduled request is pending.
 		</span><span class="kw">pub fn </span>schedule_revoke_delegation(
 			origin: OriginFor&lt;T&gt;,
 			collator: T::AccountId,
@@ -3216,7 +3222,9 @@
 		}
 
 		<span class="attribute">#[pallet::weight(&lt;T <span class="kw">as </span>Config&gt;::WeightInfo::schedule_delegator_bond_less())]
-		</span><span class="doccomment">/// Request bond less for delegators wrt a specific collator candidate.
+		</span><span class="doccomment">/// Request bond less for delegators wrt a specific collator candidate. The delegation&#39;s
+		/// rewards for rounds while the request is pending use the reduced bonded amount.
+		/// A bond less may not be performed if any other scheduled request is pending.
 		</span><span class="kw">pub fn </span>schedule_delegator_bond_less(
 			origin: OriginFor&lt;T&gt;,
 			candidate: T::AccountId,
