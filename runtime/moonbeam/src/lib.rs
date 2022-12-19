@@ -1030,11 +1030,11 @@ impl DmpMessageHandler for NormalDmpHandler {
 		iter: impl Iterator<Item = (RelayBlockNumber, Vec<u8>)>,
 		limit: Weight,
 	) -> Weight {
-		if Migrations::should_pause_xcm() {
+		(if Migrations::should_pause_xcm() {
 			DmpQueue::handle_dmp_messages(iter, Weight::zero())
 		} else {
 			DmpQueue::handle_dmp_messages(iter, limit)
-		}
+		}) + <Runtime as frame_system::Config>::DbWeight::get().reads(1)
 	}
 }
 
