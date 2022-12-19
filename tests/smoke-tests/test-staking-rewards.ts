@@ -923,7 +923,9 @@ async function assertRewardedEventsAtBlock(
         `${accountId} (DEL) - Reward`
       );
 
-      const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
+      const canAutoCompound =
+        !outstandingRevokes[rewarded.collator] ||
+        !outstandingRevokes[rewarded.collator].has(accountId);
       if (specVersion >= 1900 && canAutoCompound) {
         const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
         // skip assertion if auto-compound 0%
