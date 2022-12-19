@@ -1244,6 +1244,60 @@ mod tests {
 		assert_eq!(actual_chain_label, expected_chain_label);
 	}
 
+	#[test]
+	fn dalek_does_not_panic() {
+		use futures::executor::block_on;
+		use sc_block_builder::BlockBuilderProvider;
+		use sp_api::ProvideRuntimeApi;
+		use sp_consensus::BlockOrigin;
+		use sp_runtime::generic::BlockId;
+		use substrate_test_runtime::TestAPI;
+		use substrate_test_runtime_client::runtime::Block;
+		use substrate_test_runtime_client::{
+			ClientBlockImportExt, DefaultTestClientBuilderExt, TestClientBuilder,
+			TestClientBuilderExt,
+		};
+
+		fn zero_ed_pub() -> sp_core::ed25519::Public {
+			sp_core::ed25519::Public([0u8; 32])
+		}
+
+		// This is an invalid signature
+		// this breaks after ed25519 1.3. It makes the signature panic at creation
+		// This test ensures we should never panic
+		fn invalid_sig() -> sp_core::ed25519::Signature {
+			let signature = hex_literal::hex!(
+				"a25b94f9c64270fdfffa673f11cfe961633e3e4972e6940a3cf
+		7351dd90b71447041a83583a52cee1cf21b36ba7fd1d0211dca58b48d997fc78d9bc82ab7a38e"
+			);
+			sp_core::ed25519::Signature::from_raw(signature[0..64].try_into().unwrap())
+		}
+
+		let mut client = TestClientBuilder::new().build();
+
+		client
+			.execution_extensions()
+			.set_extensions_factory(sc_client_api::execution_extensions::ExtensionBeforeBlock::<
+			Block,
+			sp_io::UseDalekExt,
+		>::new(1));
+
+		let a1 = client
+			.new_block_at(&BlockId::Number(0), Default::default(), false)
+			.unwrap()
+			.build()
+			.unwrap()
+			.block;
+		block_on(client.import(BlockOrigin::NetworkInitialSync, a1.clone())).unwrap();
+
+		// On block zero it will use dalek
+		// shouldnt panic on importing invalid sig
+		assert!(!client
+			.runtime_api()
+			.verify_ed25519(&BlockId::Number(0), invalid_sig(), zero_ed_pub(), vec![])
+			.unwrap());
+	}
+
 	fn test_config(chain_id: &str) -> Configuration {
 		let network_config = NetworkConfiguration::new("", "", Default::default(), None);
 		let runtime = tokio::runtime::Runtime::new().expect("failed creating tokio runtime");
