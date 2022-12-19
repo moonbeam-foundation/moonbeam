@@ -874,7 +874,7 @@ benchmarks! {
 	}
 
 	get_rewardable_delegators {
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -920,7 +920,7 @@ benchmarks! {
 
 	select_top_candidates {
 		let x in 0..50; // num collators
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -1280,7 +1280,7 @@ benchmarks! {
 #[cfg(test)]
 mod tests {
 	use crate::benchmarks::*;
-	use crate::mock::benchmarking::Test;
+	use crate::mock::Test;
 	use frame_support::assert_ok;
 	use sp_io::TestExternalities;
 
@@ -1498,5 +1498,5 @@ mod tests {
 impl_benchmark_test_suite!(
 	Pallet,
 	crate::benchmarks::tests::new_test_ext(),
-	crate::mock::benchmarking::Test
+	crate::mock::Test
 );
