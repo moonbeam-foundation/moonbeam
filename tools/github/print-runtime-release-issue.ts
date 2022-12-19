@@ -30,6 +30,8 @@ async function main() {
 
   const commonTemplate = `
 ## Release
+- [ ] Check all proxy types.
+- [ ] Re-run all extrinsics/hooks benchmarks.
 - [ ] Tag master with runtime-${newVersion} and push to github
 - [ ] Start the github action Publish Runtime Draft
 with runtime-${previousVersion} => runtime-${newVersion}
@@ -53,6 +55,9 @@ with ${lastClientVersion} and master
 ## Pre-Release
 - [ ] Cleanup previous migrations (
   https://github.com/PureStake/moonbeam/blob/master/runtime/common/src/migrations.rs)
+- [ ] Check that proxy types are adapted to extrinsics changes (
+  read all PR descriptions with B7-runtimenoteworthy)
+- [ ] Re-run all extrinsics/hooks benchmarks.
 
 ${commonTemplate}
 

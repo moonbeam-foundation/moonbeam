@@ -105,7 +105,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Address mapping to convert from H160 to AccountId
 		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
@@ -222,7 +222,7 @@ pub mod pallet {
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
 	#[pallet::getter(fn randomness_results)]
-	pub(crate) type RandomnessResults<T: Config> =
+	pub type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
 
 	/// Previous local per-block VRF randomness

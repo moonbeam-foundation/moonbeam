@@ -16,8 +16,8 @@
 
 //! Unit testing
 use crate::mock::{
-	last_event, AuthorMapping, Balances, DepositAmount, Event as MetaEvent, ExtBuilder, Origin,
-	Runtime, System, TestAuthor,
+	last_event, AuthorMapping, Balances, DepositAmount, ExtBuilder, Runtime,
+	RuntimeEvent as MetaEvent, RuntimeOrigin, System, TestAuthor,
 };
 use crate::{keys_size, keys_wrapper, Error, Event, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
@@ -57,7 +57,7 @@ fn eligible_account_can_register() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::add_association(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				TestAuthor::Bob.into()
 			));
 
@@ -86,7 +86,7 @@ fn cannot_add_association_without_deposit() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice.into()),
+				AuthorMapping::add_association(RuntimeOrigin::signed(2), TestAuthor::Alice.into()),
 				Error::<Runtime>::CannotAffordSecurityDeposit
 			);
 
@@ -106,7 +106,7 @@ fn double_registration_costs_twice_as_much() {
 		.execute_with(|| {
 			// Register once as Bob
 			assert_ok!(AuthorMapping::add_association(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				TestAuthor::Bob.into()
 			));
 
@@ -128,7 +128,7 @@ fn double_registration_costs_twice_as_much() {
 
 			// Register again as Alice
 			assert_ok!(AuthorMapping::add_association(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				TestAuthor::Alice.into()
 			));
 
@@ -163,7 +163,7 @@ fn registered_account_can_clear() {
 		.with_mappings(vec![(TestAuthor::Alice.into(), 1)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(AuthorMapping::remove_keys(Origin::signed(1)));
+			assert_ok!(AuthorMapping::remove_keys(RuntimeOrigin::signed(1)));
 
 			assert_eq!(Balances::free_balance(&1), 1000);
 			assert_eq!(Balances::reserved_balance(&1), 0);
@@ -187,7 +187,7 @@ fn registered_account_can_clear() {
 fn unregistered_author_cannot_be_cleared() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
-			AuthorMapping::remove_keys(Origin::signed(1)),
+			AuthorMapping::remove_keys(RuntimeOrigin::signed(1)),
 			Error::<Runtime>::OldAuthorIdNotFound
 		);
 	})
@@ -201,7 +201,10 @@ fn registered_author_cannot_be_cleared_by_non_owner() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::clear_association(Origin::signed(2), TestAuthor::Alice.into()),
+				AuthorMapping::clear_association(
+					RuntimeOrigin::signed(2),
+					TestAuthor::Alice.into()
+				),
 				Error::<Runtime>::NotYourAssociation
 			);
 		})
@@ -215,7 +218,7 @@ fn registered_author_cannot_be_overwritten() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				AuthorMapping::add_association(Origin::signed(2), TestAuthor::Alice.into()),
+				AuthorMapping::add_association(RuntimeOrigin::signed(2), TestAuthor::Alice.into()),
 				Error::<Runtime>::AlreadyAssociated
 			);
 		})
@@ -229,7 +232,7 @@ fn registered_can_rotate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::update_association(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				TestAuthor::Bob.into(),
 				TestAuthor::Charlie.into()
 			));
@@ -251,7 +254,7 @@ fn unregistered_author_cannot_be_rotated() {
 	ExtBuilder::default().build().execute_with(|| {
 		assert_noop!(
 			AuthorMapping::update_association(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				TestAuthor::Alice.into(),
 				TestAuthor::Bob.into()
 			),
@@ -269,7 +272,7 @@ fn registered_author_cannot_be_rotated_by_non_owner() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::update_association(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					TestAuthor::Alice.into(),
 					TestAuthor::Bob.into()
 				),
@@ -286,7 +289,7 @@ fn rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::update_association(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				TestAuthor::Alice.into(),
 				TestAuthor::Alice.into()
 			));
@@ -300,7 +303,7 @@ fn eligible_account_can_full_register() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Alice.into()),
 			));
 
@@ -330,7 +333,7 @@ fn cannot_set_keys_without_deposit() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::set_keys(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::CannotAffordSecurityDeposit
@@ -350,7 +353,7 @@ fn full_registered_author_cannot_be_overwritten() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::set_keys(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into()),
 				),
 				Error::<Runtime>::AlreadyAssociated
@@ -366,7 +369,7 @@ fn registered_can_full_rotate() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				keys_wrapper::<Runtime>(TestAuthor::Charlie.into(), TestAuthor::Charlie.into())
 			));
 
@@ -393,7 +396,7 @@ fn unregistered_author_can_be_full_rotated() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(2),
+				RuntimeOrigin::signed(2),
 				keys_wrapper::<Runtime>(TestAuthor::Bob.into(), TestAuthor::Bob.into()),
 			));
 		})
@@ -408,7 +411,7 @@ fn registered_author_cannot_be_full_rotated_by_non_owner() {
 		.execute_with(|| {
 			assert_noop!(
 				AuthorMapping::set_keys(
-					Origin::signed(2),
+					RuntimeOrigin::signed(2),
 					keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Bob.into())
 				),
 				Error::<Runtime>::AlreadyAssociated
@@ -424,7 +427,7 @@ fn full_rotating_to_the_same_nimbus_id_leaves_registration_in_tact() {
 		.build()
 		.execute_with(|| {
 			assert_ok!(AuthorMapping::set_keys(
-				Origin::signed(1),
+				RuntimeOrigin::signed(1),
 				keys_wrapper::<Runtime>(TestAuthor::Alice.into(), TestAuthor::Alice.into())
 			));
 		})

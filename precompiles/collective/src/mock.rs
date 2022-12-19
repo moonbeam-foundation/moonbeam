@@ -16,92 +16,29 @@
 
 //! Test utilities
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
-use fp_evm::Precompile;
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{ConstU128, Everything, GenesisBuild, MapSuccess, OnFinalize, OnInitialize},
 	PalletId,
 };
-use pallet_evm::{
-	AddressMapping, EnsureAddressNever, EnsureAddressRoot, PrecompileSet, SubstrateBlockHashMapping,
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot, SubstrateBlockHashMapping};
+use precompile_utils::{
+	precompile_set::*,
+	testing::{Bob, Charlie, MockAccount},
 };
-use scale_info::TypeInfo;
-use serde::{Deserialize, Serialize};
-use sp_core::{H160, H256, U256};
+use sp_core::{H256, U256};
 use sp_io;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup, Replace},
 	Permill,
 };
 
-pub type AccountId = Account;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
-
-pub const PRECOMPILE_ADDRESS: u64 = 1;
-
-#[derive(
-	Eq,
-	PartialEq,
-	Ord,
-	PartialOrd,
-	Clone,
-	Encode,
-	Decode,
-	Debug,
-	MaxEncodedLen,
-	Serialize,
-	Deserialize,
-	derive_more::Display,
-	TypeInfo,
-)]
-pub enum Account {
-	Alice,
-	Bob,
-	Charlie,
-	Bogus,
-	Precompile,
-}
-
-impl Default for Account {
-	fn default() -> Self {
-		Self::Bogus
-	}
-}
-
-impl AddressMapping<Account> for Account {
-	fn into_account_id(h160_account: H160) -> Account {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			a if a == H160::from_low_u64_be(PRECOMPILE_ADDRESS) => Self::Precompile,
-			_ => Self::Bogus,
-		}
-	}
-}
-
-impl From<H160> for Account {
-	fn from(x: H160) -> Account {
-		Account::into_account_id(x)
-	}
-}
-
-impl From<Account> for H160 {
-	fn from(value: Account) -> H160 {
-		match value {
-			Account::Alice => H160::repeat_byte(0xAA),
-			Account::Bob => H160::repeat_byte(0xBB),
-			Account::Charlie => H160::repeat_byte(0xCC),
-			Account::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
-			Account::Bogus => Default::default(),
-		}
-	}
-}
 
 // Configure a mock runtime to test the pallet.
 construct_runtime!(
@@ -127,16 +64,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = Account;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -160,28 +97,35 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = ();
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
 }
 
+pub type Precompiles<R> = PrecompileSetBuilder<
+	R,
+	(PrecompileAt<AddressU64<1>, CollectivePrecompile<R, pallet_collective::Instance1>>,),
+>;
+
+pub type PCall = CollectivePrecompileCall<Runtime, pallet_collective::Instance1>;
+
 parameter_types! {
 	pub BlockGasLimit: U256 = U256::max_value();
-	pub const PrecompilesValue: Precompiles<Runtime> = Precompiles(PhantomData);
-	pub const WeightPerGas: u64 = 1;
+	pub PrecompilesValue: Precompiles<Runtime> = Precompiles::new();
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
-	type CallOrigin = EnsureAddressRoot<Account>;
-	type WithdrawOrigin = EnsureAddressNever<Account>;
-	type AddressMapping = Account;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = Precompiles<Self>;
 	type PrecompilesValue = PrecompilesValue;
@@ -226,7 +170,7 @@ impl pallet_treasury::Config for Runtime {
 	type Currency = Balances;
 	type ApproveOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
 	type RejectOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	// If spending proposal rejected, transfer proposer bond to treasury
 	type OnSlash = Treasury;
 	type ProposalBond = ProposalBond;
@@ -245,9 +189,9 @@ impl pallet_treasury::Config for Runtime {
 }
 
 impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
-	type Origin = Origin;
-	type Event = Event;
-	type Proposal = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Proposal = RuntimeCall;
 	/// The maximum amount of time (in blocks) for council members to vote on motions.
 	/// Motions may end in fewer blocks if enough votes are cast to determine the result.
 	type MotionDuration = ConstU32<2>;
@@ -259,46 +203,19 @@ impl pallet_collective::Config<pallet_collective::Instance1> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
-#[derive(Default)]
-pub struct Precompiles<R>(PhantomData<R>);
-
-impl<R> PrecompileSet for Precompiles<R>
-where
-	CollectivePrecompile<R, pallet_collective::Instance1>: Precompile,
-{
-	fn execute(&self, handle: &mut impl PrecompileHandle) -> Option<EvmResult<PrecompileOutput>> {
-		match handle.code_address() {
-			a if a == hash(PRECOMPILE_ADDRESS) => {
-				Some(CollectivePrecompile::<R, pallet_collective::Instance1>::execute(handle))
-			}
-			_ => None,
-		}
-	}
-
-	fn is_precompile(&self, address: H160) -> bool {
-		address == hash(PRECOMPILE_ADDRESS)
-	}
-}
-
-pub type PCall = CollectivePrecompileCall<Runtime, pallet_collective::Instance1>;
-
-fn hash(a: u64) -> H160 {
-	H160::from_low_u64_be(a)
-}
-
 /// Build test externalities, prepopulated with data for testing democracy precompiles
 pub(crate) struct ExtBuilder {
 	/// Endowed accounts with balances
 	balances: Vec<(AccountId, Balance)>,
 	/// Collective members
-	collective: Vec<Account>,
+	collective: Vec<AccountId>,
 }
 
 impl Default for ExtBuilder {
 	fn default() -> ExtBuilder {
 		ExtBuilder {
 			balances: vec![],
-			collective: vec![Account::Bob, Account::Charlie],
+			collective: vec![Bob.into(), Charlie.into()],
 		}
 	}
 }
@@ -370,7 +287,7 @@ pub(crate) fn roll_to(n: BlockNumber) {
 	}
 }
 
-pub(crate) fn events() -> Vec<Event> {
+pub(crate) fn events() -> Vec<RuntimeEvent> {
 	System::events()
 		.into_iter()
 		.map(|r| r.event)
@@ -408,33 +325,4 @@ macro_rules! assert_event_emitted {
 			}
 		}
 	};
-}
-
-#[test]
-fn test_account_id_mapping_works() {
-	// Bidirectional conversions for normal accounts
-	assert_eq!(
-		Account::Alice,
-		Account::into_account_id(Account::Alice.into())
-	);
-	assert_eq!(Account::Bob, Account::into_account_id(Account::Bob.into()));
-	assert_eq!(
-		Account::Charlie,
-		Account::into_account_id(Account::Charlie.into())
-	);
-
-	// Bidirectional conversion between bogus and default H160
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::default()));
-	assert_eq!(H160::default(), Account::Bogus.into());
-
-	// All other H160s map to bogus
-	assert_eq!(Account::Bogus, Account::into_account_id(H160::zero()));
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0x12))
-	);
-	assert_eq!(
-		Account::Bogus,
-		Account::into_account_id(H160::repeat_byte(0xFF))
-	);
 }

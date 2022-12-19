@@ -15,6 +15,11 @@ if [[ $# -gt 0 ]]; then
   npm version --no-git-tag-version 0.$RUNTIME_CHAIN_SPEC.0
 fi
 
+if [[ ! -f ../build/moonbeam ]]; then
+  echo "Missing ../build/moonbeam binary"
+  exit 1
+fi
+
 # Install dependencies
 npm install
 

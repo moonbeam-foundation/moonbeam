@@ -5,6 +5,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { FIVE_MINS } from "../util/constants";
+import { isMuted } from "../util/foreign-chains";
 const debug = require("debug")("smoke:xcm-failures");
 
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
@@ -264,27 +265,6 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have TooExpensive errors on XCMP queue", async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(({ event: { data } }) => (data as any).error.toString() === "TooExpensive");
-        return { blockNum, xcmpQueueEvents };
-      });
-
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM TooExpensive error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
-
     it("should have recent responses for opened HMRP channels", async function () {
       this.timeout(FIVE_MINS);
       if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
@@ -320,25 +300,27 @@ describeSmokeSuite(
         fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getEvents(num)))
       );
 
-      const responses = channels.map((channel) => {
-        const record = fiveMinutesOfEvents.find(({ events }) => {
-          const matchedEvent = events
-            .filter(
-              ({ event }) =>
-                event.method.toString() === "CandidateIncluded" &&
-                event.section.toString() === "paraInclusion"
-            )
-            .find(({ event: { data } }) => {
-              const {
-                descriptor: { paraId },
-              } = data[0] as any;
-              return paraId.toNumber() === channel;
-            });
-          return typeof matchedEvent !== "undefined";
+      const responses = channels
+        .filter((a) => !isMuted(chainName, a))
+        .map((channel) => {
+          const record = fiveMinutesOfEvents.find(({ events }) => {
+            const matchedEvent = events
+              .filter(
+                ({ event }) =>
+                  event.method.toString() === "CandidateIncluded" &&
+                  event.section.toString() === "paraInclusion"
+              )
+              .find(({ event: { data } }) => {
+                const {
+                  descriptor: { paraId },
+                } = data[0] as any;
+                return paraId.toNumber() === channel;
+              });
+            return typeof matchedEvent !== "undefined";
+          });
+          const response = typeof record !== "undefined";
+          return { channel, response };
         });
-        const response = typeof record !== "undefined";
-        return { channel, response };
-      });
       const failedResponses = responses.filter((a) => a.response === false);
       failedResponses.forEach((a) =>
         debug(`No response in 5 minutes for connected Parachain #${a.channel}`)

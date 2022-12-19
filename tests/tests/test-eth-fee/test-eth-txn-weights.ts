@@ -4,23 +4,18 @@ import { expect } from "chai";
 
 import {
   alith,
-  ALITH_PRIVATE_KEY,
   baltathar,
-  BALTATHAR_ADDRESS,
   BALTATHAR_PRIVATE_KEY,
   charleth,
   CHARLETH_PRIVATE_KEY,
 } from "../../util/accounts";
-import { getCompiled } from "../../util/contracts";
-import { customWeb3Request } from "../../util/providers";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { EXTRINSIC_GAS_LIMIT, EXTRINSIC_BASE_WEIGHT, WEIGHT_PER_GAS } from "../../util/constants";
+import { describeDevMoonbeam } from "../../util/setup-dev-tests";
+import { EXTRINSIC_GAS_LIMIT, WEIGHT_PER_GAS } from "../../util/constants";
 import {
   createTransaction,
   createTransfer,
   ALITH_TRANSACTION_TEMPLATE,
 } from "../../util/transactions";
-import { isTemplateExpression } from "typescript";
 
 // This tests an issue where pallet Ethereum in Frontier does not properly account for weight after
 // transaction application. Specifically, it accounts for weight before a transaction by multiplying
@@ -50,10 +45,9 @@ describeDevMoonbeam("Ethereum Weight Accounting", (context) => {
     // query the block's weight, whose normal portion should reflect only this txn
     const apiAt = await context.polkadotApi.at(block.hash);
     // TODO: Remove casting when updated to use SpWeightsWeightV2Weight
-    let blockWeightsUsed = (await apiAt.query.system.blockWeight()) as any;
-    let normalWeight = blockWeightsUsed.normal;
-
-    expect(normalWeight.toBigInt()).to.equal(EXPECTED_WEIGHT);
+    let blockWeightsUsed = await apiAt.query.system.blockWeight();
+    let normalWeight = blockWeightsUsed.normal.refTime.toBigInt();
+    expect(normalWeight).to.equal(EXPECTED_WEIGHT);
   });
 
   it("should correctly refund weight from excess gas_limit supplied", async function () {

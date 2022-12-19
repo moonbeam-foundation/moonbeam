@@ -26,11 +26,26 @@
     "url": "git+https://github.com/PureStake/moonbeam.git"
   },
   "dependencies": {
-    "@polkadot/api": "^9.4.2",
+    "@polkadot/api": "^9.9.4",
     "typescript": "^4.7.4"
   },
   "devDependencies": {
     "@types/underscore": "^1.11.3",
     "underscore": "^1.13.1"
+  },
+  "overrides": {
+    "@polkadot/api": "$@polkadot/api",
+    "@polkadot/api-derive": "$@polkadot/api",
+    "@polkadot/api-augment": "$@polkadot/api",
+    "@polkadot/api-base": "$@polkadot/api",
+    "@polkadot/rpc-augment": "$@polkadot/api",
+    "@polkadot/rpc-core": "$@polkadot/api",
+    "@polkadot/rpc-provider": "$@polkadot/api",
+    "@polkadot/types-create": "$@polkadot/api",
+    "@polkadot/types-augment": "$@polkadot/api",
+    "@polkadot/types-support": "$@polkadot/api",
+    "@polkadot/types-codec": "$@polkadot/api",
+    "@polkadot/types": "$@polkadot/api",
+    "@polkadot/types-known": "$@polkadot/api"
   }
 }

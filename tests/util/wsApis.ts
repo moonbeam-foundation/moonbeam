@@ -22,7 +22,11 @@ export class SubstrateApi {
       this._api = null;
     } else {
       this._provider = new WsProvider(wssUrl);
-      this._api = await ApiPromise.create({ provider: this._provider, ...options });
+      this._api = await ApiPromise.create({
+        provider: this._provider,
+        noInitWarn: true,
+        ...options,
+      });
 
       // Necessary hack to allow polkadotApi to finish its internal metadata loading
       // apiPromise.isReady unfortunately doesn't wait for those properly
