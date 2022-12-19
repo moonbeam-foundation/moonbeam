@@ -81,7 +81,7 @@ export function describeDevMoonbeam(
   ethTransactionType: EthTransactionType = "Legacy",
   runtime: RuntimeChain = "moonbase",
   withWasm?: boolean,
-  forkedMode?: boolean,
+  forkedMode?: boolean
 ) {
   describe(title, function () {
     // Set timeout to 5000 for all tests.

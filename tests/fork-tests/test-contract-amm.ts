@@ -24,15 +24,15 @@ const SKIP_INTERMEDIATE_RUNTIME = process.env.SKIP_INTERMEDIATE_RUNTIME == "true
 
 if (!CUSTOM_SPEC_PATH && !DEBUG_MODE) {
   console.error(`Missing CUSTOM_SPEC_PATH var`);
-  console.log("Please provide path to modified chainSpec.")
-  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  console.log("Please provide path to modified chainSpec.");
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.");
   process.exit(1);
 }
 
 if (!BASE_PATH && !DEBUG_MODE) {
   console.error(`Missing BASE_PATH var`);
-  console.log("Please provide path to already setup node base folder.")
-  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  console.log("Please provide path to already setup node base folder.");
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.");
   process.exit(1);
 }
 
@@ -97,7 +97,7 @@ describeDevMoonbeam(
         await usdtContract.approve(routerContract.address, ethers.constants.MaxUint256);
         await poolContract.approve(routerContract.address, ethers.constants.MaxUint256);
         debug(`ℹ️  Setting allowances, please wait ...`);
-        await context.createBlock()
+        await context.createBlock();
         const dotApprovalAmount = await dotContract.allowance(
           signer.address,
           routerContract.address
@@ -170,7 +170,7 @@ describeDevMoonbeam(
         { value: ethers.utils.parseEther("100"), gasLimit: "200000" }
       );
       debug(`ℹ️  Swapping GLMR for DOT ...`);
-      await context.createBlock()
+      await context.createBlock();
 
       const dotBalanceAfter = await dotContract.balanceOf(signer.address);
       const systemBalanceAfter = await signer.getBalance();
@@ -212,7 +212,7 @@ describeDevMoonbeam(
         { value: glmrAmount, gasLimit: "300000" }
       );
       debug(`ℹ️  Adding liquidity to pool ...`);
-      await context.createBlock()
+      await context.createBlock();
 
       /// baalnces again
       const poolTokenBalanceAfter = await poolContract.balanceOf(signer.address);
@@ -239,7 +239,7 @@ describeDevMoonbeam(
         { gasLimit: "300000" }
       );
       debug(`ℹ️  Removing liquidity from pool ...`);
-      await context.createBlock()
+      await context.createBlock();
 
       const poolTokenBalanceFinally = await poolContract.balanceOf(signer.address);
       const dotTokenBalanceFinally = await dotContract.balanceOf(signer.address);
@@ -254,5 +254,9 @@ describeDevMoonbeam(
         "Balances have not been updated after RemoveLiquidityETH call"
       ).to.not.include(false);
     });
-  }, null, null, null,true
+  },
+  null,
+  null,
+  null,
+  true
 );

@@ -168,12 +168,11 @@ export async function startMoonbeamDevNode(
   return { p2pPort, rpcPort, wsPort, runningNode };
 }
 
-
 // This will start a moonbeam dev node from forked state, that has been previously setup with
 // a snapshot of production state via the moonbeam-tools run-fork-solo command
 export async function startMoonbeamForkedNode(
-rpcPort: number,
-wsPort: number,
+  rpcPort: number,
+  wsPort: number
 ): Promise<{
   rpcPort: number;
   wsPort: number;
@@ -194,7 +193,7 @@ wsPort: number,
 
   const cmd = BINARY_PATH;
   let args = [
-    `--execution=Native`, 
+    `--execution=Native`,
     `--no-hardware-benchmarks`,
     `--no-telemetry`,
     `--no-prometheus`,
@@ -207,7 +206,7 @@ wsPort: number,
     `--trie-cache-size=0`,
     `--db-cache=5000`,
     `--collator`,
-    `--base-path=${BASE_PATH}`
+    `--base-path=${BASE_PATH}`,
   ];
 
   debug(`Starting dev node: --rpc-port=${rpcPort} --ws-port=${wsPort}`);

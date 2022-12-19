@@ -22,15 +22,15 @@ const debug = require("debug")("contract-simulation:MM");
 
 if (!CUSTOM_SPEC_PATH && !DEBUG_MODE) {
   console.error(`Missing CUSTOM_SPEC_PATH var`);
-  console.log("Please provide path to modified chainSpec.")
-  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  console.log("Please provide path to modified chainSpec.");
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.");
   process.exit(1);
 }
 
 if (!BASE_PATH && !DEBUG_MODE) {
   console.error(`Missing BASE_PATH var`);
-  console.log("Please provide path to already setup node base folder.")
-  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.")
+  console.log("Please provide path to already setup node base folder.");
+  console.log("Alternatively, run in DEBUG_MODE to connect to existing local network.");
   process.exit(1);
 }
 
@@ -95,7 +95,7 @@ describeDevMoonbeam(
         await dotContract.approve(dotVaultContract.address, ethers.constants.MaxUint256);
         await fraxContract.approve(fraxVaultContract.address, ethers.constants.MaxUint256);
         debug(`ℹ️ Setting allowances, please wait ...`);
-        await context.createBlock()
+        await context.createBlock();
         const dotApprovalAmount = await dotContract.allowance(
           signer.address,
           dotVaultContract.address
@@ -122,7 +122,7 @@ describeDevMoonbeam(
         gasLimit: "800000",
       });
       debug(`ℹ️  Depositing DOT into vault ...`);
-      await context.createBlock()
+      await context.createBlock();
       const dotBalanceAfter = await dotContract.balanceOf(signer.address);
       expect(dotBalanceBefore.gt(dotBalanceAfter), "DOT not deposited").to.be.true;
 
@@ -137,7 +137,7 @@ describeDevMoonbeam(
           dotVaultContract.address,
           fraxVaultContract.address,
         ]);
-        await context.createBlock()
+        await context.createBlock();
         expect(
           await comptrollerContract.checkMembership(signer.address, dotVaultContract.address),
           "DOT market has not been entered"
@@ -151,7 +151,7 @@ describeDevMoonbeam(
       });
       // await fraxVaultContract.approve(signer.address, fraxContract.address);
       debug(`ℹ️  Borrowing FRAX from protocol ...`);
-      await context.createBlock()
+      await context.createBlock();
       const fraxBalanceAfter = await fraxContract.balanceOf(signer.address);
       expect(fraxBalanceBefore.lt(fraxBalanceAfter), "Borrowed tokens not received").to.be.true;
 
@@ -161,7 +161,7 @@ describeDevMoonbeam(
         { gasLimit: "800000" }
       );
       debug(`ℹ️  Repaying FRAX back to protocol ...`);
-      await context.createBlock()
+      await context.createBlock();
       const fraxBalanceFinally = await fraxContract.balanceOf(signer.address);
       expect(fraxBalanceAfter.gt(fraxBalanceFinally), "FRAX has not been repaid").to.be.true;
 
@@ -170,7 +170,7 @@ describeDevMoonbeam(
         gasLimit: "800000",
       });
       debug(`ℹ️  Removing DOT from vault ...`);
-      await context.createBlock()
+      await context.createBlock();
       const dotBalanceFinally = await dotContract.balanceOf(signer.address);
       expect(dotBalanceAfter.lt(dotBalanceFinally), "DOT not withdrawn").to.be.true;
     });
@@ -186,12 +186,17 @@ describeDevMoonbeam(
         gasLimit: "800000",
       });
       debug(`ℹ️  Depositing GLMR into vault ...`);
-      await context.createBlock()
+      await context.createBlock();
       const depositedGlmrBalanceAfter = await glmrVaultContract.balanceOf(signer.address);
       expect(
         depositedGlmrBalanceBefore.lt(depositedGlmrBalanceAfter),
         "GLMR not deposited into vault"
       ).to.be.true;
+
+      // Generating blocks to accrue rewards
+      for (let i = 0; i < 100; i++) {
+        await context.createBlock();
+      }
 
       // Harvesting emitted rewards
       const harvestAmountBefore = await comptrollerContract.rewardAccrued(0, signer.address);
@@ -199,8 +204,9 @@ describeDevMoonbeam(
       await comptrollerContract["claimReward(uint8,address)"](0, signer.address, {
         gasLimit: "1400000",
       });
+
       debug(`ℹ️  Harvesting rewards ...`);
-      await context.createBlock()
+      await context.createBlock();
       const harvestAmountAfter = await comptrollerContract.rewardAccrued(0, signer.address);
       const rewardTokenBalanceAfter = await rewardTokenContract.balanceOf(signer.address);
       expect(harvestAmountBefore.gt(harvestAmountAfter), "No rewards harvested").to.be.true;
@@ -212,10 +218,14 @@ describeDevMoonbeam(
         gasLimit: "800000",
       });
       debug(`ℹ️  Removing GLMR from vault ...`);
-      await context.createBlock()
+      await context.createBlock();
       const depositedGlmrBalanceFinally = await dotContract.balanceOf(signer.address);
       expect(depositedGlmrBalanceAfter.lt(depositedGlmrBalanceFinally), "GLMR not withdrawn").to.be
         .true;
     });
-  },null,null,null,true
+  },
+  null,
+  null,
+  null,
+  true
 );
