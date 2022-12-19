@@ -590,7 +590,7 @@ totalBondReward               ${totalBondReward} \
   // compute max rounds respecting the current block number and the number of awarded collators
   const maxRoundChecks = Math.min(
     latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
-    collators.size
+    collatorCount
   );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
@@ -630,10 +630,11 @@ totalBondReward               ${totalBondReward} \
     totalBondRewarded = totalBondRewarded.add(rewarded.amount.bondReward);
     totalBondRewardedLoss = totalBondRewardedLoss.add(rewarded.amount.bondRewardLoss);
 
-    // This might happen because the collator is not producing blocks
-    // Since now collators are fetched from AtStake, a collator that is not
-    // producing blocks will be checked for rewards, but not be paid
+    // This occurs when a collator did not produce any blocks, when rewards were being paid out.
+    // Since collators are fetched from AtStake, a collator that is not producing blocks will
+    // still be checked for rewards, but not be paid.
     if (!rewarded.collator) {
+      debug(`no collator was not rewarded at block ${blockNumber}`);
       skippedRewardEvents += 1;
       continue;
     }
@@ -751,7 +752,7 @@ actual loss ${actualBondRewardedLoss.toString()}`
     );
   }
 
-  expect(skippedRewardEvents).to.be.eq(collators.size - rewardedCollators.size);
+  expect(skippedRewardEvents).to.be.eq(collatorCount - rewardedCollators.size);
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
   );
@@ -925,9 +926,7 @@ async function assertRewardedEventsAtBlock(
         `${accountId} (DEL) - Reward`
       );
 
-      const canAutoCompound =
-        !outstandingRevokes[rewarded.collator] ||
-        !outstandingRevokes[rewarded.collator].has(accountId);
+      const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
       if (specVersion >= 1900 && canAutoCompound) {
         const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
         // skip assertion if auto-compound 0%
@@ -949,6 +948,11 @@ async function assertRewardedEventsAtBlock(
     } else {
       throw Error(`invalid key ${accountId}, neither collator not delegator`);
     }
+  }
+
+  // return if no one was rewarded this round
+  if (!rewarded.collator) {
+    return { rewarded, autoCompounded };
   }
 
   if (specVersion >= 1800) {
