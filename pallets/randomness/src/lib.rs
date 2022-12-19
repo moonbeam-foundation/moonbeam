@@ -325,7 +325,7 @@ pub mod pallet {
 		/// Uses the vrf output of previous block to generate a random seed. The provided `subject`
 		/// must have the property to uniquely generate different randomness given the same vrf
 		/// output (e.g. relay block number).
-		/// Note: This needs to be updated hen asynchronous backing is in effect.
+		/// Note: This needs to be updated when asynchronous backing is in effect.
 		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
 			let local_vrf_output = PreviousLocalVrfOutput::<T>::get();
 			let block_number = frame_system::Pallet::<T>::block_number();
