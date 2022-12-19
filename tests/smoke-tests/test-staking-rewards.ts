@@ -25,9 +25,6 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
   let predecessorApiAt: ApiDecoration<"promise">;
 
   before("Common Setup", async function () {
-    if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
-      this.skip();
-    }
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       debug("Skip Block Consistency flag set, skipping staking rewards tests.");
       this.skip();
