@@ -25,7 +25,7 @@ use {
 	},
 	frame_support::{assert_err, assert_ok, traits::OnRuntimeUpgrade, weights::Weight, BoundedVec},
 	pallet_preimage::RequestStatus,
-	sp_runtime::traits::Hash,
+	sp_runtime::traits::{Get, Hash},
 	std::sync::{Arc, Mutex},
 };
 
@@ -219,6 +219,16 @@ fn migration_should_only_be_invoked_once() {
 				});
 		},
 	);
+}
+
+#[test]
+fn on_runtime_upgrade_charges_max_block_weights() {
+	ExtBuilder::default().build().execute_with(|| {
+		let block_weights: frame_system::limits::BlockWeights =
+			<Runtime as frame_system::Config>::BlockWeights::get();
+		let weight = Migrations::on_runtime_upgrade();
+		assert_eq!(weight, block_weights.max_block);
+	})
 }
 
 #[test]
