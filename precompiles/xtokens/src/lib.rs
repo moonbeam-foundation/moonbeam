@@ -34,7 +34,7 @@ use sp_std::{
 	vec::Vec,
 };
 use xcm::{
-	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation},
+	latest::{AssetId, Fungibility, MultiAsset, MultiAssets, MultiLocation, WeightLimit},
 	VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation,
 };
 use xcm_primitives::AccountIdToCurrencyId;
@@ -68,9 +68,9 @@ pub struct XtokensPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> XtokensPrecompile<Runtime>
 where
 	Runtime: orml_xtokens::Config + pallet_evm::Config + frame_system::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<orml_xtokens::Call<Runtime>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: From<orml_xtokens::Call<Runtime>>,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	XBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdToCurrencyId<Runtime::AccountId, CurrencyIdOf<Runtime>>,
 {
@@ -99,7 +99,7 @@ where
 			currency_id,
 			amount,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -143,7 +143,7 @@ where
 			amount,
 			fee,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -171,7 +171,7 @@ where
 				fun: Fungibility::Fungible(to_balance),
 			})),
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -211,7 +211,7 @@ where
 				fun: Fungibility::Fungible(fee),
 			})),
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -265,7 +265,7 @@ where
 			currencies,
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;
@@ -314,7 +314,7 @@ where
 			assets: Box::new(VersionedMultiAssets::V1(multiassets)),
 			fee_item,
 			dest: Box::new(VersionedMultiLocation::V1(destination)),
-			dest_weight: weight,
+			dest_weight_limit: WeightLimit::Limited(weight),
 		};
 
 		RuntimeHelper::<Runtime>::try_dispatch(handle, Some(origin).into(), call)?;

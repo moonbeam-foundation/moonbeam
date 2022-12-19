@@ -25,9 +25,6 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
   let predecessorApiAt: ApiDecoration<"promise">;
 
   before("Common Setup", async function () {
-    if (context.polkadotApi.consts.system.version.specVersion.toNumber() < 2000) {
-      this.skip();
-    }
     if (process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
       debug("Skip Block Consistency flag set, skipping staking rewards tests.");
       this.skip();
@@ -45,14 +42,18 @@ describeSmokeSuite(`When verifying ParachainStaking rewards...`, function (conte
       `Querying at block #${queryRound.first.toNumber()}, round #${queryRound.current.toNumber()}`
     );
 
-    const prevBlock = queryRound.first.subn(1);
+    const prevBlock = Math.max(queryRound.first.subn(1).toNumber(), 1);
     const prevHash = await context.polkadotApi.rpc.chain.getBlockHash(prevBlock);
     apiAt = await context.polkadotApi.at(prevHash);
-    debug(`Snapshot block #${prevBlock.toNumber()} hash ${prevHash.toString()}`);
+    debug(`Snapshot block #${prevBlock} hash ${prevHash.toString()}`);
 
-    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1);
+    const predecessorBlock = (await apiAt.query.parachainStaking.round()).first.subn(1).toNumber();
+    if (predecessorBlock <= 1) {
+      debug("Round is too early (fork network probably), skipping test.");
+      this.skip();
+    }
     const predecessorHash = await context.polkadotApi.rpc.chain.getBlockHash(predecessorBlock);
-    debug(`Reference block #${predecessorBlock.toNumber()} hash ${predecessorHash.toString()}`);
+    debug(`Reference block #${predecessorBlock} hash ${predecessorHash.toString()}`);
     predecessorApiAt = await context.polkadotApi.at(predecessorHash);
 
     const nowRound = (await apiAt.query.parachainStaking.round()).current.toNumber();
@@ -586,7 +587,7 @@ totalBondReward               ${totalBondReward} \
   // compute max rounds respecting the current block number and the number of awarded collators
   const maxRoundChecks = Math.min(
     latestBlockNumber - nowRoundFirstBlock.toNumber() + 1,
-    awardedCollatorCount
+    collatorCount
   );
   debug(`verifying ${maxRoundChecks} blocks for rewards (awarded ${awardedCollatorCount})`);
   const expectedRewardedCollators = new Set(awardedCollators);
@@ -602,6 +603,7 @@ totalBondReward               ${totalBondReward} \
   // accumulate total commission rewards per collator
   let totalCollatorCommissionRewarded = new BN(0);
 
+  let skippedRewardEvents = 0;
   // iterate over the next blocks to verify rewards
   for await (const i of new Array(maxRoundChecks).keys()) {
     const blockNumber = nowRoundFirstBlock.addn(i);
@@ -625,6 +627,14 @@ totalBondReward               ${totalBondReward} \
     totalBondRewarded = totalBondRewarded.add(rewarded.amount.bondReward);
     totalBondRewardedLoss = totalBondRewardedLoss.add(rewarded.amount.bondRewardLoss);
 
+    // This occurs when a collator did not produce any blocks, when rewards were being paid out.
+    // Since collators are fetched from AtStake, a collator that is not producing blocks will
+    // still be checked for rewards, but not be paid.
+    if (!rewarded.collator) {
+      debug(`no collator was not rewarded at block ${blockNumber}`);
+      skippedRewardEvents += 1;
+      continue;
+    }
     expect(rewarded.collator, `collator was not rewarded at block ${blockNumber}`).to.exist;
 
     rewardedCollators.add(rewarded.collator);
@@ -739,6 +749,7 @@ actual loss ${actualBondRewardedLoss.toString()}`
     );
   }
 
+  expect(skippedRewardEvents).to.be.eq(collatorCount - rewardedCollators.size);
   const notRewarded = new Set(
     [...expectedRewardedCollators].filter((d) => !rewardedCollators.has(d))
   );
@@ -773,6 +784,11 @@ async function assertRewardedEventsAtBlock(
 ): Promise<{ rewarded: Rewarded; autoCompounded: Set<string> }> {
   const nowRoundRewardBlockHash = await api.rpc.chain.getBlockHash(rewardedBlockNumber);
   const apiAtBlock = await api.at(nowRoundRewardBlockHash);
+  const apiAtPreviousBlock = await api.at(
+    await api.rpc.chain.getBlockHash(rewardedBlockNumber.toNumber() - 1)
+  );
+
+  const round = await apiAtBlock.query.parachainStaking.round();
 
   debug(`> block ${rewardedBlockNumber} (${nowRoundRewardBlockHash})`);
   const rewards: { [key: HexString]: { account: string; amount: u128 } } = {};
@@ -792,6 +808,30 @@ async function assertRewardedEventsAtBlock(
         account: event.data[0].toHex(),
         amount: event.data[1] as u128,
       };
+    }
+
+    if (specVersion >= 2000) {
+      // Now orbiters have their own event. To replicate previous behavior,
+      // we take the collator associated and mark rewards as if they were
+      // to the collator
+      if (apiAtBlock.events.moonbeamOrbiters.OrbiterRewarded.is(event)) {
+        rewardCount++;
+        // The orbiter is removed from the list at the block of the reward so we query the previous
+        // block instead.
+        // The round rewarded is 2 rounds before the current one.
+        let collators = await apiAtPreviousBlock.query.moonbeamOrbiters.orbiterPerRound.entries(
+          round.current.toNumber() - 2
+        );
+
+        const collator = `0x${collators
+          .find((orbit) => orbit[1].toHex() == event.data[0].toHex())[0]
+          .toHex()
+          .slice(-40)}`;
+        rewards[collator] = {
+          account: collator,
+          amount: event.data[1] as u128,
+        };
+      }
     }
 
     if (specVersion >= 1900) {
@@ -883,7 +923,6 @@ async function assertRewardedEventsAtBlock(
         `${accountId} (DEL) - Reward`
       );
 
-      // check autoCompound
       const canAutoCompound = !outstandingRevokes[rewarded.collator].has(accountId);
       if (specVersion >= 1900 && canAutoCompound) {
         const autoCompoundPercent = collatorInfo.delegators[accountId].autoCompound;
@@ -906,6 +945,11 @@ async function assertRewardedEventsAtBlock(
     } else {
       throw Error(`invalid key ${accountId}, neither collator not delegator`);
     }
+  }
+
+  // return if no one was rewarded this round
+  if (!rewarded.collator) {
+    return { rewarded, autoCompounded };
   }
 
   if (specVersion >= 1800) {
