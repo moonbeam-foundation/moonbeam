@@ -32,7 +32,7 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 pub use xcm_primitives::XcmV2Weight;
-use xcm_primitives::{UtilityAvailableCalls, UtilityEncodeCall, XcmTransact};
+use xcm_primitives::{RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
@@ -235,8 +235,8 @@ impl XcmTransact for Transactors {
 	}
 }
 
-impl UtilityEncodeCall for Transactors {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
+impl RelayEncodeCall for Transactors {
+	fn utility_encode_call(self, call: UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			Transactors::Relay => match call {
 				UtilityAvailableCalls::AsDerivative(a, b) => {
@@ -323,6 +323,7 @@ impl Config for Test {
 	type XcmSender = TestSendXcm;
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
+	type HrmpManipulatorOrigin = EnsureRoot<u64>;
 }
 
 pub(crate) struct ExtBuilder {

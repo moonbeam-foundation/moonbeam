@@ -100,9 +100,7 @@ pub mod pallet {
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
-	use xcm_primitives::{
-		HrmpAvailableCalls, HrmpEncodeCall, UtilityAvailableCalls, UtilityEncodeCall, XcmTransact,
-	};
+	use xcm_primitives::{HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -450,7 +448,7 @@ pub mod pallet {
 
 			// Encode call bytes
 			// We make sure the inner call is wrapped on a as_derivative dispatchable
-			let call_bytes: Vec<u8> = UtilityEncodeCall::encode_call(
+			let call_bytes: Vec<u8> = RelayEncodeCall::utility_encode_call(
 				dest.clone(),
 				UtilityAvailableCalls::AsDerivative(index, inner_call),
 			);
@@ -677,7 +675,7 @@ pub mod pallet {
 			// Transact
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
 			let call_bytes = match action {
-				HrmpOperation::InitOpen(params) => HrmpEncodeCall::encode_call(
+				HrmpOperation::InitOpen(params) => RelayEncodeCall::hrmp_encode_call(
 					dest.clone(),
 					HrmpAvailableCalls::InitOpenChannel(
 						params.para_id,
@@ -685,11 +683,11 @@ pub mod pallet {
 						params.proposed_max_message_size,
 					),
 				),
-				HrmpOperation::Accept(para_id) => HrmpEncodeCall::encode_call(
+				HrmpOperation::Accept(para_id) => RelayEncodeCall::hrmp_encode_call(
 					dest.clone(),
 					HrmpAvailableCalls::AcceptOpenChannel(para_id),
 				),
-				HrmpOperation::Close(close_params) => HrmpEncodeCall::encode_call(
+				HrmpOperation::Close(close_params) => RelayEncodeCall::hrmp_encode_call(
 					dest.clone(),
 					HrmpAvailableCalls::CloseChannel(close_params),
 				),

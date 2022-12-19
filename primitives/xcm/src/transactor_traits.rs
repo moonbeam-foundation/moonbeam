@@ -33,27 +33,29 @@ pub enum HrmpAvailableCalls {
 	CloseChannel(HrmpChannelId),
 }
 
-// Trait that the ensures we can encode a call with utility functions.
-// With this trait we ensure that the user cannot control entirely the call
-// to be performed in the destination chain. It only can control the call inside
-// the as_derivative extrinsic, and thus, this call can only be dispatched from the
-// derivative account
-pub trait UtilityEncodeCall {
-	fn encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
-}
-
-// Trait that the ensures we can encode a call with hrmp functions.
-// With this trait we ensure that the user cannot control entirely the call
-// to be performed in the destination chain.
-pub trait HrmpEncodeCall {
-	fn encode_call(self, call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError>;
+// Trait that the ensures we can encode a call with utility and hrmp functions.
+pub trait RelayEncodeCall {
+	// With this trait we ensure that the user cannot control entirely the call
+	// to be performed in the destination chain. It only can control the call inside
+	// the as_derivative extrinsic, and thus, this call can only be dispatched from the
+	// derivative account
+	fn utility_encode_call(self, call: UtilityAvailableCalls) -> Vec<u8>;
+	// Trait that the ensures we can encode a call with hrmp functions.
+	// With this trait we ensure that the user cannot control entirely the call
+	// to be performed in the destination chain.
+	fn hrmp_encode_call(self, _call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError>
+	where
+		Self: Sized,
+	{
+		Err(XcmError::Unimplemented)
+	}
 }
 
 // Trait to ensure we can retrieve the destination if a given type
 // It must implement UtilityEncodeCall
 // We separate this in two traits to be able to implement UtilityEncodeCall separately
 // for different runtimes of our choice
-pub trait XcmTransact: UtilityEncodeCall + HrmpEncodeCall {
+pub trait XcmTransact: RelayEncodeCall {
 	/// Encode call from the relay.
 	fn destination(self) -> MultiLocation;
 }

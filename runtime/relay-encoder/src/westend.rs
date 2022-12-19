@@ -85,8 +85,8 @@ pub enum HrmpCall {
 
 pub struct WestendEncoder;
 
-impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::RelayEncodeCall for WestendEncoder {
+	fn utility_encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match call {
 			xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {
 				let mut call = RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
@@ -97,10 +97,7 @@ impl xcm_primitives::UtilityEncodeCall for WestendEncoder {
 			}
 		}
 	}
-}
-
-impl xcm_primitives::HrmpEncodeCall for WestendEncoder {
-	fn encode_call(
+	fn hrmp_encode_call(
 		self,
 		call: xcm_primitives::HrmpAvailableCalls,
 	) -> Result<Vec<u8>, xcm::latest::Error> {
@@ -202,7 +199,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::UtilityEncodeCall::encode_call(
+			xcm_primitives::RelayEncodeCall::utility_encode_call(
 				WestendEncoder,
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(1, call_bytes)
 			),
@@ -479,7 +476,7 @@ mod tests {
 		expected_encoded.append(&mut expected);
 
 		assert_eq!(
-			xcm_primitives::HrmpEncodeCall::encode_call(
+			xcm_primitives::RelayEncodeCall::hrmp_encode_call(
 				WestendEncoder,
 				xcm_primitives::HrmpAvailableCalls::InitOpenChannel(
 					1000u32.into(),
