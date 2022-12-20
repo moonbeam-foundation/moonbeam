@@ -37,7 +37,6 @@ async function main() {
 `;
 
   if (newVersion.endsWith(".0")) {
-
     const template = `
 ## Requirements
 - [ ] To be manually edited (add pending PRs)
@@ -55,7 +54,6 @@ ${commonTemplate}
 - [ ] Bump client version to the next one on master
     `;
     console.log(template);
-
   } else {
     const template = `
 ## Requirements
@@ -70,7 +68,6 @@ ${commonTemplate}
 ${commonTemplate}
     `;
     console.log(template);
-
   }
 }
 
