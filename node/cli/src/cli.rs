@@ -152,9 +152,7 @@ pub struct RunCmd {
 		long,
 		conflicts_with = "collator",
 		conflicts_with = "validator",
-		use_value_delimiter = true,
-		require_value_delimiter = true,
-		multiple_values = true
+		value_delimiter = ','
 	)]
 	pub ethapi: Vec<EthApi>,
 
@@ -207,7 +205,7 @@ pub struct RunCmd {
 	pub fee_history_limit: u64,
 
 	/// Sets the backend type (KeyValue or Sql)
-	#[clap(long, arg_enum, ignore_case = true, default_value_t = cli_opt::BackendType::default())]
+	#[clap(long, value_enum, ignore_case = true, default_value_t = cli_opt::BackendType::default())]
 	pub frontier_backend_type: cli_opt::BackendType,
 
 	/// Disable automatic hardware benchmarks.

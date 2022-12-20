@@ -1258,6 +1258,23 @@ benchmarks! {
 			"delegation must have an auto-compound entry",
 		);
 	}
+
+	mint_collator_reward {
+		let mut seed = Seed::new();
+		let collator = create_funded_collator::<T>(
+			"collator",
+			seed.take(),
+			0u32.into(),
+			true,
+			1,
+		)?;
+		let original_free_balance = T::Currency::free_balance(&collator);
+	}: {
+		Pallet::<T>::mint_collator_reward(1u32.into(), collator.clone(), 50u32.into())
+	}
+	verify {
+		assert_eq!(T::Currency::free_balance(&collator), original_free_balance + 50u32.into());
+	}
 }
 
 #[cfg(test)]
@@ -1272,20 +1289,6 @@ mod tests {
 			.build_storage::<Test>()
 			.unwrap();
 		TestExternalities::new(t)
-	}
-
-	#[test]
-	fn bench_hotfix_remove_delegation_requests() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_remove_delegation_requests());
-		});
-	}
-
-	#[test]
-	fn bench_hotfix_update_candidate_pool_value() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_hotfix_update_candidate_pool_value());
-		});
 	}
 
 	#[test]
@@ -1481,13 +1484,6 @@ mod tests {
 	fn bench_cancel_delegator_bond_less() {
 		new_test_ext().execute_with(|| {
 			assert_ok!(Pallet::<Test>::test_benchmark_cancel_delegator_bond_less());
-		});
-	}
-
-	#[test]
-	fn bench_round_transition_on_initialize() {
-		new_test_ext().execute_with(|| {
-			assert_ok!(Pallet::<Test>::test_benchmark_round_transition_on_initialize());
 		});
 	}
 

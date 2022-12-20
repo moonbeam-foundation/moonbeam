@@ -32,12 +32,12 @@ fn test_register_address() {
 		.execute_with(|| {
 			// Only root can do this, as specified in runtime
 			assert_noop!(
-				XcmTransactor::register(Origin::signed(1u64), 1u64, 1),
+				XcmTransactor::register(RuntimeOrigin::signed(1u64), 1u64, 1),
 				DispatchError::BadOrigin
 			);
 
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
@@ -58,7 +58,7 @@ fn test_transact_through_derivative_errors() {
 			// Non-claimed index so cannot transfer
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Transactors::Relay,
 					1,
 					CurrencyPayment {
@@ -77,12 +77,12 @@ fn test_transact_through_derivative_errors() {
 			);
 
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			// TransactInfo not yet set
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Transactors::Relay,
 					1,
 					CurrencyPayment {
@@ -102,7 +102,7 @@ fn test_transact_through_derivative_errors() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -112,7 +112,7 @@ fn test_transact_through_derivative_errors() {
 			// TransactInfo present, but FeePerSecond not set
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Transactors::Relay,
 					1,
 					CurrencyPayment {
@@ -132,7 +132,7 @@ fn test_transact_through_derivative_errors() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 					1,
 					Junctions::X1(Junction::Parachain(1000))
@@ -143,7 +143,7 @@ fn test_transact_through_derivative_errors() {
 			// TransactInfo present, but the asset is not a reserve of dest
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Transactors::Relay,
 					1,
 					CurrencyPayment {
@@ -166,7 +166,7 @@ fn test_transact_through_derivative_errors() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -174,7 +174,7 @@ fn test_transact_through_derivative_errors() {
 			// Cannot exceed the max weight
 			assert_noop!(
 				XcmTransactor::transact_through_derivative(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Transactors::Relay,
 					1,
 					CurrencyPayment {
@@ -203,7 +203,7 @@ fn test_transact_through_signed_errors() {
 			// TransactInfo not yet set
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
@@ -222,7 +222,7 @@ fn test_transact_through_signed_errors() {
 
 			// Root can set transact info without extra_signed being None
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -232,7 +232,7 @@ fn test_transact_through_signed_errors() {
 			// TransactInfo present, but FeePerSecond not set
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
@@ -251,7 +251,7 @@ fn test_transact_through_signed_errors() {
 
 			// Root can set transact info, with extra signed
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				15000,
@@ -261,7 +261,7 @@ fn test_transact_through_signed_errors() {
 			// TransactInfo present, but FeePerSecond not set
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
@@ -280,7 +280,7 @@ fn test_transact_through_signed_errors() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 					1,
 					Junctions::X1(Junction::Parachain(1000))
@@ -291,7 +291,7 @@ fn test_transact_through_signed_errors() {
 			// TransactInfo present, but the asset is not a reserve of dest
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsMultiLocation(Box::new(
@@ -320,11 +320,11 @@ fn test_transact_through_derivative_multilocation_success() {
 		.build()
 		.execute_with(|| {
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -333,14 +333,14 @@ fn test_transact_through_derivative_multilocation_success() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
-				Origin::signed(1u64),
+				RuntimeOrigin::signed(1u64),
 				Transactors::Relay,
 				1,
 				CurrencyPayment {
@@ -391,11 +391,11 @@ fn test_transact_through_derivative_success() {
 		.build()
 		.execute_with(|| {
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -404,14 +404,14 @@ fn test_transact_through_derivative_success() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_derivative(
-				Origin::signed(1u64),
+				RuntimeOrigin::signed(1u64),
 				Transactors::Relay,
 				1,
 				CurrencyPayment {
@@ -462,7 +462,7 @@ fn test_root_can_transact_through_sovereign() {
 			// Only root can do this
 			assert_noop!(
 				XcmTransactor::transact_through_sovereign(
-					Origin::signed(1),
+					RuntimeOrigin::signed(1),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					1u64,
 					CurrencyPayment {
@@ -483,7 +483,7 @@ fn test_root_can_transact_through_sovereign() {
 
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -492,14 +492,14 @@ fn test_root_can_transact_through_sovereign() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
 				CurrencyPayment {
@@ -579,11 +579,11 @@ fn de_registering_works() {
 		.build()
 		.execute_with(|| {
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
-			assert_ok!(XcmTransactor::deregister(Origin::root(), 1));
+			assert_ok!(XcmTransactor::deregister(RuntimeOrigin::root(), 1));
 
 			assert!(XcmTransactor::index_to_account(&1).is_none());
 
@@ -606,7 +606,7 @@ fn removing_transact_info_works() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -615,7 +615,7 @@ fn removing_transact_info_works() {
 
 			// Root can remove transact info
 			assert_ok!(XcmTransactor::remove_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 			));
 
@@ -647,7 +647,7 @@ fn test_transact_through_signed_fails_if_transact_info_not_set_at_all() {
 			// fee as destination are the same, this time it should work
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -672,7 +672,7 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -682,7 +682,7 @@ fn test_transact_through_signed_fails_if_weight_is_not_set() {
 			// weight value not set for signed transact, fails
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -707,7 +707,7 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -717,7 +717,7 @@ fn test_transact_through_signed_fails_if_weight_overflows() {
 			// weight should overflow
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -742,7 +742,7 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -752,7 +752,7 @@ fn test_transact_through_signed_fails_if_weight_is_bigger_than_max_weight() {
 			// 10000 + 1 > 10000 (max weight permitted by dest chain)
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -777,7 +777,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -787,7 +787,7 @@ fn test_transact_through_signed_fails_if_fee_per_second_not_set() {
 			// fee per second not set, fails
 			assert_noop!(
 				XcmTransactor::transact_through_signed(
-					Origin::signed(1u64),
+					RuntimeOrigin::signed(1u64),
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 					CurrencyPayment {
 						currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -812,7 +812,7 @@ fn test_transact_through_signed_works() {
 		.execute_with(|| {
 			// Root can set transact info
 			assert_ok!(XcmTransactor::set_transact_info(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				0,
 				10000,
@@ -821,7 +821,7 @@ fn test_transact_through_signed_works() {
 
 			// Set fee per second
 			assert_ok!(XcmTransactor::set_fee_per_second(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1
 			));
@@ -829,7 +829,7 @@ fn test_transact_through_signed_works() {
 			// transact info and fee per second set
 			// this time it should work
 			assert_ok!(XcmTransactor::transact_through_signed(
-				Origin::signed(1u64),
+				RuntimeOrigin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				CurrencyPayment {
 					currency: Currency::AsCurrencyId(CurrencyId::OtherReserve(0)),
@@ -923,7 +923,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 		.build()
 		.execute_with(|| {
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			// We are gonna use a total weight of 10_100, a tx weight of 100,
 			// and a total fee of 100
@@ -935,7 +935,7 @@ fn test_send_through_derivative_with_custom_weight_and_fee() {
 			// that even if the transact_info is not populated,
 			// the message is forged with our parameters
 			assert_ok!(XcmTransactor::transact_through_derivative(
-				Origin::signed(1u64),
+				RuntimeOrigin::signed(1u64),
 				Transactors::Relay,
 				1,
 				CurrencyPayment {
@@ -989,7 +989,7 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 		.build()
 		.execute_with(|| {
 			// Root can register
-			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+			assert_ok!(XcmTransactor::register(RuntimeOrigin::root(), 1u64, 1));
 
 			// We are gonna use a total weight of 10_100, a tx weight of 100,
 			// and a total fee of 100
@@ -1003,7 +1003,7 @@ fn test_send_through_sovereign_with_custom_weight_and_fee() {
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_sovereign(
-				Origin::root(),
+				RuntimeOrigin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				1u64,
 				CurrencyPayment {
@@ -1068,7 +1068,7 @@ fn test_send_through_signed_with_custom_weight_and_fee() {
 
 			// fee as destination are the same, this time it should work
 			assert_ok!(XcmTransactor::transact_through_signed(
-				Origin::signed(1u64),
+				RuntimeOrigin::signed(1u64),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
 				CurrencyPayment {
 					currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(

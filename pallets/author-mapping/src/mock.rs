@@ -85,16 +85,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -116,7 +116,7 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
@@ -127,7 +127,7 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = NimbusId;
@@ -186,6 +186,6 @@ impl ExtBuilder {
 	}
 }
 
-pub(crate) fn last_event() -> Event {
+pub(crate) fn last_event() -> RuntimeEvent {
 	System::events().pop().expect("Event expected").event
 }
