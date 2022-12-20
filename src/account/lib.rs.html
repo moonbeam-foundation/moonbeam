@@ -227,6 +227,12 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -252,7 +258,7 @@
 </span><span class="kw">use </span>parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 <span class="kw">use </span>scale_info::TypeInfo;
 <span class="kw">use </span>sha3::{Digest, Keccak256};
-<span class="kw">use </span>sp_core::{ecdsa, H160, H256};
+<span class="kw">use </span>sp_core::{ecdsa, H160};
 
 <span class="attribute">#[cfg(feature = <span class="string">&quot;std&quot;</span>)]
 </span><span class="kw">pub use </span>serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -341,9 +347,7 @@
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		<span class="kw">match </span>sp_io::crypto::secp256k1_ecdsa_recover(<span class="self">self</span>.<span class="number">0</span>.as_ref(), <span class="kw-2">&amp;</span>m) {
 			<span class="prelude-val">Ok</span>(pubkey) =&gt; {
-				<span class="comment">// TODO This conversion could use a comment. Why H256 first, then H160?
-				// TODO actually, there is probably just a better way to go from Keccak digest.
-				</span>AccountId20(H160::from(H256::from_slice(Keccak256::digest(<span class="kw-2">&amp;</span>pubkey).as_slice())).<span class="number">0</span>)
+				AccountId20(H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>pubkey).as_slice()[<span class="number">12</span>..<span class="number">32</span>]).<span class="number">0</span>)
 					== <span class="kw-2">*</span>signer
 			}
 			<span class="prelude-val">Err</span>(sp_io::EcdsaVerifyError::BadRS) =&gt; {
@@ -392,7 +396,7 @@
 		.serialize();
 		<span class="kw">let </span><span class="kw-2">mut </span>m = [<span class="number">0u8</span>; <span class="number">64</span>];
 		m.copy_from_slice(<span class="kw-2">&amp;</span>decompressed[<span class="number">1</span>..<span class="number">65</span>]);
-		<span class="kw">let </span>account = H160::from(H256::from_slice(Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()));
+		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
 		EthereumSigner(account.into())
 	}
 }
@@ -401,7 +405,7 @@
 	<span class="kw">fn </span>from(x: libsecp256k1::PublicKey) -&gt; <span class="self">Self </span>{
 		<span class="kw">let </span><span class="kw-2">mut </span>m = [<span class="number">0u8</span>; <span class="number">64</span>];
 		m.copy_from_slice(<span class="kw-2">&amp;</span>x.serialize()[<span class="number">1</span>..<span class="number">65</span>]);
-		<span class="kw">let </span>account = H160::from(H256::from_slice(Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()));
+		<span class="kw">let </span>account = H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]);
 		EthereumSigner(account.into())
 	}
 }
@@ -416,7 +420,7 @@
 <span class="attribute">#[cfg(test)]
 </span><span class="kw">mod </span>tests {
 	<span class="kw">use super</span>::<span class="kw-2">*</span>;
-	<span class="kw">use </span>sp_core::{ecdsa, Pair};
+	<span class="kw">use </span>sp_core::{ecdsa, Pair, H256};
 	<span class="kw">use </span>sp_runtime::traits::IdentifyAccount;
 
 	<span class="attribute">#[test]
@@ -454,6 +458,14 @@
 		<span class="kw">let </span>account: EthereumSigner = public_key.into();
 		<span class="kw">let </span>expected_account = AccountId20::from(expected_hex_account);
 		<span class="macro">assert_eq!</span>(account.into_account(), expected_account);
+	}
+	<span class="attribute">#[test]
+	</span><span class="kw">fn </span>test_account_derivation_3() {
+		<span class="kw">let </span>m = hex::decode(<span class="string">&quot;c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470&quot;</span>)
+			.unwrap();
+		<span class="kw">let </span>old = AccountId20(H160::from(H256::from_slice(Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice())).<span class="number">0</span>);
+		<span class="kw">let </span>new = AccountId20(H160::from_slice(<span class="kw-2">&amp;</span>Keccak256::digest(<span class="kw-2">&amp;</span>m).as_slice()[<span class="number">12</span>..<span class="number">32</span>]).<span class="number">0</span>);
+		<span class="macro">assert_eq!</span>(new, old);
 	}
 }
 </code></pre></div>
