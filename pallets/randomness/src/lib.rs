@@ -337,8 +337,8 @@ pub mod pallet {
 			let local_vrf_output = PreviousLocalVrfOutput::<T>::get();
 			let block_number = frame_system::Pallet::<T>::block_number();
 			let mut digest = Vec::new();
-			digest.copy_from_slice(local_vrf_output.as_ref());
-			digest.copy_from_slice(subject);
+			digest.extend_from_slice(local_vrf_output.as_ref());
+			digest.extend_from_slice(subject);
 			let randomness = T::Hashing::hash(digest.as_slice());
 			(randomness, block_number)
 		}
