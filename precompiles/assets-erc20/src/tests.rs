@@ -67,6 +67,10 @@ fn selectors() {
 	assert!(ForeignPCall::total_supply_selectors().contains(&0x18160ddd));
 	assert!(ForeignPCall::approve_selectors().contains(&0x095ea7b3));
 	assert!(ForeignPCall::allowance_selectors().contains(&0xdd62ed3e));
+	assert!(ForeignPCall::freezer_selectors().contains(&0x92716054));
+	assert!(ForeignPCall::owner_selectors().contains(&0x8da5cb5b));
+	assert!(ForeignPCall::issuer_selectors().contains(&0x1d143848));
+	assert!(ForeignPCall::admin_selectors().contains(&0xf851a440));
 	assert!(ForeignPCall::transfer_selectors().contains(&0xa9059cbb));
 	assert!(ForeignPCall::transfer_from_selectors().contains(&0x23b872dd));
 	assert!(ForeignPCall::name_selectors().contains(&0x06fdde03));
@@ -2420,6 +2424,94 @@ fn burn_overflow() {
 				.expect_cost(1756u64) // 1 weight => 1 gas in mock
 				.expect_no_logs()
 				.execute_reverts(|e| e == b"value: Value is too large for balance type");
+		});
+}
+
+#[test]
+fn get_owner() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				RuntimeOrigin::root(),
+				0u128,
+				CryptoAlith.into(),
+				true,
+				1
+			));
+
+			precompiles()
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::owner {})
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(Address(CryptoAlith.into()));
+		});
+}
+
+#[test]
+fn get_issuer() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				RuntimeOrigin::root(),
+				0u128,
+				CryptoAlith.into(),
+				true,
+				1
+			));
+
+			precompiles()
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::issuer {})
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(Address(CryptoAlith.into()));
+		});
+}
+
+#[test]
+fn get_admin() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				RuntimeOrigin::root(),
+				0u128,
+				CryptoAlith.into(),
+				true,
+				1
+			));
+
+			precompiles()
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::admin {})
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(Address(CryptoAlith.into()));
+		});
+}
+
+#[test]
+fn get_freezer() {
+	ExtBuilder::default()
+		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
+		.build()
+		.execute_with(|| {
+			assert_ok!(ForeignAssets::force_create(
+				RuntimeOrigin::root(),
+				0u128,
+				CryptoAlith.into(),
+				true,
+				1
+			));
+
+			precompiles()
+				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::freezer {})
+				.expect_cost(0)
+				.expect_no_logs()
+				.execute_returns_encoded(Address(CryptoAlith.into()));
 		});
 }
 
