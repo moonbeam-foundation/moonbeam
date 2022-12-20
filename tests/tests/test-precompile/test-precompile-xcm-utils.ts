@@ -266,6 +266,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
 describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
   it("allows to send a custom xcm message", async function () {
     // Sending it to the relay
+    // { parents:1, Here}
     const dest = [
       // one parents
       1,
@@ -312,6 +313,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     const x1_parachain_id = ownParaId.toHex().slice(2);
 
     // Sending it here
+    // { parents:0, Here}
     const destHere: [number, {}[]] = [
       // one parents
       0,
@@ -320,6 +322,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     ];
 
     // Sending it with the representation of the para as seen by the relay
+    // { parents:0, parachain(0)}
     const destParaRelayView: [number, {}[]] = [
       // one parents
       0,
@@ -328,6 +331,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xcm utils", (context) => {
     ];
 
     // Sending it with the representation of the para as seen by other paras
+    // { parents:1, parachain(0)}
     const destParaOtherParaView: [number, {}[]] = [
       // one parents
       1,
