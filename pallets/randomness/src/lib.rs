@@ -325,7 +325,14 @@ pub mod pallet {
 		/// Uses the vrf output of previous block to generate a random seed. The provided `subject`
 		/// must have the property to uniquely generate different randomness given the same vrf
 		/// output (e.g. relay block number).
-		/// Note: This needs to be updated when asynchronous backing is in effect.
+		///
+		/// In our case the `subject` is provided via Nimbus and consists of three parts:
+		///       1. Constant string *b"filter" - to identify author-slot-filter pallet
+		///       2. First 2 bytes of index.to_le_bytes() when selecting the ith eligible author
+		///       3. First 4 bytes of slot_number.to_be_bytes()
+		///
+		/// Note: This needs to be updated when asynchronous backing is in effect,
+		///       as it will be unsafe.
 		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
 			let local_vrf_output = PreviousLocalVrfOutput::<T>::get();
 			let block_number = frame_system::Pallet::<T>::block_number();
