@@ -1,6 +1,6 @@
 import { ALITH_PRIVATE_KEY } from "../util/accounts";
 import { expect } from "chai";
-import { BigNumber, Contract, ethers, Wallet } from "ethers";
+import { Contract, ethers, Wallet } from "ethers";
 import {
   comptrollerAbi,
   dotMoneyMarketVaultAddress,
@@ -194,7 +194,7 @@ describeDevMoonbeam(
       ).to.be.true;
 
       // Generating blocks to accrue rewards
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 500; i++) {
         await context.createBlock();
       }
 

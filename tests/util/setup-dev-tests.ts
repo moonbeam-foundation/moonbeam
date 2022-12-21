@@ -98,7 +98,7 @@ export function describeDevMoonbeam(
     before("Starting Moonbeam Test Node", async function () {
       this.timeout(SPAWNING_TIME);
       const init = forkedMode
-        ? await startMoonbeamForkedNode(19932, 19933)
+        ? await startMoonbeamForkedNode(9933, 9944)
         : !DEBUG_MODE
         ? await startMoonbeamDevNode(withWasm, runtime)
         : {

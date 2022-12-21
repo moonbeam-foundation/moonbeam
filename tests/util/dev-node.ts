@@ -185,17 +185,13 @@ export async function startMoonbeamForkedNode(
     });
   }
   nodeStarted = true;
-  // const { p2pPort, rpcPort, wsPort } = await findAvailablePorts();
-
-  // if (process.env.FORCE_WASM_EXECUTION == "true") {
-  //   withWasm = true;
-  // }
 
   const cmd = BINARY_PATH;
   let args = [
     `--execution=Native`,
     `--no-hardware-benchmarks`,
     `--no-telemetry`,
+    `--database=paritydb`,
     `--no-prometheus`,
     `--alice`,
     `--chain=${CUSTOM_SPEC_PATH}`,

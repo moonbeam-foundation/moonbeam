@@ -13,7 +13,6 @@ import {
   xcTokenAbi,
 } from "./staticData";
 
-import { describeParachain } from "../util/setup-para-tests";
 import { BASE_PATH, CUSTOM_SPEC_PATH, DEBUG_MODE, TWO_MINS } from "../util/constants";
 import { describeDevMoonbeam } from "../util/setup-dev-tests";
 const RUNTIME_NAME = process.env.RUNTIME_NAME as "moonbeam" | "moonbase" | "moonriver";
