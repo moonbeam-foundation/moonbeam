@@ -151,7 +151,7 @@ jobs:
       - name: Check Cargo.toml files format with toml_sort
         run: ./scripts/check-cargo-toml-files-format.sh
 
-  check-cargo-toml-format:
+  check-forbid-evm-reentrancy:
     name: "Check 'forbid-evm-reentrancy'"
     runs-on: self-hosted
     needs: ["set-tags"]
