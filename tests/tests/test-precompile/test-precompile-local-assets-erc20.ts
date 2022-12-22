@@ -42,9 +42,7 @@ const LOCAL_ASSET_EXTENDED_ERC20_INTERFACE = new ethers.utils.Interface(
   LOCAL_ASSET_EXTENDED_ERC20_CONTRACT.contract.abi
 );
 
-const ROLES_INTERFACE = new ethers.utils.Interface(
-  ROLES_CONTRACT.contract.abi
-);
+const ROLES_INTERFACE = new ethers.utils.Interface(ROLES_CONTRACT.contract.abi);
 
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
