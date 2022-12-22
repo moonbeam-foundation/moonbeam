@@ -32,7 +32,7 @@ use xcm::latest::{
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 pub use xcm_primitives::XcmV2Weight;
-use xcm_primitives::{RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
+use xcm_primitives::{HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
 
 use sp_std::cell::RefCell;
 use xcm_executor::{
@@ -206,12 +206,25 @@ pub enum RelayCall {
 	#[codec(index = 0u8)]
 	// the index should match the position of the module in `construct_runtime!`
 	Utility(UtilityCall),
+	#[codec(index = 1u8)]
+	// the index should match the position of the module in `construct_runtime!`
+	Hrmp(HrmpCall),
 }
 
 #[derive(Encode, Decode)]
 pub enum UtilityCall {
 	#[codec(index = 0u8)]
 	AsDerivative(u16),
+}
+
+#[derive(Encode, Decode)]
+pub enum HrmpCall {
+	#[codec(index = 0u8)]
+	Init(),
+	#[codec(index = 1u8)]
+	Accept(),
+	#[codec(index = 2u8)]
+	Close(),
 }
 
 // Transactors for the mock runtime. Only relay chain
@@ -244,6 +257,22 @@ impl RelayEncodeCall for Transactors {
 						RelayCall::Utility(UtilityCall::AsDerivative(a.clone())).encode();
 					call.append(&mut b.clone());
 					call
+				}
+			},
+		}
+	}
+
+	fn hrmp_encode_call(self, call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
+		match self {
+			Transactors::Relay => match call {
+				HrmpAvailableCalls::InitOpenChannel(_, _, _) => {
+					Ok(RelayCall::Hrmp(HrmpCall::Init()).encode())
+				}
+				HrmpAvailableCalls::AcceptOpenChannel(_) => {
+					Ok(RelayCall::Hrmp(HrmpCall::Accept()).encode())
+				}
+				HrmpAvailableCalls::CloseChannel(_) => {
+					Ok(RelayCall::Hrmp(HrmpCall::Close()).encode())
 				}
 			},
 		}

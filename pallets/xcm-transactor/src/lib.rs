@@ -207,9 +207,9 @@ pub mod pallet {
 
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, scale_info::TypeInfo)]
 	pub struct HrmpInitParams {
-		para_id: ParaId,
-		proposed_max_capacity: u32,
-		proposed_max_message_size: u32,
+		pub para_id: ParaId,
+		pub proposed_max_capacity: u32,
+		pub proposed_max_message_size: u32,
 	}
 
 	/// Enum defining the way to express a Currency.
@@ -659,7 +659,7 @@ pub mod pallet {
 
 		/// Manage HRMP operations
 		#[pallet::weight(0)]
-		pub fn hrmp_mananger(
+		pub fn hrmp_manange(
 			origin: OriginFor<T>,
 			// destination to which the message should be sent
 			dest: T::Transactor,
