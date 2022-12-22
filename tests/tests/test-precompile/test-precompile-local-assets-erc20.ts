@@ -36,9 +36,14 @@ const SELECTORS = {
 };
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 const LOCAL_ASSET_EXTENDED_ERC20_CONTRACT = getCompiled("LocalAssetExtendedErc20Instance");
+const ROLES_CONTRACT = getCompiled("Roles");
 
 const LOCAL_ASSET_EXTENDED_ERC20_INTERFACE = new ethers.utils.Interface(
   LOCAL_ASSET_EXTENDED_ERC20_CONTRACT.contract.abi
+);
+
+const ROLES_INTERFACE = new ethers.utils.Interface(
+  ROLES_CONTRACT.contract.abi
 );
 
 describeDevMoonbeamAllEthTxTypes(
@@ -174,6 +179,90 @@ describeDevMoonbeamAllEthTxTypes(
 
       let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
       expect(tx_call.result).equals(amount_hex);
+    });
+
+    it("allows to call owner", async function () {
+      let data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "owner",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call freezer", async function () {
+      let data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "freezer",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call admin", async function () {
+      let data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "admin",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call issuer", async function () {
+      let data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "issuer",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
   },
   true
