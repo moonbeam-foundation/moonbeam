@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
-/// @title Extension of the ERC20 interface that allows users to
-/// get the account capable of fullfiling different asset roles
+/// @author The Moonbeam Team
+/// @title ERC20 interface Asset Roles
+/// @dev Extension of the ERC20 interface that allows users to get the account capable of fulfilling different asset roles
+/// @custom:address 0xFFFFFFFE + hex(assetId)
 interface Roles {
     /// @dev Function to check the owner of the asset
     /// @custom:selector 8da5cb5b

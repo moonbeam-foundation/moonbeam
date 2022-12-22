@@ -180,7 +180,7 @@ describeDevMoonbeamAllEthTxTypes(
     });
 
     it("allows to call owner", async function () {
-      let data = ROLES_INTERFACE.encodeFunctionData(
+      const data = ROLES_INTERFACE.encodeFunctionData(
         // action
         "owner",
         []
@@ -196,12 +196,12 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
     it("allows to call freezer", async function () {
-      let data = ROLES_INTERFACE.encodeFunctionData(
+      const data = ROLES_INTERFACE.encodeFunctionData(
         // action
         "freezer",
         []
@@ -217,12 +217,12 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
     it("allows to call admin", async function () {
-      let data = ROLES_INTERFACE.encodeFunctionData(
+      const data = ROLES_INTERFACE.encodeFunctionData(
         // action
         "admin",
         []
@@ -238,12 +238,12 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
     it("allows to call issuer", async function () {
-      let data = ROLES_INTERFACE.encodeFunctionData(
+      const data = ROLES_INTERFACE.encodeFunctionData(
         // action
         "issuer",
         []
@@ -259,7 +259,7 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      let account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
   },
