@@ -7,6 +7,13 @@ license = "GPL-3.0-only"
 repository = "https://github.com/PureStake/moonbeam/"
 version = "0.1.0"
 
+[package.metadata.cargo-machete]
+# used in features or required by macros
+# `cargo machete` gives false positives in those cases
+ignored = [
+	"pallet_evm",
+]
+
 [dependencies]
 
 # Moonbeam
@@ -15,33 +22,24 @@ moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = fa
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Frontier
-ethereum-types = { version = "0.14", default-features = false }
 evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.37.0", default-features = false }
 evm-runtime = { version = "0.37.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [features]
 default = [ "std" ]
 std = [
 	"codec/std",
-	"ethereum-types/std",
 	"evm-gasometer/std",
 	"evm-runtime/std",
 	"evm-tracing-events/std",
 	"evm/std",
 	"evm/with-serde",
-	"fp-evm/std",
 	"moonbeam-primitives-ext/std",
 	"pallet-evm/std",
-	"sp-core/std",
-	"sp-runtime/std",
 	"sp-std/std",
 ]

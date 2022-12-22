@@ -7,6 +7,14 @@ license = "GPL-3.0-only"
 repository = "https://github.com/PureStake/moonbeam/"
 version = "0.1.1"
 
+[package.metadata.cargo-machete]
+ignored = [
+	# used in features only
+	"blake2_rfc",
+	"sp_runtime_interface",
+	"sp_std",
+]
+
 [package.metadata.docs.rs]
 targets = [ "x86_64-unknown-linux-gnu" ]
 

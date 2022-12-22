@@ -5,11 +5,10 @@ description = "A Precompile wrapping the collective pallet."
 edition = "2021"
 version = "0.1.0"
 
+[package.metadata.cargo-machete]
+ignored = [ "evm" ]
+
 [dependencies]
-log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
-paste = "1.0.6"
-slices = "0.2.0"
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
@@ -29,10 +28,6 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
-derive_more = { version = "0.99" }
-hex-literal = "0.3.4"
-serde = { version = "1.0.100" }
-sha3 = "0.10"
 similar-asserts = "1.1.0"
 
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false, features = [ "max-encoded-len" ] }

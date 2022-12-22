@@ -7,13 +7,20 @@ homepage = "https://moonbeam.network"
 license = "GPL-3.0-only"
 version = "0.12.3"
 
+[package.metadata.cargo-machete]
+ignored = [
+	# https://github.com/bnjbvr/cargo-machete/issues/58
+	# cargo-machete currently don't detect dependencies used only in features
+	"moonbeam_service",
+	"pallet_xcm",
+	"xcm_builder",
+]
+
 [[bin]]
 name = 'moonbeam'
 path = 'src/main.rs'
 
 [dependencies]
-futures = { version = "0.3.1", features = [ "compat" ] }
-
 moonbeam-cli = { path = "cli", default-features = false }
 moonbeam-service = { path = "service", default-features = false }
 
@@ -21,10 +28,8 @@ moonbeam-service = { path = "service", default-features = false }
 assert_cmd = "0.12"
 hex = "0.4.3"
 nix = "0.23"
-serde = { version = "1.0.101", features = [ "derive" ] }
 serde_json = "1.0"
 tempfile = "3.2.0"
-tracing-core = "0.1.29"
 
 # Benchmarking
 pallet-xcm = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }

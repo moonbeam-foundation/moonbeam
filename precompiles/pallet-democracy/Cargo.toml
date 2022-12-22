@@ -7,7 +7,6 @@ version = "0.2.0"
 
 [dependencies]
 log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
 
 # Moonbeam
 precompile-utils = { path = "../utils", default-features = false }
@@ -28,9 +27,7 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
-derive_more = "0.99"
 hex-literal = "0.3.4"
-serde = "1.0.100"
 
 # Moonbeam
 precompile-utils = { path = "../utils", features = [ "testing" ] }

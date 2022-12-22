@@ -6,7 +6,6 @@ version = "0.1.0"
 
 [dependencies]
 log = { version = "0.4", default-features = false }
-serde = { version = "1.0.124", optional = true }
 
 # Moonbeam
 xcm-primitives = { path = "../../primitives/xcm/", default-features = false }
@@ -37,7 +36,6 @@ std = [
 	"frame-system/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",

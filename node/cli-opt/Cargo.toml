@@ -11,7 +11,6 @@ bip32 = { git = "https://github.com/purestake/crates", branch = "bip32-v0.4.0-fi
 clap = { version = "4.0.9", features = [ "derive" ] }
 libsecp256k1 = "0.7"
 primitive-types = "0.12.0"
-sha3 = "0.10"
 tiny-bip39 = "0.8"
 url = "2.2.2"
 

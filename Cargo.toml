@@ -1,5 +1,5 @@
 [workspace]
-exclude = [ "bin/utils/moonkey" ]
+exclude = [ "bin/utils/moonkey", "tests/node_modules" ]
 members = [
 	"bin/utils/moonkey",
 	"client/rpc/finality",
@@ -30,6 +30,15 @@ members = [
 	"runtime/moonbase",
 	"runtime/moonbeam",
 	"runtime/moonriver",
+]
+
+[workspace.metadata.cargo-machete]
+# Substrate macros require those dependencies in Cargo.toml, which are
+	# not used outside the macros.
+ignored = [
+	"codec",
+	"parity_scale_codec",
+	"scale_info",
 ]
 
 [patch.crates-io]

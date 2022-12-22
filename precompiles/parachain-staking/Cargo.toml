@@ -7,8 +7,6 @@ version = "1.0.0"
 
 [dependencies]
 log = "0.4"
-num_enum = { version = "0.5.3", default-features = false }
-rustc-hex = { version = "2.0.1", default-features = false }
 
 # Moonbeam
 pallet-parachain-staking = { path = "../../pallets/parachain-staking", default-features = false }
@@ -28,10 +26,6 @@ fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-pol
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
-derive_more = "0.99"
-serde = "1.0.100"
-sha3 = "0.10"
-
 # Moonbeam
 precompile-utils = { path = "../utils", features = [ "testing" ] }
 

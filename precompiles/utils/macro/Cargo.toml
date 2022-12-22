@@ -19,7 +19,6 @@ path = "tests/precompile.rs"
 [dependencies]
 case = "1.0"
 num_enum = { version = "0.5.3", default-features = false }
-prettyplease = "0.1.18"
 proc-macro2 = "1.0"
 quote = "1.0"
 sha3 = "0.10"

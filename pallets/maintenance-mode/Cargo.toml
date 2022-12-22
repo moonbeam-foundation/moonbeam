@@ -6,8 +6,6 @@ edition = "2021"
 version = "0.1.0"
 
 [dependencies]
-log = "0.4"
-
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }

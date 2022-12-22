@@ -5,8 +5,6 @@ edition = "2021"
 version = "1.0.0"
 
 [dependencies]
-serde = { version = "1.0.101", optional = true, features = [ "derive" ] }
-
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -20,6 +18,5 @@ std = [
 	"frame-system/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
 ]
 try-runtime = [ "frame-support/try-runtime" ]

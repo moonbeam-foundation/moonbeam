@@ -14,7 +14,6 @@ log = "0.4"
 nimbus-primitives = { git = "https://github.com/purestake/nimbus", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 parity-scale-codec = { version = "3.0.0", default-features = false, features = [ "derive" ] }
 scale-info = { version = "2.0", default-features = false, features = [ "derive" ] }
-serde = { version = "1.0.101", optional = true }
 session-keys-primitives = { path = "../../primitives/session-keys", default-features = false }
 sp-consensus-vrf = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -26,7 +25,6 @@ sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-po
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 [dev-dependencies]
-derive_more = "0.99"
 pallet-author-mapping = { path = "../author-mapping" }
 pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
@@ -41,7 +39,6 @@ std = [
 	"pallet-evm/std",
 	"parity-scale-codec/std",
 	"scale-info/std",
-	"serde",
 	"session-keys-primitives/std",
 	"sp-consensus-vrf/std",
 	"sp-core/std",

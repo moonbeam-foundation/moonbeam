@@ -13,10 +13,7 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 [dependencies]
 ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = { version = "0.14", default-features = false }
-hex = { version = "0.4", default-features = false }
 log = "0.4"
-serde = { version = "1.0.101", optional = true, default-features = false, features = [ "derive" ] }
-sha3 = { version = "0.10", default-features = false }
 
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -36,10 +33,7 @@ xcm-executor = { git = "https://github.com/purestake/polkadot", branch = "moonbe
 [features]
 default = [ "std" ]
 std = [
-	"hex/std",
 	"parity-scale-codec/std",
-	"serde/std",
-	"sha3/std",
 	"sp-io/std",
 	"sp-runtime/std",
 	"sp-std/std",

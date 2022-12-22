@@ -8,7 +8,6 @@ license = "GPL-3.0-only"
 version = "0.8.0-dev"
 
 [dependencies]
-impl-trait-for-tuples = "0.2.1"
 log = "0.4"
 
 # Moonbeam
@@ -23,7 +22,6 @@ pallet-xcm-transactor = { path = "../../pallets/xcm-transactor", default-feature
 # Substrate
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
-pallet-collective = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-democracy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-preimage = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-scheduler = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
@@ -32,7 +30,6 @@ sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbea
 sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Frontier
-pallet-base-fee = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.32", default-features = false, features = [ "forbid-evm-reentrancy" ] }
 
 # Nimbus
@@ -48,7 +45,6 @@ std = [
 	"pallet-asset-manager/std",
 	"pallet-author-inherent/std",
 	"pallet-author-mapping/std",
-	"pallet-base-fee/std",
 	"pallet-evm/std",
 	"pallet-migrations/std",
 	"pallet-parachain-staking/std",

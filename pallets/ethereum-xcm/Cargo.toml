@@ -12,7 +12,6 @@ targets = [ "x86_64-unknown-linux-gnu" ]
 
 [dependencies]
 ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
-serde = { version = "1.0.137", optional = true }
 
 # Parity
 codec = { package = "parity-scale-codec", version = "3.0.0", default-features = false }
@@ -68,7 +67,6 @@ std = [
 	"pallet-timestamp/std",
 	"rlp/std",
 	"scale-info/std",
-	"serde",
 	# Substrate
 	"sp-io/std",
 	"sp-runtime/std",

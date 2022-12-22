@@ -15,7 +15,6 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 sp-runtime-interface = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32", default-features = false }
 
 # Ethereum
-ethereum = { version = "0.14.0", default-features = false, features = [ "with-codec" ] }
 ethereum-types = { version = "0.14", default-features = false }
 evm = { version = "0.37.0", default-features = false, features = [ "with-codec" ] }
 evm-gasometer = { version = "0.37.0", default-features = false }
@@ -27,7 +26,6 @@ std = [
 	"codec/std",
 	"environmental/std",
 	"ethereum-types/std",
-	"ethereum/std",
 	"evm-gasometer/std",
 	"evm-runtime/std",
 	"evm/std",

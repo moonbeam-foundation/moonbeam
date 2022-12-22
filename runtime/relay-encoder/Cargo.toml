@@ -25,12 +25,10 @@ cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch
 
 [dev-dependencies]
 frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
-pallet-proxy = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 pallet-utility = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.32" }
 
 kusama-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 polkadot-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
-rococo-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 westend-runtime = { git = "https://github.com/purestake/polkadot", branch = "moonbeam-polkadot-v0.9.32" }
 
 [features]
@@ -40,7 +38,6 @@ std = [
 	"frame-system/std",
 	"pallet-evm-precompile-relay-encoder/std",
 	"pallet-staking/std",
-	"parity-scale-codec/std",
 	"parity-scale-codec/std",
 	"sp-runtime/std",
 	"sp-std/std",

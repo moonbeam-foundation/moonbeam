@@ -416,20 +416,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
-name = "backoff"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b62ddb9cb1ec0a098ad4bbf9344d0713fa193ae1a80af55febcff2627b6a00c1"
-dependencies = [
- "futures-core",
- "getrandom 0.2.8",
- "instant",
- "pin-project-lite 0.2.9",
- "rand 0.8.5",
- "tokio",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1431,29 +1417,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cumulus-client-consensus-relay-chain"
-version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.32#6d9310724ce42b7c8bf5b398ce09e5eda844c668"
-dependencies = [
- "async-trait",
- "cumulus-client-consensus-common",
- "cumulus-primitives-core",
- "cumulus-relay-chain-interface",
- "futures 0.3.25",
- "parking_lot 0.12.1",
- "sc-consensus",
- "sp-api",
- "sp-block-builder",
- "sp-blockchain",
- "sp-consensus",
- "sp-core",
- "sp-inherents",
- "sp-runtime",
- "substrate-prometheus-endpoint",
- "tracing",
-]
-
-[[package]]
 name = "cumulus-client-network"
 version = "0.1.0"
 source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.32#6d9310724ce42b7c8bf5b398ce09e5eda844c668"
@@ -1721,34 +1684,6 @@ dependencies = [
  "sp-blockchain",
  "sp-state-machine",
  "thiserror",
-]
-
-[[package]]
-name = "cumulus-relay-chain-rpc-interface"
-version = "0.1.0"
-source = "git+https://github.com/purestake/cumulus?branch=moonbeam-polkadot-v0.9.32#6d9310724ce42b7c8bf5b398ce09e5eda844c668"
-dependencies = [
- "async-trait",
- "backoff",
- "cumulus-primitives-core",
- "cumulus-relay-chain-interface",
- "futures 0.3.25",
- "futures-timer",
- "jsonrpsee",
- "parity-scale-codec",
- "polkadot-service",
- "sc-client-api",
- "sc-rpc-api",
- "sp-api",
- "sp-authority-discovery",
- "sp-consensus-babe",
- "sp-core",
- "sp-runtime",
- "sp-state-machine",
- "sp-storage",
- "tokio",
- "tracing",
- "url",
 ]
 
 [[package]]
@@ -2349,7 +2284,6 @@ name = "evm-tracing-events"
 version = "0.1.0"
 dependencies = [
  "environmental",
- "ethereum",
  "ethereum-types",
  "evm",
  "evm-gasometer",
@@ -2403,12 +2337,6 @@ name = "fallible-iterator"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
-
-[[package]]
-name = "faster-hex"
-version = "0.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51e2ce894d53b295cf97b05685aa077950ff3e8541af83217fc720a6437169f8"
 
 [[package]]
 name = "fastrand"
@@ -4637,11 +4565,9 @@ version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
  "flume",
- "futures 0.3.25",
  "hex-literal",
  "jsonrpsee",
  "parity-scale-codec",
- "tokio",
  "xcm",
 ]
 
@@ -4845,7 +4771,6 @@ dependencies = [
  "frame-try-runtime",
  "hex",
  "hex-literal",
- "log",
  "moonbeam-core-primitives",
  "moonbeam-evm-tracer",
  "moonbeam-relay-encoder",
@@ -4863,7 +4788,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-conviction-voting",
  "pallet-crowdloan-rewards",
@@ -4881,7 +4805,6 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-democracy",
- "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
  "pallet-evm-precompile-proxy",
@@ -4905,7 +4828,6 @@ dependencies = [
  "pallet-randomness-collective-flip",
  "pallet-referenda",
  "pallet-scheduler",
- "pallet-society",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -4953,16 +4875,13 @@ name = "moonbeam"
 version = "0.12.3"
 dependencies = [
  "assert_cmd",
- "futures 0.3.25",
  "hex",
  "moonbeam-cli",
  "moonbeam-service",
  "nix 0.23.1",
  "pallet-xcm",
- "serde",
  "serde_json",
  "tempfile",
- "tracing-core",
  "xcm-builder",
 ]
 
@@ -4972,7 +4891,6 @@ version = "0.28.0"
 dependencies = [
  "clap",
  "cumulus-client-cli",
- "cumulus-client-service",
  "cumulus-primitives-core",
  "frame-benchmarking-cli",
  "log",
@@ -4981,19 +4899,15 @@ dependencies = [
  "nimbus-primitives",
  "parity-scale-codec",
  "polkadot-cli",
- "polkadot-parachain",
  "polkadot-primitives",
  "polkadot-service",
  "sc-cli",
- "sc-finality-grandpa",
  "sc-service",
  "sc-sysinfo",
- "sc-telemetry",
  "sc-tracing",
  "sp-core",
  "sp-runtime",
  "substrate-build-script-utils",
- "substrate-prometheus-endpoint",
  "try-runtime-cli",
 ]
 
@@ -5006,7 +4920,6 @@ dependencies = [
  "clap",
  "libsecp256k1",
  "primitive-types",
- "sha3",
  "sp-runtime",
  "tiny-bip39",
  "url",
@@ -5019,10 +4932,8 @@ dependencies = [
  "ethereum-types",
  "evm-tracing-events",
  "hex",
- "moonbeam-rpc-primitives-debug",
  "parity-scale-codec",
  "serde",
- "serde_json",
  "sp-std",
 ]
 
@@ -5031,7 +4942,6 @@ name = "moonbeam-core-primitives"
 version = "0.1.1"
 dependencies = [
  "account",
- "fp-self-contained",
  "sp-core",
  "sp-runtime",
 ]
@@ -5040,18 +4950,13 @@ dependencies = [
 name = "moonbeam-evm-tracer"
 version = "0.1.0"
 dependencies = [
- "ethereum-types",
  "evm",
  "evm-gasometer",
  "evm-runtime",
  "evm-tracing-events",
- "fp-evm",
  "moonbeam-primitives-ext",
  "pallet-evm",
  "parity-scale-codec",
- "sp-core",
- "sp-io",
- "sp-runtime",
  "sp-std",
 ]
 
@@ -5061,24 +4966,19 @@ version = "0.1.0"
 dependencies = [
  "fc-db",
  "fc-rpc",
- "futures 0.3.25",
  "jsonrpsee",
- "parity-scale-codec",
  "sp-api",
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
- "tokio",
 ]
 
 [[package]]
 name = "moonbeam-primitives-ext"
 version = "0.1.0"
 dependencies = [
- "ethereum-types",
  "evm-tracing-events",
  "parity-scale-codec",
- "sp-externalities",
  "sp-runtime-interface",
  "sp-std",
 ]
@@ -5092,12 +4992,10 @@ dependencies = [
  "frame-system",
  "kusama-runtime",
  "pallet-evm-precompile-relay-encoder",
- "pallet-proxy",
  "pallet-staking",
  "pallet-utility",
  "parity-scale-codec",
  "polkadot-runtime",
- "rococo-runtime",
  "sp-runtime",
  "sp-std",
  "westend-runtime",
@@ -5109,13 +5007,10 @@ name = "moonbeam-rpc-core-debug"
 version = "0.1.0"
 dependencies = [
  "ethereum-types",
- "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
- "serde_json",
- "sp-core",
 ]
 
 [[package]]
@@ -5123,12 +5018,10 @@ name = "moonbeam-rpc-core-trace"
 version = "0.6.0"
 dependencies = [
  "ethereum-types",
- "futures 0.3.25",
  "jsonrpsee",
  "moonbeam-client-evm-tracing",
  "moonbeam-rpc-core-types",
  "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -5140,7 +5033,6 @@ dependencies = [
  "fc-rpc-core",
  "jsonrpsee",
  "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -5149,7 +5041,6 @@ version = "0.1.0"
 dependencies = [
  "ethereum-types",
  "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -5158,7 +5049,6 @@ version = "0.1.0"
 dependencies = [
  "ethereum",
  "ethereum-types",
- "fc-consensus",
  "fc-db",
  "fc-rpc",
  "fp-rpc",
@@ -5174,7 +5064,6 @@ dependencies = [
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-core",
  "sp-io",
  "sp-runtime",
  "tokio",
@@ -5184,16 +5073,10 @@ dependencies = [
 name = "moonbeam-rpc-primitives-debug"
 version = "0.1.0"
 dependencies = [
- "environmental",
  "ethereum",
  "ethereum-types",
- "hex",
  "parity-scale-codec",
- "serde",
- "serde_json",
  "sp-api",
- "sp-core",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5205,7 +5088,6 @@ dependencies = [
  "ethereum",
  "parity-scale-codec",
  "sp-api",
- "sp-io",
  "sp-runtime",
  "sp-std",
 ]
@@ -5214,11 +5096,8 @@ dependencies = [
 name = "moonbeam-rpc-trace"
 version = "0.6.0"
 dependencies = [
- "ethereum",
  "ethereum-types",
- "fc-consensus",
  "fc-rpc",
- "fc-rpc-core",
  "fp-rpc",
  "futures 0.3.25",
  "jsonrpsee",
@@ -5227,17 +5106,11 @@ dependencies = [
  "moonbeam-rpc-core-types",
  "moonbeam-rpc-primitives-debug",
  "sc-client-api",
- "sc-network",
  "sc-utils",
- "serde",
- "sha3",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
- "sp-io",
  "sp-runtime",
- "sp-std",
- "sp-transaction-pool",
  "tokio",
  "tracing",
 ]
@@ -5248,20 +5121,16 @@ version = "0.6.0"
 dependencies = [
  "ethereum-types",
  "fc-rpc",
- "frame-system",
  "jsonrpsee",
  "moonbeam-rpc-core-txpool",
  "moonbeam-rpc-primitives-txpool",
- "rlp",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
  "serde",
  "sha3",
  "sp-api",
  "sp-blockchain",
- "sp-io",
  "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -5310,7 +5179,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
@@ -5326,10 +5194,8 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-democracy",
- "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
- "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
@@ -5349,7 +5215,6 @@ dependencies = [
  "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
- "pallet-society",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -5395,15 +5260,12 @@ version = "0.8.0-dev"
 dependencies = [
  "frame-support",
  "frame-system",
- "impl-trait-for-tuples",
  "log",
  "moonbeam-xcm-benchmarks",
  "pallet-asset-manager",
  "pallet-author-inherent",
  "pallet-author-mapping",
  "pallet-author-slot-filter",
- "pallet-base-fee",
- "pallet-collective",
  "pallet-democracy",
  "pallet-evm",
  "pallet-migrations",
@@ -5422,37 +5284,24 @@ dependencies = [
 name = "moonbeam-service"
 version = "0.28.0"
 dependencies = [
- "ansi_term",
- "assert_cmd",
  "async-io",
- "async-trait",
  "bip32",
- "cumulus-client-cli",
- "cumulus-client-collator",
  "cumulus-client-consensus-common",
- "cumulus-client-consensus-relay-chain",
  "cumulus-client-network",
  "cumulus-client-service",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-inprocess-interface",
  "cumulus-relay-chain-interface",
- "cumulus-relay-chain-rpc-interface",
- "cumulus-test-relay-sproof-builder",
- "derive_more",
- "exit-future",
  "fc-consensus",
  "fc-db",
  "fc-mapping-sync",
  "fc-rpc",
  "fc-rpc-core",
  "flume",
- "fp-consensus",
  "fp-rpc",
  "fp-storage",
  "frame-benchmarking",
- "frame-benchmarking-cli",
- "frame-system-rpc-runtime-api",
  "futures 0.3.25",
  "hex-literal",
  "jsonrpsee",
@@ -5475,33 +5324,21 @@ dependencies = [
  "moonriver-runtime",
  "nimbus-consensus",
  "nimbus-primitives",
- "nix 0.23.1",
- "pallet-author-inherent",
  "pallet-ethereum",
  "pallet-parachain-staking",
- "pallet-sudo",
  "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
- "parity-scale-codec",
- "parking_lot 0.12.1",
  "polkadot-cli",
- "polkadot-parachain",
  "polkadot-primitives",
- "polkadot-runtime-common",
  "polkadot-service",
  "prometheus",
- "rand 0.7.3",
  "sc-basic-authorship",
  "sc-block-builder",
  "sc-chain-spec",
- "sc-cli",
  "sc-client-api",
- "sc-client-db",
  "sc-consensus",
  "sc-consensus-manual-seal",
  "sc-executor",
- "sc-finality-grandpa",
- "sc-informant",
  "sc-network",
  "sc-network-common",
  "sc-rpc",
@@ -5521,7 +5358,6 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus",
  "sp-core",
- "sp-inherents",
  "sp-io",
  "sp-keystore",
  "sp-offchain",
@@ -5531,16 +5367,12 @@ dependencies = [
  "sp-timestamp",
  "sp-transaction-pool",
  "sp-trie",
- "substrate-build-script-utils",
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
- "substrate-test-client",
  "substrate-test-runtime",
  "substrate-test-runtime-client",
  "tiny-bip39",
  "tokio",
- "trie-root 0.15.2",
- "xcm",
 ]
 
 [[package]]
@@ -5548,8 +5380,6 @@ name = "moonbeam-vrf"
 version = "0.1.0"
 dependencies = [
  "nimbus-primitives",
- "parity-scale-codec",
- "polkadot-primitives",
  "session-keys-primitives",
  "sp-api",
  "sp-application-crypto",
@@ -5566,12 +5396,10 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "log",
  "pallet-balances",
  "pallet-xcm-benchmarks",
  "parity-scale-codec",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -5579,7 +5407,6 @@ dependencies = [
  "xcm",
  "xcm-builder",
  "xcm-executor",
- "xcm-primitives",
 ]
 
 [[package]]
@@ -5636,7 +5463,6 @@ dependencies = [
  "pallet-author-mapping",
  "pallet-author-slot-filter",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-collective",
  "pallet-crowdloan-rewards",
  "pallet-democracy",
@@ -5652,10 +5478,8 @@ dependencies = [
  "pallet-evm-precompile-collective",
  "pallet-evm-precompile-crowdloan-rewards",
  "pallet-evm-precompile-democracy",
- "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-parachain-staking",
- "pallet-evm-precompile-proxy",
  "pallet-evm-precompile-randomness",
  "pallet-evm-precompile-relay-encoder",
  "pallet-evm-precompile-sha3fips",
@@ -5675,7 +5499,6 @@ dependencies = [
  "pallet-randomness",
  "pallet-randomness-collective-flip",
  "pallet-scheduler",
- "pallet-society",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
@@ -6312,7 +6135,6 @@ dependencies = [
  "pallet-balances",
  "parity-scale-codec",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6481,21 +6303,6 @@ dependencies = [
  "scale-info",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-base-fee"
-version = "1.0.0"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32#3568a86d0fe222db0c65218fc481907de602a35c"
-dependencies = [
- "fp-evm",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]
@@ -6738,7 +6545,6 @@ dependencies = [
  "frame-system",
  "parity-scale-codec",
  "scale-info",
- "serde",
 ]
 
 [[package]]
@@ -6763,7 +6569,6 @@ dependencies = [
  "parity-scale-codec",
  "rlp",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6800,14 +6605,11 @@ dependencies = [
 name = "pallet-evm-precompile-author-mapping"
 version = "0.2.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
  "log",
  "nimbus-primitives",
- "num_enum",
  "pallet-author-mapping",
  "pallet-balances",
  "pallet-evm",
@@ -6816,7 +6618,6 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6827,14 +6628,11 @@ dependencies = [
 name = "pallet-evm-precompile-balances-erc20"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
  "libsecp256k1",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
@@ -6842,9 +6640,7 @@ dependencies = [
  "paste",
  "precompile-utils",
  "scale-info",
- "serde",
  "sha3",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6855,24 +6651,17 @@ dependencies = [
 name = "pallet-evm-precompile-batch"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "paste",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6901,25 +6690,18 @@ dependencies = [
 name = "pallet-evm-precompile-call-permit"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
  "libsecp256k1",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "paste",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6930,27 +6712,19 @@ dependencies = [
 name = "pallet-evm-precompile-collective"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-collective",
  "pallet-evm",
  "pallet-timestamp",
  "pallet-treasury",
  "parity-scale-codec",
- "paste",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "similar-asserts",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -6965,22 +6739,17 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-test-relay-sproof-builder",
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "log",
- "num_enum",
  "pallet-balances",
  "pallet-crowdloan-rewards",
  "pallet-evm",
- "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
  "sha3",
  "sp-core",
  "sp-io",
@@ -6992,13 +6761,11 @@ dependencies = [
 name = "pallet-evm-precompile-democracy"
 version = "0.2.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
  "log",
- "num_enum",
  "pallet-balances",
  "pallet-democracy",
  "pallet-evm",
@@ -7008,21 +6775,10 @@ dependencies = [
  "parity-scale-codec",
  "precompile-utils",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
-]
-
-[[package]]
-name = "pallet-evm-precompile-dispatch"
-version = "2.0.0-dev"
-source = "git+https://github.com/purestake/frontier?branch=moonbeam-polkadot-v0.9.32#3568a86d0fe222db0c65218fc481907de602a35c"
-dependencies = [
- "fp-evm",
- "frame-support",
- "pallet-evm",
 ]
 
 [[package]]
@@ -7038,22 +6794,17 @@ dependencies = [
 name = "pallet-evm-precompile-parachain-staking"
 version = "1.0.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-parachain-staking",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7064,23 +6815,16 @@ dependencies = [
 name = "pallet-evm-precompile-proxy"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-proxy",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7091,20 +6835,14 @@ dependencies = [
 name = "pallet-evm-precompile-randomness"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
  "nimbus-primitives",
- "num_enum",
  "pallet-author-mapping",
  "pallet-balances",
- "pallet-base-fee",
  "pallet-evm",
  "pallet-randomness",
- "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
@@ -7122,23 +6860,16 @@ version = "0.1.0"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex-literal",
- "log",
- "num_enum",
  "pallet-balances",
  "pallet-evm",
  "pallet-staking",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7169,25 +6900,17 @@ name = "pallet-evm-precompile-xcm-transactor"
 version = "0.2.0"
 dependencies = [
  "cumulus-primitives-core",
- "derive_more",
- "evm",
  "fp-evm",
  "frame-support",
  "frame-system",
- "log",
- "num_enum",
  "orml-traits",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
- "pallet-xcm",
  "pallet-xcm-transactor",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7203,21 +6926,15 @@ name = "pallet-evm-precompile-xcm-utils"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "num_enum",
- "orml-traits",
  "pallet-balances",
  "pallet-evm",
  "pallet-timestamp",
  "parity-scale-codec",
- "polkadot-parachain",
  "precompile-utils",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7233,12 +6950,9 @@ name = "pallet-evm-precompile-xtokens"
 version = "0.1.0"
 dependencies = [
  "cumulus-primitives-core",
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
- "log",
- "num_enum",
  "orml-traits",
  "orml-xtokens",
  "pallet-balances",
@@ -7247,10 +6961,7 @@ dependencies = [
  "pallet-xcm",
  "parity-scale-codec",
  "precompile-utils",
- "rustc-hex",
  "scale-info",
- "serde",
- "sha3",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7265,14 +6976,11 @@ dependencies = [
 name = "pallet-evm-precompileset-assets-erc20"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "fp-evm",
  "frame-support",
  "frame-system",
  "hex-literal",
  "libsecp256k1",
- "log",
- "num_enum",
  "pallet-assets",
  "pallet-balances",
  "pallet-evm",
@@ -7281,9 +6989,7 @@ dependencies = [
  "paste",
  "precompile-utils",
  "scale-info",
- "serde",
  "sha3",
- "slices",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7409,7 +7115,6 @@ dependencies = [
  "cumulus-primitives-core",
  "frame-support",
  "frame-system",
- "log",
  "parity-scale-codec",
  "scale-info",
  "sp-core",
@@ -7497,7 +7202,6 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "log",
  "nimbus-primitives",
  "pallet-balances",
  "parity-scale-codec",
@@ -7684,7 +7388,6 @@ dependencies = [
 name = "pallet-randomness"
 version = "0.1.0"
 dependencies = [
- "derive_more",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
@@ -7696,7 +7399,6 @@ dependencies = [
  "pallet-evm",
  "parity-scale-codec",
  "scale-info",
- "serde",
  "session-keys-primitives",
  "sp-consensus-vrf",
  "sp-core",
@@ -8085,16 +7787,13 @@ dependencies = [
  "orml-traits",
  "pallet-balances",
  "pallet-timestamp",
- "pallet-xcm",
  "parity-scale-codec",
  "scale-info",
- "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "sp-std",
  "xcm",
- "xcm-builder",
  "xcm-executor",
  "xcm-primitives",
 ]
@@ -9629,14 +9328,12 @@ dependencies = [
  "fp-evm",
  "frame-support",
  "frame-system",
- "hex",
  "hex-literal",
  "impl-trait-for-tuples",
  "log",
  "num_enum",
  "pallet-evm",
  "parity-scale-codec",
- "paste",
  "precompile-utils-macro",
  "scale-info",
  "serde",
@@ -9658,7 +9355,6 @@ dependencies = [
  "macrotest",
  "num_enum",
  "precompile-utils",
- "prettyplease",
  "proc-macro2",
  "quote",
  "sha3",
@@ -11838,7 +11534,6 @@ name = "session-keys-primitives"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "frame-support",
  "nimbus-primitives",
  "parity-scale-codec",
  "scale-info",
@@ -11846,11 +11541,9 @@ dependencies = [
  "sp-application-crypto",
  "sp-consensus-babe",
  "sp-consensus-vrf",
- "sp-core",
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "sp-std",
 ]
 
 [[package]]
@@ -12013,18 +11706,6 @@ name = "slice-group-by"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03b634d87b960ab1a38c4fe143b508576f075e7c978bfad18217645ebfdfa2ec"
-
-[[package]]
-name = "slices"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f2086e458a369cdca838e9f6ed04b4cc2e3ce636d99abb80c9e2eada107749cf"
-dependencies = [
- "faster-hex",
- "proc-macro2",
- "quote",
- "syn",
-]
 
 [[package]]
 name = "slot-range-helper"
@@ -12670,7 +12351,7 @@ dependencies = [
  "sp-trie",
  "thiserror",
  "tracing",
- "trie-root 0.17.0",
+ "trie-root",
 ]
 
 [[package]]
@@ -12777,7 +12458,7 @@ dependencies = [
  "thiserror",
  "tracing",
  "trie-db",
- "trie-root 0.17.0",
+ "trie-root",
 ]
 
 [[package]]
@@ -13628,15 +13309,6 @@ dependencies = [
  "log",
  "rustc-hex",
  "smallvec",
-]
-
-[[package]]
-name = "trie-root"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b779f7c1c8fe9276365d9d5be5c4b5adeacf545117bb3f64c974305789c5c0b"
-dependencies = [
- "hash-db",
 ]
 
 [[package]]
@@ -14710,13 +14382,10 @@ dependencies = [
  "ethereum-types",
  "frame-support",
  "frame-system",
- "hex",
  "log",
  "orml-traits",
  "parity-scale-codec",
  "scale-info",
- "serde",
- "sha3",
  "sp-io",
  "sp-runtime",
  "sp-std",
