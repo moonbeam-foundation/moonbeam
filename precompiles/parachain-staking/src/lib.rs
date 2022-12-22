@@ -209,33 +209,18 @@ where
 			Runtime::AddressMapping::into_account_id(candidate.0),
 			Runtime::AddressMapping::into_account_id(delegator.0),
 		);
-		let amount: U256 = if let Some(state) =
-			pallet_parachain_staking::Pallet::<Runtime>::delegator_state(&delegator)
-		{
-			// get the delegation amount
-			if let Some(pallet_parachain_staking::Bond { amount, .. }) = state
-				.delegations
-				.0
-				.into_iter()
-				.find(|b| b.owner == candidate)
-			{
-				amount.into()
-			} else {
-				log::trace!(
-					target: "staking-precompile",
-					"Delegation for {:?} not found, so delegation amount is 0",
-					candidate
-				);
-				U256::zero()
-			}
-		} else {
-			log::trace!(
-				target: "staking-precompile",
-				"Delegator state for {:?} not found, so delegation amount is 0",
-				delegator
+		let amount = pallet_parachain_staking::Pallet::<Runtime>::delegator_state(&delegator)
+			.and_then(|state| {
+				state
+					.delegations
+					.0
+					.into_iter()
+					.find(|b| b.owner == candidate)
+			})
+			.map_or(
+				U256::zero(),
+				|pallet_parachain_staking::Bond { amount, .. }| amount.into(),
 			);
-			U256::zero()
-		};
 
 		Ok(amount)
 	}
@@ -255,21 +240,15 @@ where
 
 		// Fetch info.
 		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let is_in_top_delegations = if let Some(delegations) =
-			pallet_parachain_staking::Pallet::<Runtime>::top_delegations(&candidate)
-		{
+		let is_in_top_delegations = pallet_parachain_staking::Pallet::<Runtime>::top_delegations(
+			&candidate,
+		)
+		.map_or(false, |delegations| {
 			delegations
 				.delegations
 				.into_iter()
 				.any(|b| b.owner == delegator)
-		} else {
-			log::trace!(
-				target: "staking-precompile",
-				"Candidate state for {:?} not found, so delegation is not in top",
-				candidate
-			);
-			false
-		};
+		});
 
 		Ok(is_in_top_delegations)
 	}
