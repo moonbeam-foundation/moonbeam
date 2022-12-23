@@ -271,6 +271,7 @@
 <span id="271">271</span>
 <span id="272">272</span>
 <span id="273">273</span>
+<span id="274">274</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -401,6 +402,7 @@
 	IsLocal: Get&lt;bool&gt;,
 	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
+	Runtime::AccountId: Into&lt;H160&gt;,
 {
 	<span class="kw">fn </span>compute_domain_separator(address: H160, asset_id: AssetIdOf&lt;Runtime, Instance&gt;) -&gt; [u8; <span class="number">32</span>] {
 		<span class="kw">let </span>asset_name = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::name(asset_id);

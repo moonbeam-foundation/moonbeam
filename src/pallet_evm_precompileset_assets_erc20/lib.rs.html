@@ -795,6 +795,69 @@
 <span id="795">795</span>
 <span id="796">796</span>
 <span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -816,9 +879,11 @@
 
 </span><span class="kw">use </span>core::fmt::Display;
 <span class="kw">use </span>fp_evm::PrecompileHandle;
-<span class="kw">use </span>frame_support::traits::fungibles::approvals::Inspect <span class="kw">as </span>ApprovalInspect;
-<span class="kw">use </span>frame_support::traits::fungibles::metadata::Inspect <span class="kw">as </span>MetadataInspect;
 <span class="kw">use </span>frame_support::traits::fungibles::Inspect;
+<span class="kw">use </span>frame_support::traits::fungibles::{
+	approvals::Inspect <span class="kw">as </span>ApprovalInspect, metadata::Inspect <span class="kw">as </span>MetadataInspect,
+	roles::Inspect <span class="kw">as </span>RolesInspect,
+};
 <span class="kw">use </span>frame_support::traits::{ConstBool, Get, OriginTrait};
 <span class="kw">use </span>frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -927,6 +992,7 @@
 	IsLocal: Get&lt;bool&gt;,
 	&lt;Runtime <span class="kw">as </span>pallet_timestamp::Config&gt;::Moment: Into&lt;U256&gt;,
 	AssetIdOf&lt;Runtime, Instance&gt;: Display,
+	Runtime::AccountId: Into&lt;H160&gt;,
 {
 	<span class="doccomment">/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
@@ -1214,6 +1280,66 @@
 		<span class="prelude-val">Ok</span>(pallet_assets::Pallet::&lt;Runtime, Instance&gt;::decimals(
 			asset_id,
 		))
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;owner()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>owner(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	) -&gt; EvmResult&lt;Address&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>owner: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::owner(asset_id)
+			.ok_or(revert(<span class="string">&quot;No owner set&quot;</span>))<span class="question-mark">?
+			</span>.into();
+
+		<span class="prelude-val">Ok</span>(Address(owner))
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;issuer()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>issuer(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	) -&gt; EvmResult&lt;Address&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>issuer: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::issuer(asset_id)
+			.ok_or(revert(<span class="string">&quot;No issuer set&quot;</span>))<span class="question-mark">?
+			</span>.into();
+
+		<span class="prelude-val">Ok</span>(Address(issuer))
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;admin()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>admin(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	) -&gt; EvmResult&lt;Address&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>admin: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::admin(asset_id)
+			.ok_or(revert(<span class="string">&quot;No admin set&quot;</span>))<span class="question-mark">?
+			</span>.into();
+
+		<span class="prelude-val">Ok</span>(Address(admin))
+	}
+
+	<span class="attribute">#[precompile::public(<span class="string">&quot;freezer()&quot;</span>)]
+	#[precompile::view]
+	</span><span class="kw">fn </span>freezer(
+		asset_id: AssetIdOf&lt;Runtime, Instance&gt;,
+		handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle,
+	) -&gt; EvmResult&lt;Address&gt; {
+		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
+
+		<span class="kw">let </span>freezer: H160 = pallet_assets::Pallet::&lt;Runtime, Instance&gt;::freezer(asset_id)
+			.ok_or(revert(<span class="string">&quot;No freezer set&quot;</span>))<span class="question-mark">?
+			</span>.into();
+
+		<span class="prelude-val">Ok</span>(Address(freezer))
 	}
 
 	<span class="comment">// From here: only for locals, we need to check whether we are in local assets otherwise fail
