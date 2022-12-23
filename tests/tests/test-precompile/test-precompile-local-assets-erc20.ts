@@ -1,4 +1,5 @@
 import "@moonbeam-network/api-augment";
+import { ApiBase } from "@polkadot/api/base";
 
 import {
   BN,
@@ -12,7 +13,15 @@ import {
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, baltathar, charleth } from "../../util/accounts";
+import {
+  alith,
+  ALITH_ADDRESS,
+  baltathar,
+  BALTATHAR_ADDRESS,
+  charleth,
+  CHARLETH_ADDRESS,
+  DOROTHY_ADDRESS,
+} from "../../util/accounts";
 import { registerLocalAssetWithMeta } from "../../util/assets";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
@@ -48,12 +57,29 @@ describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let assetAddress: string;
+    let assetId: string;
     before("Setup contract and mock balance", async () => {
       // register, setMeta & mint local Asset
-      ({ assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+      ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
         registrerAccount: baltathar,
         mints: [{ account: baltathar, amount: 100000000000000n }],
       }));
+
+      // Set team
+      await context.createBlock(
+        context.polkadotApi.tx.localAssets
+          // Issuer, admin, freezer
+          .setTeam(assetId, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, DOROTHY_ADDRESS)
+          .signAsync(baltathar)
+      );
+
+      // Set owner
+      await context.createBlock(
+        context.polkadotApi.tx.localAssets
+          // owner
+          .transferOwnership(assetId, ALITH_ADDRESS)
+          .signAsync(baltathar)
+      );
 
       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
       await context.createBlock(rawTx);
@@ -196,7 +222,7 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + ALITH_ADDRESS.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
@@ -217,7 +243,7 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + DOROTHY_ADDRESS.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
@@ -238,7 +264,7 @@ describeDevMoonbeamAllEthTxTypes(
         },
       ]);
 
-      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      const account = "0x" + CHARLETH_ADDRESS.slice(2).padStart(64, "0");
       expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
 
