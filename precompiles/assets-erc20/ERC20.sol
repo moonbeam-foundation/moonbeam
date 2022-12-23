@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 pragma solidity >=0.8.3;
 
+/// @author The Moonbeam Team
 /// @title ERC20 interface
 /// @dev see https://github.com/ethereum/EIPs/issues/20
 /// @dev copied from https://github.com/OpenZeppelin/openzeppelin-contracts
