@@ -2433,7 +2433,7 @@ fn get_owner() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ForeignAssets::force_create(
+			assert_ok!(LocalAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2441,11 +2441,18 @@ fn get_owner() {
 				1
 			));
 
+			assert_ok!(LocalAssets::transfer_ownership(
+				RuntimeOrigin::signed(CryptoAlith.into()),
+				0u128,
+				// owner
+				Bob.into(),
+			));
+
 			precompiles()
-				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::owner {})
+				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::owner {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(CryptoAlith.into()));
+				.execute_returns_encoded(Address(Bob.into()));
 		});
 }
 
@@ -2455,7 +2462,7 @@ fn get_issuer() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ForeignAssets::force_create(
+			assert_ok!(LocalAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2463,11 +2470,22 @@ fn get_issuer() {
 				1
 			));
 
+			assert_ok!(LocalAssets::set_team(
+				RuntimeOrigin::signed(CryptoAlith.into()),
+				0u128,
+				// Issuer
+				Bob.into(),
+				// admin
+				CryptoAlith.into(),
+				// freezer
+				CryptoAlith.into(),
+			));
+
 			precompiles()
-				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::issuer {})
+				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::issuer {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(CryptoAlith.into()));
+				.execute_returns_encoded(Address(Bob.into()));
 		});
 }
 
@@ -2477,7 +2495,7 @@ fn get_admin() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ForeignAssets::force_create(
+			assert_ok!(LocalAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2485,11 +2503,22 @@ fn get_admin() {
 				1
 			));
 
+			assert_ok!(LocalAssets::set_team(
+				RuntimeOrigin::signed(CryptoAlith.into()),
+				0u128,
+				// Issuer
+				CryptoAlith.into(),
+				// admin
+				Bob.into(),
+				// freezer
+				CryptoAlith.into(),
+			));
+
 			precompiles()
-				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::admin {})
+				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::admin {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(CryptoAlith.into()));
+				.execute_returns_encoded(Address(Bob.into()));
 		});
 }
 
@@ -2499,7 +2528,7 @@ fn get_freezer() {
 		.with_balances(vec![(CryptoAlith.into(), 1000), (Bob.into(), 2500)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(ForeignAssets::force_create(
+			assert_ok!(LocalAssets::force_create(
 				RuntimeOrigin::root(),
 				0u128,
 				CryptoAlith.into(),
@@ -2507,11 +2536,22 @@ fn get_freezer() {
 				1
 			));
 
+			assert_ok!(LocalAssets::set_team(
+				RuntimeOrigin::signed(CryptoAlith.into()),
+				0u128,
+				// Issuer
+				CryptoAlith.into(),
+				// admin
+				CryptoAlith.into(),
+				// freezer
+				Bob.into(),
+			));
+
 			precompiles()
-				.prepare_test(CryptoAlith, ForeignAssetId(0u128), ForeignPCall::freezer {})
+				.prepare_test(CryptoAlith, LocalAssetId(0u128), ForeignPCall::freezer {})
 				.expect_cost(0)
 				.expect_no_logs()
-				.execute_returns_encoded(Address(CryptoAlith.into()));
+				.execute_returns_encoded(Address(Bob.into()));
 		});
 }
 
