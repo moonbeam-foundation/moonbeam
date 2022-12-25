@@ -673,10 +673,7 @@ totalBondReward               ${totalBondReward} \
             ([key, { autoCompound }]) =>
               !autoCompound.value().isZero() &&
               expectedRewardedDelegators.has(key) &&
-              !(
-                outstandingRevokesAtBlock[rewarded.collator] &&
-                outstandingRevokesAtBlock[rewarded.collator].has(key)
-              )
+              !outstandingRevokesAtBlock[rewarded.collator]?.has(key)
           )
           .map(([key, _]) => key)
       );
