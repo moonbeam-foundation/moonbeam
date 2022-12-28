@@ -222,7 +222,7 @@ impl IdentifyVariant for Box<dyn ChainSpec> {
 	}
 
 	fn is_dev(&self) -> bool {
-		self.id().ends_with("dev")
+		self.chain_type() == sc_chain_spec::ChainType::Development
 	}
 }
 
