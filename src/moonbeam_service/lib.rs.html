@@ -1603,7 +1603,7 @@
 	}
 
 	<span class="kw">fn </span>is_dev(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-		<span class="self">self</span>.id().ends_with(<span class="string">&quot;dev&quot;</span>)
+		<span class="self">self</span>.chain_type() == sc_chain_spec::ChainType::Development
 	}
 }
 
