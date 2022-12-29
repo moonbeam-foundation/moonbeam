@@ -36,6 +36,7 @@ async function main() {
   Publish Docker with ${newVersion} and master.
 `;
 
+  // Detect if it's a major release or hotfix
   if (newVersion.endsWith(".0")) {
     const template = `
 ## Requirements
