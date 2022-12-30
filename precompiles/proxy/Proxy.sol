@@ -51,6 +51,21 @@ interface Proxy {
     /// @custom:selector 14a5b5fa
     function removeProxies() external;
 
+    /// @dev Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender
+    /// is authorised for through `add_proxy`
+    /// @custom:selector 4c2a5163
+    /// @param real The account that the proxy will make a call on behalf of
+    /// @param forceProxyType Specify the exact proxy type to be used and checked for this call
+	/// (optional parameter, use `255` for None).
+    /// @param callTo Recipient of the call to be made by the `real` account
+    /// @param callData Data of the call to be made by the `real` account
+    function proxy(
+        address real,
+        ProxyType forceProxyType,
+        address callTo,
+        bytes memory callData
+    ) external;
+
     /// @dev Checks if the caller has an account proxied with a given proxy type
     /// @custom:selector e26d38ed
     /// @param real The real account that maybe has a proxy

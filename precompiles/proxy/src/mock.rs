@@ -174,6 +174,16 @@ impl std::default::Default for ProxyType {
 	}
 }
 
+impl crate::EvmProxyFilter for ProxyType {
+	fn evm_proxy_filter(&self, _call: &crate::EvmSubCall, _recipient_has_code: bool) -> bool {
+		match self {
+			Self::Any => true,
+			Self::Something => true,
+			Self::Nothing => false,
+		}
+	}
+}
+
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, _: &RuntimeCall) -> bool {
 		true

@@ -50,6 +50,7 @@ fn selectors() {
 	assert!(PCall::add_proxy_selectors().contains(&0x74a34dd3));
 	assert!(PCall::remove_proxy_selectors().contains(&0xfef3f708));
 	assert!(PCall::remove_proxies_selectors().contains(&0x14a5b5fa));
+	assert!(PCall::proxy_selectors().contains(&0x4c2a5163));
 	assert!(PCall::is_proxy_selectors().contains(&0xe26d38ed));
 }
 
@@ -62,6 +63,7 @@ fn modifiers() {
 		tester.test_default_modifier(PCall::add_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxies_selectors());
+		tester.test_default_modifier(PCall::proxy_selectors());
 		tester.test_view_modifier(PCall::is_proxy_selectors());
 	});
 }
@@ -326,6 +328,83 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 
 			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
+		})
+}
+
+#[test]
+fn test_proxy_fails_if_invalid_value_for_force_proxy_type() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Bob.into()),
+						force_proxy_type: 10,
+						call_to: Address(Alice.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"forceProxyType: Failed decoding value to ProxyType");
+		})
+}
+
+#[test]
+fn test_proxy_fails_if_not_proxy() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Bob.into()),
+						force_proxy_type: 255,
+						call_to: Address(Alice.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"forceProxyType: Not proxy");
+		})
+}
+
+#[test]
+fn test_proxy_fails_if_call_filtered() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// add delayed proxy
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::add_proxy {
+						delegate: Address(Bob.into()),
+						proxy_type: 2,
+						delay: 0,
+					},
+				)
+				.execute_returns(vec![]);
+
+			// Trying to use delayed proxy without any announcement
+			PrecompilesValue::get()
+				.prepare_test(
+					Bob,
+					Precompile1,
+					PCall::proxy {
+						real: Address(Alice.into()),
+						force_proxy_type: 2,
+						call_to: Address(Bob.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|o| o == b"CallFiltered");
 		})
 }
 

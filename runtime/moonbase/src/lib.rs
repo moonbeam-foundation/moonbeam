@@ -780,6 +780,74 @@ impl Default for ProxyType {
 	}
 }
 
+use precompiles::PrecompileName;
+impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
+	fn evm_proxy_filter(
+		&self,
+		call: &pallet_evm_precompile_proxy::EvmSubCall,
+		recipient_has_code: bool,
+	) -> bool {
+		use pallet_evm::PrecompileSet as _;
+		match self {
+			ProxyType::Any => {
+				// For the moment, no smart contract other than precompiles is allowed.
+				// In the future, we may create a dynamic whitelist to authorize some audited
+				// smart contracts through governance.
+				PrecompilesValue::get().is_precompile(call.to.0) || !recipient_has_code
+			}
+			ProxyType::NonTransfer => {
+				matches!(
+					PrecompileName::from_address(call.to.0),
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+							| PrecompileName::DemocracyPrecompile
+							| PrecompileName::ParachainStakingPrecompile
+							| PrecompileName::CouncilInstance
+							| PrecompileName::TechCommitteeInstance
+							| PrecompileName::TreasuryCouncilInstance
+					)
+				)
+			}
+			ProxyType::Governance => {
+				matches!(
+					PrecompileName::from_address(call.to.0),
+					Some(
+						PrecompileName::DemocracyPrecompile
+							| PrecompileName::CouncilInstance
+							| PrecompileName::TechCommitteeInstance
+							| PrecompileName::TreasuryCouncilInstance
+					)
+				)
+			}
+			ProxyType::Staking => {
+				matches!(
+					PrecompileName::from_address(call.to.0),
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+							| PrecompileName::ParachainStakingPrecompile
+					)
+				)
+			}
+			// The proxy precompile does not contain method cancel_proxy
+			ProxyType::CancelProxy => false,
+			ProxyType::Balances => {
+				// Allow only "simple" accounts as recipient (no code nor precompile).
+				// Note: Checking the presence of the code is not enough because some precompiles
+				// have no code.
+				!PrecompilesValue::get().is_precompile(call.to.0) && !recipient_has_code
+			}
+			ProxyType::AuthorMapping => {
+				matches!(
+					PrecompileName::from_address(call.to.0),
+					Some(PrecompileName::AuthorMappingPrecompile)
+				)
+			}
+			// There is no identity precompile
+			ProxyType::IdentityJudgement => false,
+		}
+	}
+}
+
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {

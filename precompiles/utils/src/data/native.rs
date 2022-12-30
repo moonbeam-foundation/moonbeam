@@ -117,6 +117,17 @@ impl From<Address> for H160 {
 	}
 }
 
+impl Address {
+	pub fn as_u64(&self) -> Option<u64> {
+		let _u64 = self.0.to_low_u64_be();
+		if self.0 == H160::from_low_u64_be(_u64) {
+			Some(_u64)
+		} else {
+			None
+		}
+	}
+}
+
 impl EvmData for Address {
 	fn read(reader: &mut EvmDataReader) -> MayRevert<Self> {
 		let range = reader.move_cursor(32)?;
