@@ -52,8 +52,8 @@ pub trait RelayEncodeCall {
 }
 
 // Trait to ensure we can retrieve the destination if a given type
-// It must implement UtilityEncodeCall
-// We separate this in two traits to be able to implement UtilityEncodeCall separately
+// It must implement RelayEncodeCall
+// We separate this in two traits to be able to implement RelayEncodeCall separately
 // for different runtimes of our choice
 pub trait XcmTransact: RelayEncodeCall {
 	/// Encode call from the relay.

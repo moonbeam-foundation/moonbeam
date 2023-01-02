@@ -928,8 +928,8 @@ impl xcm_primitives::XcmTransact for MockTransactors {
 	}
 }
 
-impl xcm_primitives::UtilityEncodeCall for MockTransactors {
-	fn encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
+impl xcm_primitives::RelayEncodeCall for MockTransactors {
+	fn utility_encode_call(self, call: xcm_primitives::UtilityAvailableCalls) -> Vec<u8> {
 		match self {
 			MockTransactors::Relay => match call {
 				xcm_primitives::UtilityAvailableCalls::AsDerivative(a, b) => {

@@ -26,7 +26,7 @@ use xcm::{VersionedMultiLocation, WrapVersion};
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
-use xcm_primitives::UtilityEncodeCall;
+use xcm_primitives::RelayEncodeCall;
 
 use pallet_asset_manager::LocalAssetIdCreator;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};

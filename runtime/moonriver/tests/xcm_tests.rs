@@ -29,7 +29,7 @@ use xcm_executor::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
-use xcm_primitives::UtilityEncodeCall;
+use xcm_primitives::RelayEncodeCall;
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
