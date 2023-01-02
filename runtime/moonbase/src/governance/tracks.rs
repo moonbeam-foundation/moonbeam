@@ -23,7 +23,7 @@ const fn percent(x: i32) -> sp_runtime::FixedI64 {
 	sp_runtime::FixedI64::from_rational(x as u128, 100)
 }
 use pallet_referenda::Curve;
-const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8] = [
+const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 9] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -154,6 +154,20 @@ const TRACKS_DATA: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 8]
 			min_support: Curve::make_reciprocal(8, 14, percent(1), percent(0), percent(10)),
 		},
 	),
+	(
+		16,
+		pallet_referenda::TrackInfo {
+			name: "general_admin",
+			max_deciding: 5,
+			decision_deposit: 30 * KILOUNIT * SUPPLY_FACTOR,
+			prepare_period: 4,
+			decision_period: 14 * DAYS,
+			confirm_period: 48 * HOURS,
+			min_enactment_period: 1 * DAYS,
+			min_approval: Curve::make_linear(14, 14, percent(50), percent(100)),
+			min_support: Curve::make_reciprocal(8, 14, percent(1), percent(0), percent(10)),
+		},
+	),
 ];
 
 pub struct TracksInfo;
@@ -181,6 +195,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				origins::Origin::SmallSpender => Ok(13),
 				origins::Origin::MediumSpender => Ok(14),
 				origins::Origin::BigSpender => Ok(15),
+				origins::Origin::GeneralAdmin => Ok(16),
 			}
 		} else {
 			Err(())

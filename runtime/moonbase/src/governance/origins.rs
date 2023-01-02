@@ -46,6 +46,8 @@ pub mod pallet_custom_origins {
 		BigSpender,
 		/// Origin able to dispatch a whitelisted call.
 		WhitelistedCaller,
+		/// GeneralAdmin
+		GeneralAdmin,
 	}
 
 	macro_rules! decl_unit_ensures {
@@ -78,7 +80,12 @@ pub mod pallet_custom_origins {
 		};
 		() => {}
 	}
-	decl_unit_ensures!(ReferendumCanceller, ReferendumKiller, WhitelistedCaller,);
+	decl_unit_ensures!(
+		ReferendumCanceller,
+		ReferendumKiller,
+		WhitelistedCaller,
+		GeneralAdmin
+	);
 
 	macro_rules! decl_ensure {
 		(

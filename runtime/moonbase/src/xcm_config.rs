@@ -31,7 +31,7 @@ use sp_runtime::{
 
 use frame_support::{
 	parameter_types,
-	traits::{Everything, Nothing, PalletInfoAccess},
+	traits::{EitherOf, Everything, Nothing, PalletInfoAccess},
 };
 
 use frame_system::{EnsureRoot, RawOrigin};
@@ -551,7 +551,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = pallet_xcm_transactor::weights::SubstrateWeight<Runtime>;
-	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type HrmpManipulatorOrigin = EitherOf<EnsureRoot<AccountId>, crate::governance::GeneralAdmin>;
 }
 
 #[cfg(feature = "runtime-benchmarks")]
