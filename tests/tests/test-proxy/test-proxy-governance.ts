@@ -13,7 +13,14 @@ describeDevMoonbeam("Proxing governance", (context) => {
   before("Create accounts and fast-tracking referundum", async () => {
     await execCouncilProposal(
       context,
-      context.polkadotApi.tx.democracy.externalProposeMajority(proposalHash)
+      context.polkadotApi.tx.democracy.externalProposeMajority({
+        Lookup: {
+          hash: proposalHash,
+          // this test does not test scheduling, therefore this lenght should not
+          // matter
+          len: 22,
+        },
+      } as any)
     );
     await execTechnicalCommitteeProposal(
       context,
@@ -65,10 +72,10 @@ describeDevMoonbeam("Proxing governance", (context) => {
     // Verify that vote is registered
     const referendumInfoOf = (
       await context.polkadotApi.query.democracy.referendumInfoOf(0)
-    ).unwrap();
+    ).unwrap() as any;
     const onGoing = referendumInfoOf.asOngoing;
 
-    expect(onGoing.proposalHash.toHex()).to.equal(proposalHash);
+    expect(onGoing.proposal.asLookup.hash_.toHex()).to.equal(proposalHash);
     expect(onGoing.tally.ayes.toBigInt()).to.equal(10n * GLMR);
     expect(onGoing.tally.turnout.toBigInt()).to.equal(10n * GLMR);
   });

@@ -152,9 +152,7 @@ pub struct RunCmd {
 		long,
 		conflicts_with = "collator",
 		conflicts_with = "validator",
-		use_value_delimiter = true,
-		require_value_delimiter = true,
-		multiple_values = true
+		value_delimiter = ','
 	)]
 	pub ethapi: Vec<EthApi>,
 

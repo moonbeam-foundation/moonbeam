@@ -111,13 +111,13 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// The currency type
 		type Currency: Currency<Self::AccountId>
 			+ ReservableCurrency<Self::AccountId>
 			+ LockableCurrency<Self::AccountId>;
 		/// The origin for monetary governance
-		type MonetaryGovernanceOrigin: EnsureOrigin<Self::Origin>;
+		type MonetaryGovernanceOrigin: EnsureOrigin<Self::RuntimeOrigin>;
 		/// Minimum number of blocks per round
 		#[pallet::constant]
 		type MinBlocksPerRound: Get<u32>;
@@ -205,7 +205,7 @@ pub mod pallet {
 		AlreadyDelegatedCandidate,
 		InvalidSchedule,
 		CannotSetBelowMin,
-		RoundLengthMustBeAtLeastTotalSelectedCollators,
+		RoundLengthMustBeGreaterThanTotalSelectedCollators,
 		NoWritingSameValue,
 		TooLowCandidateCountWeightHintJoinCandidates,
 		TooLowCandidateCountWeightHintCancelLeaveCandidates,
@@ -454,9 +454,9 @@ pub mod pallet {
 				});
 				// account for Round and Staked writes
 				weight = weight.saturating_add(T::DbWeight::get().reads_writes(0, 2));
+			} else {
+				weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 			}
-
-			weight = weight.saturating_add(Self::handle_delayed_payouts(round.current));
 
 			// add on_finalize weight
 			//   read:  Author, Points, AwardedPts
@@ -657,9 +657,8 @@ pub mod pallet {
 					<Pallet<T>>::get_collator_stakable_free_balance(candidate) >= balance,
 					"Account does not have enough balance to bond as a candidate."
 				);
-				candidate_count = candidate_count.saturating_add(1u32);
 				if let Err(error) = <Pallet<T>>::join_candidates(
-					T::Origin::from(Some(candidate.clone()).into()),
+					T::RuntimeOrigin::from(Some(candidate.clone()).into()),
 					balance,
 					candidate_count,
 				) {
@@ -694,7 +693,7 @@ pub mod pallet {
 					.cloned()
 					.unwrap_or_default();
 				if let Err(error) = <Pallet<T>>::delegate_with_auto_compound(
-					T::Origin::from(Some(delegator.clone()).into()),
+					T::RuntimeOrigin::from(Some(delegator.clone()).into()),
 					target.clone(),
 					balance,
 					auto_compound,
@@ -849,7 +848,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new <= <Round<T>>::get().length,
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			<TotalSelected<T>>::put(new);
 			Self::deposit_event(Event::TotalSelectedSet { old, new });
@@ -884,7 +883,7 @@ pub mod pallet {
 			ensure!(old != new, Error::<T>::NoWritingSameValue);
 			ensure!(
 				new >= <TotalSelected<T>>::get(),
-				Error::<T>::RoundLengthMustBeAtLeastTotalSelectedCollators,
+				Error::<T>::RoundLengthMustBeGreaterThanTotalSelectedCollators,
 			);
 			round.length = new;
 			// update per-round inflation given new rounds per year
@@ -1276,6 +1275,8 @@ pub mod pallet {
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_revoke_delegation())]
 		/// Request to revoke an existing delegation. If successful, the delegation is scheduled
 		/// to be allowed to be revoked via the `execute_delegation_request` extrinsic.
+		/// The delegation receives no rewards for the rounds while a revoke is pending.
+		/// A revoke may not be performed if any other scheduled request is pending.
 		pub fn schedule_revoke_delegation(
 			origin: OriginFor<T>,
 			collator: T::AccountId,
@@ -1308,7 +1309,9 @@ pub mod pallet {
 		}
 
 		#[pallet::weight(<T as Config>::WeightInfo::schedule_delegator_bond_less())]
-		/// Request bond less for delegators wrt a specific collator candidate.
+		/// Request bond less for delegators wrt a specific collator candidate. The delegation's
+		/// rewards for rounds while the request is pending use the reduced bonded amount.
+		/// A bond less may not be performed if any other scheduled request is pending.
 		pub fn schedule_delegator_bond_less(
 			origin: OriginFor<T>,
 			candidate: T::AccountId,

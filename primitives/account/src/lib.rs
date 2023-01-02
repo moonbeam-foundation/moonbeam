@@ -23,7 +23,7 @@
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sha3::{Digest, Keccak256};
-use sp_core::{ecdsa, H160, H256};
+use sp_core::{ecdsa, H160};
 
 #[cfg(feature = "std")]
 pub use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -112,9 +112,7 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 		m.copy_from_slice(Keccak256::digest(msg.get()).as_slice());
 		match sp_io::crypto::secp256k1_ecdsa_recover(self.0.as_ref(), &m) {
 			Ok(pubkey) => {
-				// TODO This conversion could use a comment. Why H256 first, then H160?
-				// TODO actually, there is probably just a better way to go from Keccak digest.
-				AccountId20(H160::from(H256::from_slice(Keccak256::digest(&pubkey).as_slice())).0)
+				AccountId20(H160::from_slice(&Keccak256::digest(&pubkey).as_slice()[12..32]).0)
 					== *signer
 			}
 			Err(sp_io::EcdsaVerifyError::BadRS) => {
@@ -134,7 +132,9 @@ impl sp_runtime::traits::Verify for EthereumSignature {
 }
 
 /// Public key for an Ethereum / Moonbeam compatible account
-#[derive(Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug)]
+#[derive(
+	Eq, PartialEq, Ord, PartialOrd, Clone, Encode, Decode, sp_core::RuntimeDebug, TypeInfo,
+)]
 #[cfg_attr(feature = "std", derive(serde::Serialize, serde::Deserialize))]
 pub struct EthereumSigner([u8; 20]);
 
@@ -161,7 +161,7 @@ impl From<ecdsa::Public> for EthereumSigner {
 		.serialize();
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&decompressed[1..65]);
-		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
+		let account = H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]);
 		EthereumSigner(account.into())
 	}
 }
@@ -170,7 +170,7 @@ impl From<libsecp256k1::PublicKey> for EthereumSigner {
 	fn from(x: libsecp256k1::PublicKey) -> Self {
 		let mut m = [0u8; 64];
 		m.copy_from_slice(&x.serialize()[1..65]);
-		let account = H160::from(H256::from_slice(Keccak256::digest(&m).as_slice()));
+		let account = H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]);
 		EthereumSigner(account.into())
 	}
 }
@@ -185,7 +185,7 @@ impl std::fmt::Display for EthereumSigner {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use sp_core::{ecdsa, Pair};
+	use sp_core::{ecdsa, Pair, H256};
 	use sp_runtime::traits::IdentifyAccount;
 
 	#[test]
@@ -223,5 +223,13 @@ mod tests {
 		let account: EthereumSigner = public_key.into();
 		let expected_account = AccountId20::from(expected_hex_account);
 		assert_eq!(account.into_account(), expected_account);
+	}
+	#[test]
+	fn test_account_derivation_3() {
+		let m = hex::decode("c5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470")
+			.unwrap();
+		let old = AccountId20(H160::from(H256::from_slice(Keccak256::digest(&m).as_slice())).0);
+		let new = AccountId20(H160::from_slice(&Keccak256::digest(&m).as_slice()[12..32]).0);
+		assert_eq!(new, old);
 	}
 }

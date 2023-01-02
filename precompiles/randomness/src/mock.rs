@@ -16,29 +16,23 @@
 
 //! A minimal precompile runtime including the pallet-randomness pallet
 use super::*;
-use codec::{Decode, Encode, MaxEncodedLen};
-use pallet_evm::{
-	IdentityAddressMapping, EnsureAddressNever, EnsureAddressRoot, Precompile, PrecompileSet,
-};
-use pallet_randomness::{Config, VrfInput};
 use frame_support::{
 	construct_runtime, parameter_types,
 	traits::{Everything, GenesisBuild},
 	weights::Weight,
 };
 use nimbus_primitives::NimbusId;
-use serde::{Deserialize, Serialize};
+use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
+use precompile_utils::{precompile_set::*, testing::MockAccount};
 use session_keys_primitives::VrfId;
-use sp_consensus_babe::Slot;
-use sp_core::{H160, H256};
+use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
 use sp_std::convert::{TryFrom, TryInto};
-use precompile_utils::precompile_set::*;
 
-pub type AccountId = H160;
+pub type AccountId = MockAccount;
 pub type Balance = u128;
 pub type BlockNumber = u32;
 
@@ -63,7 +57,7 @@ construct_runtime!(
 
 parameter_types! {
 	pub const BlockHashCount: u32 = 250;
-	pub const MaximumBlockWeight: Weight = 1024;
+	pub const MaximumBlockWeight: Weight = Weight::from_ref_time(1024);
 	pub const MaximumBlockLength: u32 = 2 * 1024;
 	pub const AvailableBlockRatio: Perbill = Perbill::one();
 	pub const SS58Prefix: u8 = 42;
@@ -71,16 +65,16 @@ parameter_types! {
 impl frame_system::Config for Runtime {
 	type BaseCallFilter = Everything;
 	type DbWeight = ();
-	type Origin = Origin;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Index = u64;
 	type BlockNumber = BlockNumber;
-	type Call = Call;
+	type RuntimeCall = RuntimeCall;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
 	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = sp_runtime::generic::Header<BlockNumber, BlakeTwo256>;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -103,16 +97,11 @@ impl pallet_balances::Config for Runtime {
 	type ReserveIdentifier = [u8; 4];
 	type MaxLocks = ();
 	type Balance = Balance;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-}
-
-/// The randomness precompile is available at address one in the mock runtime.
-pub fn precompile_address() -> H160 {
-	H160::from_low_u64_be(1)
 }
 
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
@@ -123,20 +112,22 @@ pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	),
 >;
 
+pub type PCall = RandomnessPrecompileCall<Runtime>;
+
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
-	pub const WeightPerGas: u64 = 1;
+	pub const WeightPerGas: Weight = Weight::from_ref_time(1);
 }
 
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = pallet_evm::FixedGasWeightMapping<Self>;
 	type WeightPerGas = WeightPerGas;
-	type CallOrigin = EnsureAddressRoot<Account>;
-	type WithdrawOrigin = EnsureAddressNever<Account>;
-	type AddressMapping = IdentityAddressMapping;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
 	type PrecompilesType = TestPrecompiles<Runtime>;
 	type PrecompilesValue = PrecompilesValue;
@@ -145,7 +136,6 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
-	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -162,7 +152,7 @@ parameter_types! {
 	pub const DepositAmount: Balance = 100;
 }
 impl pallet_author_mapping::Config for Runtime {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type DepositCurrency = Balances;
 	type DepositAmount = DepositAmount;
 	type Keys = VrfId;
@@ -170,7 +160,7 @@ impl pallet_author_mapping::Config for Runtime {
 }
 
 pub struct BabeDataGetter;
-impl pallet_randomness::traits::GetBabeData<u64, Option<H256>> for BabeDataGetter {
+impl pallet_randomness::GetBabeData<u64, Option<H256>> for BabeDataGetter {
 	fn get_epoch_index() -> u64 {
 		1u64
 	}
@@ -181,53 +171,22 @@ impl pallet_randomness::traits::GetBabeData<u64, Option<H256>> for BabeDataGette
 
 parameter_types! {
 	pub const Deposit: u128 = 10;
-	pub const MaxBlockDelay: u32 = 5;
-	pub const MaxEpochDelay: u32 = 5;
+	pub const MaxRandomWords: u8 = 1;
 	pub const MinBlockDelay: u32 = 2;
-	pub const MinEpochDelay: u32 = 2;
+	pub const MaxBlockDelay: u32 = 20;
 }
-impl Config for Runtime {
-	type Event = Event;
-	type AddressMapping = IdentityAddressMapping;
+impl pallet_randomness::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type AddressMapping = AccountId;
 	type Currency = Balances;
 	type BabeDataGetter = BabeDataGetter;
 	type VrfKeyLookup = AuthorMapping;
 	type Deposit = Deposit;
+	type MaxRandomWords = MaxRandomWords;
 	type MinBlockDelay = MinBlockDelay;
 	type MaxBlockDelay = MaxBlockDelay;
 	type BlockExpirationDelay = MaxBlockDelay;
-	type EpochExpirationDelay = MaxEpochDelay;
-}
-
-pub(crate) fn events() -> Vec<pallet::Event<Runtime>> {
-	System::events()
-		.into_iter()
-		.map(|r| r.event)
-		.filter_map(|e| {
-			if let Event::Randomness(inner) = e {
-				Some(inner)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>()
-}
-
-/// Panics if an event is not found in the system log of events
-#[macro_export]
-macro_rules! assert_event_emitted {
-	($event:expr) => {
-		match &$event {
-			e => {
-				assert!(
-					crate::mock::events().iter().find(|x| *x == e).is_some(),
-					"Event {:?} was not found in events: \n {:?}",
-					e,
-					crate::mock::events()
-				);
-			}
-		}
-	};
+	type EpochExpirationDelay = MaxBlockDelay;
 }
 
 /// Externality builder for pallet randomness mock runtime
@@ -249,13 +208,13 @@ impl Default for ExtBuilder {
 
 impl ExtBuilder {
 	#[allow(dead_code)]
-	pub(crate) fn with_balances(mut self, balances: Vec<(Account, Balance)>) -> Self {
+	pub(crate) fn with_balances(mut self, balances: Vec<(AccountId, Balance)>) -> Self {
 		self.balances = balances;
 		self
 	}
 
 	#[allow(dead_code)]
-	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, Account)>) -> Self {
+	pub(crate) fn with_mappings(mut self, mappings: Vec<(NimbusId, AccountId)>) -> Self {
 		self.mappings = mappings;
 		self
 	}
@@ -282,4 +241,11 @@ impl ExtBuilder {
 		ext.execute_with(|| System::set_block_number(1));
 		ext
 	}
+}
+
+pub(crate) fn events() -> Vec<RuntimeEvent> {
+	System::events()
+		.into_iter()
+		.map(|r| r.event)
+		.collect::<Vec<_>>()
 }

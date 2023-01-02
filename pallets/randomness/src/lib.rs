@@ -53,8 +53,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::pallet;
-
 pub use pallet::*;
+use sp_std::vec::Vec;
 
 #[cfg(any(test, feature = "runtime-benchmarks"))]
 mod benchmarks;
@@ -85,7 +85,7 @@ pub mod pallet {
 	use pallet_evm::AddressMapping;
 	use session_keys_primitives::{InherentError, KeysLookup, VrfId, INHERENT_IDENTIFIER};
 	use sp_core::{H160, H256};
-	use sp_runtime::traits::{AccountIdConversion, Saturating};
+	use sp_runtime::traits::{AccountIdConversion, Hash, Saturating};
 	use sp_std::convert::TryInto;
 
 	/// The Randomness's pallet id
@@ -105,7 +105,7 @@ pub mod pallet {
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Overarching event type
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 		/// Address mapping to convert from H160 to AccountId
 		type AddressMapping: AddressMapping<Self::AccountId>;
 		/// Currency in which the security deposit will be taken.
@@ -222,8 +222,14 @@ pub mod pallet {
 	/// Removed once $value.request_count == 0
 	#[pallet::storage]
 	#[pallet::getter(fn randomness_results)]
-	pub(crate) type RandomnessResults<T: Config> =
+	pub type RandomnessResults<T: Config> =
 		StorageMap<_, Twox64Concat, RequestType<T>, RandomnessResult<T::Hash>>;
+
+	/// Previous local per-block VRF randomness
+	/// Set in `on_finalize` of last block
+	#[pallet::storage]
+	#[pallet::getter(fn previous_local_vrf_output)]
+	pub type PreviousLocalVrfOutput<T: Config> = StorageValue<_, T::Hash, ValueQuery>;
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -306,6 +312,35 @@ pub mod pallet {
 				<InherentIncluded<T>>::take().is_some(),
 				"Mandatory randomness inherent not included; InherentIncluded storage item is empty"
 			);
+
+			// set previous vrf output
+			PreviousLocalVrfOutput::<T>::put(
+				LocalVrfOutput::<T>::get().expect("LocalVrfOutput must exist; qed"),
+			);
+		}
+	}
+
+	// Randomness trait
+	impl<T: Config> frame_support::traits::Randomness<T::Hash, BlockNumberFor<T>> for Pallet<T> {
+		/// Uses the vrf output of previous block to generate a random seed. The provided `subject`
+		/// must have the property to uniquely generate different randomness given the same vrf
+		/// output (e.g. relay block number).
+		///
+		/// In our case the `subject` is provided via Nimbus and consists of three parts:
+		///       1. Constant string *b"filter" - to identify author-slot-filter pallet
+		///       2. First 2 bytes of index.to_le_bytes() when selecting the ith eligible author
+		///       3. First 4 bytes of slot_number.to_be_bytes()
+		///
+		/// Note: This needs to be updated when asynchronous backing is in effect,
+		///       as it will be unsafe.
+		fn random(subject: &[u8]) -> (T::Hash, BlockNumberFor<T>) {
+			let local_vrf_output = PreviousLocalVrfOutput::<T>::get();
+			let block_number = frame_system::Pallet::<T>::block_number();
+			let mut digest = Vec::new();
+			digest.extend_from_slice(local_vrf_output.as_ref());
+			digest.extend_from_slice(subject);
+			let randomness = T::Hashing::hash(digest.as_slice());
+			(randomness, block_number)
 		}
 	}
 

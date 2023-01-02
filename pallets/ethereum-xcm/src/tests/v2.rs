@@ -17,8 +17,9 @@ use crate::{mock::*, Error, RawOrigin};
 use ethereum_types::{H160, U256};
 use frame_support::{
 	assert_noop, assert_ok,
+	dispatch::{Pays, PostDispatchInfo},
 	traits::{ConstU32, Get},
-	weights::{Pays, PostDispatchInfo, Weight},
+	weights::Weight,
 	BoundedVec,
 };
 use sp_runtime::{DispatchError, DispatchErrorWithPostInfo};
@@ -423,7 +424,9 @@ fn check_suspend_ethereum_to_xcm_works() {
 		<Test as frame_system::Config>::DbWeight::get();
 
 	ext.execute_with(|| {
-		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root(),));
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(
+			RuntimeOrigin::root(),
+		));
 		assert_noop!(
 			EthereumXcm::transact(
 				RawOrigin::XcmEthereumTransaction(alice.address).into(),
@@ -464,9 +467,13 @@ fn transact_after_resume_ethereum_to_xcm_works() {
 	ext.execute_with(|| {
 		let bob_before = System::account(&bob.account_id);
 
-		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(
+			RuntimeOrigin::root()
+		));
 
-		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(
+			RuntimeOrigin::root()
+		));
 		assert_ok!(EthereumXcm::transact(
 			RawOrigin::XcmEthereumTransaction(alice.address).into(),
 			xcm_evm_transfer_eip_1559_transaction(bob.address, U256::from(100)),
@@ -492,9 +499,13 @@ fn transact_through_proxy_after_resume_ethereum_to_xcm_works() {
 		let bob_before = System::account(&bob.account_id);
 		let charlie_before = System::account(&charlie.account_id);
 
-		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::suspend_ethereum_xcm_execution(
+			RuntimeOrigin::root()
+		));
 
-		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(Origin::root()));
+		assert_ok!(EthereumXcm::resume_ethereum_xcm_execution(
+			RuntimeOrigin::root()
+		));
 		assert_ok!(EthereumXcm::transact_through_proxy(
 			RawOrigin::XcmEthereumTransaction(alice.address).into(),
 			bob.address,

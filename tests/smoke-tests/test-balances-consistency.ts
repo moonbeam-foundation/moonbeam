@@ -1,11 +1,19 @@
-import "@moonbeam-network/api-augment";
+import "@moonbeam-network/api-augment/moonbase";
 import { ApiDecoration } from "@polkadot/api/types";
-import type { FrameSystemAccountInfo } from "@polkadot/types/lookup";
-import chalk from "chalk";
+import { H256 } from "@polkadot/types/interfaces/runtime";
+import { u32 } from "@polkadot/types";
+import type {
+  FrameSystemAccountInfo,
+  PalletReferendaDeposit,
+  PalletPreimageRequestStatus,
+} from "@polkadot/types/lookup";
 import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import Bottleneck from "bottleneck";
+import { Option } from "@polkadot/types-codec";
+import { StorageKey } from "@polkadot/types";
+import { extractPreimageDeposit } from "../util/block";
 const debug = require("debug")("smoke:balances");
 
 describeSmokeSuite(`Verifying balances consistency...`, (context) => {
@@ -15,6 +23,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
+  let runtimeName: string;
 
   before("Retrieve all balances", async function () {
     // It takes time to load all the accounts.
@@ -31,6 +40,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       await context.polkadotApi.rpc.chain.getBlockHash(atBlockNumber)
     );
     specVersion = apiAt.consts.system.version.specVersion.toNumber();
+    runtimeName = apiAt.runtimeVersion.specName.toString();
 
     if (process.env.ACCOUNT_ID) {
       const userId = process.env.ACCOUNT_ID.toLowerCase();
@@ -48,7 +58,7 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
         })
       );
 
-      if (query.length == 0) {
+      if (query.length === 0) {
         break;
       }
       count += query.length;
@@ -79,7 +89,9 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       subIdentities,
       democracyDeposits,
       democracyVotes,
-      preimages,
+      democracyPreimages,
+      preimageStatuses,
+      referendumInfoFor,
       assets,
       assetsMetadata,
       localAssets,
@@ -100,7 +112,15 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
       apiAt.query.identity.subsOf.entries(),
       apiAt.query.democracy.depositOf.entries(),
       apiAt.query.democracy.votingOf.entries(),
-      apiAt.query.democracy.preimages.entries(),
+      specVersion < 2000
+        ? apiAt.query.democracy.preimages.entries()
+        : ([] as [StorageKey<[H256]>, Option<any>][]),
+      (specVersion >= 1900 && runtimeName == "moonbase") || specVersion >= 2000
+        ? apiAt.query.preimage.statusFor.entries()
+        : ([] as [StorageKey<[H256]>, Option<PalletPreimageRequestStatus>][]),
+      specVersion >= 1900 && runtimeName == "moonbase"
+        ? apiAt.query.referenda.referendumInfoFor.entries()
+        : ([] as [StorageKey<[u32]>, Option<any>][]),
       apiAt.query.assets.asset.entries(),
       apiAt.query.assets.metadata.entries(),
       apiAt.query.localAssets.asset.entries(),
@@ -240,14 +260,54 @@ describeSmokeSuite(`Verifying balances consistency...`, (context) => {
             }
           )
       ),
-      preimages
-        .filter((preimage) => preimage[1].unwrap().isAvailable)
-        .map((preimage) => ({
+      democracyPreimages
+        .filter((preimage: any) => preimage[1].unwrap().isAvailable)
+        .map((preimage: any) => ({
           accountId: preimage[1].unwrap().asAvailable.provider.toHex(),
           reserved: {
             preimage: preimage[1].unwrap().asAvailable.deposit.toBigInt(),
           },
         })),
+      preimageStatuses
+        .filter((status) => status[1].unwrap().isUnrequested || status[1].unwrap().isRequested)
+        .map((status) => {
+          const deposit = extractPreimageDeposit(
+            status[1].unwrap().asUnrequested || status[1].unwrap().asRequested
+          );
+          return {
+            accountId: deposit.accountId,
+            reserved: {
+              preimage: deposit.amount.toBigInt(),
+            },
+          };
+        }),
+      referendumInfoFor
+        .map((info) => {
+          const deposits = (
+            info[1].unwrap().isApproved
+              ? [info[1].unwrap().asApproved[1], info[1].unwrap().asApproved[2].unwrapOr(null)]
+              : info[1].unwrap().isRejected
+              ? [info[1].unwrap().asRejected[1], info[1].unwrap().asRejected[2].unwrapOr(null)]
+              : info[1].unwrap().isCancelled
+              ? [info[1].unwrap().asCancelled[1], info[1].unwrap().asCancelled[2].unwrapOr(null)]
+              : info[1].unwrap().isTimedOut
+              ? [info[1].unwrap().asTimedOut[1], info[1].unwrap().asTimedOut[2].unwrapOr(null)]
+              : info[1].unwrap().isOngoing
+              ? [
+                  info[1].unwrap().asOngoing.submissionDeposit,
+                  info[1].unwrap().asOngoing.decisionDeposit.unwrapOr(null),
+                ]
+              : ([] as PalletReferendaDeposit[])
+          ).filter((value) => !!value);
+
+          return deposits.map((deposit) => ({
+            accountId: deposit.who.toHex(),
+            reserved: {
+              referendumInfo: deposit.amount.toBigInt(),
+            },
+          }));
+        })
+        .flat(),
       assets.map((asset) => ({
         accountId: `0x${asset[1].unwrap().owner.toHex().slice(-40)}`,
         reserved: {
