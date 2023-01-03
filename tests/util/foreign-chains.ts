@@ -43,14 +43,13 @@ export const isMuted = (moonbeamNetworkName: string, paraId: number) => {
   const info = ForeignChainsEndpoints.find((a) => a.moonbeamNetworkName === moonbeamNetworkName);
 
   if (info) {
-    // console.log(info)
-    // console.log(`Trying to find paraid ${paraId}`)
     const match = info.foreignChains.find((a) => a.paraId === paraId);
 
     if (!match) {
       console.error(`⚠️  No static data for ParaId ${paraId}, please add to foreign-chains.ts`);
       return false;
     }
+
     return match.muted;
   } else return false;
 };
