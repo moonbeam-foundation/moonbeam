@@ -469,7 +469,9 @@ mod tests {
 		.unwrap() as u8;
 		expected_encoded.push(index);
 
-		let mut expected = polkadot_runtime_parachains::hrmp::Call::<polkadot_runtime::Runtime>::hrmp_init_open_channel {
+		let mut expected = polkadot_runtime_parachains::hrmp::Call::<
+			polkadot_runtime::Runtime
+		>::hrmp_init_open_channel {
 			recipient: 1000u32.into(),
 			proposed_max_capacity: 100u32,
 			proposed_max_message_size: 100u32,
