@@ -52,7 +52,7 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, RelayEncodeCall, SignedToAccountId20, UtilityAvailableCalls, XcmTransact,
+	FirstAssetTrader, RelayEncodeCall, SignedToAccountId20, UtilityAvailableCalls, HrmpAvailableCalls, XcmTransact,
 	XcmV2Weight,
 };
 
@@ -520,6 +520,15 @@ impl RelayEncodeCall for Transactors {
 			// but moonbase-alpha is attached to westend-runtime I think
 			Transactors::Relay => {
 				moonbeam_relay_encoder::westend::WestendEncoder.utility_encode_call(call)
+			}
+		}
+	}
+	fn hrmp_encode_call(self, call: HrmpAvailableCalls) -> Result<Vec<u8>, XcmError> {
+		match self {
+			// Shall we use westend for moonbase? The tests are probably based on rococo
+			// but moonbase-alpha is attached to westend-runtime I think
+			Transactors::Relay => {
+				moonbeam_relay_encoder::westend::WestendEncoder.hrmp_encode_call(call)
 			}
 		}
 	}

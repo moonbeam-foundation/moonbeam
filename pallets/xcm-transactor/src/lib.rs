@@ -366,6 +366,10 @@ pub mod pallet {
 		DestFeePerSecondRemoved {
 			location: MultiLocation,
 		},
+		/// HRMP manage action succesfully sent
+		HrmpManagementSent {
+			action: HrmpOperation,
+		},
 	}
 
 	#[pallet::call]
@@ -674,7 +678,7 @@ pub mod pallet {
 			// SetAppendix(DepositAsset(sov account))
 			// Transact
 			T::HrmpManipulatorOrigin::ensure_origin(origin)?;
-			let call_bytes = match action {
+			let call_bytes = match action.clone() {
 				HrmpOperation::InitOpen(params) => RelayEncodeCall::hrmp_encode_call(
 					dest.clone(),
 					HrmpAvailableCalls::InitOpenChannel(
@@ -712,6 +716,10 @@ pub mod pallet {
 				weight_info,
 				Some(vec![appendix]),
 			)?;
+
+			Self::deposit_event(Event::HrmpManagementSent {
+				action,
+			});
 
 			Ok(())
 		}

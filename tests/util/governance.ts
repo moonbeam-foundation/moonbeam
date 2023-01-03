@@ -4,6 +4,7 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { PalletDemocracyReferendumInfo } from "@polkadot/types/lookup";
 import { blake2AsHex } from "@polkadot/util-crypto";
 import { expect } from "chai";
+import { GLMR } from "../util/constants";
 
 import { alith, baltathar, charleth, dorothy } from "./accounts";
 import { DevTestContext } from "./setup-dev-tests";
@@ -115,6 +116,77 @@ export const execCouncilProposal = async <
       .signAsync(dorothy)
   );
 };
+
+// Proposes referenda and places decision deposit
+// Returns referendum index and proposal hash
+export const proposeReferendaAndDeposit = async <
+  Call extends SubmittableExtrinsic<ApiType>,
+  ApiType extends ApiTypes
+>(
+  context: DevTestContext,
+  decisionDepositer: KeyringPair,
+  proposal: string | Call,
+  origin,
+): Promise<[Number, String]> => {
+
+  // Fetch proposal hash
+  const proposalHash =
+  typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
+  
+  // Ppost referenda
+  const { result: proposalResult } = await context.createBlock(
+    context.polkadotApi.tx.referenda
+      .submit(origin, 
+        { Lookup: {
+          hash: proposalHash,
+          len: typeof proposal == "string" ? proposal : proposal.method.encodedLength,
+        }}, { At: 0 })
+      .signAsync(alith)
+  );
+
+  expect(proposalResult.successful, `Unable to post referenda: ${proposalResult?.error?.name}`).to
+  .be.true;
+
+  const refIndex = proposalResult.events
+  .find(({ event: { method } }) => method.toString() == "Submitted")
+  .event.data[0].toString();
+
+  // Place decision deposit
+  await context.createBlock(
+    context.polkadotApi.tx.referenda
+      .placeDecisionDeposit(refIndex)
+      .signAsync(decisionDepositer)
+  );
+
+  return [+refIndex, proposalHash];
+};
+
+// Maximizes conviction voting of some voters
+// with respect to an ongoing referenda
+// Their whole free balance will be used to vote
+export const maximizeConvictionVotingOf = async (
+  context: DevTestContext,
+  voters: KeyringPair[],
+  refIndex: Number
+) => {
+
+  // We need to have enough to pay for fee
+  const fee = (
+    await  context.polkadotApi.tx.convictionVoting
+    .vote(refIndex as any, { Standard: { vote: { aye: true, conviction: "Locked6x"}, balance: await (await context.polkadotApi.query.system.account(alith.address)).data.free} })
+      .paymentInfo(alith)
+  ).partialFee;
+
+  // We vote with everything but fee
+  await context.createBlock(
+    voters.map(async (voter) =>
+      context.polkadotApi.tx.convictionVoting
+        .vote(refIndex as any, { Standard: { vote: { aye: true, conviction: "Locked6x"}, balance: await (await context.polkadotApi.query.system.account(voter.address)).data.free.sub(fee)} })
+        .signAsync(voter)
+    )
+  );
+}
+
 
 // Creates the Technical Committee Proposal
 // Vote with the members (all members by default)
