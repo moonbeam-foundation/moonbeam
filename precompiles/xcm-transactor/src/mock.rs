@@ -304,6 +304,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = DummyAssetTransactor;
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
+	type HrmpManipulatorOrigin = frame_system::EnsureRoot<AccountId>;
 }
 
 // We need to use the encoding from the relay mock runtime
