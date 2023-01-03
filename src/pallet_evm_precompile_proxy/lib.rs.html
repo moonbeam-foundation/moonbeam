@@ -194,6 +194,18 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -246,6 +258,18 @@
 {
 	<span class="attribute">#[precompile::pre_check]
 	</span><span class="kw">fn </span>pre_check(handle: <span class="kw-2">&amp;mut </span><span class="kw">impl </span>PrecompileHandle) -&gt; EvmResult {
+		<span class="comment">// Check if the selector is the one of `isProxy`, which is one which can
+		// be called by smart contrats.
+		</span><span class="kw">if let </span><span class="prelude-val">Some</span>(bytes) = handle.input().get(<span class="number">0</span>..<span class="number">4</span>) {
+			<span class="kw">let </span><span class="kw-2">mut </span>buffer = [<span class="number">0u8</span>; <span class="number">4</span>];
+			buffer.copy_from_slice(bytes);
+			<span class="kw">let </span>selector = u32::from_be_bytes(buffer);
+
+			<span class="kw">if </span>ProxyPrecompileCall::&lt;Runtime&gt;::is_proxy_selectors().contains(<span class="kw-2">&amp;</span>selector) {
+				<span class="kw">return </span><span class="prelude-val">Ok</span>(());
+			}
+		}
+
 		handle.record_cost(RuntimeHelper::&lt;Runtime&gt;::db_read_gas_cost())<span class="question-mark">?</span>;
 		<span class="kw">let </span>caller_code = pallet_evm::Pallet::&lt;Runtime&gt;::account_codes(handle.context().caller);
 		<span class="comment">// Check that caller is not a smart contract s.t. no code is inserted into
