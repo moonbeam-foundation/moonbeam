@@ -862,6 +862,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type AssetTransactor = AssetTransactors;
 	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
+	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
 }
 
 parameter_types! {

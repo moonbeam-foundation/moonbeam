@@ -29,7 +29,6 @@ use xcm_executor::traits::Convert;
 use xcm_mock::parachain;
 use xcm_mock::relay_chain;
 use xcm_mock::*;
-use xcm_primitives::RelayEncodeCall;
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
@@ -1412,7 +1411,7 @@ fn transact_through_sovereign() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = parachain::MockTransactors::Relay.utility_encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
@@ -1561,7 +1560,7 @@ fn transact_through_sovereign_with_custom_fee_weight() {
 	.encode();
 	encoded.append(&mut call_bytes);
 
-	let utility_bytes = parachain::MockTransactors::Relay.encode_call(
+	let utility_bytes = parachain::MockTransactors::Relay.utility_encode_call(
 		xcm_primitives::UtilityAvailableCalls::AsDerivative(0, encoded),
 	);
 
