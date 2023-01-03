@@ -704,6 +704,7 @@ pub mod pallet {
 			// Grab the destination
 			let destination = dest.destination();
 
+			// The appendix instruction will be a deposit back to a self location
 			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
