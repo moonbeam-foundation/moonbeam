@@ -704,7 +704,7 @@ pub mod pallet {
 			// Grab the destination
 			let destination = dest.destination();
 
-			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination).unwrap();
+			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				destination,
