@@ -62,7 +62,7 @@ use pallet_evm_precompileset_assets_erc20::{
 };
 use pallet_randomness::weights::{SubstrateWeight, WeightInfo};
 use pallet_transaction_payment::Multiplier;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights, HrmpOperation};
+use pallet_xcm_transactor::{Currency, CurrencyPayment, HrmpOperation, TransactWeights};
 use parity_scale_codec::Encode;
 use sha3::{Digest, Keccak256};
 use sp_core::{crypto::UncheckedFrom, ByteArray, Pair, H160, U256};
@@ -2501,24 +2501,25 @@ fn root_can_use_hrmp_manage() {
 		.build()
 		.execute_with(|| {
 			// It fails sending, because the router does not work in test mode
-			assert_noop!(XcmTransactor::hrmp_manange(
-				root_origin(),
-				moonbase_runtime::xcm_config::Transactors::Relay,
-				HrmpOperation::Accept(2000u32.into()),
-				CurrencyPayment {
-					currency: Currency::AsMultiLocation(Box::new(
-						xcm::VersionedMultiLocation::V1(MultiLocation::parent())
-					)),
-					fee_amount: Some(10000)
-				},
-				// 20000 is the max
-				TransactWeights {
-					transact_required_weight_at_most: 17001,
-					overall_weight: Some(20000)
-				}
-			),
-			pallet_xcm_transactor::Error::<Runtime>::ErrorSending
-		);		
+			assert_noop!(
+				XcmTransactor::hrmp_manange(
+					root_origin(),
+					moonbase_runtime::xcm_config::Transactors::Relay,
+					HrmpOperation::Accept(2000u32.into()),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: Some(10000)
+					},
+					// 20000 is the max
+					TransactWeights {
+						transact_required_weight_at_most: 17001,
+						overall_weight: Some(20000)
+					}
+				),
+				pallet_xcm_transactor::Error::<Runtime>::ErrorSending
+			);
 		})
 }
 

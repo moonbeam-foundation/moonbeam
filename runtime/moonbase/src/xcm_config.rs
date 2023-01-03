@@ -52,8 +52,8 @@ use xcm_executor::traits::{CallDispatcher, JustTry};
 use orml_xcm_support::MultiNativeAsset;
 use xcm_primitives::{
 	AbsoluteAndRelativeReserve, AccountIdToCurrencyId, AccountIdToMultiLocation, AsAssetType,
-	FirstAssetTrader, RelayEncodeCall, SignedToAccountId20, UtilityAvailableCalls, HrmpAvailableCalls, XcmTransact,
-	XcmV2Weight,
+	FirstAssetTrader, HrmpAvailableCalls, RelayEncodeCall, SignedToAccountId20,
+	UtilityAvailableCalls, XcmTransact, XcmV2Weight,
 };
 
 use parity_scale_codec::{Decode, Encode};

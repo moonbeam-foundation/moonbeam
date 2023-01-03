@@ -717,9 +717,7 @@ pub mod pallet {
 				Some(vec![appendix]),
 			)?;
 
-			Self::deposit_event(Event::HrmpManagementSent {
-				action,
-			});
+			Self::deposit_event(Event::HrmpManagementSent { action });
 
 			Ok(())
 		}

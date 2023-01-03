@@ -126,36 +126,38 @@ export const proposeReferendaAndDeposit = async <
   context: DevTestContext,
   decisionDepositer: KeyringPair,
   proposal: string | Call,
-  origin,
+  origin
 ): Promise<[Number, String]> => {
-
   // Fetch proposal hash
   const proposalHash =
-  typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
-  
+    typeof proposal == "string" ? proposal : await notePreimage(context, proposal);
+
   // Ppost referenda
   const { result: proposalResult } = await context.createBlock(
     context.polkadotApi.tx.referenda
-      .submit(origin, 
-        { Lookup: {
-          hash: proposalHash,
-          len: typeof proposal == "string" ? proposal : proposal.method.encodedLength,
-        }}, { At: 0 })
+      .submit(
+        origin,
+        {
+          Lookup: {
+            hash: proposalHash,
+            len: typeof proposal == "string" ? proposal : proposal.method.encodedLength,
+          },
+        },
+        { At: 0 }
+      )
       .signAsync(alith)
   );
 
   expect(proposalResult.successful, `Unable to post referenda: ${proposalResult?.error?.name}`).to
-  .be.true;
+    .be.true;
 
   const refIndex = proposalResult.events
-  .find(({ event: { method } }) => method.toString() == "Submitted")
-  .event.data[0].toString();
+    .find(({ event: { method } }) => method.toString() == "Submitted")
+    .event.data[0].toString();
 
   // Place decision deposit
   await context.createBlock(
-    context.polkadotApi.tx.referenda
-      .placeDecisionDeposit(refIndex)
-      .signAsync(decisionDepositer)
+    context.polkadotApi.tx.referenda.placeDecisionDeposit(refIndex).signAsync(decisionDepositer)
   );
 
   return [+refIndex, proposalHash];
@@ -169,11 +171,15 @@ export const maximizeConvictionVotingOf = async (
   voters: KeyringPair[],
   refIndex: Number
 ) => {
-
   // We need to have enough to pay for fee
   const fee = (
-    await  context.polkadotApi.tx.convictionVoting
-    .vote(refIndex as any, { Standard: { vote: { aye: true, conviction: "Locked6x"}, balance: await (await context.polkadotApi.query.system.account(alith.address)).data.free} })
+    await context.polkadotApi.tx.convictionVoting
+      .vote(refIndex as any, {
+        Standard: {
+          vote: { aye: true, conviction: "Locked6x" },
+          balance: await (await context.polkadotApi.query.system.account(alith.address)).data.free,
+        },
+      })
       .paymentInfo(alith)
   ).partialFee;
 
@@ -181,12 +187,18 @@ export const maximizeConvictionVotingOf = async (
   await context.createBlock(
     voters.map(async (voter) =>
       context.polkadotApi.tx.convictionVoting
-        .vote(refIndex as any, { Standard: { vote: { aye: true, conviction: "Locked6x"}, balance: await (await context.polkadotApi.query.system.account(voter.address)).data.free.sub(fee)} })
+        .vote(refIndex as any, {
+          Standard: {
+            vote: { aye: true, conviction: "Locked6x" },
+            balance: await (
+              await context.polkadotApi.query.system.account(voter.address)
+            ).data.free.sub(fee),
+          },
+        })
         .signAsync(voter)
     )
   );
-}
-
+};
 
 // Creates the Technical Committee Proposal
 // Vote with the members (all members by default)
