@@ -23,7 +23,7 @@ type BlockFilteredRecord = {
 };
 
 describeSmokeSuite(
-  `ETH Failures in past ${hours} hours` + " should be reported correctly...",
+  `ETH Failures in past ${hours} hours` + " should be reported correctly (S900)",
   (context) => {
     let blockData: BlockFilteredRecord[];
 

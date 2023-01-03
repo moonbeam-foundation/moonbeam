@@ -11,6 +11,7 @@ const debug = require("debug")("smoke:xcm-failures");
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 5000);
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
+const suiteNumber = "S2300"
 
 type BlockEventsRecord = {
   blockNum: number;
@@ -19,7 +20,7 @@ type BlockEventsRecord = {
 
 describeSmokeSuite(
   `XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
-    " should not be serious..",
+    ` should not be serious (${suiteNumber})`,
   (context) => {
     let blockEvents: BlockEventsRecord[];
 
@@ -39,7 +40,7 @@ describeSmokeSuite(
         blockNumArray.map((num) => limiter.schedule(() => getEvents(num)))
       );
     });
-    it("should not have UnsupportedVersion errors on DMP queue", async function () {
+    it(`should not have UnsupportedVersion errors on DMP queue (${suiteNumber}C100)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const dmpQueueEvents = events.filter(
           ({ event }) =>
@@ -59,7 +60,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have BadVersion errors on XCMP queue", async function () {
+    it(`shouldnot have BadVersion errors on XCMP queue (${suiteNumber}C200)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events.filter(
           ({ event }) =>
@@ -76,7 +77,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Barrier errors on XCMP queue", async function () {
+    it(`shouldnot have Barrier errors on XCMP queue (${suiteNumber}C300)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -95,7 +96,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Overflow errors on XCMP queue", async function () {
+    it(`shouldnot have Overflow errors on XCMP queue (${suiteNumber}C400)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -114,7 +115,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have MultiLocationFull errors on XCMP queue", async function () {
+    it(`shouldnot have MultiLocationFull errors on XCMP queue (${suiteNumber}C500)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -135,7 +136,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have AssetNotFound errors on XCMP queue", async function () {
+    it(`shouldnot have AssetNotFound errors on XCMP queue (${suiteNumber}C600)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -156,7 +157,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have DestinationUnsupported errors on XCMP queue", async function () {
+    it(`shouldnot have DestinationUnsupported errors on XCMP queue (${suiteNumber}C700)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -179,7 +180,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Transport errors on XCMP queue", async function () {
+    it(`shouldnot have Transport errors on XCMP queue (${suiteNumber}C800)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -198,7 +199,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have FailedToDecode errors on XCMP queue", async function () {
+    it(`shouldnot have FailedToDecode errors on XCMP queue (${suiteNumber}C900)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -219,7 +220,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have UnhandledXcmVersion errors on XCMP queue", async function () {
+    it(`shouldnot have UnhandledXcmVersion errors on XCMP queue (${suiteNumber}C1000)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -242,7 +243,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have WeightNotComputable errors on XCMP queue", async function () {
+    it(`shouldnot have WeightNotComputable errors on XCMP queue (${suiteNumber}C1100)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
         const xcmpQueueEvents = events
           .filter(
@@ -265,7 +266,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should have recent responses for opened HMRP channels", async function () {
+    it(`shouldhave recent responses for opened HMRP channels (${suiteNumber}C1200)`, async function () {
       this.timeout(FIVE_MINS);
       if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
         debug(`RELAY_WSS_URL env var not supplied, skipping test.`);

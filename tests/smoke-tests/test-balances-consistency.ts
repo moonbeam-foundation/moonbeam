@@ -16,7 +16,7 @@ import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 const debug = require("debug")("smoke:balances");
 
-describeSmokeSuite(`Verifying balances consistency...`, (context) => {
+describeSmokeSuite(`Verifying balances consistency (S300)`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
   const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
 

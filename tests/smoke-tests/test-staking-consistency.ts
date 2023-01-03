@@ -13,7 +13,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
 
-describeSmokeSuite(`Verify staking consistency`, (context) => {
+describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;

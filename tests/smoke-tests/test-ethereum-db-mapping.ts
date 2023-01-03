@@ -7,7 +7,7 @@ const debug = require("debug")("smoke:ethereum-mapping");
 // In the other hand `*ByHash` requests rely on data mapped in the frontier db.
 // We want to compare both to verify recent db data consistency and rpc impl across client versions.
 
-describeSmokeSuite(`Ethereum secondary DB should contains valid data`, (context) => {
+describeSmokeSuite(`Ethereum secondary DB should contains valid data (S800)`, (context) => {
   it("should get the same response payload on byNumber and byHash requests", async function () {
     this.timeout(60_000); // 1 minute
     // As we are testing rpc-level functionality the height at which we access secondary db data

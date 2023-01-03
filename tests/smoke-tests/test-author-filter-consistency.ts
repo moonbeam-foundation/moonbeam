@@ -5,7 +5,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author");
 
-describeSmokeSuite(`Verify author filter consistency`, (context) => {
+describeSmokeSuite(`Verify author filter consistency (S100)`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;

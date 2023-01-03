@@ -7,7 +7,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 import { StorageKey } from "@polkadot/types";
 const debug = require("debug")("smoke:localAssets");
 
-describeSmokeSuite(`Verify local asset count, assetIds and deposits...`, (context) => {
+describeSmokeSuite(`Verify local asset count, assetIds and deposits (S1300)`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let localAssetDeposits: StorageKey<[u128]>[] = null;

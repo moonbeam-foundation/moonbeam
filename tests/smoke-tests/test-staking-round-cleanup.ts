@@ -44,7 +44,7 @@ async function getKeysBeforeRound<
 }
 
 if (!process.env.SKIP_BLOCK_CONSISTENCY_TESTS) {
-  describeSmokeSuite(`Verify staking round cleanup`, function (context) {
+  describeSmokeSuite(`Verify staking round cleanup (S2100)`, function (context) {
     it("storage is cleaned for paid-out rounds", async function () {
       this.timeout(500000);
 

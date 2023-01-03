@@ -6,7 +6,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 
 const debug = require("debug")("smoke:ethereum-contract");
 
-describeSmokeSuite(`Ethereum contract bytecode should not be large...`, (context) => {
+describeSmokeSuite(`Ethereum contract bytecode should not be large (S600)`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
 

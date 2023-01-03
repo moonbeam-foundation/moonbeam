@@ -4,7 +4,7 @@ import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:author-mapping");
 
-describeSmokeSuite(`Verifying deposit for associated nimbus ids...`, (context) => {
+describeSmokeSuite(`Verifying deposit for associated nimbus ids (S200)`, (context) => {
   const nimbusIdPerAccount: { [account: string]: string } = {};
 
   let atBlockNumber: number = 0;

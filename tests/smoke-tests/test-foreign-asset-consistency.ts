@@ -5,7 +5,7 @@ import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:localAssets");
 
 describeSmokeSuite(
-  `Verifying foreign asset count, mapping, assetIds and deposits...`,
+  `Verifying foreign asset count, mapping, assetIds and deposits (S1000)`,
   (context) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;

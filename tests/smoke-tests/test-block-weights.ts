@@ -31,7 +31,7 @@ interface BlockLimits {
 }
 
 describeSmokeSuite(
-  `Verifying weights of blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours...`,
+  `Verifying weights of blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours (S500)`,
   (context) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
