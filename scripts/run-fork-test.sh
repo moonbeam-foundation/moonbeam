@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+if [[ `which jq` == "" ]]; then
+    echo "Missing jq"
+    exit 1
+fi
+
 # This script is expected to be included in a docker image (with node)
 set -e 
 

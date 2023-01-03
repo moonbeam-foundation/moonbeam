@@ -19,9 +19,11 @@
 
 use core::fmt::Display;
 use fp_evm::PrecompileHandle;
-use frame_support::traits::fungibles::approvals::Inspect as ApprovalInspect;
-use frame_support::traits::fungibles::metadata::Inspect as MetadataInspect;
 use frame_support::traits::fungibles::Inspect;
+use frame_support::traits::fungibles::{
+	approvals::Inspect as ApprovalInspect, metadata::Inspect as MetadataInspect,
+	roles::Inspect as RolesInspect,
+};
 use frame_support::traits::{ConstBool, Get, OriginTrait};
 use frame_support::{
 	dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo},
@@ -121,15 +123,16 @@ where
 		+ pallet_evm::Config
 		+ frame_system::Config
 		+ pallet_timestamp::Config,
-	Runtime::Call: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	Runtime::Call: From<pallet_assets::Call<Runtime, Instance>>,
-	<Runtime::Call as Dispatchable>::Origin: From<Option<Runtime::AccountId>>,
+	Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
+	Runtime::RuntimeCall: From<pallet_assets::Call<Runtime, Instance>>,
+	<Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
 	BalanceOf<Runtime, Instance>: TryFrom<U256> + Into<U256> + EvmData,
 	Runtime: AccountIdAssetIdConversion<Runtime::AccountId, AssetIdOf<Runtime, Instance>>,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin: OriginTrait,
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin: OriginTrait,
 	IsLocal: Get<bool>,
 	<Runtime as pallet_timestamp::Config>::Moment: Into<U256>,
 	AssetIdOf<Runtime, Instance>: Display,
+	Runtime::AccountId: Into<H160>,
 {
 	/// PrecompileSet discrimiant. Allows to knows if the address maps to an asset id,
 	/// and if this is the case which one.
@@ -417,6 +420,66 @@ where
 		Ok(pallet_assets::Pallet::<Runtime, Instance>::decimals(
 			asset_id,
 		))
+	}
+
+	#[precompile::public("owner()")]
+	#[precompile::view]
+	fn owner(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let owner: H160 = pallet_assets::Pallet::<Runtime, Instance>::owner(asset_id)
+			.ok_or(revert("No owner set"))?
+			.into();
+
+		Ok(Address(owner))
+	}
+
+	#[precompile::public("issuer()")]
+	#[precompile::view]
+	fn issuer(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let issuer: H160 = pallet_assets::Pallet::<Runtime, Instance>::issuer(asset_id)
+			.ok_or(revert("No issuer set"))?
+			.into();
+
+		Ok(Address(issuer))
+	}
+
+	#[precompile::public("admin()")]
+	#[precompile::view]
+	fn admin(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let admin: H160 = pallet_assets::Pallet::<Runtime, Instance>::admin(asset_id)
+			.ok_or(revert("No admin set"))?
+			.into();
+
+		Ok(Address(admin))
+	}
+
+	#[precompile::public("freezer()")]
+	#[precompile::view]
+	fn freezer(
+		asset_id: AssetIdOf<Runtime, Instance>,
+		handle: &mut impl PrecompileHandle,
+	) -> EvmResult<Address> {
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+		let freezer: H160 = pallet_assets::Pallet::<Runtime, Instance>::freezer(asset_id)
+			.ok_or(revert("No freezer set"))?
+			.into();
+
+		Ok(Address(freezer))
 	}
 
 	// From here: only for locals, we need to check whether we are in local assets otherwise fail

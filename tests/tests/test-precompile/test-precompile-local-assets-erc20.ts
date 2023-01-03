@@ -1,4 +1,5 @@
 import "@moonbeam-network/api-augment";
+import { ApiBase } from "@polkadot/api/base";
 
 import {
   BN,
@@ -12,7 +13,15 @@ import {
 import { expect } from "chai";
 import { ethers } from "ethers";
 
-import { alith, baltathar, charleth } from "../../util/accounts";
+import {
+  alith,
+  ALITH_ADDRESS,
+  baltathar,
+  BALTATHAR_ADDRESS,
+  charleth,
+  CHARLETH_ADDRESS,
+  DOROTHY_ADDRESS,
+} from "../../util/accounts";
 import { registerLocalAssetWithMeta } from "../../util/assets";
 import { getCompiled } from "../../util/contracts";
 import { customWeb3Request } from "../../util/providers";
@@ -36,21 +45,41 @@ const SELECTORS = {
 };
 const GAS_PRICE = "0x" + (1_000_000_000).toString(16);
 const LOCAL_ASSET_EXTENDED_ERC20_CONTRACT = getCompiled("LocalAssetExtendedErc20Instance");
+const ROLES_CONTRACT = getCompiled("Roles");
 
 const LOCAL_ASSET_EXTENDED_ERC20_INTERFACE = new ethers.utils.Interface(
   LOCAL_ASSET_EXTENDED_ERC20_CONTRACT.contract.abi
 );
 
+const ROLES_INTERFACE = new ethers.utils.Interface(ROLES_CONTRACT.contract.abi);
+
 describeDevMoonbeamAllEthTxTypes(
   "Precompiles - Assets-ERC20 Wasm",
   (context) => {
     let assetAddress: string;
+    let assetId: string;
     before("Setup contract and mock balance", async () => {
       // register, setMeta & mint local Asset
-      ({ assetAddress } = await registerLocalAssetWithMeta(context, alith, {
+      ({ assetId, assetAddress } = await registerLocalAssetWithMeta(context, alith, {
         registrerAccount: baltathar,
         mints: [{ account: baltathar, amount: 100000000000000n }],
       }));
+
+      // Set team
+      await context.createBlock(
+        context.polkadotApi.tx.localAssets
+          // Issuer, admin, freezer
+          .setTeam(assetId, BALTATHAR_ADDRESS, CHARLETH_ADDRESS, DOROTHY_ADDRESS)
+          .signAsync(baltathar)
+      );
+
+      // Set owner
+      await context.createBlock(
+        context.polkadotApi.tx.localAssets
+          // owner
+          .transferOwnership(assetId, ALITH_ADDRESS)
+          .signAsync(baltathar)
+      );
 
       const { rawTx } = await createContract(context, "LocalAssetExtendedErc20Instance");
       await context.createBlock(rawTx);
@@ -174,6 +203,90 @@ describeDevMoonbeamAllEthTxTypes(
 
       let amount_hex = "0x" + bnToHex(amount).slice(2).padStart(64, "0");
       expect(tx_call.result).equals(amount_hex);
+    });
+
+    it("allows to call owner", async function () {
+      const data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "owner",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      const account = "0x" + ALITH_ADDRESS.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call freezer", async function () {
+      const data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "freezer",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      const account = "0x" + DOROTHY_ADDRESS.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call admin", async function () {
+      const data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "admin",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      const account = "0x" + CHARLETH_ADDRESS.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
+    });
+
+    it("allows to call issuer", async function () {
+      const data = ROLES_INTERFACE.encodeFunctionData(
+        // action
+        "issuer",
+        []
+      );
+      const tx_call = await customWeb3Request(context.web3, "eth_call", [
+        {
+          from: alith.address,
+          value: "0x0",
+          gas: "0x10000",
+          gasPrice: GAS_PRICE,
+          to: assetAddress,
+          data: data,
+        },
+      ]);
+
+      const account = "0x" + baltathar.address.slice(2).padStart(64, "0");
+      expect(tx_call.result).equals(account.toLocaleLowerCase());
     });
   },
   true

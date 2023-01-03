@@ -31,18 +31,38 @@ describeDevMoonbeam("Reducible Balance", (context) => {
     let encodedHash = blake2AsHex(encodedProposal);
 
     // Submit the pre-image
-    await context.createBlock(context.polkadotApi.tx.democracy.notePreimage(encodedProposal));
+    await context.createBlock(context.polkadotApi.tx.preimage.notePreimage(encodedProposal));
 
     // Record balance
     let beforeBalance = await context.web3.eth.getBalance(alith.address);
 
     // Fees
     const fee = (
-      await context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount).paymentInfo(alith)
+      await context.polkadotApi.tx.democracy
+        .propose(
+          {
+            Lookup: {
+              hash: encodedHash,
+              len: proposal.method.encodedLength,
+            },
+          } as any,
+          lock_amount
+        )
+        .paymentInfo(alith)
     ).partialFee as any;
 
     // Propose
-    await context.createBlock(context.polkadotApi.tx.democracy.propose(encodedHash, lock_amount));
+    await context.createBlock(
+      context.polkadotApi.tx.democracy.propose(
+        {
+          Lookup: {
+            hash: encodedHash,
+            len: proposal.method.encodedLength,
+          },
+        } as any,
+        lock_amount
+      )
+    );
 
     expect(await context.web3.eth.getBalance(alith.address)).to.equal(
       (

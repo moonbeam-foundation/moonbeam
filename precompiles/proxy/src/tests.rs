@@ -15,17 +15,15 @@
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::{
-	Account::{Alice, Bob, Charlie, Precompile},
-	Call, Event, ExtBuilder, Origin, PCall, PrecompilesValue, ProxyType, Runtime,
+	AccountId, ExtBuilder, PCall, PrecompilesValue, ProxyType, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin,
 };
 use frame_support::{assert_ok, dispatch::Dispatchable};
 use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use precompile_utils::{
-	assert_event_emitted, assert_event_not_emitted, prelude::*, solidity, testing::*,
-};
+use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
 use sp_core::{H160, U256};
 use std::str::from_utf8;
 
@@ -33,7 +31,7 @@ use std::str::from_utf8;
 fn test_selector_less_than_four_bytes_reverts() {
 	ExtBuilder::default().build().execute_with(|| {
 		PrecompilesValue::get()
-			.prepare_test(Alice, Precompile, vec![1u8, 2, 3])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2, 3])
 			.execute_reverts(|output| output == b"Tried to read selector out of bounds");
 	});
 }
@@ -42,7 +40,7 @@ fn test_selector_less_than_four_bytes_reverts() {
 fn test_unimplemented_selector_reverts() {
 	ExtBuilder::default().build().execute_with(|| {
 		PrecompilesValue::get()
-			.prepare_test(Alice, Precompile, vec![1u8, 2, 3, 4])
+			.prepare_test(Alice, Precompile1, vec![1u8, 2, 3, 4])
 			.execute_reverts(|output| output == b"Unknown selector");
 	});
 }
@@ -58,7 +56,8 @@ fn selectors() {
 #[test]
 fn modifiers() {
 	ExtBuilder::default().build().execute_with(|| {
-		let mut tester = PrecompilesModifierTester::new(PrecompilesValue::get(), Alice, Precompile);
+		let mut tester =
+			PrecompilesModifierTester::new(PrecompilesValue::get(), Alice, Precompile1);
 
 		tester.test_default_modifier(PCall::add_proxy_selectors());
 		tester.test_default_modifier(PCall::remove_proxy_selectors());
@@ -70,13 +69,13 @@ fn modifiers() {
 #[test]
 fn test_add_proxy_fails_if_invalid_value_for_proxy_type() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: 10,
@@ -90,20 +89,20 @@ fn test_add_proxy_fails_if_invalid_value_for_proxy_type() {
 #[test]
 fn test_add_proxy_fails_if_duplicate_proxy() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -117,20 +116,20 @@ fn test_add_proxy_fails_if_duplicate_proxy() {
 #[test]
 fn test_add_proxy_fails_if_less_permissive_proxy() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Nothing as u8,
@@ -144,20 +143,20 @@ fn test_add_proxy_fails_if_less_permissive_proxy() {
 #[test]
 fn test_add_proxy_fails_if_more_permissive_proxy() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Any as u8,
@@ -171,13 +170,13 @@ fn test_add_proxy_fails_if_more_permissive_proxy() {
 #[test]
 fn test_add_proxy_succeeds() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -185,18 +184,18 @@ fn test_add_proxy_succeeds() {
 					},
 				)
 				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
-				delegator: Alice,
-				delegatee: Bob,
+			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyAdded {
+				delegator: Alice.into(),
+				delegatee: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 1,
 			}));
 
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
+			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(
 				proxies,
 				vec![ProxyDefinition {
-					delegate: Bob,
+					delegate: Bob.into(),
 					proxy_type: ProxyType::Something,
 					delay: 1,
 				}],
@@ -207,20 +206,20 @@ fn test_add_proxy_succeeds() {
 #[test]
 fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::remove_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: 10,
@@ -234,13 +233,13 @@ fn test_remove_proxy_fails_if_invalid_value_for_proxy_type() {
 #[test]
 fn test_remove_proxy_fails_if_proxy_not_exist() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::remove_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -254,20 +253,20 @@ fn test_remove_proxy_fails_if_proxy_not_exist() {
 #[test]
 fn test_remove_proxy_succeeds() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::remove_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -275,14 +274,14 @@ fn test_remove_proxy_succeeds() {
 					},
 				)
 				.execute_returns(vec![]);
-			assert_event_emitted!(Event::Proxy(ProxyEvent::ProxyRemoved {
-				delegator: Alice,
-				delegatee: Bob,
+			assert_event_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyRemoved {
+				delegator: Alice.into(),
+				delegatee: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			}));
 
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
+			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
 		})
 }
@@ -290,27 +289,27 @@ fn test_remove_proxy_succeeds() {
 #[test]
 fn test_remove_proxies_succeeds() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Charlie,
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Charlie.into(),
 				proxy_type: ProxyType::Any,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
-				.prepare_test(Alice, Precompile, PCall::remove_proxies {})
+				.prepare_test(Alice, Precompile1, PCall::remove_proxies {})
 				.execute_returns(vec![]);
 
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
+			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
 		})
 }
@@ -318,14 +317,14 @@ fn test_remove_proxies_succeeds() {
 #[test]
 fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
-				.prepare_test(Alice, Precompile, PCall::remove_proxies {})
+				.prepare_test(Alice, Precompile1, PCall::remove_proxies {})
 				.execute_returns(vec![]);
 
-			let proxies = <ProxyPallet<Runtime>>::proxies(Alice).0;
+			let proxies = <ProxyPallet<Runtime>>::proxies(AccountId::from(Alice)).0;
 			assert_eq!(proxies, vec![])
 		})
 }
@@ -333,13 +332,13 @@ fn test_remove_proxies_succeeds_when_no_proxy_exists() {
 #[test]
 fn test_is_proxy_returns_false_if_not_proxy() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_proxy {
 						real: Address(Alice.into()),
 						delegate: Address(Bob.into()),
@@ -354,20 +353,20 @@ fn test_is_proxy_returns_false_if_not_proxy() {
 #[test]
 fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_proxy {
 						real: Address(Alice.into()),
 						delegate: Address(Bob.into()),
@@ -382,20 +381,20 @@ fn test_is_proxy_returns_false_if_proxy_type_incorrect() {
 #[test]
 fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 1,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_proxy {
 						real: Address(Alice.into()),
 						delegate: Address(Bob.into()),
@@ -410,20 +409,20 @@ fn test_is_proxy_returns_false_if_proxy_delay_incorrect() {
 #[test]
 fn test_is_proxy_returns_true_if_proxy() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 1,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::is_proxy {
 						real: Address(Alice.into()),
 						delegate: Address(Bob.into()),
@@ -463,16 +462,16 @@ fn test_solidity_interface_has_all_function_selectors_documented_and_implemented
 #[test]
 fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 100000000), (Bob, 100000000)])
+		.with_balances(vec![(Alice.into(), 100000000), (Bob.into(), 100000000)])
 		.build()
 		.execute_with(|| {
 			// make Bob a ProxyType::Something for Alice
-			assert_ok!(Call::Proxy(ProxyCall::add_proxy {
-				delegate: Bob,
+			assert_ok!(RuntimeCall::Proxy(ProxyCall::add_proxy {
+				delegate: Bob.into(),
 				proxy_type: ProxyType::Something,
 				delay: 0,
 			})
-			.dispatch(Origin::signed(Alice)));
+			.dispatch(RuntimeOrigin::signed(Alice.into())));
 
 			// construct the call wrapping the add_proxy precompile to escalate to ProxyType::Any
 			let add_proxy_precompile = PCall::add_proxy {
@@ -482,9 +481,9 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 			}
 			.into();
 
-			let evm_call = Call::Evm(EvmCall::call {
+			let evm_call = RuntimeCall::Evm(EvmCall::call {
 				source: Alice.into(),
-				target: Precompile.into(),
+				target: Precompile1.into(),
 				input: add_proxy_precompile,
 				value: U256::zero(),
 				gas_limit: u64::max_value(),
@@ -496,16 +495,16 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 
 			// call the evm call in a proxy call
 			assert_ok!(<ProxyPallet<Runtime>>::proxy(
-				Origin::signed(Bob.into()),
+				RuntimeOrigin::signed(Bob.into()),
 				Alice.into(),
 				None,
 				Box::new(evm_call)
 			));
 
 			// assert Bob was not assigned ProxyType::Any
-			assert_event_not_emitted!(Event::Proxy(ProxyEvent::ProxyAdded {
-				delegator: Alice,
-				delegatee: Bob,
+			assert_event_not_emitted!(RuntimeEvent::Proxy(ProxyEvent::ProxyAdded {
+				delegator: Alice.into(),
+				delegatee: Bob.into(),
 				proxy_type: ProxyType::Any,
 				delay: 0,
 			}));
@@ -515,7 +514,7 @@ fn test_nested_evm_bypass_proxy_should_allow_elevating_proxy_type() {
 #[test]
 fn fails_if_called_by_smart_contract() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Set code to Alice address as it if was a smart contract.
@@ -524,7 +523,7 @@ fn fails_if_called_by_smart_contract() {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -538,7 +537,7 @@ fn fails_if_called_by_smart_contract() {
 #[test]
 fn succeed_if_called_by_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(Alice, 1000), (Bob, 1000)])
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
 		.build()
 		.execute_with(|| {
 			// Set dummy code to Alice address as it if was a precompile.
@@ -550,7 +549,7 @@ fn succeed_if_called_by_precompile() {
 			PrecompilesValue::get()
 				.prepare_test(
 					Alice,
-					Precompile,
+					Precompile1,
 					PCall::add_proxy {
 						delegate: Address(Bob.into()),
 						proxy_type: ProxyType::Something as u8,
@@ -558,5 +557,29 @@ fn succeed_if_called_by_precompile() {
 					},
 				)
 				.execute_returns(vec![]);
+		})
+}
+
+#[test]
+fn succeed_if_is_proxy_called_by_smart_contract() {
+	ExtBuilder::default()
+		.with_balances(vec![(Alice.into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			// Set code to Alice address as it if was a smart contract.
+			pallet_evm::AccountCodes::<Runtime>::insert(H160::from(Alice), vec![10u8]);
+
+			PrecompilesValue::get()
+				.prepare_test(
+					Alice,
+					Precompile1,
+					PCall::is_proxy {
+						real: Address(Alice.into()),
+						delegate: Address(Bob.into()),
+						proxy_type: ProxyType::Something as u8,
+						delay: 1,
+					},
+				)
+				.execute_returns_encoded(false);
 		})
 }
