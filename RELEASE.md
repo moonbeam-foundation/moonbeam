@@ -1,4 +1,6 @@
-## Moonbeam Release Process
+# Moonbeam Release Process
+
+## Moonbeam client release
 
 ### Branches
 
@@ -7,32 +9,47 @@
 ### Notes
 
 - The `master` branch must refer to frontier `paritytech/frontier/master` or
-  `purestake/frontier/vX.X-hotfixes`
-
-### Pre-Release Checklist
-
-- [ ] Purge requirement has been communicated and scheduled with ops
-- [ ] Purge announcement has been prepared and scheduled
-- [ ] Documentation/Website/Tutorials have been updated
-- [ ] Runtime version has been updated
-- [ ] Tests are passing on StageNet
-- [ ] Ensure Type changes are reflected into PolkadotJs
+  `purestake/frontier/moonbeam-polkadot-vX.Y.Z`
 
 ### Release Workflow
 
-Below are the steps of the release workflow. Steps prefixed with NOACTION are
-automated and require no human action.
+To release `vX.Y.Z`:
 
-1. To initiate the release process, tag the current master.
+1. Create a PR with increment client version
+1. Get that PR approved and merged
+1. Tag master with `vX.Y.Z` and push to github
+1. Start the github action "Publish Binary Draft" (on master branch)
+1. Review the generated Draft and clean a bit the messages if needed (keep it draft)
+1. Test the new client on internal tests networks (stagenet/moonsama/moonlama)
+1. Publish the client release draft
+1. When everything is ok, publish the new docker image: start github action Publish Docker with 
+`vX.Y.Z`
+1. Publish the new tracing image: on repo moonbeam-runtime-overrides, start github action
+Publish Docker with `vX.Y.Z` and master
+1. Documentation/Website/Tutorials have been updated
 
-   - `git checkout master; git pull; git tag -a v0.3.0 -m 'Moonbase v0.3.0'; git push origin v0.3.0`
+## Moonbeam runtime release
 
-2. NOACTION: The docker image is built with the given tag
-3. NOACTION: Produce release draft including binaries & specs
-4. Complete the draft with information from PRs
-5. Publish the release
+### Branches
 
-### Post-Release Checklist
+- Releases are taken from the branch `master` using tags `runtime-XXYY`
+- If the master branch contains changes that should not be included in the next runtime, then
+  create a `perm-runtime-XXYY` branch and create the `runtime-XXYY` tag on that branch.
 
-- [ ] Release note contains all meaningful notes
-- [ ] Release note contains binaries and specs
+### Release Workflow
+
+To release `runtime-XXYY`:
+
+1. Create a PR that increment spec version (like #1051)
+1. Get that PR approved and merged
+1. Tag master with `runtime-XXYY` and push to github
+1. Start the github action "Publish Runtime Draft"
+1. Review the generated Draft and clean a bit the messages if needed (keep it draft)
+1. Create the tracing runtime: start the github action "Create tracing runtime" on `purestake/moonbeam-runtime-overrides`
+1. Upgrade runtime on our internal test network stagenet
+1. Ensure Type changes are reflected into PolkadotJs
+1. Test changes on stagenet 
+1. Create new tracing image for partners: start the github action "Publish Docker"
+ on `purestake/moonbeam-runtime-overrides`
+1. When everything is ok, publish the draft release
+1. Upgrade runtime on alphanet
