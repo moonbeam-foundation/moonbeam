@@ -8,7 +8,13 @@ import {
   execTechnicalCommitteeProposal,
   notePreimage,
 } from "../../util/governance";
-import { MICROGLMR, MILLIGLMR, GLMR, MIN_GLMR_STAKING, MIN_GLMR_DELEGATOR } from "../../util/constants";
+import {
+  MICROGLMR,
+  MILLIGLMR,
+  GLMR,
+  MIN_GLMR_STAKING,
+  MIN_GLMR_DELEGATOR,
+} from "../../util/constants";
 import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { expectOk } from "../../util/expect";
@@ -510,10 +516,12 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
 
   before("setup candidate & delegations", async function () {
     this.timeout(20000);
-    const numBottomDelegations = await context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
+    const numBottomDelegations =
+      await context.polkadotApi.consts.parachainStaking.maxBottomDelegationsPerCandidate.toNumber();
     console.log(`numBottomDel: ${numBottomDelegations}`);
 
-    const numTopDelegations = await context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
+    const numTopDelegations =
+      await context.polkadotApi.consts.parachainStaking.maxTopDelegationsPerCandidate.toNumber();
     console.log(`numTopDel: ${numTopDelegations}`);
 
     // Create the delegators to fill the lists
@@ -572,7 +580,10 @@ describeDevMoonbeam("Staking - Locks - bottom and top delegations", (context) =>
 
       if (numDelegatorLocks < topDelegators.length) {
         numBlocksWaited += 1;
-        expect(numBlocksWaited).to.be.lt(numBlocksToWait, "Top delegation extrinsics not included in time");
+        expect(numBlocksWaited).to.be.lt(
+          numBlocksToWait,
+          "Top delegation extrinsics not included in time"
+        );
       } else {
         expect(numDelegatorLocks).to.eq(topDelegators.length, "More delegations than expected");
         break;
