@@ -198,12 +198,54 @@ where
 	///
 	/// Parameters:
 	/// - `real`: The account that the proxy will make a call on behalf of.
-	/// - `force_proxy_type`: Specify the exact proxy type to be used and checked for this call
-	/// (optional parameter, use `255` for None).
 	/// - `call_to`: Recipient of the call to be made by the `real` account.
 	/// - `call_data`: Data of the call to be made by the `real` account.
-	#[precompile::public("proxy(address,uint8,address,bytes)")]
+	#[precompile::public("proxy(address,address,bytes)")]
 	fn proxy(
+		handle: &mut impl PrecompileHandle,
+		real: Address,
+		call_to: Address,
+		call_data: BoundedBytes<GetCallDataLimit>,
+	) -> EvmResult {
+		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
+		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
+
+		let evm_subcall = EvmSubCall {
+			to: call_to,
+			value: handle.context().apparent_value,
+			call_data,
+		};
+
+		// read proxy
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let def = pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, None)
+			.map_err(|_| RevertReason::custom("Not proxy"))?;
+		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
+
+		// read subcall recipient code
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let recipient_has_code =
+			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
+
+		frame_support::ensure!(
+			def.proxy_type
+				.evm_proxy_filter(&evm_subcall, recipient_has_code),
+			revert("CallFiltered")
+		);
+
+		Self::inner_proxy(handle, real.0, evm_subcall)
+	}
+
+	/// Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender is
+	/// authorised for through `add_proxy`.
+	///
+	/// Parameters:
+	/// - `real`: The account that the proxy will make a call on behalf of.
+	/// - `force_proxy_type`: Specify the exact proxy type to be used and checked for this call.
+	/// - `call_to`: Recipient of the call to be made by the `real` account.
+	/// - `call_data`: Data of the call to be made by the `real` account.
+	#[precompile::public("proxy_force_type(address,uint8,address,bytes)")]
+	fn proxy_force_type(
 		handle: &mut impl PrecompileHandle,
 		real: Address,
 		force_proxy_type: u8,
@@ -212,17 +254,14 @@ where
 	) -> EvmResult {
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let force_proxy_type = match force_proxy_type {
-			255 => None,
-			proxy_type => Some(
-				Runtime::ProxyType::decode(&mut proxy_type.to_le_bytes().as_slice()).map_err(
-					|_| {
-						RevertReason::custom("Failed decoding value to ProxyType")
-							.in_field("forceProxyType")
-					},
-				)?,
-			),
-		};
+		let force_proxy_type = Some(
+			Runtime::ProxyType::decode(&mut force_proxy_type.to_le_bytes().as_slice()).map_err(
+				|_| {
+					RevertReason::custom("Failed decoding value to ProxyType")
+						.in_field("forceProxyType")
+				},
+			)?,
+		);
 
 		let evm_subcall = EvmSubCall {
 			to: call_to,
@@ -237,7 +276,7 @@ where
 			&who,
 			force_proxy_type.clone(),
 		)
-		.map_err(|_| RevertReason::custom("Not proxy").in_field("forceProxyType"))?;
+		.map_err(|_| RevertReason::custom("Not proxy"))?;
 		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
 
 		// read subcall recipient code
