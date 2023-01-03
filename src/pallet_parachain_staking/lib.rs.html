@@ -1911,6 +1911,19 @@
 <span id="1911">1911</span>
 <span id="1912">1912</span>
 <span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
+<span id="1921">1921</span>
+<span id="1922">1922</span>
+<span id="1923">1923</span>
+<span id="1924">1924</span>
+<span id="1925">1925</span>
+<span id="1926">1926</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2019-2022 PureStake Inc.
 // This file is part of Moonbeam.
 
@@ -3468,9 +3481,15 @@
 			paid_for_round: RoundIndex,
 			payout_info: DelayedPayout&lt;BalanceOf&lt;T&gt;&gt;,
 		) -&gt; (RewardPayment, Weight) {
+			<span class="comment">// &#39;early_weight&#39; tracks weight used for reads/writes done early in this fn before its
+			// early-exit codepaths.
+			</span><span class="kw">let </span><span class="kw-2">mut </span>early_weight = Weight::zero();
+
 			<span class="comment">// TODO: it would probably be optimal to roll Points into the DelayedPayouts storage
 			// item so that we do fewer reads each block
 			</span><span class="kw">let </span>total_points = &lt;Points&lt;T&gt;&gt;::get(paid_for_round);
+			early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">0</span>));
+
 			<span class="kw">if </span>total_points.is_zero() {
 				<span class="comment">// TODO: this case is obnoxious... it&#39;s a value query, so it could mean one of two
 				// different logic errors:
@@ -3478,7 +3497,7 @@
 				// 2. we called pay_one_collator_reward when we were actually done with deferred
 				//    payouts
 				</span><span class="macro">log::warn!</span>(<span class="string">&quot;pay_one_collator_reward called with no &lt;Points&lt;T&gt;&gt; for the round!&quot;</span>);
-				<span class="kw">return </span>(RewardPayment::Finished, Weight::zero());
+				<span class="kw">return </span>(RewardPayment::Finished, early_weight);
 			}
 
 			<span class="kw">let </span>collator_fee = payout_info.collator_commission;
@@ -3487,13 +3506,20 @@
 			<span class="kw">if let </span><span class="prelude-val">Some</span>((collator, state)) =
 				&lt;AtStake&lt;T&gt;&gt;::iter_prefix(paid_for_round).drain().next()
 			{
+				<span class="comment">// read and kill AtStake
+				</span>early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>));
+
 				<span class="comment">// Take the awarded points for the collator
 				</span><span class="kw">let </span>pts = &lt;AwardedPts&lt;T&gt;&gt;::take(paid_for_round, <span class="kw-2">&amp;</span>collator);
+				<span class="comment">// read and kill AwardedPts
+				</span>early_weight = early_weight.saturating_add(T::DbWeight::get().reads_writes(<span class="number">1</span>, <span class="number">1</span>));
 				<span class="kw">if </span>pts == <span class="number">0 </span>{
-					<span class="kw">return </span>(RewardPayment::Skipped, T::DbWeight::get().reads(<span class="number">1</span>));
+					<span class="kw">return </span>(RewardPayment::Skipped, early_weight);
 				}
 
-				<span class="kw">let </span><span class="kw-2">mut </span>extra_weight = Weight::zero();
+				<span class="comment">// &#39;extra_weight&#39; tracks weight returned from fns that we delegate to which can&#39;t be
+				// known ahead of time.
+				</span><span class="kw">let </span><span class="kw-2">mut </span>extra_weight = Weight::zero();
 				<span class="kw">let </span>pct_due = Perbill::from_rational(pts, total_points);
 				<span class="kw">let </span>total_paid = pct_due * payout_info.total_staking_reward;
 				<span class="kw">let </span><span class="kw-2">mut </span>amt_due = total_paid;
