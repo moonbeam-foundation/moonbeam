@@ -21,7 +21,7 @@
 mod common;
 use common::*;
 
-use fp_evm::Context;
+use fp_evm::{Context, FeeCalculator};
 use frame_support::{
 	assert_noop, assert_ok,
 	dispatch::{DispatchClass, Dispatchable},
@@ -37,8 +37,8 @@ use moonbeam_runtime::{
 	asset_config::LocalAssetInstance,
 	currency::GLMR,
 	xcm_config::{CurrencyId, SelfReserve, UnitWeightCost},
-	AccountId, Balances, BaseFee, CrowdloanRewards, ParachainStaking, PolkadotXcm, Precompiles,
-	Runtime, RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
+	AccountId, Balances, CrowdloanRewards, ParachainStaking, PolkadotXcm, Precompiles, Runtime,
+	RuntimeBlockWeights, RuntimeCall, RuntimeEvent, System, XTokens, XcmTransactor,
 	FOREIGN_ASSET_PRECOMPILE_ADDRESS_PREFIX, LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX,
 };
 use nimbus_primitives::NimbusId;
@@ -144,7 +144,6 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbeam_runtime::Migrations>("Migrations");
 	is_pallet_prefix::<moonbeam_runtime::XcmTransactor>("XcmTransactor");
 	is_pallet_prefix::<moonbeam_runtime::ProxyGenesisCompanion>("ProxyGenesisCompanion");
-	is_pallet_prefix::<moonbeam_runtime::BaseFee>("BaseFee");
 	is_pallet_prefix::<moonbeam_runtime::LocalAssets>("LocalAssets");
 	is_pallet_prefix::<moonbeam_runtime::MoonbeamOrbiters>("MoonbeamOrbiters");
 	is_pallet_prefix::<moonbeam_runtime::TreasuryCouncilCollective>("TreasuryCouncilCollective");
@@ -290,12 +289,10 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::Identity>(33);
 	is_pallet_index::<moonbeam_runtime::Migrations>(34);
 	is_pallet_index::<moonbeam_runtime::ProxyGenesisCompanion>(35);
-	// Sudo was previously index 40.
 	// Ethereum compatibility
 	is_pallet_index::<moonbeam_runtime::EthereumChainId>(50);
 	is_pallet_index::<moonbeam_runtime::EVM>(51);
 	is_pallet_index::<moonbeam_runtime::Ethereum>(52);
-	is_pallet_index::<moonbeam_runtime::BaseFee>(53);
 	// Governance
 	is_pallet_index::<moonbeam_runtime::Scheduler>(60);
 	is_pallet_index::<moonbeam_runtime::Democracy>(61);
@@ -317,6 +314,25 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbeam_runtime::XTokens>(106);
 	is_pallet_index::<moonbeam_runtime::XcmTransactor>(107);
 	is_pallet_index::<moonbeam_runtime::LocalAssets>(108);
+}
+
+#[test]
+fn verify_reserved_indices() {
+	use frame_support::metadata::*;
+	let metadata = moonbeam_runtime::Runtime::metadata();
+	let metadata = match metadata.1 {
+		RuntimeMetadata::V14(metadata) => metadata,
+		_ => panic!("metadata has been bumped, test needs to be updated"),
+	};
+	// 40: Sudo
+	// 53: BaseFee
+	let reserved = vec![40, 53];
+	let existing = metadata
+		.pallets
+		.iter()
+		.map(|p| p.index)
+		.collect::<Vec<u8>>();
+	assert!(reserved.iter().all(|index| !existing.contains(index)));
 }
 
 #[test]
@@ -488,7 +504,7 @@ fn reward_block_authors() {
 				Balances::usable_balance(AccountId::from(BOB)),
 				50_000 * GLMR,
 			);
-			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -543,7 +559,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::usable_balance(AccountId::from(CHARLIE)),
 				100 * GLMR,
 			);
-			run_to_block(3600, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
+			run_to_block(3601, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::usable_balance(AccountId::from(ALICE)),
@@ -2898,10 +2914,9 @@ fn precompile_existence() {
 #[test]
 fn base_fee_should_default_to_associate_type_value() {
 	ExtBuilder::default().build().execute_with(|| {
-		assert_eq!(
-			BaseFee::base_fee_per_gas(),
-			(1 * GIGAWEI * SUPPLY_FACTOR).into()
-		);
+		let (base_fee, _) =
+			<moonbeam_runtime::Runtime as pallet_evm::Config>::FeeCalculator::min_gas_price();
+		assert_eq!(base_fee, (1 * GIGAWEI * SUPPLY_FACTOR).into());
 	});
 }
 

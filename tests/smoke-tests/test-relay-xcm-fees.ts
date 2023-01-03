@@ -71,7 +71,7 @@ describeSmokeSuite(`Verify XCM weight fees for relay`, (context) => {
       relayRuntime.startsWith("westend")
         ? units / 100n
         : relayRuntime.startsWith("kusama")
-        ? units / 30_000n
+        ? units / 3_000n
         : units / 100n;
     const coef = cent / 10n;
 

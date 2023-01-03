@@ -303,12 +303,6 @@ impl ExtBuilder {
 		)
 		.unwrap();
 
-		<pallet_base_fee::GenesisConfig<Runtime> as GenesisBuild<Runtime>>::assimilate_storage(
-			&pallet_base_fee::GenesisConfig::<Runtime>::default(),
-			&mut t,
-		)
-		.unwrap();
-
 		let mut ext = sp_io::TestExternalities::new(t);
 		let local_assets = self.local_assets.clone();
 		let xcm_assets = self.xcm_assets.clone();
