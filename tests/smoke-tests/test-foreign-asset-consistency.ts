@@ -104,7 +104,8 @@ describeSmokeSuite(
             .join(`\n`)}`
         ).to.equal(0);
         debug(
-          `Verified ${foreignXcmAcceptedAssets.length} xcm fee payment assets (at #${atBlockNumber})`
+          `Verified ${foreignXcmAcceptedAssets.length} xcm ` +
+            `fee payment assets (at #${atBlockNumber})`
         );
       }
     );

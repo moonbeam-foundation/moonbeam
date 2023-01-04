@@ -128,7 +128,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (${suiteNumber})`, f
   it(
     `should snapshot candidate delegation amounts correctly` + ` (${suiteNumber}C300)`,
     async function () {
-      // This test is so slow due to rate limiting, this should be off until a better solution appears
+      // This test is slow due to rate limiting, and should be run ad-hoc only
       if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
         debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
         this.skip();
@@ -240,7 +240,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (${suiteNumber})`, f
   it(
     `should snapshot delegate autocompound preferences correctly` + ` (${suiteNumber}C400)`,
     async function () {
-      // This test is so slow due to rate limiting, this should be off until a better solution appears
+      // This test is slow due to rate limiting, this should be off until a better solution appears
       if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
         debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
         this.skip();
