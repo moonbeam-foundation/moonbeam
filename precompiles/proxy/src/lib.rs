@@ -207,33 +207,13 @@ where
 		call_to: Address,
 		call_data: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
-		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
-		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-
 		let evm_subcall = EvmSubCall {
 			to: call_to,
 			value: handle.context().apparent_value,
 			call_data,
 		};
 
-		// read proxy
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let def = pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, None)
-			.map_err(|_| RevertReason::custom("Not proxy"))?;
-		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
-
-		// read subcall recipient code
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let recipient_has_code =
-			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
-
-		frame_support::ensure!(
-			def.proxy_type
-				.evm_proxy_filter(&evm_subcall, recipient_has_code),
-			revert("CallFiltered")
-		);
-
-		Self::inner_proxy(handle, real.0, evm_subcall)
+		Self::inner_proxy(handle, real, None, evm_subcall)
 	}
 
 	/// Dispatch the given subcall (`call_to`, `call_data`) from an account that the sender is
@@ -252,16 +232,11 @@ where
 		call_to: Address,
 		call_data: BoundedBytes<GetCallDataLimit>,
 	) -> EvmResult {
-		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
-		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
-		let force_proxy_type = Some(
-			Runtime::ProxyType::decode(&mut force_proxy_type.to_le_bytes().as_slice()).map_err(
-				|_| {
-					RevertReason::custom("Failed decoding value to ProxyType")
-						.in_field("forceProxyType")
-				},
-			)?,
-		);
+		let proxy_type = Runtime::ProxyType::decode(&mut force_proxy_type.to_le_bytes().as_slice())
+			.map_err(|_| {
+				RevertReason::custom("Failed decoding value to ProxyType")
+					.in_field("forceProxyType")
+			})?;
 
 		let evm_subcall = EvmSubCall {
 			to: call_to,
@@ -269,28 +244,7 @@ where
 			call_data,
 		};
 
-		// read proxy
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let def = pallet_proxy::Pallet::<Runtime>::find_proxy(
-			&real_account_id,
-			&who,
-			force_proxy_type.clone(),
-		)
-		.map_err(|_| RevertReason::custom("Not proxy"))?;
-		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
-
-		// read subcall recipient code
-		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
-		let recipient_has_code =
-			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
-
-		frame_support::ensure!(
-			def.proxy_type
-				.evm_proxy_filter(&evm_subcall, recipient_has_code),
-			revert("CallFiltered")
-		);
-
-		Self::inner_proxy(handle, real.0, evm_subcall)
+		Self::inner_proxy(handle, real, Some(proxy_type), evm_subcall)
 	}
 
 	/// Checks if the caller has an account proxied with a given proxy type
@@ -328,9 +282,31 @@ where
 
 	fn inner_proxy(
 		handle: &mut impl PrecompileHandle,
-		real: H160,
+		real: Address,
+		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
+		// Read proxy
+		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
+		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let def =
+			pallet_proxy::Pallet::<Runtime>::find_proxy(&real_account_id, &who, force_proxy_type)
+				.map_err(|_| RevertReason::custom("Not proxy"))?;
+		frame_support::ensure!(def.delay.is_zero(), revert("Unannounced"));
+
+		// Read subcall recipient code
+		handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+		let recipient_has_code =
+			pallet_evm::AccountCodes::<Runtime>::decode_len(evm_subcall.to.0).unwrap_or(0) > 0;
+
+		// Apply proxy type filter
+		frame_support::ensure!(
+			def.proxy_type
+				.evm_proxy_filter(&evm_subcall, recipient_has_code),
+			revert("CallFiltered")
+		);
+
 		let EvmSubCall {
 			to,
 			value,
@@ -339,7 +315,7 @@ where
 		let address = to.0;
 
 		let sub_context = Context {
-			caller: real,
+			caller: real.0,
 			address: address.clone(),
 			apparent_value: value,
 		};
