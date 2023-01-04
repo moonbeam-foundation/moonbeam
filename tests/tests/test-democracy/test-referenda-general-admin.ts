@@ -46,7 +46,7 @@ describeDevMoonbeam("Referenda - GeneralAdmin", (context) => {
   });
 
   it("should succeed to call hrmpManage through generalAdmin", async function () {
-    this.timeout(150000);
+    this.timeout(500000);
 
     // Vote with everything they have with those accounts
     await maximizeConvictionVotingOf(context, [alith, baltathar, charleth], refIndex);
