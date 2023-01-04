@@ -26,12 +26,12 @@ use sp_block_builder::BlockBuilder;
 use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
 use cumulus_primitives_core::ParaId;
+use fc_db::Backend as FrontierBackend;
 use fc_mapping_sync::kv::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthBlockDataCacheTask, EthTask, OverrideHandle, RuntimeApiStorageOverride, SchemaV1Override,
 	SchemaV2Override, SchemaV3Override, StorageOverride,
 };
-use fc_db::Backend as FrontierBackend;
 use fc_rpc_core::types::{CallRequest, FeeHistoryCache, FilterPool};
 use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;

@@ -287,9 +287,11 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
+				let (client, _, import_queue, task_manager) =
+					service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -307,6 +309,7 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
@@ -327,6 +330,7 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 			runner.async_run(|mut config| {
 				let (client, _, _, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
@@ -347,9 +351,11 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 			runner.async_run(|mut config| {
-				let (client, _, import_queue, task_manager) = service::new_chain_ops(&mut config, rpc_config)?;
+				let (client, _, import_queue, task_manager) =
+					service::new_chain_ops(&mut config, rpc_config)?;
 				Ok((cmd.run(client, import_queue), task_manager))
 			})
 		}
@@ -416,6 +422,7 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 			match chain_spec {
 				#[cfg(feature = "moonriver-native")]
@@ -544,7 +551,6 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::Benchmark(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 
-
 			let rpc_config = RpcConfig {
 				ethapi: cli.run.ethapi,
 				ethapi_max_permits: cli.run.ethapi_max_permits,
@@ -557,6 +563,7 @@ pub fn run() -> Result<()> {
 				relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 				tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 				frontier_backend_type: cli.run.frontier_backend_type,
+				frontier_sql_backend_num_ops_timeout: cli.run.frontier_sql_backend_num_ops_timeout,
 			};
 
 			// Switch on the concrete benchmark sub-command
@@ -805,6 +812,9 @@ pub fn run() -> Result<()> {
 					relay_chain_rpc_url: cli.run.base.relay_chain_rpc_url,
 					tracing_raw_max_memory_usage: cli.run.tracing_raw_max_memory_usage,
 					frontier_backend_type: cli.run.frontier_backend_type,
+					frontier_sql_backend_num_ops_timeout: cli
+						.run
+						.frontier_sql_backend_num_ops_timeout,
 				};
 
 				// If dev service was requested, start up manual or instant seal.

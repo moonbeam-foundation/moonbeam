@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
 use fc_rpc::frontier_backend_client::{self, is_canon};
-use jsonrpsee::{core::{async_trait, RpcResult}, proc_macros::rpc};
+use jsonrpsee::{
+	core::{async_trait, RpcResult},
+	proc_macros::rpc,
+};
 use sp_core::H256;
 use std::{marker::PhantomData, sync::Arc};
 //TODO ideally we wouldn't depend on BlockId here. Can we change frontier
@@ -74,8 +77,11 @@ where
 				self.backend.as_ref(),
 				tx_hash,
 				true,
-			).await? {
-			is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, ethereum_block_hash).await
+			)
+			.await?
+		{
+			is_block_finalized_inner::<B, C>(self.backend.as_ref(), &client, ethereum_block_hash)
+				.await
 		} else {
 			Ok(false)
 		}

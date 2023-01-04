@@ -427,26 +427,28 @@ where
 	) -> RpcResult<Response> {
 		let (tracer_input, trace_type) = Self::handle_params(params)?;
 
-		let (hash, index) = match futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
-			client.as_ref(),
-			frontier_backend,
-			transaction_hash,
-			false,
-		)) {
-			Ok(Some((hash, index))) => (hash, index as usize),
-			Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let (hash, index) =
+			match futures::executor::block_on(frontier_backend_client::load_transactions::<B, C>(
+				client.as_ref(),
+				frontier_backend,
+				transaction_hash,
+				false,
+			)) {
+				Ok(Some((hash, index))) => (hash, index as usize),
+				Ok(None) => return Err(internal_err("Transaction hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 
-		let reference_id = match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
-			client.as_ref(),
-			frontier_backend,
-			hash,
-		)) {
-			Ok(Some(hash)) => hash,
-			Ok(_) => return Err(internal_err("Block hash not found".to_string())),
-			Err(e) => return Err(e),
-		};
+		let reference_id =
+			match futures::executor::block_on(frontier_backend_client::load_hash::<B, C>(
+				client.as_ref(),
+				frontier_backend,
+				hash,
+			)) {
+				Ok(Some(hash)) => hash,
+				Ok(_) => return Err(internal_err("Block hash not found".to_string())),
+				Err(e) => return Err(e),
+			};
 		// Get ApiRef. This handle allow to keep changes between txs in an internal buffer.
 		let api = client.runtime_api();
 		// Get Blockchain backend

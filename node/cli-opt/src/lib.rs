@@ -81,6 +81,7 @@ pub struct RpcConfig {
 	pub relay_chain_rpc_url: Option<url::Url>,
 	pub tracing_raw_max_memory_usage: usize,
 	pub frontier_backend_type: BackendType,
+	pub frontier_sql_backend_num_ops_timeout: u32,
 }
 
 /// Avalailable Backend types.

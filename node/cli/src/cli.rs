@@ -208,6 +208,10 @@ pub struct RunCmd {
 	#[clap(long, value_enum, ignore_case = true, default_value_t = cli_opt::BackendType::default())]
 	pub frontier_backend_type: cli_opt::BackendType,
 
+	/// Sets the SQL backend's query timeout in number of VM ops.
+	#[clap(long, default_value = "10000000")]
+	pub frontier_sql_backend_num_ops_timeout: u32,
+
 	/// Disable automatic hardware benchmarks.
 	///
 	/// By default these benchmarks are automatically ran at startup and measure

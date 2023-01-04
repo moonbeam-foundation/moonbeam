@@ -25,7 +25,6 @@
 use cli_opt::{EthApi as EthApiCmd, RpcConfig};
 use fc_consensus::FrontierBlockImport;
 use fc_db::Backend as FrontierBackend;
-use sc_client_db::DatabaseSource;
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
 use futures::StreamExt;
 use maplit::hashmap;
@@ -35,6 +34,7 @@ pub use moonbase_runtime;
 pub use moonbeam_runtime;
 #[cfg(feature = "moonriver-native")]
 pub use moonriver_runtime;
+use sc_client_db::DatabaseSource;
 use std::{collections::BTreeMap, sync::Mutex, time::Duration};
 pub mod rpc;
 use cumulus_client_consensus_common::ParachainConsensus;
@@ -292,15 +292,20 @@ pub fn new_chain_ops(
 > {
 	match &config.chain_spec {
 		#[cfg(feature = "moonriver-native")]
-		spec if spec.is_moonriver() => {
-			new_chain_ops_inner::<moonriver_runtime::RuntimeApi, MoonriverExecutor>(config, rpc_config)
-		}
+		spec if spec.is_moonriver() => new_chain_ops_inner::<
+			moonriver_runtime::RuntimeApi,
+			MoonriverExecutor,
+		>(config, rpc_config),
 		#[cfg(feature = "moonbeam-native")]
 		spec if spec.is_moonbeam() => {
-			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(config, rpc_config)
+			new_chain_ops_inner::<moonbeam_runtime::RuntimeApi, MoonbeamExecutor>(
+				config, rpc_config,
+			)
 		}
 		#[cfg(feature = "moonbase-native")]
-		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(config, rpc_config),
+		_ => new_chain_ops_inner::<moonbase_runtime::RuntimeApi, MoonbaseExecutor>(
+			config, rpc_config,
+		),
 		#[cfg(not(feature = "moonbase-native"))]
 		_ => panic!("invalid chain spec"),
 	}
@@ -481,6 +486,7 @@ where
 					create_if_missing: true,
 				}),
 				100, // pool size
+				rpc_config.frontier_sql_backend_num_ops_timeout,
 				overrides.clone(),
 			))
 			.expect("indexer pool to be created");
@@ -488,8 +494,7 @@ where
 		}
 	};
 
-	let frontier_block_import =
-		FrontierBlockImport::new(client.clone(), client.clone());
+	let frontier_block_import = FrontierBlockImport::new(client.clone(), client.clone());
 
 	// Depending whether we are
 	let import_queue = nimbus_consensus::import_queue(
