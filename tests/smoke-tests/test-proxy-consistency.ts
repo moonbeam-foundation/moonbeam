@@ -87,46 +87,49 @@ describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) 
   });
 
   // TEMPLATE: Give details about what you are testing
-  it(`should have no more than the maximum allowed proxies (${suiteNumber}C100)`, async function () {
-    this.timeout(240000);
+  it(
+    `should have no more than the maximum allowed proxies` + ` (${suiteNumber}C100)`,
+    async function () {
+      this.timeout(240000);
 
-    // TEMPLATE: Retrieve additional information
-    const maxProxies = (await context.polkadotApi.consts.proxy.maxProxies).toNumber();
+      // TEMPLATE: Retrieve additional information
+      const maxProxies = (await context.polkadotApi.consts.proxy.maxProxies).toNumber();
 
-    // Instead of putting an expect in the loop. We track all failed entries instead
-    const failedProxies: { accountId: string; proxiesCount: number }[] = [];
+      // Instead of putting an expect in the loop. We track all failed entries instead
+      const failedProxies: { accountId: string; proxiesCount: number }[] = [];
 
-    // TEMPLATE: Adapt variables
-    for (const accountId of Object.keys(proxiesPerAccount)) {
-      const proxiesCount = proxiesPerAccount[accountId].length;
-      if (proxiesCount > maxProxies) {
-        failedProxies.push({ accountId, proxiesCount });
+      // TEMPLATE: Adapt variables
+      for (const accountId of Object.keys(proxiesPerAccount)) {
+        const proxiesCount = proxiesPerAccount[accountId].length;
+        if (proxiesCount > maxProxies) {
+          failedProxies.push({ accountId, proxiesCount });
+        }
       }
-    }
 
-    // TEMPLATE: Write nice logging for your test if it fails :)
-    if (failedProxies.length > 0) {
-      debug("Failed accounts with too many proxies:");
+      // TEMPLATE: Write nice logging for your test if it fails :)
+      if (failedProxies.length > 0) {
+        debug("Failed accounts with too many proxies:");
+        debug(
+          failedProxies
+            .map(({ accountId, proxiesCount }) => {
+              return `accountId: ${accountId} - ${chalk.red(
+                proxiesCount.toString().padStart(4, " ")
+              )} proxies (expected max: ${maxProxies})`;
+            })
+            .join(`\n`)
+        );
+      }
+
+      // Make sure the test fails after we print the errors
+      // TEMPLATE: Adapt variable & text
+      expect(failedProxies.length, "Failed max proxies").to.equal(0);
+
+      // Additional debug logs
       debug(
-        failedProxies
-          .map(({ accountId, proxiesCount }) => {
-            return `accountId: ${accountId} - ${chalk.red(
-              proxiesCount.toString().padStart(4, " ")
-            )} proxies (expected max: ${maxProxies})`;
-          })
-          .join(`\n`)
+        `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
       );
     }
-
-    // Make sure the test fails after we print the errors
-    // TEMPLATE: Adapt variable & text
-    expect(failedProxies.length, "Failed max proxies").to.equal(0);
-
-    // Additional debug logs
-    debug(
-      `Verified ${Object.keys(proxiesPerAccount).length} total accounts (at #${atBlockNumber})`
-    );
-  });
+  );
 
   // TEMPLATE: Exemple of test verifying a constant in the runtime
   it(`should have a maximum allowed proxies of 32 (${suiteNumber}C200)`, async function () {
@@ -169,22 +172,26 @@ describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) 
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it(`should only be possible for proxies of non-smart contract accounts (${suiteNumber}C300)`, async function () {
-    this.timeout(60000);
+  it(
+    `should only be possible for proxies of non-smart contract accounts` + ` (${suiteNumber}C300)`,
+    async function () {
+      this.timeout(60000);
 
-    // For each account with a registered proxy, check whether it is a non-SC address
-    const results = await Promise.all(
-      proxyAccList.map(async (address) => {
-        const resp = await apiAt.query.evm.accountCodes(address);
-        const contract = resp.toJSON() == "0x" ? false : true;
-        return { address, contract };
-      })
-    );
-    results.forEach((item) => {
-      if (item.contract) debug(`Proxy account for non-external address detected: ${item.address} `);
-    });
-    expect(results.every((item) => item.contract == false)).to.be.true;
-  });
+      // For each account with a registered proxy, check whether it is a non-SC address
+      const results = await Promise.all(
+        proxyAccList.map(async (address) => {
+          const resp = await apiAt.query.evm.accountCodes(address);
+          const contract = resp.toJSON() == "0x" ? false : true;
+          return { address, contract };
+        })
+      );
+      results.forEach((item) => {
+        if (item.contract)
+          debug(`Proxy account for non-external address detected: ${item.address} `);
+      });
+      expect(results.every((item) => item.contract == false)).to.be.true;
+    }
+  );
 });
 
 // TEMPLATE: Running the smoke test on stagenet

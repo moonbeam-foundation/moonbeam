@@ -31,49 +31,63 @@ describeSmokeSuite(
       localAssetInfo = await apiAt.query.assetManager.localAssetDeposit.keys();
     });
 
-    it(`should match asset deposit entries with number of assets (${suiteNumber}C100)`, async function () {
-      expect(
-        localAssetDeposits.length,
-        `Number of local asset deposits does not much number of local assets`
-      ).to.be.eq(localAssetInfo.length);
+    it(
+      `should match asset deposit entries with number of assets` + ` (${suiteNumber}C100)`,
+      async function () {
+        expect(
+          localAssetDeposits.length,
+          `Number of local asset deposits does not much number of local assets`
+        ).to.be.eq(localAssetInfo.length);
 
-      debug(
-        `Verified number of deposits and local asset number matches: ${localAssetDeposits.length}`
-      );
-    });
-
-    it(`should ensure localAssetCounter is higher than number of local assets (${suiteNumber}C200)`, async function () {
-      expect(
-        localAssetCounter,
-        `Local asset counter lower than total local assets`
-      ).to.be.greaterThanOrEqual(localAssetInfo.length);
-
-      debug(
-        `Verified local asset counter (${localAssetCounter}) 
-        >= total local assets: (${localAssetInfo.length})`
-      );
-    });
-
-    it(`assetIds stored by assetManager are also created in LocalAssets (${suiteNumber}C300)`, async function () {
-      const failedLocalAssets: { assetId: string }[] = [];
-      const registeredLocalAssetDeposits = localAssetDeposits.map((set) => set.toHex().slice(-32));
-      const registeredLocalAssetInfos = localAssetInfo.map((set) => set.toHex().slice(-32));
-
-      for (const assetId of registeredLocalAssetDeposits) {
-        if (!registeredLocalAssetInfos.includes(assetId)) {
-          failedLocalAssets.push({ assetId: assetId });
-        }
+        debug(
+          `Verified number of deposits and local asset number matches: ${localAssetDeposits.length}`
+        );
       }
+    );
 
-      expect(
-        failedLocalAssets.length,
-        `Failed deposits with non-existent local assets: ${failedLocalAssets
-          .map(({ assetId }) => `expected: ${assetId} to be present in localAssets `)
-          .join(`, `)}`
-      ).to.equal(0);
-      debug(
-        `Verified ${Object.keys(localAssetInfo).length} total loacl assetIds (at #${atBlockNumber})`
-      );
-    });
+    it(
+      `should ensure localAssetCounter is higher than number of local assets` +
+        ` (${suiteNumber}C200)`,
+      async function () {
+        expect(
+          localAssetCounter,
+          `Local asset counter lower than total local assets`
+        ).to.be.greaterThanOrEqual(localAssetInfo.length);
+
+        debug(
+          `Verified local asset counter (${localAssetCounter}) 
+        >= total local assets: (${localAssetInfo.length})`
+        );
+      }
+    );
+
+    it(
+      `assetIds stored by assetManager are also created in LocalAssets` + ` (${suiteNumber}C300)`,
+      async function () {
+        const failedLocalAssets: { assetId: string }[] = [];
+        const registeredLocalAssetDeposits = localAssetDeposits.map((set) =>
+          set.toHex().slice(-32)
+        );
+        const registeredLocalAssetInfos = localAssetInfo.map((set) => set.toHex().slice(-32));
+
+        for (const assetId of registeredLocalAssetDeposits) {
+          if (!registeredLocalAssetInfos.includes(assetId)) {
+            failedLocalAssets.push({ assetId: assetId });
+          }
+        }
+
+        expect(
+          failedLocalAssets.length,
+          `Failed deposits with non-existent local assets: ${failedLocalAssets
+            .map(({ assetId }) => `expected: ${assetId} to be present in localAssets `)
+            .join(`, `)}`
+        ).to.equal(0);
+        debug(
+          `Verified ${
+            Object.keys(localAssetInfo).length
+          } total loacl assetIds (at #${atBlockNumber})`
+        );
+      }
+    );
   }
 );

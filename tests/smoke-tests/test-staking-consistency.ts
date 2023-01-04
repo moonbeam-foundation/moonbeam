@@ -118,17 +118,20 @@ describeSmokeSuite(`Verify staking consistency (${suiteNumber})`, (context) => {
     }
   });
 
-  it(`candidate topDelegator total matches candidate totalCounted - bond (${suiteNumber}C300)`, async function () {
-    for (const candidate of allCandidateInfo) {
-      const accountId = `0x${candidate[0].toHex().slice(-40)}`;
-      const topDelegation = allTopDelegations
-        .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)[1]
-        .unwrap();
-      expect(topDelegation.total.toBigInt()).to.equal(
-        candidate[1].unwrap().totalCounted.toBigInt() - candidate[1].unwrap().bond.toBigInt()
-      );
+  it(
+    `candidate topDelegator total matches candidate totalCounted - bond` + ` (${suiteNumber}C300)`,
+    async function () {
+      for (const candidate of allCandidateInfo) {
+        const accountId = `0x${candidate[0].toHex().slice(-40)}`;
+        const topDelegation = allTopDelegations
+          .find((t) => `0x${t[0].toHex().slice(-40)}` == accountId)[1]
+          .unwrap();
+        expect(topDelegation.total.toBigInt()).to.equal(
+          candidate[1].unwrap().totalCounted.toBigInt() - candidate[1].unwrap().bond.toBigInt()
+        );
+      }
     }
-  });
+  );
 
   it(`candidate topDelegations matches top X delegators (${suiteNumber}C400)`, async function () {
     for (const candidate of allCandidateInfo) {
@@ -176,55 +179,59 @@ describeSmokeSuite(`Verify staking consistency (${suiteNumber})`, (context) => {
     );
   });
 
-  it(`all delegators lessTotal matches revoke/decrease requests (${suiteNumber}C500)`, async function () {
-    let checks = 0;
-    if (specVersion >= 1500) {
-      const delegationScheduledRequests =
-        await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
-      const delegatorRequests = delegationScheduledRequests.reduce((p, requests: any) => {
-        for (const request of requests[1]) {
-          const delegator = request.delegator.toHex();
-          if (!p[delegator]) {
-            p[delegator] = [];
+  it(
+    `all delegators lessTotal matches revoke/decrease requests` + ` (${suiteNumber}C500)`,
+    async function () {
+      let checks = 0;
+      if (specVersion >= 1500) {
+        const delegationScheduledRequests =
+          await apiAt.query.parachainStaking.delegationScheduledRequests.entries();
+        const delegatorRequests = delegationScheduledRequests.reduce((p, requests: any) => {
+          for (const request of requests[1]) {
+            const delegator = request.delegator.toHex();
+            if (!p[delegator]) {
+              p[delegator] = [];
+            }
+            p[delegator].push(request);
           }
-          p[delegator].push(request);
+          return p;
+        }, {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] });
+
+        for (const state of allDelegatorState) {
+          const delegator = `0x${state[0].toHex().slice(-40)}`;
+          const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
+            (p, v) =>
+              p +
+              (v.action.isDecrease ? v.action.asDecrease.toBigInt() : v.action.asRevoke.toBigInt()),
+            0n
+          );
+
+          expect(
+            (state[1].unwrap() as any).lessTotal.toBigInt(),
+            `delegator: ${delegator}`
+          ).to.equal(totalRequestAmount);
+          checks++;
         }
-        return p;
-      }, {} as { [delegator: string]: { delegator: any; whenExecutable: any; action: any }[] });
-
-      for (const state of allDelegatorState) {
-        const delegator = `0x${state[0].toHex().slice(-40)}`;
-        const totalRequestAmount = (delegatorRequests[delegator] || []).reduce(
-          (p, v) =>
-            p +
-            (v.action.isDecrease ? v.action.asDecrease.toBigInt() : v.action.asRevoke.toBigInt()),
-          0n
-        );
-
-        expect((state[1].unwrap() as any).lessTotal.toBigInt(), `delegator: ${delegator}`).to.equal(
-          totalRequestAmount
-        );
-        checks++;
       }
-    }
 
-    if (specVersion < 1500) {
-      for (const state of allDelegatorState) {
-        const delegator = `0x${state[0].toHex().slice(-40)}`;
-        const totalRequestAmount = Array.from(
-          (state[1] as any).unwrap().requests.requests.values()
-        ).reduce((p, v: any) => p + v.amount.toBigInt(), 0n);
+      if (specVersion < 1500) {
+        for (const state of allDelegatorState) {
+          const delegator = `0x${state[0].toHex().slice(-40)}`;
+          const totalRequestAmount = Array.from(
+            (state[1] as any).unwrap().requests.requests.values()
+          ).reduce((p, v: any) => p + v.amount.toBigInt(), 0n);
 
-        expect(
-          (state[1] as any).unwrap().requests.lessTotal.toBigInt(),
-          `delegator: ${delegator}`
-        ).to.equal(totalRequestAmount);
-        checks++;
+          expect(
+            (state[1] as any).unwrap().requests.lessTotal.toBigInt(),
+            `delegator: ${delegator}`
+          ).to.equal(totalRequestAmount);
+          checks++;
+        }
       }
-    }
 
-    debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
-  });
+      debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
+    }
+  );
 
   it(`candidatePool matches candidateInfo (${suiteNumber}C600)`, async function () {
     let foundCandidateInPool = 0;
@@ -257,38 +264,53 @@ describeSmokeSuite(`Verify staking consistency (${suiteNumber})`, (context) => {
     );
   });
 
-  it(`round length is more than minimum selected candidate count (${suiteNumber}C700)`, async function () {
-    expect(
-      blocksPerRound,
-      `blocks per round should be equal or more than the minimum selected candidate count`
-    ).to.be.greaterThanOrEqual(minSelectedCandidates);
-  });
+  it(
+    `round length is more than minimum selected candidate count` + ` (${suiteNumber}C700)`,
+    async function () {
+      expect(
+        blocksPerRound,
+        `blocks per round should be equal or more than the minimum selected candidate count`
+      ).to.be.greaterThanOrEqual(minSelectedCandidates);
+    }
+  );
 
-  it(`total selected is more than minimum selected candidate count (${suiteNumber}C800)`, async function () {
-    expect(
-      totalSelectedCandidates,
-      `blocks per round should be equal or more than the minimum selected candidate count`
-    ).to.be.greaterThanOrEqual(minSelectedCandidates);
-  });
+  it(
+    `total selected is more than minimum selected candidate count` + ` (${suiteNumber}C800)`,
+    async function () {
+      expect(
+        totalSelectedCandidates,
+        `blocks per round should be equal or more than the minimum selected candidate count`
+      ).to.be.greaterThanOrEqual(minSelectedCandidates);
+    }
+  );
 
-  it.skip(`current selected candidates are more than minimum required (${suiteNumber}C900)`, async function () {
-    expect(
-      allSelectedCandidates.length,
-      `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
-    ).to.be.greaterThanOrEqual(minSelectedCandidates);
-  });
+  it.skip(
+    `current selected candidates are more than minimum required` + ` (${suiteNumber}C900)`,
+    async function () {
+      expect(
+        allSelectedCandidates.length,
+        `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
+      ).to.be.greaterThanOrEqual(minSelectedCandidates);
+    }
+  );
 
-  it(`current selected candidates are less than or equal to stored total (${suiteNumber}C1000)`, async function () {
-    expect(
-      allSelectedCandidates.length,
-      `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
-    ).to.be.lessThanOrEqual(totalSelectedCandidates);
-  });
+  it(
+    `current selected candidates are less than or equal to stored total` + ` (${suiteNumber}C1000)`,
+    async function () {
+      expect(
+        allSelectedCandidates.length,
+        `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
+      ).to.be.lessThanOrEqual(totalSelectedCandidates);
+    }
+  );
 
-  it(`round length is more than current selected candidates (${suiteNumber}C1100)`, async function () {
-    expect(
-      blocksPerRound,
-      `blocks per round should be equal or more than the current selected candidates`
-    ).to.be.greaterThanOrEqual(allSelectedCandidates.length);
-  });
+  it(
+    `round length is more than current selected candidates` + ` (${suiteNumber}C1100)`,
+    async function () {
+      expect(
+        blocksPerRound,
+        `blocks per round should be equal or more than the current selected candidates`
+      ).to.be.greaterThanOrEqual(allSelectedCandidates.length);
+    }
+  );
 });

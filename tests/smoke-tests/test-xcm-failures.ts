@@ -40,25 +40,28 @@ describeSmokeSuite(
         blockNumArray.map((num) => limiter.schedule(() => getEvents(num)))
       );
     });
-    it(`should not have UnsupportedVersion errors on DMP queue (${suiteNumber}C100)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const dmpQueueEvents = events.filter(
-          ({ event }) =>
-            event.section.toString() === "dmpQueue" &&
-            event.method.toString() === "UnsupportedVersion"
-        );
-        return { blockNum, dmpQueueEvents };
-      });
+    it(
+      `should not have UnsupportedVersion errors on DMP queue` + ` (${suiteNumber}C100)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const dmpQueueEvents = events.filter(
+            ({ event }) =>
+              event.section.toString() === "dmpQueue" &&
+              event.method.toString() === "UnsupportedVersion"
+          );
+          return { blockNum, dmpQueueEvents };
+        });
 
-      const failures = filteredEvents.filter((a) => a.dmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM error dmpQueue.UnsupportedVersion in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+        const failures = filteredEvents.filter((a) => a.dmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM error dmpQueue.UnsupportedVersion in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
 
     it(`should not have BadVersion errors on XCMP queue (${suiteNumber}C200)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
@@ -115,70 +118,81 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have MultiLocationFull errors on XCMP queue (${suiteNumber}C500)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(({ event: { data } }) => (data as any).error.toString() === "MultiLocationFull");
-        return { blockNum, xcmpQueueEvents };
-      });
+    it(
+      `should not have MultiLocationFull errors on XCMP queue` + ` (${suiteNumber}C500)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "MultiLocationFull"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
 
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM MultiLocationFull error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM MultiLocationFull error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
 
-    it(`should not have AssetNotFound errors on XCMP queue (${suiteNumber}C600)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(({ event: { data } }) => (data as any).error.toString() === "AssetNotFound");
-        return { blockNum, xcmpQueueEvents };
-      });
+    it(
+      `should not have AssetNotFound errors on XCMP queue` + ` (${suiteNumber}C600)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(({ event: { data } }) => (data as any).error.toString() === "AssetNotFound");
+          return { blockNum, xcmpQueueEvents };
+        });
 
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM AssetNotFound error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM AssetNotFound error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
 
-    it(`should not have DestinationUnsupported errors on XCMP queue (${suiteNumber}C700)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(
-            ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
-          );
-        return { blockNum, xcmpQueueEvents };
-      });
+    it(
+      `should not have DestinationUnsupported errors on XCMP queue` + ` (${suiteNumber}C700)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "DestinationUnsupported"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
 
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM DestinationUnsupported error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM DestinationUnsupported error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
 
     it(`should not have Transport errors on XCMP queue (${suiteNumber}C800)`, async function () {
       const filteredEvents = blockEvents.map(({ blockNum, events }) => {
@@ -199,139 +213,151 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it(`should not have FailedToDecode errors on XCMP queue (${suiteNumber}C900)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(({ event: { data } }) => (data as any).error.toString() === "FailedToDecode");
-        return { blockNum, xcmpQueueEvents };
-      });
-
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM FailedToDecode error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
-
-    it(`should not have UnhandledXcmVersion errors on XCMP queue (${suiteNumber}C1000)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(
-            ({ event: { data } }) => (data as any).error.toString() === "UnhandledXcmVersion"
-          );
-        return { blockNum, xcmpQueueEvents };
-      });
-
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM UnhandledXcmVersion error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
-
-    it(`should not have WeightNotComputable errors on XCMP queue (${suiteNumber}C1100)`, async function () {
-      const filteredEvents = blockEvents.map(({ blockNum, events }) => {
-        const xcmpQueueEvents = events
-          .filter(
-            ({ event }) =>
-              event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
-          )
-          .filter(
-            ({ event: { data } }) => (data as any).error.toString() === "WeightNotComputable"
-          );
-        return { blockNum, xcmpQueueEvents };
-      });
-
-      const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
-      failures.forEach((a) =>
-        debug(`XCM WeightNotComputable error xcmpQueue.Fail in block #${a.blockNum}.`)
-      );
-      expect(
-        failures.length,
-        `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
-
-    it(`shouldhave recent responses for opened HMRP channels (${suiteNumber}C1200)`, async function () {
-      this.timeout(FIVE_MINS);
-      if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
-        debug(`RELAY_WSS_URL env var not supplied, skipping test.`);
-        this.skip();
-      }
-
-      const chainName = (await context.polkadotApi.rpc.system.chain()).toString();
-      if (chainName !== "Moonbeam" && chainName !== "Moonriver") {
-        debug(`Non-prod chains have unreliable channels, skipping test for ${chainName}.`);
-        this.skip();
-      }
-
-      const paraId = await context.polkadotApi.query.parachainInfo.parachainId();
-      const inChannels = (
-        (await context.relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
-      ).map((a) => a.toNumber());
-      const outChannels = (
-        (await context.relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
-      ).map((a) => a.toNumber());
-      const channels = [...new Set([...inChannels, ...outChannels])];
-
-      const fiveMinutesOfBlocks = await getBlockArray(context.relayApi, FIVE_MINS, limiter);
-
-      const getEvents = async (blockNum: number) => {
-        const blockHash = await context.relayApi.rpc.chain.getBlockHash(blockNum);
-        const apiAt = await context.relayApi.at(blockHash);
-        const events = await apiAt.query.system.events();
-        return { blockNum, events };
-      };
-
-      const fiveMinutesOfEvents = await Promise.all(
-        fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getEvents(num)))
-      );
-
-      const responses = channels
-        .filter((a) => !isMuted(chainName, a))
-        .map((channel) => {
-          const record = fiveMinutesOfEvents.find(({ events }) => {
-            const matchedEvent = events
-              .filter(
-                ({ event }) =>
-                  event.method.toString() === "CandidateIncluded" &&
-                  event.section.toString() === "paraInclusion"
-              )
-              .find(({ event: { data } }) => {
-                const {
-                  descriptor: { paraId },
-                } = data[0] as any;
-                return paraId.toNumber() === channel;
-              });
-            return typeof matchedEvent !== "undefined";
-          });
-          const response = typeof record !== "undefined";
-          return { channel, response };
+    it(
+      `should not have FailedToDecode errors on XCMP queue` + ` (${suiteNumber}C900)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(({ event: { data } }) => (data as any).error.toString() === "FailedToDecode");
+          return { blockNum, xcmpQueueEvents };
         });
-      const failedResponses = responses.filter((a) => a.response === false);
-      failedResponses.forEach((a) =>
-        debug(`No response in 5 minutes for connected Parachain #${a.channel}`)
-      );
-      expect(
-        failedResponses.length,
-        `Open channels exist with unresponsive chains: ${failedResponses
-          .map((a) => a.channel)
-          .join(`, `)}; please investigate.`
-      ).to.equal(0);
-    });
+
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM FailedToDecode error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
+
+    it(
+      `should not have UnhandledXcmVersion errors on XCMP queue` + ` (${suiteNumber}C1000)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "UnhandledXcmVersion"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
+
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM UnhandledXcmVersion error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
+
+    it(
+      `should not have WeightNotComputable errors on XCMP queue` + ` (${suiteNumber}C1100)`,
+      async function () {
+        const filteredEvents = blockEvents.map(({ blockNum, events }) => {
+          const xcmpQueueEvents = events
+            .filter(
+              ({ event }) =>
+                event.section.toString() === "xcmpQueue" && event.method.toString() === "Fail"
+            )
+            .filter(
+              ({ event: { data } }) => (data as any).error.toString() === "WeightNotComputable"
+            );
+          return { blockNum, xcmpQueueEvents };
+        });
+
+        const failures = filteredEvents.filter((a) => a.xcmpQueueEvents.length !== 0);
+        failures.forEach((a) =>
+          debug(`XCM WeightNotComputable error xcmpQueue.Fail in block #${a.blockNum}.`)
+        );
+        expect(
+          failures.length,
+          `XCM errors in blocks ${failures.map((a) => a.blockNum).join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
+
+    it(
+      `shouldhave recent responses for opened HMRP channels` + ` (${suiteNumber}C1200)`,
+      async function () {
+        this.timeout(FIVE_MINS);
+        if (typeof process.env.RELAY_WSS_URL === "undefined" || process.env.RELAY_WSS_URL === "") {
+          debug(`RELAY_WSS_URL env var not supplied, skipping test.`);
+          this.skip();
+        }
+
+        const chainName = (await context.polkadotApi.rpc.system.chain()).toString();
+        if (chainName !== "Moonbeam" && chainName !== "Moonriver") {
+          debug(`Non-prod chains have unreliable channels, skipping test for ${chainName}.`);
+          this.skip();
+        }
+
+        const paraId = await context.polkadotApi.query.parachainInfo.parachainId();
+        const inChannels = (
+          (await context.relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
+        ).map((a) => a.toNumber());
+        const outChannels = (
+          (await context.relayApi.query.hrmp.hrmpIngressChannelsIndex(paraId)) as any
+        ).map((a) => a.toNumber());
+        const channels = [...new Set([...inChannels, ...outChannels])];
+
+        const fiveMinutesOfBlocks = await getBlockArray(context.relayApi, FIVE_MINS, limiter);
+
+        const getEvents = async (blockNum: number) => {
+          const blockHash = await context.relayApi.rpc.chain.getBlockHash(blockNum);
+          const apiAt = await context.relayApi.at(blockHash);
+          const events = await apiAt.query.system.events();
+          return { blockNum, events };
+        };
+
+        const fiveMinutesOfEvents = await Promise.all(
+          fiveMinutesOfBlocks.map((num) => limiter.schedule(() => getEvents(num)))
+        );
+
+        const responses = channels
+          .filter((a) => !isMuted(chainName, a))
+          .map((channel) => {
+            const record = fiveMinutesOfEvents.find(({ events }) => {
+              const matchedEvent = events
+                .filter(
+                  ({ event }) =>
+                    event.method.toString() === "CandidateIncluded" &&
+                    event.section.toString() === "paraInclusion"
+                )
+                .find(({ event: { data } }) => {
+                  const {
+                    descriptor: { paraId },
+                  } = data[0] as any;
+                  return paraId.toNumber() === channel;
+                });
+              return typeof matchedEvent !== "undefined";
+            });
+            const response = typeof record !== "undefined";
+            return { channel, response };
+          });
+        const failedResponses = responses.filter((a) => a.response === false);
+        failedResponses.forEach((a) =>
+          debug(`No response in 5 minutes for connected Parachain #${a.channel}`)
+        );
+        expect(
+          failedResponses.length,
+          `Open channels exist with unresponsive chains: ${failedResponses
+            .map((a) => a.channel)
+            .join(`, `)}; please investigate.`
+        ).to.equal(0);
+      }
+    );
   }
 );
