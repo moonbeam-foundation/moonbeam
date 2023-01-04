@@ -17,15 +17,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![feature(assert_matches)]
 
-use evm::{ExitError, ExitReason};
-use fp_evm::{Context, Log, PrecompileFailure, PrecompileHandle, Transfer};
+use evm::ExitReason;
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
 use pallet_proxy::Pallet as ProxyPallet;
 use precompile_utils::data::Address;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
+use sp_core::U256;
 use sp_runtime::{
 	codec::Decode,
 	traits::{ConstU32, StaticLookup, Zero},
@@ -38,8 +38,6 @@ mod mock;
 mod tests;
 
 pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
-pub const LOG_SUBCALL_SUCCEEDED: [u8; 32] = keccak256!("ProxiedCallSucceeded()");
-pub const LOG_SUBCALL_FAILED: [u8; 32] = keccak256!("ProxiedCallFailed()");
 
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 
@@ -54,14 +52,6 @@ pub trait EvmProxyFilter: Sized + Send + Sync {
 	fn evm_proxy_filter(&self, _call: &EvmSubCall, _recipient_has_code: bool) -> bool {
 		false
 	}
-}
-
-pub fn log_subcall_succeeded(address: impl Into<H160>) -> Log {
-	log1(address, LOG_SUBCALL_SUCCEEDED, EvmDataWriter::new().build())
-}
-
-pub fn log_subcall_failed(address: impl Into<H160>) -> Log {
-	log1(address, LOG_SUBCALL_FAILED, EvmDataWriter::new().build())
 }
 
 /// A precompile to wrap the functionality from pallet-proxy.
@@ -330,64 +320,24 @@ where
 			})
 		};
 
-		// Cost of log.
-		let log_cost = log_subcall_failed(handle.code_address())
-			.compute_cost()
-			.map_err(|_| revert("Failed to compute log cost"))?;
-
-		// We reserve enough gas to emit a final log and perform the subcall itself.
-		// If not enough gas we stop there.
-		let remaining_gas = handle.remaining_gas();
-		let forwarded_gas = match remaining_gas.checked_sub(log_cost) {
-			Some(remaining) => remaining,
-			None => {
-				let log = log_subcall_failed(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?;
-
-				return Err(PrecompileFailure::Error {
-					exit_status: ExitError::OutOfGas,
-				});
-			}
-		};
-
 		let (reason, output) = handle.call(
 			address,
 			transfer,
 			call_data.into(),
-			Some(forwarded_gas),
+			Some(handle.remaining_gas()),
 			false,
 			&sub_context,
 		);
 
-		// Logs
-		// We reserved enough gas so this should not OOG.
+		// Return subcall result
 		match reason {
 			ExitReason::Fatal(exit_status) => Err(PrecompileFailure::Fatal { exit_status }),
-			ExitReason::Revert(exit_status) => {
-				let log = log_subcall_failed(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?;
-
-				Err(PrecompileFailure::Revert {
-					exit_status,
-					output,
-				})
-			}
-			ExitReason::Error(exit_status) => {
-				let log = log_subcall_failed(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?;
-
-				Err(PrecompileFailure::Error { exit_status })
-			}
-			ExitReason::Succeed(_) => {
-				let log = log_subcall_succeeded(handle.code_address());
-				handle.record_log_costs(&[&log])?;
-				log.record(handle)?;
-
-				Ok(())
-			}
+			ExitReason::Revert(exit_status) => Err(PrecompileFailure::Revert {
+				exit_status,
+				output,
+			}),
+			ExitReason::Error(exit_status) => Err(PrecompileFailure::Error { exit_status }),
+			ExitReason::Succeed(_) => Ok(()),
 		}
 	}
 }
