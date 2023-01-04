@@ -41,7 +41,7 @@ pub mod data;
 pub use data::{EvmData, EvmDataReader, EvmDataWriter};
 pub use fp_evm::Precompile;
 pub use precompile_utils_macro::{
-	as_precompile_name, generate_function_selector, keccak256, precompile,
+	generate_function_selector, keccak256, precompile, precompile_name_from_address,
 };
 
 /// Generated a `PrecompileFailure::Revert` with proper encoding for the output.

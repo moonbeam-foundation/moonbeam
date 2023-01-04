@@ -83,7 +83,7 @@ parameter_types! {
 	pub LocalAssetPrefix: &'static [u8] = LOCAL_ASSET_PRECOMPILE_ADDRESS_PREFIX;
 }
 
-#[precompile_utils::as_precompile_name]
+#[precompile_utils::precompile_name_from_address]
 type MoonbasePrecompilesAt<R> = (
 	// Ethereum precompiles:
 	// We allow DELEGATECALL to stay compliant with Ethereum behavior.

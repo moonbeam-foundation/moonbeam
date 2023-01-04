@@ -26,9 +26,9 @@ use syn::{
 	LitStr,
 };
 
-mod as_precompile_name;
 mod generate_function_selector;
 mod precompile;
+mod precompile_name_from_address;
 
 struct Bytes(Vec<u8>);
 
@@ -99,6 +99,6 @@ pub fn precompile(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn as_precompile_name(attr: TokenStream, input: TokenStream) -> TokenStream {
-	as_precompile_name::main(attr, input)
+pub fn precompile_name_from_address(attr: TokenStream, input: TokenStream) -> TokenStream {
+	precompile_name_from_address::main(attr, input)
 }
