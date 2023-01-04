@@ -25,8 +25,54 @@ interface Referenda {
         BigSpender
     }
 
+    /// Return the total referendum count
+    /// @custom:selector 81797566
+    function referendumCount() external view returns (uint256);
+
+    /// Return the submission deposit for all referenda
+    /// @custom:selector 81797566
+    function submissionDeposit() external view returns (uint256);
+
+    /// Return the total count of deciding referenda per track
+    /// @param trackId The track identifier
+    /// @custom:selector 81797566
+    function decidingCount(uint256 trackId) external view returns (uint256);
+
+    /// Return the total count of deciding referenda per track
+    /// @param trackId The track identifier
+    /// @custom:selector 81797566
+    function trackInfo(uint256 trackId)
+        external
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        );
+
     /// @dev Submit a referenda
     /// @custom:selector 74a34dd3
     /// @param origin The origin from which the proposed referenda would be dispatched
-    function submit(Origin origin) external;
+    /// @param hash Hash of the proposal preimage
+    /// @param at If true then AT block_number, else AFTER block_number
+    /// @param block Inner block number for DispatchTime
+    function submit(
+        Origin origin,
+        bytes memory hash,
+        bool at,
+        uint32 block
+    ) external;
+
+    /// @dev Post the Decision Deposit for a referendum
+    /// @custom:selector 74a34dd3
+    /// @param index The index of the ongoing referendum that is not yet deciding
+    function place_decision_deposit(uint32 index) external;
+
+    /// @dev Refund the Decision Deposit for a closed referendum back to the depositor
+    /// @custom:selector 74a34dd3
+    /// @param  index The index of a closed referendum with decision deposit still locked
+    function refund_decision_deposit(uint32 index) external;
 }

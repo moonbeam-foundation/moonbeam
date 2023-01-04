@@ -19,15 +19,15 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{schedule::DispatchTime, Currency, Get, OriginTrait};
+use frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use precompile_utils::prelude::*;
 use sp_core::{H256, U256};
 use sp_std::marker::PhantomData;
 
-// #[cfg(test)]
-// mod mock;
+#[cfg(test)]
+mod mock;
 // #[cfg(test)]
 // mod tests;
 
@@ -38,8 +38,10 @@ type TrackIdOf<Runtime> = <<Runtime as pallet_referenda::Config>::Tracks as Trac
 	BalanceOf<Runtime>,
 	<Runtime as frame_system::Config>::BlockNumber,
 >>::Id;
+type BoundedCallOf<Runtime> = Bounded<<Runtime as pallet_referenda::Config>::RuntimeCall>;
 
-type OriginOf<Runtime> = <<Runtime as frame_system::Config>::Origin as OriginTrait>::PalletsOrigin;
+type OriginOf<Runtime> =
+	<<Runtime as frame_system::Config>::RuntimeOrigin as OriginTrait>::PalletsOrigin;
 
 /// A precompile to wrap the functionality from pallet-referenda.
 pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
@@ -48,15 +50,15 @@ pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ReferendaPrecompile<Runtime>
 where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
-	<<Runtime as pallet_referenda::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as pallet_referenda::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
 	OriginOf<Runtime>: From<pallet_governance_origins::Origin>,
-	<Runtime as frame_system::Config>::Hash: TryFrom<H256>,
-	<Runtime as frame_system::Config>::Call:
+	BoundedCallOf<Runtime>: TryFrom<H256>,
+	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<ReferendaCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<ReferendaCall<Runtime>>,
 	Runtime::BlockNumber: Into<U256>,
 	TrackIdOf<Runtime>: TryFrom<u16>,
 	BalanceOf<Runtime>: Into<U256>,
@@ -156,7 +158,7 @@ where
 				RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
 			})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
-		let proposal_hash: Runtime::Hash = proposal_hash.try_into().map_err(|_| {
+		let proposal: BoundedCallOf<Runtime> = proposal_hash.try_into().map_err(|_| {
 			RevertReason::custom("Proposal hash input is not H256").in_field("proposal_hash")
 		})?;
 		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
@@ -169,7 +171,7 @@ where
 
 		let call = ReferendaCall::<Runtime>::submit {
 			proposal_origin,
-			proposal_hash,
+			proposal,
 			enactment_moment,
 		}
 		.into();

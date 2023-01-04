@@ -24,7 +24,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -690,7 +690,7 @@ version = "0.7.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0940dc441f31689269e10ac70eb1002a3a1d3ad1390e030043662eb7fe4688b"
 dependencies = [
- "block-padding",
+ "block-padding 0.1.5",
  "byte-tools",
  "byteorder",
  "generic-array 0.12.4",
@@ -702,6 +702,7 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4152116fd6e9dadb291ae18fc1ec3575ed6d84c29642d97890f4b4a3417297e4"
 dependencies = [
+ "block-padding 0.2.1",
  "generic-array 0.14.6",
 ]
 
@@ -722,6 +723,12 @@ checksum = "fa79dedbb091f449f1f39e53edf88d5dbe95f895dae6135a8d7b881fb5af73f5"
 dependencies = [
  "byte-tools",
 ]
+
+[[package]]
+name = "block-padding"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d696c370c750c948ada61c69a0ee2cbbb9c50b1019ddb86d9317157a99c2cae"
 
 [[package]]
 name = "blocking"
@@ -2260,7 +2267,7 @@ dependencies = [
  "rlp",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "triehash",
 ]
 
@@ -2304,7 +2311,7 @@ dependencies = [
  "rlp",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
 ]
 
 [[package]]
@@ -2341,7 +2348,7 @@ dependencies = [
  "environmental",
  "evm-core",
  "primitive-types",
- "sha3",
+ "sha3 0.10.6",
 ]
 
 [[package]]
@@ -4927,7 +4934,7 @@ dependencies = [
  "scale-info",
  "serde",
  "session-keys-primitives",
- "sha3",
+ "sha3 0.10.6",
  "smallvec",
  "sp-api",
  "sp-block-builder",
@@ -5007,7 +5014,7 @@ dependencies = [
  "clap",
  "libsecp256k1",
  "primitive-types",
- "sha3",
+ "sha3 0.10.6",
  "sp-runtime",
  "tiny-bip39",
  "url",
@@ -5231,7 +5238,7 @@ dependencies = [
  "sc-network",
  "sc-utils",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
@@ -5257,7 +5264,7 @@ dependencies = [
  "sc-transaction-pool",
  "sc-transaction-pool-api",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-api",
  "sp-blockchain",
  "sp-io",
@@ -5369,7 +5376,7 @@ dependencies = [
  "scale-info",
  "serde",
  "session-keys-primitives",
- "sha3",
+ "sha3 0.10.6",
  "smallvec",
  "sp-api",
  "sp-block-builder",
@@ -5516,7 +5523,7 @@ dependencies = [
  "serde",
  "serde_json",
  "session-keys-primitives",
- "sha3",
+ "sha3 0.10.6",
  "sp-api",
  "sp-block-builder",
  "sp-blockchain",
@@ -5695,7 +5702,7 @@ dependencies = [
  "scale-info",
  "serde",
  "session-keys-primitives",
- "sha3",
+ "sha3 0.10.6",
  "smallvec",
  "sp-api",
  "sp-block-builder",
@@ -5759,7 +5766,7 @@ dependencies = [
  "digest 0.10.5",
  "multihash-derive",
  "sha2 0.10.6",
- "sha3",
+ "sha3 0.10.6",
  "unsigned-varint",
 ]
 
@@ -6844,7 +6851,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "slices",
  "sp-core",
  "sp-io",
@@ -6872,7 +6879,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "slices",
  "sp-core",
  "sp-io",
@@ -6919,7 +6926,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "slices",
  "sp-core",
  "sp-io",
@@ -6949,7 +6956,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "similar-asserts",
  "slices",
  "sp-core",
@@ -7010,7 +7017,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7082,7 +7089,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7137,7 +7144,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7187,7 +7194,9 @@ dependencies = [
  "pallet-balances",
  "pallet-evm",
  "pallet-governance-origins",
+ "pallet-preimage",
  "pallet-referenda",
+ "pallet-scheduler",
  "pallet-timestamp",
  "parity-scale-codec",
  "precompile-utils",
@@ -7223,7 +7232,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7272,7 +7281,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7302,7 +7311,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7335,7 +7344,7 @@ dependencies = [
  "rustc-hex",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-io",
  "sp-runtime",
@@ -7367,7 +7376,7 @@ dependencies = [
  "precompile-utils",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "slices",
  "sp-core",
  "sp-io",
@@ -9736,7 +9745,7 @@ dependencies = [
  "precompile-utils-macro",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "similar-asserts",
  "sp-core",
  "sp-io",
@@ -9757,7 +9766,7 @@ dependencies = [
  "prettyplease",
  "proc-macro2",
  "quote",
- "sha3",
+ "sha3 0.10.6",
  "sp-core",
  "sp-std",
  "syn",
@@ -12011,6 +12020,18 @@ dependencies = [
 
 [[package]]
 name = "sha3"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f81199417d4e5de3f04b1e871023acea7389672c4135918f05aa9cbf2f2fa809"
+dependencies = [
+ "block-buffer 0.9.0",
+ "digest 0.9.0",
+ "keccak",
+ "opaque-debug 0.3.0",
+]
+
+[[package]]
+name = "sha3"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bdf0c33fae925bdc080598b84bc15c55e7b9a4a43b3c704da051f977469691c9"
@@ -12453,7 +12474,7 @@ dependencies = [
  "byteorder",
  "digest 0.10.5",
  "sha2 0.10.6",
- "sha3",
+ "sha3 0.10.6",
  "sp-std",
  "twox-hash",
 ]
@@ -14812,7 +14833,7 @@ dependencies = [
  "parity-scale-codec",
  "scale-info",
  "serde",
- "sha3",
+ "sha3 0.10.6",
  "sp-io",
  "sp-runtime",
  "sp-std",
