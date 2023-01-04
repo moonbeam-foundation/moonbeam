@@ -12,8 +12,9 @@ import type {
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:staking");
+const suiteNumber = "S1900";
 
-describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
+describeSmokeSuite(`Verify staking consistency (${suiteNumber})`, (context) => {
   let atBlockNumber: number = 0;
   let apiAt: ApiDecoration<"promise"> = null;
   let specVersion: number = 0;
@@ -80,7 +81,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     allSelectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
   });
 
-  it("candidate totalCounted matches top X delegations", async function () {
+  it(`candidate totalCounted matches top X delegations (${suiteNumber}C100)`, async function () {
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -104,7 +105,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     );
   });
 
-  it("candidate topDelegator total matches the sum", async function () {
+  it(`candidate topDelegator total matches the sum (${suiteNumber}C200)`, async function () {
     for (const topDelegation of allTopDelegations) {
       expect(
         topDelegation[1].unwrap().total.toBigInt(),
@@ -117,7 +118,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     }
   });
 
-  it("candidate topDelegator total matches candidate totalCounted - bond", async function () {
+  it(`candidate topDelegator total matches candidate totalCounted - bond (${suiteNumber}C300)`, async function () {
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const topDelegation = allTopDelegations
@@ -129,7 +130,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     }
   });
 
-  it("candidate topDelegations matches top X delegators", async function () {
+  it(`candidate topDelegations matches top X delegators (${suiteNumber}C400)`, async function () {
     for (const candidate of allCandidateInfo) {
       const accountId = `0x${candidate[0].toHex().slice(-40)}`;
       const delegators = delegatorsPerCandidates[accountId] || [];
@@ -175,7 +176,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     );
   });
 
-  it("all delegators lessTotal matches revoke/decrease requests", async function () {
+  it(`all delegators lessTotal matches revoke/decrease requests (${suiteNumber}C500)`, async function () {
     let checks = 0;
     if (specVersion >= 1500) {
       const delegationScheduledRequests =
@@ -225,7 +226,7 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     debug(`Verified ${checks} lessTotal (runtime: ${specVersion})`);
   });
 
-  it("candidatePool matches candidateInfo", async function () {
+  it(`candidatePool matches candidateInfo (${suiteNumber}C600)`, async function () {
     let foundCandidateInPool = 0;
     for (const candidate of allCandidateInfo) {
       const candidateId = `0x${candidate[0].toHex().slice(-40)}`;
@@ -256,35 +257,35 @@ describeSmokeSuite(`Verify staking consistency (S1900)`, (context) => {
     );
   });
 
-  it("round length is more than minimum selected candidate count", async function () {
+  it(`round length is more than minimum selected candidate count (${suiteNumber}C700)`, async function () {
     expect(
       blocksPerRound,
       `blocks per round should be equal or more than the minimum selected candidate count`
     ).to.be.greaterThanOrEqual(minSelectedCandidates);
   });
 
-  it("total selected is more than minimum selected candidate count", async function () {
+  it(`total selected is more than minimum selected candidate count (${suiteNumber}C800)`, async function () {
     expect(
       totalSelectedCandidates,
       `blocks per round should be equal or more than the minimum selected candidate count`
     ).to.be.greaterThanOrEqual(minSelectedCandidates);
   });
 
-  it.skip("current selected candidates are more than minimum required", async function () {
+  it.skip(`current selected candidates are more than minimum required (${suiteNumber}C900)`, async function () {
     expect(
       allSelectedCandidates.length,
       `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
     ).to.be.greaterThanOrEqual(minSelectedCandidates);
   });
 
-  it("current selected candidates are less than or equal to stored total", async function () {
+  it(`current selected candidates are less than or equal to stored total (${suiteNumber}C1000)`, async function () {
     expect(
       allSelectedCandidates.length,
       `selected candidate count was less than the minimum allowed of ${minSelectedCandidates}`
     ).to.be.lessThanOrEqual(totalSelectedCandidates);
   });
 
-  it("round length is more than current selected candidates", async function () {
+  it(`round length is more than current selected candidates (${suiteNumber}C1100)`, async function () {
     expect(
       blocksPerRound,
       `blocks per round should be equal or more than the current selected candidates`

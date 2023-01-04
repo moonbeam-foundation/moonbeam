@@ -5,8 +5,9 @@ import { expect } from "chai";
 import { printTokens } from "../util/logging";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:treasury");
+const suiteNumber = "S2200";
 
-describeSmokeSuite(`Verify treasury consistency (S2200)`, (context) => {
+describeSmokeSuite(`Verify treasury consistency (${suiteNumber})`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
 
   let atBlockNumber: number = 0;
@@ -19,9 +20,9 @@ describeSmokeSuite(`Verify treasury consistency (S2200)`, (context) => {
     );
   });
 
-  it("should have value > 0", async function () {
+  it(`should have value > 0 (${suiteNumber}C100)`, async function () {
     // Load data
-    const treasuryPalletId = await context.polkadotApi.consts.treasury.palletId;
+    const treasuryPalletId = context.polkadotApi.consts.treasury.palletId;
     const treasuryAccount = await apiAt.query.system.account(
       `0x6d6f646C${treasuryPalletId.toString().slice(2)}0000000000000000`
     );

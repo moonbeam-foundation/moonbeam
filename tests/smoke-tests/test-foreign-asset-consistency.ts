@@ -3,9 +3,10 @@ import { ApiDecoration } from "@polkadot/api/types";
 import { expect } from "chai";
 import { describeSmokeSuite } from "../util/setup-smoke-tests";
 const debug = require("debug")("smoke:localAssets");
+const suiteNumber = "S1000";
 
 describeSmokeSuite(
-  `Verifying foreign asset count, mapping, assetIds and deposits (S1000)`,
+  `Verifying foreign asset count, mapping, assetIds and deposits (${suiteNumber})`,
   (context) => {
     let atBlockNumber: number = 0;
     let apiAt: ApiDecoration<"promise"> = null;
@@ -13,7 +14,7 @@ describeSmokeSuite(
     const foreignAssetTypeId: { [assetType: string]: string } = {};
     const foreignXcmAcceptedAssets: string[] = [];
 
-    before("Setup api & retrieve data", async function () {
+    before(`Setup api & retrieve data`, async function () {
       // Configure the api at a specific block
       // (to avoid inconsistency querying over multiple block when the test takes a long time to
       // query data and blocks are being produced)
@@ -41,7 +42,7 @@ describeSmokeSuite(
       });
     });
 
-    it("should make sure xcm fee assets accepted is <=> than existing assets", async function () {
+    it(`should make sure xcm fee assets accepted is <=> than existing assets (${suiteNumber}C100)`, async function () {
       expect(
         foreignXcmAcceptedAssets.length,
         `Number of local asset deposits does not much number of local assets`
@@ -54,7 +55,7 @@ describeSmokeSuite(
       );
     });
 
-    it("should make sure assetId->AssetType matches AssetType->AssetId mapping", async function () {
+    it(`should make sure assetId->AssetType matches AssetType->AssetId mapping (${suiteNumber}C200)`, async function () {
       const failedAssetReserveMappings: { assetId: string }[] = [];
 
       for (const assetId of Object.keys(foreignAssetIdType)) {
@@ -77,7 +78,7 @@ describeSmokeSuite(
       );
     });
 
-    it("should make sure existing xcm payment assets exist in mapping", async function () {
+    it(`should make sure existing xcm payment assets exist in mapping (${suiteNumber}C300)`, async function () {
       const failedXcmPaymentAssets: { assetType: string }[] = [];
 
       for (const assetType of foreignXcmAcceptedAssets) {

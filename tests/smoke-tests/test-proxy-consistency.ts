@@ -9,9 +9,10 @@ import type { PalletProxyProxyDefinition } from "@polkadot/types/lookup";
 
 // TEMPLATE: Replace debug name
 const debug = require("debug")("smoke:proxy");
+const suiteNumber = "S1600";
 
 // TEMPLATE: Give suitable name
-describeSmokeSuite(`Verify account proxies created (S1600)`, (context) => {
+describeSmokeSuite(`Verify account proxies created (${suiteNumber})`, (context) => {
   // TEMPLATE: Declare variables representing the state to inspect
   //           To know the type of the variable, type the query and the highlight
   //           it to see
@@ -28,7 +29,7 @@ describeSmokeSuite(`Verify account proxies created (S1600)`, (context) => {
   let specVersion: number = 0;
 
   // TEMPLATE: Describe the data you are retrieving
-  before("Retrieve all proxies", async function () {
+  before(`Retrieve all proxies`, async function () {
     // It takes time to load all the proxies.
     // TEMPLATE: Adapt the timeout to be an over-estimate
     this.timeout(30_000); // 30s
@@ -86,7 +87,7 @@ describeSmokeSuite(`Verify account proxies created (S1600)`, (context) => {
   });
 
   // TEMPLATE: Give details about what you are testing
-  it("should have no more than the maximum allowed proxies", async function () {
+  it(`should have no more than the maximum allowed proxies (${suiteNumber}C100)`, async function () {
     this.timeout(240000);
 
     // TEMPLATE: Retrieve additional information
@@ -128,7 +129,7 @@ describeSmokeSuite(`Verify account proxies created (S1600)`, (context) => {
   });
 
   // TEMPLATE: Exemple of test verifying a constant in the runtime
-  it("should have a maximum allowed proxies of 32", async function () {
+  it(`should have a maximum allowed proxies of 32 (${suiteNumber}C200)`, async function () {
     // TEMPLATE: Remove if the value is the same for each runtime
     const runtimeName = context.polkadotApi.runtimeVersion.specName.toString();
     const networkName = context.polkadotApi.runtimeChain.toString();
@@ -168,7 +169,7 @@ describeSmokeSuite(`Verify account proxies created (S1600)`, (context) => {
     debug(`Verified maximum allowed proxies constant`);
   });
 
-  it("should only be possible for proxies of non-smart contract accounts", async function () {
+  it(`should only be possible for proxies of non-smart contract accounts (${suiteNumber}C300)`, async function () {
     this.timeout(60000);
 
     // For each account with a registered proxy, check whether it is a non-SC address

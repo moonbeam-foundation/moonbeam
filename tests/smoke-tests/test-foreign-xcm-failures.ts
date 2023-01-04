@@ -7,7 +7,7 @@ import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 import { ForeignChainsEndpoints, getEndpoints } from "../util/foreign-chains";
 import { ApiPromise, WsProvider } from "@polkadot/api";
 const debug = require("debug")("smoke:foreign-xcm-fails");
-
+const suiteNumber = "S1100";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 30 * 60 * 1000;
 const timeout = Math.max(Math.floor(timePeriod / 12), 60000);
 const limiter = new Bottleneck({ maxConcurrent: 20 });
@@ -24,11 +24,11 @@ type NetworkBlockEvents = {
 
 describeSmokeSuite(
   `Foreign XCM Failures in past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours` +
-    " should not be serious (S1100)",
+    ` should not be serious (${suiteNumber})`,
   (context) => {
     let networkBlockEvents: NetworkBlockEvents[];
 
-    before("Retrieve events for previous blocks", async function () {
+    before(`Retrieve events for previous blocks`, async function () {
       const networkName = context.polkadotApi.runtimeChain.toString();
       const foreignChainInfos = ForeignChainsEndpoints.find(
         (a) => a.moonbeamNetworkName === networkName
@@ -100,7 +100,7 @@ describeSmokeSuite(
       networkBlockEvents = await Promise.all(promises);
     });
 
-    it("should not have UnsupportedVersion errors on DMP queue", function () {
+    it(`should not have UnsupportedVersion errors on DMP queue (${suiteNumber}C100)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const dmpQueueEvents = events.filter(
@@ -136,7 +136,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have BadVersion errors on XCMP queue", function () {
+    it(`should not have BadVersion errors on XCMP queue (${suiteNumber}C200)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events.filter(
@@ -169,7 +169,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Barrier errors on XCMP queue", function () {
+    it(`should not have Barrier errors on XCMP queue (${suiteNumber}C300)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -204,7 +204,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Overflow errors on XCMP queue", function () {
+    it(`should not have Overflow errors on XCMP queue (${suiteNumber}C400)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -239,7 +239,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have MultiLocationFull errors on XCMP queue", function () {
+    it(`should not have MultiLocationFull errors on XCMP queue (${suiteNumber}C500)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -281,7 +281,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have AssetNotFound errors on XCMP queue", function () {
+    it(`should not have AssetNotFound errors on XCMP queue (${suiteNumber}C600)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -318,7 +318,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have DestinationUnsupported errors on XCMP queue", function () {
+    it(`should not have DestinationUnsupported errors on XCMP queue (${suiteNumber}C700)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -360,7 +360,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have Transport errors on XCMP queue", function () {
+    it(`should not have Transport errors on XCMP queue (${suiteNumber}C800)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -395,7 +395,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have FailedToDecode errors on XCMP queue", function () {
+    it(`should not have FailedToDecode errors on XCMP queue (${suiteNumber}C900)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -432,7 +432,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have UnhandledXcmVersion errors on XCMP queue", function () {
+    it(`should not have UnhandledXcmVersion errors on XCMP queue (${suiteNumber}C1000)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events
@@ -474,7 +474,7 @@ describeSmokeSuite(
       ).to.equal(0);
     });
 
-    it("should not have WeightNotComputable errors on XCMP queue", function () {
+    it(`should not have WeightNotComputable errors on XCMP queue (${suiteNumber}C1100)`, function () {
       const blockEvents = networkBlockEvents.map(({ networkName, blockEvents }) => {
         const filteredEvents = blockEvents.map(({ blockNum, events }) => {
           const xcmpQueueEvents = events

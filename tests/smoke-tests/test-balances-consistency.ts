@@ -15,8 +15,9 @@ import { Option } from "@polkadot/types-codec";
 import { StorageKey } from "@polkadot/types";
 import { extractPreimageDeposit } from "../util/block";
 const debug = require("debug")("smoke:balances");
+const suiteNumber = "S300";
 
-describeSmokeSuite(`Verifying balances consistency (S300)`, (context) => {
+describeSmokeSuite(`Verifying balances consistency (${suiteNumber})`, (context) => {
   const accounts: { [account: string]: FrameSystemAccountInfo } = {};
   const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 150 });
 
@@ -25,7 +26,7 @@ describeSmokeSuite(`Verifying balances consistency (S300)`, (context) => {
   let specVersion: number = 0;
   let runtimeName: string;
 
-  before("Retrieve all balances", async function () {
+  before(`Retrieve all balances`, async function () {
     // It takes time to load all the accounts.
     this.timeout(3600000); // 1 hour should be enough
 
@@ -75,7 +76,7 @@ describeSmokeSuite(`Verifying balances consistency (S300)`, (context) => {
     debug(`Retrieved ${count} total accounts`);
   });
 
-  it("should have matching deposit/reserved", async function () {
+  it(`should have matching deposit/reserved (${suiteNumber}C100)`, async function () {
     this.timeout(240000);
     // Load data
     const [
@@ -520,7 +521,7 @@ describeSmokeSuite(`Verifying balances consistency (S300)`, (context) => {
     debug(`Verified ${Object.keys(accounts).length} total reserved balance (at #${atBlockNumber})`);
   });
 
-  it("should match total supply", async function () {
+  it(`should match total supply (${suiteNumber}C200)`, async function () {
     const totalIssuance = await apiAt.query.balances.totalIssuance();
 
     expect(

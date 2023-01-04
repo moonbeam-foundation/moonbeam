@@ -8,7 +8,7 @@ import { WEIGHT_PER_GAS } from "../util/constants";
 import { FrameSystemEventRecord } from "@polkadot/types/lookup";
 
 const debug = require("debug")("smoke:weights");
-
+const suiteNumber = "S500";
 const timePeriod = process.env.TIME_PERIOD ? Number(process.env.TIME_PERIOD) : 2 * 60 * 60 * 1000;
 const timeout = Math.floor(timePeriod / 12); // 2 hour -> 10 minute timeout
 const limiter = new Bottleneck({ maxConcurrent: 10, minTime: 100 });
@@ -31,12 +31,13 @@ interface BlockLimits {
 }
 
 describeSmokeSuite(
-  `Verifying weights of blocks in the past ${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours (S500)`,
+  `Verifying weights of blocks in the past ` +
+    `${(timePeriod / (1000 * 60 * 60)).toFixed(2)} hours (${suiteNumber})`,
   (context) => {
     let blockLimits: BlockLimits;
     let blockInfoArray: BlockInfo[];
 
-    before("Retrieve all weight limits and usage", async function () {
+    before(`Retrieve all weight limits and usage`, async function () {
       this.timeout(timeout);
       const blockNumArray = await getBlockArray(context.polkadotApi, timePeriod, limiter);
       const limits = context.polkadotApi.consts.system.blockWeights;
@@ -78,7 +79,7 @@ describeSmokeSuite(
 
     // This test is more for verifying that the test code is correctly returning good quality data
     // that the rest of the test suite performs verification on
-    it("should be returning unique block hashes in array", async () => {
+    it(`should be returning unique block hashes in array (${suiteNumber}C100)`, async () => {
       const hashes = blockInfoArray.map((a) => a.hash);
       const set = new Set(hashes);
       expect(hashes.length, "Duplicate hashes in retrieved data, investigate test").to.be.equal(
@@ -87,7 +88,7 @@ describeSmokeSuite(
     });
 
     // Normal class
-    it("normal usage should be less than normal dispatch class limits", async function () {
+    it(`normal usage should be less than normal dispatch class limits (${suiteNumber}C200)`, async function () {
       const overweight = blockInfoArray
         .filter((a) => a.weights.normal.gt(blockLimits.normal))
         .map((a) => {
@@ -105,7 +106,7 @@ describeSmokeSuite(
     });
 
     // Operational class
-    it("operational usage should be less than dispatch class limits", async function () {
+    it(`operational usage should be less than dispatch class limits (${suiteNumber}C300)`, async function () {
       const overweight = blockInfoArray
         .filter((a) => a.weights.operational.gt(blockLimits.operational))
         .map((a) => {
@@ -124,7 +125,7 @@ describeSmokeSuite(
 
     // This will test that when Block is 20%+ full, its normal weight is mostly explained
     // by eth signed transactions.
-    it("should roughly have a block weight mostly composed of transactions", async function () {
+    it(`should roughly have a block weight mostly composed of transactions (${suiteNumber}C400)`, async function () {
       this.timeout(timeout);
 
       // Waiting for bugfixes
@@ -175,7 +176,7 @@ describeSmokeSuite(
 
     // This will test that the total normal weight reported is roughly the sum of normal class
     // weight events emitted by signed extrinsics
-    it("should have total normal weight matching the signed extrinsics", async function () {
+    it(`should have total normal weight matching the signed extrinsics (${suiteNumber}C500)`, async function () {
       this.timeout(timeout);
 
       // Waiting for bugfixes
@@ -244,7 +245,7 @@ describeSmokeSuite(
 
     // This test will compare the total weight of eth transactions versus the reported gasUsed
     // property of  ethereum.currentBlock()
-    it("should have total gas charged similar to eth extrinsics", async function () {
+    it(`should have total gas charged similar to eth extrinsics (${suiteNumber}C600)`, async function () {
       this.timeout(timeout);
 
       // Waiting for bugfixes

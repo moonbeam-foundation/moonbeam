@@ -18,8 +18,9 @@ import { AccountId20 } from "@polkadot/types/interfaces";
 import { FIVE_MINS, ONE_HOURS, TWO_HOURS } from "../util/constants";
 import { Perbill, Percent } from "../util/common";
 const debug = require("debug")("smoke:staking");
+const suiteNumber = "S2000";
 
-describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (context) {
+describeSmokeSuite(`When verifying ParachainStaking rewards (${suiteNumber})`, function (context) {
   let atStakeSnapshot: [StorageKey<[u32, AccountId20]>, PalletParachainStakingCollatorSnapshot][];
   let apiAt: ApiDecoration<"promise">;
   let predecessorApiAt: ApiDecoration<"promise">;
@@ -61,7 +62,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (
     atStakeSnapshot = await apiAt.query.parachainStaking.atStake.entries(nowRound);
   });
 
-  it("should snapshot the selected candidates for that round.", async function () {
+  it(`should snapshot the selected candidates for that round (${suiteNumber}C100)`, async function () {
     const selectedCandidates = await apiAt.query.parachainStaking.selectedCandidates();
     const totalSelected = (await apiAt.query.parachainStaking.totalSelected()).toNumber();
     expect(atStakeSnapshot.length).to.be.lessThanOrEqual(totalSelected);
@@ -75,7 +76,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (
     ).to.be.empty;
   });
 
-  it("should have accurate collator stats in snapshot.", async function () {
+  it(`should have accurate collator stats in snapshot (${suiteNumber}C200)`, async function () {
     this.timeout(FIVE_MINS);
 
     const limiter = new Bottleneck({
@@ -123,7 +124,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (
     ).to.be.empty;
   });
 
-  it("should snapshot candidate delegation amounts correctly.", async function () {
+  it(`should snapshot candidate delegation amounts correctly (${suiteNumber}C300)`, async function () {
     // This test is so slow due to rate limiting, this should be off until a better solution appears
     if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
       debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
@@ -232,7 +233,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (
     await new Promise((resolve) => setTimeout(resolve, 2000));
   });
 
-  it("should snapshot delegate autocompound preferences correctly.", async function () {
+  it(`should snapshot delegate autocompound preferences correctly (${suiteNumber}C400)`, async function () {
     // This test is so slow due to rate limiting, this should be off until a better solution appears
     if (process.env.RUN_ATSTAKE_CONSISTENCY_TESTS != "true") {
       debug("Explicit RUN_ATSTAKE_CONSISTENCY_TESTS flag not set to 'true', skipping test");
@@ -319,7 +320,7 @@ describeSmokeSuite(`When verifying ParachainStaking rewards (S2000)`, function (
     await new Promise((resolve) => setTimeout(resolve, 2000));
   });
 
-  it("rewards are given as expected", async function () {
+  it(`rewards are given as expected (${suiteNumber}C500)`, async function () {
     this.timeout(500000);
     const atBlockNumber = process.env.BLOCK_NUMBER
       ? parseInt(process.env.BLOCK_NUMBER)
