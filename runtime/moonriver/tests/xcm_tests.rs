@@ -33,6 +33,7 @@ use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use xcm_primitives::RelayEncodeCall;
 
 // Send a relay asset (like DOT) to a parachain A
 #[test]

@@ -31,6 +31,7 @@ use pallet_asset_manager::LocalAssetIdCreator;
 use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::Convert;
+use xcm_primitives::RelayEncodeCall;
 use xcm_simulator::TestExt;
 
 // Send a relay asset (like DOT) to a parachain A
