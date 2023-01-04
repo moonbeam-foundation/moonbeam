@@ -63,7 +63,7 @@ impl pallet_whitelist::Config for Runtime {
 		MapSuccess<
 			pallet_collective::EnsureProportionAtLeast<
 				Self::AccountId,
-				TechCommitteeInstance,
+				Gov2TechCommitteeInstance,
 				2,
 				3,
 			>,
