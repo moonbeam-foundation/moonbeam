@@ -137,6 +137,57 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (con
     ).to.equal(alith.address, "delegation didn't go through");
     expect(delegatorsAfter.status.toString()).equal("Active");
   });
+
+  it("should have correct delegation amount for ethan to ALITH", async function () {
+    // Check that delegation amount equals MIN_GLMR_STAKING
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegationAmount", [
+        ethan.address,
+        alith.address,
+      ]),
+    });
+
+    expect(BigInt(result)).to.equal(MIN_GLMR_STAKING);
+  });
+
+  it("should have 0 delegation amount for delegation that DNE", async function () {
+    // Check that delegation amount is 0 when delegation DNE
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("delegationAmount", [
+        alith.address,
+        alith.address,
+      ]),
+    });
+
+    expect(BigInt(result)).to.equal(0n);
+  });
+
+  it("should have ethan's delegation to ALITH in top delegations", async function () {
+    // Check that delegation is in top delegations
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("isInTopDelegations", [
+        ethan.address,
+        alith.address,
+      ]),
+    });
+
+    expect(Number(result)).to.equal(1);
+  });
+
+  it("should not be in top delegations when delegation DNE", async function () {
+    const { result } = await web3EthCall(context.web3, {
+      to: PRECOMPILE_PARACHAIN_STAKING_ADDRESS,
+      data: PARACHAIN_STAKING_INTERFACE.encodeFunctionData("isInTopDelegations", [
+        alith.address,
+        alith.address,
+      ]),
+    });
+
+    expect(Number(result)).to.equal(0);
+  });
 });
 
 describeDevMoonbeamAllEthTxTypes("Precompiles - Staking - Join Delegators", (context) => {
