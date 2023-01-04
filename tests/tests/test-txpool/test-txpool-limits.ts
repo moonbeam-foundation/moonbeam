@@ -2,7 +2,7 @@ import "@moonbeam-network/api-augment";
 
 import { describeDevMoonbeam } from "../../util/setup-dev-tests";
 import { alith, generateKeyringPair } from "../../util/accounts";
-import { BLOCK_TX_GAS_LIMIT, GLMR } from "../../util/constants";
+import { BLOCK_TX_GAS_LIMIT, GLMR, MICROGLMR } from "../../util/constants";
 import { expectOk } from "../../util/expect";
 import { expect } from "chai";
 import { BlockForkEvent } from "@ethersproject/abstract-provider";
@@ -69,6 +69,7 @@ describeDevMoonbeam("TxPool - Limits", (context) => {
     console.log(`Found all txns in ${numBlocks} blocks`);
     console.log(`Block weights: ${blockWeights.reduce((prev, curr) => prev+"\n"+curr, "\n")}`);
 
+    /*
     // ensure all accounts have tokens (TODO: remove, this is expensive)
     console.log(`verifying account balances...`);
     for (let i=0; i<NUM_TXNS; i++) {
@@ -76,6 +77,54 @@ describeDevMoonbeam("TxPool - Limits", (context) => {
       const account = await context.polkadotApi.query.system.account(accounts[i].address);
       expect((account as any).data.free.toBigInt()).to.equal(10n * GLMR);
     }
+    */
+
+    // now send a transfer from each account back to alith
+    // using a unique tip each time
+    // ---------------------------------------------------
+    console.log(`sending transfers from each account (generating txns)...`);
+
+    for (let i=0; i<NUM_BATCHES; i++) {
+      for (let a=0; a<BATCH_SIZE; a++) {
+        const index = i * BATCH_SIZE + a;
+        const tip = BigInt(index) * MICROGLMR;
+        await context.polkadotApi.tx.balances
+          .transfer(alith.address, 1n * MICROGLMR)
+          .signAndSend(accounts[index], { nonce: 0, tip });
+      }
+    }
+
+    console.log(`sending transfers from each account (creating blocks)...`);
+
+    numTxnsFound = 0;
+    numBlocks = 0;
+    blockWeights = [];
+    while (numTxnsFound < NUM_TXNS) {
+      // console.log(`creating block (so far: ${numTxnsFound})...`);
+      const result = await context.createBlock();
+      numBlocks += 1;
+      const hash = result.block.hash;
+
+      const apiAt = await context.polkadotApi.at(hash);
+      const [{ block }, events] = await Promise.all([
+        context.polkadotApi.rpc.chain.getBlock(hash),
+        apiAt.query.system.events(),
+      ]);
+      block.extrinsics.forEach((ext, index) => {
+        // console.log(`ext method: ${ext.method}`)
+        if (ext.signer.toHex() !== "0x0000000000000000000000000000000000000000") {
+          // console.log(`ext method: ${ext}`);
+          numTxnsFound += 1;
+        }
+      });
+      // numTxnsFound = NUM_TXNS; // XXX: remove
+
+      blockWeights.push((await (await apiAt.query.system.blockWeight()).normal.refTime));
+    }
+
+    console.log(`Found all txns in ${numBlocks} blocks`);
+    console.log(`Block weights: ${blockWeights.reduce((prev, curr) => prev+"\n"+curr, "\n")}`);
+
   });
 
   it.skip("shouldn't work for 8193", async function () {});
