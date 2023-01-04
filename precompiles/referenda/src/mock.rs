@@ -17,14 +17,16 @@
 //! A minimal precompile runtime including the pallet-randomness pallet
 use super::*;
 use frame_support::{
-	construct_runtime, parameter_types,
-	traits::{Everything, GenesisBuild},
+	construct_runtime, ord_parameter_types, parameter_types,
+	traits::{ConstU32, ConstU64, EqualPrivilegeOnly, Everything, SortedMembers, VoteTally},
 	weights::Weight,
 };
-use nimbus_primitives::NimbusId;
+use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
 use pallet_evm::{EnsureAddressNever, EnsureAddressRoot};
-use precompile_utils::{precompile_set::*, testing::MockAccount};
-use session_keys_primitives::VrfId;
+use pallet_referenda::{impl_tracksinfo_get, Curve, TrackInfo};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use precompile_utils::{precompile_set::*, testing::*};
+use scale_info::TypeInfo;
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -108,12 +110,12 @@ impl pallet_balances::Config for Runtime {
 pub type TestPrecompiles<R> = PrecompileSetBuilder<
 	R,
 	(
-		PrecompileAt<AddressU64<1>, RandomnessPrecompile<R>, LimitRecursionTo<1>>,
+		PrecompileAt<AddressU64<1>, ReferendaPrecompile<R>, LimitRecursionTo<1>>,
 		RevertPrecompile<AddressU64<2>>,
 	),
 >;
 
-pub type PCall = RandomnessPrecompileCall<Runtime>;
+pub type PCall = ReferendaPrecompileCall<Runtime>;
 
 parameter_types! {
 	pub PrecompilesValue: TestPrecompiles<Runtime> = TestPrecompiles::new();
@@ -153,7 +155,7 @@ impl pallet_preimage::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
 	type Currency = Balances;
-	type ManagerOrigin = EnsureRoot<u64>;
+	type ManagerOrigin = EnsureRoot<AccountId>;
 	type BaseDeposit = ();
 	type ByteDeposit = ();
 }
@@ -162,8 +164,8 @@ impl pallet_scheduler::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type PalletsOrigin = OriginCaller;
 	type RuntimeCall = RuntimeCall;
-	type MaximumWeight = MaxWeight;
-	type ScheduleOrigin = EnsureRoot<u64>;
+	type MaximumWeight = MaximumBlockWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<100>;
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
@@ -171,31 +173,29 @@ impl pallet_scheduler::Config for Runtime {
 }
 
 parameter_types! {
-	pub static AlarmInterval: u64 = 1;
-}
-ord_parameter_types! {
-	pub const One: u64 = 1;
-	pub const Two: u64 = 2;
-	pub const Three: u64 = 3;
-	pub const Four: u64 = 4;
-	pub const Five: u64 = 5;
-	pub const Six: u64 = 6;
+	pub static AlarmInterval: u32 = 1;
 }
 pub struct OneToFive;
-impl SortedMembers<u64> for OneToFive {
-	fn sorted_members() -> Vec<u64> {
-		vec![1, 2, 3, 4, 5]
+impl SortedMembers<AccountId> for OneToFive {
+	fn sorted_members() -> Vec<AccountId> {
+		vec![
+			Alice.into(),
+			Bob.into(),
+			Charlie.into(),
+			David.into(),
+			Zero.into(),
+		]
 	}
 	#[cfg(feature = "runtime-benchmarks")]
-	fn add(_m: &u64) {}
+	fn add(_m: &AccountId) {}
 }
 
 pub struct TestTracksInfo;
-impl TracksInfo<u64, u64> for TestTracksInfo {
+impl TracksInfo<u128, u32> for TestTracksInfo {
 	type Id = u8;
 	type RuntimeOrigin = <RuntimeOrigin as OriginTrait>::PalletsOrigin;
-	fn tracks() -> &'static [(Self::Id, TrackInfo<u64, u64>)] {
-		static DATA: [(u8, TrackInfo<u64, u64>); 2] = [
+	fn tracks() -> &'static [(Self::Id, TrackInfo<u128, u32>)] {
+		static DATA: [(u8, TrackInfo<u128, u32>); 2] = [
 			(
 				0u8,
 				TrackInfo {
@@ -255,23 +255,73 @@ impl TracksInfo<u64, u64> for TestTracksInfo {
 		}
 	}
 }
-impl_tracksinfo_get!(TestTracksInfo, u64, u64);
+impl_tracksinfo_get!(TestTracksInfo, u128, u32);
 
+#[derive(Encode, Debug, Decode, TypeInfo, Eq, PartialEq, Clone, MaxEncodedLen)]
+pub struct Tally {
+	pub ayes: u32,
+	pub nays: u32,
+}
+
+impl<Class> VoteTally<u32, Class> for Tally {
+	fn new(_: Class) -> Self {
+		Self { ayes: 0, nays: 0 }
+	}
+
+	fn ayes(&self, _: Class) -> u32 {
+		self.ayes
+	}
+
+	fn support(&self, _: Class) -> Perbill {
+		Perbill::from_percent(self.ayes)
+	}
+
+	fn approval(&self, _: Class) -> Perbill {
+		if self.ayes + self.nays > 0 {
+			Perbill::from_rational(self.ayes, self.ayes + self.nays)
+		} else {
+			Perbill::zero()
+		}
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn unanimity(_: Class) -> Self {
+		Self { ayes: 100, nays: 0 }
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn rejection(_: Class) -> Self {
+		Self { ayes: 0, nays: 100 }
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn from_requirements(support: Perbill, approval: Perbill, _: Class) -> Self {
+		let ayes = support.mul_ceil(100u32);
+		let nays = ((ayes as u64) * 1_000_000_000u64 / approval.deconstruct() as u64) as u32 - ayes;
+		Self { ayes, nays }
+	}
+
+	#[cfg(feature = "runtime-benchmarks")]
+	fn setup(_: Class, _: Perbill) {}
+}
+parameter_types! {
+	pub const SubmissionDeposit: u128 = 10;
+}
 impl pallet_referenda::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
 	type Scheduler = Scheduler;
 	type Currency = pallet_balances::Pallet<Self>;
-	type SubmitOrigin = frame_system::EnsureSigned<u64>;
-	type CancelOrigin = EnsureSignedBy<Four, u64>;
-	type KillOrigin = EnsureRoot<u64>;
+	type SubmitOrigin = EnsureSigned<AccountId>;
+	type CancelOrigin = EnsureSignedBy<OneToFive, AccountId>;
+	type KillOrigin = EnsureRoot<AccountId>;
 	type Slash = ();
 	type Votes = u32;
 	type Tally = Tally;
-	type SubmissionDeposit = ConstU64<2>;
+	type SubmissionDeposit = SubmissionDeposit;
 	type MaxQueued = ConstU32<3>;
-	type UndecidingTimeout = ConstU64<20>;
+	type UndecidingTimeout = ConstU32<20>;
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TestTracksInfo;
 	type Preimages = Preimage;

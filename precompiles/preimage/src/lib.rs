@@ -42,11 +42,11 @@ impl<Runtime> PreimagePrecompile<Runtime>
 where
 	Runtime: pallet_preimage::Config + pallet_evm::Config + frame_system::Config,
 	<Runtime as frame_system::Config>::Hash: TryFrom<H256>,
-	<Runtime as frame_system::Config>::Call:
+	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
-	<<Runtime as frame_system::Config>::Call as Dispatchable>::Origin:
+	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as frame_system::Config>::Call: From<PreimageCall<Runtime>>,
+	<Runtime as frame_system::Config>::RuntimeCall: From<PreimageCall<Runtime>>,
 {
 	/// Register a preimage on-chain.
 	///
