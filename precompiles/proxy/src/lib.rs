@@ -47,10 +47,12 @@ pub struct EvmSubCall {
 	pub call_data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
 }
 
-/// A trait to filter if an evm subcall is allowed or not.
-pub trait EvmInstanceFilter: Sized + Send + Sync {
-	/// If the filter returns `false`, then the subcall must be omitted.
-	fn evm_filter(&self, _call: &EvmSubCall, _recipient_has_code: bool) -> bool {
+/// A trait to filter if an evm subcall is allowed to be executed by a proxy account.
+/// This trait should be implemented by the `ProxyType` type configured in pallet proxy.
+pub trait EvmProxyCallFilter: Sized + Send + Sync {
+	/// If returns `false`, then the subcall will not be executed and the evm transaction will
+	/// revert with error message "CallFiltered".
+	fn is_evm_proxy_call_allowed(&self, _call: &EvmSubCall, _recipient_has_code: bool) -> bool {
 		false
 	}
 }
@@ -64,7 +66,7 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmInstanceFilter,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyCallFilter,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -313,7 +315,8 @@ where
 
 		// Apply proxy type filter
 		frame_support::ensure!(
-			def.proxy_type.evm_filter(&evm_subcall, recipient_has_code),
+			def.proxy_type
+				.is_evm_proxy_call_allowed(&evm_subcall, recipient_has_code),
 			revert("CallFiltered")
 		);
 

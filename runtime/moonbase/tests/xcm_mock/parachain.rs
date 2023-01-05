@@ -988,7 +988,7 @@ pub enum ProxyType {
 	Any = 1,
 }
 
-impl pallet_evm_precompile_proxy::EvmInstanceFilter for ProxyType {}
+impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {}
 
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, _c: &RuntimeCall) -> bool {

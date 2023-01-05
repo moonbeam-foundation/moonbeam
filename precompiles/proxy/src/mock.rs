@@ -174,8 +174,12 @@ impl std::default::Default for ProxyType {
 	}
 }
 
-impl crate::EvmInstanceFilter for ProxyType {
-	fn evm_filter(&self, _call: &crate::EvmSubCall, _recipient_has_code: bool) -> bool {
+impl crate::EvmProxyCallFilter for ProxyType {
+	fn is_evm_proxy_call_allowed(
+		&self,
+		_call: &crate::EvmSubCall,
+		_recipient_has_code: bool,
+	) -> bool {
 		match self {
 			Self::Any => true,
 			Self::Something => true,
