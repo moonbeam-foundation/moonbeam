@@ -276,8 +276,8 @@ where
 		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
-		// Proxied call can be dispatch by users only.
-		// We should forbid precompiles here because pre_check allow precompiles.
+		// Proxied call can be dispatched by users only.
+		// We should forbid precompiles here because pre_check allows precompiles.
 		if <Runtime as pallet_evm::Config>::PrecompilesValue::get()
 			.is_precompile(handle.context().caller)
 		{
