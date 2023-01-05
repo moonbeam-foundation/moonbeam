@@ -816,37 +816,40 @@ impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
 				}
 			}
 			ProxyType::NonTransfer => {
-				matches!(
-					PrecompileName::from_address(call.to.0),
-					Some(
-						PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::DemocracyPrecompile
-							| PrecompileName::ParachainStakingPrecompile
-							| PrecompileName::CouncilInstance
-							| PrecompileName::TechCommitteeInstance
-							| PrecompileName::TreasuryCouncilInstance
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::DemocracyPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
 					)
-				)
 			}
 			ProxyType::Governance => {
-				matches!(
-					PrecompileName::from_address(call.to.0),
-					Some(
-						PrecompileName::DemocracyPrecompile
-							| PrecompileName::CouncilInstance
-							| PrecompileName::TechCommitteeInstance
-							| PrecompileName::TreasuryCouncilInstance
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::DemocracyPrecompile
+								| PrecompileName::CouncilInstance
+								| PrecompileName::TechCommitteeInstance
+								| PrecompileName::TreasuryCouncilInstance
+						)
 					)
-				)
 			}
 			ProxyType::Staking => {
-				matches!(
-					PrecompileName::from_address(call.to.0),
-					Some(
-						PrecompileName::AuthorMappingPrecompile
-							| PrecompileName::ParachainStakingPrecompile
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(
+							PrecompileName::AuthorMappingPrecompile
+								| PrecompileName::ParachainStakingPrecompile
+						)
 					)
-				)
 			}
 			// The proxy precompile does not contain method cancel_proxy
 			ProxyType::CancelProxy => false,
@@ -857,10 +860,11 @@ impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
 				!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
 			}
 			ProxyType::AuthorMapping => {
-				matches!(
-					PrecompileName::from_address(call.to.0),
-					Some(PrecompileName::AuthorMappingPrecompile)
-				)
+				call.value == U256::default()
+					&& matches!(
+						PrecompileName::from_address(call.to.0),
+						Some(PrecompileName::AuthorMappingPrecompile)
+					)
 			}
 			// There is no identity precompile
 			ProxyType::IdentityJudgement => false,
