@@ -13,7 +13,7 @@ jobs:
           REQUIRED_LABELS_ALL: ""
           BANNED_LABELS: ""
       - name: Verify breaking changes label
-        if: contains(github.event.label.*.name, 'B5-clientnoteworthy')
+        if: contains(github.event.pull_request.labels.*.name.*.name, 'B5-clientnoteworthy') || contains(github.event.pull_request.labels.*.name.*.name, 'B7-runtimenoteworthy')
         uses: yogevbd/enforce-label-action@2.2.2
         with:
           REQUIRED_LABELS_ANY: "breaking,not-breaking"
@@ -27,8 +27,3 @@ jobs:
           REQUIRED_LABELS_ANY: "D1-audited👍,D5-nicetohaveaudit⚠️,D9-needsaudit👮,D2-notlive,D3-trivial"
           REQUIRED_LABELS_ALL: ""
           BANNED_LABELS: ""
-  # enforce-breaking-changes-label:
-  #   # if: contains(github.event.label.*.name, 'B5-clientnoteworthy') || contains(github.event.label.*.name, 'B7-runtimenoteworthy')
-  #   if: contains(github.event.label.*.name, 'B5-clientnoteworthy')
-  #   runs-on: ubuntu-latest
-  #   steps:
