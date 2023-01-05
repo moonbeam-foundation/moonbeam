@@ -21,7 +21,8 @@ jobs:
           REQUIRED_LABELS_ALL: ""
           BANNED_LABELS: ""
   enforce-breaking-changes-label:
-    if: contains(github.event.label.*.name, 'B5-clientnoteworthy') || contains(github.event.label.*.name, 'B7-runtimenoteworthy')
+    # if: contains(github.event.label.*.name, 'B5-clientnoteworthy') || contains(github.event.label.*.name, 'B7-runtimenoteworthy')
+    if: contains(github.event.label.*.name, 'B5-clientnoteworthy')
     runs-on: ubuntu-latest
     steps:
       - uses: yogevbd/enforce-label-action@2.2.2
