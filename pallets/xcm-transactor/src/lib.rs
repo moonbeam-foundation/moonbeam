@@ -100,7 +100,9 @@ pub mod pallet {
 	use xcm::{latest::prelude::*, VersionedMultiLocation};
 	use xcm_executor::traits::{InvertLocation, TransactAsset, WeightBounds};
 	pub(crate) use xcm_primitives::XcmV2Weight;
-	use xcm_primitives::{HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact};
+	use xcm_primitives::{
+		FilterMaxAssetFee, HrmpAvailableCalls, RelayEncodeCall, UtilityAvailableCalls, XcmTransact,
+	};
 
 	#[pallet::pallet]
 	#[pallet::without_storage_info]
@@ -167,6 +169,9 @@ pub mod pallet {
 		/// The way to retrieve the reserve of a MultiAsset. This can be
 		/// configured to accept absolute or relative paths for self tokens
 		type ReserveProvider: Reserve;
+
+		/// The way to filter the max fee to use for HRMP management operations
+		type MaxHrmpFee: FilterMaxAssetFee;
 
 		type WeightInfo: WeightInfo;
 	}
@@ -312,6 +317,7 @@ pub mod pallet {
 		SignedTransactNotAllowedForDestination,
 		FailedMultiLocationToJunction,
 		HrmpHandlerNotImplemented,
+		TooMuchFeeUsed,
 	}
 
 	#[pallet::event]
@@ -460,14 +466,34 @@ pub mod pallet {
 			// Grab the destination
 			let dest = dest.destination();
 
+			// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					Self::take_weight_from_transact_info(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
+			)?;
+
+			// Calculate fee based on FeePerSecond
+			let fee = Self::calculate_fee(
+				fee_location,
+				fee.fee_amount,
+				dest.clone(),
+				total_weight.clone(),
+			)?;
+
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
 				Some(who.clone()),
-				fee_location,
+				fee,
 				call_bytes.clone(),
 				OriginKind::SovereignAccount,
-				fee.fee_amount,
-				weight_info,
+				total_weight,
+				weight_info.transact_required_weight_at_most,
 				None,
 			)?;
 
@@ -511,15 +537,36 @@ pub mod pallet {
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
 			let dest = MultiLocation::try_from(*dest).map_err(|()| Error::<T>::BadVersion)?;
+
+			// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					Self::take_weight_from_transact_info(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
+			)?;
+
+			// Calculate fee based on FeePerSecond and total_weight
+			let fee = Self::calculate_fee(
+				fee_location,
+				fee.fee_amount,
+				dest.clone(),
+				total_weight.clone(),
+			)?;
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_non_signed(
 				dest.clone(),
 				Some(fee_payer.clone()),
-				fee_location,
+				fee,
 				call.clone(),
 				origin_kind,
-				fee.fee_amount,
-				weight_info,
+				total_weight,
+				weight_info.transact_required_weight_at_most,
 				None,
 			)?;
 
@@ -601,15 +648,35 @@ pub mod pallet {
 			let fee_location = Self::currency_to_multilocation(fee.currency)
 				.ok_or(Error::<T>::NotCrossChainTransferableCurrency)?;
 
+			// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					Self::take_weight_from_transact_info_signed(
+						dest.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
+			)?;
+
+			// Fee to be paid
+			let fee = Self::calculate_fee(
+				fee_location,
+				fee.fee_amount,
+				dest.clone(),
+				total_weight.clone(),
+			)?;
+
 			// Grab the destination
 			Self::transact_in_dest_chain_asset_signed(
 				dest.clone(),
 				who.clone(),
-				fee_location,
+				fee,
 				call.clone(),
 				OriginKind::SovereignAccount,
-				fee.fee_amount,
-				weight_info,
+				total_weight,
+				weight_info.transact_required_weight_at_most,
 				None,
 			)?;
 
@@ -704,17 +771,41 @@ pub mod pallet {
 			// Grab the destination
 			let destination = dest.destination();
 
+			// Calculate the total weight that the xcm message is going to spend in the
+			// destination chain
+			let total_weight: u64 = weight_info.overall_weight.map_or_else(
+				|| {
+					Self::take_weight_from_transact_info(
+						destination.clone(),
+						weight_info.transact_required_weight_at_most,
+					)
+				},
+				|v| Ok(v),
+			)?;
+
+			let fee = Self::calculate_fee(
+				fee_location,
+				fee.fee_amount,
+				destination.clone(),
+				total_weight.clone(),
+			)?;
+
+			ensure!(
+				T::MaxHrmpFee::filter_max_asset_fee(&fee),
+				Error::<T>::TooMuchFeeUsed
+			);
+
 			// The appendix instruction will be a deposit back to a self location
 			let appendix = Self::deposit_instruction(T::SelfLocation::get(), &destination)?;
 
 			Self::transact_in_dest_chain_asset_non_signed(
 				destination,
 				None,
-				fee_location,
+				fee,
 				call_bytes.clone(),
 				OriginKind::Native,
-				fee.fee_amount,
-				weight_info,
+				total_weight,
+				weight_info.transact_required_weight_at_most,
 				Some(vec![appendix]),
 			)?;
 
@@ -728,28 +819,13 @@ pub mod pallet {
 		fn transact_in_dest_chain_asset_non_signed(
 			dest: MultiLocation,
 			fee_payer: Option<T::AccountId>,
-			fee_location: MultiLocation,
+			fee: MultiAsset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
-			fee_amount: Option<u128>,
-			weight_info: TransactWeights,
+			total_weight: XcmV2Weight,
+			transact_required_weight_at_most: XcmV2Weight,
 			with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
-			// Calculate the total weight that the xcm message is going to spend in the
-			// destination chain
-			let total_weight: u64 = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info(
-						dest.clone(),
-						weight_info.transact_required_weight_at_most,
-					)
-				},
-				|v| Ok(v),
-			)?;
-
-			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
-
 			if let Some(fee_payer) = fee_payer {
 				// Convert origin to multilocation
 				let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
@@ -771,7 +847,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_required_weight_at_most,
+				transact_required_weight_at_most,
 				origin_kind,
 				with_appendix,
 			)?;
@@ -785,28 +861,13 @@ pub mod pallet {
 		fn transact_in_dest_chain_asset_signed(
 			dest: MultiLocation,
 			fee_payer: T::AccountId,
-			fee_location: MultiLocation,
+			fee: MultiAsset,
 			call: Vec<u8>,
 			origin_kind: OriginKind,
-			fee_amount: Option<u128>,
-			weight_info: TransactWeights,
+			total_weight: XcmV2Weight,
+			transact_required_weight_at_most: XcmV2Weight,
 			_with_appendix: Option<Vec<Instruction<()>>>,
 		) -> DispatchResult {
-			// Calculate the total weight that the xcm message is going to spend in the
-			// destination chain
-			let total_weight: u64 = weight_info.overall_weight.map_or_else(
-				|| {
-					Self::take_weight_from_transact_info_signed(
-						dest.clone(),
-						weight_info.transact_required_weight_at_most,
-					)
-				},
-				|v| Ok(v),
-			)?;
-
-			// Calculate fee based on FeePerSecond and total_weight
-			let fee = Self::calculate_fee(fee_location, fee_amount, dest.clone(), total_weight)?;
-
 			// Convert origin to multilocation
 			let origin_as_mult = T::AccountIdToMultiLocation::convert(fee_payer);
 
@@ -821,7 +882,7 @@ pub mod pallet {
 				fee,
 				total_weight,
 				call,
-				weight_info.transact_required_weight_at_most,
+				transact_required_weight_at_most,
 				origin_kind,
 				None,
 			)?;

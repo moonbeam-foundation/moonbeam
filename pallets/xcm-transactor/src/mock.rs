@@ -335,6 +335,11 @@ impl SendXcm for TestSendXcm {
 	}
 }
 
+parameter_types! {
+	pub MaxFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+pub type MaxHrmpRelayFee = xcm_builder::Case<MaxFee>;
+
 impl Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -353,6 +358,7 @@ impl Config for Test {
 	type ReserveProvider = orml_traits::location::RelativeReserveProvider;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<u64>;
+	type MaxHrmpFee = MaxHrmpRelayFee;
 }
 
 pub(crate) struct ExtBuilder {

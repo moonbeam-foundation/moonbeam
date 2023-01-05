@@ -1159,6 +1159,41 @@ fn test_hrmp_manipulator_init() {
 }
 
 #[test]
+fn test_hrmp_max_fee_errors() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			let total_weight = 10_100u64;
+			let tx_weight = 100_u64;
+			let total_fee = 10_000_000_000_000u128;
+
+			assert_noop!(
+				XcmTransactor::hrmp_manange(
+					RuntimeOrigin::root(),
+					Transactors::Relay,
+					HrmpOperation::InitOpen(HrmpInitParams {
+						para_id: 1u32.into(),
+						proposed_max_capacity: 1,
+						proposed_max_message_size: 1
+					}),
+					CurrencyPayment {
+						currency: Currency::AsMultiLocation(Box::new(
+							xcm::VersionedMultiLocation::V1(MultiLocation::parent())
+						)),
+						fee_amount: Some(total_fee)
+					},
+					TransactWeights {
+						transact_required_weight_at_most: tx_weight,
+						overall_weight: Some(total_weight)
+					}
+				),
+				Error::<Test>::TooMuchFeeUsed
+			);
+		})
+}
+
+#[test]
 fn test_hrmp_manipulator_accept() {
 	ExtBuilder::default()
 		.with_balances(vec![])
