@@ -157,6 +157,9 @@ fn verify_pallet_prefixes() {
 	is_pallet_prefix::<moonbase_runtime::CouncilCollective>("CouncilCollective");
 	is_pallet_prefix::<moonbase_runtime::TechCommitteeCollective>("TechCommitteeCollective");
 	is_pallet_prefix::<moonbase_runtime::Treasury>("Treasury");
+	is_pallet_prefix::<moonbase_runtime::OpenTechCommitteeCollective>(
+		"OpenTechCommitteeCollective",
+	);
 	is_pallet_prefix::<moonbase_runtime::AuthorInherent>("AuthorInherent");
 	is_pallet_prefix::<moonbase_runtime::AuthorFilter>("AuthorFilter");
 	is_pallet_prefix::<moonbase_runtime::CrowdloanRewards>("CrowdloanRewards");
@@ -304,6 +307,12 @@ fn test_collectives_storage_item_prefixes() {
 	{
 		assert_eq!(pallet_name, b"TreasuryCouncilCollective".to_vec());
 	}
+
+	for StorageInfo { pallet_name, .. } in
+		<moonbase_runtime::OpenTechCommitteeCollective as StorageInfoTrait>::storage_info()
+	{
+		assert_eq!(pallet_name, b"OpenTechCommitteeCollective".to_vec());
+	}
 }
 
 #[test]
@@ -354,6 +363,7 @@ fn verify_pallet_indices() {
 	is_pallet_index::<moonbase_runtime::EthereumXcm>(38);
 	is_pallet_index::<moonbase_runtime::Randomness>(39);
 	is_pallet_index::<moonbase_runtime::TreasuryCouncilCollective>(40);
+	is_pallet_index::<moonbase_runtime::OpenTechCommitteeCollective>(46);
 }
 
 #[test]
