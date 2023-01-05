@@ -24,7 +24,8 @@ use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
 use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
-use sp_core::{H160, U256};
+use precompile_utils::precompile_set::AddressU64;
+use sp_core::{Get, H160, U256};
 use std::str::from_utf8;
 
 #[test]
@@ -636,5 +637,26 @@ fn succeed_if_called_by_precompile() {
 					},
 				)
 				.execute_returns(vec![]);
+		})
+}
+
+
+#[test]
+fn proxy_proxy_should_fail_if_called_by_precompile() {
+	ExtBuilder::default()
+		.with_balances(vec![(AddressU64::<1>::get().into(), 1000), (Bob.into(), 1000)])
+		.build()
+		.execute_with(|| {
+			PrecompilesValue::get()
+				.prepare_test(
+					AddressU64::<1>::get(),
+					Precompile1,
+					PCall::proxy {
+						real: Address(Alice.into()),
+						call_to: Address(Bob.into()),
+						call_data: BoundedBytes::from([]),
+					},
+				)
+				.execute_reverts(|output| output == b"Proxy.proxy not callable by precompiles");
 		})
 }

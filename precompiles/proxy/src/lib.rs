@@ -18,7 +18,7 @@
 #![feature(assert_matches)]
 
 use evm::ExitReason;
-use fp_evm::{Context, PrecompileFailure, PrecompileHandle, Transfer};
+use fp_evm::{Context, PrecompileFailure, PrecompileHandle, PrecompileSet, Transfer};
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::AddressMapping;
 use pallet_proxy::Call as ProxyCall;
@@ -28,7 +28,7 @@ use precompile_utils::prelude::*;
 use sp_core::U256;
 use sp_runtime::{
 	codec::Decode,
-	traits::{ConstU32, StaticLookup, Zero},
+	traits::{ConstU32, Get, StaticLookup, Zero},
 };
 use sp_std::marker::PhantomData;
 
@@ -276,6 +276,14 @@ where
 		force_proxy_type: Option<<Runtime as pallet_proxy::Config>::ProxyType>,
 		evm_subcall: EvmSubCall,
 	) -> EvmResult {
+		// Proxied call can be dispatch by users only.
+		// We should forbid precompiles here because pre_check allow precompiles.
+		if <Runtime as pallet_evm::Config>::PrecompilesValue::get()
+			.is_precompile(handle.context().caller)
+		{
+			return Err(revert("Proxy.proxy not callable by precompiles"));
+		}
+
 		// Read proxy
 		let real_account_id = Runtime::AddressMapping::into_account_id(real.clone().into());
 		let who = Runtime::AddressMapping::into_account_id(handle.context().caller);
