@@ -10,7 +10,6 @@ on:
         required: true
 
 jobs:
-
   setup-scripts:
     runs-on: self-hosted
     steps:
