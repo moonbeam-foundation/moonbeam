@@ -811,7 +811,13 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 					// For the moment, no smart contract other than precompiles is allowed.
 					// In the future, we may create a dynamic whitelist to authorize some audited
 					// smart contracts through governance.
-					None => !recipient_has_code,
+					None => {
+						// If the address is not recognized, allow only evm transfert to "simple"
+						// accounts (no code nor precompile).
+						// Note: Checking the presence of the code is not enough because some
+						// precompiles have no code.
+						!recipient_has_code && !PrecompilesValue::get().is_precompile(call.to.0)
+					}
 				}
 			}
 			ProxyType::NonTransfer => {
