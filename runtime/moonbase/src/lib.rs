@@ -801,7 +801,6 @@ impl pallet_evm_precompile_proxy::EvmProxyCallFilter for ProxyType {
 						PrecompileName::AuthorMappingPrecompile
 						| PrecompileName::DemocracyPrecompile
 						| PrecompileName::ParachainStakingPrecompile
-						| PrecompileName::CrowdloanRewardsPrecompile
 						| PrecompileName::CouncilInstance
 						| PrecompileName::TechCommitteeInstance
 						| PrecompileName::TreasuryCouncilInstance,
