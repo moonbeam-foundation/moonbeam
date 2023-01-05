@@ -21,7 +21,7 @@ use super::*;
 pub type CouncilInstance = pallet_collective::Instance1;
 pub type TechCommitteeInstance = pallet_collective::Instance2;
 pub type TreasuryCouncilInstance = pallet_collective::Instance3;
-pub type Gov2TechCommitteeInstance = pallet_collective::Instance4;
+pub type OpenTechCommitteeInstance = pallet_collective::Instance4;
 
 impl pallet_collective::Config<CouncilInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
@@ -68,7 +68,7 @@ impl pallet_collective::Config<TreasuryCouncilInstance> for Runtime {
 	type WeightInfo = pallet_collective::weights::SubstrateWeight<Runtime>;
 }
 
-impl pallet_collective::Config<Gov2TechCommitteeInstance> for Runtime {
+impl pallet_collective::Config<OpenTechCommitteeInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeEvent = RuntimeEvent;
 	type Proposal = RuntimeCall;
