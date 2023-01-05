@@ -861,6 +861,11 @@ impl pallet_asset_manager::Config for Runtime {
 	type WeightInfo = ();
 }
 
+// 1 ROC/WND should be enough
+parameter_types! {
+	pub MaxHrmpRelayFee: MultiAsset = (MultiLocation::parent(), 1_000_000_000_000u128).into();
+}
+
 impl pallet_xcm_transactor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
@@ -880,6 +885,7 @@ impl pallet_xcm_transactor::Config for Runtime {
 	type ReserveProvider = xcm_primitives::AbsoluteAndRelativeReserve<SelfLocationAbsolute>;
 	type WeightInfo = ();
 	type HrmpManipulatorOrigin = EnsureRoot<AccountId>;
+	type MaxHrmpFee = xcm_builder::Case<MaxHrmpRelayFee>;
 }
 
 parameter_types! {

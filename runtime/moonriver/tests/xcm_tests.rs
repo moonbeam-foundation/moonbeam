@@ -32,7 +32,7 @@ use xcm_mock::*;
 use xcm_simulator::TestExt;
 mod common;
 use common::ExtBuilder;
-use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights};
+use pallet_xcm_transactor::{Currency, CurrencyPayment, TransactWeights, HrmpOperation, HrmpInitParams};
 use xcm_primitives::RelayEncodeCall;
 
 // Send a relay asset (like DOT) to a parachain A
@@ -2621,6 +2621,44 @@ fn transact_through_signed_multilocation() {
 		assert!(RelayBalances::free_balance(&para_a_account()) == 100);
 
 		assert!(RelayBalances::free_balance(&derived) == 0);
+	});
+}
+
+#[test]
+fn hrmp_init_through_root() {
+	MockNet::reset();
+
+	Relay::execute_with(|| {
+		assert_ok!(RelayBalances::transfer(	relay_chain::RuntimeOrigin::signed(RELAYALICE), para_a_account(), 1_000u128));
+	});
+
+	ParaA::execute_with(|| {
+		let total_fee = 1_000u128;
+		let total_weight:u64 = 1_000_000_000;
+		let tx_weight: u64 = 500_000_000;
+		// Root can set transact info
+		assert_ok!(XcmTransactor::hrmp_manange(
+			parachain::RuntimeOrigin::root(),
+			parachain::MockTransactors::Relay,
+			HrmpOperation::InitOpen(HrmpInitParams {
+				para_id: 2u32.into(),
+				proposed_max_capacity: 1,
+				proposed_max_message_size: 1
+			}),
+			CurrencyPayment {
+				currency: Currency::AsMultiLocation(Box::new(xcm::VersionedMultiLocation::V1(
+					MultiLocation::parent()
+				))),
+				fee_amount: Some(total_fee)
+			},
+			TransactWeights {
+				transact_required_weight_at_most: tx_weight,
+				overall_weight: Some(total_weight)
+			}
+		));
+	});
+	Relay::execute_with(|| {
+		println!("relay events {:?}", relay_chain::relay_events())
 	});
 }
 

@@ -255,6 +255,13 @@ impl ump::Config for Runtime {
 	type WeightInfo = ump::TestWeightInfo;
 }
 
+impl polkadot_runtime_parachains::hrmp::Config for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type WeightInfo = ();
+}
+
 impl origin::Config for Runtime {}
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
@@ -272,6 +279,7 @@ construct_runtime!(
 		ParasUmp: ump::{Pallet, Call, Storage, Event},
 		XcmPallet: pallet_xcm::{Pallet, Call, Storage, Event<T>, Origin},
 		Utility: pallet_utility::{Pallet, Call, Event},
+		Hrmp: polkadot_runtime_parachains::hrmp::{Pallet, Call, Storage, Event<T>, Config},
 	}
 );
 
