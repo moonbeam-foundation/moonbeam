@@ -782,6 +782,7 @@ impl Default for ProxyType {
 
 use precompiles::PrecompileName;
 impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
+	// TODO: add opengov precompiles
 	fn evm_proxy_filter(
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
@@ -792,10 +793,21 @@ impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
 			ProxyType::Any => {
 				//
 				match PrecompileName::from_address(call.to.0) {
-					// Any precompile that can execute a subcall should be forbidden here
-					// (except proxy), to ensure that unauthorized smart contract can't be called.
-					Some(PrecompileName::BatchPrecompile) => false,
-					Some(_precompile_name) => true,
+					// Any precompile that can execute a subcall should be forbidden here,
+					// to ensure that unauthorized smart contract can't be called
+					// indirectly.
+					// To be safe, we only allow the precompiles we need.
+					Some(
+						PrecompileName::AuthorMappingPrecompile
+						| PrecompileName::DemocracyPrecompile
+						| PrecompileName::ParachainStakingPrecompile
+						| PrecompileName::CrowdloanRewardsPrecompile
+						| PrecompileName::CouncilInstance
+						| PrecompileName::TechCommitteeInstance
+						| PrecompileName::TreasuryCouncilInstance,
+					) => true,
+					// All non-whitelisted precompiles are forbidden
+					Some(_) => false,
 					// Allow evm transfer to "simple" account (no code nor precompile)
 					// For the moment, no smart contract other than precompiles is allowed.
 					// In the future, we may create a dynamic whitelist to authorize some audited
