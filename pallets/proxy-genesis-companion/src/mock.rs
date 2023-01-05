@@ -128,7 +128,7 @@ parameter_types! {
 )]
 pub struct ProxyType;
 
-impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {}
+impl pallet_evm_precompile_proxy::EvmInstanceFilter for ProxyType {}
 
 impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, _c: &RuntimeCall) -> bool {

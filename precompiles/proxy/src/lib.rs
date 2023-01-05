@@ -47,9 +47,10 @@ pub struct EvmSubCall {
 	pub call_data: BoundedBytes<ConstU32<CALL_DATA_LIMIT>>,
 }
 
-/// Simple trait for providing a filter over a reference to some type, given an instance of itself.
-pub trait EvmProxyFilter: Sized + Send + Sync {
-	fn evm_proxy_filter(&self, _call: &EvmSubCall, _recipient_has_code: bool) -> bool {
+/// A trait to filter if an evm subcall is allowed or not.
+pub trait EvmInstanceFilter: Sized + Send + Sync {
+	/// If the filter returns `false`, then the subcall must be omitted.
+	fn evm_filter(&self, _call: &EvmSubCall, _recipient_has_code: bool) -> bool {
 		false
 	}
 }
@@ -63,7 +64,7 @@ where
 	Runtime: pallet_proxy::Config + pallet_evm::Config + frame_system::Config,
 	<<Runtime as pallet_proxy::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
 		From<Option<Runtime::AccountId>>,
-	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmProxyFilter,
+	<Runtime as pallet_proxy::Config>::ProxyType: Decode + EvmInstanceFilter,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -300,8 +301,7 @@ where
 
 		// Apply proxy type filter
 		frame_support::ensure!(
-			def.proxy_type
-				.evm_proxy_filter(&evm_subcall, recipient_has_code),
+			def.proxy_type.evm_filter(&evm_subcall, recipient_has_code),
 			revert("CallFiltered")
 		);
 

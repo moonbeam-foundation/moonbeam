@@ -781,9 +781,9 @@ impl Default for ProxyType {
 }
 
 use precompiles::PrecompileName;
-impl pallet_evm_precompile_proxy::EvmProxyFilter for ProxyType {
+impl pallet_evm_precompile_proxy::EvmInstanceFilter for ProxyType {
 	// TODO: add opengov precompiles
-	fn evm_proxy_filter(
+	fn evm_filter(
 		&self,
 		call: &pallet_evm_precompile_proxy::EvmSubCall,
 		recipient_has_code: bool,
