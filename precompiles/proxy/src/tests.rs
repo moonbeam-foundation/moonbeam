@@ -23,8 +23,8 @@ use pallet_evm::Call as EvmCall;
 use pallet_proxy::{
 	Call as ProxyCall, Event as ProxyEvent, Pallet as ProxyPallet, ProxyDefinition,
 };
-use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
 use precompile_utils::precompile_set::AddressU64;
+use precompile_utils::{assert_event_emitted, assert_event_not_emitted, prelude::*, testing::*};
 use sp_core::{Get, H160, U256};
 use std::str::from_utf8;
 
@@ -640,11 +640,13 @@ fn succeed_if_called_by_precompile() {
 		})
 }
 
-
 #[test]
 fn proxy_proxy_should_fail_if_called_by_precompile() {
 	ExtBuilder::default()
-		.with_balances(vec![(AddressU64::<1>::get().into(), 1000), (Bob.into(), 1000)])
+		.with_balances(vec![
+			(AddressU64::<1>::get().into(), 1000),
+			(Bob.into(), 1000),
+		])
 		.build()
 		.execute_with(|| {
 			PrecompilesValue::get()
