@@ -19,11 +19,13 @@
 
 use fp_evm::PrecompileHandle;
 use frame_support::dispatch::{Dispatchable, GetDispatchInfo, PostDispatchInfo};
-use frame_support::traits::{schedule::DispatchTime, Bounded, Currency, Get, OriginTrait};
+use frame_support::traits::{
+	schedule::DispatchTime, Bounded, ConstU32, Currency, Get, OriginTrait,
+};
 use pallet_evm::AddressMapping;
 use pallet_referenda::{Call as ReferendaCall, DecidingCount, ReferendumCount, TracksInfo};
 use precompile_utils::prelude::*;
-use sp_core::{H256, U256};
+use sp_core::U256;
 use sp_std::marker::PhantomData;
 
 #[cfg(test)]
@@ -31,6 +33,9 @@ mod mock;
 // #[cfg(test)]
 // mod tests;
 
+pub const CALL_DATA_LIMIT: u32 = 2u32.pow(16);
+
+type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 type BalanceOf<Runtime> = <<Runtime as pallet_referenda::Config>::Currency as Currency<
 	<Runtime as frame_system::Config>::AccountId,
 >>::Balance;
@@ -50,10 +55,7 @@ pub struct ReferendaPrecompile<Runtime>(PhantomData<Runtime>);
 impl<Runtime> ReferendaPrecompile<Runtime>
 where
 	Runtime: pallet_referenda::Config + pallet_evm::Config + frame_system::Config,
-	<<Runtime as pallet_referenda::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
-		From<Option<Runtime::AccountId>>,
 	OriginOf<Runtime>: From<pallet_governance_origins::Origin>,
-	BoundedCallOf<Runtime>: TryFrom<H256>,
 	<Runtime as frame_system::Config>::RuntimeCall:
 		Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 	<<Runtime as frame_system::Config>::RuntimeCall as Dispatchable>::RuntimeOrigin:
@@ -142,14 +144,14 @@ where
 	///
 	/// Parameters:
 	/// * proposal_origin: The origin from which the proposal should be executed.
-	/// * proposal_hash: Hash of the proposal preimage.
+	/// * proposal: The proposed runtime call.
 	/// * at: If true then AT block_number, else AFTER block_number
 	/// * block_number: Inner block number for DispatchTime
 	#[precompile::public("submit(uint8,bytes32,bool,uint32)")]
 	fn submit(
 		handle: &mut impl PrecompileHandle,
 		proposal_origin: u8,
-		proposal_hash: H256,
+		proposal: BoundedBytes<GetCallDataLimit>,
 		at: bool,
 		block_number: u32,
 	) -> EvmResult {
@@ -158,9 +160,11 @@ where
 				RevertReason::custom("Origin does not exist for u8").in_field("proposal_origin")
 			})?;
 		let proposal_origin: Box<OriginOf<Runtime>> = Box::new(gov_origin.into());
-		let proposal: BoundedCallOf<Runtime> = proposal_hash.try_into().map_err(|_| {
-			RevertReason::custom("Proposal hash input is not H256").in_field("proposal_hash")
-		})?;
+		let proposal: BoundedCallOf<Runtime> = Bounded::Inline(
+			frame_support::BoundedVec::try_from(proposal.as_bytes().to_vec()).map_err(|_| {
+				RevertReason::custom("Proposal input is not a runtime call").in_field("proposal")
+			})?,
+		);
 		let enactment_moment: DispatchTime<Runtime::BlockNumber> = if at {
 			DispatchTime::At(block_number.into())
 		} else {
