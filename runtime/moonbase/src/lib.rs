@@ -403,8 +403,6 @@ parameter_types! {
 pub struct TransactionPaymentAsGasPrice;
 impl FeeCalculator for TransactionPaymentAsGasPrice {
 	fn min_gas_price() -> (U256, Weight) {
-		// TODO: return real weight (or should it be treated as a free read since it's read so
-		//       frequently?)
 		// TODO: transaction-payment differs from EIP-1559 in that its tip and length fees are not
 		//       scaled by the multiplier, which means its multiplier will be overstated when
 		//       applied to an ethereum transaction
