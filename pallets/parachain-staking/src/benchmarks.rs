@@ -874,7 +874,7 @@ benchmarks! {
 	}
 
 	get_rewardable_delegators {
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -920,7 +920,7 @@ benchmarks! {
 
 	select_top_candidates {
 		let x in 0..50; // num collators
-		let y in 0..50; // num delegators
+		let y in 0..<<T as Config>::MaxDelegationsPerDelegator as Get<u32>>::get(); // num delegators
 
 		let high_inflation: Range<Perbill> = Range {
 			min: Perbill::one(),
@@ -1101,7 +1101,7 @@ benchmarks! {
 		let prime_delegator = create_funded_delegator::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (y+1).into(),
 			prime_candidate.clone(),
 			true,
 			0,
@@ -1193,7 +1193,7 @@ benchmarks! {
 		let (prime_delegator, _) = create_funded_user::<T>(
 			"delegator",
 			seed.take(),
-			min_delegator_stake * (x+1).into(),
+			min_delegator_stake * (z+1).into(),
 		);
 
 		// have x-1 distinct delegators delegate to prime collator, of which y are auto-compounding.
